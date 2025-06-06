@@ -9,6 +9,72 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      newsletter_campaigns: {
+        Row: {
+          blog_post_id: string | null
+          content: string
+          created_at: string
+          id: string
+          recipient_count: number | null
+          sent_at: string | null
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          blog_post_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          recipient_count?: number | null
+          sent_at?: string | null
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          blog_post_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          recipient_count?: number | null
+          sent_at?: string | null
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          name: string | null
+          preferences: Json | null
+          subscribed_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          name?: string | null
+          preferences?: Json | null
+          subscribed_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          name?: string | null
+          preferences?: Json | null
+          subscribed_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import NewsletterSignup from '@/components/NewsletterSignup';
 
 interface BlogPost {
   id: string;
@@ -62,6 +62,11 @@ const Blog = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Discover travel tips, destination guides, and insider insights for your next vacation rental adventure.
           </p>
+        </div>
+
+        {/* Newsletter Signup Section */}
+        <div className="max-w-md mx-auto mb-12">
+          <NewsletterSignup />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
