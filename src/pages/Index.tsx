@@ -33,12 +33,14 @@ const Index = () => {
                 Welcome back! You have full access to manage the Moxie Vacation Rentals website.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button variant="outline" className="p-6 h-auto">
-                  <div className="text-center">
-                    <h3 className="font-semibold">Manage Properties</h3>
-                    <p className="text-sm text-gray-500">Add and edit rental properties</p>
-                  </div>
-                </Button>
+                <Link to="/properties">
+                  <Button variant="outline" className="p-6 h-auto w-full">
+                    <div className="text-center">
+                      <h3 className="font-semibold">Manage Properties</h3>
+                      <p className="text-sm text-gray-500">Add and edit rental properties</p>
+                    </div>
+                  </Button>
+                </Link>
                 <Button variant="outline" className="p-6 h-auto">
                   <div className="text-center">
                     <h3 className="font-semibold">Blog Management</h3>
