@@ -18,13 +18,20 @@ const Index = () => {
             Your perfect getaway is just a click away.
           </p>
           
-          {!user && (
-            <Link to="/auth">
-              <Button size="lg" className="mr-4">
-                Admin Access
+          <div className="flex gap-4 justify-center">
+            <Link to="/blog">
+              <Button size="lg">
+                Explore Our Blog
               </Button>
             </Link>
-          )}
+            {!user && (
+              <Link to="/auth">
+                <Button size="lg" variant="outline">
+                  Admin Access
+                </Button>
+              </Link>
+            )}
+          </div>
           
           {user && (
             <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto mt-8">
@@ -41,12 +48,14 @@ const Index = () => {
                     </div>
                   </Button>
                 </Link>
-                <Button variant="outline" className="p-6 h-auto">
-                  <div className="text-center">
-                    <h3 className="font-semibold">Blog Management</h3>
-                    <p className="text-sm text-gray-500">Create SEO-optimized content</p>
-                  </div>
-                </Button>
+                <Link to="/blog-management">
+                  <Button variant="outline" className="p-6 h-auto w-full">
+                    <div className="text-center">
+                      <h3 className="font-semibold">Blog Management</h3>
+                      <p className="text-sm text-gray-500">Create SEO-optimized content</p>
+                    </div>
+                  </Button>
+                </Link>
                 <Button variant="outline" className="p-6 h-auto">
                   <div className="text-center">
                     <h3 className="font-semibold">User Management</h3>

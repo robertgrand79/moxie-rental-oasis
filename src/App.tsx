@@ -8,6 +8,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Properties from "./pages/Properties";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
+import BlogManagement from "./pages/BlogManagement";
 import NotFound from "./pages/NotFound";
 import NavBar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -25,11 +28,21 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route 
               path="/properties" 
               element={
                 <ProtectedRoute>
                   <Properties />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/blog-management" 
+              element={
+                <ProtectedRoute>
+                  <BlogManagement />
                 </ProtectedRoute>
               } 
             />
