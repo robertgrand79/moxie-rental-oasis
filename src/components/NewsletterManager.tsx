@@ -8,6 +8,7 @@ import { Send, Users, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useForm } from 'react-hook-form';
+import TiptapEditor from './TiptapEditor';
 
 interface NewsletterForm {
   subject: string;
@@ -18,6 +19,7 @@ interface NewsletterForm {
 const NewsletterManager = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
+  const [content, setContent] = useState('');
   const { toast } = useToast();
   
   const form = useForm<NewsletterForm>({
@@ -53,7 +55,7 @@ const NewsletterManager = () => {
       const { data: result, error } = await supabase.functions.invoke('send-newsletter', {
         body: {
           subject: data.subject,
-          content: data.content,
+          content: content,
           blogPostId: data.blogPostId || undefined,
         }
       });
@@ -68,6 +70,7 @@ const NewsletterManager = () => {
       });
       
       form.reset();
+      setContent('');
     } catch (error: any) {
       console.error('Newsletter send error:', error);
       toast({
@@ -82,8 +85,8 @@ const NewsletterManager = () => {
 
   const generateBlogNewsletter = (title: string, excerpt: string, slug: string) => {
     form.setValue('subject', `New Post: ${title}`);
-    form.setValue('content', `
-      <h3>${title}</h3>
+    const newsletterContent = `
+      <h2>${title}</h2>
       <p>${excerpt}</p>
       <p>
         <a href="${window.location.origin}/blog/${slug}" 
@@ -91,7 +94,8 @@ const NewsletterManager = () => {
           Read Full Article
         </a>
       </p>
-    `);
+    `;
+    setContent(newsletterContent);
     form.setValue('blogPostId', slug);
   };
 
@@ -139,23 +143,17 @@ const NewsletterManager = () => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Newsletter Content</FormLabel>
-                    <FormControl>
-                      <textarea
-                        className="w-full min-h-[200px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Write your newsletter content here... You can use HTML for formatting."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div>
+                <FormLabel>Newsletter Content</FormLabel>
+                <div className="mt-2">
+                  <TiptapEditor
+                    content={content}
+                    onChange={setContent}
+                    placeholder="Write your newsletter content here..."
+                    className="min-h-[300px]"
+                  />
+                </div>
+              </div>
 
               <FormField
                 control={form.control}

@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, X, Eye } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
+import TiptapEditor from './TiptapEditor';
 
 interface BlogPost {
   id: string;
@@ -31,12 +31,11 @@ interface BlogFormProps {
 const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(post?.imageUrl || null);
-  const [activeTab, setActiveTab] = useState('write');
+  const [content, setContent] = useState(post?.content || '');
 
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors }
   } = useForm({
@@ -48,8 +47,6 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       status: post?.status || 'draft'
     }
   });
-
-  const watchedContent = watch('content');
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -95,24 +92,19 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
     setUploadedImage(null);
   };
 
+  const handleContentChange = (newContent: string) => {
+    setContent(newContent);
+    setValue('content', newContent);
+  };
+
   const onFormSubmit = (data: any) => {
     const formData = {
       ...data,
+      content,
       imageUrl: uploadedImage,
       tags: data.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag),
     };
     onSubmit(formData);
-  };
-
-  const renderMarkdownPreview = (content: string) => {
-    // Simple markdown preview (in a real app, you'd use a proper markdown parser)
-    return content
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-      .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-      .replace(/\*(.*)\*/gim, '<em>$1</em>')
-      .replace(/\n/gim, '<br>');
   };
 
   return (
@@ -225,31 +217,17 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
 
           <div>
             <Label>Content</Label>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-              <TabsList>
-                <TabsTrigger value="write">Write</TabsTrigger>
-                <TabsTrigger value="preview">Preview</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="write">
-                <Textarea
-                  {...register('content', { required: 'Content is required' })}
-                  placeholder="Write your blog post content here... You can use Markdown formatting."
-                  rows={15}
-                  className="font-mono"
-                />
-                {errors.content && (
-                  <p className="text-sm text-red-600 mt-1">{errors.content.message}</p>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="preview">
-                <div 
-                  className="min-h-[300px] p-4 border rounded-md bg-white prose max-w-none"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdownPreview(watchedContent || '') }}
-                />
-              </TabsContent>
-            </Tabs>
+            <div className="mt-2">
+              <TiptapEditor
+                content={content}
+                onChange={handleContentChange}
+                placeholder="Write your blog post content here..."
+                className="min-h-[400px]"
+              />
+              {errors.content && (
+                <p className="text-sm text-red-600 mt-1">{errors.content.message}</p>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-4 pt-4">
