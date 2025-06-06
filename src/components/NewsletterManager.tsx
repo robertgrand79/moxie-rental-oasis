@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Send, Users, Mail, Eye } from 'lucide-react';
@@ -187,7 +188,7 @@ const NewsletterManager = () => {
               />
 
               <div>
-                <FormLabel>Newsletter Content</FormLabel>
+                <Label>Newsletter Content</Label>
                 <div className="mt-2">
                   <TiptapEditor
                     content={content}
@@ -240,7 +241,7 @@ const NewsletterManager = () => {
         <CardContent>
           <div className="space-y-4">
             <div>
-              <FormLabel>Preview Email Address</FormLabel>
+              <Label>Preview Email Address</Label>
               <Input
                 placeholder="Enter email address for preview..."
                 value={previewEmail}
