@@ -7,7 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import { LogOut, User } from 'lucide-react';
 
 const NavBar = () => {
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -43,7 +43,6 @@ const NavBar = () => {
                 <span className="text-sm text-gray-600 flex items-center">
                   <User className="h-4 w-4 mr-1" />
                   {user.email}
-                  {isAdmin && <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Admin</span>}
                 </span>
                 <Button
                   variant="outline"

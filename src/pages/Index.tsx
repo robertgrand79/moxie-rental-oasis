@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -26,11 +26,11 @@ const Index = () => {
             </Link>
           )}
           
-          {user && isAdmin && (
+          {user && (
             <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto mt-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Admin Dashboard</h2>
               <p className="text-gray-600 mb-6">
-                Welcome back! You have admin access to manage the Moxie Vacation Rentals website.
+                Welcome back! You have full access to manage the Moxie Vacation Rentals website.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Button variant="outline" className="p-6 h-auto">
