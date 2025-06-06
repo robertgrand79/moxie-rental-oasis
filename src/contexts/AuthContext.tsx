@@ -38,19 +38,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          // Fetch user profile with better error handling
           setTimeout(async () => {
-            console.log('Fetching profile for user:', session.user.id);
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            
-            console.log('Profile data:', profile);
-            console.log('Profile error:', error);
-            
-            setUserProfile(profile);
+            try {
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
+              
+              if (error) {
+                console.error('Error fetching profile:', error);
+              } else {
+                console.log('Profile loaded:', profile);
+                setUserProfile(profile);
+              }
+            } catch (err) {
+              console.error('Unexpected error fetching profile:', err);
+            }
           }, 0);
         } else {
           setUserProfile(null);
@@ -101,10 +106,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAdmin = userProfile?.role === 'admin';
-  
-  console.log('Current user profile:', userProfile);
-  console.log('Is admin?', isAdmin);
-  console.log('User role:', userProfile?.role);
 
   const value = {
     user,
