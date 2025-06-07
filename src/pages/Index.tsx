@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -21,30 +20,15 @@ const Index = () => {
             Your perfect getaway is just a click away.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 px-4">
-            <Link to="/blog">
-              <Button size="lg" className="w-full sm:w-auto">
-                Explore Our Blog
-              </Button>
-            </Link>
-            <Link to="/experiences">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                View Experiences
-              </Button>
-            </Link>
-            <Link to="/foodie">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Culinary Adventures
-              </Button>
-            </Link>
-            {!user && (
+          {!user && (
+            <div className="flex justify-center mb-6 sm:mb-8 px-4">
               <Link to="/auth">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto">
                   Admin Access
                 </Button>
               </Link>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Search Bar */}
