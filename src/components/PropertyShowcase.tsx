@@ -1,17 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Bed, Bath, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 
 interface Property {
   id: string;
@@ -90,18 +82,6 @@ const featuredProperties: Property[] = [
 ];
 
 const PropertyShowcase = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const propertiesPerPage = 3;
-  
-  const totalPages = Math.ceil(featuredProperties.length / propertiesPerPage);
-  const startIndex = (currentPage - 1) * propertiesPerPage;
-  const endIndex = startIndex + propertiesPerPage;
-  const currentProperties = featuredProperties.slice(startIndex, endIndex);
-
-  const goToPage = (page: number) => {
-    setCurrentPage(page);
-  };
-
   return (
     <section className="py-12 sm:py-16 bg-background">
       <div className="container mx-auto px-4">
@@ -115,7 +95,7 @@ const PropertyShowcase = () => {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {currentProperties.map((property) => (
+          {featuredProperties.map((property) => (
             <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-video relative">
                 <img 
@@ -166,41 +146,6 @@ const PropertyShowcase = () => {
             </Card>
           ))}
         </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="mt-12">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => currentPage > 1 && goToPage(currentPage - 1)}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      onClick={() => goToPage(page)}
-                      isActive={currentPage === page}
-                      className="cursor-pointer"
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                
-                <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => currentPage < totalPages && goToPage(currentPage + 1)}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
       </div>
     </section>
   );
