@@ -82,18 +82,18 @@ const mockProperties: Property[] = [
 
 const PropertyShowcase = () => {
   return (
-    <section className="py-16 bg-background">
+    <section className="py-12 sm:py-16 bg-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             Featured Properties
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
             Discover our handpicked collection of premium vacation rentals in the most desirable destinations.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {mockProperties.map((property) => (
             <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-video relative">
@@ -103,14 +103,14 @@ const PropertyShowcase = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <CardHeader>
-                <CardTitle className="text-xl">{property.title}</CardTitle>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl">{property.title}</CardTitle>
                 <CardDescription className="flex items-center text-sm">
                   <MapPin className="h-4 w-4 mr-1" />
                   {property.location}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6 pt-0">
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                   {property.description}
                 </p>
@@ -130,12 +130,12 @@ const PropertyShowcase = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="font-semibold text-lg">
                     ${property.pricePerNight}
                     <span className="text-sm font-normal text-muted-foreground">/night</span>
                   </div>
-                  <Button size="sm">
+                  <Button size="sm" className="w-full sm:w-auto">
                     Book Now
                   </Button>
                 </div>
