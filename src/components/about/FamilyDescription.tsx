@@ -4,6 +4,15 @@ import React from 'react';
 const FamilyDescription = () => {
   return (
     <div>
+      <div className="mb-8">
+        <h4 className="text-2xl font-bold text-gray-900 mb-4">Meet the dynamic duo</h4>
+        <div className="flex gap-4 text-xl font-semibold text-gray-800">
+          <span>Robert</span>
+          <span>&</span>
+          <span>Shelly</span>
+        </div>
+      </div>
+      
       <div className="space-y-6 text-gray-600 text-lg leading-relaxed">
         <p>
           Meet the dynamic duo behind Moxie Vacation Rentals: Robert and Shelly. Hailing from Oregon, 
