@@ -32,8 +32,8 @@ export const PageBuilder = ({ initialContent, onContentChange }: PageBuilderProp
         <div className="flex-1 bg-gray-50 p-4 overflow-auto">
           <div className="bg-white min-h-96 rounded-lg shadow-sm">
             <Frame data={initialContent}>
-              <Element is={Container} canvas>
-                <Text text="Start building your page by dragging components from the left panel" />
+              <Element is={Container} canvas background="#ffffff" padding={20}>
+                <Text text="Start building your page by dragging components from the left panel" fontSize={16} textAlign="left" color="#000000" />
               </Element>
             </Frame>
           </div>

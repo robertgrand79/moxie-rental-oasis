@@ -2,7 +2,14 @@
 import React from 'react';
 import { useNode } from '@craftjs/core';
 
-export const Text = ({ text, fontSize, textAlign, color }) => {
+interface TextProps {
+  text: string;
+  fontSize: number;
+  textAlign: 'left' | 'center' | 'right';
+  color: string;
+}
+
+export const Text = ({ text, fontSize, textAlign, color }: TextProps) => {
   const { connectors: { connect, drag } } = useNode();
   
   return (

@@ -2,7 +2,13 @@
 import React from 'react';
 import { useNode } from '@craftjs/core';
 
-export const Container = ({ background, padding, children }) => {
+interface ContainerProps {
+  background: string;
+  padding: number;
+  children?: React.ReactNode;
+}
+
+export const Container = ({ background, padding, children }: ContainerProps) => {
   const { connectors: { connect, drag } } = useNode();
   
   return (

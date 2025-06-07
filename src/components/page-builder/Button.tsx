@@ -3,7 +3,14 @@ import React from 'react';
 import { useNode } from '@craftjs/core';
 import { Button as UIButton } from '@/components/ui/button';
 
-export const BuilderButton = ({ text, backgroundColor, textColor, href }) => {
+interface BuilderButtonProps {
+  text: string;
+  backgroundColor: string;
+  textColor: string;
+  href: string;
+}
+
+export const BuilderButton = ({ text, backgroundColor, textColor, href }: BuilderButtonProps) => {
   const { connectors: { connect, drag } } = useNode();
   
   return (

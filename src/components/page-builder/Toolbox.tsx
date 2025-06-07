@@ -15,7 +15,7 @@ export const Toolbox = () => {
       <h3 className="text-lg font-semibold mb-4">Components</h3>
       <div className="space-y-2">
         <Button
-          ref={(ref) => connectors.create(ref, <TextComponent text="Add some text" />)}
+          ref={(ref) => connectors.create(ref, <TextComponent text="Add some text" fontSize={16} textAlign="left" color="#000000" />)}
           variant="outline"
           className="w-full justify-start"
         >
@@ -24,7 +24,7 @@ export const Toolbox = () => {
         </Button>
         
         <Button
-          ref={(ref) => connectors.create(ref, <BuilderButton text="Button" />)}
+          ref={(ref) => connectors.create(ref, <BuilderButton text="Button" backgroundColor="#3b82f6" textColor="#ffffff" href="" />)}
           variant="outline"
           className="w-full justify-start"
         >
@@ -34,8 +34,8 @@ export const Toolbox = () => {
         
         <Button
           ref={(ref) => connectors.create(ref, 
-            <Element is={Container} canvas>
-              <TextComponent text="Drop components here" />
+            <Element is={Container} canvas background="#ffffff" padding={20}>
+              <TextComponent text="Drop components here" fontSize={16} textAlign="left" color="#000000" />
             </Element>
           )}
           variant="outline"
