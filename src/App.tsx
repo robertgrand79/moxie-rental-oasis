@@ -12,6 +12,10 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import BlogManagement from "./pages/BlogManagement";
 import SiteSettings from "./pages/SiteSettings";
+import SearchResults from "./pages/SearchResults";
+import About from "./pages/About";
+import Foodie from "./pages/Foodie";
+import Experiences from "./pages/Experiences";
 import NotFound from "./pages/NotFound";
 import NavBar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -31,6 +35,10 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/search" element={<SearchResults />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/foodie" element={<Foodie />} />
+            <Route path="/experiences" element={<Experiences />} />
             <Route 
               path="/properties" 
               element={

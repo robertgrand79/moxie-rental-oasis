@@ -1,14 +1,18 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import PropertyShowcase from '@/components/PropertyShowcase';
+import HospitableSearchBar from '@/components/HospitableSearchBar';
 
 const Index = () => {
   const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
+      {/* Hero Section */}
+      <div className="relative py-24 px-4">
+        <div className="container mx-auto text-center">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             Welcome to Moxie Vacation Rentals
           </h1>
@@ -17,10 +21,20 @@ const Index = () => {
             Your perfect getaway is just a click away.
           </p>
           
-          <div className="flex gap-4 justify-center">
+          <div className="flex gap-4 justify-center mb-8">
             <Link to="/blog">
               <Button size="lg">
                 Explore Our Blog
+              </Button>
+            </Link>
+            <Link to="/experiences">
+              <Button size="lg" variant="outline">
+                View Experiences
+              </Button>
+            </Link>
+            <Link to="/foodie">
+              <Button size="lg" variant="outline">
+                Culinary Adventures
               </Button>
             </Link>
             {!user && (
@@ -31,9 +45,14 @@ const Index = () => {
               </Link>
             )}
           </div>
-          
-          {user && (
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto mt-8">
+        </div>
+
+        {/* Search Bar */}
+        <HospitableSearchBar />
+
+        {user && (
+          <div className="container mx-auto px-4 mt-16">
+            <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Admin Dashboard</h2>
               <p className="text-gray-600 mb-6">
                 Welcome back! You have full access to manage the Moxie Vacation Rentals website.
@@ -71,10 +90,16 @@ const Index = () => {
                 </Link>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Property Showcase */}
+      <PropertyShowcase />
         
-        <div className="grid md:grid-cols-3 gap-8 mt-16">
+      {/* Features Section */}
+      <div className="container mx-auto px-4 pb-16">
+        <div className="grid md:grid-cols-3 gap-8">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-3">Premium Locations</h3>
             <p className="text-gray-600">
