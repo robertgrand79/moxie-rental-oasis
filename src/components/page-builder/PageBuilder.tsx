@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Editor, Frame, Element } from '@craftjs/core';
+import { Editor, Frame, Element, useEditor } from '@craftjs/core';
 import { Toolbox } from './Toolbox';
 import { SettingsPanel } from './SettingsPanel';
 import { Text } from './Text';
@@ -12,6 +12,19 @@ interface PageBuilderProps {
   onContentChange?: (content: string) => void;
 }
 
+const ContentUpdater = ({ onContentChange }: { onContentChange?: (content: string) => void }) => {
+  const { query } = useEditor();
+  
+  React.useEffect(() => {
+    if (onContentChange) {
+      const serializedState = query.serialize();
+      onContentChange(serializedState);
+    }
+  });
+
+  return null;
+};
+
 export const PageBuilder = ({ initialContent, onContentChange }: PageBuilderProps) => {
   return (
     <div className="h-full flex">
@@ -21,12 +34,8 @@ export const PageBuilder = ({ initialContent, onContentChange }: PageBuilderProp
           BuilderButton,
           Container
         }}
-        onRender={({ render }) => {
-          if (onContentChange) {
-            onContentChange(render);
-          }
-        }}
       >
+        <ContentUpdater onContentChange={onContentChange} />
         <Toolbox />
         
         <div className="flex-1 bg-gray-50 p-4 overflow-auto">
