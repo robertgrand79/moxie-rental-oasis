@@ -60,8 +60,17 @@
     --gradient-accent-from: 220 6% 88%;
     --gradient-accent-to: 220 4% 96%;
 
-    /* Icon gray color */
+    /* Icon colors for enhanced visual hierarchy */
     --icon-gray: 0 0% 66.3%;
+    --icon-blue: 217 91% 60%;
+    --icon-green: 142 76% 36%;
+    --icon-orange: 25 95% 53%;
+    --icon-purple: 262 83% 58%;
+    --icon-teal: 173 58% 39%;
+    --icon-amber: 43 96% 56%;
+    --icon-rose: 330 81% 60%;
+    --icon-emerald: 160 84% 39%;
+    --icon-indigo: 239 84% 67%;
   }
 
   .dark {
@@ -108,8 +117,17 @@
     --gradient-accent-from: 220 6% 78%;
     --gradient-accent-to: 220 6% 72%;
 
-    /* Icon gray color for dark mode */
+    /* Icon colors for dark mode */
     --icon-gray: 0 0% 66.3%;
+    --icon-blue: 217 91% 65%;
+    --icon-green: 142 76% 41%;
+    --icon-orange: 25 95% 58%;
+    --icon-purple: 262 83% 63%;
+    --icon-teal: 173 58% 44%;
+    --icon-amber: 43 96% 61%;
+    --icon-rose: 330 81% 65%;
+    --icon-emerald: 160 84% 44%;
+    --icon-indigo: 239 84% 72%;
   }
 }
 

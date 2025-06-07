@@ -68,7 +68,16 @@ export default {
 				'gradient-to': 'hsl(var(--gradient-to))',
 				'gradient-accent-from': 'hsl(var(--gradient-accent-from))',
 				'gradient-accent-to': 'hsl(var(--gradient-accent-to))',
-				'icon-gray': 'hsl(var(--icon-gray))'
+				'icon-gray': 'hsl(var(--icon-gray))',
+				'icon-blue': 'hsl(var(--icon-blue))',
+				'icon-green': 'hsl(var(--icon-green))',
+				'icon-orange': 'hsl(var(--icon-orange))',
+				'icon-purple': 'hsl(var(--icon-purple))',
+				'icon-teal': 'hsl(var(--icon-teal))',
+				'icon-amber': 'hsl(var(--icon-amber))',
+				'icon-rose': 'hsl(var(--icon-rose))',
+				'icon-emerald': 'hsl(var(--icon-emerald))',
+				'icon-indigo': 'hsl(var(--icon-indigo))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
