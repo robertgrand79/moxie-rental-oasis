@@ -7,9 +7,9 @@ import WhyMoxieSection from '@/components/home/WhyMoxieSection';
 import AmenitiesSection from '@/components/home/AmenitiesSection';
 import SocialProofSection from '@/components/home/SocialProofSection';
 import EugeneInfoSection from '@/components/home/EugeneInfoSection';
-import LifestyleGallerySection from '@/components/home/LifestyleGallerySection';
-import WhatsNearbySection from '@/components/home/WhatsNearbySection';
-import EugeneEventsSection from '@/components/home/EugeneEventsSection';
+import EnhancedLifestyleGallerySection from '@/components/home/EnhancedLifestyleGallerySection';
+import EnhancedWhatsNearbySection from '@/components/home/EnhancedWhatsNearbySection';
+import EnhancedEugeneEventsSection from '@/components/home/EnhancedEugeneEventsSection';
 import BookingBenefitsSection from '@/components/home/BookingBenefitsSection';
 import FinalFeaturesSection from '@/components/home/FinalFeaturesSection';
 import NavBar from '@/components/NavBar';
@@ -28,9 +28,9 @@ const Index = () => {
         <WhyMoxieSection />
         <AmenitiesSection />
         <EugeneInfoSection />
-        <LifestyleGallerySection />
-        <WhatsNearbySection />
-        <EugeneEventsSection />
+        <EnhancedLifestyleGallerySection />
+        <EnhancedWhatsNearbySection />
+        <EnhancedEugeneEventsSection />
         <BookingBenefitsSection />
         <FinalFeaturesSection />
       </main>
