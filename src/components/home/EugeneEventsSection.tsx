@@ -5,26 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin, ExternalLink, Ticket } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { format, isAfter, parseISO } from 'date-fns';
-
-interface EugeneEvent {
-  id: string;
-  title: string;
-  description: string;
-  event_date: string;
-  end_date: string;
-  time_start: string;
-  time_end: string;
-  location: string;
-  category: string;
-  image_url: string;
-  website_url: string;
-  ticket_url: string;
-  price_range: string;
-  is_featured: boolean;
-}
+import { useEugeneEvents } from '@/hooks/useEugeneEvents';
+import { format, parseISO } from 'date-fns';
 
 const categoryLabels = {
   festival: 'Festival',
@@ -35,21 +17,12 @@ const categoryLabels = {
 };
 
 const EugeneEventsSection = () => {
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ['eugene-events'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('eugene_events')
-        .select('*')
-        .eq('is_active', true)
-        .gte('event_date', new Date().toISOString().split('T')[0])
-        .order('event_date', { ascending: true })
-        .limit(6);
-      
-      if (error) throw error;
-      return data as EugeneEvent[];
-    }
-  });
+  const { events, isLoading } = useEugeneEvents();
+
+  // Filter for active events and limit to 6 for homepage display
+  const activeEvents = events
+    .filter(event => event.is_active && new Date(event.event_date) >= new Date())
+    .slice(0, 6);
 
   const formatEventDate = (dateStr: string, endDateStr?: string) => {
     const startDate = parseISO(dateStr);
@@ -78,7 +51,7 @@ const EugeneEventsSection = () => {
     );
   }
 
-  if (events.length === 0) {
+  if (activeEvents.length === 0) {
     return null;
   }
 
@@ -93,7 +66,7 @@ const EugeneEventsSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
+          {activeEvents.map((event) => (
             <Card
               key={event.id}
               className="group overflow-hidden hover:shadow-lg transition-all duration-300 bg-white"
@@ -191,7 +164,7 @@ const EugeneEventsSection = () => {
           ))}
         </div>
 
-        {events.length > 0 && (
+        {activeEvents.length > 0 && (
           <div className="text-center mt-8">
             <Button variant="outline" size="lg">
               View All Events
