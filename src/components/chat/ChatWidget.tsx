@@ -98,7 +98,7 @@ const ChatWidget = () => {
         </Button>
       ) : (
         <Card className="w-80 h-96 shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-gradient-from to-gradient-accent-from text-white rounded-t-lg">
+          <CardHeader className="bg-gray-800 text-white rounded-t-lg">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Moxie Travel Assistant</CardTitle>
               <Button
