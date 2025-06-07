@@ -75,6 +75,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pages: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by: string
+          id: string
+          is_published: boolean
+          meta_description: string | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          is_published?: boolean
+          meta_description?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_published?: boolean
+          meta_description?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

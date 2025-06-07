@@ -13,6 +13,7 @@ import Properties from "./pages/Properties";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import BlogManagement from "./pages/BlogManagement";
+import PageManagement from "./pages/PageManagement";
 import SiteSettings from "./pages/SiteSettings";
 import SearchResults from "./pages/SearchResults";
 import About from "./pages/About";
@@ -73,6 +74,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Properties />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/page-management" 
+              element={
+                <ProtectedRoute>
+                  <PageManagement />
                 </ProtectedRoute>
               } 
             />
