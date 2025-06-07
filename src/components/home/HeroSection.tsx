@@ -5,17 +5,28 @@ import OptimizedImage from '@/components/ui/optimized-image';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { ArrowRight, MapPin, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const HeroSection = () => {
   const { user } = useAuth();
+  const { getSetting } = useSiteSettings();
+
+  // Get hero content from site settings with fallbacks
+  const heroTitle = getSetting('heroTitle', 'Your Home Away From Home');
+  const heroSubtitle = getSetting('heroSubtitle', 'in Eugene');
+  const heroDescription = getSetting('heroDescription', 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.');
+  const heroBackgroundImage = getSetting('heroBackgroundImage', 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80');
+  const heroLocationText = getSetting('heroLocationText', 'Eugene, Oregon');
+  const heroRating = getSetting('heroRating', '4.9');
+  const heroCTAText = getSetting('heroCTAText', 'View Properties');
 
   return (
     <div className="relative overflow-hidden min-h-screen flex items-center">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <OptimizedImage 
-          src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80"
-          alt="Eugene Oregon landscape"
+          src={heroBackgroundImage}
+          alt={`${heroLocationText} landscape`}
           className="w-full h-full object-cover"
           priority={true}
         />
@@ -29,24 +40,24 @@ const HeroSection = () => {
             {/* Location Badge */}
             <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
               <MapPin className="h-4 w-4 text-white mr-2" />
-              <span className="text-white text-sm font-medium">Eugene, Oregon</span>
+              <span className="text-white text-sm font-medium">{heroLocationText}</span>
               <div className="flex items-center ml-3 pl-3 border-l border-white/30">
                 <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="text-white text-sm ml-1">4.9 Rating</span>
+                <span className="text-white text-sm ml-1">{heroRating} Rating</span>
               </div>
             </div>
 
             {/* Main Heading */}
             <h1 className="text-4xl sm:text-6xl font-bold text-white mb-6 leading-tight">
-              Your Home Away From Home
+              {heroTitle}
               <span className="block text-3xl sm:text-5xl mt-2 text-blue-200">
-                in Eugene
+                {heroSubtitle}
               </span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-              Discover premium vacation rentals in the heart of Oregon's most beautiful city.
+              {heroDescription}
             </p>
 
             {/* CTA Button */}
@@ -57,7 +68,7 @@ const HeroSection = () => {
                 className="text-lg shadow-xl"
                 icon={<ArrowRight className="h-5 w-5" />}
               >
-                View Properties
+                {heroCTAText}
               </EnhancedButton>
             </Link>
           </div>

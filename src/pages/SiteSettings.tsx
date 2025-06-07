@@ -21,8 +21,13 @@ const SiteSettings = () => {
     siteName: 'Moxie Vacation Rentals',
     tagline: 'Your perfect getaway is just a click away.',
     description: 'Discover amazing vacation rental properties in prime locations.',
-    heroTitle: 'Welcome to Moxie Vacation Rentals',
-    heroSubtitle: 'Discover amazing vacation rental properties in prime locations. Your perfect getaway is just a click away.',
+    heroTitle: 'Your Home Away From Home',
+    heroSubtitle: 'in Eugene',
+    heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
+    heroBackgroundImage: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80',
+    heroLocationText: 'Eugene, Oregon',
+    heroRating: '4.9',
+    heroCTAText: 'View Properties',
     contactEmail: 'contact@moxievacationrentals.com',
     phone: '+1 (555) 123-4567',
     address: '123 Vacation St, Resort City, RC 12345',
@@ -60,6 +65,11 @@ const SiteSettings = () => {
       { key: 'description', value: siteData.description },
       { key: 'heroTitle', value: siteData.heroTitle },
       { key: 'heroSubtitle', value: siteData.heroSubtitle },
+      { key: 'heroDescription', value: siteData.heroDescription },
+      { key: 'heroBackgroundImage', value: siteData.heroBackgroundImage },
+      { key: 'heroLocationText', value: siteData.heroLocationText },
+      { key: 'heroRating', value: siteData.heroRating },
+      { key: 'heroCTAText', value: siteData.heroCTAText },
       { key: 'contactEmail', value: siteData.contactEmail },
       { key: 'phone', value: siteData.phone },
       { key: 'address', value: siteData.address },
@@ -167,8 +177,13 @@ const SiteSettings = () => {
         siteName: getSetting('siteName', 'Moxie Vacation Rentals'),
         tagline: getSetting('tagline', 'Your perfect getaway is just a click away.'),
         description: getSetting('description', 'Discover amazing vacation rental properties in prime locations.'),
-        heroTitle: getSetting('heroTitle', 'Welcome to Moxie Vacation Rentals'),
-        heroSubtitle: getSetting('heroSubtitle', 'Discover amazing vacation rental properties in prime locations. Your perfect getaway is just a click away.'),
+        heroTitle: getSetting('heroTitle', 'Your Home Away From Home'),
+        heroSubtitle: getSetting('heroSubtitle', 'in Eugene'),
+        heroDescription: getSetting('heroDescription', 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.'),
+        heroBackgroundImage: getSetting('heroBackgroundImage', 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80'),
+        heroLocationText: getSetting('heroLocationText', 'Eugene, Oregon'),
+        heroRating: getSetting('heroRating', '4.9'),
+        heroCTAText: getSetting('heroCTAText', 'View Properties'),
         contactEmail: getSetting('contactEmail', 'contact@moxievacationrentals.com'),
         phone: getSetting('phone', '+1 (555) 123-4567'),
         address: getSetting('address', '123 Vacation St, Resort City, RC 12345'),
@@ -225,8 +240,9 @@ const SiteSettings = () => {
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="hero">Hero</TabsTrigger>
             <TabsTrigger value="social">
               <Share className="h-4 w-4 mr-1" />
               Social
@@ -296,27 +312,6 @@ const SiteSettings = () => {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="heroTitle">Hero Title</Label>
-                  <Input
-                    id="heroTitle"
-                    value={siteData.heroTitle}
-                    onChange={(e) => handleInputChange('heroTitle', e.target.value)}
-                    placeholder="Main headline on homepage"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="heroSubtitle">Hero Subtitle</Label>
-                  <Textarea
-                    id="heroSubtitle"
-                    value={siteData.heroSubtitle}
-                    onChange={(e) => handleInputChange('heroSubtitle', e.target.value)}
-                    placeholder="Supporting text for the main headline"
-                    rows={2}
-                  />
-                </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <Label htmlFor="contactEmail">Contact Email</Label>
@@ -351,6 +346,98 @@ const SiteSettings = () => {
                 <Button onClick={handleSaveSettings} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
                   Save General Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="hero">
+            <Card>
+              <CardHeader>
+                <CardTitle>Hero Section Settings</CardTitle>
+                <CardDescription>
+                  Customize the main hero section that appears on your homepage
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="heroTitle">Hero Title</Label>
+                    <Input
+                      id="heroTitle"
+                      value={siteData.heroTitle}
+                      onChange={(e) => handleInputChange('heroTitle', e.target.value)}
+                      placeholder="Main headline"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="heroSubtitle">Hero Subtitle</Label>
+                    <Input
+                      id="heroSubtitle"
+                      value={siteData.heroSubtitle}
+                      onChange={(e) => handleInputChange('heroSubtitle', e.target.value)}
+                      placeholder="Supporting text"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="heroDescription">Hero Description</Label>
+                  <Textarea
+                    id="heroDescription"
+                    value={siteData.heroDescription}
+                    onChange={(e) => handleInputChange('heroDescription', e.target.value)}
+                    placeholder="Descriptive text under the main headline"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="heroBackgroundImage">Background Image URL</Label>
+                  <Input
+                    id="heroBackgroundImage"
+                    value={siteData.heroBackgroundImage}
+                    onChange={(e) => handleInputChange('heroBackgroundImage', e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Use a high-quality landscape image for best results
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <Label htmlFor="heroLocationText">Location Text</Label>
+                    <Input
+                      id="heroLocationText"
+                      value={siteData.heroLocationText}
+                      onChange={(e) => handleInputChange('heroLocationText', e.target.value)}
+                      placeholder="Eugene, Oregon"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="heroRating">Rating</Label>
+                    <Input
+                      id="heroRating"
+                      value={siteData.heroRating}
+                      onChange={(e) => handleInputChange('heroRating', e.target.value)}
+                      placeholder="4.9"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="heroCTAText">Call-to-Action Button Text</Label>
+                    <Input
+                      id="heroCTAText"
+                      value={siteData.heroCTAText}
+                      onChange={(e) => handleInputChange('heroCTAText', e.target.value)}
+                      placeholder="View Properties"
+                    />
+                  </div>
+                </div>
+
+                <Button onClick={handleSaveSettings} className="w-full">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Hero Settings
                 </Button>
               </CardContent>
             </Card>
