@@ -9,12 +9,12 @@ import { Palette, RotateCcw, Save } from 'lucide-react';
 
 const ColorCustomizer = () => {
   const [colors, setColors] = useState({
-    primary: '#667eea',
-    secondary: '#764ba2',
-    accent: '#f093fb',
+    primary: '#767b8d',
+    secondary: '#8b929a',
+    accent: '#cbcfd2',
     background: '#ffffff',
     text: '#1a202c',
-    muted: '#f7fafc',
+    muted: '#ececec',
   });
 
   const { toast } = useToast();
@@ -53,12 +53,24 @@ const ColorCustomizer = () => {
       return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
     };
 
+    // Apply colors to CSS custom properties
     root.style.setProperty('--primary', hexToHsl(colors.primary));
     root.style.setProperty('--secondary', hexToHsl(colors.secondary));
     root.style.setProperty('--accent', hexToHsl(colors.accent));
     root.style.setProperty('--background', hexToHsl(colors.background));
     root.style.setProperty('--foreground', hexToHsl(colors.text));
     root.style.setProperty('--muted', hexToHsl(colors.muted));
+
+    // Also update gradient colors to match the new palette
+    const primaryHsl = hexToHsl(colors.primary);
+    const secondaryHsl = hexToHsl(colors.secondary);
+    const accentHsl = hexToHsl(colors.accent);
+    
+    root.style.setProperty('--gradient-from', primaryHsl);
+    root.style.setProperty('--gradient-via', secondaryHsl);
+    root.style.setProperty('--gradient-to', accentHsl);
+    root.style.setProperty('--gradient-accent-from', secondaryHsl);
+    root.style.setProperty('--gradient-accent-to', accentHsl);
 
     localStorage.setItem('customColors', JSON.stringify(colors));
     
@@ -70,12 +82,12 @@ const ColorCustomizer = () => {
 
   const resetColors = () => {
     const defaultColors = {
-      primary: '#667eea',
-      secondary: '#764ba2',
-      accent: '#f093fb',
+      primary: '#767b8d',
+      secondary: '#8b929a',
+      accent: '#cbcfd2',
       background: '#ffffff',
       text: '#1a202c',
-      muted: '#f7fafc',
+      muted: '#ececec',
     };
     setColors(defaultColors);
     localStorage.removeItem('customColors');
@@ -88,10 +100,15 @@ const ColorCustomizer = () => {
     root.style.removeProperty('--background');
     root.style.removeProperty('--foreground');
     root.style.removeProperty('--muted');
+    root.style.removeProperty('--gradient-from');
+    root.style.removeProperty('--gradient-via');
+    root.style.removeProperty('--gradient-to');
+    root.style.removeProperty('--gradient-accent-from');
+    root.style.removeProperty('--gradient-accent-to');
 
     toast({
       title: "Colors Reset",
-      description: "Colors have been reset to default values.",
+      description: "Colors have been reset to default gray palette values.",
     });
   };
 
@@ -102,13 +119,28 @@ const ColorCustomizer = () => {
       setColors(parsed);
       // Apply saved colors on load
       setTimeout(() => {
-        const event = new Event('applyColors');
-        Object.assign(event, { colors: parsed });
+        applyColors();
+      }, 100);
+    } else {
+      // Apply default gray colors on first load
+      setTimeout(() => {
+        applyColors();
       }, 100);
     }
   }, []);
 
   const colorPresets = [
+    { 
+      name: 'Gray Palette', 
+      colors: { 
+        primary: '#767b8d', 
+        secondary: '#8b929a', 
+        accent: '#cbcfd2',
+        background: '#ffffff',
+        text: '#1a202c',
+        muted: '#ececec'
+      } 
+    },
     { name: 'Ocean Blue', colors: { primary: '#0077be', secondary: '#00a8cc', accent: '#00d4aa' } },
     { name: 'Sunset Orange', colors: { primary: '#ff6b35', secondary: '#f7931e', accent: '#ffcc02' } },
     { name: 'Forest Green', colors: { primary: '#2d5016', secondary: '#4a7c59', accent: '#87a96b' } },
@@ -131,7 +163,7 @@ const ColorCustomizer = () => {
             Color Customization
           </CardTitle>
           <CardDescription>
-            Customize your site's color scheme to match your brand
+            Customize your site's color scheme. The gray palette matches your uploaded design.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -167,7 +199,7 @@ const ColorCustomizer = () => {
             </Button>
             <Button onClick={resetColors} variant="outline">
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset
+              Reset to Gray Palette
             </Button>
           </div>
         </CardContent>
@@ -181,7 +213,7 @@ const ColorCustomizer = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {colorPresets.map((preset) => (
               <Button
                 key={preset.name}
@@ -190,7 +222,7 @@ const ColorCustomizer = () => {
                 className="h-auto p-4 flex flex-col items-center space-y-2"
               >
                 <div className="flex space-x-1">
-                  {Object.values(preset.colors).map((color, index) => (
+                  {Object.values(preset.colors).slice(0, 3).map((color, index) => (
                     <div
                       key={index}
                       className="w-6 h-6 rounded"
