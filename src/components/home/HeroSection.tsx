@@ -1,9 +1,6 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 
 const HeroSection = () => {
   const { user } = useAuth();
@@ -20,17 +17,6 @@ const HeroSection = () => {
               Discover Eugene, Oregon through thoughtfully curated vacation rentals in the heart of 
               the Pacific Northwest. From Ducks football to wine country tours, your Eugene adventure starts here.
             </p>
-            
-            {!user && (
-              <div className="flex justify-center mb-12">
-                <Link to="/auth">
-                  <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg">
-                    Admin Access
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-              </div>
-            )}
           </div>
 
           {/* Elegant Search Widget */}
