@@ -136,21 +136,6 @@ const Footer = () => {
             <h3 className="text-xl font-bold mb-6">Resources</h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
-                  Booking Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
-                  Cancellation Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
-                  House Rules
-                </a>
-              </li>
-              <li>
                 <a href="/privacy-policy" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Privacy Policy
                 </a>
