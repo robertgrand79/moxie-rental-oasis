@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Building2, BookOpen, Users, Settings, ArrowRight } from 'lucide-react';
+import { Building2, BookOpen, Users, Settings, ArrowRight, User } from 'lucide-react';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 
 const Admin = () => {
@@ -52,6 +52,22 @@ const Admin = () => {
                   </p>
                   <div className="flex items-center text-blue-600 font-medium">
                     Manage Content
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  </div>
+                </div>
+              </Link>
+
+              <Link to="/admin/profile">
+                <div className="group bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:bg-white/100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 h-full">
+                  <div className="w-16 h-16 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <User className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">User Profile</h3>
+                  <p className="text-gray-600 mb-6 leading-relaxed">
+                    Update your account information, change password, and manage profile settings.
+                  </p>
+                  <div className="flex items-center text-blue-600 font-medium">
+                    Manage Profile
                     <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
                 </div>

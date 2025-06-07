@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import AdminProfile from "./pages/AdminProfile";
 import Properties from "./pages/Properties";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
@@ -56,6 +57,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Admin />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/profile" 
+              element={
+                <ProtectedRoute>
+                  <AdminProfile />
                 </ProtectedRoute>
               } 
             />

@@ -1,14 +1,20 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { LogOut, User, Settings } from 'lucide-react';
+import { LogOut, User, Settings, Shield } from 'lucide-react';
 
 const AuthSection = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isAdminPage = location.pathname.startsWith('/admin') || 
+                     location.pathname.startsWith('/properties') || 
+                     location.pathname.startsWith('/blog-management') || 
+                     location.pathname.startsWith('/site-settings');
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -37,6 +43,21 @@ const AuthSection = () => {
               <span className="text-sm font-medium text-gray-700">{user.email}</span>
             </div>
           </div>
+          
+          {!isAdminPage && (
+            <Link to="/admin">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                <Shield className="h-4 w-4 mr-2 text-icon-gray" />
+                <span className="hidden sm:inline">Admin Panel</span>
+                <span className="sm:hidden">Admin</span>
+              </Button>
+            </Link>
+          )}
+          
           <Button
             variant="outline"
             size="sm"
