@@ -1,10 +1,11 @@
 
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Index from './pages/Index';
 import Listings from './pages/Listings';
 import SiteSettings from './pages/SiteSettings';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import Auth from './pages/Auth';
 import ProtectedRoute from './components/ProtectedRoute';
