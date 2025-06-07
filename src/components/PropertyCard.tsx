@@ -35,7 +35,7 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
       <CardHeader>
         <CardTitle className="text-lg">{property.title}</CardTitle>
         <CardDescription className="flex items-center text-sm">
-          <MapPin className="h-3 w-3 mr-1" />
+          <MapPin className="h-3 w-3 mr-1 text-icon-blue" />
           {property.location}
         </CardDescription>
       </CardHeader>
@@ -44,15 +44,15 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
         
         <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
           <div className="flex items-center">
-            <Bed className="h-4 w-4 mr-1" />
+            <Bed className="h-4 w-4 mr-1 text-icon-purple" />
             {property.bedrooms} bed
           </div>
           <div className="flex items-center">
-            <Bath className="h-4 w-4 mr-1" />
+            <Bath className="h-4 w-4 mr-1 text-icon-teal" />
             {property.bathrooms} bath
           </div>
           <div className="flex items-center">
-            <Users className="h-4 w-4 mr-1" />
+            <Users className="h-4 w-4 mr-1 text-icon-emerald" />
             {property.max_guests} guests
           </div>
         </div>
@@ -63,7 +63,7 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
             size="sm"
             onClick={() => onEdit(property.id)}
           >
-            <Edit className="h-4 w-4 mr-2" />
+            <Edit className="h-4 w-4 mr-2 text-icon-amber" />
             Edit
           </Button>
           <AlertDialog>
@@ -73,7 +73,7 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
                 size="sm"
                 className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4 mr-2 text-icon-rose" />
                 Delete
               </Button>
             </AlertDialogTrigger>

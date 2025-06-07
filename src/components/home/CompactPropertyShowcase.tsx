@@ -53,21 +53,21 @@ const CompactPropertyShowcase = () => {
                       </h3>
                       
                       <div className="flex items-center text-sm text-gray-500 mb-4">
-                        <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                        <MapPin className="h-4 w-4 mr-1 flex-shrink-0 text-icon-blue" />
                         <span className="line-clamp-1">{property.location}</span>
                       </div>
                       
                       <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
                         <div className="flex items-center">
-                          <Bed className="h-4 w-4 mr-1" />
+                          <Bed className="h-4 w-4 mr-1 text-icon-purple" />
                           <span>{property.bedrooms}</span>
                         </div>
                         <div className="flex items-center">
-                          <Bath className="h-4 w-4 mr-1" />
+                          <Bath className="h-4 w-4 mr-1 text-icon-teal" />
                           <span>{property.bathrooms}</span>
                         </div>
                         <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-1" />
+                          <Users className="h-4 w-4 mr-1 text-icon-emerald" />
                           <span>{property.max_guests}</span>
                         </div>
                       </div>

@@ -24,6 +24,40 @@ const MobileNavigationDrawer = ({
   const location = useLocation();
   const items = isAdminPage ? adminNavigationItems : navigationItems;
 
+  const getIconColor = (href: string) => {
+    switch (href) {
+      case '/':
+        return 'text-icon-blue';
+      case '/listings':
+        return 'text-icon-emerald';
+      case '/blog':
+        return 'text-icon-purple';
+      case '/about':
+        return 'text-icon-amber';
+      case '/experiences':
+        return 'text-icon-teal';
+      // Admin colors
+      case '/admin':
+        return 'text-icon-blue';
+      case '/properties':
+        return 'text-icon-emerald';
+      case '/page-management':
+        return 'text-icon-orange';
+      case '/blog-management':
+        return 'text-icon-purple';
+      case '/admin/analytics':
+        return 'text-icon-indigo';
+      case '/admin/chat-support':
+        return 'text-icon-rose';
+      case '/admin/profile':
+        return 'text-icon-gray';
+      case '/site-settings':
+        return 'text-icon-gray';
+      default:
+        return 'text-icon-gray';
+    }
+  };
+
   const handleLinkClick = () => {
     onClose();
   };
@@ -41,6 +75,7 @@ const MobileNavigationDrawer = ({
           {items.map((item) => {
             const IconComponent = item.icon;
             const isActive = isAdminPage && location.pathname === item.href;
+            const iconColor = getIconColor(item.href);
             
             return (
               <Link
@@ -53,7 +88,7 @@ const MobileNavigationDrawer = ({
                 }`}
                 onClick={handleLinkClick}
               >
-                <IconComponent className="h-6 w-6 text-icon-gray" />
+                <IconComponent className={`h-6 w-6 ${iconColor}`} />
                 <span className="text-base">{item.title}</span>
               </Link>
             );

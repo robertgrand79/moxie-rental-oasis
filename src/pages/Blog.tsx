@@ -56,6 +56,29 @@ const Blog = () => {
     }
   ]);
 
+  const getTagColor = (tag: string) => {
+    switch (tag.toLowerCase()) {
+      case 'travel':
+        return 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 border-blue-200';
+      case 'destinations':
+        return 'bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-700 border-emerald-200';
+      case 'luxury':
+        return 'bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 border-purple-200';
+      case 'tips':
+        return 'bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border-amber-200';
+      case 'vacation rentals':
+        return 'bg-gradient-to-r from-teal-100 to-teal-50 text-teal-700 border-teal-200';
+      case 'sustainability':
+        return 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 border-green-200';
+      case 'eco-tourism':
+        return 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 border-green-200';
+      case 'environment':
+        return 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 border-green-200';
+      default:
+        return 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
   return (
     <BackgroundWrapper>
       <div className="py-32 relative">
@@ -108,7 +131,7 @@ const Blog = () => {
                           {post.tags.map((tag) => (
                             <span 
                               key={tag}
-                              className="px-3 py-1 bg-gradient-to-r from-gradient-accent-from/30 to-gradient-accent-to/30 text-gray-700 text-sm rounded-full border border-gradient-accent-from/20"
+                              className={`px-3 py-1 text-sm rounded-full border ${getTagColor(tag)}`}
                             >
                               {tag}
                             </span>
@@ -124,11 +147,11 @@ const Blog = () => {
                       <CardContent className="pt-0">
                         <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
                           <div className="flex items-center">
-                            <User className="h-4 w-4 mr-2 text-icon-gray" />
+                            <User className="h-4 w-4 mr-2 text-icon-blue" />
                             <span className="font-medium">{post.author}</span>
                           </div>
                           <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-2 text-icon-gray" />
+                            <Calendar className="h-4 w-4 mr-2 text-icon-emerald" />
                             <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
                           </div>
                         </div>

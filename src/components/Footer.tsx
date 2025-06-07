@@ -55,23 +55,23 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4">
               {siteData.socialMedia.facebook && (
-                <a href={siteData.socialMedia.facebook} className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }} target="_blank" rel="noopener noreferrer">
-                  <Facebook className="h-5 w-5" />
+                <a href={siteData.socialMedia.facebook} className="hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
+                  <Facebook className="h-5 w-5 text-icon-blue hover:text-white transition-colors duration-200" />
                 </a>
               )}
               {siteData.socialMedia.instagram && (
-                <a href={siteData.socialMedia.instagram} className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }} target="_blank" rel="noopener noreferrer">
-                  <Instagram className="h-5 w-5" />
+                <a href={siteData.socialMedia.instagram} className="hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
+                  <Instagram className="h-5 w-5 text-icon-rose hover:text-white transition-colors duration-200" />
                 </a>
               )}
               {siteData.socialMedia.twitter && (
-                <a href={siteData.socialMedia.twitter} className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }} target="_blank" rel="noopener noreferrer">
-                  <Twitter className="h-5 w-5" />
+                <a href={siteData.socialMedia.twitter} className="hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
+                  <Twitter className="h-5 w-5 text-icon-blue hover:text-white transition-colors duration-200" />
                 </a>
               )}
               {siteData.socialMedia.googlePlaces && (
-                <a href={siteData.socialMedia.googlePlaces} className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }} target="_blank" rel="noopener noreferrer">
-                  <MapPinIcon className="h-5 w-5" />
+                <a href={siteData.socialMedia.googlePlaces} className="hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
+                  <MapPinIcon className="h-5 w-5 text-icon-emerald hover:text-white transition-colors duration-200" />
                 </a>
               )}
             </div>
@@ -82,19 +82,19 @@ const Footer = () => {
             <h3 className="text-xl font-bold mb-6">Contact Us</h3>
             <div className="space-y-3">
               <div className="flex items-center">
-                <MapPin className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
+                <MapPin className="h-5 w-5 mr-3 text-icon-blue" />
                 <span style={{ color: '#ececec' }}>{siteData.address}</span>
               </div>
               <div className="flex items-center">
-                <Phone className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
+                <Phone className="h-5 w-5 mr-3 text-icon-emerald" />
                 <span style={{ color: '#ececec' }}>{siteData.phone}</span>
               </div>
               <div className="flex items-center">
-                <Mail className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
+                <Mail className="h-5 w-5 mr-3 text-icon-amber" />
                 <span style={{ color: '#ececec' }}>{siteData.contactEmail}</span>
               </div>
               <div className="flex items-center">
-                <Clock className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
+                <Clock className="h-5 w-5 mr-3 text-icon-purple" />
                 <span style={{ color: '#ececec' }}>24/7 Guest Support</span>
               </div>
             </div>
