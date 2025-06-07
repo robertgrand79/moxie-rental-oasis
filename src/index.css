@@ -53,12 +53,12 @@
 
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Lighter Cool Gray Gradient Colors */
-    --gradient-from: 210 15% 60%;
-    --gradient-via: 210 10% 88%;
-    --gradient-to: 210 12% 94%;
-    --gradient-accent-from: 210 12% 75%;
-    --gradient-accent-to: 210 10% 96%;
+    /* Very Light Cool Gray Gradient Colors */
+    --gradient-from: 220 8% 85%;
+    --gradient-via: 220 5% 92%;
+    --gradient-to: 220 3% 97%;
+    --gradient-accent-from: 220 6% 88%;
+    --gradient-accent-to: 220 4% 96%;
   }
 
   .dark {
@@ -98,12 +98,12 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Lighter Cool Gray Gradient Colors for Dark Mode */
-    --gradient-from: 210 15% 45%;
-    --gradient-via: 210 15% 55%;
-    --gradient-to: 210 15% 40%;
-    --gradient-accent-from: 210 12% 65%;
-    --gradient-accent-to: 210 12% 50%;
+    /* Very Light Cool Gray Gradient Colors for Dark Mode */
+    --gradient-from: 220 8% 75%;
+    --gradient-via: 220 8% 80%;
+    --gradient-to: 220 8% 70%;
+    --gradient-accent-from: 220 6% 78%;
+    --gradient-accent-to: 220 6% 72%;
   }
 }
 
