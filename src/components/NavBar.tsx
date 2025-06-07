@@ -47,8 +47,12 @@ const NavBar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="text-lg sm:text-xl font-bold text-gray-900">
-              Moxie Vacation Rentals
+            <Link to="/" className="flex items-center">
+              <img 
+                src="/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png" 
+                alt="Moxie Vacation Rentals" 
+                className="h-8 w-auto"
+              />
             </Link>
           </div>
           

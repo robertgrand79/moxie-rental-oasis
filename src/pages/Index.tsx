@@ -151,11 +151,15 @@ const Index = () => {
           <div className="relative py-24 sm:py-32 lg:py-40 px-4">
             <div className="container mx-auto text-center">
               <div className="max-w-4xl mx-auto">
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight">
-                  Welcome to 
-                  <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    Moxie Vacation Rentals
-                  </span>
+                <div className="mb-8">
+                  <img 
+                    src="/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png" 
+                    alt="Moxie Vacation Rentals" 
+                    className="h-20 sm:h-24 lg:h-32 w-auto mx-auto mb-6"
+                  />
+                </div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight">
+                  Welcome to Your Perfect Luxury Escape
                 </h1>
                 <p className="text-xl sm:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed">
                   Discover extraordinary vacation rental properties in the world's most coveted destinations. 
