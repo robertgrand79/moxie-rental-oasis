@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { LogOut, User, Menu, X } from 'lucide-react';
+import { LogOut, User, Menu, X, Home, Building2, BookOpen, Info, MapPin } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const NavBar = () => {
@@ -31,11 +31,11 @@ const NavBar = () => {
   };
 
   const navigationItems = [
-    { title: 'Home', href: '/' },
-    { title: 'Listings', href: '/listings' },
-    { title: 'Blog', href: '/blog' },
-    { title: 'About', href: '/about' },
-    { title: 'Local Favorites', href: '/experiences' },
+    { title: 'Home', href: '/', icon: Home },
+    { title: 'Listings', href: '/listings', icon: Building2 },
+    { title: 'Blog', href: '/blog', icon: BookOpen },
+    { title: 'About', href: '/about', icon: Info },
+    { title: 'Local Favorites', href: '/experiences', icon: MapPin },
   ];
 
   const toggleMobileMenu = () => {
@@ -52,22 +52,26 @@ const NavBar = () => {
               <img 
                 src="/lovable-uploads/a5d1cce3-c3fc-40a0-9eed-f641995e8887.png" 
                 alt="Moxie Vacation Rentals" 
-                className="h-8 w-auto"
+                className="h-12 w-auto"
               />
             </Link>
           </div>
           
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.title}
-                to={item.href}
-                className="text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors duration-200"
-              >
-                {item.title}
-              </Link>
-            ))}
+            {navigationItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Link
+                  key={item.title}
+                  to={item.href}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors duration-200 group"
+                >
+                  <IconComponent className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                  <span>{item.title}</span>
+                </Link>
+              );
+            })}
           </div>
           
           {/* Auth & Mobile Menu Section */}
@@ -120,16 +124,20 @@ const NavBar = () => {
         {isMobileMenuOpen && (
           <div className="lg:hidden border-t border-gray-100">
             <div className="py-4 space-y-1">
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.title}
-                  to={item.href}
-                  className="block px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium transition-colors duration-200"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {item.title}
-                </Link>
-              ))}
+              {navigationItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <Link
+                    key={item.title}
+                    to={item.href}
+                    className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium transition-colors duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <IconComponent className="h-5 w-5" />
+                    <span>{item.title}</span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
