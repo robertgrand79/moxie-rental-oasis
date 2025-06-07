@@ -2,22 +2,9 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import TestimonialsManager from '@/components/admin/TestimonialsManager';
+import LifestyleGalleryManager from '@/components/admin/LifestyleGalleryManager';
 
-const GalleryTab = () => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Lifestyle Gallery</CardTitle>
-      <CardDescription>
-        Manage photos showcasing Eugene's lifestyle and activities
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <div className="text-center py-8 text-gray-500">
-        Gallery management component coming soon...
-      </div>
-    </CardContent>
-  </Card>
-);
+const GalleryTab = () => <LifestyleGalleryManager />;
 
 const EventsTab = () => (
   <Card>
