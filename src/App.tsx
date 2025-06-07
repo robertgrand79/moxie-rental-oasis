@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,117 +32,127 @@ import AIAnalyticsDashboard from "./components/admin/AIAnalyticsDashboard";
 import AdminChatSupport from "./components/admin/AdminChatSupport";
 import ContentApprovalWorkflow from "./components/admin/ContentApprovalWorkflow";
 
-const queryClient = new QueryClient();
+const App = () => {
+  // Create QueryClient inside the component to ensure React context is available
+  const [queryClient] = React.useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        retry: 1
+      }
+    }
+  }));
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <NavBar />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/listings" element={<Listings />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
-            <Route path="/search" element={<SearchResults />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/experiences" element={<Experiences />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            
-            {/* Property Pages */}
-            <Route path="/property/harris-st" element={<PropertyPage />} />
-            <Route path="/property/kincaid-st" element={<PropertyPage />} />
-            <Route path="/property/w-10th-house" element={<PropertyPage />} />
-            <Route path="/property/w-10th-studio" element={<PropertyPage />} />
-            <Route path="/property/woodlawn-ave" element={<PropertyPage />} />
-            <Route path="/property/:propertyId" element={<PropertyPage />} />
-            
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute>
-                  <Admin />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/profile" 
-              element={
-                <ProtectedRoute>
-                  <AdminProfile />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/analytics" 
-              element={
-                <ProtectedRoute>
-                  <AIAnalyticsDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/chat-support" 
-              element={
-                <ProtectedRoute>
-                  <AdminChatSupport />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/content-approval" 
-              element={
-                <ProtectedRoute>
-                  <ContentApprovalWorkflow />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/properties" 
-              element={
-                <ProtectedRoute>
-                  <Properties />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/page-management" 
-              element={
-                <ProtectedRoute>
-                  <PageManagement />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/blog-management" 
-              element={
-                <ProtectedRoute>
-                  <BlogManagement />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/site-settings" 
-              element={
-                <ProtectedRoute>
-                  <SiteSettings />
-                </ProtectedRoute>
-              } 
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <ChatWidget />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <NavBar />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/listings" element={<Listings />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/experiences" element={<Experiences />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              
+              {/* Property Pages */}
+              <Route path="/property/harris-st" element={<PropertyPage />} />
+              <Route path="/property/kincaid-st" element={<PropertyPage />} />
+              <Route path="/property/w-10th-house" element={<PropertyPage />} />
+              <Route path="/property/w-10th-studio" element={<PropertyPage />} />
+              <Route path="/property/woodlawn-ave" element={<PropertyPage />} />
+              <Route path="/property/:propertyId" element={<PropertyPage />} />
+              
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute>
+                    <Admin />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/profile" 
+                element={
+                  <ProtectedRoute>
+                    <AdminProfile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/analytics" 
+                element={
+                  <ProtectedRoute>
+                    <AIAnalyticsDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/chat-support" 
+                element={
+                  <ProtectedRoute>
+                    <AdminChatSupport />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/content-approval" 
+                element={
+                  <ProtectedRoute>
+                    <ContentApprovalWorkflow />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/properties" 
+                element={
+                  <ProtectedRoute>
+                    <Properties />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/page-management" 
+                element={
+                  <ProtectedRoute>
+                    <PageManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/blog-management" 
+                element={
+                  <ProtectedRoute>
+                    <BlogManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/site-settings" 
+                element={
+                  <ProtectedRoute>
+                    <SiteSettings />
+                  </ProtectedRoute>
+                } 
+              />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <ChatWidget />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
