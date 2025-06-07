@@ -20,7 +20,7 @@ export const usePropertyPages = () => {
 
     // Create SEO-optimized content
     const pageTitle = `${property.title} - ${property.location}`;
-    const metaDescription = `Book ${property.title} in ${property.location}. ${property.bedrooms} bedrooms, ${property.bathrooms} bathrooms, sleeps ${property.maxGuests}. Starting at $${property.pricePerNight}/night.`;
+    const metaDescription = `Book ${property.title} in ${property.location}. ${property.bedrooms} bedrooms, ${property.bathrooms} bathrooms, sleeps ${property.max_guests}. Starting at $${property.price_per_night}/night.`;
     
     const pageContent = `
 # ${property.title}
@@ -30,8 +30,8 @@ export const usePropertyPages = () => {
 ## Property Details
 - **Bedrooms:** ${property.bedrooms}
 - **Bathrooms:** ${property.bathrooms}
-- **Maximum Guests:** ${property.maxGuests}
-- **Price:** $${property.pricePerNight} per night
+- **Maximum Guests:** ${property.max_guests}
+- **Price:** $${property.price_per_night} per night
 
 ## Description
 ${property.description}
@@ -42,7 +42,7 @@ ${property.amenities}` : ''}
 ## Book Your Stay
 Ready to experience this amazing property? Book now through our secure booking system.
 
-[Book Now](${property.hospitableBookingUrl || '#'})
+[Book Now](${property.hospitable_booking_url || '#'})
 
 ---
 

@@ -48,7 +48,7 @@ const PropertyShowcase = () => {
               <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="aspect-video relative">
                   <img 
-                    src={property.imageUrl} 
+                    src={property.image_url} 
                     alt={property.title}
                     className="w-full h-full object-cover"
                   />
@@ -76,13 +76,13 @@ const PropertyShowcase = () => {
                     </div>
                     <div className="flex items-center">
                       <Users className="h-4 w-4 mr-1" />
-                      {property.maxGuests}
+                      {property.max_guests}
                     </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="font-semibold text-lg">
-                      ${property.pricePerNight}
+                      ${property.price_per_night}
                       <span className="text-sm font-normal text-muted-foreground">/night</span>
                     </div>
                     <Link to={`/property/${property.id}`}>

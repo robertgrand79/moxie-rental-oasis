@@ -6,10 +6,13 @@ export interface Property {
   location: string;
   bedrooms: number;
   bathrooms: number;
-  maxGuests: number;
-  pricePerNight: number;
-  imageUrl?: string;
-  images?: string[]; // Array of all uploaded images
-  hospitableBookingUrl?: string;
+  max_guests: number;
+  price_per_night: number;
+  image_url?: string;
+  images?: string[];
+  hospitable_booking_url?: string;
   amenities?: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
 }

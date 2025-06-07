@@ -35,7 +35,7 @@ const CompactPropertyShowcase = () => {
                   <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group flex flex-col">
                     <div className="aspect-[4/3] relative">
                       <img 
-                        src={property.imageUrl} 
+                        src={property.image_url} 
                         alt={property.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
@@ -60,13 +60,13 @@ const CompactPropertyShowcase = () => {
                         </div>
                         <div className="flex items-center">
                           <Users className="h-3 w-3 mr-1" />
-                          {property.maxGuests}
+                          {property.max_guests}
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-2 mt-auto">
                         <div className="font-semibold text-sm">
-                          ${property.pricePerNight}
+                          ${property.price_per_night}
                           <span className="text-xs font-normal text-gray-500">/night</span>
                         </div>
                         <Link to={`/property/${property.id}`} className="w-full">
