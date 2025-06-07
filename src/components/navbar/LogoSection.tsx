@@ -16,7 +16,7 @@ const LogoSection = ({ isAdminPage }: LogoSectionProps) => {
       {isAdminPage ? (
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
-            <ArrowLeft className="h-5 w-5 mr-1 text-icon-gray" />
+            <ArrowLeft className="h-5 w-5 mr-1" />
             <span className="text-sm font-medium">Back to Site</span>
           </Link>
         </div>
@@ -25,9 +25,7 @@ const LogoSection = ({ isAdminPage }: LogoSectionProps) => {
           <img 
             src="/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png" 
             alt="Moxie Vacation Rentals" 
-            className={`h-12 w-auto transition-all duration-300 ${
-              isHomePage ? 'drop-shadow-lg filter brightness-0 invert' : ''
-            }`}
+            className="h-10 w-auto"
           />
         </Link>
       )}

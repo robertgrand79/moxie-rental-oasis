@@ -31,7 +31,7 @@ const NavBar = () => {
   const navClasses = isHomePage 
     ? `fixed top-0 w-full z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100' 
+          ? 'bg-white shadow-md' 
           : 'bg-transparent'
       }`
     : 'bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50';
@@ -39,7 +39,7 @@ const NavBar = () => {
   return (
     <nav className={navClasses}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-16">
           <LogoSection isAdminPage={isAdminPage} />
           <DesktopNavigation isAdminPage={isAdminPage} />
           
