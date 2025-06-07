@@ -12,31 +12,33 @@ const CompactPropertyShowcase = () => {
   const { properties, loading } = useProperties();
 
   return (
-    <div className="py-16 relative">
+    <section className="py-20 relative">
       <div className="container mx-auto px-4">
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-12 mx-auto border border-white/20">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-12 mx-auto border border-white/30">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
               Our Eugene Properties
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-6"></div>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            <div className="w-20 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-8 rounded-full"></div>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Discover our handpicked collection of vacation rentals in Eugene's most desirable neighborhoods.
             </p>
           </div>
           
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-              {Array.from({ length: 5 }).map((_, index) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: 4 }).map((_, index) => (
                 <PropertyCardSkeleton key={index} />
               ))}
             </div>
           ) : properties.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                {properties.map((property) => (
-                  <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group flex flex-col">
-                    <div className="aspect-[4/3] relative">
+              {/* Properties Grid - Limit to 4 for cleaner layout */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+                {properties.slice(0, 4).map((property) => (
+                  <Card key={property.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-md">
+                    <div className="aspect-[4/3] relative overflow-hidden">
                       <OptimizedImage 
                         src={property.image_url} 
                         alt={property.title}
@@ -45,38 +47,38 @@ const CompactPropertyShowcase = () => {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    <CardContent className="p-4 flex flex-col flex-1">
-                      
-                      <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-gray-900 min-h-[2.5rem]">
+                    <CardContent className="p-6">
+                      <h3 className="font-bold text-lg mb-2 line-clamp-2 text-gray-900 min-h-[3.5rem]">
                         {property.title}
                       </h3>
-                      <div className="flex items-center text-xs text-gray-500 mb-3">
-                        <MapPin className="h-3 w-3 mr-1" />
+                      
+                      <div className="flex items-center text-sm text-gray-500 mb-4">
+                        <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                         <span className="line-clamp-1">{property.location}</span>
                       </div>
                       
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                      <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
                         <div className="flex items-center">
-                          <Bed className="h-3 w-3 mr-1" />
-                          {property.bedrooms}
+                          <Bed className="h-4 w-4 mr-1" />
+                          <span>{property.bedrooms}</span>
                         </div>
                         <div className="flex items-center">
-                          <Bath className="h-3 w-3 mr-1" />
-                          {property.bathrooms}
+                          <Bath className="h-4 w-4 mr-1" />
+                          <span>{property.bathrooms}</span>
                         </div>
                         <div className="flex items-center">
-                          <Users className="h-3 w-3 mr-1" />
-                          {property.max_guests}
+                          <Users className="h-4 w-4 mr-1" />
+                          <span>{property.max_guests}</span>
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-2 mt-auto">
-                        <div className="font-semibold text-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="font-bold text-lg text-gray-900">
                           ${property.price_per_night}
-                          <span className="text-xs font-normal text-gray-500">/night</span>
+                          <span className="text-sm font-normal text-gray-500">/night</span>
                         </div>
-                        <Link to={`/property/${property.id}`} className="w-full">
-                          <Button size="sm" className="w-full text-xs h-10 min-h-[44px]">
+                        <Link to={`/property/${property.id}`}>
+                          <Button size="sm" className="min-h-[40px]">
                             View Details
                           </Button>
                         </Link>
@@ -86,23 +88,24 @@ const CompactPropertyShowcase = () => {
                 ))}
               </div>
               
-              <div className="text-center mt-8">
+              {/* View All Properties Button */}
+              <div className="text-center">
                 <Link to="/listings">
-                  <Button variant="outline" size="lg" className="px-8 min-h-[44px]">
+                  <Button variant="outline" size="lg" className="px-8 min-h-[48px] border-2">
                     View All Properties
                   </Button>
                 </Link>
               </div>
             </>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-lg text-gray-600 mb-4">No properties available at the moment.</p>
-              <p className="text-sm text-gray-500">Check back soon for new listings!</p>
+            <div className="text-center py-16">
+              <p className="text-xl text-gray-600 mb-4">No properties available at the moment.</p>
+              <p className="text-gray-500">Check back soon for new listings!</p>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

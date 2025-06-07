@@ -1,88 +1,68 @@
 
 import React from 'react';
-import { Home, MapPin, Coffee, Trees, Building, Sparkles, User, Star } from 'lucide-react';
+import { Shield, Heart, MapPin, Star } from 'lucide-react';
 
 const WhyMoxieSection = () => {
-  const whyMoxieFeatures = [
+  const features = [
     {
-      icon: Home,
-      title: "Local Living",
-      description: "Experience Eugene like a local with properties in tree-lined neighborhoods and walkable areas."
+      icon: Shield,
+      title: "Trusted & Verified",
+      description: "Every property is personally inspected and verified for quality, safety, and authenticity."
+    },
+    {
+      icon: Heart,
+      title: "Local Hospitality",
+      description: "Eugene-based hosts who care about your experience and know the city's hidden gems."
     },
     {
       icon: MapPin,
-      title: "Prime Eugene Locations",
-      description: "Strategically located in Eugene's most charming and walkable neighborhoods."
-    },
-    {
-      icon: Coffee,
-      title: "Artisan Coffee Culture",
-      description: "Locally roasted coffee and access to Eugene's vibrant artisan coffee scene."
-    },
-    {
-      icon: Trees,
-      title: "Pacific Northwest Nature",
-      description: "Easy access to lush trails, Hendricks Park, and Oregon's natural beauty."
-    },
-    {
-      icon: Building,
-      title: "Modern Comfort",
-      description: "Homes styled with warmth, character, and contemporary Pacific Northwest design."
-    },
-    {
-      icon: Sparkles,
-      title: "Curated Details",
-      description: "Thoughtfully curated welcome baskets and guidebooks to hidden local spots."
-    },
-    {
-      icon: User,
-      title: "Personal Connection",
-      description: "Stays that feel personal, memorable, and connected to Eugene's community spirit."
+      title: "Prime Locations",
+      description: "Handpicked properties in Eugene's most walkable and desirable neighborhoods."
     },
     {
       icon: Star,
-      title: "Local Expertise",
-      description: "Your gateway to discovering Eugene like you've always belonged here."
+      title: "Exceptional Experience",
+      description: "Curated amenities and personal touches that make your stay memorable."
     }
   ];
 
   return (
-    <div className="py-16 relative">
+    <section className="py-20 relative">
       <div className="container mx-auto px-4">
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-bold text-gray-900 mb-6">
-              The Moxie Eugene Experience
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-12 mx-auto border border-white/30">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+              Why Choose Moxie
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-8"></div>
+            <div className="w-20 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-8 rounded-full"></div>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              More than just a place to stay—your gateway to authentic Eugene living
+              We're not just providing a place to stay—we're creating authentic Eugene experiences
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {whyMoxieFeatures.map((feature, index) => {
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+            {features.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
-                <div key={index} className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl p-8 text-center border border-gray-100 transition-all duration-300 hover:-translate-y-2">
-                  <div className="absolute inset-0 bg-gradient-to-br from-gradient-accent-to to-gradient-to rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative">
-                    <div className="w-16 h-16 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {feature.description}
-                    </p>
+                <div key={index} className="group text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <IconComponent className="h-8 w-8 text-white" />
                   </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
               );
             })}
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
