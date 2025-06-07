@@ -28,7 +28,7 @@ const About = () => {
                 <img 
                   src="/lovable-uploads/8d88b689-dbb7-492d-bce6-e3486c88b504.png"
                   alt="Robert and Shelly at a beautiful temple location"
-                  className="rounded-2xl shadow-lg w-full h-96 object-cover"
+                  className="rounded-2xl shadow-lg w-full h-auto max-h-96 object-contain"
                 />
               </div>
               <div>
