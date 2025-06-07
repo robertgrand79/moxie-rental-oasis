@@ -31,12 +31,6 @@ const NavBar = () => {
             />
           </div>
         </div>
-        
-        <MobileNavigation 
-          isAdminPage={isAdminPage}
-          isMobileMenuOpen={isMobileMenuOpen}
-          setIsMobileMenuOpen={setIsMobileMenuOpen}
-        />
       </div>
     </nav>
   );
