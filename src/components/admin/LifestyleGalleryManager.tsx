@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,11 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Image, MapPin, Star } from 'lucide-react';
+import { Plus, Edit, Trash2, Image, MapPin, Star, Wand2, Sparkles } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useLifestyleGallery, LifestyleGalleryItem } from '@/hooks/useLifestyleGallery';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAIContentGeneration } from '@/hooks/useAIContentGeneration';
 import OptimizedImage from '@/components/ui/optimized-image';
+import AIGenerationDialog from '@/components/admin/AIGenerationDialog';
 
 const categories = [
   'outdoor',
@@ -40,8 +41,11 @@ const activityTypes = [
 const LifestyleGalleryManager = () => {
   const { galleryItems, isLoading, createGalleryItem, updateGalleryItem, deleteGalleryItem } = useLifestyleGallery();
   const { user } = useAuth();
+  const { enhanceContent, isEnhancing } = useAIContentGeneration();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LifestyleGalleryItem | null>(null);
+  const [enhancingId, setEnhancingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -115,6 +119,49 @@ const LifestyleGalleryManager = () => {
     }
   };
 
+  const lifestyleCategories = categories.map(cat => ({
+    value: cat,
+    label: cat.charAt(0).toUpperCase() + cat.slice(1)
+  }));
+
+  const handleAIGeneration = async (content: any[]) => {
+    for (const item of content) {
+      try {
+        const defaultImageUrl = 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80';
+        
+        await createGalleryItem.mutateAsync({
+          title: item.title,
+          description: item.description,
+          category: item.category,
+          location: item.location,
+          activity_type: item.activity_type,
+          image_url: item.image_url || defaultImageUrl,
+          is_active: true,
+          is_featured: false,
+          display_order: 0,
+          created_by: user?.id || ''
+        });
+      } catch (error) {
+        console.error('Error saving AI-generated item:', error);
+      }
+    }
+  };
+
+  const handleEnhanceItem = async (item: LifestyleGalleryItem) => {
+    setEnhancingId(item.id);
+    try {
+      const enhanced = await enhanceContent('lifestyle', item);
+      if (enhanced) {
+        await updateGalleryItem.mutateAsync({
+          id: item.id,
+          ...enhanced
+        });
+      }
+    } finally {
+      setEnhancingId(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -142,145 +189,154 @@ const LifestyleGalleryManager = () => {
               Manage photos and activities showcasing Eugene's lifestyle
             </CardDescription>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => {resetForm(); setIsDialogOpen(true)}}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Gallery Item
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingItem ? 'Edit Gallery Item' : 'Add New Gallery Item'}
-                </DialogTitle>
-                <DialogDescription>
-                  Add lifestyle photos and activities to showcase Eugene
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Weekend Farmers Market"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="image_url">Image URL</Label>
-                  <Input
-                    id="image_url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                    placeholder="https://images.unsplash.com/photo-..."
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Describe this lifestyle activity or location..."
-                    rows={3}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsAIDialogOpen(true)}
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              Generate with AI
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => {resetForm(); setIsDialogOpen(true)}}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Gallery Item
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingItem ? 'Edit Gallery Item' : 'Add New Gallery Item'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Add lifestyle photos and activities to showcase Eugene
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="category">Category</Label>
-                    <Select 
-                      value={formData.category} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category.charAt(0).toUpperCase() + category.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="activity_type">Activity Type</Label>
-                    <Select 
-                      value={formData.activity_type} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, activity_type: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select activity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {activityTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="Downtown Eugene, Spencer Butte Trail, etc."
-                  />
-                </div>
-
-                <div className="flex items-center space-x-6">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="is_featured"
-                      checked={formData.is_featured}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_featured: checked }))}
-                    />
-                    <Label htmlFor="is_featured">Featured</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="is_active"
-                      checked={formData.is_active}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
-                    />
-                    <Label htmlFor="is_active">Active</Label>
-                  </div>
-                  <div>
-                    <Label htmlFor="display_order">Display Order</Label>
+                    <Label htmlFor="title">Title</Label>
                     <Input
-                      id="display_order"
-                      type="number"
-                      value={formData.display_order}
-                      onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) }))}
-                      className="w-20"
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Weekend Farmers Market"
                     />
                   </div>
-                </div>
-              </div>
 
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSubmit}>
-                  {editingItem ? 'Update' : 'Create'} Gallery Item
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                  <div>
+                    <Label htmlFor="image_url">Image URL</Label>
+                    <Input
+                      id="image_url"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
+                      placeholder="https://images.unsplash.com/photo-..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Describe this lifestyle activity or location..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="category">Category</Label>
+                      <Select 
+                        value={formData.category} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category.charAt(0).toUpperCase() + category.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="activity_type">Activity Type</Label>
+                      <Select 
+                        value={formData.activity_type} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, activity_type: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select activity" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {activityTypes.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                      placeholder="Downtown Eugene, Spencer Butte Trail, etc."
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="is_featured"
+                        checked={formData.is_featured}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_featured: checked }))}
+                      />
+                      <Label htmlFor="is_featured">Featured</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="is_active"
+                        checked={formData.is_active}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
+                      />
+                      <Label htmlFor="is_active">Active</Label>
+                    </div>
+                    <div>
+                      <Label htmlFor="display_order">Display Order</Label>
+                      <Input
+                        id="display_order"
+                        type="number"
+                        value={formData.display_order}
+                        onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) }))}
+                        className="w-20"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSubmit}>
+                    {editingItem ? 'Update' : 'Create'} Gallery Item
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -309,6 +365,18 @@ const LifestyleGalleryManager = () => {
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-semibold text-lg line-clamp-1">{item.title}</h3>
                   <div className="flex items-center space-x-1 ml-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEnhanceItem(item)}
+                      disabled={isEnhancing && enhancingId === item.id}
+                    >
+                      {isEnhancing && enhancingId === item.id ? (
+                        <Sparkles className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -366,6 +434,14 @@ const LifestyleGalleryManager = () => {
           )}
         </div>
       </CardContent>
+
+      <AIGenerationDialog
+        isOpen={isAIDialogOpen}
+        onOpenChange={setIsAIDialogOpen}
+        type="lifestyle"
+        categories={lifestyleCategories}
+        onContentGenerated={handleAIGeneration}
+      />
     </Card>
   );
 };

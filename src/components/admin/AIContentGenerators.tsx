@@ -128,12 +128,16 @@ const AIContentGenerators = () => {
           created_by: user?.id
         }]);
       } else if (content.type === 'lifestyle') {
+        // Add default image_url for lifestyle content
+        const defaultImageUrl = 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80';
+        
         result = await supabase.from('lifestyle_gallery').insert([{
           title: content.title,
           description: content.description,
           category: content.category,
           location: content.location,
           activity_type: content.activity_type,
+          image_url: content.image_url || defaultImageUrl,
           is_active: true,
           created_by: user?.id
         }]);
