@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Home, MapPin, Coffee, Trees, Building, Sparkles, User, Star, ArrowRight } from 'lucide-react';
+import { Home, MapPin, Coffee, Trees, Building, Sparkles, User, Star } from 'lucide-react';
 
 const WhyMoxieSection = () => {
   const whyMoxieFeatures = [
@@ -60,7 +59,7 @@ const WhyMoxieSection = () => {
               More than just a place to stay—your gateway to authentic Eugene living
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {whyMoxieFeatures.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
@@ -80,12 +79,6 @@ const WhyMoxieSection = () => {
                 </div>
               );
             })}
-          </div>
-          <div className="text-center">
-            <Button size="lg" className="bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90 text-white px-12 py-4 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300">
-              BOOK YOUR EUGENE STAY
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
           </div>
         </div>
       </div>
