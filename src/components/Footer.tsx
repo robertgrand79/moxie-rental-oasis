@@ -157,7 +157,7 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
+                <a href="/terms-of-service" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Terms of Service
                 </a>
               </li>
@@ -180,7 +180,7 @@ const Footer = () => {
               <a href="/privacy-policy" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Privacy Policy
               </a>
-              <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
+              <a href="/terms-of-service" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Terms of Service
               </a>
               <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
