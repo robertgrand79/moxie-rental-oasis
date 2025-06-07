@@ -24,13 +24,47 @@ const About = () => {
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Get To Know Our Family</h2>
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-12 border border-white/20">
             <div className="grid md:grid-cols-2 gap-12 items-center">
+              {/* Photo Collage */}
               <div className="relative">
-                <img 
-                  src="/lovable-uploads/8d88b689-dbb7-492d-bce6-e3486c88b504.png"
-                  alt="Robert and Shelly at a beautiful temple location"
-                  className="rounded-2xl shadow-lg w-full h-auto max-h-96 object-contain"
-                />
+                <div className="grid grid-cols-2 gap-4 h-96">
+                  {/* Top left - Temple photo */}
+                  <div className="relative overflow-hidden rounded-xl shadow-lg">
+                    <img 
+                      src="/lovable-uploads/8d88b689-dbb7-492d-bce6-e3486c88b504.png"
+                      alt="Robert and Shelly at a beautiful temple location"
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  
+                  {/* Top right - Oregon Ducks game */}
+                  <div className="relative overflow-hidden rounded-xl shadow-lg">
+                    <img 
+                      src="/lovable-uploads/697e2c26-983b-4e24-b9fa-f6e1dea503e2.png"
+                      alt="Robert and Shelly at Oregon Ducks game"
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  
+                  {/* Bottom left - Mountain lake adventure */}
+                  <div className="relative overflow-hidden rounded-xl shadow-lg">
+                    <img 
+                      src="/lovable-uploads/ca979f86-d583-4e11-a233-176ed76d2d7b.png"
+                      alt="Robert and Shelly at a beautiful mountain lake"
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  
+                  {/* Bottom right - Tropical vacation */}
+                  <div className="relative overflow-hidden rounded-xl shadow-lg">
+                    <img 
+                      src="/lovable-uploads/e7ccb595-827a-4d3f-bd2e-6177ed527894.png"
+                      alt="Robert and Shelly enjoying a tropical setting"
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                </div>
               </div>
+              
               <div>
                 <div className="space-y-6 text-gray-600 text-lg leading-relaxed">
                   <p>
