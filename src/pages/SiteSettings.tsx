@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,7 +26,8 @@ const SiteSettings = () => {
     socialMedia: {
       facebook: '',
       instagram: '',
-      twitter: ''
+      twitter: '',
+      googlePlaces: ''
     }
   });
 
@@ -64,10 +66,12 @@ const SiteSettings = () => {
       const settings = JSON.parse(savedSettings);
       setSiteData({
         ...settings,
-        socialMedia: settings.socialMedia || {
+        socialMedia: {
           facebook: '',
           instagram: '',
-          twitter: ''
+          twitter: '',
+          googlePlaces: '',
+          ...settings.socialMedia
         }
       });
     }
@@ -244,6 +248,15 @@ const SiteSettings = () => {
                       value={siteData.socialMedia.twitter}
                       onChange={(e) => handleSocialMediaChange('twitter', e.target.value)}
                       placeholder="https://twitter.com/youraccount"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="googlePlaces">Google Places URL</Label>
+                    <Input
+                      id="googlePlaces"
+                      value={siteData.socialMedia.googlePlaces}
+                      onChange={(e) => handleSocialMediaChange('googlePlaces', e.target.value)}
+                      placeholder="https://maps.google.com/yourplace"
                     />
                   </div>
                 </div>
