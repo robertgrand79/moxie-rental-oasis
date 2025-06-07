@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import NavBar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Listings from "./pages/Listings";
+import PropertyPage from "./components/PropertyPage";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,15 @@ const App = () => (
             <Route path="/search" element={<SearchResults />} />
             <Route path="/about" element={<About />} />
             <Route path="/experiences" element={<Experiences />} />
+            
+            {/* Property Pages */}
+            <Route path="/property/harris-st" element={<PropertyPage />} />
+            <Route path="/property/kincaid-st" element={<PropertyPage />} />
+            <Route path="/property/w-10th-house" element={<PropertyPage />} />
+            <Route path="/property/w-10th-studio" element={<PropertyPage />} />
+            <Route path="/property/woodlawn-ave" element={<PropertyPage />} />
+            <Route path="/property/:propertyId" element={<PropertyPage />} />
+            
             <Route 
               path="/admin" 
               element={

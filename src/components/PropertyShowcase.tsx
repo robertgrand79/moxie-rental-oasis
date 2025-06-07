@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Bed, Bath, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Property {
   id: string;
@@ -14,69 +15,69 @@ interface Property {
   maxGuests: number;
   pricePerNight: number;
   imageUrl: string;
-  hospitableBookingUrl?: string;
+  propertyPageUrl: string;
 }
 
-const mockProperties: Property[] = [
+const featuredProperties: Property[] = [
   {
-    id: '1',
-    title: 'Oceanfront Villa Paradise',
-    description: 'Stunning beachfront property with panoramic ocean views and private beach access.',
-    location: 'Malibu, CA',
-    bedrooms: 4,
-    bathrooms: 3,
-    maxGuests: 8,
-    pricePerNight: 450,
-    imageUrl: 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?auto=format&fit=crop&w=800&q=80',
-    hospitableBookingUrl: '#'
-  },
-  {
-    id: '2',
-    title: 'Mountain Retreat Cabin',
-    description: 'Cozy cabin nestled in the mountains with breathtaking valley views.',
-    location: 'Aspen, CO',
+    id: 'harris-st',
+    title: 'Charming Eugene Home on Harris Street',
+    description: 'Beautiful home in a quiet neighborhood, perfect for families or groups visiting Eugene.',
+    location: '2920 Harris St. Eugene OR 97405',
     bedrooms: 3,
     bathrooms: 2,
     maxGuests: 6,
-    pricePerNight: 320,
-    imageUrl: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=800&q=80',
-    hospitableBookingUrl: '#'
+    pricePerNight: 180,
+    imageUrl: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80',
+    propertyPageUrl: '/property/harris-st'
   },
   {
-    id: '3',
-    title: 'Downtown Luxury Loft',
-    description: 'Modern loft in the heart of the city with premium amenities.',
-    location: 'New York, NY',
+    id: 'kincaid-st',
+    title: 'Modern Kincaid Street Retreat',
+    description: 'Contemporary home with modern amenities in a desirable Eugene location.',
+    location: '2614 Kincaid St. Eugene OR 97405',
     bedrooms: 2,
     bathrooms: 2,
     maxGuests: 4,
-    pricePerNight: 280,
-    imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80',
-    hospitableBookingUrl: '#'
+    pricePerNight: 160,
+    imageUrl: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80',
+    propertyPageUrl: '/property/kincaid-st'
   },
   {
-    id: '4',
-    title: 'Tropical Beach House',
-    description: 'Private beach house with infinity pool and tropical gardens.',
-    location: 'Maui, HI',
-    bedrooms: 5,
-    bathrooms: 4,
-    maxGuests: 10,
-    pricePerNight: 550,
-    imageUrl: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=800&q=80',
-    hospitableBookingUrl: '#'
+    id: 'w-10th-house',
+    title: 'Downtown Eugene House on 10th Street',
+    description: 'Spacious downtown Eugene home within walking distance of restaurants and shops.',
+    location: '358 W 10th St. Eugene OR 97401',
+    bedrooms: 4,
+    bathrooms: 3,
+    maxGuests: 8,
+    pricePerNight: 220,
+    imageUrl: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80',
+    propertyPageUrl: '/property/w-10th-house'
   },
   {
-    id: '5',
-    title: 'Wine Country Estate',
-    description: 'Elegant estate surrounded by vineyards with wine tasting experiences.',
-    location: 'Napa Valley, CA',
-    bedrooms: 6,
-    bathrooms: 5,
-    maxGuests: 12,
-    pricePerNight: 680,
-    imageUrl: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=800&q=80',
-    hospitableBookingUrl: '#'
+    id: 'w-10th-studio',
+    title: 'Cozy Downtown Studio on 10th Street',
+    description: 'Modern studio apartment in the heart of downtown Eugene.',
+    location: '358 W 10th Studio Eugene OR 97401',
+    bedrooms: 1,
+    bathrooms: 1,
+    maxGuests: 2,
+    pricePerNight: 120,
+    imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
+    propertyPageUrl: '/property/w-10th-studio'
+  },
+  {
+    id: 'woodlawn-ave',
+    title: 'Elegant Woodlawn Avenue Home',
+    description: 'Beautiful home in a tree-lined neighborhood offering comfort and tranquility.',
+    location: '1885 Woodlawn Ave Eugene OR 97403',
+    bedrooms: 3,
+    bathrooms: 2,
+    maxGuests: 6,
+    pricePerNight: 190,
+    imageUrl: 'https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=800&q=80',
+    propertyPageUrl: '/property/woodlawn-ave'
   }
 ];
 
@@ -86,15 +87,15 @@ const PropertyShowcase = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Featured Properties
+            Our Eugene Properties
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Discover our handpicked collection of premium vacation rentals in the most desirable destinations.
+            Discover our handpicked collection of vacation rentals in Eugene, Oregon.
           </p>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {mockProperties.map((property) => (
+          {featuredProperties.map((property) => (
             <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-video relative">
                 <img 
@@ -135,9 +136,11 @@ const PropertyShowcase = () => {
                     ${property.pricePerNight}
                     <span className="text-sm font-normal text-muted-foreground">/night</span>
                   </div>
-                  <Button size="sm" className="w-full sm:w-auto">
-                    Book Now
-                  </Button>
+                  <Link to={property.propertyPageUrl}>
+                    <Button size="sm" className="w-full sm:w-auto">
+                      View Details
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
