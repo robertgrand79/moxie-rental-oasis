@@ -12,12 +12,8 @@ const Index = () => {
   return (
     <BackgroundWrapper>
       <HeroSection />
-      <WhyMoxieSection />
-      <AmenitiesSection />
-      <EugeneInfoSection />
-      <BookingBenefitsSection />
       
-      {/* Property Showcase - Floating Card */}
+      {/* Property Showcase - Floating Card - Moved above Moxie Experience */}
       <div className="py-24 relative">
         <div className="container mx-auto px-4">
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
@@ -26,6 +22,10 @@ const Index = () => {
         </div>
       </div>
       
+      <WhyMoxieSection />
+      <AmenitiesSection />
+      <EugeneInfoSection />
+      <BookingBenefitsSection />
       <FinalFeaturesSection />
     </BackgroundWrapper>
   );
