@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -100,7 +99,7 @@ const ChatWidget = () => {
         <Card className="w-80 h-96 shadow-xl">
           <CardHeader className="bg-gray-800 text-white rounded-t-lg">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Moxie Travel Assistant</CardTitle>
+              <CardTitle className="text-lg text-white">Moxie Travel Assistant</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
@@ -123,7 +122,7 @@ const ChatWidget = () => {
                       className={`max-w-[80%] p-3 rounded-lg ${
                         message.role === 'user'
                           ? 'bg-gradient-to-r from-gradient-from to-gradient-accent-from text-white'
-                          : 'bg-gray-800 text-gray-100'
+                          : 'bg-gray-800 text-white'
                       }`}
                     >
                       <p className="text-sm">{message.content}</p>
@@ -132,7 +131,7 @@ const ChatWidget = () => {
                 ))}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-gray-800 text-gray-100 p-3 rounded-lg">
+                    <div className="bg-gray-800 text-white p-3 rounded-lg">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
