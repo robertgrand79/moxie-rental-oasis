@@ -48,7 +48,7 @@ const WhyMoxieSection = () => {
   ];
 
   return (
-    <div className="py-24 relative">
+    <div className="py-12 relative">
       <div className="container mx-auto px-4">
         <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
           <div className="text-center mb-20">
