@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { LogOut, User, Menu, X, Home, Building2, BookOpen, Info, MapPin, Settings } from 'lucide-react';
+import { LogOut, User, Menu, X, Home, Building2, BookOpen, Info, MapPin, Settings, ArrowLeft } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const NavBar = () => {
@@ -44,6 +44,13 @@ const NavBar = () => {
     { title: 'Local Favorites', href: '/experiences', icon: MapPin },
   ];
 
+  const adminNavigationItems = [
+    { title: 'Dashboard', href: '/admin', icon: Home },
+    { title: 'Properties', href: '/properties', icon: Building2 },
+    { title: 'Content Studio', href: '/blog-management', icon: BookOpen },
+    { title: 'Brand Studio', href: '/site-settings', icon: Settings },
+  ];
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -55,8 +62,14 @@ const NavBar = () => {
           {/* Logo Section */}
           <div className="flex items-center">
             {isAdminPage ? (
-              <div className="text-2xl font-bold text-gray-900">
-                Admin Login
+              <div className="flex items-center space-x-4">
+                <Link to="/" className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+                  <ArrowLeft className="h-5 w-5 mr-1" />
+                  <span className="text-sm font-medium">Back to Site</span>
+                </Link>
+                <div className="text-2xl font-bold text-gray-900">
+                  Admin Panel
+                </div>
               </div>
             ) : (
               <Link to="/" className="flex items-center">
@@ -69,10 +82,28 @@ const NavBar = () => {
             )}
           </div>
           
-          {/* Desktop Navigation - only show on non-admin pages */}
-          {!isAdminPage && (
-            <div className="hidden lg:flex items-center space-x-8">
-              {navigationItems.map((item) => {
+          {/* Navigation - show admin nav on admin pages, regular nav on public pages */}
+          <div className="hidden lg:flex items-center space-x-8">
+            {isAdminPage ? (
+              adminNavigationItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <Link
+                    key={item.title}
+                    to={item.href}
+                    className={`flex items-center space-x-2 font-medium text-sm transition-colors duration-200 group ${
+                      location.pathname === item.href 
+                        ? 'text-blue-600' 
+                        : 'text-gray-700 hover:text-gray-900'
+                    }`}
+                  >
+                    <IconComponent className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                    <span>{item.title}</span>
+                  </Link>
+                );
+              })
+            ) : (
+              navigationItems.map((item) => {
                 const IconComponent = item.icon;
                 return (
                   <Link
@@ -84,9 +115,9 @@ const NavBar = () => {
                     <span>{item.title}</span>
                   </Link>
                 );
-              })}
-            </div>
-          )}
+              })
+            )}
+          </div>
           
           {/* Auth & Mobile Menu Section */}
           <div className="flex items-center space-x-4">
@@ -121,41 +152,60 @@ const NavBar = () => {
               </Link>
             )}
             
-            {/* Mobile Menu Button - only show on non-admin pages */}
-            {!isAdminPage && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden p-2"
-                onClick={toggleMobileMenu}
-              >
-                {isMobileMenuOpen ? 
-                  <X className="h-6 w-6 text-gray-700" /> : 
-                  <Menu className="h-6 w-6 text-gray-700" />
-                }
-              </Button>
-            )}
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden p-2"
+              onClick={toggleMobileMenu}
+            >
+              {isMobileMenuOpen ? 
+                <X className="h-6 w-6 text-gray-700" /> : 
+                <Menu className="h-6 w-6 text-gray-700" />
+              }
+            </Button>
           </div>
         </div>
         
-        {/* Mobile Navigation Menu - only show on non-admin pages */}
-        {isMobileMenuOpen && !isAdminPage && (
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
           <div className="lg:hidden border-t border-gray-100">
             <div className="py-4 space-y-1">
-              {navigationItems.map((item) => {
-                const IconComponent = item.icon;
-                return (
-                  <Link
-                    key={item.title}
-                    to={item.href}
-                    className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium transition-colors duration-200"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <IconComponent className="h-5 w-5" />
-                    <span>{item.title}</span>
-                  </Link>
-                );
-              })}
+              {isAdminPage ? (
+                adminNavigationItems.map((item) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <Link
+                      key={item.title}
+                      to={item.href}
+                      className={`flex items-center space-x-3 px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                        location.pathname === item.href 
+                          ? 'text-blue-600 bg-blue-50' 
+                          : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <IconComponent className="h-5 w-5" />
+                      <span>{item.title}</span>
+                    </Link>
+                  );
+                })
+              ) : (
+                navigationItems.map((item) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <Link
+                      key={item.title}
+                      to={item.href}
+                      className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium transition-colors duration-200"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <IconComponent className="h-5 w-5" />
+                      <span>{item.title}</span>
+                    </Link>
+                  );
+                })
+              )}
             </div>
           </div>
         )}
