@@ -16,9 +16,9 @@ const LogoSection = ({ isAdminPage }: LogoSectionProps) => {
             <ArrowLeft className="h-5 w-5 mr-1 text-icon-gray" />
             <span className="text-sm font-medium">Back to Site</span>
           </Link>
-          <div className="text-2xl font-bold text-gray-900">
-            Admin Panel
-          </div>
+          <Link to="/admin" className="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
+            Panel Home
+          </Link>
         </div>
       ) : (
         <Link to="/" className="flex items-center">
