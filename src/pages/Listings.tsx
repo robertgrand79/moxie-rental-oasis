@@ -26,6 +26,11 @@ const Listings = () => {
           </p>
         </div>
 
+        {/* Property Showcase */}
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mb-16 border border-white/20">
+          <PropertyShowcase />
+        </div>
+
         {/* Map Section */}
         <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mb-16 border border-white/20">
           <div className="flex items-center justify-between mb-6">
@@ -65,11 +70,6 @@ const Listings = () => {
           )}
           
           <PropertyMap properties={properties} mapboxToken={mapboxToken} />
-        </div>
-
-        {/* Property Showcase */}
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mb-16 border border-white/20">
-          <PropertyShowcase />
         </div>
 
         {/* Features Section */}
