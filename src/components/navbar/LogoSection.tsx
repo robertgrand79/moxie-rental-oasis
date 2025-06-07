@@ -2,7 +2,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface LogoSectionProps {
   isAdminPage: boolean;
@@ -17,11 +16,6 @@ const LogoSection = ({ isAdminPage }: LogoSectionProps) => {
             <ArrowLeft className="h-5 w-5 mr-1 text-icon-gray" />
             <span className="text-sm font-medium">Back to Site</span>
           </Link>
-          <Button asChild variant="ghost" size="lg">
-            <Link to="/admin" className="text-xl font-semibold">
-              Dashboard
-            </Link>
-          </Button>
         </div>
       ) : (
         <Link to="/" className="flex items-center">
