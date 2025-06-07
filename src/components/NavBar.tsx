@@ -35,7 +35,7 @@ const NavBar = () => {
     { title: 'Listings', href: '/listings' },
     { title: 'Blog', href: '/blog' },
     { title: 'About', href: '/about' },
-    { title: 'Experiences', href: '/experiences' },
+    { title: 'Local Favorites', href: '/experiences' },
   ];
 
   const toggleMobileMenu = () => {
