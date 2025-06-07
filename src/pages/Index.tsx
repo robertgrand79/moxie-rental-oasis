@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -151,13 +150,6 @@ const Index = () => {
           <div className="relative py-24 sm:py-32 lg:py-40 px-4">
             <div className="container mx-auto text-center">
               <div className="max-w-4xl mx-auto">
-                <div className="mb-8">
-                  <img 
-                    src="/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png" 
-                    alt="Moxie Vacation Rentals" 
-                    className="h-20 sm:h-24 lg:h-32 w-auto mx-auto mb-6"
-                  />
-                </div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight">
                   Welcome to Your Perfect Luxury Escape
                 </h1>
