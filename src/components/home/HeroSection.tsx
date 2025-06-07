@@ -20,7 +20,7 @@ const HeroSection = () => {
                 className="h-48 w-auto"
               />
             </div>
-            <p className="text-xl sm:text-2xl text-gray-700 mb-4 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl sm:text-2xl text-gray-700 mb-2 max-w-3xl mx-auto leading-relaxed">
               Discover Eugene, Oregon through thoughtfully curated vacation rentals in the heart of 
               the Pacific Northwest. From Ducks football to wine country tours, your Eugene adventure starts here.
             </p>
