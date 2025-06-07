@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,79 +7,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle, XCircle, Clock, Eye, Edit, MessageSquare } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface ContentItem {
-  id: string;
-  title: string;
-  type: 'blog_post' | 'property_description' | 'page_content' | 'ai_response';
-  content: string;
-  status: 'pending' | 'approved' | 'rejected' | 'needs_revision';
-  createdBy: 'AI' | 'Admin';
-  submittedAt: string;
-  reviewedBy?: string;
-  reviewedAt?: string;
-  feedback?: string;
-  originalPrompt?: string;
-}
+import { useContentApproval, ContentItem } from '@/hooks/useContentApproval';
 
 const ContentApprovalWorkflow = () => {
-  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
+  const { contentItems, loading, updateContentStatus } = useContentApproval();
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [feedback, setFeedback] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
-  const { toast } = useToast();
-
-  useEffect(() => {
-    // Mock data for demonstration
-    const mockContent: ContentItem[] = [
-      {
-        id: '1',
-        title: 'Eugene Travel Guide - Best Local Attractions',
-        type: 'blog_post',
-        content: 'Discover the hidden gems of Eugene, Oregon with our comprehensive travel guide. From the beautiful Hendricks Park to the vibrant Saturday Market, Eugene offers countless attractions for every type of traveler...',
-        status: 'pending',
-        createdBy: 'AI',
-        submittedAt: '2024-01-15T14:30:00Z',
-        originalPrompt: 'Write a travel guide for Eugene highlighting local attractions and hidden gems'
-      },
-      {
-        id: '2',
-        title: 'Downtown Loft Property Description',
-        type: 'property_description',
-        content: 'Experience luxury living in the heart of downtown Eugene with this stunning 2-bedroom loft. Featuring exposed brick walls, high ceilings, and modern amenities, this property offers the perfect blend of historic charm and contemporary comfort...',
-        status: 'pending',
-        createdBy: 'AI',
-        submittedAt: '2024-01-15T13:45:00Z',
-        originalPrompt: 'Create an engaging property description for a 2-bedroom downtown loft'
-      },
-      {
-        id: '3',
-        title: 'About Us Page Content',
-        type: 'page_content',
-        content: 'Welcome to Moxie Vacation Rentals, where exceptional hospitality meets stunning accommodations. Founded with a passion for providing unforgettable travel experiences...',
-        status: 'approved',
-        createdBy: 'AI',
-        submittedAt: '2024-01-15T12:00:00Z',
-        reviewedBy: 'Admin',
-        reviewedAt: '2024-01-15T13:00:00Z',
-        feedback: 'Great content that captures our brand voice perfectly.'
-      },
-      {
-        id: '4',
-        title: 'Guest FAQ Response - Parking Information',
-        type: 'ai_response',
-        content: 'All of our properties include complimentary parking. Downtown locations feature secure garage parking, while our residential properties offer private driveways or designated parking spaces.',
-        status: 'needs_revision',
-        createdBy: 'AI',
-        submittedAt: '2024-01-15T11:30:00Z',
-        reviewedBy: 'Admin',
-        reviewedAt: '2024-01-15T12:30:00Z',
-        feedback: 'Need to specify that some downtown properties have street parking only.'
-      }
-    ];
-    setContentItems(mockContent);
-  }, []);
+  const [updating, setUpdating] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -111,77 +46,21 @@ const ContentApprovalWorkflow = () => {
     }
   };
 
-  const handleApprove = () => {
+  const handleStatusUpdate = async (status: 'approved' | 'rejected' | 'needs_revision') => {
     if (!selectedItem) return;
 
-    setContentItems(prev => prev.map(item => 
-      item.id === selectedItem.id 
-        ? { 
-            ...item, 
-            status: 'approved', 
-            reviewedBy: 'Admin',
-            reviewedAt: new Date().toISOString(),
-            feedback 
-          }
-        : item
-    ));
-
-    toast({
-      title: "Content Approved",
-      description: "The content has been approved and is now live.",
-    });
-
-    setSelectedItem(null);
-    setFeedback('');
-  };
-
-  const handleReject = () => {
-    if (!selectedItem) return;
-
-    setContentItems(prev => prev.map(item => 
-      item.id === selectedItem.id 
-        ? { 
-            ...item, 
-            status: 'rejected', 
-            reviewedBy: 'Admin',
-            reviewedAt: new Date().toISOString(),
-            feedback 
-          }
-        : item
-    ));
-
-    toast({
-      title: "Content Rejected",
-      description: "The content has been rejected and will not be published.",
-      variant: "destructive",
-    });
-
-    setSelectedItem(null);
-    setFeedback('');
-  };
-
-  const handleRequestRevision = () => {
-    if (!selectedItem) return;
-
-    setContentItems(prev => prev.map(item => 
-      item.id === selectedItem.id 
-        ? { 
-            ...item, 
-            status: 'needs_revision', 
-            reviewedBy: 'Admin',
-            reviewedAt: new Date().toISOString(),
-            feedback 
-          }
-        : item
-    ));
-
-    toast({
-      title: "Revision Requested",
-      description: "Feedback has been sent for content revision.",
-    });
-
-    setSelectedItem(null);
-    setFeedback('');
+    setUpdating(true);
+    try {
+      const success = await updateContentStatus(selectedItem.id, status, feedback);
+      if (success) {
+        setSelectedItem(null);
+        setFeedback('');
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const filteredItems = contentItems.filter(item => {
@@ -191,6 +70,20 @@ const ContentApprovalWorkflow = () => {
     if (activeTab === 'revision') return item.status === 'needs_revision';
     return true;
   });
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="h-96 bg-gray-200 rounded"></div>
+            <div className="lg:col-span-2 h-96 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -213,7 +106,7 @@ const ContentApprovalWorkflow = () => {
           <TabsTrigger value="revision">
             Needs Revision ({contentItems.filter(i => i.status === 'needs_revision').length})
           </TabsTrigger>
-          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="all">All ({contentItems.length})</TabsTrigger>
         </TabsList>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -253,11 +146,16 @@ const ContentApprovalWorkflow = () => {
                           {item.content.substring(0, 100)}...
                         </p>
                         <div className="flex items-center justify-between text-xs text-gray-400">
-                          <span>By {item.createdBy}</span>
-                          <span>{new Date(item.submittedAt).toLocaleDateString()}</span>
+                          <span>By {item.created_by}</span>
+                          <span>{new Date(item.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
                     ))}
+                    {filteredItems.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        No content items found for this filter
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
               </CardContent>
@@ -276,7 +174,7 @@ const ContentApprovalWorkflow = () => {
                         {selectedItem.title}
                       </CardTitle>
                       <CardDescription>
-                        {getTypeLabel(selectedItem.type)} • Created by {selectedItem.createdBy}
+                        {getTypeLabel(selectedItem.type)} • Created by {selectedItem.created_by}
                       </CardDescription>
                     </div>
                     <Badge className={getStatusColor(selectedItem.status)}>
@@ -286,11 +184,11 @@ const ContentApprovalWorkflow = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {selectedItem.originalPrompt && (
+                  {selectedItem.original_prompt && (
                     <div>
                       <h4 className="font-medium mb-2">Original Prompt</h4>
                       <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-700">{selectedItem.originalPrompt}</p>
+                        <p className="text-sm text-gray-700">{selectedItem.original_prompt}</p>
                       </div>
                     </div>
                   )}
@@ -325,15 +223,29 @@ const ContentApprovalWorkflow = () => {
                       </div>
 
                       <div className="flex space-x-2">
-                        <Button onClick={handleApprove} className="flex-1">
+                        <Button 
+                          onClick={() => handleStatusUpdate('approved')} 
+                          className="flex-1"
+                          disabled={updating}
+                        >
                           <CheckCircle className="h-4 w-4 mr-2" />
                           Approve
                         </Button>
-                        <Button onClick={handleRequestRevision} variant="outline" className="flex-1">
+                        <Button 
+                          onClick={() => handleStatusUpdate('needs_revision')} 
+                          variant="outline" 
+                          className="flex-1"
+                          disabled={updating}
+                        >
                           <Edit className="h-4 w-4 mr-2" />
                           Request Revision
                         </Button>
-                        <Button onClick={handleReject} variant="destructive" className="flex-1">
+                        <Button 
+                          onClick={() => handleStatusUpdate('rejected')} 
+                          variant="destructive" 
+                          className="flex-1"
+                          disabled={updating}
+                        >
                           <XCircle className="h-4 w-4 mr-2" />
                           Reject
                         </Button>
@@ -341,9 +253,9 @@ const ContentApprovalWorkflow = () => {
                     </div>
                   )}
 
-                  {selectedItem.reviewedAt && (
+                  {selectedItem.reviewed_at && (
                     <div className="text-xs text-gray-500 pt-4 border-t">
-                      Reviewed by {selectedItem.reviewedBy} on {new Date(selectedItem.reviewedAt).toLocaleString()}
+                      Reviewed by {selectedItem.reviewed_by} on {new Date(selectedItem.reviewed_at).toLocaleString()}
                     </div>
                   )}
                 </CardContent>

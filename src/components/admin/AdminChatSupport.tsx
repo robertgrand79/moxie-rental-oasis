@@ -4,37 +4,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, Send, User, Bot, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-
-interface ChatSession {
-  id: string;
-  guestName: string;
-  email?: string;
-  status: 'active' | 'pending' | 'resolved';
-  lastMessage: string;
-  timestamp: string;
-  unreadCount: number;
-}
-
-interface Message {
-  id: string;
-  content: string;
-  sender: 'guest' | 'admin' | 'ai';
-  timestamp: string;
-  sessionId: string;
-}
+import { useChatSessions, ChatSession, ChatMessage } from '@/hooks/useChatSessions';
 
 const AdminChatSupport = () => {
-  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const { chatSessions, loading, fetchMessages, sendMessage, updateSessionStatus } = useChatSessions();
   const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [aiSuggestion, setAiSuggestion] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -46,41 +29,7 @@ const AdminChatSupport = () => {
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    // Mock data for demonstration
-    const mockSessions: ChatSession[] = [
-      {
-        id: '1',
-        guestName: 'Sarah Johnson',
-        email: 'sarah@email.com',
-        status: 'active',
-        lastMessage: 'Is there parking available at the downtown property?',
-        timestamp: '2024-01-15T14:30:00Z',
-        unreadCount: 2
-      },
-      {
-        id: '2',
-        guestName: 'Mike Chen',
-        email: 'mike@email.com',
-        status: 'pending',
-        lastMessage: 'What time is check-in?',
-        timestamp: '2024-01-15T13:45:00Z',
-        unreadCount: 1
-      },
-      {
-        id: '3',
-        guestName: 'Emily Davis',
-        status: 'resolved',
-        lastMessage: 'Thank you for the help!',
-        timestamp: '2024-01-15T12:00:00Z',
-        unreadCount: 0
-      }
-    ];
-    setChatSessions(mockSessions);
-  }, []);
-
-  const generateAISuggestion = async (conversation: Message[]) => {
-    setLoading(true);
+  const generateAISuggestion = async (conversation: ChatMessage[]) => {
     try {
       const conversationContext = conversation.slice(-5).map(msg => 
         `${msg.sender}: ${msg.content}`
@@ -95,79 +44,52 @@ const AdminChatSupport = () => {
 
       if (error) throw error;
 
-      setAiSuggestion(data.response);
+      setAiSuggestion(data.response || 'Thank you for your inquiry. Let me help you with that.');
     } catch (error) {
       console.error('Error generating AI suggestion:', error);
-    } finally {
-      setLoading(false);
+      setAiSuggestion('Thank you for your inquiry. How can I assist you today?');
     }
   };
 
-  const loadMessages = (sessionId: string) => {
-    // Mock messages for demonstration
-    const mockMessages: Message[] = [
-      {
-        id: '1',
-        content: 'Hi, I\'m interested in booking the downtown loft. Is it available for next weekend?',
-        sender: 'guest',
-        timestamp: '2024-01-15T14:00:00Z',
-        sessionId
-      },
-      {
-        id: '2',
-        content: 'Hello! Yes, the downtown loft is available for next weekend. Would you like me to check the exact dates?',
-        sender: 'admin',
-        timestamp: '2024-01-15T14:05:00Z',
-        sessionId
-      },
-      {
-        id: '3',
-        content: 'That would be great! I\'m looking at February 10-12. Also, is there parking available?',
-        sender: 'guest',
-        timestamp: '2024-01-15T14:30:00Z',
-        sessionId
+  const loadMessages = async (session: ChatSession) => {
+    setLoadingMessages(true);
+    try {
+      const sessionMessages = await fetchMessages(session.id);
+      setMessages(sessionMessages);
+      
+      // Generate AI suggestion based on conversation
+      if (sessionMessages.length > 0) {
+        generateAISuggestion(sessionMessages);
       }
-    ];
-    setMessages(mockMessages);
-    
-    // Generate AI suggestion based on conversation
-    if (mockMessages.length > 0) {
-      generateAISuggestion(mockMessages);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    } finally {
+      setLoadingMessages(false);
     }
   };
 
   const selectSession = (session: ChatSession) => {
     setSelectedSession(session);
-    loadMessages(session.id);
-    
-    // Mark as read
-    setChatSessions(prev => prev.map(s => 
-      s.id === session.id ? { ...s, unreadCount: 0 } : s
-    ));
+    loadMessages(session);
+    setAiSuggestion('');
   };
 
-  const sendMessage = () => {
-    if (!newMessage.trim() || !selectedSession) return;
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedSession || sendingMessage) return;
 
-    const message: Message = {
-      id: Date.now().toString(),
-      content: newMessage,
-      sender: 'admin',
-      timestamp: new Date().toISOString(),
-      sessionId: selectedSession.id
-    };
-
-    setMessages(prev => [...prev, message]);
-    
-    // Update session last message
-    setChatSessions(prev => prev.map(s => 
-      s.id === selectedSession.id 
-        ? { ...s, lastMessage: newMessage, timestamp: message.timestamp }
-        : s
-    ));
-
-    setNewMessage('');
-    setAiSuggestion('');
+    setSendingMessage(true);
+    try {
+      const message = await sendMessage(selectedSession.id, newMessage);
+      if (message) {
+        setMessages(prev => [...prev, message]);
+        setNewMessage('');
+        setAiSuggestion('');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setSendingMessage(false);
+    }
   };
 
   const useAISuggestion = () => {
@@ -175,19 +97,13 @@ const AdminChatSupport = () => {
     setAiSuggestion('');
   };
 
-  const markSessionResolved = () => {
+  const markSessionResolved = async () => {
     if (!selectedSession) return;
 
-    setChatSessions(prev => prev.map(s => 
-      s.id === selectedSession.id ? { ...s, status: 'resolved' } : s
-    ));
-    
-    setSelectedSession(prev => prev ? { ...prev, status: 'resolved' } : null);
-    
-    toast({
-      title: "Session Resolved",
-      description: "Chat session has been marked as resolved.",
-    });
+    const success = await updateSessionStatus(selectedSession.id, 'resolved');
+    if (success) {
+      setSelectedSession(prev => prev ? { ...prev, status: 'resolved' } : null);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -207,6 +123,25 @@ const AdminChatSupport = () => {
       default: return null;
     }
   };
+
+  const getUnreadCount = (session: ChatSession) => {
+    // In a real implementation, this would track unread messages
+    return session.status === 'pending' ? 1 : 0;
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="h-96 bg-gray-200 rounded"></div>
+            <div className="lg:col-span-2 h-96 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -243,12 +178,12 @@ const AdminChatSupport = () => {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
                         <User className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium text-sm">{session.guestName}</span>
+                        <span className="font-medium text-sm">{session.guest_name}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {session.unreadCount > 0 && (
+                        {getUnreadCount(session) > 0 && (
                           <Badge variant="destructive" className="text-xs">
-                            {session.unreadCount}
+                            {getUnreadCount(session)}
                           </Badge>
                         )}
                         <Badge className={`text-xs ${getStatusColor(session.status)}`}>
@@ -257,12 +192,19 @@ const AdminChatSupport = () => {
                         </Badge>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 truncate">{session.lastMessage}</p>
+                    <p className="text-sm text-gray-600 truncate">
+                      {session.last_message || 'No messages yet'}
+                    </p>
                     <p className="text-xs text-gray-400 mt-1">
-                      {new Date(session.timestamp).toLocaleTimeString()}
+                      {new Date(session.updated_at).toLocaleTimeString()}
                     </p>
                   </div>
                 ))}
+                {chatSessions.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    No chat sessions found
+                  </div>
+                )}
               </div>
             </ScrollArea>
           </CardContent>
@@ -277,7 +219,7 @@ const AdminChatSupport = () => {
                   <div>
                     <CardTitle className="flex items-center">
                       <User className="h-5 w-5 mr-2" />
-                      {selectedSession.guestName}
+                      {selectedSession.guest_name}
                     </CardTitle>
                     <CardDescription>{selectedSession.email}</CardDescription>
                   </div>
@@ -296,42 +238,53 @@ const AdminChatSupport = () => {
               <CardContent className="flex flex-col h-[480px]">
                 {/* Messages */}
                 <ScrollArea className="flex-1 mb-4">
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.sender === 'admin' ? 'justify-end' : 'justify-start'}`}
-                      >
+                  {loadingMessages ? (
+                    <div className="text-center py-4">
+                      <p className="text-gray-500">Loading messages...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {messages.map((message) => (
                         <div
-                          className={`max-w-xs px-4 py-2 rounded-lg ${
-                            message.sender === 'admin'
-                              ? 'bg-blue-600 text-white'
-                              : message.sender === 'ai'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}
+                          key={message.id}
+                          className={`flex ${message.sender === 'admin' ? 'justify-end' : 'justify-start'}`}
                         >
-                          <div className="flex items-center mb-1">
-                            {message.sender === 'admin' ? (
-                              <User className="h-3 w-3 mr-1" />
-                            ) : message.sender === 'ai' ? (
-                              <Bot className="h-3 w-3 mr-1" />
-                            ) : (
-                              <MessageSquare className="h-3 w-3 mr-1" />
-                            )}
-                            <span className="text-xs opacity-75">
-                              {message.sender === 'admin' ? 'You' : message.sender === 'ai' ? 'AI' : 'Guest'}
-                            </span>
+                          <div
+                            className={`max-w-xs px-4 py-2 rounded-lg ${
+                              message.sender === 'admin'
+                                ? 'bg-blue-600 text-white'
+                                : message.sender === 'ai'
+                                ? 'bg-purple-100 text-purple-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            <div className="flex items-center mb-1">
+                              {message.sender === 'admin' ? (
+                                <User className="h-3 w-3 mr-1" />
+                              ) : message.sender === 'ai' ? (
+                                <Bot className="h-3 w-3 mr-1" />
+                              ) : (
+                                <MessageSquare className="h-3 w-3 mr-1" />
+                              )}
+                              <span className="text-xs opacity-75">
+                                {message.sender === 'admin' ? 'You' : message.sender === 'ai' ? 'AI' : 'Guest'}
+                              </span>
+                            </div>
+                            <p className="text-sm">{message.content}</p>
+                            <p className="text-xs opacity-75 mt-1">
+                              {new Date(message.created_at).toLocaleTimeString()}
+                            </p>
                           </div>
-                          <p className="text-sm">{message.content}</p>
-                          <p className="text-xs opacity-75 mt-1">
-                            {new Date(message.timestamp).toLocaleTimeString()}
-                          </p>
                         </div>
-                      </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
+                      ))}
+                      {messages.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          No messages in this conversation
+                        </div>
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  )}
                 </ScrollArea>
 
                 {/* AI Suggestion */}
@@ -356,12 +309,12 @@ const AdminChatSupport = () => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type your response..."
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                    disabled={selectedSession.status === 'resolved'}
+                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                    disabled={selectedSession.status === 'resolved' || sendingMessage}
                   />
                   <Button 
-                    onClick={sendMessage} 
-                    disabled={!newMessage.trim() || selectedSession.status === 'resolved'}
+                    onClick={handleSendMessage} 
+                    disabled={!newMessage.trim() || selectedSession.status === 'resolved' || sendingMessage}
                   >
                     <Send className="h-4 w-4" />
                   </Button>

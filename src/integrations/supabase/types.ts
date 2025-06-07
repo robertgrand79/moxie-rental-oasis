@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_analytics: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          metric_type: string
+          metric_value: Json
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          metric_type: string
+          metric_value: Json
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          metric_type?: string
+          metric_value?: Json
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author: string
@@ -53,6 +77,113 @@ export type Database = {
           status?: string
           tags?: string[] | null
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          sender: string
+          session_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          sender: string
+          session_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          sender?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          created_at: string
+          email: string | null
+          guest_name: string
+          id: string
+          last_message: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          guest_name: string
+          id?: string
+          last_message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          guest_name?: string
+          id?: string
+          last_message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      content_approval_items: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          feedback: string | null
+          id: string
+          original_prompt: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string
+          feedback?: string | null
+          id?: string
+          original_prompt?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          feedback?: string | null
+          id?: string
+          original_prompt?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title?: string
+          type?: string
           updated_at?: string
         }
         Relationships: []
@@ -275,7 +406,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
