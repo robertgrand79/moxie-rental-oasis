@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
 
 const Footer = () => {
   const [siteData, setSiteData] = useState({
@@ -12,7 +12,8 @@ const Footer = () => {
     socialMedia: {
       facebook: '',
       instagram: '',
-      twitter: ''
+      twitter: '',
+      googlePlaces: ''
     }
   });
 
@@ -27,10 +28,12 @@ const Footer = () => {
         contactEmail: settings.contactEmail || 'hello@moxievacationrentals.com',
         phone: settings.phone || '(541) 555-0123',
         address: settings.address || 'Eugene, Oregon',
-        socialMedia: settings.socialMedia || {
+        socialMedia: {
           facebook: '',
           instagram: '',
-          twitter: ''
+          twitter: '',
+          googlePlaces: '',
+          ...settings.socialMedia
         }
       });
     }
@@ -60,6 +63,11 @@ const Footer = () => {
               {siteData.socialMedia.twitter && (
                 <a href={siteData.socialMedia.twitter} className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }} target="_blank" rel="noopener noreferrer">
                   <Twitter className="h-5 w-5" />
+                </a>
+              )}
+              {siteData.socialMedia.googlePlaces && (
+                <a href={siteData.socialMedia.googlePlaces} className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }} target="_blank" rel="noopener noreferrer">
+                  <MapPinIcon className="h-5 w-5" />
                 </a>
               )}
             </div>
