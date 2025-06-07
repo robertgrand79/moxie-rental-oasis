@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Palette, Type, Image, Wand2, Save, Share, MapPin } from 'lucide-react';
+import { Palette, Type, Image, Wand2, Save, Share, MapPin, Calendar, Camera } from 'lucide-react';
 import ColorCustomizer from '@/components/ColorCustomizer';
 import FontCustomizer from '@/components/FontCustomizer';
 import LogoUploader from '@/components/LogoUploader';
 import AISiteEditor from '@/components/AISiteEditor';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import TestimonialsManager from '@/components/admin/TestimonialsManager';
 
 const SiteSettings = () => {
   const { settings, loading, updateSetting, getSetting } = useSiteSettings();
@@ -240,9 +241,21 @@ const SiteSettings = () => {
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-12">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="hero">Hero</TabsTrigger>
+            <TabsTrigger value="testimonials">
+              <Star className="h-4 w-4 mr-1" />
+              Reviews
+            </TabsTrigger>
+            <TabsTrigger value="gallery">
+              <Camera className="h-4 w-4 mr-1" />
+              Gallery
+            </TabsTrigger>
+            <TabsTrigger value="events">
+              <Calendar className="h-4 w-4 mr-1" />
+              Events
+            </TabsTrigger>
             <TabsTrigger value="social">
               <Share className="h-4 w-4 mr-1" />
               Social
@@ -439,6 +452,42 @@ const SiteSettings = () => {
                   <Save className="h-4 w-4 mr-2" />
                   Save Hero Settings
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="testimonials">
+            <TestimonialsManager />
+          </TabsContent>
+
+          <TabsContent value="gallery">
+            <Card>
+              <CardHeader>
+                <CardTitle>Lifestyle Gallery</CardTitle>
+                <CardDescription>
+                  Manage photos showcasing Eugene's lifestyle and activities
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-gray-500">
+                  Gallery management component coming soon...
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="events">
+            <Card>
+              <CardHeader>
+                <CardTitle>Eugene Events</CardTitle>
+                <CardDescription>
+                  Manage local events and activities to showcase to guests
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-gray-500">
+                  Events management component coming soon...
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

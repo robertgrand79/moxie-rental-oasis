@@ -188,6 +188,123 @@ export type Database = {
         }
         Relationships: []
       }
+      eugene_events: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          event_date: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_recurring: boolean | null
+          location: string | null
+          price_range: string | null
+          recurrence_pattern: string | null
+          ticket_url: string | null
+          time_end: string | null
+          time_start: string | null
+          title: string
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          event_date: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_recurring?: boolean | null
+          location?: string | null
+          price_range?: string | null
+          recurrence_pattern?: string | null
+          ticket_url?: string | null
+          time_end?: string | null
+          time_start?: string | null
+          title: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_recurring?: boolean | null
+          location?: string | null
+          price_range?: string | null
+          recurrence_pattern?: string | null
+          ticket_url?: string | null
+          time_end?: string | null
+          time_start?: string | null
+          title?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      lifestyle_gallery: {
+        Row: {
+          activity_type: string | null
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          display_order: number | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          location: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          activity_type?: string | null
+          category: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          location?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          activity_type?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          location?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       newsletter_campaigns: {
         Row: {
           blog_post_id: string | null
@@ -287,6 +404,78 @@ export type Database = {
           slug?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      points_of_interest: {
+        Row: {
+          address: string | null
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          display_order: number | null
+          distance_from_properties: number | null
+          driving_time: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          price_level: number | null
+          rating: number | null
+          updated_at: string
+          walking_time: number | null
+          website_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          category: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          display_order?: number | null
+          distance_from_properties?: number | null
+          driving_time?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          price_level?: number | null
+          rating?: number | null
+          updated_at?: string
+          walking_time?: number | null
+          website_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          display_order?: number | null
+          distance_from_properties?: number | null
+          driving_time?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          price_level?: number | null
+          rating?: number | null
+          updated_at?: string
+          walking_time?: number | null
+          website_url?: string | null
         }
         Relationships: []
       }
@@ -398,6 +587,57 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      testimonials: {
+        Row: {
+          created_at: string
+          created_by: string
+          display_order: number | null
+          guest_avatar_url: string | null
+          guest_location: string | null
+          guest_name: string
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          property_name: string | null
+          rating: number
+          review_text: string
+          stay_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          display_order?: number | null
+          guest_avatar_url?: string | null
+          guest_location?: string | null
+          guest_name: string
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          property_name?: string | null
+          rating?: number
+          review_text: string
+          stay_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          display_order?: number | null
+          guest_avatar_url?: string | null
+          guest_location?: string | null
+          guest_name?: string
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          property_name?: string | null
+          rating?: number
+          review_text?: string
+          stay_date?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
