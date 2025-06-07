@@ -1,47 +1,24 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Footer = () => {
-  const [siteData, setSiteData] = useState({
-    siteName: 'Moxie Vacation Rentals',
-    description: 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
-    contactEmail: 'hello@moxievacationrentals.com',
-    phone: '(541) 555-0123',
-    address: 'Eugene, Oregon',
-    socialMedia: {
+  const { getSetting } = useSiteSettings();
+
+  const siteData = {
+    siteName: getSetting('siteName', 'Moxie Vacation Rentals'),
+    description: getSetting('description', 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.'),
+    contactEmail: getSetting('contactEmail', 'hello@moxievacationrentals.com'),
+    phone: getSetting('phone', '(541) 555-0123'),
+    address: getSetting('address', 'Eugene, Oregon'),
+    socialMedia: getSetting('socialMedia', {
       facebook: '',
       instagram: '',
       twitter: '',
       googlePlaces: ''
-    }
-  });
-
-  useEffect(() => {
-    // Load site settings from localStorage
-    const savedSettings = localStorage.getItem('siteSettings');
-    console.log('Loading saved settings from localStorage:', savedSettings);
-    if (savedSettings) {
-      const settings = JSON.parse(savedSettings);
-      console.log('Parsed settings:', settings);
-      setSiteData({
-        siteName: settings.siteName || 'Moxie Vacation Rentals',
-        description: settings.description || 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
-        contactEmail: settings.contactEmail || 'hello@moxievacationrentals.com',
-        phone: settings.phone || '(541) 555-0123',
-        address: settings.address || 'Eugene, Oregon',
-        socialMedia: {
-          facebook: '',
-          instagram: '',
-          twitter: '',
-          googlePlaces: '',
-          ...settings.socialMedia
-        }
-      });
-    }
-  }, []);
-
-  console.log('Current siteData in Footer:', siteData);
+    })
+  };
 
   return (
     <footer className="text-white py-16" style={{ backgroundColor: '#767b8d' }}>

@@ -35,6 +35,23 @@ const SiteSettings = () => {
   });
 
   const [mapboxToken, setMapboxToken] = useState('');
+  const [seoData, setSeoData] = useState({
+    siteTitle: 'Moxie Vacation Rentals',
+    metaDescription: 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.',
+    ogTitle: '',
+    ogDescription: '',
+    ogImage: '',
+    favicon: ''
+  });
+
+  const [analyticsData, setAnalyticsData] = useState({
+    googleAnalyticsId: '',
+    googleTagManagerId: '',
+    facebookPixelId: '',
+    customHeaderScripts: '',
+    customFooterScripts: '',
+    customCss: ''
+  });
 
   const handleSaveSettings = async () => {
     const settingsToSave = [
@@ -75,6 +92,58 @@ const SiteSettings = () => {
     }
   };
 
+  const handleSaveSeoSettings = async () => {
+    const settingsToSave = [
+      { key: 'siteTitle', value: seoData.siteTitle },
+      { key: 'metaDescription', value: seoData.metaDescription },
+      { key: 'ogTitle', value: seoData.ogTitle },
+      { key: 'ogDescription', value: seoData.ogDescription },
+      { key: 'ogImage', value: seoData.ogImage },
+      { key: 'favicon', value: seoData.favicon },
+    ];
+
+    let allSuccessful = true;
+    for (const setting of settingsToSave) {
+      const success = await updateSetting(setting.key, setting.value);
+      if (!success) {
+        allSuccessful = false;
+      }
+    }
+
+    if (allSuccessful) {
+      toast({
+        title: "SEO Settings Saved",
+        description: "Your SEO and meta settings have been successfully updated.",
+      });
+    }
+  };
+
+  const handleSaveAnalyticsSettings = async () => {
+    const settingsToSave = [
+      { key: 'googleAnalyticsId', value: analyticsData.googleAnalyticsId },
+      { key: 'googleTagManagerId', value: analyticsData.googleTagManagerId },
+      { key: 'facebookPixelId', value: analyticsData.facebookPixelId },
+      { key: 'customHeaderScripts', value: analyticsData.customHeaderScripts },
+      { key: 'customFooterScripts', value: analyticsData.customFooterScripts },
+      { key: 'customCss', value: analyticsData.customCss },
+    ];
+
+    let allSuccessful = true;
+    for (const setting of settingsToSave) {
+      const success = await updateSetting(setting.key, setting.value);
+      if (!success) {
+        allSuccessful = false;
+      }
+    }
+
+    if (allSuccessful) {
+      toast({
+        title: "Analytics Settings Saved",
+        description: "Your analytics and scripts have been successfully updated.",
+      });
+    }
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setSiteData(prev => ({
       ...prev,
@@ -110,7 +179,26 @@ const SiteSettings = () => {
           googlePlaces: ''
         })
       });
+      
       setMapboxToken(getSetting('mapboxToken', ''));
+      
+      setSeoData({
+        siteTitle: getSetting('siteTitle', 'Moxie Vacation Rentals'),
+        metaDescription: getSetting('metaDescription', 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.'),
+        ogTitle: getSetting('ogTitle', ''),
+        ogDescription: getSetting('ogDescription', ''),
+        ogImage: getSetting('ogImage', ''),
+        favicon: getSetting('favicon', '')
+      });
+
+      setAnalyticsData({
+        googleAnalyticsId: getSetting('googleAnalyticsId', ''),
+        googleTagManagerId: getSetting('googleTagManagerId', ''),
+        facebookPixelId: getSetting('facebookPixelId', ''),
+        customHeaderScripts: getSetting('customHeaderScripts', ''),
+        customFooterScripts: getSetting('customFooterScripts', ''),
+        customCss: getSetting('customCss', '')
+      });
     }
   }, [loading, settings, getSetting]);
 
@@ -143,6 +231,8 @@ const SiteSettings = () => {
               <Share className="h-4 w-4 mr-1" />
               Social
             </TabsTrigger>
+            <TabsTrigger value="seo">SEO & Meta</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="maps">
               <MapPin className="h-4 w-4 mr-1" />
               Maps
@@ -317,6 +407,168 @@ const SiteSettings = () => {
                 <Button onClick={handleSaveSettings} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
                   Save Social Media Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="seo">
+            <Card>
+              <CardHeader>
+                <CardTitle>SEO & Meta Tags</CardTitle>
+                <CardDescription>
+                  Control your site's search engine optimization and social media appearance
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="siteTitle">Site Title (Browser Tab)</Label>
+                  <Input
+                    id="siteTitle"
+                    value={seoData.siteTitle}
+                    onChange={(e) => setSeoData(prev => ({ ...prev, siteTitle: e.target.value }))}
+                    placeholder="Your site title"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="metaDescription">Meta Description</Label>
+                  <Textarea
+                    id="metaDescription"
+                    value={seoData.metaDescription}
+                    onChange={(e) => setSeoData(prev => ({ ...prev, metaDescription: e.target.value }))}
+                    placeholder="Description for search engines"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="ogTitle">Open Graph Title (Social Media)</Label>
+                  <Input
+                    id="ogTitle"
+                    value={seoData.ogTitle}
+                    onChange={(e) => setSeoData(prev => ({ ...prev, ogTitle: e.target.value }))}
+                    placeholder="Leave empty to use site title"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="ogDescription">Open Graph Description</Label>
+                  <Textarea
+                    id="ogDescription"
+                    value={seoData.ogDescription}
+                    onChange={(e) => setSeoData(prev => ({ ...prev, ogDescription: e.target.value }))}
+                    placeholder="Leave empty to use meta description"
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="ogImage">Open Graph Image URL</Label>
+                  <Input
+                    id="ogImage"
+                    value={seoData.ogImage}
+                    onChange={(e) => setSeoData(prev => ({ ...prev, ogImage: e.target.value }))}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="favicon">Favicon URL</Label>
+                  <Input
+                    id="favicon"
+                    value={seoData.favicon}
+                    onChange={(e) => setSeoData(prev => ({ ...prev, favicon: e.target.value }))}
+                    placeholder="/lovable-uploads/your-favicon.png"
+                  />
+                </div>
+
+                <Button onClick={handleSaveSeoSettings} className="w-full">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save SEO Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <Card>
+              <CardHeader>
+                <CardTitle>Analytics & Custom Scripts</CardTitle>
+                <CardDescription>
+                  Add tracking codes and custom scripts to your website
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="googleAnalyticsId">Google Analytics ID (GA4)</Label>
+                  <Input
+                    id="googleAnalyticsId"
+                    value={analyticsData.googleAnalyticsId}
+                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, googleAnalyticsId: e.target.value }))}
+                    placeholder="G-XXXXXXXXXX"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="googleTagManagerId">Google Tag Manager ID</Label>
+                  <Input
+                    id="googleTagManagerId"
+                    value={analyticsData.googleTagManagerId}
+                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, googleTagManagerId: e.target.value }))}
+                    placeholder="GTM-XXXXXXX"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="facebookPixelId">Facebook Pixel ID</Label>
+                  <Input
+                    id="facebookPixelId"
+                    value={analyticsData.facebookPixelId}
+                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, facebookPixelId: e.target.value }))}
+                    placeholder="123456789012345"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="customHeaderScripts">Custom Header Scripts</Label>
+                  <Textarea
+                    id="customHeaderScripts"
+                    value={analyticsData.customHeaderScripts}
+                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, customHeaderScripts: e.target.value }))}
+                    placeholder="JavaScript code to be added before </head>"
+                    rows={4}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="customFooterScripts">Custom Footer Scripts</Label>
+                  <Textarea
+                    id="customFooterScripts"
+                    value={analyticsData.customFooterScripts}
+                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, customFooterScripts: e.target.value }))}
+                    placeholder="JavaScript code to be added before </body>"
+                    rows={4}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="customCss">Custom CSS</Label>
+                  <Textarea
+                    id="customCss"
+                    value={analyticsData.customCss}
+                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, customCss: e.target.value }))}
+                    placeholder="Custom CSS styles"
+                    rows={4}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <Button onClick={handleSaveAnalyticsSettings} className="w-full">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Analytics Settings
                 </Button>
               </CardContent>
             </Card>
