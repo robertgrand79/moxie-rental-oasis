@@ -13,6 +13,7 @@ const NavBar = () => {
   const isAdminPage = location.pathname.startsWith('/admin') || 
                      location.pathname.startsWith('/properties') || 
                      location.pathname.startsWith('/blog-management') || 
+                     location.pathname.startsWith('/page-management') || 
                      location.pathname.startsWith('/site-settings');
 
   return (
