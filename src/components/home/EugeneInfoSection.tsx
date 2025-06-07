@@ -12,7 +12,7 @@ const EugeneInfoSection = () => {
               <div>
                 <h2 className="text-5xl font-bold text-gray-900 mb-8 leading-tight">
                   Discover the 
-                  <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <span className="block bg-gradient-to-r from-gradient-from to-gradient-accent-from bg-clip-text text-transparent">
                     Heart of Eugene
                   </span>
                 </h2>
@@ -34,10 +34,10 @@ const EugeneInfoSection = () => {
                 </div>
               </div>
               <div className="relative">
-                <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-1 shadow-2xl">
+                <div className="bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-3xl p-1 shadow-2xl">
                   <div className="bg-white rounded-3xl p-8">
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <div className="w-24 h-24 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-full flex items-center justify-center mx-auto mb-6">
                         <Mountain className="h-12 w-12 text-white" />
                       </div>
                       <h3 className="text-2xl font-bold text-gray-900 mb-4">Pacific Northwest Living</h3>

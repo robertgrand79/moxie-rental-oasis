@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -51,6 +52,13 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Cool Gray Gradient Colors */
+    --gradient-from: 215 25% 27%;
+    --gradient-via: 216 12% 84%;
+    --gradient-to: 220 13% 91%;
+    --gradient-accent-from: 215 20% 65%;
+    --gradient-accent-to: 220 14% 96%;
   }
 
   .dark {
@@ -89,6 +97,13 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Cool Gray Gradient Colors for Dark Mode */
+    --gradient-from: 215 25% 27%;
+    --gradient-via: 216 25% 40%;
+    --gradient-to: 220 25% 25%;
+    --gradient-accent-from: 215 20% 45%;
+    --gradient-accent-to: 220 20% 30%;
   }
 }
 
