@@ -135,10 +135,7 @@ const BlogBulkActions = ({
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
         <div className="flex items-center space-x-3">
           <Checkbox
-            checked={isAllSelected}
-            ref={(el) => {
-              if (el) el.indeterminate = isPartiallySelected;
-            }}
+            checked={isAllSelected ? true : isPartiallySelected ? "indeterminate" : false}
             onCheckedChange={handleSelectAll}
           />
           <span className="text-sm font-medium text-gray-700">
