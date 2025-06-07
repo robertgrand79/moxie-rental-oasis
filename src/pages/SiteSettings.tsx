@@ -1,0 +1,207 @@
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { Palette, Type, Image, Wand2, Save } from 'lucide-react';
+import ColorCustomizer from '@/components/ColorCustomizer';
+import FontCustomizer from '@/components/FontCustomizer';
+import LogoUploader from '@/components/LogoUploader';
+import AISiteEditor from '@/components/AISiteEditor';
+
+const SiteSettings = () => {
+  const [siteData, setSiteData] = useState({
+    siteName: 'Moxie Vacation Rentals',
+    tagline: 'Your perfect getaway is just a click away.',
+    description: 'Discover amazing vacation rental properties in prime locations.',
+    heroTitle: 'Welcome to Moxie Vacation Rentals',
+    heroSubtitle: 'Discover amazing vacation rental properties in prime locations. Your perfect getaway is just a click away.',
+    contactEmail: 'contact@moxievacationrentals.com',
+    phone: '+1 (555) 123-4567',
+    address: '123 Vacation St, Resort City, RC 12345'
+  });
+
+  const { toast } = useToast();
+
+  const handleSaveSettings = () => {
+    // Save to localStorage for now (in a real app, this would save to database)
+    localStorage.setItem('siteSettings', JSON.stringify(siteData));
+    toast({
+      title: "Settings Saved",
+      description: "Your site settings have been successfully updated.",
+    });
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setSiteData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  useEffect(() => {
+    // Load saved settings on component mount
+    const savedSettings = localStorage.getItem('siteSettings');
+    if (savedSettings) {
+      setSiteData(JSON.parse(savedSettings));
+    }
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Site Settings</h1>
+          <p className="text-gray-600">
+            Customize your website's appearance, content, and branding
+          </p>
+        </div>
+
+        <Tabs defaultValue="general" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="colors">
+              <Palette className="h-4 w-4 mr-1" />
+              Colors
+            </TabsTrigger>
+            <TabsTrigger value="fonts">
+              <Type className="h-4 w-4 mr-1" />
+              Fonts
+            </TabsTrigger>
+            <TabsTrigger value="branding">
+              <Image className="h-4 w-4 mr-1" />
+              Branding
+            </TabsTrigger>
+            <TabsTrigger value="ai-editor">
+              <Wand2 className="h-4 w-4 mr-1" />
+              AI Editor
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="general">
+            <Card>
+              <CardHeader>
+                <CardTitle>General Settings</CardTitle>
+                <CardDescription>
+                  Configure your site's basic information and content
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="siteName">Site Name</Label>
+                    <Input
+                      id="siteName"
+                      value={siteData.siteName}
+                      onChange={(e) => handleInputChange('siteName', e.target.value)}
+                      placeholder="Your site name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="tagline">Tagline</Label>
+                    <Input
+                      id="tagline"
+                      value={siteData.tagline}
+                      onChange={(e) => handleInputChange('tagline', e.target.value)}
+                      placeholder="A short tagline"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="description">Site Description</Label>
+                  <Textarea
+                    id="description"
+                    value={siteData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    placeholder="Describe your business"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="heroTitle">Hero Title</Label>
+                  <Input
+                    id="heroTitle"
+                    value={siteData.heroTitle}
+                    onChange={(e) => handleInputChange('heroTitle', e.target.value)}
+                    placeholder="Main headline on homepage"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="heroSubtitle">Hero Subtitle</Label>
+                  <Textarea
+                    id="heroSubtitle"
+                    value={siteData.heroSubtitle}
+                    onChange={(e) => handleInputChange('heroSubtitle', e.target.value)}
+                    placeholder="Supporting text for the main headline"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <Label htmlFor="contactEmail">Contact Email</Label>
+                    <Input
+                      id="contactEmail"
+                      type="email"
+                      value={siteData.contactEmail}
+                      onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+                      placeholder="contact@yoursite.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      value={siteData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      value={siteData.address}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      placeholder="Your business address"
+                    />
+                  </div>
+                </div>
+
+                <Button onClick={handleSaveSettings} className="w-full">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save General Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="colors">
+            <ColorCustomizer />
+          </TabsContent>
+
+          <TabsContent value="fonts">
+            <FontCustomizer />
+          </TabsContent>
+
+          <TabsContent value="branding">
+            <LogoUploader />
+          </TabsContent>
+
+          <TabsContent value="ai-editor">
+            <AISiteEditor siteData={siteData} onUpdateSiteData={setSiteData} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default SiteSettings;

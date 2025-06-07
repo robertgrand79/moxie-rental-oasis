@@ -11,6 +11,7 @@ import Properties from "./pages/Properties";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import BlogManagement from "./pages/BlogManagement";
+import SiteSettings from "./pages/SiteSettings";
 import NotFound from "./pages/NotFound";
 import NavBar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -43,6 +44,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <BlogManagement />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/site-settings" 
+              element={
+                <ProtectedRoute>
+                  <SiteSettings />
                 </ProtectedRoute>
               } 
             />

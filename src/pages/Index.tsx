@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -62,12 +61,14 @@ const Index = () => {
                     <p className="text-sm text-gray-500">Manage admin users</p>
                   </div>
                 </Button>
-                <Button variant="outline" className="p-6 h-auto">
-                  <div className="text-center">
-                    <h3 className="font-semibold">Site Settings</h3>
-                    <p className="text-sm text-gray-500">Customize colors, logos, and branding</p>
-                  </div>
-                </Button>
+                <Link to="/site-settings">
+                  <Button variant="outline" className="p-6 h-auto w-full">
+                    <div className="text-center">
+                      <h3 className="font-semibold">Site Settings</h3>
+                      <p className="text-sm text-gray-500">Customize colors, logos, and branding</p>
+                    </div>
+                  </Button>
+                </Link>
               </div>
             </div>
           )}
