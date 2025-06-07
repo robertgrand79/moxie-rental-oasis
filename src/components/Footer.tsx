@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
 
@@ -162,7 +161,7 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
+                <a href="/faq" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   FAQ
                 </a>
               </li>
@@ -182,6 +181,9 @@ const Footer = () => {
               </a>
               <a href="/terms-of-service" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Terms of Service
+              </a>
+              <a href="/faq" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
+                FAQ
               </a>
               <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Accessibility
