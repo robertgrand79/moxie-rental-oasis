@@ -1,9 +1,10 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import PropertyShowcase from '@/components/PropertyShowcase';
 import { useEffect } from 'react';
-import { Home, MapPin, Ruler, Eye, Building, Sparkles, User, Star, Wifi, Car, Tv, Shirt, ChefHat, Package, Bed, Calendar, Users, MessageCircle, CreditCard, ArrowRight } from 'lucide-react';
+import { Home, MapPin, Ruler, Eye, Building, Sparkles, User, Star, Wifi, Car, Tv, Shirt, ChefHat, Package, Bed, Calendar, Users, MessageCircle, CreditCard, ArrowRight, Coffee, Trees, Mountain } from 'lucide-react';
 
 const Index = () => {
   const { user } = useAuth();
@@ -27,43 +28,43 @@ const Index = () => {
   const whyMoxieFeatures = [
     {
       icon: Home,
-      title: "Luxury Amenities",
-      description: "Premium features and high-end amenities for the ultimate comfort experience."
+      title: "Local Living",
+      description: "Experience Eugene like a local with properties in tree-lined neighborhoods and walkable areas."
     },
     {
       icon: MapPin,
-      title: "Prime Locations",
-      description: "Strategically located properties in the most desirable areas."
+      title: "Prime Eugene Locations",
+      description: "Strategically located in Eugene's most charming and walkable neighborhoods."
     },
     {
-      icon: Ruler,
-      title: "Spacious accommodations",
-      description: "Thoughtfully designed spaces that provide room to relax and unwind."
+      icon: Coffee,
+      title: "Artisan Coffee Culture",
+      description: "Locally roasted coffee and access to Eugene's vibrant artisan coffee scene."
     },
     {
-      icon: Eye,
-      title: "Stunning views",
-      description: "Breathtaking vistas and scenic surroundings at every property."
+      icon: Trees,
+      title: "Pacific Northwest Nature",
+      description: "Easy access to lush trails, Hendricks Park, and Oregon's natural beauty."
     },
     {
       icon: Building,
-      title: "Modern design",
-      description: "Contemporary architecture and stylish interiors throughout."
+      title: "Modern Comfort",
+      description: "Homes styled with warmth, character, and contemporary Pacific Northwest design."
     },
     {
       icon: Sparkles,
-      title: "Impeccable cleanliness",
-      description: "Pristine properties maintained to the highest standards."
+      title: "Curated Details",
+      description: "Thoughtfully curated welcome baskets and guidebooks to hidden local spots."
     },
     {
       icon: User,
-      title: "Personalized experiences",
-      description: "Tailored services and attention to detail for every guest."
+      title: "Personal Connection",
+      description: "Stays that feel personal, memorable, and connected to Eugene's community spirit."
     },
     {
       icon: Star,
-      title: "Excellent customer service",
-      description: "Dedicated support team committed to your satisfaction."
+      title: "Local Expertise",
+      description: "Your gateway to discovering Eugene like you've always belonged here."
     }
   ];
 
@@ -71,65 +72,65 @@ const Index = () => {
     {
       icon: ChefHat,
       title: "Fully Equipped Kitchen",
-      description: "Enjoy the convenience of luxury appliances and a fully stocked kitchen. We think of everything so you don't have to."
+      description: "Enjoy the convenience of luxury appliances and a fully stocked kitchen with local Oregon touches."
     },
     {
-      icon: Package,
-      title: "The Essentials",
-      description: "We've got you covered with the toiletries to make your stay as comfortable as possible."
+      icon: Coffee,
+      title: "Local Welcome Basket",
+      description: "Locally roasted Eugene coffee and curated local treats to start your stay right."
     },
     {
       icon: Bed,
-      title: "Comfort & Style",
-      description: "Indulge in the ultimate comfort and style, with each of our accommodations designed to the highest standards."
+      title: "Pacific Northwest Style",
+      description: "Homes styled with warmth, character, and modern comfort reflecting Oregon living."
     },
     {
       icon: MapPin,
-      title: "Great Location",
-      description: "Discover the best of the city with our great locations conveniently situated throughout the area."
+      title: "Walkable Eugene Areas",
+      description: "Located in Eugene's most charming neighborhoods, walkable to local attractions."
     },
     {
       icon: Wifi,
       title: "Free Wi-Fi",
-      description: "Stay connected with up to 500 MBPS of free Wi-Fi available to all guests."
+      description: "Stay connected with up to 500 MBPS of free Wi-Fi for work or sharing your Eugene adventures."
     },
     {
       icon: Car,
-      title: "Parking",
-      description: "Whether onsite or just a short distance away, we offer convenient parking options for your ease and comfort."
+      title: "Convenient Parking",
+      description: "Easy parking options so you can explore Eugene and the Pacific Northwest with ease."
     },
     {
       icon: Tv,
       title: "Smart Entertainment",
-      description: "Unwind with your favourite shows on our smart entertainment systems featuring popular streaming services like Netflix and Disney Plus."
+      description: "Unwind after exploring Eugene with smart entertainment systems and popular streaming services."
     },
     {
-      icon: Shirt,
-      title: "Linen & Towels",
-      description: "Rest easy knowing fresh linen and towels are provided for your stay."
+      icon: Package,
+      title: "Curated Local Guides",
+      description: "Personalized guidebooks featuring our favorite hidden Eugene spots and local recommendations."
     }
   ];
 
   const bookingBenefits = [
     {
       icon: Calendar,
-      title: "Best Rates",
-      description: "Booking directly with us means that you can potentially get the best rates available for your accommodation."
+      title: "Best Eugene Rates",
+      description: "Booking directly with us means you get the best rates for authentic Eugene vacation rentals."
     },
     {
       icon: Users,
-      title: "Loyalty Programs & Guest Benefits",
-      description: "Access to discounted rates when you continue booking using our website."
+      title: "Local Loyalty Program",
+      description: "Return guest discounts for exploring more of Eugene and the Pacific Northwest."
     },
     {
       icon: MessageCircle,
-      title: "Enhanced Customer Service",
-      description: "When you book directly, you have a direct line of communication with the property owner or manager, which often translates into better customer service."
+      title: "Eugene Local Support",
+      description: "Direct communication with local Eugene hosts who know the city inside and out."
     },
     {
       icon: CreditCard,
       title: "No Booking Fees",
-      description: "Booking with us means that you don't have to pay any additional booking fees and this can translate into significant savings."
+      description: "More savings to spend on Eugene's farmers markets, local dining, and Oregon adventures."
     }
   ];
 
@@ -151,11 +152,11 @@ const Index = () => {
             <div className="container mx-auto text-center">
               <div className="max-w-4xl mx-auto">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight">
-                  Welcome to Your Perfect Luxury Escape
+                  Your Home Base for Living Like a Local in Eugene
                 </h1>
                 <p className="text-xl sm:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed">
-                  Discover extraordinary vacation rental properties in the world's most coveted destinations. 
-                  Your perfect luxury escape awaits.
+                  Discover Eugene, Oregon through thoughtfully curated vacation rentals in the heart of 
+                  the Pacific Northwest. From Ducks football to wine country tours, your Eugene adventure starts here.
                 </p>
                 
                 {!user && (
@@ -173,8 +174,8 @@ const Index = () => {
               {/* Elegant Search Widget */}
               <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 max-w-5xl mx-auto border border-white/20">
                 <div className="text-center mb-8">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-3">Find Your Perfect Sanctuary</h3>
-                  <p className="text-gray-600 text-lg">Search and reserve your ideal luxury retreat</p>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3">Find Your Eugene Sanctuary</h3>
+                  <p className="text-gray-600 text-lg">Discover your perfect home base in Eugene, Oregon</p>
                 </div>
                 <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom" results-url="/search"></hospitable-direct-mps>
               </div>
@@ -188,11 +189,11 @@ const Index = () => {
             <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
               <div className="text-center mb-20">
                 <h2 className="text-5xl font-bold text-gray-900 mb-6">
-                  The Moxie Difference
+                  The Moxie Eugene Experience
                 </h2>
                 <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-8"></div>
                 <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                  Experience unparalleled luxury and sophistication in every detail
+                  More than just a place to stay—your gateway to authentic Eugene living
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
@@ -218,7 +219,7 @@ const Index = () => {
               </div>
               <div className="text-center">
                 <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-4 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300">
-                  RESERVE YOUR ESCAPE
+                  BOOK YOUR EUGENE STAY
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
@@ -236,11 +237,11 @@ const Index = () => {
               <div className="relative">
                 <div className="text-center mb-20">
                   <h2 className="text-5xl font-bold text-white mb-6">
-                    Curated Luxury Amenities
+                    Thoughtfully Curated Eugene Amenities
                   </h2>
                   <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mb-8"></div>
                   <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
-                    Every detail meticulously crafted for your ultimate comfort and convenience
+                    Every detail designed to immerse you in the soul of Eugene
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -276,24 +277,23 @@ const Index = () => {
                     <h2 className="text-5xl font-bold text-gray-900 mb-8 leading-tight">
                       Discover the 
                       <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Enchanting Eugene
+                        Heart of Eugene
                       </span>
                     </h2>
                     <div className="space-y-6 text-gray-700 text-lg leading-relaxed">
                       <p>
-                        Immerse yourself in the captivating allure of Eugene, Oregon. Located in the heart 
-                        of the magnificent Pacific Northwest, Eugene offers an exquisite blend of natural 
-                        splendor, vibrant culture, and boundless outdoor adventures.
+                        Immerse yourself in Eugene's vibrant community spirit—from tree-lined neighborhoods 
+                        and artisan coffee shops to the passionate college town energy of Duck football and 
+                        the renowned Saturday Market showcasing local artisans and musicians.
                       </p>
                       <p>
-                        Explore breathtaking landscapes surrounding the city, from pristine forests and 
-                        cascading waterfalls to the majestic mountain vistas. Experience the renowned 
-                        Eugene Saturday Market, a cultural epicenter showcasing local artisans, musicians, 
-                        and culinary artisans.
+                        Experience the best of Pacific Northwest living with morning runs through Hendricks Park, 
+                        wine country tours, and nights out at 5th Street Public Market. Our homes put you in 
+                        the heart of Eugene's most walkable and charming areas.
                       </p>
                       <p className="font-semibold text-gray-900 text-xl">
-                        Moxie Vacation Rentals invites you to uncover Eugene's countless treasures 
-                        and craft unforgettable memories.
+                        Whether you're here for the Olympic trials, a family visit, or to soak up Oregon life, 
+                        Moxie is your gateway to discovering Eugene like you've always belonged here.
                       </p>
                     </div>
                   </div>
@@ -302,12 +302,12 @@ const Index = () => {
                       <div className="bg-white rounded-3xl p-8">
                         <div className="text-center">
                           <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <MapPin className="h-12 w-12 text-white" />
+                            <Mountain className="h-12 w-12 text-white" />
                           </div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-4">Premium Location</h3>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-4">Pacific Northwest Living</h3>
                           <p className="text-gray-600 leading-relaxed">
-                            Strategically positioned in the heart of Eugene's most desirable neighborhoods, 
-                            offering unparalleled access to the city's finest attractions and amenities.
+                            Located in Eugene's most charming neighborhoods, offering authentic Oregon experiences 
+                            from lush trails to vibrant farmers markets and everything in between.
                           </p>
                         </div>
                       </div>
@@ -325,11 +325,11 @@ const Index = () => {
             <div className="bg-gradient-to-br from-blue-50/95 to-purple-50/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
               <div className="text-center mb-20">
                 <h2 className="text-5xl font-bold text-gray-900 mb-6">
-                  Exclusive Direct Booking Benefits
+                  Direct Booking Benefits in Eugene
                 </h2>
                 <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-8"></div>
                 <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                  Unlock premium advantages when you book directly with us
+                  Book directly for the best Eugene experience and exclusive local advantages
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -372,36 +372,36 @@ const Index = () => {
             <div className="bg-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
               <div className="text-center mb-20">
                 <h2 className="text-5xl font-bold text-white mb-6">
-                  Why Choose Moxie
+                  Why Choose Moxie in Eugene
                 </h2>
                 <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto"></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="group bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-10 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:-translate-y-2">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <MapPin className="h-8 w-8 text-white" />
+                    <Coffee className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Premium Destinations</h3>
+                  <h3 className="text-2xl font-bold text-white mb-4">Local Eugene Culture</h3>
                   <p className="text-gray-200 text-lg leading-relaxed">
-                    Meticulously curated properties in the world's most coveted vacation destinations.
+                    Immerse yourself in Eugene's artisan coffee culture, vibrant markets, and passionate college town spirit.
                   </p>
                 </div>
                 <div className="group bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-10 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:-translate-y-2">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Star className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Concierge Support</h3>
+                  <h3 className="text-2xl font-bold text-white mb-4">Local Expert Hosts</h3>
                   <p className="text-gray-200 text-lg leading-relaxed">
-                    Our dedicated luxury concierge team ensures your every need is anticipated and fulfilled.
+                    Our Eugene-based team provides insider knowledge and curated guides to the city's hidden gems.
                   </p>
                 </div>
                 <div className="group bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-10 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:-translate-y-2">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <Sparkles className="h-8 w-8 text-white" />
+                    <Trees className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Seamless Experience</h3>
+                  <h3 className="text-2xl font-bold text-white mb-4">Pacific Northwest Access</h3>
                   <p className="text-gray-200 text-lg leading-relaxed">
-                    Effortless booking process with instant confirmation and premium guest services.
+                    Perfect location for exploring Oregon's wine country, natural trails, and the broader Pacific Northwest.
                   </p>
                 </div>
               </div>
