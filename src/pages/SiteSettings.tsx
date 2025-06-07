@@ -14,6 +14,8 @@ import SEOSettingsTab from '@/components/admin/settings/SEOSettingsTab';
 import AnalyticsSettingsTab from '@/components/admin/settings/AnalyticsSettingsTab';
 import MapsSettingsTab from '@/components/admin/settings/MapsSettingsTab';
 import { TestimonialsManager, GalleryTab, PointsOfInterestTab, EventsTab } from '@/components/admin/settings/ContentManagementTabs';
+import AIContentGenerators from '@/components/admin/AIContentGenerators';
+import AIDataEnhancer from '@/components/admin/AIDataEnhancer';
 
 const SiteSettings = () => {
   const { settings, loading, updateSetting, getSetting } = useSiteSettings();
@@ -261,6 +263,14 @@ const SiteSettings = () => {
               <Calendar className="h-4 w-4 mr-1" />
               Events
             </TabsTrigger>
+            <TabsTrigger value="ai-generator">
+              <Wand2 className="h-4 w-4 mr-1" />
+              AI Generator
+            </TabsTrigger>
+            <TabsTrigger value="ai-enhancer">
+              <Wand2 className="h-4 w-4 mr-1" />
+              AI Enhancer
+            </TabsTrigger>
             <TabsTrigger value="social">
               <Share className="h-4 w-4 mr-1" />
               Social
@@ -319,6 +329,14 @@ const SiteSettings = () => {
 
           <TabsContent value="events">
             <EventsTab />
+          </TabsContent>
+
+          <TabsContent value="ai-generator">
+            <AIContentGenerators />
+          </TabsContent>
+
+          <TabsContent value="ai-enhancer">
+            <AIDataEnhancer />
           </TabsContent>
 
           <TabsContent value="social">
