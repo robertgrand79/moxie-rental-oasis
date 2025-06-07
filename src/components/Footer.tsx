@@ -1,17 +1,40 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter } from 'lucide-react';
 
 const Footer = () => {
+  const [siteData, setSiteData] = useState({
+    siteName: 'Moxie Vacation Rentals',
+    description: 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
+    contactEmail: 'hello@moxievacationrentals.com',
+    phone: '(541) 555-0123',
+    address: 'Eugene, Oregon'
+  });
+
+  useEffect(() => {
+    // Load site settings from localStorage
+    const savedSettings = localStorage.getItem('siteSettings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      setSiteData({
+        siteName: settings.siteName || 'Moxie Vacation Rentals',
+        description: settings.description || 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
+        contactEmail: settings.contactEmail || 'hello@moxievacationrentals.com',
+        phone: settings.phone || '(541) 555-0123',
+        address: settings.address || 'Eugene, Oregon'
+      });
+    }
+  }, []);
+
   return (
     <footer className="text-white py-16" style={{ backgroundColor: '#767b8d' }}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-xl font-bold mb-6">Moxie Vacation Rentals</h3>
+            <h3 className="text-xl font-bold mb-6">{siteData.siteName}</h3>
             <p className="mb-4 leading-relaxed" style={{ color: '#ececec' }}>
-              Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.
+              {siteData.description}
             </p>
             <div className="flex space-x-4">
               <a href="#" className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }}>
@@ -32,15 +55,15 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center">
                 <MapPin className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
-                <span style={{ color: '#ececec' }}>Eugene, Oregon</span>
+                <span style={{ color: '#ececec' }}>{siteData.address}</span>
               </div>
               <div className="flex items-center">
                 <Phone className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
-                <span style={{ color: '#ececec' }}>(541) 555-0123</span>
+                <span style={{ color: '#ececec' }}>{siteData.phone}</span>
               </div>
               <div className="flex items-center">
                 <Mail className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
-                <span style={{ color: '#ececec' }}>hello@moxievacationrentals.com</span>
+                <span style={{ color: '#ececec' }}>{siteData.contactEmail}</span>
               </div>
               <div className="flex items-center">
                 <Clock className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
@@ -123,7 +146,7 @@ const Footer = () => {
         <div className="mt-12 pt-8" style={{ borderTop: `1px solid #8b929a` }}>
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm mb-4 md:mb-0" style={{ color: '#cbcfd2' }}>
-              © 2024 Moxie Vacation Rentals. All rights reserved.
+              © 2024 {siteData.siteName}. All rights reserved.
             </p>
             <div className="flex space-x-6">
               <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
