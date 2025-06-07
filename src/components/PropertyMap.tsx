@@ -42,7 +42,7 @@ const PropertyMap = ({ properties, mapboxToken }: PropertyMapProps) => {
         `<div class="p-2">
           <h3 class="font-semibold text-sm">${property.title}</h3>
           <p class="text-xs text-gray-600 mb-1">${property.location}</p>
-          <p class="text-xs font-medium">$${property.pricePerNight}/night</p>
+          <p class="text-xs font-medium">$${property.price_per_night}/night</p>
         </div>`
       );
 

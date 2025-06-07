@@ -8,6 +8,7 @@ import EmptyPropertyState from '@/components/EmptyPropertyState';
 import { useProperties } from '@/hooks/useProperties';
 import { usePropertyPages } from '@/hooks/usePropertyPages';
 import { Property } from '@/types/property';
+import { PropertyFormData } from '@/components/PropertyForm/types';
 
 const Properties = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -25,13 +26,29 @@ const Properties = () => {
     setShowAddForm(true);
   };
 
-  const handleFormSubmit = async (data: Omit<Property, 'id'>) => {
+  const handleFormSubmit = async (data: PropertyFormData & { photos: File[]; selectedCoverIndex?: number }) => {
+    // Convert PropertyFormData to Property format
+    const propertyData: Omit<Property, 'id'> = {
+      title: data.title,
+      description: data.description,
+      location: data.location,
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      max_guests: data.maxGuests,
+      price_per_night: data.pricePerNight,
+      hospitable_booking_url: data.hospitableBookingUrl,
+      amenities: data.amenities,
+      // Handle photos and images as needed
+      image_url: undefined, // Will be set by photo upload logic
+      images: [],
+    };
+
     let savedProperty;
     
     if (editingProperty) {
-      savedProperty = await editProperty(editingProperty.id, data);
+      savedProperty = await editProperty(editingProperty.id, propertyData);
     } else {
-      savedProperty = await addProperty(data);
+      savedProperty = await addProperty(propertyData);
       // Create a page for the new property
       if (savedProperty) {
         await createPropertyPage(savedProperty);

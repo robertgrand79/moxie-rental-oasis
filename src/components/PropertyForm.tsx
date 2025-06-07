@@ -43,9 +43,9 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false }: Pr
       location: initialData?.location || '',
       bedrooms: initialData?.bedrooms || 1,
       bathrooms: initialData?.bathrooms || 1,
-      maxGuests: initialData?.maxGuests || 2,
-      pricePerNight: initialData?.pricePerNight || 100,
-      hospitableBookingUrl: initialData?.hospitableBookingUrl || '',
+      maxGuests: initialData?.max_guests || 2,
+      pricePerNight: initialData?.price_per_night || 100,
+      hospitableBookingUrl: initialData?.hospitable_booking_url || '',
       amenities: initialData?.amenities || '',
     },
   });

@@ -27,7 +27,7 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
     <Card className="overflow-hidden">
       <div className="aspect-video bg-gray-200 relative">
         <img 
-          src={property.imageUrl} 
+          src={property.image_url} 
           alt={property.title}
           className="w-full h-full object-cover"
         />
@@ -53,7 +53,7 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
           </div>
           <div className="flex items-center">
             <Users className="h-4 w-4 mr-1" />
-            {property.maxGuests} guests
+            {property.max_guests} guests
           </div>
         </div>
 
