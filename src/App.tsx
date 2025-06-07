@@ -7,6 +7,7 @@ import SiteSettings from './pages/SiteSettings';
 import Admin from './pages/Admin';
 import About from './pages/About';
 import Experiences from './pages/Experiences';
+import Events from './pages/Events';
 import Properties from './pages/Properties';
 import PageManagement from './pages/PageManagement';
 import BlogManagement from './pages/BlogManagement';
@@ -44,6 +45,7 @@ const App = () => {
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/about" element={<About />} />
               <Route path="/experiences" element={<Experiences />} />
+              <Route path="/events" element={<Events />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />

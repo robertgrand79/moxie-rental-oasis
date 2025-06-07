@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +6,7 @@ import { Calendar, Clock, MapPin, ExternalLink, Ticket } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
 import { useEugeneEvents } from '@/hooks/useEugeneEvents';
 import { format, parseISO } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 const categoryLabels = {
   festival: 'Festival',
@@ -166,8 +166,10 @@ const EugeneEventsSection = () => {
 
         {activeEvents.length > 0 && (
           <div className="text-center mt-8">
-            <Button variant="outline" size="lg">
-              View All Events
+            <Button variant="outline" size="lg" asChild>
+              <Link to="/events">
+                View All Events
+              </Link>
             </Button>
           </div>
         )}
