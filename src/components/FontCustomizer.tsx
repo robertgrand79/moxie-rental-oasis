@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,9 +8,9 @@ import { Type, Save, RotateCcw } from 'lucide-react';
 
 const FontCustomizer = () => {
   const [fonts, setFonts] = useState({
-    heading: 'Inter',
+    heading: 'Playfair Display',
     body: 'Inter',
-    accent: 'Inter'
+    accent: 'Great Vibes'
   });
 
   const { toast } = useToast();
@@ -64,17 +63,17 @@ const FontCustomizer = () => {
   const applyFonts = () => {
     const root = document.documentElement;
     
-    root.style.setProperty('--font-heading', `"${fonts.heading}", sans-serif`);
+    root.style.setProperty('--font-heading', `"${fonts.heading}", serif`);
     root.style.setProperty('--font-body', `"${fonts.body}", sans-serif`);
-    root.style.setProperty('--font-accent', `"${fonts.accent}", sans-serif`);
+    root.style.setProperty('--font-accent', `"${fonts.accent}", cursive`);
 
     // Apply to common elements
     const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
     headings.forEach(heading => {
-      (heading as HTMLElement).style.fontFamily = `"${fonts.heading}", sans-serif`;
+      (heading as HTMLElement).style.fontFamily = `"${fonts.heading}", serif`;
     });
 
-    const bodyElements = document.querySelectorAll('p, span, div, a');
+    const bodyElements = document.querySelectorAll('p, span, div, a, button');
     bodyElements.forEach(element => {
       if (!(element as HTMLElement).closest('h1, h2, h3, h4, h5, h6')) {
         (element as HTMLElement).style.fontFamily = `"${fonts.body}", sans-serif`;
@@ -118,6 +117,15 @@ const FontCustomizer = () => {
   };
 
   useEffect(() => {
+    // Load the elegant fonts immediately
+    loadGoogleFont('Playfair Display');
+    loadGoogleFont('Great Vibes');
+    
+    // Apply the fonts automatically
+    setTimeout(() => {
+      applyFonts();
+    }, 500);
+
     const savedFonts = localStorage.getItem('customFonts');
     if (savedFonts) {
       const parsed = JSON.parse(savedFonts);
