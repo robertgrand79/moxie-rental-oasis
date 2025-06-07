@@ -25,7 +25,7 @@ const CompactPropertyShowcase = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {properties.map((property) => (
-              <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+              <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group flex flex-col">
                 <div className="aspect-[4/3] relative">
                   <img 
                     src={property.imageUrl} 
@@ -33,7 +33,7 @@ const CompactPropertyShowcase = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
-                <CardContent className="p-4">
+                <CardContent className="p-4 flex flex-col flex-1">
                   <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-gray-900">
                     {property.title}
                   </h3>
@@ -57,13 +57,13 @@ const CompactPropertyShowcase = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 mt-auto">
                     <div className="font-semibold text-sm">
                       ${property.pricePerNight}
                       <span className="text-xs font-normal text-gray-500">/night</span>
                     </div>
-                    <Link to={`/property/${property.id}`}>
-                      <Button size="sm" className="w-full text-xs">
+                    <Link to={`/property/${property.id}`} className="w-full">
+                      <Button size="sm" className="w-full text-xs h-8">
                         View Details
                       </Button>
                     </Link>
