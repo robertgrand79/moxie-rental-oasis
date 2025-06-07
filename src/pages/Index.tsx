@@ -1,11 +1,28 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import PropertyShowcase from '@/components/PropertyShowcase';
-import HospitableSearchBar from '@/components/HospitableSearchBar';
+import { useEffect } from 'react';
 
 const Index = () => {
   const { user } = useAuth();
+
+  useEffect(() => {
+    // Load Hospitable search widget script
+    const script = document.createElement('script');
+    script.src = 'https://hospitable.b-cdn.net/direct-property-search-widget/hospitable-search-widget.prod.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup script on unmount
+      const existingScript = document.querySelector('script[src="https://hospitable.b-cdn.net/direct-property-search-widget/hospitable-search-widget.prod.js"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -31,8 +48,14 @@ const Index = () => {
           )}
         </div>
 
-        {/* Search Bar */}
-        <HospitableSearchBar />
+        {/* Hospitable Search Widget */}
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto -mt-4 sm:-mt-8 relative z-10">
+          <div className="text-center mb-4 sm:mb-6">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Find Your Perfect Stay</h3>
+            <p className="text-gray-600 text-sm sm:text-base">Search and book your ideal vacation rental</p>
+          </div>
+          <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom"></hospitable-direct-mps>
+        </div>
 
         {user && (
           <div className="container mx-auto px-4 mt-8 sm:mt-16">
