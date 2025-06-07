@@ -98,7 +98,8 @@ const Properties = () => {
           {showAddForm && (
             <div className="mb-8">
               <PropertyForm 
-                property={editingProperty}
+                initialData={editingProperty || undefined}
+                isEditing={!!editingProperty}
                 onSubmit={handleFormSubmit}
                 onCancel={handleFormCancel}
               />
