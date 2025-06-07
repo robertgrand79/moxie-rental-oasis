@@ -178,49 +178,6 @@ const Index = () => {
                 </div>
                 <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom" results-url="/search"></hospitable-direct-mps>
               </div>
-
-              {user && (
-                <div className="mt-16">
-                  <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 max-w-4xl mx-auto border border-white/20">
-                    <h2 className="text-3xl font-bold text-white mb-6">Executive Dashboard</h2>
-                    <p className="text-gray-200 mb-8 text-lg">
-                      Welcome back! You have complete administrative control over the Moxie Vacation Rentals platform.
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <Link to="/properties">
-                        <Button variant="outline" className="p-8 h-auto w-full border-white/20 text-white hover:bg-white/10 backdrop-blur-sm">
-                          <div className="text-center">
-                            <h3 className="font-semibold text-lg mb-2">Property Management</h3>
-                            <p className="text-sm text-gray-300">Curate and manage luxury properties</p>
-                          </div>
-                        </Button>
-                      </Link>
-                      <Link to="/blog-management">
-                        <Button variant="outline" className="p-8 h-auto w-full border-white/20 text-white hover:bg-white/10 backdrop-blur-sm">
-                          <div className="text-center">
-                            <h3 className="font-semibold text-lg mb-2">Content Studio</h3>
-                            <p className="text-sm text-gray-300">Create premium SEO content</p>
-                          </div>
-                        </Button>
-                      </Link>
-                      <Button variant="outline" className="p-8 h-auto border-white/20 text-white hover:bg-white/10 backdrop-blur-sm">
-                        <div className="text-center">
-                          <h3 className="font-semibold text-lg mb-2">User Administration</h3>
-                          <p className="text-sm text-gray-300">Manage administrative access</p>
-                        </div>
-                      </Button>
-                      <Link to="/site-settings">
-                        <Button variant="outline" className="p-8 h-auto w-full border-white/20 text-white hover:bg-white/10 backdrop-blur-sm">
-                          <div className="text-center">
-                            <h3 className="font-semibold text-lg mb-2">Brand Studio</h3>
-                            <p className="text-sm text-gray-300">Customize brand identity</p>
-                          </div>
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -268,7 +225,7 @@ const Index = () => {
             </div>
           </div>
         </div>
-
+        
         {/* What We Offer Section - Floating Dark Card */}
         <div className="py-24 relative">
           <div className="container mx-auto px-4">

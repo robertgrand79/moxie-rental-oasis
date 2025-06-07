@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -10,8 +10,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const NavBar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const isAdminPage = location.pathname.startsWith('/admin') || 
+                     location.pathname.startsWith('/properties') || 
+                     location.pathname.startsWith('/blog-management') || 
+                     location.pathname.startsWith('/site-settings');
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -48,31 +54,39 @@ const NavBar = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo Section */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center">
-              <img 
-                src="/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png" 
-                alt="Moxie Vacation Rentals" 
-                className="h-16 w-auto"
-              />
-            </Link>
+            {isAdminPage ? (
+              <div className="text-2xl font-bold text-gray-900">
+                Admin Login
+              </div>
+            ) : (
+              <Link to="/" className="flex items-center">
+                <img 
+                  src="/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png" 
+                  alt="Moxie Vacation Rentals" 
+                  className="h-12 w-auto"
+                />
+              </Link>
+            )}
           </div>
           
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
-            {navigationItems.map((item) => {
-              const IconComponent = item.icon;
-              return (
-                <Link
-                  key={item.title}
-                  to={item.href}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors duration-200 group"
-                >
-                  <IconComponent className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                  <span>{item.title}</span>
-                </Link>
-              );
-            })}
-          </div>
+          {/* Desktop Navigation - only show on non-admin pages */}
+          {!isAdminPage && (
+            <div className="hidden lg:flex items-center space-x-8">
+              {navigationItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <Link
+                    key={item.title}
+                    to={item.href}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors duration-200 group"
+                  >
+                    <IconComponent className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                    <span>{item.title}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
           
           {/* Auth & Mobile Menu Section */}
           <div className="flex items-center space-x-4">
@@ -100,28 +114,30 @@ const NavBar = () => {
                   size="sm"
                   className="bg-gray-900 hover:bg-gray-800 text-white px-6 rounded-full"
                 >
-                  BOOK NOW
+                  {isAdminPage ? 'LOGIN' : 'BOOK NOW'}
                 </Button>
               </Link>
             )}
             
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="lg:hidden p-2"
-              onClick={toggleMobileMenu}
-            >
-              {isMobileMenuOpen ? 
-                <X className="h-6 w-6 text-gray-700" /> : 
-                <Menu className="h-6 w-6 text-gray-700" />
-              }
-            </Button>
+            {/* Mobile Menu Button - only show on non-admin pages */}
+            {!isAdminPage && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="lg:hidden p-2"
+                onClick={toggleMobileMenu}
+              >
+                {isMobileMenuOpen ? 
+                  <X className="h-6 w-6 text-gray-700" /> : 
+                  <Menu className="h-6 w-6 text-gray-700" />
+                }
+              </Button>
+            )}
           </div>
         </div>
         
-        {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
+        {/* Mobile Navigation Menu - only show on non-admin pages */}
+        {isMobileMenuOpen && !isAdminPage && (
           <div className="lg:hidden border-t border-gray-100">
             <div className="py-4 space-y-1">
               {navigationItems.map((item) => {
