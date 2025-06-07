@@ -12,8 +12,12 @@ import ColorCustomizer from '@/components/ColorCustomizer';
 import FontCustomizer from '@/components/FontCustomizer';
 import LogoUploader from '@/components/LogoUploader';
 import AISiteEditor from '@/components/AISiteEditor';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const SiteSettings = () => {
+  const { settings, loading, updateSetting, getSetting } = useSiteSettings();
+  const { toast } = useToast();
+
   const [siteData, setSiteData] = useState({
     siteName: 'Moxie Vacation Rentals',
     tagline: 'Your perfect getaway is just a click away.',
@@ -31,15 +35,33 @@ const SiteSettings = () => {
     }
   });
 
-  const { toast } = useToast();
+  const handleSaveSettings = async () => {
+    const settingsToSave = [
+      { key: 'siteName', value: siteData.siteName },
+      { key: 'tagline', value: siteData.tagline },
+      { key: 'description', value: siteData.description },
+      { key: 'heroTitle', value: siteData.heroTitle },
+      { key: 'heroSubtitle', value: siteData.heroSubtitle },
+      { key: 'contactEmail', value: siteData.contactEmail },
+      { key: 'phone', value: siteData.phone },
+      { key: 'address', value: siteData.address },
+      { key: 'socialMedia', value: siteData.socialMedia },
+    ];
 
-  const handleSaveSettings = () => {
-    // Save to localStorage for now (in a real app, this would save to database)
-    localStorage.setItem('siteSettings', JSON.stringify(siteData));
-    toast({
-      title: "Settings Saved",
-      description: "Your site settings have been successfully updated.",
-    });
+    let allSuccessful = true;
+    for (const setting of settingsToSave) {
+      const success = await updateSetting(setting.key, setting.value);
+      if (!success) {
+        allSuccessful = false;
+      }
+    }
+
+    if (allSuccessful) {
+      toast({
+        title: "Settings Saved",
+        description: "Your site settings have been successfully updated.",
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -60,22 +82,37 @@ const SiteSettings = () => {
   };
 
   useEffect(() => {
-    // Load saved settings on component mount
-    const savedSettings = localStorage.getItem('siteSettings');
-    if (savedSettings) {
-      const settings = JSON.parse(savedSettings);
+    if (!loading && Object.keys(settings).length > 0) {
       setSiteData({
-        ...settings,
-        socialMedia: {
+        siteName: getSetting('siteName', 'Moxie Vacation Rentals'),
+        tagline: getSetting('tagline', 'Your perfect getaway is just a click away.'),
+        description: getSetting('description', 'Discover amazing vacation rental properties in prime locations.'),
+        heroTitle: getSetting('heroTitle', 'Welcome to Moxie Vacation Rentals'),
+        heroSubtitle: getSetting('heroSubtitle', 'Discover amazing vacation rental properties in prime locations. Your perfect getaway is just a click away.'),
+        contactEmail: getSetting('contactEmail', 'contact@moxievacationrentals.com'),
+        phone: getSetting('phone', '+1 (555) 123-4567'),
+        address: getSetting('address', '123 Vacation St, Resort City, RC 12345'),
+        socialMedia: getSetting('socialMedia', {
           facebook: '',
           instagram: '',
           twitter: '',
-          googlePlaces: '',
-          ...settings.socialMedia
-        }
+          googlePlaces: ''
+        })
       });
     }
-  }, []);
+  }, [loading, settings, getSetting]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-8">
+            <p className="text-gray-600">Loading site settings...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

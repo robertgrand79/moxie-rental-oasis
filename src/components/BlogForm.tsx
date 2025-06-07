@@ -16,8 +16,8 @@ interface BlogPost {
   excerpt: string;
   content: string;
   author: string;
-  publishedAt: string;
-  imageUrl?: string;
+  published_at: string | null;
+  image_url?: string;
   tags: string[];
   slug: string;
   status: 'draft' | 'published';
@@ -30,7 +30,7 @@ interface BlogFormProps {
 }
 
 const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
-  const [uploadedImage, setUploadedImage] = useState<string | null>(post?.imageUrl || null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(post?.image_url || null);
   const [content, setContent] = useState(post?.content || '');
 
   const {
@@ -69,8 +69,10 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
     const formData = {
       ...data,
       content,
-      imageUrl: uploadedImage,
+      image_url: uploadedImage,
       tags: data.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag),
+      author: 'Admin',
+      slug: data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     };
     onSubmit(formData);
   };

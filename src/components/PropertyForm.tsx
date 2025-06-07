@@ -10,6 +10,7 @@ import { Property } from '@/types/property';
 import PhotoUploadSection from './PropertyForm/PhotoUploadSection';
 import PropertyDetailsForm from './PropertyForm/PropertyDetailsForm';
 import BookingIntegrationSection from './PropertyForm/BookingIntegrationSection';
+import PropertyAIGenerator from './PropertyAIGenerator';
 import { PropertyFormData } from './PropertyForm/types';
 
 const propertySchema = z.object({
@@ -54,43 +55,55 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false }: Pr
     onSubmit({ ...data, photos, selectedCoverIndex });
   };
 
+  const handleAIContentGenerated = (field: 'title' | 'description' | 'amenities', content: string) => {
+    form.setValue(field, content);
+  };
+
+  const currentFormValues = form.watch();
+
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>{isEditing ? 'Edit Property' : 'Add New Property'}</CardTitle>
-        <CardDescription>
-          {isEditing ? 'Update your vacation rental listing details' : 'Create a new vacation rental listing with photos and booking integration'}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <PhotoUploadSection
-              photos={photos}
-              onPhotosChange={setPhotos}
-              isEditing={isEditing}
-              existingImages={initialData?.images || []}
-              selectedCoverIndex={selectedCoverIndex}
-              onCoverSelect={setSelectedCoverIndex}
-            />
+    <div className="space-y-6">
+      <PropertyAIGenerator
+        onContentGenerated={handleAIContentGenerated}
+        propertyData={currentFormValues}
+      />
 
-            <PropertyDetailsForm form={form} />
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle>{isEditing ? 'Edit Property' : 'Add New Property'}</CardTitle>
+          <CardDescription>
+            {isEditing ? 'Update your vacation rental listing details' : 'Create a new vacation rental listing with photos and booking integration'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <PhotoUploadSection
+                photos={photos}
+                onPhotosChange={setPhotos}
+                isEditing={isEditing}
+                existingImages={initialData?.images || []}
+                selectedCoverIndex={selectedCoverIndex}
+                onCoverSelect={setSelectedCoverIndex}
+              />
 
-            <BookingIntegrationSection form={form} />
+              <PropertyDetailsForm form={form} />
 
-            {/* Form Actions */}
-            <div className="flex gap-4 pt-6">
-              <Button type="submit" className="flex-1">
-                {isEditing ? 'Update Property' : 'Save Property'}
-              </Button>
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+              <BookingIntegrationSection form={form} />
+
+              <div className="flex gap-4 pt-6">
+                <Button type="submit" className="flex-1">
+                  {isEditing ? 'Update Property' : 'Save Property'}
+                </Button>
+                <Button type="button" variant="outline" onClick={onCancel}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

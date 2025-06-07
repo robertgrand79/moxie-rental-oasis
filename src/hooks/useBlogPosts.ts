@@ -44,7 +44,11 @@ export const useBlogPosts = () => {
         setBlogPosts([]);
       } else {
         console.log('Fetched blog posts:', data);
-        setBlogPosts(data || []);
+        const typedPosts: BlogPost[] = (data || []).map(post => ({
+          ...post,
+          status: post.status as 'draft' | 'published'
+        }));
+        setBlogPosts(typedPosts);
       }
     } catch (error) {
       console.error('Error in fetchBlogPosts:', error);
@@ -90,13 +94,18 @@ export const useBlogPosts = () => {
         return null;
       }
 
-      setBlogPosts(prev => [data, ...prev]);
+      const typedPost: BlogPost = {
+        ...data,
+        status: data.status as 'draft' | 'published'
+      };
+
+      setBlogPosts(prev => [typedPost, ...prev]);
       toast({
         title: 'Success',
         description: 'Blog post created successfully!'
       });
       
-      return data;
+      return typedPost;
     } catch (error) {
       console.error('Error in addBlogPost:', error);
       toast({
@@ -137,15 +146,20 @@ export const useBlogPosts = () => {
         return null;
       }
 
+      const typedPost: BlogPost = {
+        ...data,
+        status: data.status as 'draft' | 'published'
+      };
+
       setBlogPosts(prev => prev.map(post => 
-        post.id === postId ? data : post
+        post.id === postId ? typedPost : post
       ));
       toast({
         title: 'Success',
         description: 'Blog post updated successfully!'
       });
       
-      return data;
+      return typedPost;
     } catch (error) {
       console.error('Error in updateBlogPost:', error);
       toast({
