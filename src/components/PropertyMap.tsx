@@ -1,6 +1,5 @@
 
 import React, { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Property } from '@/types/property';
@@ -13,7 +12,6 @@ interface PropertyMapProps {
 const PropertyMap = ({ properties, mapboxToken }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const navigate = useNavigate();
 
   // Eugene, Oregon coordinates for center
   const eugeneCenter: [number, number] = [-123.0917, 44.0520];
@@ -45,7 +43,6 @@ const PropertyMap = ({ properties, mapboxToken }: PropertyMapProps) => {
           <h3 class="font-semibold text-sm">${property.title}</h3>
           <p class="text-xs text-gray-600 mb-1">${property.location}</p>
           <p class="text-xs font-medium">$${property.pricePerNight}/night</p>
-          <p class="text-xs text-blue-600 mt-1">Click marker to view details</p>
         </div>`
       );
 
@@ -72,39 +69,10 @@ const PropertyMap = ({ properties, mapboxToken }: PropertyMapProps) => {
           coordinates = eugeneCenter;
       }
 
-      // Create a marker element
-      const markerElement = document.createElement('div');
-      markerElement.className = 'marker-element';
-      markerElement.style.cssText = `
-        width: 30px;
-        height: 30px;
-        background-color: #3B82F6;
-        border: 2px solid white;
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        transition: all 0.2s ease;
-      `;
-
-      // Add hover effect
-      markerElement.addEventListener('mouseenter', () => {
-        markerElement.style.transform = 'scale(1.1)';
-        markerElement.style.backgroundColor = '#1D4ED8';
-      });
-
-      markerElement.addEventListener('mouseleave', () => {
-        markerElement.style.transform = 'scale(1)';
-        markerElement.style.backgroundColor = '#3B82F6';
-      });
-
-      // Add click handler to navigate to property page
-      markerElement.addEventListener('click', () => {
-        navigate(`/property/${property.id}`);
-      });
-
       // Create a marker
       new mapboxgl.Marker({
-        element: markerElement
+        color: '#3B82F6',
+        scale: 0.8
       })
         .setLngLat(coordinates)
         .setPopup(popup)
@@ -115,7 +83,7 @@ const PropertyMap = ({ properties, mapboxToken }: PropertyMapProps) => {
     return () => {
       map.current?.remove();
     };
-  }, [properties, mapboxToken, navigate]);
+  }, [properties, mapboxToken]);
 
   if (!mapboxToken) {
     return (
