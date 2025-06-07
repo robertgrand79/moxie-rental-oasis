@@ -7,7 +7,7 @@ const HeroSection = () => {
 
   return (
     <div className="relative overflow-hidden">
-      <div className="relative py-24 sm:py-32 lg:py-32 px-4">
+      <div className="relative py-16 sm:py-20 lg:py-24 px-4">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-8 leading-tight">
