@@ -13,10 +13,10 @@ const HeroSection = () => {
       <div className="relative py-24 sm:py-32 lg:py-40 px-4">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-8 leading-tight">
               Your Home Base for Living Like a Local in Eugene
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl sm:text-2xl text-gray-700 mb-12 max-w-3xl mx-auto leading-relaxed">
               Discover Eugene, Oregon through thoughtfully curated vacation rentals in the heart of 
               the Pacific Northwest. From Ducks football to wine country tours, your Eugene adventure starts here.
             </p>
@@ -24,7 +24,7 @@ const HeroSection = () => {
             {!user && (
               <div className="flex justify-center mb-12">
                 <Link to="/auth">
-                  <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm px-8 py-3 text-lg">
+                  <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg">
                     Admin Access
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
