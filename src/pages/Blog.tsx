@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NewsletterSignup from '@/components/NewsletterSignup';
+import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 
 interface BlogPost {
   id: string;
@@ -55,23 +57,25 @@ const Blog = () => {
   ]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Moxie Travel Blog</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover travel tips, destination guides, and insider insights for your next vacation rental adventure.
+    <BackgroundWrapper>
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">Moxie Travel Blog</h1>
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
+            Discover travel tips, destination guides, and insider insights for your next vacation rental adventure in Eugene and beyond.
           </p>
         </div>
 
         {/* Newsletter Signup Section */}
-        <div className="max-w-md mx-auto mb-12">
-          <NewsletterSignup />
+        <div className="max-w-md mx-auto mb-16">
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20">
+            <NewsletterSignup />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {blogPosts.map((post) => (
-            <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card key={post.id} className="overflow-hidden hover:shadow-2xl transition-shadow bg-white/95 backdrop-blur-xl border-white/20">
               <div className="aspect-video bg-gray-200 relative">
                 <img 
                   src={post.imageUrl} 
@@ -84,7 +88,7 @@ const Blog = () => {
                   {post.tags.map((tag) => (
                     <span 
                       key={tag}
-                      className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                      className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
                     >
                       {tag}
                     </span>
@@ -95,7 +99,7 @@ const Blog = () => {
                     {post.title}
                   </Link>
                 </CardTitle>
-                <CardDescription>{post.excerpt}</CardDescription>
+                <CardDescription className="text-gray-600">{post.excerpt}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
@@ -120,11 +124,13 @@ const Blog = () => {
 
         {blogPosts.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No blog posts published yet.</p>
+            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-12 border border-white/20">
+              <p className="text-gray-500 text-lg">No blog posts published yet.</p>
+            </div>
           </div>
         )}
       </div>
-    </div>
+    </BackgroundWrapper>
   );
 };
 

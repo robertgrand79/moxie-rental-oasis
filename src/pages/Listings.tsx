@@ -2,6 +2,7 @@
 import React from 'react';
 import PropertyShowcase from '@/components/PropertyShowcase';
 import HospitableSearchBar from '@/components/HospitableSearchBar';
+import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import { useEffect } from 'react';
 
 const Listings = () => {
@@ -22,60 +23,60 @@ const Listings = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-6 sm:py-8">
+    <BackgroundWrapper>
+      <div className="container mx-auto px-4 py-16">
         {/* Header Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
             Our Vacation Rentals
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover our collection of premium vacation rental properties in the most desirable destinations.
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
+            Discover our collection of premium vacation rental properties in Eugene, Oregon and the Pacific Northwest's most desirable destinations.
           </p>
         </div>
 
         {/* Search Bar */}
-        <div className="mb-8">
+        <div className="mb-12">
           <HospitableSearchBar />
         </div>
 
         {/* Hospitable Search Widget */}
-        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-8">
-          <div className="text-center mb-4">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Find Your Perfect Stay</h3>
-            <p className="text-gray-600 text-sm sm:text-base">Search and book your ideal vacation rental</p>
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mb-16 border border-white/20">
+          <div className="text-center mb-8">
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Find Your Perfect Stay</h3>
+            <p className="text-gray-600 text-lg">Search and book your ideal vacation rental</p>
           </div>
           <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom" results-url="/search"></hospitable-direct-mps>
         </div>
 
         {/* Property Showcase */}
-        <PropertyShowcase />
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mb-16 border border-white/20">
+          <PropertyShowcase />
+        </div>
 
         {/* Features Section */}
-        <div className="mt-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Premium Locations</h3>
-              <p className="text-gray-600 text-sm sm:text-base">
-                Handpicked properties in the most desirable vacation destinations.
-              </p>
-            </div>
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">24/7 Support</h3>
-              <p className="text-gray-600 text-sm sm:text-base">
-                Our dedicated team is here to help you every step of the way.
-              </p>
-            </div>
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Easy Booking</h3>
-              <p className="text-gray-600 text-sm sm:text-base">
-                Simple and secure booking process with instant confirmation.
-              </p>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:shadow-2xl transition-shadow">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Premium Locations</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Handpicked properties in Eugene and the most desirable Pacific Northwest vacation destinations.
+            </p>
+          </div>
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:shadow-2xl transition-shadow">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">24/7 Support</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Our dedicated team is here to help you every step of the way with exceptional service.
+            </p>
+          </div>
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:shadow-2xl transition-shadow">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Easy Booking</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Simple and secure booking process with instant confirmation and seamless experience.
+            </p>
           </div>
         </div>
       </div>
-    </div>
+    </BackgroundWrapper>
   );
 };
 
