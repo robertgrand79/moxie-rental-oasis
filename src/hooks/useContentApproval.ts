@@ -43,7 +43,13 @@ export const useContentApproval = () => {
         setContentItems([]);
       } else {
         console.log('Fetched content items:', data);
-        setContentItems(data || []);
+        // Type assertion to ensure proper typing
+        const typedItems = (data || []).map(item => ({
+          ...item,
+          type: item.type as 'blog_post' | 'property_description' | 'page_content' | 'ai_response',
+          status: item.status as 'pending' | 'approved' | 'rejected' | 'needs_revision'
+        }));
+        setContentItems(typedItems);
       }
     } catch (error) {
       console.error('Error in fetchContentItems:', error);
@@ -142,13 +148,20 @@ export const useContentApproval = () => {
         return null;
       }
 
-      setContentItems(prev => [data, ...prev]);
+      // Type assertion for the returned item
+      const typedItem = {
+        ...data,
+        type: data.type as 'blog_post' | 'property_description' | 'page_content' | 'ai_response',
+        status: data.status as 'pending' | 'approved' | 'rejected' | 'needs_revision'
+      };
+
+      setContentItems(prev => [typedItem, ...prev]);
       toast({
         title: 'Success',
         description: 'Content item added for review!'
       });
 
-      return data;
+      return typedItem;
     } catch (error) {
       console.error('Error in addContentItem:', error);
       return null;

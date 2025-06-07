@@ -46,7 +46,12 @@ export const useChatSessions = () => {
         setChatSessions([]);
       } else {
         console.log('Fetched chat sessions:', data);
-        setChatSessions(data || []);
+        // Type assertion to ensure proper typing
+        const typedSessions = (data || []).map(session => ({
+          ...session,
+          status: session.status as 'active' | 'pending' | 'resolved'
+        }));
+        setChatSessions(typedSessions);
       }
     } catch (error) {
       console.error('Error in fetchChatSessions:', error);
@@ -79,7 +84,11 @@ export const useChatSessions = () => {
         return [];
       }
 
-      return data || [];
+      // Type assertion for messages
+      return (data || []).map(message => ({
+        ...message,
+        sender: message.sender as 'guest' | 'admin' | 'ai'
+      }));
     } catch (error) {
       console.error('Error in fetchMessages:', error);
       return [];
@@ -123,7 +132,11 @@ export const useChatSessions = () => {
         .update({ last_message: content })
         .eq('id', sessionId);
 
-      return data;
+      // Type assertion for the returned message
+      return {
+        ...data,
+        sender: data.sender as 'guest' | 'admin' | 'ai'
+      };
     } catch (error) {
       console.error('Error in sendMessage:', error);
       return null;
