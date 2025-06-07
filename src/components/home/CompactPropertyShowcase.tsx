@@ -34,7 +34,7 @@ const CompactPropertyShowcase = () => {
                   />
                 </div>
                 <CardContent className="p-4 flex flex-col flex-1">
-                  <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-gray-900">
+                  <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-gray-900 min-h-[2.5rem]">
                     {property.title}
                   </h3>
                   <div className="flex items-center text-xs text-gray-500 mb-3">
@@ -42,7 +42,7 @@ const CompactPropertyShowcase = () => {
                     <span className="line-clamp-1">{property.location}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
                     <div className="flex items-center">
                       <Bed className="h-3 w-3 mr-1" />
                       {property.bedrooms}
