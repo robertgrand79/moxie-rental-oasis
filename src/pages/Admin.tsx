@@ -17,7 +17,7 @@ const Admin = () => {
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
               Admin Dashboard
             </h1>
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mb-8"></div>
+            <div className="w-24 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-8"></div>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
               Welcome back! You have complete administrative control over the Moxie Vacation Rentals platform.
             </p>
@@ -27,7 +27,7 @@ const Admin = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Link to="/properties">
                 <div className="group bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:bg-white/100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 h-full">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Building2 className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">Property Management</h3>
@@ -43,7 +43,7 @@ const Admin = () => {
 
               <Link to="/blog-management">
                 <div className="group bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:bg-white/100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 h-full">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <BookOpen className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">Content Studio</h3>
@@ -72,7 +72,7 @@ const Admin = () => {
 
               <Link to="/site-settings">
                 <div className="group bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:bg-white/100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 h-full">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Settings className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">Brand Studio</h3>
