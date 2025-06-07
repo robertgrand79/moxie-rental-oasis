@@ -34,7 +34,7 @@ const TermsOfService = () => {
               <ul className="space-y-2 list-disc list-inside">
                 <li><strong>Full Refund:</strong> Cancel ≥ 60 days before check-in.</li>
                 <li><strong>50% Refund:</strong> Cancel 59–30 days before check-in (deposit applies).</li>
-                <li><strong>No Refund:</strong> Cancel < 30 days before check-in or no-show; full charges apply.</li>
+                <li><strong>No Refund:</strong> Cancel &lt; 30 days before check-in or no-show; full charges apply.</li>
                 <li><strong>Modification Fee:</strong> $50 per date-change request.</li>
               </ul>
             </section>
