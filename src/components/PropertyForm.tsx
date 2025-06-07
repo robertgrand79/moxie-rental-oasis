@@ -10,6 +10,7 @@ import { Property } from '@/types/property';
 import PhotoUploadSection from './PropertyForm/PhotoUploadSection';
 import PropertyDetailsForm from './PropertyForm/PropertyDetailsForm';
 import BookingIntegrationSection from './PropertyForm/BookingIntegrationSection';
+import { PropertyFormData } from './PropertyForm/types';
 
 const propertySchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -22,8 +23,6 @@ const propertySchema = z.object({
   hospitableBookingUrl: z.string().url('Valid Hospitable booking URL required'),
   amenities: z.string().optional(),
 });
-
-type PropertyFormData = z.infer<typeof propertySchema>;
 
 interface PropertyFormProps {
   onSubmit: (data: PropertyFormData & { photos: File[] }) => void;

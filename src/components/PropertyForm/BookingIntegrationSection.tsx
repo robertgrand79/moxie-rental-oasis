@@ -3,18 +3,7 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-
-interface PropertyFormData {
-  title: string;
-  description: string;
-  location: string;
-  bedrooms: number;
-  bathrooms: number;
-  maxGuests: number;
-  pricePerNight: number;
-  hospitableBookingUrl: string;
-  amenities?: string;
-}
+import { PropertyFormData } from './types';
 
 interface BookingIntegrationSectionProps {
   form: UseFormReturn<PropertyFormData>;
