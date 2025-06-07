@@ -3,7 +3,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Bed, Bath, Users, Star, Wifi, Car, Kitchen, Tv } from 'lucide-react';
+import { MapPin, Bed, Bath, Users, Star, Wifi, Car, ChefHat, Tv } from 'lucide-react';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 
 interface PropertyData {
@@ -106,7 +106,7 @@ const getAmenityIcon = (amenity: string) => {
       return <Wifi className="h-4 w-4" />;
     case 'kitchen':
     case 'kitchenette':
-      return <Kitchen className="h-4 w-4" />;
+      return <ChefHat className="h-4 w-4" />;
     case 'parking':
       return <Car className="h-4 w-4" />;
     case 'tv':
