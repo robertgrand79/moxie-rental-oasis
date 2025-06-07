@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
+import { PageBuilder } from './page-builder/PageBuilder';
 
 interface PageFormProps {
   page?: any;
@@ -22,6 +24,8 @@ const PageForm = ({ page, onSubmit, onCancel }: PageFormProps) => {
     meta_description: '',
     is_published: false
   });
+
+  const [activeTab, setActiveTab] = useState('text');
 
   useEffect(() => {
     if (page) {
@@ -49,6 +53,10 @@ const PageForm = ({ page, onSubmit, onCancel }: PageFormProps) => {
       title,
       slug: !page ? generateSlug(title) : prev.slug
     }));
+  };
+
+  const handleVisualContentChange = (content: string) => {
+    setFormData(prev => ({ ...prev, content }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -121,14 +129,31 @@ const PageForm = ({ page, onSubmit, onCancel }: PageFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Page Content</Label>
-            <Textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Enter your page content here..."
-              rows={10}
-            />
+            <Label>Page Content</Label>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList>
+                <TabsTrigger value="text">Text Editor</TabsTrigger>
+                <TabsTrigger value="visual">Visual Builder</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="text" className="mt-4">
+                <Textarea
+                  value={formData.content}
+                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                  placeholder="Enter your page content here..."
+                  rows={10}
+                />
+              </TabsContent>
+              
+              <TabsContent value="visual" className="mt-4">
+                <div className="border rounded-lg h-96">
+                  <PageBuilder
+                    initialContent={formData.content}
+                    onContentChange={handleVisualContentChange}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div className="flex items-center space-x-2">
