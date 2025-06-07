@@ -8,7 +8,12 @@ const Footer = () => {
     description: 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
     contactEmail: 'hello@moxievacationrentals.com',
     phone: '(541) 555-0123',
-    address: 'Eugene, Oregon'
+    address: 'Eugene, Oregon',
+    socialMedia: {
+      facebook: '',
+      instagram: '',
+      twitter: ''
+    }
   });
 
   useEffect(() => {
@@ -21,7 +26,12 @@ const Footer = () => {
         description: settings.description || 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
         contactEmail: settings.contactEmail || 'hello@moxievacationrentals.com',
         phone: settings.phone || '(541) 555-0123',
-        address: settings.address || 'Eugene, Oregon'
+        address: settings.address || 'Eugene, Oregon',
+        socialMedia: settings.socialMedia || {
+          facebook: '',
+          instagram: '',
+          twitter: ''
+        }
       });
     }
   }, []);
@@ -37,15 +47,21 @@ const Footer = () => {
               {siteData.description}
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }}>
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }}>
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }}>
-                <Twitter className="h-5 w-5" />
-              </a>
+              {siteData.socialMedia.facebook && (
+                <a href={siteData.socialMedia.facebook} className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }} target="_blank" rel="noopener noreferrer">
+                  <Facebook className="h-5 w-5" />
+                </a>
+              )}
+              {siteData.socialMedia.instagram && (
+                <a href={siteData.socialMedia.instagram} className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }} target="_blank" rel="noopener noreferrer">
+                  <Instagram className="h-5 w-5" />
+                </a>
+              )}
+              {siteData.socialMedia.twitter && (
+                <a href={siteData.socialMedia.twitter} className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }} target="_blank" rel="noopener noreferrer">
+                  <Twitter className="h-5 w-5" />
+                </a>
+              )}
             </div>
           </div>
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Palette, Type, Image, Wand2, Save } from 'lucide-react';
+import { Palette, Type, Image, Wand2, Save, Share } from 'lucide-react';
 import ColorCustomizer from '@/components/ColorCustomizer';
 import FontCustomizer from '@/components/FontCustomizer';
 import LogoUploader from '@/components/LogoUploader';
@@ -22,7 +21,12 @@ const SiteSettings = () => {
     heroSubtitle: 'Discover amazing vacation rental properties in prime locations. Your perfect getaway is just a click away.',
     contactEmail: 'contact@moxievacationrentals.com',
     phone: '+1 (555) 123-4567',
-    address: '123 Vacation St, Resort City, RC 12345'
+    address: '123 Vacation St, Resort City, RC 12345',
+    socialMedia: {
+      facebook: '',
+      instagram: '',
+      twitter: ''
+    }
   });
 
   const { toast } = useToast();
@@ -43,11 +47,29 @@ const SiteSettings = () => {
     }));
   };
 
+  const handleSocialMediaChange = (platform: string, value: string) => {
+    setSiteData(prev => ({
+      ...prev,
+      socialMedia: {
+        ...prev.socialMedia,
+        [platform]: value
+      }
+    }));
+  };
+
   useEffect(() => {
     // Load saved settings on component mount
     const savedSettings = localStorage.getItem('siteSettings');
     if (savedSettings) {
-      setSiteData(JSON.parse(savedSettings));
+      const settings = JSON.parse(savedSettings);
+      setSiteData({
+        ...settings,
+        socialMedia: settings.socialMedia || {
+          facebook: '',
+          instagram: '',
+          twitter: ''
+        }
+      });
     }
   }, []);
 
@@ -62,8 +84,12 @@ const SiteSettings = () => {
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="social">
+              <Share className="h-4 w-4 mr-1" />
+              Social
+            </TabsTrigger>
             <TabsTrigger value="colors">
               <Palette className="h-4 w-4 mr-1" />
               Colors
@@ -178,6 +204,53 @@ const SiteSettings = () => {
                 <Button onClick={handleSaveSettings} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
                   Save General Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="social">
+            <Card>
+              <CardHeader>
+                <CardTitle>Social Media Links</CardTitle>
+                <CardDescription>
+                  Configure your social media URLs that will appear in the footer
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <Label htmlFor="facebook">Facebook URL</Label>
+                    <Input
+                      id="facebook"
+                      value={siteData.socialMedia.facebook}
+                      onChange={(e) => handleSocialMediaChange('facebook', e.target.value)}
+                      placeholder="https://facebook.com/yourpage"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="instagram">Instagram URL</Label>
+                    <Input
+                      id="instagram"
+                      value={siteData.socialMedia.instagram}
+                      onChange={(e) => handleSocialMediaChange('instagram', e.target.value)}
+                      placeholder="https://instagram.com/youraccount"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="twitter">Twitter URL</Label>
+                    <Input
+                      id="twitter"
+                      value={siteData.socialMedia.twitter}
+                      onChange={(e) => handleSocialMediaChange('twitter', e.target.value)}
+                      placeholder="https://twitter.com/youraccount"
+                    />
+                  </div>
+                </div>
+
+                <Button onClick={handleSaveSettings} className="w-full">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Social Media Settings
                 </Button>
               </CardContent>
             </Card>
