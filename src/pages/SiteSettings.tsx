@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +13,7 @@ import SocialSettingsTab from '@/components/admin/settings/SocialSettingsTab';
 import SEOSettingsTab from '@/components/admin/settings/SEOSettingsTab';
 import AnalyticsSettingsTab from '@/components/admin/settings/AnalyticsSettingsTab';
 import MapsSettingsTab from '@/components/admin/settings/MapsSettingsTab';
-import { TestimonialsManager, GalleryTab, EventsTab } from '@/components/admin/settings/ContentManagementTabs';
+import { TestimonialsManager, GalleryTab, PointsOfInterestTab, EventsTab } from '@/components/admin/settings/ContentManagementTabs';
 
 const SiteSettings = () => {
   const { settings, loading, updateSetting, getSetting } = useSiteSettings();
@@ -254,6 +253,10 @@ const SiteSettings = () => {
               <Camera className="h-4 w-4 mr-1" />
               Gallery
             </TabsTrigger>
+            <TabsTrigger value="points-of-interest">
+              <MapPin className="h-4 w-4 mr-1" />
+              POI
+            </TabsTrigger>
             <TabsTrigger value="events">
               <Calendar className="h-4 w-4 mr-1" />
               Events
@@ -308,6 +311,10 @@ const SiteSettings = () => {
 
           <TabsContent value="gallery">
             <GalleryTab />
+          </TabsContent>
+
+          <TabsContent value="points-of-interest">
+            <PointsOfInterestTab />
           </TabsContent>
 
           <TabsContent value="events">
