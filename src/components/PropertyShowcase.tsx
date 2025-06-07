@@ -2,12 +2,33 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Bed, Bath, Users } from 'lucide-react';
+import { MapPin, Bed, Bath, Users, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
 
 const PropertyShowcase = () => {
-  const { properties } = useProperties();
+  const { properties, loading } = useProperties();
+
+  if (loading) {
+    return (
+      <section className="py-12 sm:py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Our Eugene Properties
+            </h2>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Discover our handpicked collection of vacation rentals in Eugene, Oregon.
+            </p>
+          </div>
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2 text-muted-foreground">Loading properties...</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-12 sm:py-16 bg-background">

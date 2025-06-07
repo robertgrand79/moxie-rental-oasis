@@ -141,6 +141,60 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          amenities: string | null
+          bathrooms: number
+          bedrooms: number
+          created_at: string
+          created_by: string
+          description: string
+          hospitable_booking_url: string | null
+          id: string
+          image_url: string | null
+          images: string[] | null
+          location: string
+          max_guests: number
+          price_per_night: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amenities?: string | null
+          bathrooms: number
+          bedrooms: number
+          created_at?: string
+          created_by: string
+          description: string
+          hospitable_booking_url?: string | null
+          id?: string
+          image_url?: string | null
+          images?: string[] | null
+          location: string
+          max_guests: number
+          price_per_night: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amenities?: string | null
+          bathrooms?: number
+          bedrooms?: number
+          created_at?: string
+          created_by?: string
+          description?: string
+          hospitable_booking_url?: string | null
+          id?: string
+          image_url?: string | null
+          images?: string[] | null
+          location?: string
+          max_guests?: number
+          price_per_night?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

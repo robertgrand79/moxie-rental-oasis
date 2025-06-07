@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import PropertyForm from '@/components/PropertyForm';
 import PropertyList from '@/components/PropertyList';
 import EmptyPropertyState from '@/components/EmptyPropertyState';
@@ -11,7 +11,7 @@ import { Property } from '@/types/property';
 const Properties = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
-  const { properties, addProperty, editProperty, deleteProperty } = useProperties();
+  const { properties, loading, addProperty, editProperty, deleteProperty } = useProperties();
 
   const handleAddProperty = () => {
     setEditingProperty(null);
@@ -68,7 +68,12 @@ const Properties = () => {
 
           {!showAddForm && (
             <>
-              {properties.length > 0 ? (
+              {loading ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="ml-2 text-gray-600">Loading properties...</span>
+                </div>
+              ) : properties.length > 0 ? (
                 <PropertyList
                   properties={properties}
                   onEdit={handleEditProperty}
