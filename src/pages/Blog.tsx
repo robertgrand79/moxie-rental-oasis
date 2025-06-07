@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, User } from 'lucide-react';
@@ -7,55 +7,13 @@ import { Link } from 'react-router-dom';
 import NewsletterSignup from '@/components/NewsletterSignup';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import Footer from '@/components/Footer';
-
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  publishedAt: string;
-  imageUrl?: string;
-  tags: string[];
-  slug: string;
-}
+import { useBlogPosts } from '@/hooks/useBlogPosts';
 
 const Blog = () => {
-  const [blogPosts] = useState<BlogPost[]>([
-    {
-      id: '1',
-      title: 'Top 5 Vacation Destinations for 2024',
-      excerpt: 'Discover the most sought-after vacation spots that offer unforgettable experiences and luxury accommodations.',
-      content: 'Full blog post content here...',
-      author: 'Sarah Johnson',
-      publishedAt: '2024-01-15',
-      imageUrl: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=400&fit=crop',
-      tags: ['Travel', 'Destinations', 'Luxury'],
-      slug: 'top-5-vacation-destinations-2024'
-    },
-    {
-      id: '2',
-      title: 'Making the Most of Your Vacation Rental Experience',
-      excerpt: 'Essential tips and tricks to ensure your vacation rental stay exceeds all expectations.',
-      content: 'Full blog post content here...',
-      author: 'Mike Chen',
-      publishedAt: '2024-01-10',
-      imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=400&fit=crop',
-      tags: ['Tips', 'Vacation Rentals', 'Travel'],
-      slug: 'making-most-vacation-rental-experience'
-    },
-    {
-      id: '3',
-      title: 'Sustainable Tourism: Eco-Friendly Vacation Options',
-      excerpt: 'Learn how to travel responsibly while still enjoying amazing vacation experiences.',
-      content: 'Full blog post content here...',
-      author: 'Emma Davis',
-      publishedAt: '2024-01-05',
-      imageUrl: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=400&fit=crop',
-      tags: ['Sustainability', 'Eco-Tourism', 'Environment'],
-      slug: 'sustainable-tourism-eco-friendly-options'
-    }
-  ]);
+  const { blogPosts, loading } = useBlogPosts();
+
+  // Filter to show only published posts
+  const publishedPosts = blogPosts.filter(post => post.status === 'published');
 
   const getTagColor = (tag: string) => {
     switch (tag.toLowerCase()) {
@@ -79,6 +37,21 @@ const Blog = () => {
         return 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200';
     }
   };
+
+  if (loading) {
+    return (
+      <BackgroundWrapper>
+        <div className="py-32 relative">
+          <div className="container mx-auto px-4">
+            <div className="text-center">
+              <p className="text-xl text-gray-600">Loading blog posts...</p>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </BackgroundWrapper>
+    );
+  }
 
   return (
     <BackgroundWrapper>
@@ -109,7 +82,7 @@ const Blog = () => {
 
           {/* Blog Posts Grid */}
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20 hover:shadow-3xl transition-all duration-300">
-            {blogPosts.length > 0 ? (
+            {publishedPosts.length > 0 ? (
               <>
                 <div className="text-center mb-16">
                   <h2 className="text-4xl font-bold text-gray-900 mb-6">Latest Stories</h2>
@@ -117,11 +90,11 @@ const Blog = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {blogPosts.map((post) => (
+                  {publishedPosts.map((post) => (
                     <Card key={post.id} className="group overflow-hidden hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-xl border-white/30 hover:-translate-y-2">
                       <div className="aspect-video bg-gray-200 relative overflow-hidden">
                         <img 
-                          src={post.imageUrl} 
+                          src={post.image_url || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=400&fit=crop'} 
                           alt={post.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
@@ -129,7 +102,7 @@ const Blog = () => {
                       </div>
                       <CardHeader className="pb-4">
                         <div className="flex flex-wrap gap-2 mb-3">
-                          {post.tags.map((tag) => (
+                          {post.tags?.map((tag) => (
                             <span 
                               key={tag}
                               className={`px-3 py-1 text-sm rounded-full border ${getTagColor(tag)}`}
@@ -153,7 +126,7 @@ const Blog = () => {
                           </div>
                           <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-2 text-icon-emerald" />
-                            <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+                            <span>{post.published_at ? new Date(post.published_at).toLocaleDateString() : 'Draft'}</span>
                           </div>
                         </div>
                         <Link to={`/blog/${post.slug}`}>
