@@ -5,8 +5,8 @@ const FamilyPhotoSection = () => {
   return (
     <div className="relative">
       <img 
-        src="/lovable-uploads/b78c89b5-51f8-409b-a09a-b8dd9c939591.png"
-        alt="Robert and Shelly - The Moxie Family"
+        src="/lovable-uploads/21121584-267d-4a0c-8d9d-785d1b0d2ec2.png"
+        alt="Robert and Shelly - The Moxie Family Photo Collage"
         className="rounded-2xl shadow-lg w-full h-auto object-contain"
       />
     </div>
