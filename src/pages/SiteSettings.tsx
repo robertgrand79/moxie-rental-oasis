@@ -1,18 +1,20 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Palette, Type, Image, Wand2, Save, Share, MapPin, Calendar, Camera } from 'lucide-react';
+import { Palette, Type, Image, Wand2, Share, MapPin, Calendar, Camera, Star } from 'lucide-react';
 import ColorCustomizer from '@/components/ColorCustomizer';
 import FontCustomizer from '@/components/FontCustomizer';
 import LogoUploader from '@/components/LogoUploader';
 import AISiteEditor from '@/components/AISiteEditor';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import TestimonialsManager from '@/components/admin/TestimonialsManager';
+import GeneralSettingsTab from '@/components/admin/settings/GeneralSettingsTab';
+import HeroSettingsTab from '@/components/admin/settings/HeroSettingsTab';
+import SocialSettingsTab from '@/components/admin/settings/SocialSettingsTab';
+import SEOSettingsTab from '@/components/admin/settings/SEOSettingsTab';
+import AnalyticsSettingsTab from '@/components/admin/settings/AnalyticsSettingsTab';
+import MapsSettingsTab from '@/components/admin/settings/MapsSettingsTab';
+import { TestimonialsManager, GalleryTab, EventsTab } from '@/components/admin/settings/ContentManagementTabs';
 
 const SiteSettings = () => {
   const { settings, loading, updateSetting, getSetting } = useSiteSettings();
@@ -285,175 +287,19 @@ const SiteSettings = () => {
           </TabsList>
 
           <TabsContent value="general">
-            <Card>
-              <CardHeader>
-                <CardTitle>General Settings</CardTitle>
-                <CardDescription>
-                  Configure your site's basic information and content
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="siteName">Site Name</Label>
-                    <Input
-                      id="siteName"
-                      value={siteData.siteName}
-                      onChange={(e) => handleInputChange('siteName', e.target.value)}
-                      placeholder="Your site name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="tagline">Tagline</Label>
-                    <Input
-                      id="tagline"
-                      value={siteData.tagline}
-                      onChange={(e) => handleInputChange('tagline', e.target.value)}
-                      placeholder="A short tagline"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Site Description</Label>
-                  <Textarea
-                    id="description"
-                    value={siteData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Describe your business"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <Label htmlFor="contactEmail">Contact Email</Label>
-                    <Input
-                      id="contactEmail"
-                      type="email"
-                      value={siteData.contactEmail}
-                      onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                      placeholder="contact@yoursite.com"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      value={siteData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      value={siteData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      placeholder="Your business address"
-                    />
-                  </div>
-                </div>
-
-                <Button onClick={handleSaveSettings} className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save General Settings
-                </Button>
-              </CardContent>
-            </Card>
+            <GeneralSettingsTab
+              siteData={siteData}
+              onInputChange={handleInputChange}
+              onSave={handleSaveSettings}
+            />
           </TabsContent>
 
           <TabsContent value="hero">
-            <Card>
-              <CardHeader>
-                <CardTitle>Hero Section Settings</CardTitle>
-                <CardDescription>
-                  Customize the main hero section that appears on your homepage
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="heroTitle">Hero Title</Label>
-                    <Input
-                      id="heroTitle"
-                      value={siteData.heroTitle}
-                      onChange={(e) => handleInputChange('heroTitle', e.target.value)}
-                      placeholder="Main headline"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="heroSubtitle">Hero Subtitle</Label>
-                    <Input
-                      id="heroSubtitle"
-                      value={siteData.heroSubtitle}
-                      onChange={(e) => handleInputChange('heroSubtitle', e.target.value)}
-                      placeholder="Supporting text"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="heroDescription">Hero Description</Label>
-                  <Textarea
-                    id="heroDescription"
-                    value={siteData.heroDescription}
-                    onChange={(e) => handleInputChange('heroDescription', e.target.value)}
-                    placeholder="Descriptive text under the main headline"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="heroBackgroundImage">Background Image URL</Label>
-                  <Input
-                    id="heroBackgroundImage"
-                    value={siteData.heroBackgroundImage}
-                    onChange={(e) => handleInputChange('heroBackgroundImage', e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Use a high-quality landscape image for best results
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <Label htmlFor="heroLocationText">Location Text</Label>
-                    <Input
-                      id="heroLocationText"
-                      value={siteData.heroLocationText}
-                      onChange={(e) => handleInputChange('heroLocationText', e.target.value)}
-                      placeholder="Eugene, Oregon"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="heroRating">Rating</Label>
-                    <Input
-                      id="heroRating"
-                      value={siteData.heroRating}
-                      onChange={(e) => handleInputChange('heroRating', e.target.value)}
-                      placeholder="4.9"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="heroCTAText">Call-to-Action Button Text</Label>
-                    <Input
-                      id="heroCTAText"
-                      value={siteData.heroCTAText}
-                      onChange={(e) => handleInputChange('heroCTAText', e.target.value)}
-                      placeholder="View Properties"
-                    />
-                  </div>
-                </div>
-
-                <Button onClick={handleSaveSettings} className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Hero Settings
-                </Button>
-              </CardContent>
-            </Card>
+            <HeroSettingsTab
+              siteData={siteData}
+              onInputChange={handleInputChange}
+              onSave={handleSaveSettings}
+            />
           </TabsContent>
 
           <TabsContent value="testimonials">
@@ -461,312 +307,43 @@ const SiteSettings = () => {
           </TabsContent>
 
           <TabsContent value="gallery">
-            <Card>
-              <CardHeader>
-                <CardTitle>Lifestyle Gallery</CardTitle>
-                <CardDescription>
-                  Manage photos showcasing Eugene's lifestyle and activities
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  Gallery management component coming soon...
-                </div>
-              </CardContent>
-            </Card>
+            <GalleryTab />
           </TabsContent>
 
           <TabsContent value="events">
-            <Card>
-              <CardHeader>
-                <CardTitle>Eugene Events</CardTitle>
-                <CardDescription>
-                  Manage local events and activities to showcase to guests
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  Events management component coming soon...
-                </div>
-              </CardContent>
-            </Card>
+            <EventsTab />
           </TabsContent>
 
           <TabsContent value="social">
-            <Card>
-              <CardHeader>
-                <CardTitle>Social Media Links</CardTitle>
-                <CardDescription>
-                  Configure your social media URLs that will appear in the footer
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <Label htmlFor="facebook">Facebook URL</Label>
-                    <Input
-                      id="facebook"
-                      value={siteData.socialMedia.facebook}
-                      onChange={(e) => handleSocialMediaChange('facebook', e.target.value)}
-                      placeholder="https://facebook.com/yourpage"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="instagram">Instagram URL</Label>
-                    <Input
-                      id="instagram"
-                      value={siteData.socialMedia.instagram}
-                      onChange={(e) => handleSocialMediaChange('instagram', e.target.value)}
-                      placeholder="https://instagram.com/youraccount"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="twitter">Twitter URL</Label>
-                    <Input
-                      id="twitter"
-                      value={siteData.socialMedia.twitter}
-                      onChange={(e) => handleSocialMediaChange('twitter', e.target.value)}
-                      placeholder="https://twitter.com/youraccount"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="googlePlaces">Google Places URL</Label>
-                    <Input
-                      id="googlePlaces"
-                      value={siteData.socialMedia.googlePlaces}
-                      onChange={(e) => handleSocialMediaChange('googlePlaces', e.target.value)}
-                      placeholder="https://maps.google.com/yourplace"
-                    />
-                  </div>
-                </div>
-
-                <Button onClick={handleSaveSettings} className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Social Media Settings
-                </Button>
-              </CardContent>
-            </Card>
+            <SocialSettingsTab
+              siteData={siteData}
+              onSocialMediaChange={handleSocialMediaChange}
+              onSave={handleSaveSettings}
+            />
           </TabsContent>
 
           <TabsContent value="seo">
-            <Card>
-              <CardHeader>
-                <CardTitle>SEO & Meta Tags</CardTitle>
-                <CardDescription>
-                  Control your site's search engine optimization and social media appearance
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <Label htmlFor="siteTitle">Site Title (Browser Tab)</Label>
-                  <Input
-                    id="siteTitle"
-                    value={seoData.siteTitle}
-                    onChange={(e) => setSeoData(prev => ({ ...prev, siteTitle: e.target.value }))}
-                    placeholder="Your site title"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="metaDescription">Meta Description</Label>
-                  <Textarea
-                    id="metaDescription"
-                    value={seoData.metaDescription}
-                    onChange={(e) => setSeoData(prev => ({ ...prev, metaDescription: e.target.value }))}
-                    placeholder="Description for search engines"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="ogTitle">Open Graph Title (Social Media)</Label>
-                  <Input
-                    id="ogTitle"
-                    value={seoData.ogTitle}
-                    onChange={(e) => setSeoData(prev => ({ ...prev, ogTitle: e.target.value }))}
-                    placeholder="Leave empty to use site title"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="ogDescription">Open Graph Description</Label>
-                  <Textarea
-                    id="ogDescription"
-                    value={seoData.ogDescription}
-                    onChange={(e) => setSeoData(prev => ({ ...prev, ogDescription: e.target.value }))}
-                    placeholder="Leave empty to use meta description"
-                    rows={2}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="ogImage">Open Graph Image URL</Label>
-                  <Input
-                    id="ogImage"
-                    value={seoData.ogImage}
-                    onChange={(e) => setSeoData(prev => ({ ...prev, ogImage: e.target.value }))}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="favicon">Favicon URL</Label>
-                  <Input
-                    id="favicon"
-                    value={seoData.favicon}
-                    onChange={(e) => setSeoData(prev => ({ ...prev, favicon: e.target.value }))}
-                    placeholder="/lovable-uploads/your-favicon.png"
-                  />
-                </div>
-
-                <Button onClick={handleSaveSeoSettings} className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save SEO Settings
-                </Button>
-              </CardContent>
-            </Card>
+            <SEOSettingsTab
+              seoData={seoData}
+              setSeoData={setSeoData}
+              onSave={handleSaveSeoSettings}
+            />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics & Custom Scripts</CardTitle>
-                <CardDescription>
-                  Add tracking codes and custom scripts to your website
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <Label htmlFor="googleAnalyticsId">Google Analytics ID (GA4)</Label>
-                  <Input
-                    id="googleAnalyticsId"
-                    value={analyticsData.googleAnalyticsId}
-                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, googleAnalyticsId: e.target.value }))}
-                    placeholder="G-XXXXXXXXXX"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="googleTagManagerId">Google Tag Manager ID</Label>
-                  <Input
-                    id="googleTagManagerId"
-                    value={analyticsData.googleTagManagerId}
-                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, googleTagManagerId: e.target.value }))}
-                    placeholder="GTM-XXXXXXX"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="facebookPixelId">Facebook Pixel ID</Label>
-                  <Input
-                    id="facebookPixelId"
-                    value={analyticsData.facebookPixelId}
-                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, facebookPixelId: e.target.value }))}
-                    placeholder="123456789012345"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="customHeaderScripts">Custom Header Scripts</Label>
-                  <Textarea
-                    id="customHeaderScripts"
-                    value={analyticsData.customHeaderScripts}
-                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, customHeaderScripts: e.target.value }))}
-                    placeholder="JavaScript code to be added before </head>"
-                    rows={4}
-                    className="font-mono text-sm"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="customFooterScripts">Custom Footer Scripts</Label>
-                  <Textarea
-                    id="customFooterScripts"
-                    value={analyticsData.customFooterScripts}
-                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, customFooterScripts: e.target.value }))}
-                    placeholder="JavaScript code to be added before </body>"
-                    rows={4}
-                    className="font-mono text-sm"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="customCss">Custom CSS</Label>
-                  <Textarea
-                    id="customCss"
-                    value={analyticsData.customCss}
-                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, customCss: e.target.value }))}
-                    placeholder="Custom CSS styles"
-                    rows={4}
-                    className="font-mono text-sm"
-                  />
-                </div>
-
-                <Button onClick={handleSaveAnalyticsSettings} className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Analytics Settings
-                </Button>
-              </CardContent>
-            </Card>
+            <AnalyticsSettingsTab
+              analyticsData={analyticsData}
+              setAnalyticsData={setAnalyticsData}
+              onSave={handleSaveAnalyticsSettings}
+            />
           </TabsContent>
 
           <TabsContent value="maps">
-            <Card>
-              <CardHeader>
-                <CardTitle>Maps Configuration</CardTitle>
-                <CardDescription>
-                  Configure your Mapbox token for displaying property locations
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h4 className="font-medium text-blue-900 mb-2">About Mapbox Token</h4>
-                  <p className="text-sm text-blue-800 mb-3">
-                    A Mapbox public token is required to display interactive maps with property locations. 
-                    This token is safe to use in frontend applications and allows your visitors to view property locations.
-                  </p>
-                  <p className="text-sm text-blue-700">
-                    Get your free token at{' '}
-                    <a 
-                      href="https://mapbox.com/" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="underline hover:text-blue-900"
-                    >
-                      mapbox.com
-                    </a>
-                    {' '}(look for "Access tokens" in your account dashboard)
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="mapboxToken">Mapbox Public Token</Label>
-                  <Input
-                    id="mapboxToken"
-                    value={mapboxToken}
-                    onChange={(e) => setMapboxToken(e.target.value)}
-                    placeholder="pk.eyJ1IjoieW91cnVzZXJuYW1lIiwi..."
-                    className="font-mono text-sm"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Public tokens start with "pk." and are safe to use in web applications
-                  </p>
-                </div>
-
-                {mapboxToken && (
-                  <div className="p-3 bg-green-50 rounded border border-green-200">
-                    <p className="text-sm text-green-800">
-                      ✓ Token configured. Maps will now display on your property listings page.
-                    </p>
-                  </div>
-                )}
-
-                <Button onClick={handleSaveMapboxToken} className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Mapbox Token
-                </Button>
-              </CardContent>
-            </Card>
+            <MapsSettingsTab
+              mapboxToken={mapboxToken}
+              setMapboxToken={setMapboxToken}
+              onSave={handleSaveMapboxToken}
+            />
           </TabsContent>
 
           <TabsContent value="colors">
