@@ -1,56 +1,28 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Edit, Trash2, Calendar, Eye, Mail } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, Eye } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BlogForm from '@/components/BlogForm';
 import NewsletterManager from '@/components/NewsletterManager';
-import { useToast } from '@/hooks/use-toast';
-
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  publishedAt: string;
-  imageUrl?: string;
-  tags: string[];
-  slug: string;
-  status: 'draft' | 'published';
-}
+import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const BlogManagement = () => {
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([
-    {
-      id: '1',
-      title: 'Top 5 Vacation Destinations for 2024',
-      excerpt: 'Discover the most sought-after vacation spots that offer unforgettable experiences and luxury accommodations.',
-      content: 'Full blog post content here...',
-      author: 'Sarah Johnson',
-      publishedAt: '2024-01-15',
-      imageUrl: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=400&fit=crop',
-      tags: ['Travel', 'Destinations', 'Luxury'],
-      slug: 'top-5-vacation-destinations-2024',
-      status: 'published'
-    },
-    {
-      id: '2',
-      title: 'Making the Most of Your Vacation Rental Experience',
-      excerpt: 'Essential tips and tricks to ensure your vacation rental stay exceeds all expectations.',
-      content: 'Full blog post content here...',
-      author: 'Mike Chen',
-      publishedAt: '2024-01-10',
-      imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=400&fit=crop',
-      tags: ['Tips', 'Vacation Rentals', 'Travel'],
-      slug: 'making-most-vacation-rental-experience',
-      status: 'published'
-    }
-  ]);
-
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
-  const { toast } = useToast();
+  const { blogPosts, loading, addBlogPost, updateBlogPost, deleteBlogPost } = useBlogPosts();
 
   const handleAddPost = () => {
     setEditingPost(null);
@@ -62,37 +34,15 @@ const BlogManagement = () => {
     setShowAddForm(true);
   };
 
-  const handleFormSubmit = (data: any) => {
+  const handleFormSubmit = async (data: any) => {
     console.log('Blog form submitted:', data);
     
     if (editingPost) {
-      // Update existing post
-      setBlogPosts(prev => prev.map(post => 
-        post.id === editingPost.id 
-          ? { ...post, ...data, updatedAt: new Date().toISOString() }
-          : post
-      ));
-      toast({
-        title: "Post Updated",
-        description: "Your blog post has been successfully updated.",
-      });
+      await updateBlogPost(editingPost.id, data);
     } else {
-      // Create new post
-      const newPost: BlogPost = {
-        id: Date.now().toString(),
-        ...data,
-        author: 'Admin User', // This would come from auth context
-        publishedAt: data.status === 'published' ? new Date().toISOString() : '',
-        slug: data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-      };
-
-      setBlogPosts(prev => [...prev, newPost]);
-      toast({
-        title: "Post Created",
-        description: "Your blog post has been successfully created.",
-      });
+      await addBlogPost(data);
     }
-
+    
     setShowAddForm(false);
     setEditingPost(null);
   };
@@ -102,13 +52,21 @@ const BlogManagement = () => {
     setEditingPost(null);
   };
 
-  const handleDeletePost = (id: string) => {
-    setBlogPosts(blogPosts.filter(post => post.id !== id));
-    toast({
-      title: "Post Deleted",
-      description: "The blog post has been removed.",
-    });
+  const handleDeletePost = async (id: string) => {
+    await deleteBlogPost(id);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-8">
+            <p className="text-gray-600">Loading blog posts...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -162,7 +120,7 @@ const BlogManagement = () => {
                           </div>
                           <CardDescription className="flex items-center text-sm mb-2">
                             <Calendar className="h-3 w-3 mr-1" />
-                            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Not published'}
+                            {post.published_at ? new Date(post.published_at).toLocaleDateString() : 'Not published'}
                           </CardDescription>
                           <p className="text-sm text-gray-600">{post.excerpt}</p>
                         </div>
@@ -181,19 +139,39 @@ const BlogManagement = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDeletePost(post.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Blog Post</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{post.title}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDeletePost(post.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete Post
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {post.tags.map((tag) => (
+                        {post.tags?.map((tag) => (
                           <span 
                             key={tag}
                             className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
