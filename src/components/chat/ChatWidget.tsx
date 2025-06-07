@@ -111,7 +111,7 @@ const ChatWidget = () => {
       isMinimized ? 'h-14' : 'h-96'
     }`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-primary text-primary-foreground rounded-t-lg">
+      <div className="flex items-center justify-between p-4 text-white rounded-t-lg" style={{ backgroundColor: '#a7adb2' }}>
         <div className="flex items-center space-x-2">
           <MessageCircle className="h-5 w-5" />
           <h3 className="font-semibold">Moxie Travel Assistant</h3>
@@ -120,7 +120,7 @@ const ChatWidget = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/20"
+            className="h-6 w-6 text-white hover:bg-white/20"
             onClick={() => setIsMinimized(!isMinimized)}
           >
             <Minimize2 className="h-3 w-3" />
@@ -128,7 +128,7 @@ const ChatWidget = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/20"
+            className="h-6 w-6 text-white hover:bg-white/20"
             onClick={() => setIsOpen(false)}
           >
             <X className="h-3 w-3" />
