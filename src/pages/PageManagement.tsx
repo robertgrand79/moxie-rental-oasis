@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Upload } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import PageForm from '@/components/PageForm';
 import PageList from '@/components/PageList';
 import EmptyPageState from '@/components/EmptyPageState';
@@ -10,7 +10,7 @@ import { usePages } from '@/hooks/usePages';
 const PageManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPage, setEditingPage] = useState<any>(null);
-  const { pages, loading, addPage, editPage, deletePage, addSitePages } = usePages();
+  const { pages, loading, addPage, editPage, deletePage } = usePages();
 
   console.log('PageManagement render - pages:', pages, 'loading:', loading, 'pages length:', pages.length);
 
@@ -39,10 +39,6 @@ const PageManagement = () => {
     setEditingPage(null);
   };
 
-  const handleAddSitePages = () => {
-    addSitePages();
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
@@ -67,22 +63,10 @@ const PageManagement = () => {
               <p className="text-gray-600 mt-2">Manage your website pages and content ({pages.length} pages total)</p>
             </div>
             {!showAddForm && (
-              <div className="flex space-x-2">
-                {pages.length === 0 && (
-                  <Button 
-                    onClick={handleAddSitePages} 
-                    variant="outline"
-                    className="flex items-center"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Add Site Pages
-                  </Button>
-                )}
-                <Button onClick={handleAddPage} className="flex items-center bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Page
-                </Button>
-              </div>
+              <Button onClick={handleAddPage} className="flex items-center bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Page
+              </Button>
             )}
           </div>
 
@@ -98,17 +82,6 @@ const PageManagement = () => {
 
           {!showAddForm && (
             <>
-              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-700">
-                  Debug info: Found {pages.length} pages in database
-                  {pages.length > 0 && (
-                    <span className="block mt-1">
-                      Pages: {pages.map(p => p.title).join(', ')}
-                    </span>
-                  )}
-                </p>
-              </div>
-              
               {pages.length > 0 ? (
                 <PageList
                   pages={pages}
