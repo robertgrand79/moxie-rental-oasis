@@ -46,23 +46,24 @@ const PropertyMap = ({ properties, mapboxToken }: PropertyMapProps) => {
         </div>`
       );
 
-      // For demo purposes, we'll place markers at approximate locations in Eugene
-      // In a real app, you'd geocode the addresses
+      // Use accurate coordinates for each property
       let coordinates: [number, number];
       
       switch (property.id) {
         case 'harris-st':
-          coordinates = [-123.0820, 44.0465]; // Harris St area
+          coordinates = [-123.07797850475191, 44.025703181895906]; // Harris St
           break;
         case 'kincaid-st':
-          coordinates = [-123.0750, 44.0380]; // Kincaid St area
+          coordinates = [-123.07938489901107, 44.030271922261456]; // Kincaid St
           break;
         case 'w-10th-house':
+          coordinates = [-123.09827283381007, 44.04873026170491]; // W 10th House
+          break;
         case 'w-10th-studio':
-          coordinates = [-123.0960, 44.0510]; // Downtown W 10th area
+          coordinates = [-123.09827283381007, 44.04873026170491]; // W 10th Studio
           break;
         case 'woodlawn-ave':
-          coordinates = [-123.1100, 44.0580]; // Woodlawn Ave area
+          coordinates = [-123.0647321842284, 44.03201836311886]; // Woodlawn Ave
           break;
         default:
           coordinates = eugeneCenter;
