@@ -145,7 +145,7 @@ const ChatWidget = () => {
               <div ref={messagesEndRef} />
             </ScrollArea>
             <form onSubmit={sendMessage} className="p-4 border-t">
-              <div className="flex space-x-2">
+              <div className="flex items-center space-x-2">
                 <Input
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
@@ -157,7 +157,7 @@ const ChatWidget = () => {
                   type="submit" 
                   size="sm" 
                   disabled={isLoading || !inputMessage.trim()}
-                  className="bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90"
+                  className="bg-gray-800 hover:bg-gray-700 text-white"
                 >
                   <Send className="w-4 h-4" />
                 </Button>
