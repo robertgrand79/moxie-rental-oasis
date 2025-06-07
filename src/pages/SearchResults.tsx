@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PropertyShowcase from '@/components/PropertyShowcase';
 import HospitableSearchBar from '@/components/HospitableSearchBar';
@@ -10,6 +10,22 @@ const SearchResults = () => {
   const checkin = searchParams.get('checkin') || '';
   const checkout = searchParams.get('checkout') || '';
   const guests = searchParams.get('guests') || '';
+
+  useEffect(() => {
+    // Load Hospitable search widget script
+    const script = document.createElement('script');
+    script.src = 'https://hospitable.b-cdn.net/direct-property-search-widget/hospitable-search-widget.prod.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup script on unmount
+      const existingScript = document.querySelector('script[src="https://hospitable.b-cdn.net/direct-property-search-widget/hospitable-search-widget.prod.js"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -35,6 +51,11 @@ const SearchResults = () => {
               {guests && <span>Guests: {guests}</span>}
             </div>
           )}
+        </div>
+
+        {/* Hospitable Search Widget */}
+        <div className="mb-8">
+          <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom"></hospitable-direct-mps>
         </div>
 
         <PropertyShowcase />
