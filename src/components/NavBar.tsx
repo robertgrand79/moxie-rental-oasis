@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { LogOut, User, Menu, X, Home, Building2, BookOpen, Info, MapPin } from 'lucide-react';
+import { LogOut, User, Menu, X, Home, Building2, BookOpen, Info, MapPin, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const NavBar = () => {
@@ -111,10 +111,12 @@ const NavBar = () => {
             ) : (
               <Link to="/auth">
                 <Button 
+                  variant="outline"
                   size="sm"
-                  className="bg-gray-900 hover:bg-gray-800 text-white px-6 rounded-full"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
-                  {isAdminPage ? 'LOGIN' : 'BOOK NOW'}
+                  <Settings className="h-4 w-4 mr-2" />
+                  Admin Login
                 </Button>
               </Link>
             )}
