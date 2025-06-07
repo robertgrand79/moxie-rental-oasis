@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import OptimizedImage from '@/components/ui/optimized-image';
 
 const HeroSection = () => {
   const { user } = useAuth();
@@ -14,9 +15,12 @@ const HeroSection = () => {
               Your Home Base for Living Like a Local in Eugene
             </h1>
             <div className="flex justify-center mb-8">
-              <img 
+              <OptimizedImage 
                 src="/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png" 
                 alt="Moxie Vacation Rentals" 
+                width={192}
+                height={192}
+                priority={true}
                 className="h-48 w-auto"
               />
             </div>

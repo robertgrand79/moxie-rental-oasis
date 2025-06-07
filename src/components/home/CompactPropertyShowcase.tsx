@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Bed, Bath, Users, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
+import OptimizedImage from '@/components/ui/optimized-image';
 
 const CompactPropertyShowcase = () => {
   const { properties, loading } = useProperties();
@@ -34,13 +34,16 @@ const CompactPropertyShowcase = () => {
                 {properties.map((property) => (
                   <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group flex flex-col">
                     <div className="aspect-[4/3] relative">
-                      <img 
+                      <OptimizedImage 
                         src={property.image_url} 
                         alt={property.title}
+                        width={300}
+                        height={225}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                     <CardContent className="p-4 flex flex-col flex-1">
+                      
                       <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-gray-900 min-h-[2.5rem]">
                         {property.title}
                       </h3>

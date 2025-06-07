@@ -1,0 +1,21 @@
+
+{
+  "name": "Moxie Vacation Rentals",
+  "short_name": "Moxie Rentals",
+  "description": "Your Home Base for Living Like a Local in Eugene",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "lifestyle"],
+  "lang": "en-US"
+}
