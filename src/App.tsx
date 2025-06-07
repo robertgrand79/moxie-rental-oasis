@@ -21,7 +21,6 @@ import NavBar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Listings from "./pages/Listings";
 import PropertyPage from "./components/PropertyPage";
-import ChatWidget from "./components/chat/ChatWidget";
 
 const queryClient = new QueryClient();
 
@@ -86,7 +85,6 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <ChatWidget />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
