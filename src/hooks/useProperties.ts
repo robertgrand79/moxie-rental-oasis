@@ -1,6 +1,8 @@
+
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Property } from '@/types/property';
+import { usePhotoUpload } from './usePhotoUpload';
 
 const initialProperties: Property[] = [
   {
@@ -73,12 +75,24 @@ const initialProperties: Property[] = [
 export const useProperties = () => {
   const [properties, setProperties] = useState<Property[]>(initialProperties);
   const { toast } = useToast();
+  const { uploadPhotos } = usePhotoUpload();
 
-  const addProperty = (data: any) => {
+  const addProperty = async (data: any) => {
     console.log('Property form submitted:', data);
     
+    const propertyId = Date.now().toString();
+    let imageUrl = '/placeholder.svg';
+
+    // Upload photos if any were provided
+    if (data.photos && data.photos.length > 0) {
+      const uploadedUrls = await uploadPhotos(data.photos, propertyId);
+      if (uploadedUrls.length > 0) {
+        imageUrl = uploadedUrls[0]; // Use the first uploaded image as the main image
+      }
+    }
+
     const newProperty: Property = {
-      id: Date.now().toString(),
+      id: propertyId,
       title: data.title,
       description: data.description,
       location: data.location,
@@ -88,7 +102,7 @@ export const useProperties = () => {
       pricePerNight: data.pricePerNight,
       hospitableBookingUrl: data.hospitableBookingUrl,
       amenities: data.amenities,
-      imageUrl: '/placeholder.svg' // TODO: Handle uploaded photos
+      imageUrl
     };
 
     setProperties(prev => [...prev, newProperty]);
@@ -99,8 +113,18 @@ export const useProperties = () => {
     });
   };
 
-  const editProperty = (id: string, data: any) => {
+  const editProperty = async (id: string, data: any) => {
     console.log('Edit property:', id, data);
+    
+    let imageUrl: string | undefined;
+
+    // Upload new photos if any were provided
+    if (data.photos && data.photos.length > 0) {
+      const uploadedUrls = await uploadPhotos(data.photos, id);
+      if (uploadedUrls.length > 0) {
+        imageUrl = uploadedUrls[0]; // Use the first uploaded image as the main image
+      }
+    }
     
     setProperties(prev => prev.map(property => 
       property.id === id 
@@ -115,8 +139,8 @@ export const useProperties = () => {
             pricePerNight: data.pricePerNight,
             hospitableBookingUrl: data.hospitableBookingUrl,
             amenities: data.amenities,
-            // Keep existing imageUrl unless new photos are uploaded
-            imageUrl: data.photos && data.photos.length > 0 ? '/placeholder.svg' : property.imageUrl
+            // Only update imageUrl if new photos were uploaded
+            ...(imageUrl && { imageUrl })
           }
         : property
     ));
