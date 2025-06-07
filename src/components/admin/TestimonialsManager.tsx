@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,10 +9,12 @@ import { Switch } from '@/components/ui/switch';
 import { Star, Plus, Edit, Trash2, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useTestimonials, Testimonial } from '@/hooks/useTestimonials';
+import { useAuth } from '@/contexts/AuthContext';
 import OptimizedImage from '@/components/ui/optimized-image';
 
 const TestimonialsManager = () => {
   const { testimonials, isLoading, createTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
+  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
   const [formData, setFormData] = useState({
@@ -70,7 +71,14 @@ const TestimonialsManager = () => {
           ...formData
         });
       } else {
-        await createTestimonial.mutateAsync(formData);
+        if (!user?.id) {
+          console.error('User not authenticated');
+          return;
+        }
+        await createTestimonial.mutateAsync({
+          ...formData,
+          created_by: user.id
+        });
       }
       setIsDialogOpen(false);
       resetForm();
