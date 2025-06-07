@@ -3,6 +3,7 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { PropertyFormData } from './types';
 
@@ -69,14 +70,21 @@ const PropertyDetailsForm = ({ form }: PropertyDetailsFormProps) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Bedrooms</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  min="1"
-                  {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                />
-              </FormControl>
+              <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select bedrooms" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">1 Bedroom</SelectItem>
+                  <SelectItem value="2">2 Bedrooms</SelectItem>
+                  <SelectItem value="3">3 Bedrooms</SelectItem>
+                  <SelectItem value="4">4 Bedrooms</SelectItem>
+                  <SelectItem value="5">5 Bedrooms</SelectItem>
+                  <SelectItem value="6">6+ Bedrooms</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -88,14 +96,20 @@ const PropertyDetailsForm = ({ form }: PropertyDetailsFormProps) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Bathrooms</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  min="1"
-                  {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                />
-              </FormControl>
+              <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select bathrooms" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">1 Bathroom</SelectItem>
+                  <SelectItem value="2">2 Bathrooms</SelectItem>
+                  <SelectItem value="3">3 Bathrooms</SelectItem>
+                  <SelectItem value="4">4 Bathrooms</SelectItem>
+                  <SelectItem value="5">5+ Bathrooms</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -126,14 +140,24 @@ const PropertyDetailsForm = ({ form }: PropertyDetailsFormProps) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Price per Night ($)</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  min="1"
-                  {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || 100)}
-                />
-              </FormControl>
+              <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select price" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="50">$50 - $99</SelectItem>
+                  <SelectItem value="100">$100 - $149</SelectItem>
+                  <SelectItem value="150">$150 - $199</SelectItem>
+                  <SelectItem value="200">$200 - $249</SelectItem>
+                  <SelectItem value="250">$250 - $299</SelectItem>
+                  <SelectItem value="300">$300 - $349</SelectItem>
+                  <SelectItem value="350">$350 - $399</SelectItem>
+                  <SelectItem value="400">$400 - $499</SelectItem>
+                  <SelectItem value="500">$500+</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
