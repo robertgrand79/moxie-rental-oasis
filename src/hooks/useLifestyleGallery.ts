@@ -14,6 +14,7 @@ export interface LifestyleGalleryItem {
   display_order: number;
   is_featured: boolean;
   is_active: boolean;
+  created_by: string;
   created_at: string;
   updated_at: string;
 }

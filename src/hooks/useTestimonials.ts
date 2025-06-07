@@ -15,6 +15,7 @@ export interface Testimonial {
   is_featured: boolean;
   display_order: number;
   is_active: boolean;
+  created_by: string;
   created_at: string;
   updated_at: string;
 }
