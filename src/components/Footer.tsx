@@ -4,23 +4,23 @@ import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter } from 'lucide
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-700 text-white py-16">
+    <footer className="text-white py-16" style={{ backgroundColor: '#767b8d' }}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
             <h3 className="text-xl font-bold mb-6">Moxie Vacation Rentals</h3>
-            <p className="text-gray-300 mb-4 leading-relaxed">
+            <p className="mb-4 leading-relaxed" style={{ color: '#ececec' }}>
               Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="#" className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }}>
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="#" className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }}>
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="#" className="hover:text-white transition-colors" style={{ color: '#cbcfd2' }}>
                 <Twitter className="h-5 w-5" />
               </a>
             </div>
@@ -31,20 +31,20 @@ const Footer = () => {
             <h3 className="text-xl font-bold mb-6">Contact Us</h3>
             <div className="space-y-3">
               <div className="flex items-center">
-                <MapPin className="h-5 w-5 text-gray-400 mr-3" />
-                <span className="text-gray-300">Eugene, Oregon</span>
+                <MapPin className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
+                <span style={{ color: '#ececec' }}>Eugene, Oregon</span>
               </div>
               <div className="flex items-center">
-                <Phone className="h-5 w-5 text-gray-400 mr-3" />
-                <span className="text-gray-300">(541) 555-0123</span>
+                <Phone className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
+                <span style={{ color: '#ececec' }}>(541) 555-0123</span>
               </div>
               <div className="flex items-center">
-                <Mail className="h-5 w-5 text-gray-400 mr-3" />
-                <span className="text-gray-300">hello@moxievacationrentals.com</span>
+                <Mail className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
+                <span style={{ color: '#ececec' }}>hello@moxievacationrentals.com</span>
               </div>
               <div className="flex items-center">
-                <Clock className="h-5 w-5 text-gray-400 mr-3" />
-                <span className="text-gray-300">24/7 Guest Support</span>
+                <Clock className="h-5 w-5 mr-3" style={{ color: '#cbcfd2' }} />
+                <span style={{ color: '#ececec' }}>24/7 Guest Support</span>
               </div>
             </div>
           </div>
@@ -54,27 +54,27 @@ const Footer = () => {
             <h3 className="text-xl font-bold mb-6">Quick Links</h3>
             <ul className="space-y-3">
               <li>
-                <a href="/listings" className="text-gray-300 hover:text-white transition-colors">
+                <a href="/listings" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   View Properties
                 </a>
               </li>
               <li>
-                <a href="/experiences" className="text-gray-300 hover:text-white transition-colors">
+                <a href="/experiences" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Local Experiences
                 </a>
               </li>
               <li>
-                <a href="/about" className="text-gray-300 hover:text-white transition-colors">
+                <a href="/about" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   About Us
                 </a>
               </li>
               <li>
-                <a href="/blog" className="text-gray-300 hover:text-white transition-colors">
+                <a href="/blog" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Blog
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Guest Portal
                 </a>
               </li>
@@ -86,32 +86,32 @@ const Footer = () => {
             <h3 className="text-xl font-bold mb-6">Resources</h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Booking Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Cancellation Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   House Rules
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   FAQ
                 </a>
               </li>
@@ -120,19 +120,19 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-600 mt-12 pt-8">
+        <div className="mt-12 pt-8" style={{ borderTop: `1px solid #8b929a` }}>
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm mb-4 md:mb-0">
+            <p className="text-sm mb-4 md:mb-0" style={{ color: '#cbcfd2' }}>
               © 2024 Moxie Vacation Rentals. All rights reserved.
             </p>
             <div className="flex space-x-6">
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+              <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Privacy Policy
               </a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+              <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Terms of Service
               </a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+              <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Accessibility
               </a>
             </div>
