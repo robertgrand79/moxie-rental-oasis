@@ -33,6 +33,8 @@ const AuthSection = () => {
     }
   };
 
+  const displayName = user?.user_metadata?.full_name || user?.email || 'User';
+
   return (
     <div className="flex items-center space-x-4">
       {user ? (
@@ -40,7 +42,7 @@ const AuthSection = () => {
           <div className="hidden sm:flex items-center space-x-3">
             <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
               <User className="h-4 w-4 text-icon-gray mr-2" />
-              <span className="text-sm font-medium text-gray-700">{user.email}</span>
+              <span className="text-sm font-medium text-gray-700">{displayName}</span>
             </div>
           </div>
           
