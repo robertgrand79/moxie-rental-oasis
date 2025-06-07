@@ -1,6 +1,7 @@
 
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import HeroSection from '@/components/home/HeroSection';
+import CompactPropertyShowcase from '@/components/home/CompactPropertyShowcase';
 import WhyMoxieSection from '@/components/home/WhyMoxieSection';
 import AmenitiesSection from '@/components/home/AmenitiesSection';
 import EugeneInfoSection from '@/components/home/EugeneInfoSection';
@@ -12,6 +13,7 @@ const Index = () => {
   return (
     <BackgroundWrapper>
       <HeroSection />
+      <CompactPropertyShowcase />
       <WhyMoxieSection />
       <AmenitiesSection />
       <EugeneInfoSection />
