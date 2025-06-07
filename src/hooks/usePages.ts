@@ -10,6 +10,7 @@ export const usePages = () => {
   const { user } = useAuth();
 
   const fetchPages = async () => {
+    console.log('Fetching pages...');
     try {
       const { data, error } = await supabase
         .from('pages')
@@ -17,15 +18,16 @@ export const usePages = () => {
         .order('updated_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching pages:', error);
         toast({
           title: 'Error',
           description: 'Failed to fetch pages.',
           variant: 'destructive'
         });
-        console.error('Error fetching pages:', error);
         return;
       }
 
+      console.log('Fetched pages:', data);
       setPages(data || []);
     } catch (error) {
       console.error('Error in fetchPages:', error);
@@ -153,8 +155,11 @@ export const usePages = () => {
   };
 
   useEffect(() => {
+    console.log('usePages effect triggered, user:', user);
     if (user) {
       fetchPages();
+    } else {
+      console.log('No user found, not fetching pages');
     }
   }, [user]);
 
