@@ -52,7 +52,7 @@ const NavBar = () => {
               <img 
                 src="/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png" 
                 alt="Moxie Vacation Rentals" 
-                className="h-30 w-auto"
+                className="h-16 w-auto"
               />
             </Link>
           </div>
