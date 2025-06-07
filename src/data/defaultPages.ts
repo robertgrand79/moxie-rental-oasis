@@ -72,6 +72,48 @@ export const getDefaultPages = (userId: string) => [
     is_published: true,
     created_by: userId
   },
+  // Property pages (hardcoded for existing routes)
+  {
+    title: 'Harris Street Property',
+    slug: 'property/harris-st',
+    content: 'Beautiful property located on Harris Street in Eugene, Oregon.',
+    meta_description: 'Harris Street property rental in Eugene, Oregon',
+    is_published: true,
+    created_by: userId
+  },
+  {
+    title: 'Kincaid Street Property',
+    slug: 'property/kincaid-st',
+    content: 'Charming property located on Kincaid Street in Eugene, Oregon.',
+    meta_description: 'Kincaid Street property rental in Eugene, Oregon',
+    is_published: true,
+    created_by: userId
+  },
+  {
+    title: 'W 10th House',
+    slug: 'property/w-10th-house',
+    content: 'Spacious house located on W 10th Avenue in Eugene, Oregon.',
+    meta_description: 'W 10th Avenue house rental in Eugene, Oregon',
+    is_published: true,
+    created_by: userId
+  },
+  {
+    title: 'W 10th Studio',
+    slug: 'property/w-10th-studio',
+    content: 'Cozy studio apartment located on W 10th Avenue in Eugene, Oregon.',
+    meta_description: 'W 10th Avenue studio rental in Eugene, Oregon',
+    is_published: true,
+    created_by: userId
+  },
+  {
+    title: 'Woodlawn Avenue Property',
+    slug: 'property/woodlawn-ave',
+    content: 'Lovely property located on Woodlawn Avenue in Eugene, Oregon.',
+    meta_description: 'Woodlawn Avenue property rental in Eugene, Oregon',
+    is_published: true,
+    created_by: userId
+  },
+  // Admin pages
   {
     title: 'Admin Dashboard',
     slug: 'admin',

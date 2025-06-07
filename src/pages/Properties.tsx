@@ -1,21 +1,23 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import PropertyForm from '@/components/PropertyForm';
 import PropertyList from '@/components/PropertyList';
 import EmptyPropertyState from '@/components/EmptyPropertyState';
 import { useProperties } from '@/hooks/useProperties';
+import { usePropertyPages } from '@/hooks/usePropertyPages';
 import { Property } from '@/types/property';
 
 const Properties = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const { properties, loading, addProperty, editProperty, deleteProperty } = useProperties();
+  const { createPropertyPage } = usePropertyPages();
 
   const handleAddProperty = () => {
-    setEditingProperty(null);
     setShowAddForm(true);
+    setEditingProperty(null);
   };
 
   const handleEditProperty = (property: Property) => {
@@ -23,12 +25,19 @@ const Properties = () => {
     setShowAddForm(true);
   };
 
-  const handleFormSubmit = (data: any) => {
+  const handleFormSubmit = async (data: Omit<Property, 'id'>) => {
+    let savedProperty;
+    
     if (editingProperty) {
-      editProperty(editingProperty.id, data);
+      savedProperty = await editProperty(editingProperty.id, data);
     } else {
-      addProperty(data);
+      savedProperty = await addProperty(data);
+      // Create a page for the new property
+      if (savedProperty) {
+        await createPropertyPage(savedProperty);
+      }
     }
+    
     setShowAddForm(false);
     setEditingProperty(null);
   };
@@ -38,14 +47,28 @@ const Properties = () => {
     setEditingProperty(null);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mx-auto border border-white/20">
+            <div className="text-center py-8">
+              <p className="text-gray-600">Loading properties...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mx-auto border border-white/20">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Properties Management</h1>
-              <p className="text-gray-600 mt-2">Manage your vacation rental properties</p>
+              <h1 className="text-3xl font-bold text-gray-900">Property Management</h1>
+              <p className="text-gray-600 mt-2">Manage your rental properties and listings</p>
             </div>
             {!showAddForm && (
               <Button onClick={handleAddProperty} className="flex items-center bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90">
@@ -58,22 +81,16 @@ const Properties = () => {
           {showAddForm && (
             <div className="mb-8">
               <PropertyForm 
+                property={editingProperty}
                 onSubmit={handleFormSubmit}
                 onCancel={handleFormCancel}
-                initialData={editingProperty || undefined}
-                isEditing={!!editingProperty}
               />
             </div>
           )}
 
           {!showAddForm && (
             <>
-              {loading ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <span className="ml-2 text-gray-600">Loading properties...</span>
-                </div>
-              ) : properties.length > 0 ? (
+              {properties.length > 0 ? (
                 <PropertyList
                   properties={properties}
                   onEdit={handleEditProperty}
