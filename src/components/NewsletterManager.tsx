@@ -1,17 +1,15 @@
+
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Send, Users, Mail, Eye, Wand2, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useForm } from 'react-hook-form';
-import { Textarea } from '@/components/ui/textarea';
-import TiptapEditor from './TiptapEditor';
+import NewsletterOverview from './NewsletterOverview';
+import NewsletterAIGenerator from './NewsletterAIGenerator';
+import NewsletterForm from './NewsletterForm';
+import NewsletterPreview from './NewsletterPreview';
+import NewsletterQuickActions from './NewsletterQuickActions';
 
-interface NewsletterForm {
+interface NewsletterFormData {
   subject: string;
   content: string;
   blogPostId?: string;
@@ -19,17 +17,11 @@ interface NewsletterForm {
 
 const NewsletterManager = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isSendingPreview, setIsSendingPreview] = useState(false);
   const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
   const [content, setContent] = useState('');
-  const [previewEmail, setPreviewEmail] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [selectedField, setSelectedField] = useState<'subject' | 'content'>('subject');
-  const [generatedContent, setGeneratedContent] = useState('');
   const { toast } = useToast();
   
-  const form = useForm<NewsletterForm>({
+  const form = useForm<NewsletterFormData>({
     defaultValues: {
       subject: '',
       content: '',
@@ -40,72 +32,6 @@ const NewsletterManager = () => {
   React.useEffect(() => {
     fetchSubscriberCount();
   }, []);
-
-  const generateContent = async () => {
-    if (!aiPrompt.trim()) {
-      toast({
-        title: "Prompt Required",
-        description: "Please enter a prompt to generate content.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-site-content', {
-        body: {
-          prompt: aiPrompt,
-          context: {
-            businessType: 'vacation rental newsletter',
-            currentContent: {
-              siteName: 'Moxie Vacation Rentals',
-              subject: form.getValues('subject'),
-              content: content
-            },
-            field: selectedField
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      setGeneratedContent(data.content);
-      
-      toast({
-        title: "Content Generated!",
-        description: "AI has generated new content based on your prompt.",
-      });
-    } catch (error: any) {
-      console.error('Content generation error:', error);
-      toast({
-        title: "Generation Failed",
-        description: error.message || "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const applyGeneratedContent = () => {
-    if (!generatedContent) return;
-
-    if (selectedField === 'content') {
-      setContent(generatedContent);
-    } else {
-      form.setValue('subject', generatedContent);
-    }
-
-    toast({
-      title: "Content Applied",
-      description: `Updated ${selectedField}.`,
-    });
-
-    setGeneratedContent('');
-    setAiPrompt('');
-  };
 
   const fetchSubscriberCount = async () => {
     try {
@@ -121,48 +47,7 @@ const NewsletterManager = () => {
     }
   };
 
-  const sendPreview = async () => {
-    if (!previewEmail || !form.getValues('subject') || !content) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in the email address, subject, and content before sending a preview.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSendingPreview(true);
-
-    try {
-      const { error } = await supabase.functions.invoke('send-newsletter-preview', {
-        body: {
-          email: previewEmail,
-          subject: form.getValues('subject'),
-          content: content,
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Preview Sent!",
-        description: `Preview newsletter sent to ${previewEmail}`,
-      });
-    } catch (error: any) {
-      console.error('Preview send error:', error);
-      toast({
-        title: "Preview Send Failed",
-        description: error.message || "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSendingPreview(false);
-    }
-  };
-
-  const onSubmit = async (data: NewsletterForm) => {
+  const onSubmit = async (data: NewsletterFormData) => {
     setIsLoading(true);
 
     try {
@@ -213,221 +98,41 @@ const NewsletterManager = () => {
     form.setValue('blogPostId', slug);
   };
 
+  const handleContentGenerated = (field: 'subject' | 'content', generatedContent: string) => {
+    if (field === 'content') {
+      setContent(generatedContent);
+    } else {
+      form.setValue('subject', generatedContent);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Mail className="h-5 w-5 mr-2" />
-            Newsletter Overview
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <Users className="h-4 w-4 mr-2 text-blue-600" />
-              <span className="text-sm text-gray-600">Active Subscribers: </span>
-              <span className="font-semibold">{subscriberCount ?? 'Loading...'}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <NewsletterOverview subscriberCount={subscriberCount} />
 
-      {/* AI Content Generator */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Wand2 className="h-5 w-5 mr-2" />
-            AI Newsletter Generator
-          </CardTitle>
-          <CardDescription>
-            Generate newsletter content with AI assistance
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Content Field to Generate</Label>
-            <select
-              value={selectedField}
-              onChange={(e) => setSelectedField(e.target.value as 'subject' | 'content')}
-              className="w-full p-2 border rounded-md mt-1"
-            >
-              <option value="subject">Subject Line</option>
-              <option value="content">Newsletter Content</option>
-            </select>
-          </div>
+      <NewsletterAIGenerator
+        currentSubject={form.getValues('subject')}
+        currentContent={content}
+        onContentGenerated={handleContentGenerated}
+      />
 
-          <div>
-            <Label htmlFor="aiPrompt">AI Prompt</Label>
-            <Textarea
-              id="aiPrompt"
-              value={aiPrompt}
-              onChange={(e) => setAiPrompt(e.target.value)}
-              placeholder="Describe what kind of newsletter content you want AI to generate..."
-              rows={3}
-              className="mt-1"
-            />
-          </div>
+      <NewsletterForm
+        form={form}
+        content={content}
+        setContent={setContent}
+        onSubmit={onSubmit}
+        isLoading={isLoading}
+        subscriberCount={subscriberCount}
+      />
 
-          <Button 
-            onClick={generateContent} 
-            disabled={isGenerating || !aiPrompt.trim()}
-            className="w-full"
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            {isGenerating ? "Generating..." : "Generate Content"}
-          </Button>
+      <NewsletterPreview
+        subject={form.getValues('subject')}
+        content={content}
+      />
 
-          {generatedContent && (
-            <div className="space-y-4">
-              <div>
-                <Label>Generated Content</Label>
-                <div className="mt-1 p-4 border rounded-md bg-gray-50">
-                  <p className="whitespace-pre-wrap">{generatedContent}</p>
-                </div>
-              </div>
-              
-              <Button onClick={applyGeneratedContent} className="w-full">
-                Apply to {selectedField}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Create Newsletter</CardTitle>
-          <CardDescription>
-            Create and send a newsletter to all active subscribers
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="subject"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Subject</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Your newsletter subject..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div>
-                <Label>Newsletter Content</Label>
-                <div className="mt-2">
-                  <TiptapEditor
-                    content={content}
-                    onChange={setContent}
-                    placeholder="Write your newsletter content here..."
-                    className="min-h-[300px]"
-                  />
-                </div>
-              </div>
-
-              <FormField
-                control={form.control}
-                name="blogPostId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Blog Post ID (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Link to a specific blog post..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex gap-4">
-                <Button 
-                  type="submit" 
-                  className="flex-1"
-                  disabled={isLoading || !subscriberCount}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  {isLoading ? "Sending..." : `Send Newsletter to ${subscriberCount || 0} Subscribers`}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Eye className="h-5 w-5 mr-2" />
-            Preview Newsletter
-          </CardTitle>
-          <CardDescription>
-            Send a test copy to any email address before sending to all subscribers
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label>Preview Email Address</Label>
-              <Input
-                placeholder="Enter email address for preview..."
-                value={previewEmail}
-                onChange={(e) => setPreviewEmail(e.target.value)}
-                type="email"
-              />
-            </div>
-            <Button 
-              onClick={sendPreview}
-              disabled={isSendingPreview || !previewEmail || !form.getValues('subject') || !content}
-              variant="outline"
-              className="w-full"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              {isSendingPreview ? "Sending Preview..." : "Send Preview"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-gray-600 mb-4">
-            Generate newsletter content from recent blog posts:
-          </div>
-          <div className="space-y-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => generateBlogNewsletter(
-                "Top 5 Vacation Destinations for 2024",
-                "Discover the most sought-after vacation spots that offer unforgettable experiences and luxury accommodations.",
-                "top-5-vacation-destinations-2024"
-              )}
-            >
-              Use "Top 5 Vacation Destinations" Post
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => generateBlogNewsletter(
-                "Making the Most of Your Vacation Rental Experience",
-                "Essential tips and tricks to ensure your vacation rental stay exceeds all expectations.",
-                "making-most-vacation-rental-experience"
-              )}
-            >
-              Use "Vacation Rental Experience" Post
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <NewsletterQuickActions
+        onGenerateBlogNewsletter={generateBlogNewsletter}
+      />
     </div>
   );
 };
