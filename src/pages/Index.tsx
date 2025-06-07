@@ -54,7 +54,7 @@ const Index = () => {
             <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Find Your Perfect Stay</h3>
             <p className="text-gray-600 text-sm sm:text-base">Search and book your ideal vacation rental</p>
           </div>
-          <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom"></hospitable-direct-mps>
+          <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom" results-url="/search"></hospitable-direct-mps>
         </div>
 
         {user && (
