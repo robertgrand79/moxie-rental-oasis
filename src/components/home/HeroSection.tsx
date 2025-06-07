@@ -19,9 +19,11 @@ const HeroSection = () => {
             </p>
           </div>
 
-          {/* Search Widget */}
+          {/* Search Widget with Box */}
           <div className="max-w-5xl mx-auto">
-            <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom" results-url="/search"></hospitable-direct-mps>
+            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mx-auto border border-white/20">
+              <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom" results-url="/search"></hospitable-direct-mps>
+            </div>
           </div>
         </div>
       </div>
