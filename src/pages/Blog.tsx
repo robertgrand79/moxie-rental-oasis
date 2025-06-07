@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, User } from 'lucide-react';
@@ -7,13 +7,49 @@ import { Link } from 'react-router-dom';
 import NewsletterSignup from '@/components/NewsletterSignup';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import Footer from '@/components/Footer';
-import { useBlogPosts } from '@/hooks/useBlogPosts';
+import BlogSearch from '@/components/blog/BlogSearch';
+import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
 
 const Blog = () => {
   const { blogPosts, loading } = useBlogPosts();
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
 
   // Filter to show only published posts
   const publishedPosts = blogPosts.filter(post => post.status === 'published');
+
+  useEffect(() => {
+    setFilteredPosts(publishedPosts);
+  }, [blogPosts]);
+
+  // SEO Meta tags
+  useEffect(() => {
+    document.title = 'Moxie Travel Blog - Eugene Vacation Rental Insights & Travel Tips';
+    
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Discover travel tips, destination guides, and insider insights for your next vacation rental adventure in Eugene and beyond. Expert advice from Moxie Vacation Rentals.');
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'description';
+      meta.content = 'Discover travel tips, destination guides, and insider insights for your next vacation rental adventure in Eugene and beyond. Expert advice from Moxie Vacation Rentals.';
+      document.head.appendChild(meta);
+    }
+
+    // OpenGraph tags
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) {
+      ogTitle.setAttribute('content', 'Moxie Travel Blog - Eugene Vacation Rental Insights');
+    } else {
+      const meta = document.createElement('meta');
+      meta.setAttribute('property', 'og:title');
+      meta.content = 'Moxie Travel Blog - Eugene Vacation Rental Insights';
+      document.head.appendChild(meta);
+    }
+
+    return () => {
+      document.title = 'Moxie Vacation Rentals';
+    };
+  }, []);
 
   const getTagColor = (tag: string) => {
     switch (tag.toLowerCase()) {
@@ -44,7 +80,20 @@ const Blog = () => {
         <div className="py-32 relative">
           <div className="container mx-auto px-4">
             <div className="text-center">
-              <p className="text-xl text-gray-600">Loading blog posts...</p>
+              <div className="animate-pulse">
+                <div className="h-16 bg-gray-200 rounded w-3/4 mx-auto mb-6"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto mb-12"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/30">
+                      <div className="aspect-video bg-gray-200 rounded mb-4"></div>
+                      <div className="h-6 bg-gray-200 rounded mb-3"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -88,15 +137,31 @@ const Blog = () => {
                   <h2 className="text-4xl font-bold text-gray-900 mb-6">Latest Stories</h2>
                   <div className="w-24 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto"></div>
                 </div>
+
+                {/* Search and Filter */}
+                <BlogSearch 
+                  posts={publishedPosts} 
+                  onFilteredPosts={setFilteredPosts}
+                />
+
+                {/* Results Info */}
+                {filteredPosts.length !== publishedPosts.length && (
+                  <div className="mb-8 text-center">
+                    <p className="text-gray-600">
+                      Showing {filteredPosts.length} of {publishedPosts.length} posts
+                    </p>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {publishedPosts.map((post) => (
+                  {filteredPosts.map((post) => (
                     <Card key={post.id} className="group overflow-hidden hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-xl border-white/30 hover:-translate-y-2">
                       <div className="aspect-video bg-gray-200 relative overflow-hidden">
                         <img 
                           src={post.image_url || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=400&fit=crop'} 
                           alt={post.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
@@ -138,6 +203,14 @@ const Blog = () => {
                     </Card>
                   ))}
                 </div>
+
+                {/* No Results Message */}
+                {filteredPosts.length === 0 && publishedPosts.length > 0 && (
+                  <div className="text-center py-12">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">No posts found</h3>
+                    <p className="text-gray-600 text-lg">Try adjusting your search terms or filters.</p>
+                  </div>
+                )}
               </>
             ) : (
               <div className="text-center py-20">
