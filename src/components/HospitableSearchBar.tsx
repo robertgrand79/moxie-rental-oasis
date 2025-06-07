@@ -34,7 +34,7 @@ const HospitableSearchBar = () => {
         data-property-id="your-property-id"
         data-theme="light"
       >
-        {/* Fallback search form while Hospitable loads */}
+        {/* Search form */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
