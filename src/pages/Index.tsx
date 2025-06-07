@@ -8,19 +8,23 @@ import EugeneInfoSection from '@/components/home/EugeneInfoSection';
 import BookingBenefitsSection from '@/components/home/BookingBenefitsSection';
 import FinalFeaturesSection from '@/components/home/FinalFeaturesSection';
 import Footer from '@/components/Footer';
+import NavBar from '@/components/NavBar';
 
 const Index = () => {
   return (
-    <BackgroundWrapper>
-      <HeroSection />
-      <CompactPropertyShowcase />
-      <WhyMoxieSection />
-      <AmenitiesSection />
-      <EugeneInfoSection />
-      <BookingBenefitsSection />
-      <FinalFeaturesSection />
-      <Footer />
-    </BackgroundWrapper>
+    <>
+      <NavBar />
+      <BackgroundWrapper>
+        <HeroSection />
+        <CompactPropertyShowcase />
+        <WhyMoxieSection />
+        <AmenitiesSection />
+        <EugeneInfoSection />
+        <BookingBenefitsSection />
+        <FinalFeaturesSection />
+        <Footer />
+      </BackgroundWrapper>
+    </>
   );
 };
 

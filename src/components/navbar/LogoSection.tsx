@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 interface LogoSectionProps {
@@ -8,6 +8,9 @@ interface LogoSectionProps {
 }
 
 const LogoSection = ({ isAdminPage }: LogoSectionProps) => {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
   return (
     <div className="flex items-center">
       {isAdminPage ? (
@@ -22,7 +25,9 @@ const LogoSection = ({ isAdminPage }: LogoSectionProps) => {
           <img 
             src="/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png" 
             alt="Moxie Vacation Rentals" 
-            className="h-12 w-auto"
+            className={`h-12 w-auto transition-all duration-300 ${
+              isHomePage ? 'drop-shadow-lg filter brightness-0 invert' : ''
+            }`}
           />
         </Link>
       )}
