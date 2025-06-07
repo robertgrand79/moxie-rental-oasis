@@ -16,6 +16,8 @@ export const usePhotoUpload = () => {
         const fileExt = file.name.split('.').pop();
         const fileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
+        console.log('Uploading file:', fileName);
+
         const { data, error } = await supabase.storage
           .from('property-images')
           .upload(fileName, file, {
@@ -38,6 +40,7 @@ export const usePhotoUpload = () => {
           .from('property-images')
           .getPublicUrl(data.path);
 
+        console.log('Photo uploaded successfully:', publicUrl);
         uploadedUrls.push(publicUrl);
       }
 

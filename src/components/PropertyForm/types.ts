@@ -9,4 +9,5 @@ export interface PropertyFormData {
   pricePerNight: number;
   hospitableBookingUrl: string;
   amenities?: string;
+  photos?: File[];
 }

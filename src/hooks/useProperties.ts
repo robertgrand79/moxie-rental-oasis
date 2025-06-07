@@ -85,9 +85,11 @@ export const useProperties = () => {
 
     // Upload photos if any were provided
     if (data.photos && data.photos.length > 0) {
+      console.log('Uploading photos for new property:', data.photos.length);
       const uploadedUrls = await uploadPhotos(data.photos, propertyId);
       if (uploadedUrls.length > 0) {
         imageUrl = uploadedUrls[0]; // Use the first uploaded image as the main image
+        console.log('Using uploaded image as main:', imageUrl);
       }
     }
 
@@ -120,9 +122,11 @@ export const useProperties = () => {
 
     // Upload new photos if any were provided
     if (data.photos && data.photos.length > 0) {
+      console.log('Uploading photos for existing property:', data.photos.length);
       const uploadedUrls = await uploadPhotos(data.photos, id);
       if (uploadedUrls.length > 0) {
         imageUrl = uploadedUrls[0]; // Use the first uploaded image as the main image
+        console.log('Using uploaded image as main:', imageUrl);
       }
     }
     
