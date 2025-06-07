@@ -18,11 +18,6 @@ const HeroSection = () => {
               the Pacific Northwest. From Ducks football to wine country tours, your Eugene adventure starts here.
             </p>
           </div>
-
-          {/* Search Widget - Let Hospitable handle its own styling */}
-          <div className="max-w-5xl mx-auto">
-            <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom" results-url="/search"></hospitable-direct-mps>
-          </div>
         </div>
       </div>
     </div>
