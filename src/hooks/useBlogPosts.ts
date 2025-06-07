@@ -20,10 +20,32 @@ export interface BlogPost {
   created_by: string;
 }
 
+// Database response type that matches Supabase
+interface BlogPostDB {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  published_at: string | null;
+  image_url?: string;
+  tags: string[];
+  slug: string;
+  status: string; // This comes as string from DB
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+}
+
 export const useBlogPosts = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  const transformDbPost = (dbPost: BlogPostDB): BlogPost => ({
+    ...dbPost,
+    status: (dbPost.status === 'published' ? 'published' : 'draft') as 'draft' | 'published'
+  });
 
   const fetchBlogPosts = async () => {
     console.log('Fetching blog posts...');
@@ -44,10 +66,7 @@ export const useBlogPosts = () => {
         setBlogPosts([]);
       } else {
         console.log('Fetched blog posts:', data);
-        const typedPosts: BlogPost[] = (data || []).map(post => ({
-          ...post,
-          status: post.status as 'draft' | 'published'
-        }));
+        const typedPosts: BlogPost[] = (data || []).map(transformDbPost);
         setBlogPosts(typedPosts);
       }
     } catch (error) {
@@ -94,11 +113,7 @@ export const useBlogPosts = () => {
         return null;
       }
 
-      const typedPost: BlogPost = {
-        ...data,
-        status: data.status as 'draft' | 'published'
-      };
-
+      const typedPost = transformDbPost(data as BlogPostDB);
       setBlogPosts(prev => [typedPost, ...prev]);
       toast({
         title: 'Success',
@@ -146,11 +161,7 @@ export const useBlogPosts = () => {
         return null;
       }
 
-      const typedPost: BlogPost = {
-        ...data,
-        status: data.status as 'draft' | 'published'
-      };
-
+      const typedPost = transformDbPost(data as BlogPostDB);
       setBlogPosts(prev => prev.map(post => 
         post.id === postId ? typedPost : post
       ));
