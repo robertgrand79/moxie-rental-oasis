@@ -51,9 +51,8 @@ export const registerServiceWorker = async () => {
   }
 };
 
-// Optimize bundle loading
+// Optimize bundle loading with dynamic imports
 export const loadNonCriticalResources = () => {
-  // Dynamically import non-critical modules
   const loadMapbox = () => import('mapbox-gl');
   const loadCharts = () => import('recharts');
   
@@ -99,5 +98,31 @@ export const compressImage = (file: File, quality: number = 0.8): Promise<File> 
     };
 
     img.src = URL.createObjectURL(file);
+  });
+};
+
+// Accessibility utilities
+export const detectReducedMotion = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+};
+
+export const applyAccessibilitySettings = () => {
+  if (detectReducedMotion()) {
+    document.documentElement.style.setProperty('--animation-duration', '0.01ms');
+    document.documentElement.style.setProperty('--transition-duration', '0.01ms');
+  }
+};
+
+// Touch target optimization
+export const ensureTouchTargets = () => {
+  const interactiveElements = document.querySelectorAll('button, a, [role="button"], input, select, textarea');
+  
+  interactiveElements.forEach((element) => {
+    const rect = element.getBoundingClientRect();
+    if (rect.width < 44 || rect.height < 44) {
+      (element as HTMLElement).style.minHeight = '44px';
+      (element as HTMLElement).style.minWidth = '44px';
+    }
   });
 };

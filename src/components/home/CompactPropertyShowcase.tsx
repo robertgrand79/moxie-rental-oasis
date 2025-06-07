@@ -1,10 +1,12 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Bed, Bath, Users, Loader2 } from 'lucide-react';
+import { MapPin, Bed, Bath, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
 import OptimizedImage from '@/components/ui/optimized-image';
+import PropertyCardSkeleton from '@/components/ui/property-card-skeleton';
 
 const CompactPropertyShowcase = () => {
   const { properties, loading } = useProperties();
@@ -24,9 +26,10 @@ const CompactPropertyShowcase = () => {
           </div>
           
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin" />
-              <span className="ml-2 text-gray-600">Loading properties...</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <PropertyCardSkeleton key={index} />
+              ))}
             </div>
           ) : properties.length > 0 ? (
             <>
@@ -73,7 +76,7 @@ const CompactPropertyShowcase = () => {
                           <span className="text-xs font-normal text-gray-500">/night</span>
                         </div>
                         <Link to={`/property/${property.id}`} className="w-full">
-                          <Button size="sm" className="w-full text-xs h-8">
+                          <Button size="sm" className="w-full text-xs h-10 min-h-[44px]">
                             View Details
                           </Button>
                         </Link>
@@ -85,7 +88,7 @@ const CompactPropertyShowcase = () => {
               
               <div className="text-center mt-8">
                 <Link to="/listings">
-                  <Button variant="outline" size="lg" className="px-8">
+                  <Button variant="outline" size="lg" className="px-8 min-h-[44px]">
                     View All Properties
                   </Button>
                 </Link>
