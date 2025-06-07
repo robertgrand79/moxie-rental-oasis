@@ -20,12 +20,14 @@ const HeroSection = () => {
           </div>
 
           {/* Elegant Search Widget */}
-          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 max-w-5xl mx-auto border border-white/20">
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 max-w-5xl mx-auto border border-white/20 overflow-hidden">
             <div className="text-center mb-8">
               <h3 className="text-3xl font-bold text-gray-900 mb-3">Find Your Eugene Sanctuary</h3>
               <p className="text-gray-600 text-lg">Discover your perfect home base in Eugene, Oregon</p>
             </div>
-            <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom" results-url="/search"></hospitable-direct-mps>
+            <div className="w-full">
+              <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom" results-url="/search"></hospitable-direct-mps>
+            </div>
           </div>
         </div>
       </div>
