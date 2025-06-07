@@ -121,14 +121,25 @@ const PropertyDetailsForm = ({ form }: PropertyDetailsFormProps) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Max Guests</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  min="1"
-                  {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                />
-              </FormControl>
+              <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select guests" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">1 Guest</SelectItem>
+                  <SelectItem value="2">2 Guests</SelectItem>
+                  <SelectItem value="3">3 Guests</SelectItem>
+                  <SelectItem value="4">4 Guests</SelectItem>
+                  <SelectItem value="5">5 Guests</SelectItem>
+                  <SelectItem value="6">6 Guests</SelectItem>
+                  <SelectItem value="7">7 Guests</SelectItem>
+                  <SelectItem value="8">8 Guests</SelectItem>
+                  <SelectItem value="9">9 Guests</SelectItem>
+                  <SelectItem value="10">10+ Guests</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
