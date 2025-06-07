@@ -5,7 +5,7 @@ import { Property } from '@/types/property';
 
 interface PropertyListProps {
   properties: Property[];
-  onEdit: (id: string) => void;
+  onEdit: (property: Property) => void;
   onDelete: (id: string) => void;
 }
 
@@ -16,7 +16,7 @@ const PropertyList = ({ properties, onEdit, onDelete }: PropertyListProps) => {
         <PropertyCard
           key={property.id}
           property={property}
-          onEdit={onEdit}
+          onEdit={() => onEdit(property)}
           onDelete={onDelete}
         />
       ))}

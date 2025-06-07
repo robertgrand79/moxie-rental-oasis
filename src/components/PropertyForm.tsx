@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Upload, X, Image } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Property } from '@/types/property';
 
 const propertySchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -28,10 +28,11 @@ type PropertyFormData = z.infer<typeof propertySchema>;
 interface PropertyFormProps {
   onSubmit: (data: PropertyFormData & { photos: File[] }) => void;
   onCancel: () => void;
-  initialData?: Partial<PropertyFormData>;
+  initialData?: Partial<Property>;
+  isEditing?: boolean;
 }
 
-const PropertyForm = ({ onSubmit, onCancel, initialData }: PropertyFormProps) => {
+const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false }: PropertyFormProps) => {
   const [photos, setPhotos] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -109,73 +110,94 @@ const PropertyForm = ({ onSubmit, onCancel, initialData }: PropertyFormProps) =>
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>Add New Property</CardTitle>
-        <CardDescription>Create a new vacation rental listing with photos and booking integration</CardDescription>
+        <CardTitle>{isEditing ? 'Edit Property' : 'Add New Property'}</CardTitle>
+        <CardDescription>
+          {isEditing ? 'Update your vacation rental listing details' : 'Create a new vacation rental listing with photos and booking integration'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* Photo Upload Section */}
-            <div className="space-y-4">
-              <FormLabel>Property Photos</FormLabel>
-              <div
-                className={cn(
-                  "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
-                  dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25",
-                  "hover:border-primary hover:bg-primary/5"
+            {/* Photo Upload Section - only show if not editing or if no existing image */}
+            {(!isEditing || !initialData?.imageUrl) && (
+              <div className="space-y-4">
+                <FormLabel>Property Photos</FormLabel>
+                <div
+                  className={cn(
+                    "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+                    dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25",
+                    "hover:border-primary hover:bg-primary/5"
+                  )}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Drag and drop photos here</p>
+                    <p className="text-xs text-muted-foreground">or click to select files</p>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleFileInput}
+                      className="hidden"
+                      id="photo-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('photo-upload')?.click()}
+                    >
+                      Choose Files
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Photo Previews */}
+                {previewUrls.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {previewUrls.map((url, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removePhoto(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 )}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-              >
-                <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Drag and drop photos here</p>
-                  <p className="text-xs text-muted-foreground">or click to select files</p>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleFileInput}
-                    className="hidden"
-                    id="photo-upload"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => document.getElementById('photo-upload')?.click()}
-                  >
-                    Choose Files
-                  </Button>
-                </div>
               </div>
-              
-              {/* Photo Previews */}
-              {previewUrls.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {previewUrls.map((url, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={url}
-                        alt={`Preview ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => removePhoto(index)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
+            )}
+
+            {/* Show existing image if editing */}
+            {isEditing && initialData?.imageUrl && (
+              <div className="space-y-2">
+                <FormLabel>Current Property Image</FormLabel>
+                <div className="relative w-48 h-32">
+                  <img
+                    src={initialData.imageUrl}
+                    alt="Current property"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
                 </div>
-              )}
-            </div>
+                <p className="text-xs text-muted-foreground">
+                  Upload new photos above to replace the current image
+                </p>
+              </div>
+            )}
 
             {/* Property Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -364,7 +386,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData }: PropertyFormProps) =>
             {/* Form Actions */}
             <div className="flex gap-4 pt-6">
               <Button type="submit" className="flex-1">
-                Save Property
+                {isEditing ? 'Update Property' : 'Save Property'}
               </Button>
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel

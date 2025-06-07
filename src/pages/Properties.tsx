@@ -6,22 +6,36 @@ import PropertyForm from '@/components/PropertyForm';
 import PropertyList from '@/components/PropertyList';
 import EmptyPropertyState from '@/components/EmptyPropertyState';
 import { useProperties } from '@/hooks/useProperties';
+import { Property } from '@/types/property';
 
 const Properties = () => {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const { properties, addProperty, editProperty, deleteProperty } = useProperties();
 
   const handleAddProperty = () => {
+    setEditingProperty(null);
+    setShowAddForm(true);
+  };
+
+  const handleEditProperty = (property: Property) => {
+    setEditingProperty(property);
     setShowAddForm(true);
   };
 
   const handleFormSubmit = (data: any) => {
-    addProperty(data);
+    if (editingProperty) {
+      editProperty(editingProperty.id, data);
+    } else {
+      addProperty(data);
+    }
     setShowAddForm(false);
+    setEditingProperty(null);
   };
 
   const handleFormCancel = () => {
     setShowAddForm(false);
+    setEditingProperty(null);
   };
 
   return (
@@ -46,6 +60,8 @@ const Properties = () => {
               <PropertyForm 
                 onSubmit={handleFormSubmit}
                 onCancel={handleFormCancel}
+                initialData={editingProperty || undefined}
+                isEditing={!!editingProperty}
               />
             </div>
           )}
@@ -55,7 +71,7 @@ const Properties = () => {
               {properties.length > 0 ? (
                 <PropertyList
                   properties={properties}
-                  onEdit={editProperty}
+                  onEdit={handleEditProperty}
                   onDelete={deleteProperty}
                 />
               ) : (

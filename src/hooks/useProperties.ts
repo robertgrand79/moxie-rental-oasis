@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Property } from '@/types/property';
@@ -100,12 +99,31 @@ export const useProperties = () => {
     });
   };
 
-  const editProperty = (id: string) => {
-    console.log('Edit property:', id);
-    // TODO: Implement edit functionality
+  const editProperty = (id: string, data: any) => {
+    console.log('Edit property:', id, data);
+    
+    setProperties(prev => prev.map(property => 
+      property.id === id 
+        ? {
+            ...property,
+            title: data.title,
+            description: data.description,
+            location: data.location,
+            bedrooms: data.bedrooms,
+            bathrooms: data.bathrooms,
+            maxGuests: data.maxGuests,
+            pricePerNight: data.pricePerNight,
+            hospitableBookingUrl: data.hospitableBookingUrl,
+            amenities: data.amenities,
+            // Keep existing imageUrl unless new photos are uploaded
+            imageUrl: data.photos && data.photos.length > 0 ? '/placeholder.svg' : property.imageUrl
+          }
+        : property
+    ));
+    
     toast({
-      title: "Edit Property",
-      description: "Edit functionality coming soon...",
+      title: "Property Updated",
+      description: "Your property has been successfully updated.",
     });
   };
 
