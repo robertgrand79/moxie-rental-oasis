@@ -8,11 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, MapPin, Star, Phone, Globe, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Star, Phone, Globe, Clock, Wand2, Sparkles } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { usePointsOfInterest, PointOfInterest } from '@/hooks/usePointsOfInterest';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAIContentGeneration } from '@/hooks/useAIContentGeneration';
 import OptimizedImage from '@/components/ui/optimized-image';
+import AIGenerationDialog from '@/components/admin/AIGenerationDialog';
 
 const categories = [
   'restaurant',
@@ -36,8 +38,11 @@ const priceLevel = [
 const PointsOfInterestManager = () => {
   const { pointsOfInterest, isLoading, createPointOfInterest, updatePointOfInterest, deletePointOfInterest } = usePointsOfInterest();
   const { user } = useAuth();
+  const { enhanceContent, isEnhancing } = useAIContentGeneration();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<PointOfInterest | null>(null);
+  const [enhancingId, setEnhancingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -135,6 +140,57 @@ const PointsOfInterestManager = () => {
     }
   };
 
+  const poiCategories = categories.map(cat => ({
+    value: cat,
+    label: cat.charAt(0).toUpperCase() + cat.slice(1)
+  }));
+
+  const handleAIGeneration = async (content: any[]) => {
+    for (const item of content) {
+      try {
+        const defaultImageUrl = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80';
+        
+        await createPointOfInterest.mutateAsync({
+          name: item.name,
+          description: item.description,
+          address: item.address || 'Eugene, Oregon',
+          latitude: item.latitude || 44.0521,
+          longitude: item.longitude || -123.0868,
+          category: item.category,
+          phone: item.phone || '',
+          website_url: item.website_url || '',
+          image_url: item.image_url || defaultImageUrl,
+          rating: item.rating || 4.0,
+          price_level: item.price_level || 2,
+          distance_from_properties: item.distance_from_properties || 2.5,
+          driving_time: item.driving_time || 5,
+          walking_time: item.walking_time || 15,
+          is_featured: false,
+          is_active: true,
+          display_order: 0,
+          created_by: user?.id || ''
+        });
+      } catch (error) {
+        console.error('Error saving AI-generated POI:', error);
+      }
+    }
+  };
+
+  const handleEnhanceItem = async (item: PointOfInterest) => {
+    setEnhancingId(item.id);
+    try {
+      const enhanced = await enhanceContent('poi', item);
+      if (enhanced) {
+        await updatePointOfInterest.mutateAsync({
+          id: item.id,
+          ...enhanced
+        });
+      }
+    } finally {
+      setEnhancingId(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -162,159 +218,102 @@ const PointsOfInterestManager = () => {
               Manage restaurants, attractions, and activities near your properties
             </CardDescription>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => {resetForm(); setIsDialogOpen(true)}}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Point of Interest
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingItem ? 'Edit Point of Interest' : 'Add New Point of Interest'}
-                </DialogTitle>
-                <DialogDescription>
-                  Add local attractions, restaurants, and services for guests
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Restaurant Name or Attraction"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Describe this location..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                      placeholder="123 Main St, Eugene, OR"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsAIDialogOpen(true)}
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              Generate with AI
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => {resetForm(); setIsDialogOpen(true)}}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Point of Interest
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingItem ? 'Edit Point of Interest' : 'Add New Point of Interest'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Add local attractions, restaurants, and services for guests
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
                     <div>
-                      <Label htmlFor="latitude">Latitude</Label>
+                      <Label htmlFor="name">Name</Label>
                       <Input
-                        id="latitude"
-                        type="number"
-                        step="0.000001"
-                        value={formData.latitude}
-                        onChange={(e) => setFormData(prev => ({ ...prev, latitude: parseFloat(e.target.value) }))}
-                        placeholder="44.0521"
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Restaurant Name or Attraction"
                       />
                     </div>
+
                     <div>
-                      <Label htmlFor="longitude">Longitude</Label>
-                      <Input
-                        id="longitude"
-                        type="number"
-                        step="0.000001"
-                        value={formData.longitude}
-                        onChange={(e) => setFormData(prev => ({ ...prev, longitude: parseFloat(e.target.value) }))}
-                        placeholder="-123.0868"
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={formData.description}
+                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Describe this location..."
+                        rows={3}
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <Label htmlFor="category">Category</Label>
-                    <Select 
-                      value={formData.category} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category.charAt(0).toUpperCase() + category.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="image_url">Image URL</Label>
-                    <Input
-                      id="image_url"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                      placeholder="https://images.unsplash.com/photo-..."
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="phone">Phone</Label>
+                      <Label htmlFor="address">Address</Label>
                       <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                        placeholder="(555) 123-4567"
+                        id="address"
+                        value={formData.address}
+                        onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                        placeholder="123 Main St, Eugene, OR"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="website_url">Website</Label>
-                      <Input
-                        id="website_url"
-                        value={formData.website_url}
-                        onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
-                        placeholder="https://website.com"
-                      />
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="rating">Rating (1-5)</Label>
-                      <Input
-                        id="rating"
-                        type="number"
-                        min="0"
-                        max="5"
-                        step="0.1"
-                        value={formData.rating}
-                        onChange={(e) => setFormData(prev => ({ ...prev, rating: parseFloat(e.target.value) }))}
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="latitude">Latitude</Label>
+                        <Input
+                          id="latitude"
+                          type="number"
+                          step="0.000001"
+                          value={formData.latitude}
+                          onChange={(e) => setFormData(prev => ({ ...prev, latitude: parseFloat(e.target.value) }))}
+                          placeholder="44.0521"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="longitude">Longitude</Label>
+                        <Input
+                          id="longitude"
+                          type="number"
+                          step="0.000001"
+                          value={formData.longitude}
+                          onChange={(e) => setFormData(prev => ({ ...prev, longitude: parseFloat(e.target.value) }))}
+                          placeholder="-123.0868"
+                        />
+                      </div>
                     </div>
+
                     <div>
-                      <Label htmlFor="price_level">Price Level</Label>
+                      <Label htmlFor="category">Category</Label>
                       <Select 
-                        value={formData.price_level.toString()} 
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, price_level: parseInt(value) }))}
+                        value={formData.category} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
                       >
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {priceLevel.map((level) => (
-                            <SelectItem key={level.value} value={level.value.toString()}>
-                              {level.label}
+                          {categories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category.charAt(0).toUpperCase() + category.slice(1)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -322,78 +321,144 @@ const PointsOfInterestManager = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-4">
                     <div>
-                      <Label htmlFor="distance_from_properties">Distance (miles)</Label>
+                      <Label htmlFor="image_url">Image URL</Label>
                       <Input
-                        id="distance_from_properties"
-                        type="number"
-                        step="0.1"
-                        value={formData.distance_from_properties}
-                        onChange={(e) => setFormData(prev => ({ ...prev, distance_from_properties: parseFloat(e.target.value) }))}
+                        id="image_url"
+                        value={formData.image_url}
+                        onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
+                        placeholder="https://images.unsplash.com/photo-..."
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="driving_time">Drive Time (min)</Label>
-                      <Input
-                        id="driving_time"
-                        type="number"
-                        value={formData.driving_time}
-                        onChange={(e) => setFormData(prev => ({ ...prev, driving_time: parseInt(e.target.value) }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="walking_time">Walk Time (min)</Label>
-                      <Input
-                        id="walking_time"
-                        type="number"
-                        value={formData.walking_time}
-                        onChange={(e) => setFormData(prev => ({ ...prev, walking_time: parseInt(e.target.value) }))}
-                      />
-                    </div>
-                  </div>
 
-                  <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="is_featured"
-                        checked={formData.is_featured}
-                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_featured: checked }))}
-                      />
-                      <Label htmlFor="is_featured">Featured</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="phone">Phone</Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="website_url">Website</Label>
+                        <Input
+                          id="website_url"
+                          value={formData.website_url}
+                          onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
+                          placeholder="https://website.com"
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="is_active"
-                        checked={formData.is_active}
-                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
-                      />
-                      <Label htmlFor="is_active">Active</Label>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="rating">Rating (1-5)</Label>
+                        <Input
+                          id="rating"
+                          type="number"
+                          min="0"
+                          max="5"
+                          step="0.1"
+                          value={formData.rating}
+                          onChange={(e) => setFormData(prev => ({ ...prev, rating: parseFloat(e.target.value) }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="price_level">Price Level</Label>
+                        <Select 
+                          value={formData.price_level.toString()} 
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, price_level: parseInt(value) }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {priceLevel.map((level) => (
+                              <SelectItem key={level.value} value={level.value.toString()}>
+                                {level.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="display_order">Display Order</Label>
-                      <Input
-                        id="display_order"
-                        type="number"
-                        value={formData.display_order}
-                        onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) }))}
-                        className="w-20"
-                      />
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="distance_from_properties">Distance (miles)</Label>
+                        <Input
+                          id="distance_from_properties"
+                          type="number"
+                          step="0.1"
+                          value={formData.distance_from_properties}
+                          onChange={(e) => setFormData(prev => ({ ...prev, distance_from_properties: parseFloat(e.target.value) }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="driving_time">Drive Time (min)</Label>
+                        <Input
+                          id="driving_time"
+                          type="number"
+                          value={formData.driving_time}
+                          onChange={(e) => setFormData(prev => ({ ...prev, driving_time: parseInt(e.target.value) }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="walking_time">Walk Time (min)</Label>
+                        <Input
+                          id="walking_time"
+                          type="number"
+                          value={formData.walking_time}
+                          onChange={(e) => setFormData(prev => ({ ...prev, walking_time: parseInt(e.target.value) }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="is_featured"
+                          checked={formData.is_featured}
+                          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_featured: checked }))}
+                        />
+                        <Label htmlFor="is_featured">Featured</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="is_active"
+                          checked={formData.is_active}
+                          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
+                        />
+                        <Label htmlFor="is_active">Active</Label>
+                      </div>
+                      <div>
+                        <Label htmlFor="display_order">Display Order</Label>
+                        <Input
+                          id="display_order"
+                          type="number"
+                          value={formData.display_order}
+                          onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) }))}
+                          className="w-20"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSubmit}>
-                  {editingItem ? 'Update' : 'Create'} Point of Interest
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSubmit}>
+                    {editingItem ? 'Update' : 'Create'} Point of Interest
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -424,6 +489,18 @@ const PointsOfInterestManager = () => {
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-semibold text-lg line-clamp-1">{poi.name}</h3>
                   <div className="flex items-center space-x-1 ml-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEnhanceItem(poi)}
+                      disabled={isEnhancing && enhancingId === poi.id}
+                    >
+                      {isEnhancing && enhancingId === poi.id ? (
+                        <Sparkles className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -509,6 +586,14 @@ const PointsOfInterestManager = () => {
           )}
         </div>
       </CardContent>
+
+      <AIGenerationDialog
+        isOpen={isAIDialogOpen}
+        onOpenChange={setIsAIDialogOpen}
+        type="poi"
+        categories={poiCategories}
+        onContentGenerated={handleAIGeneration}
+      />
     </Card>
   );
 };
