@@ -17,11 +17,11 @@ const HeroSection = () => {
               Discover Eugene, Oregon through thoughtfully curated vacation rentals in the heart of 
               the Pacific Northwest. From Ducks football to wine country tours, your Eugene adventure starts here.
             </p>
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-4">
               <img 
                 src="/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png" 
                 alt="Moxie Vacation Rentals" 
-                className="h-16 w-auto"
+                className="h-48 w-auto"
               />
             </div>
           </div>
