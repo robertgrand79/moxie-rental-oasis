@@ -12,7 +12,7 @@ const PageManagement = () => {
   const [editingPage, setEditingPage] = useState<any>(null);
   const { pages, loading, addPage, editPage, deletePage } = usePages();
 
-  console.log('PageManagement render - pages:', pages, 'loading:', loading);
+  console.log('PageManagement render - pages:', pages, 'loading:', loading, 'pages length:', pages.length);
 
   const handleAddPage = () => {
     setShowAddForm(true);
@@ -82,6 +82,17 @@ const PageManagement = () => {
 
           {!showAddForm && (
             <>
+              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  Debug info: Found {pages.length} pages in database
+                  {pages.length > 0 && (
+                    <span className="block mt-1">
+                      Pages: {pages.map(p => p.title).join(', ')}
+                    </span>
+                  )}
+                </p>
+              </div>
+              
               {pages.length > 0 ? (
                 <PageList
                   pages={pages}

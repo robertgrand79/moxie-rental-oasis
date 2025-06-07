@@ -11,6 +11,7 @@ export const usePages = () => {
 
   const fetchPages = async () => {
     console.log('Fetching pages...');
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('pages')
@@ -24,10 +25,12 @@ export const usePages = () => {
           description: 'Failed to fetch pages.',
           variant: 'destructive'
         });
+        setPages([]);
         return;
       }
 
       console.log('Fetched pages:', data);
+      console.log('Number of pages found:', data?.length || 0);
       setPages(data || []);
     } catch (error) {
       console.error('Error in fetchPages:', error);
@@ -36,6 +39,7 @@ export const usePages = () => {
         description: 'An unexpected error occurred.',
         variant: 'destructive'
       });
+      setPages([]);
     } finally {
       setLoading(false);
     }
@@ -160,6 +164,7 @@ export const usePages = () => {
       fetchPages();
     } else {
       console.log('No user found, not fetching pages');
+      setLoading(false);
     }
   }, [user]);
 
