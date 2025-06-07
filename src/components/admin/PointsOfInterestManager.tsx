@@ -390,20 +390,22 @@ const PointsOfInterestManager = () => {
                           </div>
 
                           <div>
-                            <Label htmlFor="driving_time">Driving Time</Label>
+                            <Label htmlFor="driving_time">Driving Time (minutes)</Label>
                             <Input
                               id="driving_time"
+                              type="number"
                               value={formData.driving_time}
-                              onChange={(e) => setFormData({ ...formData, driving_time: e.target.value })}
+                              onChange={(e) => setFormData({ ...formData, driving_time: parseFloat(e.target.value) || 0 })}
                             />
                           </div>
 
                           <div>
-                            <Label htmlFor="walking_time">Walking Time</Label>
+                            <Label htmlFor="walking_time">Walking Time (minutes)</Label>
                             <Input
                               id="walking_time"
+                              type="number"
                               value={formData.walking_time}
-                              onChange={(e) => setFormData({ ...formData, walking_time: e.target.value })}
+                              onChange={(e) => setFormData({ ...formData, walking_time: parseFloat(e.target.value) || 0 })}
                             />
                           </div>
                         </div>
@@ -548,7 +550,6 @@ const PointsOfInterestManager = () => {
                 </div>
               </div>
               
-              {/* Add suggestions for each POI */}
               {(poi.address || poi.category) && (
                 <div className="p-4 pt-0">
                   <ContentSuggestions

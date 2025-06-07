@@ -1,19 +1,20 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import EugeneEventsManager from '@/components/admin/EugeneEventsManager';
 import PointsOfInterestManager from '@/components/admin/PointsOfInterestManager';
 import LifestyleGalleryManager from '@/components/admin/LifestyleGalleryManager';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/router';
+import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
 import ContentStatsDashboard from '@/components/admin/ContentStatsDashboard';
 
 const Admin = () => {
-  const { user, logout } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   if (!user) {
-    router.push('/login');
+    navigate('/auth');
     return null;
   }
 
