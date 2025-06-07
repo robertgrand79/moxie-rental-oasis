@@ -33,8 +33,8 @@ const MobileNavigation = ({
         onClick={toggleMobileMenu}
       >
         {isMobileMenuOpen ? 
-          <X className="h-6 w-6 text-gray-700" /> : 
-          <Menu className="h-6 w-6 text-gray-700" />
+          <X className="h-6 w-6 text-icon-gray" /> : 
+          <Menu className="h-6 w-6 text-icon-gray" />
         }
       </Button>
 
@@ -55,7 +55,7 @@ const MobileNavigation = ({
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <IconComponent className="h-5 w-5" />
+                  <IconComponent className="h-5 w-5 text-icon-gray" />
                   <span>{item.title}</span>
                 </Link>
               );

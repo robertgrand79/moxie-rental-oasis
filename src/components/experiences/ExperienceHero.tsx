@@ -5,7 +5,7 @@ import { Compass } from 'lucide-react';
 const ExperienceHero = () => {
   return (
     <div className="text-center mb-16">
-      <Compass className="h-16 w-16 text-primary mx-auto mb-6" />
+      <Compass className="h-16 w-16 text-icon-gray mx-auto mb-6" />
       <h1 className="text-5xl font-bold text-gray-900 mb-6">
         Unforgettable Experiences
       </h1>

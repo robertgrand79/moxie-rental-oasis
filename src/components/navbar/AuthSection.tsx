@@ -33,7 +33,7 @@ const AuthSection = () => {
         <>
           <div className="hidden sm:flex items-center space-x-3">
             <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
-              <User className="h-4 w-4 text-gray-600 mr-2" />
+              <User className="h-4 w-4 text-icon-gray mr-2" />
               <span className="text-sm font-medium text-gray-700">{user.email}</span>
             </div>
           </div>
@@ -43,7 +43,7 @@ const AuthSection = () => {
             onClick={handleSignOut}
             className="border-gray-300 text-gray-700 hover:bg-gray-50"
           >
-            <LogOut className="h-4 w-4 mr-2" />
+            <LogOut className="h-4 w-4 mr-2 text-icon-gray" />
             <span className="hidden sm:inline">Sign Out</span>
           </Button>
         </>
@@ -54,7 +54,7 @@ const AuthSection = () => {
             size="sm"
             className="border-gray-300 text-gray-700 hover:bg-gray-50"
           >
-            <Settings className="h-4 w-4 mr-2" />
+            <Settings className="h-4 w-4 mr-2 text-icon-gray" />
             Admin Login
           </Button>
         </Link>

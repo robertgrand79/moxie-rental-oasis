@@ -19,17 +19,17 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
       {/* Property Details */}
       <div className="grid grid-cols-3 gap-6 mb-8">
         <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <Bed className="h-8 w-8 mx-auto mb-2 text-gray-600" />
+          <Bed className="h-8 w-8 mx-auto mb-2 text-icon-gray" />
           <div className="font-semibold">{property.bedrooms}</div>
           <div className="text-sm text-gray-600">Bedrooms</div>
         </div>
         <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <Bath className="h-8 w-8 mx-auto mb-2 text-gray-600" />
+          <Bath className="h-8 w-8 mx-auto mb-2 text-icon-gray" />
           <div className="font-semibold">{property.bathrooms}</div>
           <div className="text-sm text-gray-600">Bathrooms</div>
         </div>
         <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <Users className="h-8 w-8 mx-auto mb-2 text-gray-600" />
+          <Users className="h-8 w-8 mx-auto mb-2 text-icon-gray" />
           <div className="font-semibold">{property.maxGuests}</div>
           <div className="text-sm text-gray-600">Guests</div>
         </div>

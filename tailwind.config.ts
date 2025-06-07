@@ -67,7 +67,8 @@ export default {
 				'gradient-via': 'hsl(var(--gradient-via))',
 				'gradient-to': 'hsl(var(--gradient-to))',
 				'gradient-accent-from': 'hsl(var(--gradient-accent-from))',
-				'gradient-accent-to': 'hsl(var(--gradient-accent-to))'
+				'gradient-accent-to': 'hsl(var(--gradient-accent-to))',
+				'icon-gray': 'hsl(var(--icon-gray))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

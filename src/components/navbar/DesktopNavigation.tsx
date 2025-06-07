@@ -25,7 +25,7 @@ const DesktopNavigation = ({ isAdminPage }: DesktopNavigationProps) => {
                 : 'text-gray-700 hover:text-gray-900'
             }`}
           >
-            <IconComponent className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+            <IconComponent className="h-4 w-4 group-hover:scale-110 transition-transform duration-200 text-icon-gray" />
             <span>{item.title}</span>
           </Link>
         );

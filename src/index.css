@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -58,6 +59,9 @@
     --gradient-to: 220 3% 97%;
     --gradient-accent-from: 220 6% 88%;
     --gradient-accent-to: 220 4% 96%;
+
+    /* Icon gray color */
+    --icon-gray: 0 0% 66.3%;
   }
 
   .dark {
@@ -103,6 +107,9 @@
     --gradient-to: 220 8% 70%;
     --gradient-accent-from: 220 6% 78%;
     --gradient-accent-to: 220 6% 72%;
+
+    /* Icon gray color for dark mode */
+    --icon-gray: 0 0% 66.3%;
   }
 }
 

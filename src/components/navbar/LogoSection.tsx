@@ -13,7 +13,7 @@ const LogoSection = ({ isAdminPage }: LogoSectionProps) => {
       {isAdminPage ? (
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
-            <ArrowLeft className="h-5 w-5 mr-1" />
+            <ArrowLeft className="h-5 w-5 mr-1 text-icon-gray" />
             <span className="text-sm font-medium">Back to Site</span>
           </Link>
           <div className="text-2xl font-bold text-gray-900">

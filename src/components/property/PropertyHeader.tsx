@@ -12,7 +12,7 @@ const PropertyHeader = ({ property }: PropertyHeaderProps) => {
     <div className="mb-8">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">{property.title}</h1>
       <div className="flex items-center text-gray-600 mb-4">
-        <MapPin className="h-5 w-5 mr-2" />
+        <MapPin className="h-5 w-5 mr-2 text-icon-gray" />
         <span className="text-lg">{property.address}</span>
       </div>
       
