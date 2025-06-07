@@ -18,6 +18,7 @@ import SiteSettings from "./pages/SiteSettings";
 import SearchResults from "./pages/SearchResults";
 import About from "./pages/About";
 import Experiences from "./pages/Experiences";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 import NavBar from "./components/NavBar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/search" element={<SearchResults />} />
             <Route path="/about" element={<About />} />
             <Route path="/experiences" element={<Experiences />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             
             {/* Property Pages */}
             <Route path="/property/harris-st" element={<PropertyPage />} />

@@ -152,7 +152,7 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
+                <a href="/privacy-policy" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Privacy Policy
                 </a>
               </li>
@@ -177,7 +177,7 @@ const Footer = () => {
               © 2024 {siteData.siteName}. All rights reserved.
             </p>
             <div className="flex space-x-6">
-              <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
+              <a href="/privacy-policy" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Privacy Policy
               </a>
               <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
