@@ -1,5 +1,4 @@
 
-import { useEffect } from 'react';
 import PropertyShowcase from '@/components/PropertyShowcase';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import HeroSection from '@/components/home/HeroSection';
@@ -10,22 +9,6 @@ import BookingBenefitsSection from '@/components/home/BookingBenefitsSection';
 import FinalFeaturesSection from '@/components/home/FinalFeaturesSection';
 
 const Index = () => {
-  useEffect(() => {
-    // Load Hospitable search widget script
-    const script = document.createElement('script');
-    script.src = 'https://hospitable.b-cdn.net/direct-property-search-widget/hospitable-search-widget.prod.js';
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      // Cleanup script on unmount
-      const existingScript = document.querySelector('script[src="https://hospitable.b-cdn.net/direct-property-search-widget/hospitable-search-widget.prod.js"]');
-      if (existingScript) {
-        existingScript.remove();
-      }
-    };
-  }, []);
-
   return (
     <BackgroundWrapper>
       <HeroSection />
