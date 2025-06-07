@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Palette, Type, Image, Wand2, Save, Share } from 'lucide-react';
+import { Palette, Type, Image, Wand2, Save, Share, MapPin } from 'lucide-react';
 import ColorCustomizer from '@/components/ColorCustomizer';
 import FontCustomizer from '@/components/FontCustomizer';
 import LogoUploader from '@/components/LogoUploader';
@@ -35,6 +34,8 @@ const SiteSettings = () => {
     }
   });
 
+  const [mapboxToken, setMapboxToken] = useState('');
+
   const handleSaveSettings = async () => {
     const settingsToSave = [
       { key: 'siteName', value: siteData.siteName },
@@ -60,6 +61,16 @@ const SiteSettings = () => {
       toast({
         title: "Settings Saved",
         description: "Your site settings have been successfully updated.",
+      });
+    }
+  };
+
+  const handleSaveMapboxToken = async () => {
+    const success = await updateSetting('mapboxToken', mapboxToken);
+    if (success) {
+      toast({
+        title: "Mapbox Token Saved",
+        description: "Your Mapbox token has been successfully updated.",
       });
     }
   };
@@ -99,6 +110,7 @@ const SiteSettings = () => {
           googlePlaces: ''
         })
       });
+      setMapboxToken(getSetting('mapboxToken', ''));
     }
   }, [loading, settings, getSetting]);
 
@@ -125,11 +137,15 @@ const SiteSettings = () => {
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="social">
               <Share className="h-4 w-4 mr-1" />
               Social
+            </TabsTrigger>
+            <TabsTrigger value="maps">
+              <MapPin className="h-4 w-4 mr-1" />
+              Maps
             </TabsTrigger>
             <TabsTrigger value="colors">
               <Palette className="h-4 w-4 mr-1" />
@@ -301,6 +317,65 @@ const SiteSettings = () => {
                 <Button onClick={handleSaveSettings} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
                   Save Social Media Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="maps">
+            <Card>
+              <CardHeader>
+                <CardTitle>Maps Configuration</CardTitle>
+                <CardDescription>
+                  Configure your Mapbox token for displaying property locations
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="font-medium text-blue-900 mb-2">About Mapbox Token</h4>
+                  <p className="text-sm text-blue-800 mb-3">
+                    A Mapbox public token is required to display interactive maps with property locations. 
+                    This token is safe to use in frontend applications and allows your visitors to view property locations.
+                  </p>
+                  <p className="text-sm text-blue-700">
+                    Get your free token at{' '}
+                    <a 
+                      href="https://mapbox.com/" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="underline hover:text-blue-900"
+                    >
+                      mapbox.com
+                    </a>
+                    {' '}(look for "Access tokens" in your account dashboard)
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="mapboxToken">Mapbox Public Token</Label>
+                  <Input
+                    id="mapboxToken"
+                    value={mapboxToken}
+                    onChange={(e) => setMapboxToken(e.target.value)}
+                    placeholder="pk.eyJ1IjoieW91cnVzZXJuYW1lIiwi..."
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Public tokens start with "pk." and are safe to use in web applications
+                  </p>
+                </div>
+
+                {mapboxToken && (
+                  <div className="p-3 bg-green-50 rounded border border-green-200">
+                    <p className="text-sm text-green-800">
+                      ✓ Token configured. Maps will now display on your property listings page.
+                    </p>
+                  </div>
+                )}
+
+                <Button onClick={handleSaveMapboxToken} className="w-full">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Mapbox Token
                 </Button>
               </CardContent>
             </Card>

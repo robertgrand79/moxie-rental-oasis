@@ -3,18 +3,24 @@ import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Property } from '@/types/property';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 
 interface PropertyMapProps {
   properties: Property[];
-  mapboxToken?: string;
 }
 
-const PropertyMap = ({ properties, mapboxToken }: PropertyMapProps) => {
+const PropertyMap = ({ properties }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const { getSetting } = useSiteSettings();
 
   // Eugene, Oregon coordinates for center
   const eugeneCenter: [number, number] = [-123.0917, 44.0520];
+
+  // Get Mapbox token from site settings
+  const mapboxToken = getSetting('mapboxToken', '');
 
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
@@ -89,10 +95,18 @@ const PropertyMap = ({ properties, mapboxToken }: PropertyMapProps) => {
     return (
       <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
         <div className="text-center p-8">
-          <p className="text-gray-600 mb-4">Map requires Mapbox token</p>
-          <p className="text-sm text-gray-500">
-            Add your Mapbox public token to display property locations
+          <p className="text-gray-600 mb-4">Map configuration required</p>
+          <p className="text-sm text-gray-500 mb-4">
+            Configure your Mapbox token in the admin settings to display property locations
           </p>
+          <Button 
+            variant="outline" 
+            onClick={() => window.open('/site-settings', '_blank')}
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Configure in Settings
+          </Button>
         </div>
       </div>
     );
