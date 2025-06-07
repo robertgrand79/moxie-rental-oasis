@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import PropertyShowcase from '@/components/PropertyShowcase';
 import PropertyMap from '@/components/PropertyMap';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
+import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MapPin } from 'lucide-react';
@@ -94,6 +95,7 @@ const Listings = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </BackgroundWrapper>
   );
 };

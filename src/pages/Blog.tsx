@@ -6,6 +6,7 @@ import { Calendar, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NewsletterSignup from '@/components/NewsletterSignup';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
+import Footer from '@/components/Footer';
 
 interface BlogPost {
   id: string;
@@ -175,6 +176,7 @@ const Blog = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </BackgroundWrapper>
   );
 };

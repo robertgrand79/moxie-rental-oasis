@@ -1,6 +1,7 @@
 
 import React from 'react';
 import LocalFavorites from '@/components/experiences/LocalFavorites';
+import Footer from '@/components/Footer';
 
 const Experiences = () => {
   return (
@@ -20,6 +21,7 @@ const Experiences = () => {
           <LocalFavorites />
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
