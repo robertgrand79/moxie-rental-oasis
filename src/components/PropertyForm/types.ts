@@ -10,4 +10,6 @@ export interface PropertyFormData {
   hospitableBookingUrl: string;
   amenities?: string;
   photos?: File[];
+  images?: string[]; // Existing uploaded images
+  selectedCoverIndex?: number; // Index of selected cover image
 }

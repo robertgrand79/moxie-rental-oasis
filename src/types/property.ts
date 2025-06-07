@@ -9,6 +9,7 @@ export interface Property {
   maxGuests: number;
   pricePerNight: number;
   imageUrl?: string;
+  images?: string[]; // Array of all uploaded images
   hospitableBookingUrl?: string;
   amenities?: string;
 }

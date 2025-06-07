@@ -25,7 +25,7 @@ const propertySchema = z.object({
 });
 
 interface PropertyFormProps {
-  onSubmit: (data: PropertyFormData & { photos: File[] }) => void;
+  onSubmit: (data: PropertyFormData & { photos: File[]; selectedCoverIndex?: number }) => void;
   onCancel: () => void;
   initialData?: Partial<Property>;
   isEditing?: boolean;
@@ -33,6 +33,7 @@ interface PropertyFormProps {
 
 const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false }: PropertyFormProps) => {
   const [photos, setPhotos] = useState<File[]>([]);
+  const [selectedCoverIndex, setSelectedCoverIndex] = useState<number>(0);
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -50,7 +51,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false }: Pr
   });
 
   const handleSubmit = (data: PropertyFormData) => {
-    onSubmit({ ...data, photos });
+    onSubmit({ ...data, photos, selectedCoverIndex });
   };
 
   return (
@@ -68,7 +69,9 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false }: Pr
               photos={photos}
               onPhotosChange={setPhotos}
               isEditing={isEditing}
-              existingImageUrl={initialData?.imageUrl}
+              existingImages={initialData?.images || []}
+              selectedCoverIndex={selectedCoverIndex}
+              onCoverSelect={setSelectedCoverIndex}
             />
 
             <PropertyDetailsForm form={form} />

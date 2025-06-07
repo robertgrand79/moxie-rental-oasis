@@ -81,6 +81,7 @@ export const useProperties = () => {
     console.log('Property form submitted:', data);
     
     const propertyId = Date.now().toString();
+    let images: string[] = [];
     let imageUrl = '/placeholder.svg';
 
     // Upload photos if any were provided
@@ -88,8 +89,11 @@ export const useProperties = () => {
       console.log('Uploading photos for new property:', data.photos.length);
       const uploadedUrls = await uploadPhotos(data.photos, propertyId);
       if (uploadedUrls.length > 0) {
-        imageUrl = uploadedUrls[0]; // Use the first uploaded image as the main image
-        console.log('Using uploaded image as main:', imageUrl);
+        images = uploadedUrls;
+        // Use selected cover image or first image as cover
+        const coverIndex = data.selectedCoverIndex ?? 0;
+        imageUrl = uploadedUrls[coverIndex] || uploadedUrls[0];
+        console.log('Using image as cover:', imageUrl);
       }
     }
 
@@ -104,7 +108,8 @@ export const useProperties = () => {
       pricePerNight: data.pricePerNight,
       hospitableBookingUrl: data.hospitableBookingUrl,
       amenities: data.amenities,
-      imageUrl
+      imageUrl,
+      images
     };
 
     setProperties(prev => [...prev, newProperty]);
@@ -118,16 +123,29 @@ export const useProperties = () => {
   const editProperty = async (id: string, data: any) => {
     console.log('Edit property:', id, data);
     
+    let newImages: string[] = [];
     let imageUrl: string | undefined;
+
+    // Get existing property to preserve current images
+    const existingProperty = properties.find(p => p.id === id);
+    const currentImages = existingProperty?.images || [];
 
     // Upload new photos if any were provided
     if (data.photos && data.photos.length > 0) {
-      console.log('Uploading photos for existing property:', data.photos.length);
+      console.log('Uploading new photos for existing property:', data.photos.length);
       const uploadedUrls = await uploadPhotos(data.photos, id);
       if (uploadedUrls.length > 0) {
-        imageUrl = uploadedUrls[0]; // Use the first uploaded image as the main image
-        console.log('Using uploaded image as main:', imageUrl);
+        newImages = [...currentImages, ...uploadedUrls];
+        console.log('Combined images:', newImages);
       }
+    } else {
+      newImages = currentImages;
+    }
+
+    // Set cover image based on selection
+    if (newImages.length > 0) {
+      const coverIndex = data.selectedCoverIndex ?? 0;
+      imageUrl = newImages[coverIndex] || newImages[0];
     }
     
     setProperties(prev => prev.map(property => 
@@ -143,7 +161,8 @@ export const useProperties = () => {
             pricePerNight: data.pricePerNight,
             hospitableBookingUrl: data.hospitableBookingUrl,
             amenities: data.amenities,
-            // Only update imageUrl if new photos were uploaded
+            images: newImages,
+            // Only update imageUrl if we have images
             ...(imageUrl && { imageUrl })
           }
         : property

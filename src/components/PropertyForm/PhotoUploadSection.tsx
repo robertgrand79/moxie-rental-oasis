@@ -1,18 +1,26 @@
-
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormLabel } from '@/components/ui/form';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PhotoUploadSectionProps {
   photos: File[];
   onPhotosChange: (photos: File[]) => void;
   isEditing?: boolean;
-  existingImageUrl?: string;
+  existingImages?: string[];
+  selectedCoverIndex?: number;
+  onCoverSelect?: (index: number) => void;
 }
 
-const PhotoUploadSection = ({ photos, onPhotosChange, isEditing, existingImageUrl }: PhotoUploadSectionProps) => {
+const PhotoUploadSection = ({ 
+  photos, 
+  onPhotosChange, 
+  isEditing, 
+  existingImages = [], 
+  selectedCoverIndex,
+  onCoverSelect 
+}: PhotoUploadSectionProps) => {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
@@ -72,23 +80,65 @@ const PhotoUploadSection = ({ photos, onPhotosChange, isEditing, existingImageUr
     }
   };
 
+  const allImages = [...existingImages, ...previewUrls];
+  const totalImageCount = allImages.length;
+
   return (
     <div className="space-y-4">
       <FormLabel>Property Photos</FormLabel>
       
-      {/* Show existing image if editing and no new photos uploaded */}
-      {isEditing && existingImageUrl && previewUrls.length === 0 && (
+      {/* Existing Images Gallery */}
+      {totalImageCount > 0 && (
         <div className="space-y-2">
-          <FormLabel className="text-sm text-muted-foreground">Current Property Image</FormLabel>
-          <div className="relative w-48 h-32">
-            <img
-              src={existingImageUrl}
-              alt="Current property"
-              className="w-full h-full object-cover rounded-lg border"
-            />
+          <FormLabel className="text-sm font-medium">
+            All Property Images ({totalImageCount}) - Click to select cover photo
+          </FormLabel>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {allImages.map((url, index) => (
+              <div key={index} className="relative group">
+                <div 
+                  className={cn(
+                    "relative cursor-pointer border-2 rounded-lg overflow-hidden transition-all",
+                    selectedCoverIndex === index 
+                      ? "border-primary ring-2 ring-primary/50" 
+                      : "border-gray-200 hover:border-primary/50"
+                  )}
+                  onClick={() => onCoverSelect?.(index)}
+                >
+                  <img
+                    src={url}
+                    alt={`Property image ${index + 1}`}
+                    className="w-full h-24 object-cover"
+                  />
+                  {selectedCoverIndex === index && (
+                    <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                      <Star className="h-6 w-6 text-primary fill-current" />
+                    </div>
+                  )}
+                  <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-1 rounded">
+                    {selectedCoverIndex === index ? 'Cover' : index + 1}
+                  </div>
+                </div>
+                {/* Only show remove button for new uploads (preview URLs) */}
+                {index >= existingImages.length && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removePhoto(index - existingImages.length);
+                    }}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            Upload new photos below to replace the current image
+            The starred image will be used as the cover photo
           </p>
         </div>
       )}
@@ -107,8 +157,8 @@ const PhotoUploadSection = ({ photos, onPhotosChange, isEditing, existingImageUr
       >
         <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <div className="space-y-2">
-          <p className="text-sm font-medium">Drag and drop photos here</p>
-          <p className="text-xs text-muted-foreground">or click to select files (JPEG, PNG, WebP, GIF)</p>
+          <p className="text-sm font-medium">Add more photos</p>
+          <p className="text-xs text-muted-foreground">Drag and drop or click to select files (JPEG, PNG, WebP, GIF)</p>
           <input
             type="file"
             multiple
@@ -127,38 +177,6 @@ const PhotoUploadSection = ({ photos, onPhotosChange, isEditing, existingImageUr
           </Button>
         </div>
       </div>
-      
-      {/* Photo Previews */}
-      {previewUrls.length > 0 && (
-        <div className="space-y-2">
-          <FormLabel className="text-sm font-medium">
-            New Photos to Upload ({previewUrls.length})
-          </FormLabel>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {previewUrls.map((url, index) => (
-              <div key={index} className="relative group">
-                <img
-                  src={url}
-                  alt={`Preview ${index + 1}`}
-                  className="w-full h-24 object-cover rounded-lg border"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => removePhoto(index)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            These photos will be uploaded when you save the property
-          </p>
-        </div>
-      )}
     </div>
   );
 };
