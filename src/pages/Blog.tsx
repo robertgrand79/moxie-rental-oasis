@@ -58,77 +58,99 @@ const Blog = () => {
 
   return (
     <BackgroundWrapper>
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">Moxie Travel Blog</h1>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-            Discover travel tips, destination guides, and insider insights for your next vacation rental adventure in Eugene and beyond.
-          </p>
-        </div>
-
-        {/* Newsletter Signup Section */}
-        <div className="max-w-md mx-auto mb-16">
-          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20">
-            <NewsletterSignup />
+      <div className="py-32 relative">
+        <div className="container mx-auto px-4">
+          {/* Hero Section */}
+          <div className="text-center mb-20">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight">
+              Moxie Travel Blog
+            </h1>
+            <div className="w-32 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-12"></div>
+            <p className="text-2xl text-gray-700 max-w-5xl mx-auto leading-relaxed">
+              Discover travel tips, destination guides, and insider insights for your next vacation rental adventure in Eugene and beyond.
+            </p>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogPosts.map((post) => (
-            <Card key={post.id} className="overflow-hidden hover:shadow-2xl transition-shadow bg-white/95 backdrop-blur-xl border-white/20">
-              <div className="aspect-video bg-gray-200 relative">
-                <img 
-                  src={post.imageUrl} 
-                  alt={post.title}
-                  className="w-full h-full object-cover"
-                />
+          {/* Newsletter Signup Section */}
+          <div className="mb-20">
+            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20 max-w-2xl hover:shadow-3xl transition-all duration-300">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">Stay Connected</h2>
+                <div className="w-16 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-6"></div>
+                <p className="text-gray-600 text-lg">Get the latest travel tips and Eugene insights delivered to your inbox</p>
               </div>
-              <CardHeader>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {post.tags.map((tag) => (
-                    <span 
-                      key={tag}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <CardTitle className="text-lg hover:text-blue-600 transition-colors">
-                  <Link to={`/blog/${post.slug}`}>
-                    {post.title}
-                  </Link>
-                </CardTitle>
-                <CardDescription className="text-gray-600">{post.excerpt}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-1" />
-                    {post.author}
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    {new Date(post.publishedAt).toLocaleDateString()}
-                  </div>
-                </div>
-                <Link to={`/blog/${post.slug}`}>
-                  <Button variant="outline" className="w-full">
-                    Read More
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {blogPosts.length === 0 && (
-          <div className="text-center py-12">
-            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-12 border border-white/20">
-              <p className="text-gray-500 text-lg">No blog posts published yet.</p>
+              <NewsletterSignup />
             </div>
           </div>
-        )}
+
+          {/* Blog Posts Grid */}
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20 hover:shadow-3xl transition-all duration-300">
+            {blogPosts.length > 0 ? (
+              <>
+                <div className="text-center mb-16">
+                  <h2 className="text-4xl font-bold text-gray-900 mb-6">Latest Stories</h2>
+                  <div className="w-24 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto"></div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {blogPosts.map((post) => (
+                    <Card key={post.id} className="group overflow-hidden hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-xl border-white/30 hover:-translate-y-2">
+                      <div className="aspect-video bg-gray-200 relative overflow-hidden">
+                        <img 
+                          src={post.imageUrl} 
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      </div>
+                      <CardHeader className="pb-4">
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {post.tags.map((tag) => (
+                            <span 
+                              key={tag}
+                              className="px-3 py-1 bg-gradient-to-r from-gradient-accent-from/30 to-gradient-accent-to/30 text-gray-700 text-sm rounded-full border border-gradient-accent-from/20"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <CardTitle className="text-xl hover:text-gradient-from transition-colors group-hover:text-gradient-from">
+                          <Link to={`/blog/${post.slug}`}>
+                            {post.title}
+                          </Link>
+                        </CardTitle>
+                        <CardDescription className="text-gray-600 leading-relaxed">{post.excerpt}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 mr-2 text-icon-gray" />
+                            <span className="font-medium">{post.author}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-2 text-icon-gray" />
+                            <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                        <Link to={`/blog/${post.slug}`}>
+                          <Button variant="outline" className="w-full group-hover:bg-gradient-to-r group-hover:from-gradient-from group-hover:to-gradient-accent-from group-hover:text-white group-hover:border-transparent transition-all duration-300">
+                            Read More
+                          </Button>
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-20">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Coming Soon</h3>
+                <div className="w-16 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-6"></div>
+                <p className="text-gray-600 text-lg">We're working on bringing you amazing travel content. Stay tuned!</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </BackgroundWrapper>
   );
