@@ -6,7 +6,12 @@ export const measurePerformance = () => {
   // Measure Core Web Vitals
   const observer = new PerformanceObserver((list) => {
     for (const entry of list.getEntries()) {
-      console.log(`${entry.name}: ${entry.value}ms`);
+      // Type guard to check if entry has value property (paint timing entries)
+      if ('value' in entry && typeof entry.value === 'number') {
+        console.log(`${entry.name}: ${entry.value}ms`);
+      } else {
+        console.log(`${entry.name}: ${entry.duration}ms`);
+      }
     }
   });
 
