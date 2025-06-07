@@ -20,8 +20,10 @@ const Footer = () => {
   useEffect(() => {
     // Load site settings from localStorage
     const savedSettings = localStorage.getItem('siteSettings');
+    console.log('Loading saved settings from localStorage:', savedSettings);
     if (savedSettings) {
       const settings = JSON.parse(savedSettings);
+      console.log('Parsed settings:', settings);
       setSiteData({
         siteName: settings.siteName || 'Moxie Vacation Rentals',
         description: settings.description || 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
@@ -38,6 +40,8 @@ const Footer = () => {
       });
     }
   }, []);
+
+  console.log('Current siteData in Footer:', siteData);
 
   return (
     <footer className="text-white py-16" style={{ backgroundColor: '#767b8d' }}>
