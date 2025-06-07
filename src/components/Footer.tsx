@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
 
@@ -121,11 +122,6 @@ const Footer = () => {
               <li>
                 <a href="/blog" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
-                  Guest Portal
                 </a>
               </li>
             </ul>
