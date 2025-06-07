@@ -50,7 +50,7 @@ const NavBar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <img 
-                src="/lovable-uploads/0bec03c1-4efb-4e69-aee6-e7cad60ea374.png" 
+                src="/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png" 
                 alt="Moxie Vacation Rentals" 
                 className="h-30 w-auto"
               />
