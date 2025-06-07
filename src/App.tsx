@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,6 +27,9 @@ import Listings from "./pages/Listings";
 import PropertyPage from "./components/PropertyPage";
 import ChatWidget from "./components/chat/ChatWidget";
 import FAQ from "./pages/FAQ";
+import AIAnalyticsDashboard from "./components/admin/AIAnalyticsDashboard";
+import AdminChatSupport from "./components/admin/AdminChatSupport";
+import ContentApprovalWorkflow from "./components/admin/ContentApprovalWorkflow";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +75,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdminProfile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/analytics" 
+              element={
+                <ProtectedRoute>
+                  <AIAnalyticsDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/chat-support" 
+              element={
+                <ProtectedRoute>
+                  <AdminChatSupport />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/content-approval" 
+              element={
+                <ProtectedRoute>
+                  <ContentApprovalWorkflow />
                 </ProtectedRoute>
               } 
             />
