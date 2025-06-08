@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 import LogoSection from './navbar/LogoSection';
 import DesktopNavigation from './navbar/DesktopNavigation';
 import AuthSection from './navbar/AuthSection';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 
 const NavBar = () => {
   const location = useLocation();
@@ -33,8 +32,7 @@ const NavBar = () => {
     <nav className={navClasses}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4">
-            <SidebarTrigger className="lg:hidden" />
+          <div className="flex items-center">
             <LogoSection />
           </div>
           
