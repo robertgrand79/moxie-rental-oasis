@@ -20,7 +20,7 @@ import {
 const AdminSidebar = () => {
   const location = useLocation();
 
-  const menuItems = [
+  const coreMenuItems = [
     {
       title: 'Dashboard',
       href: '/admin',
@@ -34,11 +34,14 @@ const AdminSidebar = () => {
       color: 'text-icon-indigo'
     },
     {
-      title: 'Chat Support',
-      href: '/admin/chat-support',
-      icon: MessageSquare,
-      color: 'text-icon-rose'
-    },
+      title: 'Profile',
+      href: '/admin/profile',
+      icon: User,
+      color: 'text-icon-gray'
+    }
+  ];
+
+  const contentMenuItems = [
     {
       title: 'Content Approval',
       href: '/admin/content-approval',
@@ -68,6 +71,15 @@ const AdminSidebar = () => {
       href: '/admin/testimonials',
       icon: Star,
       color: 'text-icon-orange'
+    }
+  ];
+
+  const toolsMenuItems = [
+    {
+      title: 'Chat Support',
+      href: '/admin/chat-support',
+      icon: MessageSquare,
+      color: 'text-icon-rose'
     },
     {
       title: 'AI Tools',
@@ -86,41 +98,47 @@ const AdminSidebar = () => {
       href: '/admin/settings',
       icon: Settings,
       color: 'text-icon-gray'
-    },
-    {
-      title: 'Profile',
-      href: '/admin/profile',
-      icon: User,
-      color: 'text-icon-gray'
     }
   ];
+
+  const renderMenuSection = (title: string, items: typeof coreMenuItems) => (
+    <div className="mb-6">
+      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">
+        {title}
+      </h3>
+      <nav className="space-y-1">
+        {items.map((item) => {
+          const IconComponent = item.icon;
+          const isActive = location.pathname === item.href;
+          
+          return (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={cn(
+                "flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 mx-2",
+                isActive
+                  ? "bg-blue-50 text-blue-700 border border-blue-200"
+                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              )}
+            >
+              <IconComponent className={cn("h-5 w-5", item.color)} />
+              <span className="font-medium">{item.title}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
 
   return (
     <div className="w-64 bg-white shadow-lg h-screen sticky top-16 overflow-y-auto">
       <div className="p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Admin Panel</h2>
-        <nav className="space-y-2">
-          {menuItems.map((item) => {
-            const IconComponent = item.icon;
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={cn(
-                  "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200",
-                  isActive
-                    ? "bg-blue-50 text-blue-700 border border-blue-200"
-                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                )}
-              >
-                <IconComponent className={cn("h-5 w-5", item.color)} />
-                <span className="font-medium">{item.title}</span>
-              </Link>
-            );
-          })}
-        </nav>
+        
+        {renderMenuSection('Core', coreMenuItems)}
+        {renderMenuSection('Content Management', contentMenuItems)}
+        {renderMenuSection('Tools & Settings', toolsMenuItems)}
       </div>
     </div>
   );

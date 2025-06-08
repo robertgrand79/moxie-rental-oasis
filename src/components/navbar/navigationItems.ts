@@ -1,3 +1,4 @@
+
 import { 
   Home, 
   Building2, 
@@ -5,12 +6,8 @@ import {
   Calendar, 
   BookOpen,
   Settings,
-  BarChart3,
-  MessageSquare,
-  FileCheck,
-  User,
-  Edit3,
-  Shield
+  Shield,
+  ArrowLeft
 } from 'lucide-react';
 
 export const navigationItems = [
@@ -24,12 +21,7 @@ export const navigationItems = [
 ];
 
 export const adminNavigationItems = [
-  { title: 'Dashboard', href: '/admin', icon: Home },
+  { title: 'Back to Site', href: '/', icon: ArrowLeft },
   { title: 'Properties', href: '/properties', icon: Building2 },
-  { title: 'Page Management', href: '/page-management', icon: Edit3 },
-  { title: 'Blog Management', href: '/blog-management', icon: BookOpen },
-  { title: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-  { title: 'Chat Support', href: '/admin/chat-support', icon: MessageSquare },
-  { title: 'Profile', href: '/admin/profile', icon: User },
   { title: 'Settings', href: '/site-settings', icon: Settings },
 ];
