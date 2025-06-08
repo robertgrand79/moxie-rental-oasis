@@ -9,7 +9,13 @@ const ContactInfo = () => {
   const contactEmail = settings.contactEmail || 'gabby@moxievactionrental.com';
   const phone = settings.phone || '+1 541-255-1698';
   const address = settings.address || '2472 Willamette St Eugene OR 97405';
+  
+  // Ensure socialMedia has proper structure with fallback values
   const socialMedia = settings.socialMedia || {};
+  const facebook = socialMedia.facebook || '';
+  const instagram = socialMedia.instagram || '';
+  const twitter = socialMedia.twitter || '';
+  const googlePlaces = socialMedia.googlePlaces || '';
 
   return (
     <div className="space-y-8">
@@ -74,9 +80,9 @@ const ContactInfo = () => {
       <div className="bg-card rounded-lg shadow-lg p-8">
         <h3 className="text-xl font-bold mb-4">Follow Us</h3>
         <div className="flex space-x-4">
-          {socialMedia.facebook && (
+          {facebook && (
             <a 
-              href={socialMedia.facebook} 
+              href={facebook} 
               className="bg-background hover:bg-muted p-3 rounded-lg transition-colors" 
               target="_blank" 
               rel="noopener noreferrer"
@@ -85,9 +91,9 @@ const ContactInfo = () => {
               <Facebook className="h-6 w-6 text-icon-blue" />
             </a>
           )}
-          {socialMedia.instagram && (
+          {instagram && (
             <a 
-              href={socialMedia.instagram} 
+              href={instagram} 
               className="bg-background hover:bg-muted p-3 rounded-lg transition-colors" 
               target="_blank" 
               rel="noopener noreferrer"
@@ -96,9 +102,9 @@ const ContactInfo = () => {
               <Instagram className="h-6 w-6 text-icon-rose" />
             </a>
           )}
-          {socialMedia.twitter && (
+          {twitter && (
             <a 
-              href={socialMedia.twitter} 
+              href={twitter} 
               className="bg-background hover:bg-muted p-3 rounded-lg transition-colors" 
               target="_blank" 
               rel="noopener noreferrer"
@@ -107,9 +113,9 @@ const ContactInfo = () => {
               <Twitter className="h-6 w-6 text-icon-blue" />
             </a>
           )}
-          {socialMedia.googlePlaces && (
+          {googlePlaces && (
             <a 
-              href={socialMedia.googlePlaces} 
+              href={googlePlaces} 
               className="bg-background hover:bg-muted p-3 rounded-lg transition-colors" 
               target="_blank" 
               rel="noopener noreferrer"
