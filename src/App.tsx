@@ -1,11 +1,11 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Home from './pages/Home';
+import Index from './pages/Index';
 import Properties from './pages/Properties';
 import PropertyDetails from './pages/PropertyDetails';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
-import Contact from './pages/Contact';
 import Auth from './pages/Auth';
 import Admin from './pages/Admin';
 import AdminProfile from './pages/AdminProfile';
@@ -21,12 +21,11 @@ const App: React.FC = () => {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Index />} />
           <Route path="/properties" element={<Properties />} />
           <Route path="/properties/:id" element={<PropertyDetails />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogPost />} />
-          <Route path="/contact" element={<Contact />} />
           <Route path="/auth" element={<Auth />} />
           
           {/* Admin Routes - Protected */}
