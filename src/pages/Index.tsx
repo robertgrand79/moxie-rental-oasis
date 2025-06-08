@@ -13,7 +13,6 @@ import EnhancedEugeneEventsSection from '@/components/home/EnhancedEugeneEventsS
 import BookingBenefitsSection from '@/components/home/BookingBenefitsSection';
 import FinalFeaturesSection from '@/components/home/FinalFeaturesSection';
 import NavBar from '@/components/NavBar';
-import Footer from '@/components/Footer';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import ChatWidget from '@/components/chat/ChatWidget';
 
@@ -35,7 +34,6 @@ const Index = () => {
         <BookingBenefitsSection />
         <FinalFeaturesSection />
       </main>
-      <Footer />
       <ChatWidget />
     </BackgroundWrapper>
   );
