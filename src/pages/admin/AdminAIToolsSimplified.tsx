@@ -10,7 +10,7 @@ import { useAIContentGeneration } from '@/hooks/useAIContentGeneration';
 
 interface GeneratedContent {
   id: string;
-  type: 'poi' | 'events' | 'social' | 'blog';
+  type: 'poi' | 'events' | 'lifestyle';
   title: string;
   content: string;
   image?: string;
@@ -19,7 +19,7 @@ interface GeneratedContent {
 }
 
 const AdminAIToolsSimplified = () => {
-  const [selectedType, setSelectedType] = useState<'poi' | 'events' | 'social' | 'blog'>('poi');
+  const [selectedType, setSelectedType] = useState<'poi' | 'events' | 'lifestyle'>('poi');
   const [customPrompt, setCustomPrompt] = useState('');
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
   const { generateContent, isGenerating } = useAIContentGeneration();
@@ -40,18 +40,11 @@ const AdminAIToolsSimplified = () => {
       template: 'Generate 3 upcoming events in Eugene, Oregon that vacation rental guests would find interesting. Include event name, date, location, description, and ticket information.'
     },
     {
-      id: 'social' as const,
-      title: 'Social Media',
+      id: 'lifestyle' as const,
+      title: 'Lifestyle Content',
       icon: <Image className="h-5 w-5" />,
-      description: 'Create social media posts and captions',
-      template: 'Generate 5 engaging social media posts for Moxie Vacation Rentals showcasing Eugene, Oregon. Include captions, hashtags, and suggested visuals.'
-    },
-    {
-      id: 'blog' as const,
-      title: 'Blog Content',
-      icon: <FileText className="h-5 w-5" />,
-      description: 'Generate blog posts and articles',
-      template: 'Write a blog post about "Best Hidden Gems in Eugene, Oregon" for vacation rental guests. Include introduction, 5 locations with descriptions, and conclusion.'
+      description: 'Create lifestyle and experience content',
+      template: 'Generate 3 lifestyle experiences showcasing Eugene, Oregon for vacation rental guests. Include title, description, and why it represents the Eugene lifestyle.'
     }
   ];
 
@@ -102,7 +95,7 @@ const AdminAIToolsSimplified = () => {
     >
       <div className="p-8 space-y-8">
         {/* Content Type Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {contentTypes.map((type) => (
             <Card 
               key={type.id}

@@ -8,9 +8,14 @@ import EventsLoadingState from '@/components/events/EventsLoadingState';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 
 const Events = () => {
-  const { events, loading, error } = useEugeneEvents();
+  const { events, isLoading, error } = useEugeneEvents();
 
-  if (loading) return <EventsLoadingState />;
+  if (isLoading) return <EventsLoadingState />;
+
+  const clearFilters = () => {
+    // For now, this is a placeholder function since we don't have filters implemented yet
+    console.log('Clear filters');
+  };
 
   return (
     <BackgroundWrapper>
@@ -20,12 +25,12 @@ const Events = () => {
             <EventsHeader />
             {error ? (
               <div className="text-center py-8">
-                <p className="text-red-600">Error loading events: {error}</p>
+                <p className="text-red-600">Error loading events: {error.message}</p>
               </div>
             ) : events.length > 0 ? (
               <EventsGrid events={events} />
             ) : (
-              <EventsEmptyState />
+              <EventsEmptyState onClearFilters={clearFilters} />
             )}
           </div>
         </div>
