@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -64,24 +64,23 @@ const NewsletterSignup = () => {
   }
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center text-xl">
-          <Mail className="h-5 w-5 mr-2" />
-          Stay Updated
+    <Card className="border-gray-200 bg-white">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold text-gray-900">
+          Newsletter
         </CardTitle>
-        <CardDescription>
-          Get the latest travel tips and destination guides delivered to your inbox
+        <CardDescription className="text-sm text-gray-600">
+          Get travel tips and local insights delivered to your inbox
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <Input
             type="text"
             placeholder="Your name (optional)"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="bg-white"
+            className="text-sm"
           />
           <Input
             type="email"
@@ -89,14 +88,15 @@ const NewsletterSignup = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="bg-white"
+            className="text-sm"
           />
           <Button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            className="w-full"
+            size="sm"
             disabled={isLoading}
           >
-            {isLoading ? "Subscribing..." : "Subscribe to Newsletter"}
+            {isLoading ? "Subscribing..." : "Subscribe"}
           </Button>
         </form>
       </CardContent>
