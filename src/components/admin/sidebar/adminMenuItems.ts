@@ -11,7 +11,12 @@ import {
   Sparkles,
   Plus,
   Shield,
-  GitFork
+  GitFork,
+  BarChart3,
+  TrendingUp,
+  Wrench,
+  CheckSquare,
+  Calendar
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -19,9 +24,19 @@ export const adminMenuItems = [
     title: "Dashboard",
     items: [
       {
-        title: "Analytics",
+        title: "Overview",
         icon: LayoutDashboard,
         href: "/admin"
+      },
+      {
+        title: "Analytics",
+        icon: BarChart3,
+        href: "/admin/analytics"
+      },
+      {
+        title: "Site Metrics", 
+        icon: TrendingUp,
+        href: "/admin/site-metrics"
       }
     ]
   },
@@ -34,9 +49,34 @@ export const adminMenuItems = [
         href: "/admin/properties"
       },
       {
-        title: "Add New",
+        title: "Add New Property",
         icon: Plus,
         href: "/admin/properties/new"
+      }
+    ]
+  },
+  {
+    title: "Operations & Management",
+    items: [
+      {
+        title: "Task Management",
+        icon: CheckSquare,
+        href: "/admin/tasks"
+      },
+      {
+        title: "Work Orders",
+        icon: Wrench,
+        href: "/admin/work-orders"
+      },
+      {
+        title: "Events",
+        icon: Calendar,
+        href: "/admin/events"
+      },
+      {
+        title: "Points of Interest",
+        icon: Star,
+        href: "/admin/poi"
       }
     ]
   },
@@ -67,14 +107,19 @@ export const adminMenuItems = [
         title: "Testimonials",
         icon: Star,
         href: "/admin/testimonials"
+      },
+      {
+        title: "Lifestyle Gallery",
+        icon: Home,
+        href: "/admin/lifestyle"
       }
     ]
   },
   {
-    title: "Users & Roles",
+    title: "Settings & Admin",
     items: [
       {
-        title: "All Users",
+        title: "Users",
         icon: Users,
         href: "/admin/users"
       },
@@ -82,12 +127,7 @@ export const adminMenuItems = [
         title: "Roles & Permissions",
         icon: Shield,
         href: "/admin/roles"
-      }
-    ]
-  },
-  {
-    title: "Settings",
-    items: [
+      },
       {
         title: "Site Settings",
         icon: Settings,
