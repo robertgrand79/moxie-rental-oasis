@@ -1,5 +1,5 @@
-
 import { Property } from '@/types/property';
+import { BlogPost } from '@/types/blogPost';
 
 export const sampleProperties: Omit<Property, 'id' | 'created_by'>[] = [
   {
@@ -72,7 +72,7 @@ export const sampleProperties: Omit<Property, 'id' | 'created_by'>[] = [
   }
 ];
 
-export const sampleBlogPosts = [
+export const sampleBlogPosts: Omit<BlogPost, 'id' | 'created_at' | 'updated_at' | 'created_by'>[] = [
   {
     title: "Ultimate Guide to Eugene's Food Scene",
     slug: "ultimate-guide-eugene-food-scene",
@@ -103,8 +103,8 @@ Don't miss the Saturday Market, where you can sample local produce, artisanal fo
 Whether you're staying in one of our vacation rentals or just visiting, Eugene's food scene will leave you planning your next culinary adventure before you've even left.`,
     excerpt: "Discover Eugene's incredible food scene, from farm-to-table restaurants to legendary food trucks. Your ultimate guide to dining in the Pacific Northwest.",
     author: "Moxie Team",
-    status: "published",
-    published_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+    status: "published" as const,
+    published_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     image_url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80",
     tags: ["food", "dining", "local", "restaurants"]
   },
@@ -141,8 +141,8 @@ When snow falls in the nearby Cascades, world-class skiing and snowboarding are 
 Plan your outdoor adventure from the comfort of our vacation rentals, perfectly positioned to access all of Eugene's natural wonders.`,
     excerpt: "From hiking Spencer Butte to cycling the riverbank trails, discover why Eugene is the perfect base for your Pacific Northwest outdoor adventure.",
     author: "Moxie Team",
-    status: "published",
-    published_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
+    status: "published" as const,
+    published_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
     image_url: "https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=800&q=80",
     tags: ["outdoor", "hiking", "cycling", "adventure"]
   },
@@ -180,8 +180,8 @@ The university hosts numerous public events throughout the year, including conce
 Stay at one of our nearby vacation rentals and walk or bike to campus – you'll be perfectly positioned to explore everything the University of Oregon has to offer.`,
     excerpt: "Discover the beauty and attractions of the University of Oregon campus, from world-class museums to legendary sports venues.",
     author: "Moxie Team",
-    status: "published",
-    published_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(), // 21 days ago
+    status: "published" as const,
+    published_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
     image_url: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=800&q=80",
     tags: ["university", "campus", "culture", "attractions"]
   }
