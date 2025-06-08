@@ -41,16 +41,16 @@ const EugeneInfoSection = () => {
             <div className="bg-gradient-to-br from-gradient-from to-gradient-accent-from p-12 lg:p-16 flex items-center justify-center">
               <div className="text-center text-white">
                 <div className="grid grid-cols-3 gap-4 mb-8">
-                  <div className="flex flex-col items-center">
-                    <Mountain className="h-12 w-12 mb-2 opacity-80" />
+                  <div className="flex flex-col items-center group">
+                    <Mountain className="h-12 w-12 mb-2 text-icon-emerald hover:scale-110 transition-transform duration-300" />
                     <span className="text-sm font-medium">Trails</span>
                   </div>
-                  <div className="flex flex-col items-center">
-                    <Coffee className="h-12 w-12 mb-2 opacity-80" />
+                  <div className="flex flex-col items-center group">
+                    <Coffee className="h-12 w-12 mb-2 text-icon-amber hover:scale-110 transition-transform duration-300" />
                     <span className="text-sm font-medium">Coffee</span>
                   </div>
-                  <div className="flex flex-col items-center">
-                    <TreePine className="h-12 w-12 mb-2 opacity-80" />
+                  <div className="flex flex-col items-center group">
+                    <TreePine className="h-12 w-12 mb-2 text-icon-green hover:scale-110 transition-transform duration-300" />
                     <span className="text-sm font-medium">Nature</span>
                   </div>
                 </div>
