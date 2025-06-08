@@ -16,9 +16,9 @@ const ExcellenceAuthenticitySection = () => {
         </div>
         
         <div className="grid md:grid-cols-2 gap-12">
-          <Card className="group hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm border-white/30 hover:-translate-y-2">
+          <Card className="group hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-icon-blue/20 to-icon-indigo/20 backdrop-blur-sm border border-icon-blue/30 hover:-translate-y-2 transform-gpu">
             <CardContent className="p-12 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
+              <div className="w-20 h-20 bg-gradient-to-br from-icon-blue to-icon-indigo rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300 shadow-xl">
                 <Award className="h-10 w-10 text-white" />
               </div>
               <h3 className="text-3xl font-semibold mb-6 text-gray-900">Excellence</h3>
@@ -30,9 +30,9 @@ const ExcellenceAuthenticitySection = () => {
             </CardContent>
           </Card>
           
-          <Card className="group hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm border-white/30 hover:-translate-y-2">
+          <Card className="group hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-icon-rose/20 to-icon-purple/20 backdrop-blur-sm border border-icon-rose/30 hover:-translate-y-2 transform-gpu">
             <CardContent className="p-12 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
+              <div className="w-20 h-20 bg-gradient-to-br from-icon-rose to-icon-purple rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300 shadow-xl">
                 <Heart className="h-10 w-10 text-white" />
               </div>
               <h3 className="text-3xl font-semibold mb-6 text-gray-900">Authenticity</h3>
