@@ -22,12 +22,14 @@ function App() {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<PublicLayout><Index /></PublicLayout>} />
-        <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
-        <Route path="/properties" element={<PublicLayout><Properties /></PublicLayout>} />
-        <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
-        <Route path="/blog/:id" element={<PublicLayout><BlogPost /></PublicLayout>} />
-        <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
+        <Route path="/" element={<PublicLayout />}>
+          <Route index element={<Index />} />
+          <Route path="about" element={<About />} />
+          <Route path="properties" element={<Properties />} />
+          <Route path="blog" element={<Blog />} />
+          <Route path="blog/:id" element={<BlogPost />} />
+          <Route path="contact" element={<Contact />} />
+        </Route>
         
         {/* Admin Routes */}
         <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
