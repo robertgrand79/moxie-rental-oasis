@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { BlogPost } from '@/types/blogPost';
@@ -6,18 +7,27 @@ import { toast } from '@/hooks/use-toast';
 
 export type { BlogPost } from '@/types/blogPost';
 
-export const useBlogPosts = () => {
+interface UseBlogPostsOptions {
+  publishedOnly?: boolean;
+}
+
+export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  
+  // Default to publishedOnly=true for unauthenticated users, false for authenticated users
+  const publishedOnly = options.publishedOnly ?? !user;
 
   const fetchBlogPosts = async () => {
+    console.log('🔄 useBlogPosts - fetching with publishedOnly:', publishedOnly);
     setLoading(true);
     try {
-      const posts = await blogPostService.fetchBlogPosts();
+      const posts = await blogPostService.fetchBlogPosts(publishedOnly);
+      console.log('📊 useBlogPosts - received posts:', posts.length);
       setBlogPosts(posts);
     } catch (error) {
-      console.error('Error in fetchBlogPosts:', error);
+      console.error('❌ Error in useBlogPosts fetchBlogPosts:', error);
       setBlogPosts([]);
     } finally {
       setLoading(false);
@@ -60,7 +70,7 @@ export const useBlogPosts = () => {
 
   useEffect(() => {
     fetchBlogPosts();
-  }, []);
+  }, [publishedOnly]); // Re-fetch when publishedOnly changes
 
   return {
     blogPosts,

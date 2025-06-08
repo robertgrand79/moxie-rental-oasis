@@ -1,240 +1,162 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Calendar, User, ArrowLeft, Tag } from 'lucide-react';
+import { blogPostService } from '@/services/blogPostService';
+import { BlogPost as BlogPostType } from '@/types/blogPost';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, User, ArrowLeft, Clock, Globe, MapPin } from 'lucide-react';
-import { useBlogPosts } from '@/hooks/useBlogPosts';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const BlogPost = () => {
-  const { slug } = useParams();
-  const { blogPosts, loading } = useBlogPosts();
+  const { slug } = useParams<{ slug: string }>();
+  const [post, setPost] = useState<BlogPostType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  // Find the post by slug from the database
-  const post = blogPosts.find(p => p.slug === slug && p.status === 'published');
+  useEffect(() => {
+    const fetchPost = async () => {
+      if (!slug) return;
+      
+      console.log('🔍 Fetching blog post by slug:', slug);
+      setLoading(true);
+      setNotFound(false);
+      
+      try {
+        const fetchedPost = await blogPostService.fetchBlogPostBySlug(slug);
+        if (fetchedPost) {
+          setPost(fetchedPost);
+          console.log('✅ Loaded blog post:', fetchedPost.title);
+        } else {
+          setNotFound(true);
+          console.log('❌ Blog post not found');
+        }
+      } catch (error) {
+        console.error('💥 Error fetching blog post:', error);
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getTagColor = (tag: string) => {
-    if (tag === "Robert & Shelly's Travels") {
-      return 'bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border-indigo-200';
-    }
-    switch (tag.toLowerCase()) {
-      case 'travel':
-        return 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 border-blue-200';
-      case 'destinations':
-        return 'bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-700 border-emerald-200';
-      case 'luxury':
-        return 'bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 border-purple-200';
-      case 'tips':
-        return 'bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border-amber-200';
-      case 'vacation rentals':
-        return 'bg-gradient-to-r from-teal-100 to-teal-50 text-teal-700 border-teal-200';
-      case 'sustainability':
-        return 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 border-green-200';
-      case 'eco-tourism':
-        return 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 border-green-200';
-      case 'environment':
-        return 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 border-green-200';
-      default:
-        return 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200';
-    }
-  };
+    fetchPost();
+  }, [slug]);
 
-  const estimateReadingTime = (content: string) => {
-    const wordsPerMinute = 200;
-    const wordCount = content.split(/\s+/).length;
-    const readingTime = Math.ceil(wordCount / wordsPerMinute);
-    return readingTime;
-  };
-
-  const renderContent = (content: string) => {
-    // Enhanced markdown to HTML conversion with better styling
-    return content
-      .replace(/^### (.*$)/gim, '<h3 class="text-2xl font-semibold mt-8 mb-4 text-gray-900">$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2 class="text-3xl font-bold mt-10 mb-6 text-gray-900">$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1 class="text-4xl font-bold mt-12 mb-8 text-gray-900">$1</h1>')
-      .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-semibold text-gray-900">$1</strong>')
-      .replace(/\*(.*?)\*/gim, '<em class="italic text-gray-700">$1</em>')
-      .replace(/^\- (.*$)/gim, '<li class="mb-2 text-gray-700">$1</li>')
-      .replace(/\n\n/gim, '</p><p class="mb-6 text-gray-700 leading-relaxed text-lg">')
-      .replace(/\n/gim, '<br>');
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   if (loading) {
     return (
-      <div className="py-32 relative">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 border border-white/20">
-              <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-                <div className="h-64 bg-gray-200 rounded mb-8"></div>
-                <div className="space-y-4">
-                  <div className="h-4 bg-gray-200 rounded"></div>
-                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                  <div className="h-4 bg-gray-200 rounded w-4/5"></div>
-                </div>
-              </div>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Skeleton className="h-8 w-32 mb-8" />
+          <Skeleton className="h-12 w-full mb-4" />
+          <Skeleton className="h-6 w-96 mb-8" />
+          <Skeleton className="h-64 w-full mb-8" />
+          <div className="space-y-4">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
           </div>
         </div>
       </div>
     );
   }
 
-  if (!post) {
+  if (notFound || !post) {
     return (
-      <div className="py-32 relative">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 border border-white/20">
-              <h1 className="text-4xl font-bold text-gray-900 mb-6">Post Not Found</h1>
-              <div className="w-24 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-8"></div>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                The blog post you're looking for doesn't exist or hasn't been published yet.
-              </p>
-              <Link to="/blog">
-                <Button className="bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-accent-from hover:to-gradient-from text-white border-0">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Blog
-                </Button>
-              </Link>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Post Not Found</h1>
+          <p className="text-xl text-gray-600 mb-8">
+            The blog post you're looking for doesn't exist or has been removed.
+          </p>
+          <Link to="/blog">
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Blog
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
-
-  const readingTime = estimateReadingTime(post.content);
-  const isRobertShellyTravel = post.tags?.includes("Robert & Shelly's Travels");
 
   return (
-    <div className="py-32 relative">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Back Navigation */}
-          <div className="mb-8">
-            <Link 
-              to="/blog" 
-              className="inline-flex items-center px-6 py-3 bg-white/90 backdrop-blur-sm border-2 border-blue-200 rounded-xl text-blue-700 hover:text-blue-800 hover:border-blue-300 hover:bg-blue-50 font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Blog
-            </Link>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <Link to="/blog">
+          <Button variant="outline" className="mb-8 bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Blog
+          </Button>
+        </Link>
+
+        {/* Article Header */}
+        <header className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            {post.title}
+          </h1>
+          
+          <div className="flex items-center text-gray-600 mb-4">
+            <Calendar className="h-4 w-4 mr-1" />
+            <span className="mr-6">{formatDate(post.published_at || post.created_at)}</span>
+            <User className="h-4 w-4 mr-1" />
+            <span>{post.author}</span>
           </div>
 
-          {/* Robert & Shelly's Travel Feature Banner */}
-          {isRobertShellyTravel && (
-            <div className="mb-8">
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center">
-                    <Globe className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-indigo-900">Robert & Shelly's World Adventures</h2>
-                    <p className="text-indigo-700">Follow our hosts' incredible journeys around the globe</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {post.excerpt && (
+            <p className="text-xl text-gray-700 leading-relaxed">
+              {post.excerpt}
+            </p>
           )}
 
-          {/* Main Article */}
-          <article className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 hover:shadow-3xl transition-all duration-300">
-            {/* Featured Image */}
-            {post.image_url && (
-              <div className="aspect-video bg-gray-200 relative overflow-hidden">
-                <img 
-                  src={post.image_url} 
-                  alt={post.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                {isRobertShellyTravel && (
-                  <div className="absolute top-6 left-6">
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
-                      <Globe className="h-4 w-4" />
-                      <span className="font-semibold">World Adventure</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="p-16">
-              {/* Tags */}
-              {post.tags && post.tags.length > 0 && (
-                <div className="flex flex-wrap gap-3 mb-8">
-                  {post.tags.map((tag) => (
-                    <span 
-                      key={tag}
-                      className={`px-4 py-2 text-sm rounded-full border ${getTagColor(tag)} font-medium flex items-center gap-1`}
-                    >
-                      {tag === "Robert & Shelly's Travels" && <Globe className="h-3 w-3" />}
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Title */}
-              <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                {post.title}
-              </h1>
-              
-              {/* Meta Information */}
-              <div className="flex flex-wrap items-center gap-8 text-gray-600 mb-8 pb-8 border-b border-gray-200">
-                <div className="flex items-center">
-                  <User className="h-5 w-5 mr-3 text-icon-blue" />
-                  <span className="font-medium">{post.author}</span>
-                </div>
-                <div className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-3 text-icon-emerald" />
-                  <span>{post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  }) : 'Draft'}</span>
-                </div>
-                <div className="flex items-center">
-                  <Clock className="h-5 w-5 mr-3 text-icon-purple" />
-                  <span>{readingTime} min read</span>
-                </div>
-                {isRobertShellyTravel && (
-                  <div className="flex items-center">
-                    <MapPin className="h-5 w-5 mr-3 text-indigo-600" />
-                    <span className="text-indigo-700 font-medium">Travel Adventure</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Excerpt */}
-              <div className="text-xl text-gray-600 mb-12 leading-relaxed font-medium">
-                {post.excerpt}
-              </div>
-
-              {/* Content */}
-              <div 
-                className="prose prose-lg max-w-none"
-                dangerouslySetInnerHTML={{ 
-                  __html: `<p class="mb-6 text-gray-700 leading-relaxed text-lg">${renderContent(post.content)}</p>` 
-                }}
-              />
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-6">
+              <Tag className="h-4 w-4 text-gray-500 mr-1" />
+              {post.tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="bg-blue-100 text-blue-800">
+                  {tag}
+                </Badge>
+              ))}
             </div>
-          </article>
+          )}
+        </header>
 
-          {/* Navigation */}
-          <div className="mt-12 text-center">
-            <Link to="/blog">
-              <Button 
-                variant="outline" 
-                className="border-2 border-gradient-from text-gradient-from hover:bg-gradient-to-r hover:from-gradient-from hover:to-gradient-accent-from hover:text-white hover:border-transparent transition-all duration-300"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to All Posts
-              </Button>
-            </Link>
+        {/* Featured Image */}
+        {post.image_url && (
+          <div className="mb-8 overflow-hidden rounded-lg shadow-lg">
+            <img
+              src={post.image_url}
+              alt={post.title}
+              className="w-full h-auto object-cover"
+            />
           </div>
+        )}
+
+        {/* Article Content */}
+        <article className="prose prose-lg max-w-none bg-white/70 backdrop-blur-sm rounded-lg p-8 shadow-sm border border-white/50">
+          <div 
+            dangerouslySetInnerHTML={{ __html: post.content }}
+            className="prose-headings:text-gray-900 prose-p:text-gray-800 prose-a:text-blue-600 prose-strong:text-gray-900"
+          />
+        </article>
+
+        {/* Back to Blog Footer */}
+        <div className="mt-12 text-center">
+          <Link to="/blog">
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to All Posts
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

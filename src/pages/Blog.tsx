@@ -1,39 +1,25 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, User, ArrowRight, Search } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Search, Calendar, User, ArrowRight, BookOpen } from 'lucide-react';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
-import { BlogPost } from '@/types/blogPost';
-import NavBar from '@/components/NavBar';
-import Footer from '@/components/Footer';
-import ChatWidget from '@/components/chat/ChatWidget';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 const Blog = () => {
-  const { blogPosts, loading } = useBlogPosts();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { blogPosts, loading } = useBlogPosts({ publishedOnly: true }); // Only show published posts
 
-  // Filter posts based on search term
-  useEffect(() => {
-    if (!blogPosts) return;
-    
-    const publishedPosts = blogPosts.filter(post => post.status === 'published');
-    
-    if (searchTerm.trim() === '') {
-      setFilteredPosts(publishedPosts);
-    } else {
-      const filtered = publishedPosts.filter(post =>
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-      setFilteredPosts(filtered);
-    }
-  }, [blogPosts, searchTerm]);
+  console.log('🎯 Blog page - posts:', blogPosts.length, 'loading:', loading);
+
+  const filteredPosts = blogPosts.filter(post =>
+    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -46,135 +32,137 @@ const Blog = () => {
 
   if (loading) {
     return (
-      <>
-        <NavBar />
-        <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
-          <div className="container mx-auto px-4 py-16">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
-              <div className="animate-pulse space-y-8">
-                <div className="h-12 bg-gray-200 rounded-lg w-1/2 mx-auto"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-80 bg-gray-200 rounded-lg"></div>
-                  ))}
-                </div>
-              </div>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Skeleton className="h-12 w-96 mx-auto mb-4" />
+            <Skeleton className="h-6 w-128 mx-auto" />
+          </div>
+          
+          <div className="mb-8">
+            <Skeleton className="h-12 w-full max-w-md mx-auto" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i} className="overflow-hidden">
+                <Skeleton className="h-48 w-full" />
+                <CardContent className="p-6">
+                  <Skeleton className="h-6 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4 mb-4" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-2/3" />
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <NavBar />
-      <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
-        <div className="container mx-auto px-4 py-16">
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
-            {/* Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                Moxie Travel Blog
-              </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-                Discover the best of Eugene, Oregon through our local insights, travel tips, and property updates.
-              </p>
-              
-              {/* Search */}
-              <div className="max-w-md mx-auto relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  type="text"
-                  placeholder="Search blog posts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full rounded-full border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
+            <BookOpen className="h-10 w-10 text-blue-600" />
+            Our Blog
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Discover Eugene through our eyes. Local insights, travel tips, and stories from the heart of Oregon.
+          </p>
+        </div>
 
-            {/* Blog Posts Grid */}
-            {filteredPosts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredPosts.map((post) => (
-                  <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow group">
-                    {post.image_url && (
-                      <div className="aspect-video overflow-hidden">
-                        <img
-                          src={post.image_url}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
-                    
-                    <CardHeader>
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          {post.published_at ? formatDate(post.published_at) : formatDate(post.created_at)}
-                        </div>
-                        <div className="flex items-center">
-                          <User className="h-4 w-4 mr-1" />
-                          {post.author}
-                        </div>
-                      </div>
-                      
-                      <CardTitle className="text-xl font-semibold line-clamp-2 group-hover:text-blue-600 transition-colors">
-                        {post.title}
-                      </CardTitle>
-                      <CardDescription className="line-clamp-3">
-                        {post.excerpt}
-                      </CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-wrap gap-2">
-                          {post.tags?.slice(0, 2).map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                        
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/blog/${post.slug}`} className="flex items-center">
-                            Read More
-                            <ArrowRight className="h-4 w-4 ml-1" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                  {searchTerm ? 'No posts found' : 'No blog posts available'}
-                </h3>
-                <p className="text-gray-600 mb-8">
-                  {searchTerm 
-                    ? `No posts match your search for "${searchTerm}". Try different keywords.`
-                    : 'We\'re working on some great content. Check back soon!'
-                  }
-                </p>
-                {searchTerm && (
-                  <Button onClick={() => setSearchTerm('')} variant="outline">
-                    Clear Search
-                  </Button>
-                )}
-              </div>
-            )}
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative max-w-md mx-auto">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search blog posts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-white/70 backdrop-blur-sm border-white/50 focus:bg-white"
+            />
           </div>
         </div>
-        <Footer />
+
+        {/* Blog Posts Grid */}
+        {filteredPosts.length === 0 ? (
+          <div className="text-center py-16">
+            <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+              {searchQuery ? 'No posts found' : 'No blog posts yet'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {searchQuery 
+                ? 'Try adjusting your search terms or browse all posts.' 
+                : 'Check back soon for exciting content about Eugene and our vacation rentals!'
+              }
+            </p>
+            {searchQuery && (
+              <Button 
+                variant="outline" 
+                onClick={() => setSearchQuery('')}
+                className="bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white"
+              >
+                Clear Search
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredPosts.map((post) => (
+              <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white">
+                {post.image_url && (
+                  <div className="overflow-hidden">
+                    <img
+                      src={post.image_url}
+                      alt={post.title}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                )}
+                <CardHeader>
+                  <div className="flex items-center text-sm text-gray-500 mb-2">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {formatDate(post.published_at || post.created_at)}
+                    <User className="h-4 w-4 ml-4 mr-1" />
+                    {post.author}
+                  </div>
+                  <CardTitle className="group-hover:text-blue-600 transition-colors line-clamp-2">
+                    {post.title}
+                  </CardTitle>
+                  <CardDescription className="line-clamp-3">
+                    {post.excerpt}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {post.tags.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <Link 
+                    to={`/blog/${post.slug}`}
+                    className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium group-hover:gap-2 transition-all"
+                  >
+                    Read More
+                    <ArrowRight className="h-4 w-4 ml-1 group-hover:ml-2 transition-all" />
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
-      <ChatWidget />
-    </>
+    </div>
   );
 };
 
