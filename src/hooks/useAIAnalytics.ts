@@ -43,7 +43,7 @@ export const useAIAnalytics = () => {
     console.log('Fetching AI analytics...');
     setLoading(true);
     try {
-      // Fetch real content statistics
+      // Fetch real content statistics with error handling
       const { data: contentData, error: contentError } = await supabase
         .from('content_approval_items')
         .select('type, status, created_at, title');
@@ -52,7 +52,7 @@ export const useAIAnalytics = () => {
         console.error('Error fetching content data:', contentError);
       }
 
-      // Fetch real chat statistics
+      // Fetch real chat statistics with error handling
       const { data: chatData, error: chatError } = await supabase
         .from('chat_sessions')
         .select('id, created_at');
@@ -79,7 +79,7 @@ export const useAIAnalytics = () => {
         console.error('Error fetching properties data:', propertiesError);
       }
 
-      // Process the real data
+      // Process the real data with fallbacks
       const allContent = [
         ...(contentData || []),
         ...(blogData || []),
@@ -99,7 +99,7 @@ export const useAIAnalytics = () => {
       // Generate top performing content from real data
       const topPerformingContent = generateTopPerformingContent(allContent);
 
-      setAnalytics({
+      const analyticsData = {
         totalContent,
         aiGeneratedContent,
         chatInteractions,
@@ -108,13 +108,16 @@ export const useAIAnalytics = () => {
         topPerformingContent,
         contentByType,
         monthlyTrends
-      });
+      };
+
+      console.log('Analytics data processed:', analyticsData);
+      setAnalytics(analyticsData);
 
     } catch (error) {
       console.error('Error in fetchAnalytics:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load analytics data.',
+        description: 'Failed to load analytics data. Please try again.',
         variant: 'destructive'
       });
     } finally {
@@ -126,6 +129,7 @@ export const useAIAnalytics = () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     return months.map((month, index) => {
       const monthData = allContent.filter(item => {
+        if (!item.created_at) return false;
         const itemMonth = new Date(item.created_at).getMonth();
         return itemMonth === index;
       });

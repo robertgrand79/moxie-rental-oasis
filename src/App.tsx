@@ -37,6 +37,7 @@ import AdminSiteMetrics from "./pages/admin/AdminSiteMetrics";
 import AdminTaskManagement from "./pages/admin/AdminTaskManagement";
 import AdminWorkOrders from "./pages/admin/AdminWorkOrders";
 import AdminProperties from "./pages/admin/AdminProperties";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
               <Route path="blog-management" element={<BlogManagement />} />
               <Route path="sample-data" element={<SampleDataManagement />} />
               <Route path="properties" element={<AdminProperties />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="events" element={<AdminEvents />} />
               <Route path="lifestyle" element={<AdminLifestyle />} />
               <Route path="testimonials" element={<AdminTestimonials />} />
