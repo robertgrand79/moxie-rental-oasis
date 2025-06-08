@@ -16,7 +16,7 @@ export const navigationItems = [
   { name: 'About', href: '/about', title: 'About', icon: Info },
   { name: 'Experiences', href: '/experiences', title: 'Experiences', icon: Calendar },
   { name: 'Events', href: '/events', title: 'Events', icon: Calendar },
-  { name: 'Blog', href: '/blog', title: 'Blog', icon: BookOpen },
+  { name: 'Blog', href: '/blog', title: 'Moxie Travel Blog', icon: BookOpen },
   { name: 'Admin', href: '/admin', title: 'Admin', icon: Shield },
 ];
 

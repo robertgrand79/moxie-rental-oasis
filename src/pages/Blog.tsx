@@ -1,25 +1,39 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Calendar, User, ArrowRight, BookOpen } from 'lucide-react';
+import { Search, Calendar, User, ArrowRight, BookOpen, Plane, MapPin } from 'lucide-react';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
+import { getTagColor } from '@/utils/blogPostUtils';
 
 const Blog = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { blogPosts, loading } = useBlogPosts({ publishedOnly: true }); // Only show published posts
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const { blogPosts, loading } = useBlogPosts({ publishedOnly: true });
 
   console.log('🎯 Blog page - posts:', blogPosts.length, 'loading:', loading);
 
-  const filteredPosts = blogPosts.filter(post =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredPosts = blogPosts.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesCategory = selectedCategory === 'all' || 
+      (selectedCategory === 'robert-shelly' && post.tags?.includes("Robert & Shelly's Travels")) ||
+      (selectedCategory !== 'robert-shelly' && post.tags?.some(tag => tag.toLowerCase().includes(selectedCategory.toLowerCase())));
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  const robertShellyPosts = blogPosts.filter(post => 
+    post.tags?.includes("Robert & Shelly's Travels")
   );
+
+  const featuredPost = blogPosts.find(post => post.tags?.includes('featured')) || blogPosts[0];
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -30,31 +44,42 @@ const Blog = () => {
     });
   };
 
+  const categories = [
+    { id: 'all', name: 'All Posts', icon: BookOpen },
+    { id: 'robert-shelly', name: "Robert & Shelly's Travels", icon: Plane },
+    { id: 'travel', name: 'Travel Tips', icon: MapPin },
+    { id: 'destinations', name: 'Destinations', icon: MapPin },
+    { id: 'eugene', name: 'Eugene Local', icon: MapPin }
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Skeleton className="h-12 w-96 mx-auto mb-4" />
+            <Skeleton className="h-16 w-96 mx-auto mb-4" />
             <Skeleton className="h-6 w-128 mx-auto" />
           </div>
           
-          <div className="mb-8">
-            <Skeleton className="h-12 w-full max-w-md mx-auto" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <Skeleton className="h-48 w-full" />
-                <CardContent className="p-6">
-                  <Skeleton className="h-6 w-full mb-2" />
-                  <Skeleton className="h-4 w-3/4 mb-4" />
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-2/3" />
-                </CardContent>
-              </Card>
-            ))}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {[1, 2, 3, 4].map((i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <Skeleton className="h-48 w-full" />
+                    <CardContent className="p-6">
+                      <Skeleton className="h-6 w-full mb-2" />
+                      <Skeleton className="h-4 w-3/4 mb-4" />
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-2/3" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+            <div className="lg:col-span-1">
+              <Skeleton className="h-96 w-full" />
+            </div>
           </div>
         </div>
       </div>
@@ -63,104 +88,270 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
-            <BookOpen className="h-10 w-10 text-blue-600" />
-            Our Blog
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 flex items-center justify-center gap-4">
+            <BookOpen className="h-12 w-12 text-blue-600" />
+            Moxie Travel Blog
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Discover Eugene through our eyes. Local insights, travel tips, and stories from the heart of Oregon.
+          <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-8">
+            Your gateway to Eugene adventures, travel insights, and stories from the heart of Oregon. 
+            Discover hidden gems, local favorites, and travel inspiration from our hosts and guests.
           </p>
-        </div>
+          
+          {/* Category Filter */}
+          <div className="flex flex-wrap justify-center gap-3 mb-8">
+            {categories.map((category) => {
+              const IconComponent = category.icon;
+              return (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`flex items-center gap-2 ${
+                    selectedCategory === category.id 
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                      : 'bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white'
+                  }`}
+                >
+                  <IconComponent className="h-4 w-4" />
+                  {category.name}
+                </Button>
+              );
+            })}
+          </div>
 
-        {/* Search Bar */}
-        <div className="mb-8">
-          <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search blog posts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/70 backdrop-blur-sm border-white/50 focus:bg-white"
-            />
+          {/* Search Bar */}
+          <div className="max-w-md mx-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search travel stories..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-white/70 backdrop-blur-sm border-white/50 focus:bg-white"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Blog Posts Grid */}
-        {filteredPosts.length === 0 ? (
-          <div className="text-center py-16">
-            <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-              {searchQuery ? 'No posts found' : 'No blog posts yet'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {searchQuery 
-                ? 'Try adjusting your search terms or browse all posts.' 
-                : 'Check back soon for exciting content about Eugene and our vacation rentals!'
-              }
-            </p>
-            {searchQuery && (
-              <Button 
-                variant="outline" 
-                onClick={() => setSearchQuery('')}
-                className="bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white"
-              >
-                Clear Search
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPosts.map((post) => (
-              <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white">
-                {post.image_url && (
-                  <div className="overflow-hidden">
-                    <img
-                      src={post.image_url}
-                      alt={post.title}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                )}
-                <CardHeader>
-                  <div className="flex items-center text-sm text-gray-500 mb-2">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    {formatDate(post.published_at || post.created_at)}
-                    <User className="h-4 w-4 ml-4 mr-1" />
-                    {post.author}
-                  </div>
-                  <CardTitle className="group-hover:text-blue-600 transition-colors line-clamp-2">
-                    {post.title}
-                  </CardTitle>
-                  <CardDescription className="line-clamp-3">
-                    {post.excerpt}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {post.tags && post.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {post.tags.slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs bg-blue-100 text-blue-800">
-                          {tag}
-                        </Badge>
-                      ))}
+        {/* Robert & Shelly's Featured Section */}
+        {robertShellyPosts.length > 0 && selectedCategory === 'all' && (
+          <div className="mb-16">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
+                <Plane className="h-8 w-8 text-indigo-600" />
+                Robert & Shelly's Travel Adventures
+              </h2>
+              <p className="text-lg text-gray-600">
+                Follow our hosts' personal journeys and discover new destinations through their eyes
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {robertShellyPosts.slice(0, 3).map((post) => (
+                <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200 hover:from-indigo-100 hover:to-purple-100">
+                  {post.image_url && (
+                    <div className="overflow-hidden">
+                      <img
+                        src={post.image_url}
+                        alt={post.title}
+                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
                   )}
-                  <Link 
-                    to={`/blog/${post.slug}`}
-                    className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium group-hover:gap-2 transition-all"
+                  <CardHeader>
+                    <div className="flex items-center text-sm text-indigo-600 mb-2">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      {formatDate(post.published_at || post.created_at)}
+                      <Plane className="h-4 w-4 ml-4 mr-1" />
+                      Travel Adventure
+                    </div>
+                    <CardTitle className="group-hover:text-indigo-600 transition-colors line-clamp-2">
+                      {post.title}
+                    </CardTitle>
+                    <CardDescription className="line-clamp-3">
+                      {post.excerpt}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Link 
+                      to={`/blog/${post.slug}`}
+                      className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium group-hover:gap-2 transition-all"
+                    >
+                      Read Travel Story
+                      <ArrowRight className="h-4 w-4 ml-1 group-hover:ml-2 transition-all" />
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {robertShellyPosts.length > 3 && (
+              <div className="text-center">
+                <Button 
+                  onClick={() => setSelectedCategory('robert-shelly')}
+                  className="bg-indigo-600 hover:bg-indigo-700"
+                >
+                  View All Travel Adventures
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Blog Posts */}
+          <div className="lg:col-span-3">
+            {filteredPosts.length === 0 ? (
+              <div className="text-center py-16">
+                <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                  {searchQuery ? 'No posts found' : 'No blog posts yet'}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {searchQuery 
+                    ? 'Try adjusting your search terms or browse all posts.' 
+                    : 'Check back soon for exciting travel content and Eugene adventures!'
+                  }
+                </p>
+                {searchQuery && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSearchQuery('')}
+                    className="bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white"
                   >
-                    Read More
-                    <ArrowRight className="h-4 w-4 ml-1 group-hover:ml-2 transition-all" />
+                    Clear Search
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {selectedCategory !== 'robert-shelly' && (
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {selectedCategory === 'all' ? 'Latest Posts' : `${categories.find(c => c.id === selectedCategory)?.name} Posts`}
+                  </h2>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {filteredPosts.map((post) => (
+                    <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white">
+                      {post.image_url && (
+                        <div className="overflow-hidden">
+                          <img
+                            src={post.image_url}
+                            alt={post.title}
+                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      )}
+                      <CardHeader>
+                        <div className="flex items-center text-sm text-gray-500 mb-2">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {formatDate(post.published_at || post.created_at)}
+                          <User className="h-4 w-4 ml-4 mr-1" />
+                          {post.author}
+                        </div>
+                        <CardTitle className="group-hover:text-blue-600 transition-colors line-clamp-2">
+                          {post.title}
+                        </CardTitle>
+                        <CardDescription className="line-clamp-3">
+                          {post.excerpt}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {post.tags && post.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {post.tags.slice(0, 3).map((tag) => (
+                              <Badge 
+                                key={tag} 
+                                variant="secondary" 
+                                className={`text-xs transition-colors ${getTagColor(tag)}`}
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        <Link 
+                          to={`/blog/${post.slug}`}
+                          className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium group-hover:gap-2 transition-all"
+                        >
+                          Read More
+                          <ArrowRight className="h-4 w-4 ml-1 group-hover:ml-2 transition-all" />
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-8">
+            {/* Newsletter Signup */}
+            <div className="sticky top-8">
+              <TravelNewsletterSignup />
+            </div>
+
+            {/* Featured Post */}
+            {featuredPost && selectedCategory === 'all' && (
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-lg text-blue-800">Featured Story</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {featuredPost.image_url && (
+                    <img
+                      src={featuredPost.image_url}
+                      alt={featuredPost.title}
+                      className="w-full h-32 object-cover rounded-lg mb-4"
+                    />
+                  )}
+                  <h3 className="font-semibold text-blue-900 mb-2 line-clamp-2">
+                    {featuredPost.title}
+                  </h3>
+                  <p className="text-sm text-blue-700 mb-4 line-clamp-3">
+                    {featuredPost.excerpt}
+                  </p>
+                  <Link 
+                    to={`/blog/${featuredPost.slug}`}
+                    className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center"
+                  >
+                    Read Featured Story
+                    <ArrowRight className="h-3 w-3 ml-1" />
                   </Link>
                 </CardContent>
               </Card>
-            ))}
+            )}
+
+            {/* Quick Links */}
+            <Card className="bg-white/70 backdrop-blur-sm border-white/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Explore Eugene</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Link to="/experiences" className="block text-blue-600 hover:text-blue-800 text-sm">
+                  Local Experiences →
+                </Link>
+                <Link to="/events" className="block text-blue-600 hover:text-blue-800 text-sm">
+                  Upcoming Events →
+                </Link>
+                <Link to="/properties" className="block text-blue-600 hover:text-blue-800 text-sm">
+                  Our Properties →
+                </Link>
+                <Link to="/about" className="block text-blue-600 hover:text-blue-800 text-sm">
+                  About Our Hosts →
+                </Link>
+              </CardContent>
+            </Card>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
