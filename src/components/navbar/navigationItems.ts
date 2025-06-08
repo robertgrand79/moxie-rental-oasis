@@ -22,6 +22,4 @@ export const navigationItems = [
 
 export const adminNavigationItems = [
   { title: 'Back to Site', href: '/', icon: ArrowLeft },
-  { title: 'Properties', href: '/properties', icon: Building2 },
-  { title: 'Settings', href: '/site-settings', icon: Settings },
 ];

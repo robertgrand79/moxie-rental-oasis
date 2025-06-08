@@ -1,21 +1,30 @@
 
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import NavBar from '@/components/NavBar';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 
 const AdminLayout = () => {
-  const location = useLocation();
-
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="flex">
-        <AdminSidebar />
-        <main className="flex-1 p-8">
-          <Outlet />
-        </main>
-      </div>
+      <SidebarProvider>
+        <div className="flex w-full">
+          <AdminSidebar />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+              <SidebarTrigger className="-ml-1" />
+              <div className="mx-auto">
+                <h1 className="text-lg font-semibold">Admin Dashboard</h1>
+              </div>
+            </header>
+            <main className="flex-1 p-8">
+              <Outlet />
+            </main>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
     </div>
   );
 };
