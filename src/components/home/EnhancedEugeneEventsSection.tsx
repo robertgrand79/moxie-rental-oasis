@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +9,7 @@ import { useEugeneEvents } from '@/hooks/useEugeneEvents';
 import { format, parseISO, isAfter, isBefore, addDays } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
+import { useContentAnalytics } from '@/hooks/useContentAnalytics';
 
 const categoryLabels = {
   festival: 'Festival',
@@ -21,15 +21,28 @@ const categoryLabels = {
 
 const EnhancedEugeneEventsSection = () => {
   const { events, isLoading } = useEugeneEvents();
+  const { trackInteraction } = useContentAnalytics();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [timeFilter, setTimeFilter] = useState('upcoming');
   const [showAll, setShowAll] = useState(false);
 
-  // Track event interactions
+  // Track event interactions with enhanced metadata
   const trackEventClick = useMutation({
-    mutationFn: async ({ eventId, actionType }: { eventId: string; actionType: 'view' | 'ticket' | 'website' }) => {
-      console.log(`Tracking ${actionType} for event: ${eventId}`);
+    mutationFn: async ({ event, actionType }: { event: any; actionType: 'view' | 'ticket' | 'website' }) => {
+      return trackInteraction.mutateAsync({
+        content_type: 'event',
+        content_id: event.id,
+        action_type: actionType,
+        metadata: {
+          title: event.title,
+          category: event.category,
+          event_date: event.event_date,
+          is_featured: event.is_featured,
+          has_tickets: !!event.ticket_url,
+          has_website: !!event.website_url
+        }
+      });
     }
   });
 
@@ -99,8 +112,8 @@ const EnhancedEugeneEventsSection = () => {
     return format(startDate, 'MMM d, yyyy');
   };
 
-  const handleEventAction = (eventId: string, actionType: 'view' | 'ticket' | 'website') => {
-    trackEventClick.mutate({ eventId, actionType });
+  const handleEventAction = (event: any, actionType: 'view' | 'ticket' | 'website') => {
+    trackEventClick.mutate({ event, actionType });
   };
 
   if (isLoading) {
@@ -177,7 +190,7 @@ const EnhancedEugeneEventsSection = () => {
             <Card
               key={event.id}
               className="group overflow-hidden hover:shadow-lg transition-all duration-300 bg-white cursor-pointer"
-              onClick={() => handleEventAction(event.id, 'view')}
+              onClick={() => handleEventAction(event, 'view')}
             >
               {event.image_url && (
                 <div className="relative overflow-hidden">
@@ -247,7 +260,7 @@ const EnhancedEugeneEventsSection = () => {
                       size="sm" 
                       className="flex-1" 
                       asChild
-                      onClick={() => handleEventAction(event.id, 'ticket')}
+                      onClick={() => handleEventAction(event, 'ticket')}
                     >
                       <a
                         href={event.ticket_url}
@@ -265,7 +278,7 @@ const EnhancedEugeneEventsSection = () => {
                       variant="outline" 
                       className="flex-1" 
                       asChild
-                      onClick={() => handleEventAction(event.id, 'website')}
+                      onClick={() => handleEventAction(event, 'website')}
                     >
                       <a
                         href={event.website_url}

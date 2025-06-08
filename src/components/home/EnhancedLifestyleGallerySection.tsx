@@ -23,13 +23,21 @@ const EnhancedLifestyleGallerySection = () => {
   const [showAll, setShowAll] = useState(false);
   
   const { galleryItems, isLoading } = useLifestyleGallery();
-  const queryClient = useQueryClient();
+  const { trackInteraction } = useContentAnalytics();
 
-  // Track view mutations
+  // Track view mutations with enhanced metadata
   const trackView = useMutation({
-    mutationFn: async (itemId: string) => {
-      // Track view in analytics (placeholder for future analytics table)
-      console.log(`Tracking view for lifestyle item: ${itemId}`);
+    mutationFn: async (item: any) => {
+      return trackInteraction.mutateAsync({
+        content_type: 'lifestyle',
+        content_id: item.id,
+        action_type: 'view',
+        metadata: {
+          title: item.title,
+          category: item.category,
+          is_featured: item.is_featured
+        }
+      });
     }
   });
 
@@ -68,7 +76,7 @@ const EnhancedLifestyleGallerySection = () => {
   const hasMore = filteredItems.length > 6;
 
   const handleItemClick = (item: any) => {
-    trackView.mutate(item.id);
+    trackView.mutate(item);
   };
 
   if (isLoading) {

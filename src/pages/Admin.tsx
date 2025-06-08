@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import EugeneEventsManager from '@/components/admin/EugeneEventsManager';
 import PointsOfInterestManager from '@/components/admin/PointsOfInterestManager';
 import LifestyleGalleryManager from '@/components/admin/LifestyleGalleryManager';
+import ContentPerformanceDashboard from '@/components/admin/ContentPerformanceDashboard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -35,12 +36,16 @@ const Admin = () => {
           {/* Add Content Stats Dashboard */}
           <ContentStatsDashboard />
 
-          <Tabs defaultValue="events" className="w-full">
+          <Tabs defaultValue="analytics" className="w-full">
             <TabsList>
+              <TabsTrigger value="analytics">Performance Analytics</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
               <TabsTrigger value="poi">Points of Interest</TabsTrigger>
               <TabsTrigger value="lifestyle">Lifestyle Gallery</TabsTrigger>
             </TabsList>
+            <TabsContent value="analytics">
+              <ContentPerformanceDashboard />
+            </TabsContent>
             <TabsContent value="events">
               <EugeneEventsManager />
             </TabsContent>
