@@ -1,22 +1,23 @@
 
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { PropertyFormData } from './types';
 import BasicInfoFields from './BasicInfoFields';
 import PropertySpecsFields from './PropertySpecsFields';
 import AmenitiesField from './AmenitiesField';
+import { PropertyFormData } from './types';
 
 interface PropertyDetailsFormProps {
   form: UseFormReturn<PropertyFormData>;
+  disabled?: boolean;
 }
 
-const PropertyDetailsForm = ({ form }: PropertyDetailsFormProps) => {
+const PropertyDetailsForm = ({ form, disabled = false }: PropertyDetailsFormProps) => {
   return (
-    <>
-      <BasicInfoFields form={form} />
-      <PropertySpecsFields form={form} />
-      <AmenitiesField form={form} />
-    </>
+    <div className="space-y-6">
+      <BasicInfoFields form={form} disabled={disabled} />
+      <PropertySpecsFields form={form} disabled={disabled} />
+      <AmenitiesField form={form} disabled={disabled} />
+    </div>
   );
 };
 

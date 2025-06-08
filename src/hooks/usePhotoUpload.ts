@@ -5,16 +5,21 @@ import { useToast } from '@/hooks/use-toast';
 
 export const usePhotoUpload = () => {
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
 
   const uploadPhotos = async (files: File[], propertyId: string): Promise<string[]> => {
     setUploading(true);
+    setUploadProgress(0);
     const uploadedUrls: string[] = [];
 
     try {
-      for (const file of files) {
+      console.log('Starting parallel upload of', files.length, 'files for property:', propertyId);
+      
+      // Upload files in parallel for better performance
+      const uploadPromises = files.map(async (file, index) => {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const fileName = `${propertyId}/${Date.now()}-${index}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
         console.log('Uploading file:', fileName);
 
@@ -26,13 +31,8 @@ export const usePhotoUpload = () => {
           });
 
         if (error) {
-          console.error('Upload error:', error);
-          toast({
-            title: "Upload Failed",
-            description: `Failed to upload ${file.name}: ${error.message}`,
-            variant: "destructive",
-          });
-          continue;
+          console.error('Upload error for file:', file.name, error);
+          throw new Error(`Failed to upload ${file.name}: ${error.message}`);
         }
 
         // Get the public URL
@@ -41,27 +41,32 @@ export const usePhotoUpload = () => {
           .getPublicUrl(data.path);
 
         console.log('Photo uploaded successfully:', publicUrl);
-        uploadedUrls.push(publicUrl);
-      }
+        return publicUrl;
+      });
 
-      if (uploadedUrls.length > 0) {
-        toast({
-          title: "Photos Uploaded",
-          description: `Successfully uploaded ${uploadedUrls.length} photo(s).`,
-        });
-      }
+      // Wait for all uploads to complete
+      const results = await Promise.all(uploadPromises);
+      uploadedUrls.push(...results);
+
+      setUploadProgress(100);
+      
+      toast({
+        title: "Photos Uploaded",
+        description: `Successfully uploaded ${uploadedUrls.length} photo(s).`,
+      });
 
       return uploadedUrls;
     } catch (error) {
       console.error('Upload error:', error);
       toast({
         title: "Upload Error",
-        description: "An error occurred while uploading photos.",
+        description: error instanceof Error ? error.message : "An error occurred while uploading photos.",
         variant: "destructive",
       });
       return [];
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -92,6 +97,7 @@ export const usePhotoUpload = () => {
   return {
     uploadPhotos,
     deletePhoto,
-    uploading
+    uploading,
+    uploadProgress
   };
 };

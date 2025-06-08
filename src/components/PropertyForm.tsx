@@ -12,6 +12,8 @@ import PropertyDetailsForm from './PropertyForm/PropertyDetailsForm';
 import BookingIntegrationSection from './PropertyForm/BookingIntegrationSection';
 import PropertyAIGenerator from './PropertyAIGenerator';
 import { PropertyFormData } from './PropertyForm/types';
+import { usePhotoUpload } from '@/hooks/usePhotoUpload';
+import { Loader2 } from 'lucide-react';
 
 const propertySchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -30,11 +32,13 @@ interface PropertyFormProps {
   onCancel: () => void;
   initialData?: Partial<Property>;
   isEditing?: boolean;
+  isSubmitting?: boolean;
 }
 
-const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false }: PropertyFormProps) => {
+const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSubmitting = false }: PropertyFormProps) => {
   const [photos, setPhotos] = useState<File[]>([]);
   const [selectedCoverIndex, setSelectedCoverIndex] = useState<number>(0);
+  const { uploading } = usePhotoUpload();
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -52,6 +56,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false }: Pr
   });
 
   const handleSubmit = (data: PropertyFormData) => {
+    if (isSubmitting) return; // Prevent multiple submissions
     onSubmit({ ...data, photos, selectedCoverIndex });
   };
 
@@ -60,6 +65,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false }: Pr
   };
 
   const currentFormValues = form.watch();
+  const isProcessing = isSubmitting || uploading;
 
   return (
     <div className="space-y-6">
@@ -85,17 +91,43 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false }: Pr
                 existingImages={initialData?.images || []}
                 selectedCoverIndex={selectedCoverIndex}
                 onCoverSelect={setSelectedCoverIndex}
+                disabled={isProcessing}
               />
 
-              <PropertyDetailsForm form={form} />
+              <PropertyDetailsForm form={form} disabled={isProcessing} />
 
-              <BookingIntegrationSection form={form} />
+              <BookingIntegrationSection form={form} disabled={isProcessing} />
+
+              {isProcessing && (
+                <div className="flex items-center justify-center p-4 bg-muted rounded-lg">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span className="text-sm text-muted-foreground">
+                    {uploading ? 'Uploading photos...' : 'Saving property...'}
+                  </span>
+                </div>
+              )}
 
               <div className="flex gap-4 pt-6">
-                <Button type="submit" className="flex-1">
-                  {isEditing ? 'Update Property' : 'Save Property'}
+                <Button 
+                  type="submit" 
+                  className="flex-1"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      {uploading ? 'Uploading...' : 'Saving...'}
+                    </>
+                  ) : (
+                    isEditing ? 'Update Property' : 'Save Property'
+                  )}
                 </Button>
-                <Button type="button" variant="outline" onClick={onCancel}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={onCancel}
+                  disabled={isProcessing}
+                >
                   Cancel
                 </Button>
               </div>

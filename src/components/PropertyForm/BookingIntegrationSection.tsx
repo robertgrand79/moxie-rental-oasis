@@ -7,9 +7,10 @@ import { PropertyFormData } from './types';
 
 interface BookingIntegrationSectionProps {
   form: UseFormReturn<PropertyFormData>;
+  disabled?: boolean;
 }
 
-const BookingIntegrationSection = ({ form }: BookingIntegrationSectionProps) => {
+const BookingIntegrationSection = ({ form, disabled = false }: BookingIntegrationSectionProps) => {
   const hospitableBookingUrl = form.watch('hospitableBookingUrl');
   const hasValidUrl = hospitableBookingUrl && hospitableBookingUrl.trim() !== '';
 
@@ -25,6 +26,7 @@ const BookingIntegrationSection = ({ form }: BookingIntegrationSectionProps) => 
             <FormControl>
               <Input 
                 placeholder="https://booking.hospitable.com/widget/your-widget-id/property-id"
+                disabled={disabled}
                 {...field} 
               />
             </FormControl>
