@@ -13,15 +13,15 @@ import Footer from '@/components/Footer';
 import ChatWidget from '@/components/chat/ChatWidget';
 
 const Blog = () => {
-  const { posts, isLoading } = useBlogPosts();
+  const { blogPosts, loading } = useBlogPosts();
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
 
   // Filter posts based on search term
   useEffect(() => {
-    if (!posts) return;
+    if (!blogPosts) return;
     
-    const publishedPosts = posts.filter(post => post.status === 'published');
+    const publishedPosts = blogPosts.filter(post => post.status === 'published');
     
     if (searchTerm.trim() === '') {
       setFilteredPosts(publishedPosts);
@@ -33,7 +33,7 @@ const Blog = () => {
       );
       setFilteredPosts(filtered);
     }
-  }, [posts, searchTerm]);
+  }, [blogPosts, searchTerm]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -44,7 +44,7 @@ const Blog = () => {
     });
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <>
         <NavBar />
