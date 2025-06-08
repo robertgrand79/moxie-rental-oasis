@@ -138,7 +138,11 @@ export const useWorkOrderManagement = () => {
 
       const { data, error } = await supabase
         .from('work_orders')
-        .insert([{ ...workOrderData, created_by: user.id }])
+        .insert([{ 
+          ...workOrderData, 
+          created_by: user.id,
+          work_order_number: '' // This will trigger auto-generation via database trigger
+        }])
         .select(`
           *,
           contractor:contractors(*),
