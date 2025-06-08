@@ -8,11 +8,12 @@ import EventsFilters from '@/components/events/EventsFilters';
 import EventsGrid from '@/components/events/EventsGrid';
 import EventsEmptyState from '@/components/events/EventsEmptyState';
 import EventsLoadingState from '@/components/events/EventsLoadingState';
+import ChatWidget from '@/components/chat/ChatWidget';
 
 const Events = () => {
   const { events, isLoading } = useEugeneEvents();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [timeFilter, setTimeFilter] = useState<string>('upcoming');
+  const [timeFilter, setTimeFilter] = useState<string>('all'); // Changed from 'upcoming' to 'all'
 
   // Filter events based on selected criteria
   const filteredEvents = events.filter(event => {
@@ -73,6 +74,7 @@ const Events = () => {
         </div>
         <Footer />
       </div>
+      <ChatWidget />
     </>
   );
 };

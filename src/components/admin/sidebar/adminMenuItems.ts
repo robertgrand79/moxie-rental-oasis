@@ -15,7 +15,8 @@ import {
   Wrench,
   CheckSquare,
   Kanban,
-  ClipboardList
+  ClipboardList,
+  Building2
 } from 'lucide-react';
 
 export const coreMenuItems = [
@@ -24,6 +25,12 @@ export const coreMenuItems = [
     url: '/admin',
     icon: Home,
     color: 'text-blue-600',
+  },
+  {
+    title: 'Properties',
+    url: '/admin/properties',
+    icon: Building2,
+    color: 'text-green-600',
   },
   {
     title: 'Task Management',
@@ -36,12 +43,6 @@ export const coreMenuItems = [
     url: '/admin/work-orders',
     icon: ClipboardList,
     color: 'text-orange-600',
-  },
-  {
-    title: 'Properties',
-    url: '/admin/properties',
-    icon: Home,
-    color: 'text-green-600',
   },
   {
     title: 'Analytics',
