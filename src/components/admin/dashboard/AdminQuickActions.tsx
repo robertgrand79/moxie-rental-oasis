@@ -16,13 +16,13 @@ const AdminQuickActions = () => {
       </CardHeader>
       <CardContent className="space-y-3">
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/properties">
+          <Link to="/admin/properties">
             <Building2 className="h-4 w-4 mr-2" />
             Add New Property
           </Link>
         </Button>
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/blog-management">
+          <Link to="/admin/blog-management">
             <BookOpen className="h-4 w-4 mr-2" />
             Write Blog Post
           </Link>
@@ -34,7 +34,7 @@ const AdminQuickActions = () => {
           </Link>
         </Button>
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/site-settings">
+          <Link to="/admin/settings">
             <Settings className="h-4 w-4 mr-2" />
             Update Site Settings
           </Link>
