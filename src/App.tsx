@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
-import PublicLayout from '@/layouts/PublicLayout';
-import AdminLayoutWrapper from '@/layouts/AdminLayoutWrapper';
+import PublicLayout from '@/components/layouts/PublicLayout';
+import AdminLayoutWrapper from '@/components/layouts/AdminLayoutWrapper';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Home from '@/pages/Home';
 import About from '@/pages/About';

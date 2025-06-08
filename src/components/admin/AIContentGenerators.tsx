@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,9 +53,6 @@ const AIContentGenerators = () => {
     'outdoor', 'dining', 'entertainment', 'culture', 'shopping', 
     'recreation', 'nature', 'sports', 'adventure', 'relaxation'
   ];
-
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
   const quickTemplates = {
     poi: [
@@ -214,15 +212,18 @@ const AIContentGenerators = () => {
 
       <Tabs defaultValue="poi" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <MapPin className="h-4 w-4 mr-2" />
+          <TabsTrigger value="poi">
+            <MapPin className="h-4 w-4 mr-2" />
             Points of Interest
-          
-          <Calendar className="h-4 w-4 mr-2" />
+          </TabsTrigger>
+          <TabsTrigger value="events">
+            <Calendar className="h-4 w-4 mr-2" />
             Events
-          
-          <Camera className="h-4 w-4 mr-2" />
+          </TabsTrigger>
+          <TabsTrigger value="lifestyle">
+            <Camera className="h-4 w-4 mr-2" />
             Lifestyle
-          
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="poi">
@@ -259,69 +260,63 @@ const AIContentGenerators = () => {
                 </CardContent>
               </Card>
 
-              
-                
-                  Description Prompt
-                  
-                  
-                    e.g., Generate family-friendly restaurants with outdoor seating
-                    
-                  
-                
-                
-                  
-                    
-                      Category
-                      
-                      
-                        
-                          
-                        
-                        
-                          {poiCategories.map((cat) => (
-                            
-                              {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                            
-                          ))}
-                        
-                      
-                    
-                  
-                  
-                    
-                      Number to Generate
-                      
-                      
-                        
-                      
-                    
-                  
-                
-                
-                  
-                    
-                      
-                        
-                          
-                            
-                              
-                            
-                            Generating...
-                          
-                        
-                      
-                      
-                        
-                          
-                            
-                          
-                          Generate POI Content
-                        
-                      
-                    
-                  
-                
-              
+              <div>
+                <Label htmlFor="poi-prompt">Description Prompt</Label>
+                <Textarea
+                  id="poi-prompt"
+                  value={poiPrompt}
+                  onChange={(e) => setPoiPrompt(e.target.value)}
+                  placeholder="e.g., Generate family-friendly restaurants with outdoor seating"
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="poi-category">Category</Label>
+                  <Select value={poiCategory} onValueChange={setPoiCategory}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {poiCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="poi-count">Number to Generate</Label>
+                  <Input
+                    id="poi-count"
+                    type="number"
+                    value={poiCount}
+                    onChange={(e) => setPoiCount(Number(e.target.value))}
+                    min={1}
+                    max={10}
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => generateAIContent('poi', poiPrompt, poiCategory, poiCount)}
+                  disabled={isGenerating || !poiPrompt.trim()}
+                  className="flex-1"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="h-4 w-4 mr-2" />
+                      Generate POI Content
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -360,69 +355,63 @@ const AIContentGenerators = () => {
                 </CardContent>
               </Card>
 
-              
-                
-                  Description Prompt
-                  
-                  
-                    e.g., Generate summer outdoor festivals in Eugene
-                    
-                  
-                
-                
-                  
-                    
-                      Category
-                      
-                      
-                        
-                          
-                        
-                        
-                          {eventCategories.map((cat) => (
-                            
-                              {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                            
-                          ))}
-                        
-                      
-                    
-                  
-                  
-                    
-                      Number to Generate
-                      
-                      
-                        
-                      
-                    
-                  
-                
-                
-                  
-                    
-                      
-                        
-                          
-                            
-                              
-                            
-                            Generating...
-                          
-                        
-                      
-                      
-                        
-                          
-                            
-                          
-                          Generate Events
-                        
-                      
-                    
-                  
-                
-              
+              <div>
+                <Label htmlFor="events-prompt">Description Prompt</Label>
+                <Textarea
+                  id="events-prompt"
+                  value={eventsPrompt}
+                  onChange={(e) => setEventsPrompt(e.target.value)}
+                  placeholder="e.g., Generate summer outdoor festivals in Eugene"
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="events-category">Category</Label>
+                  <Select value={eventsCategory} onValueChange={setEventsCategory}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eventCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="events-count">Number to Generate</Label>
+                  <Input
+                    id="events-count"
+                    type="number"
+                    value={eventsCount}
+                    onChange={(e) => setEventsCount(Number(e.target.value))}
+                    min={1}
+                    max={10}
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => generateAIContent('events', eventsPrompt, eventsCategory, eventsCount)}
+                  disabled={isGenerating || !eventsPrompt.trim()}
+                  className="flex-1"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Generate Events
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -461,69 +450,63 @@ const AIContentGenerators = () => {
                 </CardContent>
               </Card>
 
-              
-                
-                  Description Prompt
-                  
-                  
-                    e.g., Generate outdoor hiking and nature activities around Eugene
-                    
-                  
-                
-                
-                  
-                    
-                      Category
-                      
-                      
-                        
-                          
-                        
-                        
-                          {lifestyleCategories.map((cat) => (
-                            
-                              {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                            
-                          ))}
-                        
-                      
-                    
-                  
-                  
-                    
-                      Number to Generate
-                      
-                      
-                        
-                      
-                    
-                  
-                
-                
-                  
-                    
-                      
-                        
-                          
-                            
-                              
-                            
-                            Generating...
-                          
-                        
-                      
-                      
-                        
-                          
-                            
-                          
-                          Generate Lifestyle Content
-                        
-                      
-                    
-                  
-                
-              
+              <div>
+                <Label htmlFor="lifestyle-prompt">Description Prompt</Label>
+                <Textarea
+                  id="lifestyle-prompt"
+                  value={lifestylePrompt}
+                  onChange={(e) => setLifestylePrompt(e.target.value)}
+                  placeholder="e.g., Generate outdoor hiking and nature activities around Eugene"
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="lifestyle-category">Category</Label>
+                  <Select value={lifestyleCategory} onValueChange={setLifestyleCategory}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {lifestyleCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="lifestyle-count">Number to Generate</Label>
+                  <Input
+                    id="lifestyle-count"
+                    type="number"
+                    value={lifestyleCount}
+                    onChange={(e) => setLifestyleCount(Number(e.target.value))}
+                    min={1}
+                    max={10}
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => generateAIContent('lifestyle', lifestylePrompt, lifestyleCategory, lifestyleCount)}
+                  disabled={isGenerating || !lifestylePrompt.trim()}
+                  className="flex-1"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="h-4 w-4 mr-2" />
+                      Generate Lifestyle Content
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -542,37 +525,40 @@ const AIContentGenerators = () => {
             <div className="space-y-4">
               {generatedContent.map((item) => (
                 <div key={item.id} className="border rounded-lg p-4 space-y-3">
-                  
-                    
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">
                       {item.content.name || item.content.title}
-                    
-                    
-                      
+                    </h4>
+                    <div className="flex space-x-2">
+                      <Badge variant="outline">
                         {item.content.type}
-                      
-                      
+                      </Badge>
+                      <Badge variant="secondary">
                         {item.content.category}
-                      
-                    
-                  
+                      </Badge>
+                    </div>
+                  </div>
                   {item.content.description && (
-                    
+                    <p className="text-sm text-gray-600">
                       {item.content.description}
-                    
+                    </p>
                   )}
-                  
-                    
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeContent(item.id)}
+                    >
                       Remove
-                    
-                    
-                      
-                        
-                          
-                        
-                        Approve & Save
-                      
-                    
-                  
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => approveAndSave(item)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Approve & Save
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
