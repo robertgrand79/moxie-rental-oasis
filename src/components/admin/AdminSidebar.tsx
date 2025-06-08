@@ -183,7 +183,7 @@ const AdminSidebar = () => {
     <Sidebar>
       <SidebarHeader>
         <div className="p-4">
-          <h2 className="text-xl font-bold text-gray-900">Admin Panel</h2>
+          <h2 className="text-xl font-bold text-gray-900">Moxie Command</h2>
         </div>
       </SidebarHeader>
       <SidebarContent>

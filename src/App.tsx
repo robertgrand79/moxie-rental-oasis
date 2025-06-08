@@ -24,6 +24,7 @@ import Properties from './pages/Properties';
 import PageManagement from './pages/PageManagement';
 import BlogManagement from './pages/BlogManagement';
 import AdminSiteSettings from './pages/admin/AdminSiteSettings';
+import SiteSettings from './pages/SiteSettings';
 import AdminProfile from './pages/AdminProfile';
 import SampleDataManagement from './pages/SampleDataManagement';
 import AIAnalyticsDashboard from '@/components/admin/AIAnalyticsDashboard';
@@ -83,6 +84,7 @@ const App = () => {
               <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
               <Route path="/page-management" element={<ProtectedRoute><PageManagement /></ProtectedRoute>} />
               <Route path="/blog-management" element={<ProtectedRoute><BlogManagement /></ProtectedRoute>} />
+              <Route path="/site-settings" element={<ProtectedRoute><SiteSettings /></ProtectedRoute>} />
               
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
