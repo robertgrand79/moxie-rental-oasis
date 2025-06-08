@@ -1,11 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Palette, Type, Image, Wand2, BarChart3 } from 'lucide-react';
+import { Settings, Palette, BarChart3, Wand2, Code, FileText, Search } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import BasicSettingsTab from '@/components/admin/settings/BasicSettingsTab';
@@ -14,10 +12,13 @@ import DesignBrandingTab from '@/components/admin/settings/DesignBrandingTab';
 import SEOAnalyticsTab from '@/components/admin/settings/SEOAnalyticsTab';
 import AIToolsTab from '@/components/admin/settings/AIToolsTab';
 import AdvancedSettingsTab from '@/components/admin/settings/AdvancedSettingsTab';
+import { Input } from '@/components/ui/input';
 
 const AdminSiteSettings = () => {
   const { settings, loading, updateSetting, getSetting } = useSiteSettings();
   const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('basic');
 
   const [siteData, setSiteData] = useState({
     siteName: 'Moxie Vacation Rentals',
@@ -106,6 +107,20 @@ const AdminSiteSettings = () => {
     }
   }, [loading, settings, getSetting]);
 
+  const tabs = [
+    { id: 'basic', label: 'Basic Setup', icon: Settings, description: 'Essential site information' },
+    { id: 'content', label: 'Content & Media', icon: FileText, description: 'Manage your content' },
+    { id: 'design', label: 'Design & Branding', icon: Palette, description: 'Visual customization' },
+    { id: 'seo', label: 'SEO & Analytics', icon: BarChart3, description: 'Optimization & tracking' },
+    { id: 'ai', label: 'AI Tools', icon: Wand2, description: 'AI-powered features' },
+    { id: 'advanced', label: 'Advanced', icon: Code, description: 'Custom code & scripts' }
+  ];
+
+  const filteredTabs = tabs.filter(tab => 
+    tab.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tab.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return (
       <AdminPageWrapper 
@@ -133,33 +148,39 @@ const AdminSiteSettings = () => {
         </Badge>
       }
     >
-      <div className="p-8">
-        <Tabs defaultValue="basic" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-6 bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-lg">
-            <TabsTrigger value="basic" className="flex items-center space-x-2 rounded-xl">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Basic</span>
-            </TabsTrigger>
-            <TabsTrigger value="content" className="flex items-center space-x-2 rounded-xl">
-              <Image className="h-4 w-4" />
-              <span className="hidden sm:inline">Content</span>
-            </TabsTrigger>
-            <TabsTrigger value="design" className="flex items-center space-x-2 rounded-xl">
-              <Palette className="h-4 w-4" />
-              <span className="hidden sm:inline">Design</span>
-            </TabsTrigger>
-            <TabsTrigger value="seo" className="flex items-center space-x-2 rounded-xl">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">SEO</span>
-            </TabsTrigger>
-            <TabsTrigger value="ai" className="flex items-center space-x-2 rounded-xl">
-              <Wand2 className="h-4 w-4" />
-              <span className="hidden sm:inline">AI Tools</span>
-            </TabsTrigger>
-            <TabsTrigger value="advanced" className="flex items-center space-x-2 rounded-xl">
-              <Type className="h-4 w-4" />
-              <span className="hidden sm:inline">Advanced</span>
-            </TabsTrigger>
+      <div className="p-6 max-w-6xl mx-auto">
+        {/* Search and Quick Access */}
+        <div className="mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search settings..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 max-w-md"
+            />
+          </div>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-lg">
+            {filteredTabs.map((tab) => {
+              const IconComponent = tab.icon;
+              return (
+                <TabsTrigger 
+                  key={tab.id}
+                  value={tab.id} 
+                  className="flex flex-col items-center space-y-1 rounded-xl p-4 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+                >
+                  <IconComponent className="h-4 w-4" />
+                  <div className="text-center">
+                    <div className="text-xs font-medium">{tab.label}</div>
+                    <div className="text-xs opacity-70 hidden lg:block">{tab.description}</div>
+                  </div>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
 
           <TabsContent value="basic" className="space-y-6">
