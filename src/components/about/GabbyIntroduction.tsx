@@ -15,7 +15,7 @@ const GabbyIntroduction = () => {
             <div className="absolute -inset-2 bg-gradient-to-r from-gradient-from/30 to-gradient-accent-from/30 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
             <div className="relative">
               <img 
-                src="/lovable-uploads/e7ccb595-827a-4d3f-bd2e-6177ed527894.png"
+                src="/lovable-uploads/8d88b689-dbb7-492d-bce6-e3486c88b504.png"
                 alt="Gabby with her son Theo"
                 className="rounded-2xl shadow-xl w-full h-auto object-cover"
               />
