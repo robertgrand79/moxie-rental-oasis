@@ -5,11 +5,32 @@ import PropertyMap from '@/components/PropertyMap';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import Footer from '@/components/Footer';
 import NavBar from '@/components/NavBar';
-import { MapPin } from 'lucide-react';
+import { MapPin, Headphones, Calendar } from 'lucide-react';
 import { useProperties } from '@/hooks/useProperties';
 
 const Listings = () => {
   const { properties } = useProperties();
+
+  const features = [
+    {
+      icon: MapPin,
+      title: "Premium Locations",
+      description: "Handpicked properties in Eugene and the most desirable Pacific Northwest vacation destinations.",
+      color: "text-icon-emerald"
+    },
+    {
+      icon: Headphones,
+      title: "24/7 Support",
+      description: "Our dedicated team is here to help you every step of the way with exceptional service.",
+      color: "text-icon-blue"
+    },
+    {
+      icon: Calendar,
+      title: "Easy Booking",
+      description: "Simple and secure booking process with instant confirmation and seamless experience.",
+      color: "text-icon-purple"
+    }
+  ];
 
   return (
     <>
@@ -41,26 +62,29 @@ const Listings = () => {
             <PropertyMap properties={properties} />
           </div>
 
-          {/* Features Section */}
+          {/* Enhanced Features Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:shadow-2xl transition-shadow">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Premium Locations</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Handpicked properties in Eugene and the most desirable Pacific Northwest vacation destinations.
-              </p>
-            </div>
-            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:shadow-2xl transition-shadow">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">24/7 Support</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Our dedicated team is here to help you every step of the way with exceptional service.
-              </p>
-            </div>
-            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:shadow-2xl transition-shadow">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Easy Booking</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Simple and secure booking process with instant confirmation and seamless experience.
-              </p>
-            </div>
+            {features.map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <div key={index} className="group">
+                  <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300">
+                    {/* Icon Container */}
+                    <div className="w-16 h-16 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                      <IconComponent className={`h-8 w-8 ${feature.color} transition-colors duration-300`} />
+                    </div>
+                    
+                    {/* Content */}
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-primary transition-colors duration-300">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed text-lg group-hover:text-gray-700 transition-colors duration-300">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
         <Footer />
