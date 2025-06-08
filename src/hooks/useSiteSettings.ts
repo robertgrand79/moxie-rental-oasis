@@ -61,6 +61,36 @@ export const useSiteSettings = () => {
     }
   };
 
+  const createDefaultSettingsIfMissing = async () => {
+    if (!user) return;
+    
+    console.log('🔧 Checking for missing default settings...');
+    
+    const defaultSettings = [
+      { key: 'siteName', value: 'Moxie Vacation Rentals' },
+      { key: 'tagline', value: 'Your perfect getaway is just a click away.' },
+      { key: 'description', value: 'Discover amazing vacation rental properties in prime locations.' },
+      { key: 'heroTitle', value: 'Your Home Away From Home' },
+      { key: 'heroSubtitle', value: 'in Eugene' },
+      { key: 'heroDescription', value: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.' },
+      { key: 'heroBackgroundImage', value: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80' },
+      { key: 'heroLocationText', value: 'Eugene, Oregon' },
+      { key: 'heroRating', value: '4.9' },
+      { key: 'heroCTAText', value: 'View Properties' },
+      { key: 'contactEmail', value: 'contact@moxievacationrentals.com' },
+      { key: 'phone', value: '+1 (555) 123-4567' },
+      { key: 'address', value: '123 Vacation St, Resort City, RC 12345' },
+      { key: 'socialMedia', value: { facebook: '', instagram: '', twitter: '', googlePlaces: '' } }
+    ];
+
+    for (const defaultSetting of defaultSettings) {
+      if (!settings[defaultSetting.key]) {
+        console.log(`🆕 Creating missing setting: ${defaultSetting.key}`);
+        await updateSetting(defaultSetting.key, defaultSetting.value);
+      }
+    }
+  };
+
   const updateSetting = async (key: string, value: any): Promise<boolean> => {
     console.log('💾 Updating setting:', key, 'with value:', value);
     console.log('👤 Current user for update:', user?.id);
@@ -172,7 +202,10 @@ export const useSiteSettings = () => {
   useEffect(() => {
     console.log('🚀 useSiteSettings useEffect triggered, user:', user?.id);
     if (user) {
-      fetchSettings();
+      fetchSettings().then(() => {
+        // After fetching, create any missing default settings
+        createDefaultSettingsIfMissing();
+      });
     } else {
       console.log('⏳ No user yet, waiting...');
       setLoading(false);

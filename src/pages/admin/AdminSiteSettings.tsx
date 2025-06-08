@@ -29,7 +29,8 @@ const AdminSiteSettings = () => {
     analyticsData,
     setAnalyticsData,
     updateSetting,
-    loading
+    loading,
+    isUserEditing
   } = useSettingsData();
 
   const filteredTabs = tabs.filter(tab => 
@@ -54,6 +55,7 @@ const AdminSiteSettings = () => {
               siteData={siteData}
               setSiteData={setSiteData}
               updateSetting={updateSetting}
+              isUserEditing={isUserEditing}
             />
           </TabsContent>
 

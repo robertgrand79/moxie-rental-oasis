@@ -1,6 +1,5 @@
 
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface UseBasicSettingsSaveProps {
   siteData: any;
@@ -9,16 +8,38 @@ interface UseBasicSettingsSaveProps {
 
 export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettingsSaveProps) => {
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const handleSaveBasicSettings = async () => {
-    console.log('💾 Saving basic settings...');
-    
-    if (!user) {
+    console.log('💾 Saving basic settings:', { 
+      siteName: siteData.siteName, 
+      tagline: siteData.tagline, 
+      description: siteData.description 
+    });
+
+    // Validate required fields
+    if (!siteData.siteName?.trim()) {
       toast({
-        title: "Authentication Error",
-        description: "You must be logged in to save settings.",
-        variant: "destructive"
+        title: 'Validation Error',
+        description: 'Site name is required.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!siteData.tagline?.trim()) {
+      toast({
+        title: 'Validation Error', 
+        description: 'Tagline is required.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!siteData.description?.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Site description is required.',
+        variant: 'destructive'
       });
       return;
     }
@@ -26,51 +47,66 @@ export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettin
     const settingsToSave = [
       { key: 'siteName', value: siteData.siteName },
       { key: 'tagline', value: siteData.tagline },
-      { key: 'description', value: siteData.description },
+      { key: 'description', value: siteData.description }
     ];
 
-    console.log('📝 Settings to save:', settingsToSave);
-
-    let allSuccessful = true;
-    const failedSettings: string[] = [];
+    let successCount = 0;
+    let failureCount = 0;
 
     for (const setting of settingsToSave) {
-      console.log('💾 Saving setting:', setting);
-      try {
-        const success = await updateSetting(setting.key, setting.value);
-        if (!success) {
-          allSuccessful = false;
-          failedSettings.push(setting.key);
-        }
-      } catch (error) {
-        console.error('❌ Error saving setting:', setting.key, error);
-        allSuccessful = false;
-        failedSettings.push(setting.key);
+      console.log(`🔄 Saving ${setting.key}:`, setting.value);
+      const success = await updateSetting(setting.key, setting.value);
+      if (success) {
+        successCount++;
+        console.log(`✅ Successfully saved ${setting.key}`);
+      } else {
+        failureCount++;
+        console.error(`❌ Failed to save ${setting.key}`);
       }
     }
 
-    if (allSuccessful) {
+    if (successCount === settingsToSave.length) {
       toast({
-        title: "Success!",
-        description: "Your basic settings have been saved successfully.",
+        title: "Settings Saved",
+        description: "Basic site information has been successfully updated.",
+      });
+    } else if (successCount > 0) {
+      toast({
+        title: "Partially Saved",
+        description: `${successCount} of ${settingsToSave.length} settings saved. ${failureCount} failed.`,
+        variant: 'destructive'
       });
     } else {
       toast({
-        title: "Partial Save Error",
-        description: `Failed to save: ${failedSettings.join(', ')}. Please try again.`,
-        variant: "destructive"
+        title: "Save Failed",
+        description: "Failed to save basic settings. Please try again.",
+        variant: 'destructive'
       });
     }
   };
 
   const handleSaveHeroSettings = async () => {
-    console.log('🦸 Saving hero settings...');
-    
-    if (!user) {
+    console.log('💾 Saving hero settings:', { 
+      heroTitle: siteData.heroTitle, 
+      heroSubtitle: siteData.heroSubtitle, 
+      heroDescription: siteData.heroDescription 
+    });
+
+    // Validate required fields
+    if (!siteData.heroTitle?.trim()) {
       toast({
-        title: "Authentication Error",
-        description: "You must be logged in to save settings.",
-        variant: "destructive"
+        title: 'Validation Error',
+        description: 'Hero title is required.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!siteData.heroDescription?.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Hero description is required.',
+        variant: 'destructive'
       });
       return;
     }
@@ -82,51 +118,69 @@ export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettin
       { key: 'heroBackgroundImage', value: siteData.heroBackgroundImage },
       { key: 'heroLocationText', value: siteData.heroLocationText },
       { key: 'heroRating', value: siteData.heroRating },
-      { key: 'heroCTAText', value: siteData.heroCTAText },
+      { key: 'heroCTAText', value: siteData.heroCTAText }
     ];
 
-    console.log('🎬 Hero settings to save:', settingsToSave);
-
-    let allSuccessful = true;
-    const failedSettings: string[] = [];
+    let successCount = 0;
+    let failureCount = 0;
 
     for (const setting of settingsToSave) {
-      console.log('💾 Saving hero setting:', setting);
-      try {
-        const success = await updateSetting(setting.key, setting.value);
-        if (!success) {
-          allSuccessful = false;
-          failedSettings.push(setting.key);
-        }
-      } catch (error) {
-        console.error('❌ Error saving hero setting:', setting.key, error);
-        allSuccessful = false;
-        failedSettings.push(setting.key);
+      console.log(`🔄 Saving ${setting.key}:`, setting.value);
+      const success = await updateSetting(setting.key, setting.value);
+      if (success) {
+        successCount++;
+        console.log(`✅ Successfully saved ${setting.key}`);
+      } else {
+        failureCount++;
+        console.error(`❌ Failed to save ${setting.key}`);
       }
     }
 
-    if (allSuccessful) {
+    if (successCount === settingsToSave.length) {
       toast({
-        title: "Success!",
-        description: "Your hero section has been updated successfully.",
+        title: "Hero Settings Saved",
+        description: "Hero section has been successfully updated.",
+      });
+    } else if (successCount > 0) {
+      toast({
+        title: "Partially Saved",
+        description: `${successCount} of ${settingsToSave.length} hero settings saved. ${failureCount} failed.`,
+        variant: 'destructive'
       });
     } else {
       toast({
-        title: "Partial Save Error",
-        description: `Failed to save: ${failedSettings.join(', ')}. Please try again.`,
-        variant: "destructive"
+        title: "Save Failed",
+        description: "Failed to save hero settings. Please try again.",
+        variant: 'destructive'
       });
     }
   };
 
   const handleSaveContactSettings = async () => {
-    console.log('📞 Saving contact settings...');
-    
-    if (!user) {
+    console.log('💾 Saving contact settings:', { 
+      contactEmail: siteData.contactEmail, 
+      phone: siteData.phone, 
+      address: siteData.address,
+      socialMedia: siteData.socialMedia
+    });
+
+    // Validate required fields
+    if (!siteData.contactEmail?.trim()) {
       toast({
-        title: "Authentication Error",
-        description: "You must be logged in to save settings.",
-        variant: "destructive"
+        title: 'Validation Error',
+        description: 'Contact email is required.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(siteData.contactEmail)) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please enter a valid email address.',
+        variant: 'destructive'
       });
       return;
     }
@@ -135,39 +189,40 @@ export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettin
       { key: 'contactEmail', value: siteData.contactEmail },
       { key: 'phone', value: siteData.phone },
       { key: 'address', value: siteData.address },
-      { key: 'socialMedia', value: siteData.socialMedia },
+      { key: 'socialMedia', value: siteData.socialMedia }
     ];
 
-    console.log('📧 Contact settings to save:', settingsToSave);
-
-    let allSuccessful = true;
-    const failedSettings: string[] = [];
+    let successCount = 0;
+    let failureCount = 0;
 
     for (const setting of settingsToSave) {
-      console.log('💾 Saving contact setting:', setting);
-      try {
-        const success = await updateSetting(setting.key, setting.value);
-        if (!success) {
-          allSuccessful = false;
-          failedSettings.push(setting.key);
-        }
-      } catch (error) {
-        console.error('❌ Error saving contact setting:', setting.key, error);
-        allSuccessful = false;
-        failedSettings.push(setting.key);
+      console.log(`🔄 Saving ${setting.key}:`, setting.value);
+      const success = await updateSetting(setting.key, setting.value);
+      if (success) {
+        successCount++;
+        console.log(`✅ Successfully saved ${setting.key}`);
+      } else {
+        failureCount++;
+        console.error(`❌ Failed to save ${setting.key}`);
       }
     }
 
-    if (allSuccessful) {
+    if (successCount === settingsToSave.length) {
       toast({
-        title: "Success!",
-        description: "Your contact information has been updated successfully.",
+        title: "Contact Settings Saved",
+        description: "Contact information has been successfully updated.",
+      });
+    } else if (successCount > 0) {
+      toast({
+        title: "Partially Saved",
+        description: `${successCount} of ${settingsToSave.length} contact settings saved. ${failureCount} failed.`,
+        variant: 'destructive'
       });
     } else {
       toast({
-        title: "Partial Save Error",
-        description: `Failed to save: ${failedSettings.join(', ')}. Please try again.`,
-        variant: "destructive"
+        title: "Save Failed",
+        description: "Failed to save contact settings. Please try again.",
+        variant: 'destructive'
       });
     }
   };
@@ -175,6 +230,6 @@ export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettin
   return {
     handleSaveBasicSettings,
     handleSaveHeroSettings,
-    handleSaveContactSettings,
+    handleSaveContactSettings
   };
 };

@@ -1,9 +1,11 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export const useSettingsData = () => {
   const { settings, loading, updateSetting, getSetting, error } = useSiteSettings();
+  const isUserEditing = useRef(false);
+  const lastLoadedSettings = useRef<any>({});
 
   const [siteData, setSiteData] = useState({
     siteName: '',
@@ -46,10 +48,26 @@ export const useSettingsData = () => {
     customCss: ''
   });
 
+  // Function to mark that user is editing
+  const markUserEditing = () => {
+    isUserEditing.current = true;
+    // Clear the flag after a delay to allow for database updates
+    setTimeout(() => {
+      isUserEditing.current = false;
+    }, 2000);
+  };
+
+  // Enhanced setSiteData that marks user editing
+  const setSiteDataWithTracking = (updater: any) => {
+    markUserEditing();
+    setSiteData(updater);
+  };
+
   useEffect(() => {
     console.log('🔄 useSettingsData - loading:', loading, 'settings keys:', Object.keys(settings));
+    console.log('👤 User currently editing:', isUserEditing.current);
     
-    if (!loading) {
+    if (!loading && !isUserEditing.current) {
       const newSiteData = {
         siteName: getSetting('siteName', 'Moxie Vacation Rentals'),
         tagline: getSetting('tagline', 'Your perfect getaway is just a click away.'),
@@ -72,8 +90,13 @@ export const useSettingsData = () => {
         })
       };
       
-      console.log('📊 Setting new site data:', newSiteData);
-      setSiteData(newSiteData);
+      // Only update if the data actually changed from database
+      const hasChanged = JSON.stringify(newSiteData) !== JSON.stringify(lastLoadedSettings.current);
+      if (hasChanged) {
+        console.log('📊 Setting new site data from database:', newSiteData);
+        setSiteData(newSiteData);
+        lastLoadedSettings.current = newSiteData;
+      }
       
       setMapboxToken(getSetting('mapboxToken', ''));
       
@@ -99,7 +122,7 @@ export const useSettingsData = () => {
 
   return {
     siteData,
-    setSiteData,
+    setSiteData: setSiteDataWithTracking,
     mapboxToken,
     setMapboxToken,
     seoData,
@@ -108,6 +131,7 @@ export const useSettingsData = () => {
     setAnalyticsData,
     updateSetting,
     loading,
-    error
+    error,
+    isUserEditing: isUserEditing.current
   };
 };

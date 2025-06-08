@@ -1,13 +1,16 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface DebugInfoPanelProps {
   siteData: any;
+  isUserEditing?: boolean;
 }
 
-const DebugInfoPanel = ({ siteData }: DebugInfoPanelProps) => {
+const DebugInfoPanel = ({ siteData, isUserEditing }: DebugInfoPanelProps) => {
   const { user } = useAuth();
+  const { settings, getSetting } = useSiteSettings();
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
@@ -15,9 +18,30 @@ const DebugInfoPanel = ({ siteData }: DebugInfoPanelProps) => {
       <div className="space-y-1 text-blue-700">
         <p><strong>User ID:</strong> {user?.id || 'Not logged in'}</p>
         <p><strong>User Email:</strong> {user?.email || 'No email'}</p>
-        <p><strong>Site Name (Form):</strong> {siteData.siteName || 'Not set'}</p>
-        <p><strong>Hero Title (Form):</strong> {siteData.heroTitle || 'Not set'}</p>
-        <p><strong>Contact Email (Form):</strong> {siteData.contactEmail || 'Not set'}</p>
+        <p><strong>User Editing:</strong> {isUserEditing ? 'Yes' : 'No'}</p>
+        <p><strong>Settings in DB:</strong> {Object.keys(settings).length} entries</p>
+        
+        <div className="mt-3 border-t pt-2">
+          <p className="font-medium">Form State vs Database:</p>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <p><strong>Site Name (Form):</strong> "{siteData.siteName || 'empty'}"</p>
+              <p><strong>Site Name (DB):</strong> "{getSetting('siteName', 'not set')}"</p>
+            </div>
+            <div>
+              <p><strong>Tagline (Form):</strong> "{siteData.tagline || 'empty'}"</p>
+              <p><strong>Tagline (DB):</strong> "{getSetting('tagline', 'not set')}"</p>
+            </div>
+            <div>
+              <p><strong>Hero Title (Form):</strong> "{siteData.heroTitle || 'empty'}"</p>
+              <p><strong>Hero Title (DB):</strong> "{getSetting('heroTitle', 'not set')}"</p>
+            </div>
+            <div>
+              <p><strong>Contact Email (Form):</strong> "{siteData.contactEmail || 'empty'}"</p>
+              <p><strong>Contact Email (DB):</strong> "{getSetting('contactEmail', 'not set')}"</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -12,13 +12,15 @@ interface BasicSettingsTabProps {
   siteData: any;
   setSiteData: (data: any) => void;
   updateSetting: (key: string, value: any) => Promise<boolean>;
+  isUserEditing?: boolean;
 }
 
-const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSettingsTabProps) => {
+const BasicSettingsTab = ({ siteData, setSiteData, updateSetting, isUserEditing }: BasicSettingsTabProps) => {
   const { user } = useAuth();
 
   console.log('🎯 BasicSettingsTab - Current user:', user?.id, user?.email);
   console.log('📊 BasicSettingsTab - Current siteData:', siteData);
+  console.log('✏️ BasicSettingsTab - User editing:', isUserEditing);
 
   const { handleSaveBasicSettings, handleSaveHeroSettings, handleSaveContactSettings } = useBasicSettingsSave({
     siteData,
@@ -51,7 +53,7 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
 
   return (
     <div className="space-y-8">
-      <DebugInfoPanel siteData={siteData} />
+      <DebugInfoPanel siteData={siteData} isUserEditing={isUserEditing} />
 
       <QuickSetupProgress 
         isBasicComplete={isBasicComplete}
