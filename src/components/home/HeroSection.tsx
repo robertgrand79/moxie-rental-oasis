@@ -5,20 +5,20 @@ import OptimizedImage from '@/components/ui/optimized-image';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { ArrowRight, MapPin, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 
 const HeroSection = () => {
   const { user } = useAuth();
-  const { getSetting } = useSiteSettings();
+  const { settings } = useStableSiteSettings();
 
-  // Get hero content from site settings with fallbacks
-  const heroTitle = getSetting('heroTitle', 'Your Home Away From Home');
-  const heroSubtitle = getSetting('heroSubtitle', 'in Eugene');
-  const heroDescription = getSetting('heroDescription', 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.');
-  const heroBackgroundImage = getSetting('heroBackgroundImage', 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80');
-  const heroLocationText = getSetting('heroLocationText', 'Eugene, Oregon');
-  const heroRating = getSetting('heroRating', '4.9');
-  const heroCTAText = getSetting('heroCTAText', 'View Properties');
+  // Get hero content from stable site settings with fallbacks
+  const heroTitle = settings.heroTitle || 'Your Home Away From Home';
+  const heroSubtitle = settings.heroSubtitle || 'in Eugene';
+  const heroDescription = settings.heroDescription || 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.';
+  const heroBackgroundImage = settings.heroBackgroundImage || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80';
+  const heroLocationText = settings.heroLocationText || 'Eugene, Oregon';
+  const heroRating = settings.heroRating || '4.9';
+  const heroCTAText = settings.heroCTAText || 'View Properties';
 
   return (
     <div className="relative overflow-hidden min-h-screen flex items-center">

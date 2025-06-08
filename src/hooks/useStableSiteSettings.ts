@@ -122,14 +122,27 @@ export const useStableSiteSettings = () => {
 
       // Convert array of settings to our structured format
       const settingsMap = data?.reduce((acc, setting) => {
-        acc[setting.key] = setting.value;
+        // Handle JSON parsing for complex objects
+        try {
+          if (setting.key === 'socialMedia') {
+            acc[setting.key] = typeof setting.value === 'string' 
+              ? JSON.parse(setting.value) 
+              : setting.value;
+          } else {
+            acc[setting.key] = setting.value;
+          }
+        } catch (parseError) {
+          console.warn(`Failed to parse setting ${setting.key}:`, parseError);
+          acc[setting.key] = setting.value;
+        }
         return acc;
       }, {} as Record<string, any>) || {};
+
+      console.log('Fetched settings:', settingsMap);
 
       // Merge with defaults to ensure all properties exist
       setSettings(prev => ({
         ...defaultSettings,
-        ...prev,
         ...settingsMap,
         socialMedia: {
           ...defaultSettings.socialMedia,
@@ -147,10 +160,11 @@ export const useStableSiteSettings = () => {
 
   // Optimistic update function
   const updateSettingOptimistic = useCallback((updates: Partial<SettingsState>) => {
+    console.log('Optimistic update:', updates);
     setSettings(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // Save individual setting with retry logic
+  // Save individual setting with retry logic and better serialization
   const saveSetting = useCallback(async (key: string, value: any): Promise<boolean> => {
     if (!user) {
       toast({
@@ -173,6 +187,14 @@ export const useStableSiteSettings = () => {
     setSaving(prev => ({ ...prev, [key]: true }));
 
     try {
+      // Serialize complex objects to JSON
+      let serializedValue = value;
+      if (typeof value === 'object' && value !== null) {
+        serializedValue = JSON.stringify(value);
+      }
+
+      console.log(`Saving setting ${key}:`, value, 'serialized:', serializedValue);
+
       // First try to update existing setting
       const { data: existingData, error: selectError } = await supabase
         .from('site_settings')
@@ -190,7 +212,7 @@ export const useStableSiteSettings = () => {
         result = await supabase
           .from('site_settings')
           .update({
-            value,
+            value: serializedValue,
             updated_at: new Date().toISOString()
           })
           .eq('key', key)
@@ -201,7 +223,7 @@ export const useStableSiteSettings = () => {
           .from('site_settings')
           .insert({
             key,
-            value,
+            value: serializedValue,
             created_by: user.id
           })
           .select();
@@ -223,10 +245,12 @@ export const useStableSiteSettings = () => {
       setSettings(prev => ({ ...prev, [key]: value }));
       setError(null);
       
+      console.log(`Successfully saved setting ${key}`);
       return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setError(errorMessage);
+      console.error(`Failed to save setting ${key}:`, error);
       toast({
         title: 'Error',
         description: `Failed to update ${key} setting: ${errorMessage}`,
@@ -242,6 +266,8 @@ export const useStableSiteSettings = () => {
   const saveSettings = useCallback(async (updates: Partial<SettingsState>): Promise<boolean> => {
     const keys = Object.keys(updates);
     let allSuccessful = true;
+    
+    console.log('Saving multiple settings:', updates);
     
     for (const key of keys) {
       const success = await saveSetting(key, updates[key as keyof SettingsState]);

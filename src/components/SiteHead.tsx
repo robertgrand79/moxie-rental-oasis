@@ -1,23 +1,23 @@
 
-import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 import { useEffect } from 'react';
 import { sanitizeHtml } from '@/utils/security';
 
 const SiteHead = () => {
-  const { getSetting } = useSiteSettings();
+  const { settings } = useStableSiteSettings();
 
-  const siteTitle = getSetting('siteTitle', 'Moxie Vacation Rentals');
-  const metaDescription = getSetting('metaDescription', 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.');
-  const ogTitle = getSetting('ogTitle', siteTitle);
-  const ogDescription = getSetting('ogDescription', metaDescription);
-  const ogImage = getSetting('ogImage', 'https://lovable.dev/opengraph-image-p98pqg.png');
-  const favicon = getSetting('favicon', '/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png');
-  const googleAnalyticsId = getSetting('googleAnalyticsId', '');
-  const googleTagManagerId = getSetting('googleTagManagerId', '');
-  const facebookPixelId = getSetting('facebookPixelId', '');
-  const customHeaderScripts = getSetting('customHeaderScripts', '');
-  const customFooterScripts = getSetting('customFooterScripts', '');
-  const customCss = getSetting('customCss', '');
+  const siteTitle = settings.siteTitle || 'Moxie Vacation Rentals';
+  const metaDescription = settings.metaDescription || 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.';
+  const ogTitle = settings.ogTitle || siteTitle;
+  const ogDescription = settings.ogDescription || metaDescription;
+  const ogImage = settings.ogImage || 'https://lovable.dev/opengraph-image-p98pqg.png';
+  const favicon = settings.favicon || '/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png';
+  const googleAnalyticsId = settings.googleAnalyticsId || '';
+  const googleTagManagerId = settings.googleTagManagerId || '';
+  const facebookPixelId = settings.facebookPixelId || '';
+  const customHeaderScripts = settings.customHeaderScripts || '';
+  const customFooterScripts = settings.customFooterScripts || '';
+  const customCss = settings.customCss || '';
 
   // Security function to validate and sanitize scripts
   const sanitizeScript = (script: string): string => {
