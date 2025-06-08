@@ -11,6 +11,7 @@ import Properties from '@/pages/Properties';
 import Blog from '@/pages/Blog';
 import BlogPost from '@/pages/BlogPost';
 import Contact from '@/pages/Contact';
+import Auth from '@/pages/Auth';
 import Admin from '@/pages/Admin';
 import AdminProperties from '@/pages/admin/AdminProperties';
 import AdminAITools from '@/pages/admin/AdminAITools';
@@ -30,6 +31,9 @@ function App() {
           <Route path="blog/:id" element={<BlogPost />} />
           <Route path="contact" element={<Contact />} />
         </Route>
+        
+        {/* Auth Route */}
+        <Route path="/auth" element={<Auth />} />
         
         {/* Admin Routes */}
         <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
