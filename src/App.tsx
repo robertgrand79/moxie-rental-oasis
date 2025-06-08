@@ -25,6 +25,8 @@ import AdminPOI from '@/pages/admin/AdminPOI';
 import AdminLifestyle from '@/pages/admin/AdminLifestyle';
 import AdminTaskManagement from '@/pages/admin/AdminTaskManagement';
 import AdminWorkOrders from '@/pages/admin/AdminWorkOrders';
+import AdminUserManagement from '@/pages/admin/AdminUserManagement';
+import AdminRolesPermissions from '@/pages/admin/AdminRolesPermissions';
 import BlogManagement from '@/pages/BlogManagement';
 import PageManagement from '@/pages/PageManagement';
 import AdminProfile from '@/pages/AdminProfile';
@@ -60,12 +62,13 @@ function App() {
           <Route path="poi" element={<AdminPOI />} />
           <Route path="content-workflows" element={<AdminContentWorkflows />} />
           <Route path="ai-tools" element={<AdminAITools />} />
+          <Route path="pages" element={<PageManagement />} />
           <Route path="blog" element={<BlogManagement />} />
           <Route path="newsletter" element={<AdminNewsletter />} />
           <Route path="testimonials" element={<AdminTestimonials />} />
           <Route path="lifestyle" element={<AdminLifestyle />} />
-          <Route path="users" element={<PageManagement />} />
-          <Route path="roles" element={<PageManagement />} />
+          <Route path="users" element={<AdminUserManagement />} />
+          <Route path="roles" element={<AdminRolesPermissions />} />
           <Route path="settings" element={<SiteSettings />} />
           <Route path="integrations" element={<SiteSettings />} />
           <Route path="profile" element={<AdminProfile />} />

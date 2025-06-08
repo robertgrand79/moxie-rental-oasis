@@ -16,7 +16,8 @@ import {
   TrendingUp,
   Wrench,
   CheckSquare,
-  Calendar
+  Calendar,
+  File
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -92,6 +93,11 @@ export const adminMenuItems = [
         title: "AI Tools",
         icon: Sparkles, 
         href: "/admin/ai-tools"
+      },
+      {
+        title: "Site Pages",
+        icon: File,
+        href: "/admin/pages"
       },
       {
         title: "Blog Management",
