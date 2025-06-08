@@ -25,7 +25,7 @@ export const coreMenuItems = [
   },
   {
     title: 'Site Metrics',
-    url: '/admin/site-metrics',
+    url: '/admin/analytics',
     icon: Activity
   }
 ];

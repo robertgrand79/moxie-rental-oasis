@@ -193,6 +193,7 @@ const App = () => {
                 >
                   <Route index element={<Admin />} />
                   <Route path="site-metrics" element={<AdminSiteMetrics />} />
+                  <Route path="analytics" element={<AdminSiteMetrics />} />
                   <Route path="properties" element={<Properties />} />
                   <Route path="page-management" element={<PageManagement />} />
                   <Route path="blog-management" element={<BlogManagement />} />
