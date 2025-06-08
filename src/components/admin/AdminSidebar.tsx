@@ -13,7 +13,8 @@ import {
   Camera,
   Star,
   Brain,
-  Database
+  Database,
+  Settings
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -79,6 +80,12 @@ const AdminSidebar = () => {
       href: '/admin/sample-data',
       icon: Database,
       color: 'text-icon-slate'
+    },
+    {
+      title: 'Settings',
+      href: '/admin/settings',
+      icon: Settings,
+      color: 'text-icon-gray'
     },
     {
       title: 'Profile',

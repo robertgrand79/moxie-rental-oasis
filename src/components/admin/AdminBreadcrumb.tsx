@@ -14,6 +14,8 @@ const routeLabels: Record<string, string> = {
   '/admin/lifestyle': 'Lifestyle Gallery',
   '/admin/testimonials': 'Testimonials',
   '/admin/ai-tools': 'AI Tools',
+  '/admin/settings': 'Site Settings',
+  '/admin/sample-data': 'Sample Data',
   '/properties': 'Properties',
   '/page-management': 'Page Management',
   '/blog-management': 'Blog Management',
