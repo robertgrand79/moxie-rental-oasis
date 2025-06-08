@@ -31,8 +31,8 @@ const MissionSection = () => {
               memories of their time spent in Oregon.
             </p>
             
-            {/* Mission highlights */}
-            <div className="flex justify-center gap-12 mt-8">
+            {/* Mission highlights - responsive layout */}
+            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-12 mt-8">
               <div className="flex items-center gap-4 group/item">
                 <div className="w-12 h-12 bg-white/50 rounded-xl flex items-center justify-center group-hover/item:scale-110 transition-transform duration-300">
                   <Mountain className="h-6 w-6 text-icon-emerald" />

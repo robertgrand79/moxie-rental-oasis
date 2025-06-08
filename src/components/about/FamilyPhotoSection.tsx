@@ -4,12 +4,12 @@ import React from 'react';
 const FamilyPhotoSection = () => {
   const photos = [
     {
-      src: "/lovable-uploads/725febeb-79c2-4ff5-8f7c-0ece524525d3.png",
-      alt: "Robert and Shelly - Stadium selfie in Oregon gear"
+      src: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=600&h=450&fit=crop",
+      alt: "Robert and Shelly - Beautiful home interior"
     },
     {
-      src: "/lovable-uploads/510f0a04-795e-42ee-8c32-07334045c2f0.png", 
-      alt: "Robert and Shelly - Tropical wedding celebration"
+      src: "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=600&h=450&fit=crop", 
+      alt: "Robert and Shelly - Oregon outdoor adventure"
     }
   ];
 
