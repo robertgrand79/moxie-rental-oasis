@@ -6,17 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/contexts/EnhancedAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { validatePasswordComplexity } from '@/utils/security';
-import { AlertCircle } from 'lucide-react';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '', confirmPassword: '' });
-  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
@@ -25,12 +21,6 @@ const Auth = () => {
       navigate('/admin');
     }
   }, [user, navigate]);
-
-  const validatePassword = (password: string) => {
-    const validation = validatePasswordComplexity(password);
-    setPasswordErrors(validation.errors);
-    return validation.isValid;
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,25 +55,6 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (signupData.password !== signupData.confirmPassword) {
-      toast({
-        title: 'Password Mismatch',
-        description: 'Passwords do not match.',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    if (!validatePassword(signupData.password)) {
-      toast({
-        title: 'Password Requirements Not Met',
-        description: 'Please check the password requirements below.',
-        variant: 'destructive'
-      });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -195,38 +166,13 @@ const Auth = () => {
                     id="signup-password"
                     type="password"
                     value={signupData.password}
-                    onChange={(e) => {
-                      setSignupData(prev => ({ ...prev, password: e.target.value }));
-                      validatePassword(e.target.value);
-                    }}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
                     required
                     disabled={isLoading}
-                  />
-                  {passwordErrors.length > 0 && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        <ul className="list-disc list-inside space-y-1">
-                          {passwordErrors.map((error, index) => (
-                            <li key={index} className="text-sm">{error}</li>
-                          ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={signupData.confirmPassword}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    required
-                    disabled={isLoading}
+                    minLength={6}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading || passwordErrors.length > 0}>
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Creating Account...' : 'Create Account'}
                 </Button>
               </form>
