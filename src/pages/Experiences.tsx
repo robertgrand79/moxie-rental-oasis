@@ -1,5 +1,6 @@
 
 import React from 'react';
+import NavBar from '@/components/NavBar';
 import PointsOfInterestDisplay from '@/components/experiences/PointsOfInterestDisplay';
 import ExperienceHero from '@/components/experiences/ExperienceHero';
 import ExperienceCategories from '@/components/experiences/ExperienceCategories';
@@ -10,6 +11,7 @@ import Footer from '@/components/Footer';
 const Experiences = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
+      <NavBar />
       <div className="container mx-auto px-4 py-16">
         <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
           <ExperienceHero />

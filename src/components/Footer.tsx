@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
@@ -82,24 +83,24 @@ const Footer = () => {
             <h3 className="text-xl font-bold mb-6">Quick Links</h3>
             <ul className="space-y-3">
               <li>
-                <a href="/listings" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
+                <Link to="/listings" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   View Properties
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/experiences" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
+                <Link to="/experiences" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Local Experiences
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/about" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
+                <Link to="/about" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/blog" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
+                <Link to="/blog" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Blog
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -109,19 +110,19 @@ const Footer = () => {
             <h3 className="text-xl font-bold mb-6">Resources</h3>
             <ul className="space-y-3">
               <li>
-                <a href="/privacy-policy" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
+                <Link to="/privacy" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/terms-of-service" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
+                <Link to="/terms" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/faq" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
+                <Link to="/faq" className="hover:text-white transition-colors" style={{ color: '#ececec' }}>
                   FAQ
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -134,15 +135,15 @@ const Footer = () => {
               © 2024 {siteData.siteName}. All rights reserved.
             </p>
             <div className="flex space-x-6">
-              <a href="/privacy-policy" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
+              <Link to="/privacy" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Privacy Policy
-              </a>
-              <a href="/terms-of-service" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
+              </Link>
+              <Link to="/terms" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Terms of Service
-              </a>
-              <a href="/faq" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
+              </Link>
+              <Link to="/faq" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 FAQ
-              </a>
+              </Link>
               <a href="#" className="text-sm transition-colors hover:text-white" style={{ color: '#cbcfd2' }}>
                 Accessibility
               </a>
