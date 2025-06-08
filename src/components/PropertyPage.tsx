@@ -1,15 +1,44 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { useProperties } from '@/hooks/useProperties';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
-import { propertyData } from '@/data/propertyData';
 import PropertyHeader from './property/PropertyHeader';
 import PropertyDetails from './property/PropertyDetails';
 import BookingCard from './property/BookingCard';
+import LoadingState from '@/components/ui/loading-state';
 
 const PropertyPage = () => {
-  const { propertyId } = useParams<{ propertyId: string }>();
-  const property = propertyId ? propertyData[propertyId] : null;
+  const { propertyId, slug } = useParams<{ propertyId?: string; slug?: string }>();
+  const { properties, loading } = useProperties();
+
+  if (loading) {
+    return (
+      <BackgroundWrapper>
+        <div className="container mx-auto px-4 py-16">
+          <LoadingState variant="page" message="Loading property details..." />
+        </div>
+      </BackgroundWrapper>
+    );
+  }
+
+  // Find property by ID or by matching slug pattern
+  let property = null;
+  
+  if (propertyId) {
+    property = properties.find(p => p.id === propertyId);
+  } else if (slug) {
+    // Convert slug back to location format for matching
+    const locationFromSlug = slug
+      .replace('property-', '')
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, l => l.toUpperCase());
+    
+    property = properties.find(p => 
+      p.location.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim() === 
+      locationFromSlug.toLowerCase()
+    );
+  }
 
   if (!property) {
     return (
@@ -17,7 +46,7 @@ const PropertyPage = () => {
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Property Not Found</h1>
-            <p className="text-xl text-gray-600">The property you're looking for doesn't exist.</p>
+            <p className="text-xl text-gray-600">The property you're looking for doesn't exist or may have been removed.</p>
           </div>
         </div>
       </BackgroundWrapper>
@@ -31,7 +60,7 @@ const PropertyPage = () => {
           {/* Property Image */}
           <div className="aspect-video lg:aspect-[2/1] relative">
             <img 
-              src={property.imageUrl} 
+              src={property.image_url} 
               alt={property.title}
               className="w-full h-full object-cover"
             />

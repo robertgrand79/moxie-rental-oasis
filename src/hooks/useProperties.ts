@@ -4,11 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Property } from '@/types/property';
+import { usePropertyPages } from '@/hooks/usePropertyPages';
 
 export const useProperties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { deletePropertyPage } = usePropertyPages();
 
   const fetchProperties = async () => {
     console.log('Fetching properties...');
@@ -133,6 +135,10 @@ export const useProperties = () => {
 
   const deleteProperty = async (propertyId: string) => {
     try {
+      // First, find the property to get its details for page cleanup
+      const propertyToDelete = properties.find(p => p.id === propertyId);
+      
+      // Delete the property from the database
       const { error } = await supabase
         .from('properties')
         .delete()
@@ -148,10 +154,17 @@ export const useProperties = () => {
         return;
       }
 
+      // Remove from local state
       setProperties(prev => prev.filter(property => property.id !== propertyId));
+
+      // Delete the corresponding property page if property details are available
+      if (propertyToDelete) {
+        await deletePropertyPage(propertyToDelete);
+      }
+
       toast({
         title: 'Success',
-        description: 'Property deleted successfully!'
+        description: 'Property and its page deleted successfully!'
       });
     } catch (error) {
       console.error('Error in deleteProperty:', error);

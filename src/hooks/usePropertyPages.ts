@@ -76,7 +76,42 @@ Ready to experience this amazing property? Book now through our secure booking s
     }
   };
 
+  const deletePropertyPage = async (property: Property) => {
+    if (!user) return;
+
+    try {
+      // Generate the same slug that was used during creation
+      const slug = property.location
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+
+      const pageSlug = `property-${slug}`;
+
+      // Delete the corresponding page
+      const { error } = await supabase
+        .from('pages')
+        .delete()
+        .eq('slug', pageSlug);
+
+      if (error) {
+        console.error('Error deleting property page:', error);
+        toast({
+          title: "Warning",
+          description: "Property deleted but page cleanup failed. You may need to manually remove the page.",
+          variant: "destructive"
+        });
+      } else {
+        console.log('Property page deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error in deletePropertyPage:', error);
+    }
+  };
+
   return {
-    createPropertyPage
+    createPropertyPage,
+    deletePropertyPage
   };
 };
