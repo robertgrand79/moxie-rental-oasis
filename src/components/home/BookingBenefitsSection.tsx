@@ -52,7 +52,7 @@ const BookingBenefitsSection = () => {
               return (
                 <div key={index} className="group text-center">
                   <div className="w-16 h-16 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <IconComponent className={`h-8 w-8 text-white group-hover:${benefit.color} transition-colors duration-300`} />
+                    <IconComponent className={`h-8 w-8 ${benefit.color} transition-colors duration-300`} />
                   </div>
                   <h3 className="text-xl font-bold text-foreground mb-4">
                     {benefit.title}
