@@ -11,7 +11,7 @@ import { Database, FileText, Loader2 } from 'lucide-react';
 const SampleDataManager = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { addProperty, properties } = useProperties();
-  const { createPost, posts } = useBlogPosts();
+  const { addBlogPost, blogPosts } = useBlogPosts();
   const { toast } = useToast();
 
   const addSampleProperties = async () => {
@@ -43,7 +43,7 @@ const SampleDataManager = () => {
     try {
       let successCount = 0;
       for (const post of sampleBlogPosts) {
-        const result = await createPost.mutateAsync(post);
+        const result = await addBlogPost(post);
         if (result) successCount++;
       }
       
@@ -113,7 +113,7 @@ const SampleDataManager = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <FileText className="h-5 w-5 mr-2 text-icon-purple" />
-              Blog Posts ({posts.length})
+              Blog Posts ({blogPosts.length})
             </CardTitle>
             <CardDescription>
               Add sample blog content about Eugene attractions and travel tips
