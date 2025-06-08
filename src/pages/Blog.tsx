@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Calendar, User, ArrowRight, BookOpen, Plane, MapPin } from 'lucide-react';
@@ -54,7 +55,7 @@ const Blog = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+      <div className="min-h-screen bg-background py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Skeleton className="h-16 w-96 mx-auto mb-4" />
@@ -87,15 +88,15 @@ const Blog = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+    <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 flex items-center justify-center gap-4">
-            <BookOpen className="h-12 w-12 text-blue-600" />
+          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 flex items-center justify-center gap-4">
+            <BookOpen className="h-12 w-12 text-primary" />
             Moxie Travel Blog
           </h1>
-          <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-8">
+          <p className="text-xl text-muted-foreground max-w-4xl mx-auto mb-8">
             Your gateway to Eugene adventures, travel insights, and stories from the heart of Oregon. 
             Discover hidden gems, local favorites, and travel inspiration from our hosts and guests.
           </p>
@@ -111,8 +112,8 @@ const Blog = () => {
                   onClick={() => setSelectedCategory(category.id)}
                   className={`flex items-center gap-2 ${
                     selectedCategory === category.id 
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                      : 'bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white'
+                      ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
+                      : 'bg-card hover:bg-accent'
                   }`}
                 >
                   <IconComponent className="h-4 w-4" />
@@ -125,13 +126,13 @@ const Blog = () => {
           {/* Search Bar */}
           <div className="max-w-md mx-auto">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search travel stories..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/70 backdrop-blur-sm border-white/50 focus:bg-white"
+                className="pl-10 bg-background focus:bg-background"
               />
             </div>
           </div>
@@ -141,18 +142,18 @@ const Blog = () => {
         {robertShellyPosts.length > 0 && selectedCategory === 'all' && (
           <div className="mb-16">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
-                <Plane className="h-8 w-8 text-indigo-600" />
+              <h2 className="text-3xl font-bold text-foreground mb-4 flex items-center justify-center gap-3">
+                <Plane className="h-8 w-8 text-icon-indigo" />
                 Robert & Shelly's Travel Adventures
               </h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-muted-foreground">
                 Follow our hosts' personal journeys and discover new destinations through their eyes
               </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {robertShellyPosts.slice(0, 3).map((post) => (
-                <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200 hover:from-indigo-100 hover:to-purple-100">
+                <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-gradient-accent-from to-gradient-accent-to border-border hover:shadow-lg">
                   {post.image_url && (
                     <div className="overflow-hidden">
                       <img
@@ -163,13 +164,13 @@ const Blog = () => {
                     </div>
                   )}
                   <CardHeader>
-                    <div className="flex items-center text-sm text-indigo-600 mb-2">
+                    <div className="flex items-center text-sm text-muted-foreground mb-2">
                       <Calendar className="h-4 w-4 mr-1" />
                       {formatDate(post.published_at || post.created_at)}
                       <Plane className="h-4 w-4 ml-4 mr-1" />
                       Travel Adventure
                     </div>
-                    <CardTitle className="group-hover:text-indigo-600 transition-colors line-clamp-2">
+                    <CardTitle className="group-hover:text-primary transition-colors line-clamp-2">
                       {post.title}
                     </CardTitle>
                     <CardDescription className="line-clamp-3">
@@ -179,7 +180,7 @@ const Blog = () => {
                   <CardContent>
                     <Link 
                       to={`/blog/${post.slug}`}
-                      className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium group-hover:gap-2 transition-all"
+                      className="inline-flex items-center text-primary hover:text-primary/80 font-medium group-hover:gap-2 transition-all"
                     >
                       Read Travel Story
                       <ArrowRight className="h-4 w-4 ml-1 group-hover:ml-2 transition-all" />
@@ -193,7 +194,7 @@ const Blog = () => {
               <div className="text-center">
                 <Button 
                   onClick={() => setSelectedCategory('robert-shelly')}
-                  className="bg-indigo-600 hover:bg-indigo-700"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   View All Travel Adventures
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -209,11 +210,11 @@ const Blog = () => {
           <div className="lg:col-span-3">
             {filteredPosts.length === 0 ? (
               <div className="text-center py-16">
-                <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-2xl font-semibold text-foreground mb-2">
                   {searchQuery ? 'No posts found' : 'No blog posts yet'}
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-muted-foreground mb-6">
                   {searchQuery 
                     ? 'Try adjusting your search terms or browse all posts.' 
                     : 'Check back soon for exciting travel content and Eugene adventures!'
@@ -223,7 +224,7 @@ const Blog = () => {
                   <Button 
                     variant="outline" 
                     onClick={() => setSearchQuery('')}
-                    className="bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white"
+                    className="bg-card hover:bg-accent"
                   >
                     Clear Search
                   </Button>
@@ -232,14 +233,14 @@ const Blog = () => {
             ) : (
               <div className="space-y-8">
                 {selectedCategory !== 'robert-shelly' && (
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold text-foreground">
                     {selectedCategory === 'all' ? 'Latest Posts' : `${categories.find(c => c.id === selectedCategory)?.name} Posts`}
                   </h2>
                 )}
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {filteredPosts.map((post) => (
-                    <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/70 backdrop-blur-sm border-white/50 hover:bg-white">
+                    <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-card border-border hover:shadow-lg">
                       {post.image_url && (
                         <div className="overflow-hidden">
                           <img
@@ -250,13 +251,13 @@ const Blog = () => {
                         </div>
                       )}
                       <CardHeader>
-                        <div className="flex items-center text-sm text-gray-500 mb-2">
+                        <div className="flex items-center text-sm text-muted-foreground mb-2">
                           <Calendar className="h-4 w-4 mr-1" />
                           {formatDate(post.published_at || post.created_at)}
                           <User className="h-4 w-4 ml-4 mr-1" />
                           {post.author}
                         </div>
-                        <CardTitle className="group-hover:text-blue-600 transition-colors line-clamp-2">
+                        <CardTitle className="group-hover:text-primary transition-colors line-clamp-2">
                           {post.title}
                         </CardTitle>
                         <CardDescription className="line-clamp-3">
@@ -279,7 +280,7 @@ const Blog = () => {
                         )}
                         <Link 
                           to={`/blog/${post.slug}`}
-                          className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium group-hover:gap-2 transition-all"
+                          className="inline-flex items-center text-primary hover:text-primary/80 font-medium group-hover:gap-2 transition-all"
                         >
                           Read More
                           <ArrowRight className="h-4 w-4 ml-1 group-hover:ml-2 transition-all" />
@@ -301,9 +302,9 @@ const Blog = () => {
 
             {/* Featured Post */}
             {featuredPost && selectedCategory === 'all' && (
-              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+              <Card className="bg-muted border-border">
                 <CardHeader>
-                  <CardTitle className="text-lg text-blue-800">Featured Story</CardTitle>
+                  <CardTitle className="text-lg text-foreground">Featured Story</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {featuredPost.image_url && (
@@ -313,15 +314,15 @@ const Blog = () => {
                       className="w-full h-32 object-cover rounded-lg mb-4"
                     />
                   )}
-                  <h3 className="font-semibold text-blue-900 mb-2 line-clamp-2">
+                  <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
                     {featuredPost.title}
                   </h3>
-                  <p className="text-sm text-blue-700 mb-4 line-clamp-3">
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
                     {featuredPost.excerpt}
                   </p>
                   <Link 
                     to={`/blog/${featuredPost.slug}`}
-                    className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center"
+                    className="text-primary hover:text-primary/80 font-medium text-sm inline-flex items-center"
                   >
                     Read Featured Story
                     <ArrowRight className="h-3 w-3 ml-1" />
@@ -331,21 +332,21 @@ const Blog = () => {
             )}
 
             {/* Quick Links */}
-            <Card className="bg-white/70 backdrop-blur-sm border-white/50">
+            <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="text-lg">Explore Eugene</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Link to="/experiences" className="block text-blue-600 hover:text-blue-800 text-sm">
+                <Link to="/experiences" className="block text-primary hover:text-primary/80 text-sm">
                   Local Experiences →
                 </Link>
-                <Link to="/events" className="block text-blue-600 hover:text-blue-800 text-sm">
+                <Link to="/events" className="block text-primary hover:text-primary/80 text-sm">
                   Upcoming Events →
                 </Link>
-                <Link to="/properties" className="block text-blue-600 hover:text-blue-800 text-sm">
+                <Link to="/properties" className="block text-primary hover:text-primary/80 text-sm">
                   Our Properties →
                 </Link>
-                <Link to="/about" className="block text-blue-600 hover:text-blue-800 text-sm">
+                <Link to="/about" className="block text-primary hover:text-primary/80 text-sm">
                   About Our Hosts →
                 </Link>
               </CardContent>

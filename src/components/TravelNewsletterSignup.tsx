@@ -49,13 +49,13 @@ const TravelNewsletterSignup = () => {
 
   if (isSubscribed) {
     return (
-      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+      <Card className="bg-gradient-to-br from-gradient-accent-from to-gradient-accent-to border-border">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-center text-green-600">
+          <div className="flex items-center justify-center text-icon-green">
             <CheckCircle className="h-8 w-8 mr-3" />
             <div className="text-center">
-              <h3 className="font-semibold">Welcome aboard!</h3>
-              <p className="text-sm text-green-700">Get ready for amazing travel content and Eugene adventures.</p>
+              <h3 className="font-semibold text-foreground">Welcome aboard!</h3>
+              <p className="text-sm text-muted-foreground">Get ready for amazing travel content and Eugene adventures.</p>
             </div>
           </div>
         </CardContent>
@@ -64,13 +64,13 @@ const TravelNewsletterSignup = () => {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
+    <Card className="bg-card border-border shadow-lg">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-bold text-blue-900 flex items-center gap-2">
-          <Plane className="h-5 w-5 text-blue-600" />
+        <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+          <Plane className="h-5 w-5 text-primary" />
           Moxie Travel Newsletter
         </CardTitle>
-        <CardDescription className="text-sm text-blue-700">
+        <CardDescription className="text-sm text-muted-foreground">
           Get insider travel tips, Eugene local secrets, and stories from Robert & Shelly's adventures delivered to your inbox
         </CardDescription>
       </CardHeader>
@@ -81,7 +81,7 @@ const TravelNewsletterSignup = () => {
             placeholder="Your name (optional)"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="text-sm bg-white/70 border-blue-200 focus:border-blue-400"
+            className="text-sm bg-background border-border focus:border-ring"
           />
           <Input
             type="email"
@@ -89,18 +89,18 @@ const TravelNewsletterSignup = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="text-sm bg-white/70 border-blue-200 focus:border-blue-400"
+            className="text-sm bg-background border-border focus:border-ring"
           />
           <Button 
             type="submit" 
-            className="w-full bg-blue-600 hover:bg-blue-700"
+            className="w-full bg-primary hover:bg-primary/90"
             size="sm"
             disabled={isLoading}
           >
             {isLoading ? "Subscribing..." : "Join Our Travel Community"}
           </Button>
         </form>
-        <div className="mt-4 flex items-center justify-center text-xs text-blue-600">
+        <div className="mt-4 flex items-center justify-center text-xs text-muted-foreground">
           <MapPin className="h-3 w-3 mr-1" />
           <span>Discover Eugene & Beyond</span>
         </div>
