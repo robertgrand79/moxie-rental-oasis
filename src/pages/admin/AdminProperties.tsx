@@ -19,7 +19,7 @@ const AdminProperties = () => {
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const { properties, loading, addProperty, editProperty, deleteProperty } = useProperties();
+  const { properties, loading, deletingProperties, addProperty, editProperty, deleteProperty } = useProperties();
   const { createPropertyPage } = usePropertyPages();
   const { uploadPhotos } = usePhotoUpload();
 
@@ -175,6 +175,7 @@ const AdminProperties = () => {
                 onEdit={handleEditProperty}
                 onDelete={deleteProperty}
                 showActions={true}
+                deletingProperties={deletingProperties}
               />
             ) : (
               <EmptyPropertyState onAddProperty={handleAddProperty} />

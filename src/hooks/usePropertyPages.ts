@@ -11,12 +11,14 @@ export const usePropertyPages = () => {
   const createPropertyPage = async (property: Property) => {
     if (!user) return;
 
-    // Generate SEO-friendly slug from the address
-    const slug = property.location
+    // Generate SEO-friendly slug with property ID for uniqueness
+    const locationSlug = property.location
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .trim();
+    
+    const slug = `property-${property.id}-${locationSlug}`;
 
     // Create SEO-optimized content
     const pageTitle = `${property.title} - ${property.location}`;
@@ -54,7 +56,7 @@ Ready to experience this amazing property? Book now through our secure booking s
         .from('pages')
         .insert([{
           title: pageTitle,
-          slug: `property-${slug}`,
+          slug: slug,
           content: pageContent,
           meta_description: metaDescription,
           is_published: true,
@@ -69,7 +71,7 @@ Ready to experience this amazing property? Book now through our secure booking s
           variant: "destructive"
         });
       } else {
-        console.log('Property page created successfully');
+        console.log('Property page created successfully with slug:', slug);
       }
     } catch (error) {
       console.error('Error in createPropertyPage:', error);
@@ -80,20 +82,23 @@ Ready to experience this amazing property? Book now through our secure booking s
     if (!user) return;
 
     try {
-      // Generate the same slug that was used during creation
-      const slug = property.location
+      // Generate the same slug that was used during creation (with property ID)
+      const locationSlug = property.location
         .toLowerCase()
         .replace(/[^a-z0-9\s-]/g, '')
         .replace(/\s+/g, '-')
         .trim();
 
-      const pageSlug = `property-${slug}`;
+      const pageSlug = `property-${property.id}-${locationSlug}`;
+
+      console.log('Attempting to delete page with slug:', pageSlug);
 
       // Delete the corresponding page
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('pages')
         .delete()
-        .eq('slug', pageSlug);
+        .eq('slug', pageSlug)
+        .select();
 
       if (error) {
         console.error('Error deleting property page:', error);
@@ -102,11 +107,14 @@ Ready to experience this amazing property? Book now through our secure booking s
           description: "Property deleted but page cleanup failed. You may need to manually remove the page.",
           variant: "destructive"
         });
+        return false;
       } else {
-        console.log('Property page deleted successfully');
+        console.log('Property page deleted successfully:', data);
+        return true;
       }
     } catch (error) {
       console.error('Error in deletePropertyPage:', error);
+      return false;
     }
   };
 
