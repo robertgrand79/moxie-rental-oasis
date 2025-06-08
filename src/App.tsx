@@ -25,6 +25,7 @@ import PageManagement from './pages/PageManagement';
 import BlogManagement from './pages/BlogManagement';
 import SiteSettings from './pages/SiteSettings';
 import AdminProfile from './pages/AdminProfile';
+import SampleDataManagement from './pages/SampleDataManagement';
 import AIAnalyticsDashboard from '@/components/admin/AIAnalyticsDashboard';
 import AdminChatSupport from '@/components/admin/AdminChatSupport';
 import ContentApprovalWorkflow from '@/components/admin/ContentApprovalWorkflow';
@@ -74,6 +75,7 @@ const App = () => {
                 <Route path="lifestyle" element={<AdminLifestyle />} />
                 <Route path="testimonials" element={<AdminTestimonials />} />
                 <Route path="ai-tools" element={<AdminAITools />} />
+                <Route path="sample-data" element={<SampleDataManagement />} />
               </Route>
               
               {/* Standalone Admin Pages (outside AdminLayout for specific reasons) */}
