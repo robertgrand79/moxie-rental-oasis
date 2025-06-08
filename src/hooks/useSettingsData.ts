@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export const useSettingsData = () => {
-  const { settings, loading, updateSetting, getSetting } = useSiteSettings();
+  const { settings, loading, updateSetting, getSetting, error } = useSiteSettings();
 
   const [siteData, setSiteData] = useState({
     siteName: '',
@@ -47,7 +47,7 @@ export const useSettingsData = () => {
   });
 
   useEffect(() => {
-    console.log('useSettingsData - loading:', loading, 'settings:', Object.keys(settings));
+    console.log('🔄 useSettingsData - loading:', loading, 'settings keys:', Object.keys(settings));
     
     if (!loading) {
       const newSiteData = {
@@ -72,7 +72,7 @@ export const useSettingsData = () => {
         })
       };
       
-      console.log('Setting new site data:', newSiteData);
+      console.log('📊 Setting new site data:', newSiteData);
       setSiteData(newSiteData);
       
       setMapboxToken(getSetting('mapboxToken', ''));
@@ -107,6 +107,7 @@ export const useSettingsData = () => {
     analyticsData,
     setAnalyticsData,
     updateSetting,
-    loading
+    loading,
+    error
   };
 };

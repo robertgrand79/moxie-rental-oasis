@@ -17,11 +17,11 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
   const { toast } = useToast();
   const { user } = useAuth();
 
-  console.log('BasicSettingsTab - Current user:', user?.id, user?.email);
-  console.log('BasicSettingsTab - Current siteData:', siteData);
+  console.log('🎯 BasicSettingsTab - Current user:', user?.id, user?.email);
+  console.log('📊 BasicSettingsTab - Current siteData:', siteData);
 
   const handleInputChange = (field: string, value: string) => {
-    console.log('Input change:', field, value);
+    console.log('✏️ Input change:', field, value);
     setSiteData((prev: any) => ({
       ...prev,
       [field]: value
@@ -29,7 +29,7 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
   };
 
   const handleSocialMediaChange = (platform: string, value: string) => {
-    console.log('Social media change:', platform, value);
+    console.log('📱 Social media change:', platform, value);
     setSiteData((prev: any) => ({
       ...prev,
       socialMedia: {
@@ -40,7 +40,7 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
   };
 
   const handleSaveBasicSettings = async () => {
-    console.log('Saving basic settings...');
+    console.log('💾 Saving basic settings...');
     
     if (!user) {
       toast({
@@ -57,15 +57,21 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
       { key: 'description', value: siteData.description },
     ];
 
-    console.log('Settings to save:', settingsToSave);
+    console.log('📝 Settings to save:', settingsToSave);
 
     let allSuccessful = true;
     const failedSettings: string[] = [];
 
     for (const setting of settingsToSave) {
-      console.log('Saving setting:', setting);
-      const success = await updateSetting(setting.key, setting.value);
-      if (!success) {
+      console.log('💾 Saving setting:', setting);
+      try {
+        const success = await updateSetting(setting.key, setting.value);
+        if (!success) {
+          allSuccessful = false;
+          failedSettings.push(setting.key);
+        }
+      } catch (error) {
+        console.error('❌ Error saving setting:', setting.key, error);
         allSuccessful = false;
         failedSettings.push(setting.key);
       }
@@ -73,20 +79,20 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
 
     if (allSuccessful) {
       toast({
-        title: "Basic Settings Saved",
-        description: "Your site information has been successfully updated.",
+        title: "Success!",
+        description: "Your basic settings have been saved successfully.",
       });
     } else {
       toast({
         title: "Partial Save Error",
-        description: `Failed to save: ${failedSettings.join(', ')}`,
+        description: `Failed to save: ${failedSettings.join(', ')}. Please try again.`,
         variant: "destructive"
       });
     }
   };
 
   const handleSaveHeroSettings = async () => {
-    console.log('Saving hero settings...');
+    console.log('🦸 Saving hero settings...');
     
     if (!user) {
       toast({
@@ -107,15 +113,21 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
       { key: 'heroCTAText', value: siteData.heroCTAText },
     ];
 
-    console.log('Hero settings to save:', settingsToSave);
+    console.log('🎬 Hero settings to save:', settingsToSave);
 
     let allSuccessful = true;
     const failedSettings: string[] = [];
 
     for (const setting of settingsToSave) {
-      console.log('Saving hero setting:', setting);
-      const success = await updateSetting(setting.key, setting.value);
-      if (!success) {
+      console.log('💾 Saving hero setting:', setting);
+      try {
+        const success = await updateSetting(setting.key, setting.value);
+        if (!success) {
+          allSuccessful = false;
+          failedSettings.push(setting.key);
+        }
+      } catch (error) {
+        console.error('❌ Error saving hero setting:', setting.key, error);
         allSuccessful = false;
         failedSettings.push(setting.key);
       }
@@ -123,20 +135,20 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
 
     if (allSuccessful) {
       toast({
-        title: "Hero Settings Saved",
-        description: "Your homepage hero section has been successfully updated.",
+        title: "Success!",
+        description: "Your hero section has been updated successfully.",
       });
     } else {
       toast({
         title: "Partial Save Error",
-        description: `Failed to save: ${failedSettings.join(', ')}`,
+        description: `Failed to save: ${failedSettings.join(', ')}. Please try again.`,
         variant: "destructive"
       });
     }
   };
 
   const handleSaveContactSettings = async () => {
-    console.log('Saving contact settings...');
+    console.log('📞 Saving contact settings...');
     
     if (!user) {
       toast({
@@ -154,15 +166,21 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
       { key: 'socialMedia', value: siteData.socialMedia },
     ];
 
-    console.log('Contact settings to save:', settingsToSave);
+    console.log('📧 Contact settings to save:', settingsToSave);
 
     let allSuccessful = true;
     const failedSettings: string[] = [];
 
     for (const setting of settingsToSave) {
-      console.log('Saving contact setting:', setting);
-      const success = await updateSetting(setting.key, setting.value);
-      if (!success) {
+      console.log('💾 Saving contact setting:', setting);
+      try {
+        const success = await updateSetting(setting.key, setting.value);
+        if (!success) {
+          allSuccessful = false;
+          failedSettings.push(setting.key);
+        }
+      } catch (error) {
+        console.error('❌ Error saving contact setting:', setting.key, error);
         allSuccessful = false;
         failedSettings.push(setting.key);
       }
@@ -170,13 +188,13 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
 
     if (allSuccessful) {
       toast({
-        title: "Contact Settings Saved",
-        description: "Your contact information and social media links have been successfully updated.",
+        title: "Success!",
+        description: "Your contact information has been updated successfully.",
       });
     } else {
       toast({
         title: "Partial Save Error",
-        description: `Failed to save: ${failedSettings.join(', ')}`,
+        description: `Failed to save: ${failedSettings.join(', ')}. Please try again.`,
         variant: "destructive"
       });
     }
@@ -189,12 +207,16 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
 
   return (
     <div className="space-y-8">
-      {/* Debug info - remove this after fixing */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
-        <h4 className="font-medium text-yellow-800 mb-2">Debug Info:</h4>
-        <p><strong>User ID:</strong> {user?.id || 'Not logged in'}</p>
-        <p><strong>User Email:</strong> {user?.email || 'No email'}</p>
-        <p><strong>Site Name:</strong> {siteData.siteName || 'Not set'}</p>
+      {/* Debug info panel */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+        <h4 className="font-medium text-blue-800 mb-2">🔍 Debug Information:</h4>
+        <div className="space-y-1 text-blue-700">
+          <p><strong>User ID:</strong> {user?.id || 'Not logged in'}</p>
+          <p><strong>User Email:</strong> {user?.email || 'No email'}</p>
+          <p><strong>Site Name (Form):</strong> {siteData.siteName || 'Not set'}</p>
+          <p><strong>Hero Title (Form):</strong> {siteData.heroTitle || 'Not set'}</p>
+          <p><strong>Contact Email (Form):</strong> {siteData.contactEmail || 'Not set'}</p>
+        </div>
       </div>
 
       <QuickSetupProgress 
