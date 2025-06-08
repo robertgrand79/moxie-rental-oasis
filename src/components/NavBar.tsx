@@ -10,11 +10,6 @@ const NavBar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const isAdminPage = location.pathname.startsWith('/admin') || 
-                     location.pathname.startsWith('/blog-management') || 
-                     location.pathname.startsWith('/page-management') || 
-                     location.pathname.startsWith('/site-settings');
-
   const isHomePage = location.pathname === '/';
 
   useEffect(() => {
@@ -38,12 +33,11 @@ const NavBar = () => {
     <nav className={navClasses}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <LogoSection isAdminPage={isAdminPage} />
-          <DesktopNavigation isAdminPage={isAdminPage} />
+          <LogoSection />
+          <DesktopNavigation />
           
           <div className="flex items-center">
             <MobileNavigation 
-              isAdminPage={isAdminPage}
               isMobileMenuOpen={isMobileMenuOpen}
               setIsMobileMenuOpen={setIsMobileMenuOpen}
             />

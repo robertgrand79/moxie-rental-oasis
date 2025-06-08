@@ -1,14 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PropertyList from '@/components/PropertyList';
-import EmptyPropertyState from '@/components/EmptyPropertyState';
 import { useProperties } from '@/hooks/useProperties';
-import { Property } from '@/types/property';
 import LoadingState from '@/components/ui/loading-state';
-import NavBar from '@/components/NavBar';
-import Footer from '@/components/Footer';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 
 const Properties = () => {
@@ -17,18 +12,15 @@ const Properties = () => {
   if (loading) {
     return (
       <BackgroundWrapper>
-        <NavBar />
         <div className="container mx-auto px-4 py-16">
           <LoadingState variant="page" message="Loading properties..." />
         </div>
-        <Footer />
       </BackgroundWrapper>
     );
   }
 
   return (
     <BackgroundWrapper>
-      <NavBar />
       <div className="min-h-screen">
         <div className="container mx-auto px-4 py-16">
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
@@ -59,7 +51,6 @@ const Properties = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </BackgroundWrapper>
   );
 };

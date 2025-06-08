@@ -5,9 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import NavBar from "./components/NavBar";
-import Footer from "./components/Footer";
-import ChatWidget from "./components/chat/ChatWidget";
+import PublicLayout from "./components/layouts/PublicLayout";
+import AdminLayoutWrapper from "./components/layouts/AdminLayoutWrapper";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Listings from "./pages/Listings";
@@ -57,187 +56,78 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <SiteHead />
-            <div className="min-h-screen flex flex-col">
-              <NavBar />
-              <main className="flex-1">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/listings" element={<Listings />} />
-                  <Route path="/properties" element={<Properties />} />
-                  <Route path="/experiences" element={<Experiences />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/privacy" element={<PrivacyPolicy />} />
-                  <Route path="/terms" element={<TermsOfService />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/:slug" element={<BlogPost />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/search" element={<SearchResults />} />
-                  
-                  {/* Admin Routes */}
-                  <Route 
-                    path="/admin" 
-                    element={
-                      <ProtectedRoute>
-                        <Admin />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/profile" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminProfile />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/properties" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminProperties />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/settings" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminSiteSettings />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/events" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminEvents />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/lifestyle" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminLifestyle />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/poi" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminPOI />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/testimonials" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminTestimonials />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/pages" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminPageManagement />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/newsletter" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminNewsletter />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/analytics" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminAnalytics />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/metrics" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminSiteMetrics />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/tasks" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminTaskManagement />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/workorders" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminWorkOrders />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/ai-tools" 
-                    element={
-                      <ProtectedRoute>
-                        <AdminAITools />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Legacy Admin Routes */}
-                  <Route 
-                    path="/blog-management" 
-                    element={
-                      <ProtectedRoute>
-                        <BlogManagement />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/page-management" 
-                    element={
-                      <ProtectedRoute>
-                        <PageManagement />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/site-settings" 
-                    element={
-                      <ProtectedRoute>
-                        <SiteSettings />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/sample-data" 
-                    element={
-                      <ProtectedRoute>
-                        <SampleDataManagement />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Catch all route */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-              <Footer />
-              <ChatWidget />
-            </div>
+            <Routes>
+              {/* Admin Routes - using AdminLayoutWrapper */}
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <AdminLayoutWrapper />
+                </ProtectedRoute>
+              }>
+                <Route index element={<Admin />} />
+                <Route path="profile" element={<AdminProfile />} />
+                <Route path="properties" element={<AdminProperties />} />
+                <Route path="settings" element={<AdminSiteSettings />} />
+                <Route path="events" element={<AdminEvents />} />
+                <Route path="lifestyle" element={<AdminLifestyle />} />
+                <Route path="poi" element={<AdminPOI />} />
+                <Route path="testimonials" element={<AdminTestimonials />} />
+                <Route path="pages" element={<AdminPageManagement />} />
+                <Route path="newsletter" element={<AdminNewsletter />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="metrics" element={<AdminSiteMetrics />} />
+                <Route path="tasks" element={<AdminTaskManagement />} />
+                <Route path="workorders" element={<AdminWorkOrders />} />
+                <Route path="ai-tools" element={<AdminAITools />} />
+              </Route>
+
+              {/* Legacy Admin Routes - using AdminLayoutWrapper */}
+              <Route path="/blog-management" element={
+                <ProtectedRoute>
+                  <AdminLayoutWrapper />
+                </ProtectedRoute>
+              }>
+                <Route index element={<BlogManagement />} />
+              </Route>
+              <Route path="/page-management" element={
+                <ProtectedRoute>
+                  <AdminLayoutWrapper />
+                </ProtectedRoute>
+              }>
+                <Route index element={<PageManagement />} />
+              </Route>
+              <Route path="/site-settings" element={
+                <ProtectedRoute>
+                  <AdminLayoutWrapper />
+                </ProtectedRoute>
+              }>
+                <Route index element={<SiteSettings />} />
+              </Route>
+              <Route path="/sample-data" element={
+                <ProtectedRoute>
+                  <AdminLayoutWrapper />
+                </ProtectedRoute>
+              }>
+                <Route index element={<SampleDataManagement />} />
+              </Route>
+
+              {/* Public Routes - using PublicLayout */}
+              <Route path="/" element={<PublicLayout />}>
+                <Route index element={<Index />} />
+                <Route path="about" element={<About />} />
+                <Route path="listings" element={<Listings />} />
+                <Route path="properties" element={<Properties />} />
+                <Route path="experiences" element={<Experiences />} />
+                <Route path="auth" element={<Auth />} />
+                <Route path="privacy" element={<PrivacyPolicy />} />
+                <Route path="terms" element={<TermsOfService />} />
+                <Route path="faq" element={<FAQ />} />
+                <Route path="blog" element={<Blog />} />
+                <Route path="blog/:slug" element={<BlogPost />} />
+                <Route path="events" element={<Events />} />
+                <Route path="search" element={<SearchResults />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

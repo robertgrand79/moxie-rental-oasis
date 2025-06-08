@@ -5,13 +5,11 @@ import { Menu } from 'lucide-react';
 import MobileNavigationDrawer from './MobileNavigationDrawer';
 
 interface MobileNavigationProps {
-  isAdminPage: boolean;
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean) => void;
 }
 
 const MobileNavigation = ({ 
-  isAdminPage, 
   isMobileMenuOpen, 
   setIsMobileMenuOpen 
 }: MobileNavigationProps) => {
@@ -38,7 +36,6 @@ const MobileNavigation = ({
 
       {/* Mobile Navigation Drawer */}
       <MobileNavigationDrawer
-        isAdminPage={isAdminPage}
         isOpen={isMobileMenuOpen}
         onClose={closeMobileMenu}
       />
