@@ -68,7 +68,6 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting, isUserEditing 
         siteData={siteData}
         onInputChange={handleInputChange}
         onSocialMediaChange={handleSocialMediaChange}
-        onSave={handleSaveContactSettings}
       />
     </div>
   );

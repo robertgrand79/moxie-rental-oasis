@@ -1,19 +1,17 @@
 
 import React from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
 interface ContactInformationSettingsProps {
   siteData: any;
   onInputChange: (field: string, value: string) => void;
   onSocialMediaChange: (platform: string, value: string) => void;
-  onSave: () => Promise<void>;
 }
 
-const ContactInformationSettings = ({ siteData, onInputChange, onSocialMediaChange, onSave }: ContactInformationSettingsProps) => {
+const ContactInformationSettings = ({ siteData, onInputChange, onSocialMediaChange }: ContactInformationSettingsProps) => {
   return (
     <EnhancedCard variant="glass">
       <EnhancedCardHeader>
@@ -105,11 +103,6 @@ const ContactInformationSettings = ({ siteData, onInputChange, onSocialMediaChan
             </div>
           </div>
         </div>
-
-        <Button onClick={onSave} className="w-full">
-          <Save className="h-4 w-4 mr-2" />
-          Save Contact & Social Settings
-        </Button>
       </EnhancedCardContent>
     </EnhancedCard>
   );

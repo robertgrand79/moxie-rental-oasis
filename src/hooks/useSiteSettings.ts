@@ -20,9 +20,6 @@ export const useSiteSettings = () => {
   const { user } = useAuth();
 
   const fetchSettings = async () => {
-    setLoading(true);
-    setError(null);
-    
     try {
       const { data, error } = await supabase
         .from('site_settings')
@@ -31,27 +28,19 @@ export const useSiteSettings = () => {
       if (error) {
         console.error('Error fetching site settings:', error);
         setError(`Failed to fetch site settings: ${error.message}`);
-        toast({
-          title: 'Error',
-          description: `Failed to fetch site settings: ${error.message}`,
-          variant: 'destructive'
-        });
+        // Don't show toast for every fetch error - too noisy
       } else {
         const settingsMap = data?.reduce((acc, setting) => {
           acc[setting.key] = setting.value;
           return acc;
         }, {} as Record<string, any>) || {};
         setSettings(settingsMap);
+        setError(null);
       }
     } catch (error) {
       console.error('Error in fetchSettings:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setError(errorMessage);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch site settings.',
-        variant: 'destructive'
-      });
     } finally {
       setLoading(false);
     }
@@ -154,11 +143,6 @@ export const useSiteSettings = () => {
       // Update local state immediately
       setSettings(prev => ({ ...prev, [key]: value }));
       
-      // Force a refetch to ensure consistency
-      setTimeout(() => {
-        fetchSettings();
-      }, 100);
-      
       return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -174,6 +158,10 @@ export const useSiteSettings = () => {
 
   const getSetting = (key: string, defaultValue?: any) => {
     return settings[key] ?? defaultValue;
+  };
+
+  const refetch = () => {
+    fetchSettings();
   };
 
   useEffect(() => {
@@ -193,6 +181,6 @@ export const useSiteSettings = () => {
     error,
     updateSetting,
     getSetting,
-    refetch: fetchSettings
+    refetch
   };
 };

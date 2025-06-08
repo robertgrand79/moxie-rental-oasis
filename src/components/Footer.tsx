@@ -1,35 +1,13 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Footer = () => {
-  const { getSetting, loading, refetch } = useSiteSettings();
+  const { getSetting, loading } = useSiteSettings();
 
-  // Refetch settings on mount and when component receives focus
-  useEffect(() => {
-    const handleFocus = () => {
-      refetch();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    
-    // Also refetch when the component mounts
-    if (!loading) {
-      refetch();
-    }
-
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [refetch, loading]);
-
-  // Don't render footer until settings are loaded
-  if (loading) {
-    return null;
-  }
-
+  // Always render footer with fallback data to prevent page breaks
   const siteData = {
     siteName: getSetting('siteName', 'Moxie Vacation Rentals'),
     description: getSetting('description', 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.'),

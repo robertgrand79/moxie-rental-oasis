@@ -1,12 +1,9 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export const useSettingsData = () => {
   const { settings, loading, updateSetting, getSetting, error } = useSiteSettings();
-  const isUserEditing = useRef(false);
-  const lastLoadedSettings = useRef<any>({});
-  const hasInitialized = useRef(false);
 
   const [siteData, setSiteData] = useState({
     siteName: '',
@@ -49,25 +46,10 @@ export const useSettingsData = () => {
     customCss: ''
   });
 
-  // Function to mark that user is editing (prevents overwrites)
-  const markUserEditing = () => {
-    isUserEditing.current = true;
-    // Clear the flag after a longer delay to prevent frequent overwrites
-    setTimeout(() => {
-      isUserEditing.current = false;
-    }, 5000);
-  };
-
-  // Enhanced setSiteData that marks user editing
-  const setSiteDataWithTracking = (updater: any) => {
-    markUserEditing();
-    setSiteData(updater);
-  };
-
-  // Initialize data from database only once when not loading and not editing
+  // Initialize data from database when settings are loaded
   useEffect(() => {
-    if (!loading && !isUserEditing.current && !hasInitialized.current && Object.keys(settings).length > 0) {
-      const newSiteData = {
+    if (!loading && Object.keys(settings).length > 0) {
+      setSiteData({
         siteName: getSetting('siteName', 'Moxie Vacation Rentals'),
         tagline: getSetting('tagline', 'Your perfect getaway is just a click away.'),
         description: getSetting('description', 'Discover amazing vacation rental properties in prime locations.'),
@@ -87,11 +69,7 @@ export const useSettingsData = () => {
           twitter: '',
           googlePlaces: ''
         })
-      };
-      
-      setSiteData(newSiteData);
-      lastLoadedSettings.current = newSiteData;
-      hasInitialized.current = true;
+      });
       
       setMapboxToken(getSetting('mapboxToken', ''));
       
@@ -117,7 +95,7 @@ export const useSettingsData = () => {
 
   return {
     siteData,
-    setSiteData: setSiteDataWithTracking,
+    setSiteData,
     mapboxToken,
     setMapboxToken,
     seoData,
@@ -127,6 +105,6 @@ export const useSettingsData = () => {
     updateSetting,
     loading,
     error,
-    isUserEditing: isUserEditing.current
+    isUserEditing: false
   };
 };
