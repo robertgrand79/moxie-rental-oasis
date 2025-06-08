@@ -1,3 +1,4 @@
+
 import {
   Home,
   Settings,
@@ -13,7 +14,8 @@ import {
   Mail,
   Wrench,
   CheckSquare,
-  Kanban
+  Kanban,
+  ClipboardList
 } from 'lucide-react';
 
 export const coreMenuItems = [
@@ -28,6 +30,12 @@ export const coreMenuItems = [
     url: '/admin/tasks',
     icon: Kanban,
     color: 'text-purple-600',
+  },
+  {
+    title: 'Work Orders',
+    url: '/admin/work-orders',
+    icon: ClipboardList,
+    color: 'text-orange-600',
   },
   {
     title: 'Properties',

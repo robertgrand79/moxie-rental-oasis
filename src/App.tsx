@@ -35,6 +35,7 @@ import AdminAITools from "./pages/admin/AdminAITools";
 import AdminSiteSettings from "./pages/admin/AdminSiteSettings";
 import AdminSiteMetrics from "./pages/admin/AdminSiteMetrics";
 import AdminTaskManagement from "./pages/admin/AdminTaskManagement";
+import AdminWorkOrders from "./pages/admin/AdminWorkOrders";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ const App = () => (
               <Route path="site-settings" element={<AdminSiteSettings />} />
               <Route path="site-metrics" element={<AdminSiteMetrics />} />
               <Route path="tasks" element={<AdminTaskManagement />} />
+              <Route path="work-orders" element={<AdminWorkOrders />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />

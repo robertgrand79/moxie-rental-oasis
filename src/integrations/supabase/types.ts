@@ -188,6 +188,54 @@ export type Database = {
         }
         Relationships: []
       }
+      contractors: {
+        Row: {
+          address: string | null
+          company_name: string | null
+          created_at: string
+          created_by: string
+          email: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          phone: string | null
+          rating: number | null
+          specialties: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company_name?: string | null
+          created_at?: string
+          created_by: string
+          email: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          specialties?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company_name?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          specialties?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       eugene_events: {
         Row: {
           category: string | null
@@ -778,11 +826,156 @@ export type Database = {
         }
         Relationships: []
       }
+      work_order_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          notes: string | null
+          status: string
+          work_order_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          notes?: string | null
+          status: string
+          work_order_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_order_status_history_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_orders: {
+        Row: {
+          acknowledged_at: string | null
+          actual_completion_date: string | null
+          actual_cost: number | null
+          attachments: string[] | null
+          completed_at: string | null
+          completion_photos: string[] | null
+          contractor_id: string | null
+          created_at: string
+          created_by: string
+          description: string
+          estimated_completion_date: string | null
+          estimated_cost: number | null
+          id: string
+          invoice_attachments: string[] | null
+          priority: string
+          property_id: string | null
+          requires_permits: boolean | null
+          scope_of_work: string | null
+          sent_at: string | null
+          special_instructions: string | null
+          status: string
+          task_id: string | null
+          title: string
+          updated_at: string
+          work_order_number: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          actual_completion_date?: string | null
+          actual_cost?: number | null
+          attachments?: string[] | null
+          completed_at?: string | null
+          completion_photos?: string[] | null
+          contractor_id?: string | null
+          created_at?: string
+          created_by: string
+          description: string
+          estimated_completion_date?: string | null
+          estimated_cost?: number | null
+          id?: string
+          invoice_attachments?: string[] | null
+          priority?: string
+          property_id?: string | null
+          requires_permits?: boolean | null
+          scope_of_work?: string | null
+          sent_at?: string | null
+          special_instructions?: string | null
+          status?: string
+          task_id?: string | null
+          title: string
+          updated_at?: string
+          work_order_number: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          actual_completion_date?: string | null
+          actual_cost?: number | null
+          attachments?: string[] | null
+          completed_at?: string | null
+          completion_photos?: string[] | null
+          contractor_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          estimated_completion_date?: string | null
+          estimated_cost?: number | null
+          id?: string
+          invoice_attachments?: string[] | null
+          priority?: string
+          property_id?: string | null
+          requires_permits?: boolean | null
+          scope_of_work?: string | null
+          sent_at?: string | null
+          special_instructions?: string | null
+          status?: string
+          task_id?: string | null
+          title?: string
+          updated_at?: string
+          work_order_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_orders_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      generate_work_order_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean

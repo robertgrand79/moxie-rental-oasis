@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
 import { useTaskManagement, Task } from '@/hooks/useTaskManagement';
+import { useWorkOrderManagement } from '@/hooks/useWorkOrderManagement';
 import TaskManagementHeader from '@/components/admin/tasks/TaskManagementHeader';
 import TaskKanbanBoard from '@/components/admin/tasks/TaskKanbanBoard';
 import CreateTaskModal from '@/components/admin/tasks/CreateTaskModal';
 import CreateProjectModal from '@/components/admin/tasks/CreateProjectModal';
+import CreateWorkOrderModal from '@/components/admin/workorders/CreateWorkOrderModal';
 import LoadingState from '@/components/ui/loading-state';
 
 const AdminTaskManagement = () => {
@@ -18,16 +20,28 @@ const AdminTaskManagement = () => {
     deleteTask,
   } = useTaskManagement();
 
+  const {
+    contractors,
+    createWorkOrder,
+  } = useWorkOrderManagement();
+
   const [view, setView] = useState<'kanban' | 'table' | 'calendar'>('kanban');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isWorkOrderModalOpen, setIsWorkOrderModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [selectedTaskForWorkOrder, setSelectedTaskForWorkOrder] = useState<Task | null>(null);
 
   const completedTasks = tasks.filter(task => task.status === 'done').length;
 
   const handleTaskClick = (task: Task) => {
     setEditingTask(task);
     setIsTaskModalOpen(true);
+  };
+
+  const handleCreateWorkOrder = (task: Task) => {
+    setSelectedTaskForWorkOrder(task);
+    setIsWorkOrderModalOpen(true);
   };
 
   const handleStatusChange = async (taskId: string, status: string) => {
@@ -55,6 +69,18 @@ const AdminTaskManagement = () => {
       await createProject(projectData);
     } catch (error) {
       console.error('Error creating project:', error);
+    }
+  };
+
+  const handleCreateWorkOrderFromTask = async (workOrderData: any) => {
+    if (selectedTaskForWorkOrder) {
+      await createWorkOrder({
+        ...workOrderData,
+        task_id: selectedTaskForWorkOrder.id,
+        title: workOrderData.title || selectedTaskForWorkOrder.title,
+        description: workOrderData.description || selectedTaskForWorkOrder.description,
+      });
+      setSelectedTaskForWorkOrder(null);
     }
   };
 
@@ -88,6 +114,7 @@ const AdminTaskManagement = () => {
           onTaskClick={handleTaskClick}
           onStatusChange={handleStatusChange}
           onDeleteTask={handleDeleteTask}
+          onCreateWorkOrder={handleCreateWorkOrder}
         />
       )}
 
@@ -118,6 +145,17 @@ const AdminTaskManagement = () => {
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
         onCreateProject={handleCreateProject}
+      />
+
+      <CreateWorkOrderModal
+        isOpen={isWorkOrderModalOpen}
+        onClose={() => {
+          setIsWorkOrderModalOpen(false);
+          setSelectedTaskForWorkOrder(null);
+        }}
+        onCreateWorkOrder={handleCreateWorkOrderFromTask}
+        contractors={contractors}
+        editingWorkOrder={null}
       />
     </div>
   );

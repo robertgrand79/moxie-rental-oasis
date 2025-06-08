@@ -1,0 +1,247 @@
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+export interface Contractor {
+  id: string;
+  name: string;
+  company_name?: string;
+  email: string;
+  phone?: string;
+  specialties?: string[];
+  address?: string;
+  rating?: number;
+  is_active: boolean;
+  notes?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkOrder {
+  id: string;
+  task_id?: string;
+  property_id?: string;
+  contractor_id?: string;
+  work_order_number: string;
+  title: string;
+  description: string;
+  scope_of_work?: string;
+  priority: string;
+  status: string;
+  estimated_cost?: number;
+  actual_cost?: number;
+  estimated_completion_date?: string;
+  actual_completion_date?: string;
+  sent_at?: string;
+  acknowledged_at?: string;
+  completed_at?: string;
+  requires_permits?: boolean;
+  special_instructions?: string;
+  attachments?: string[];
+  completion_photos?: string[];
+  invoice_attachments?: string[];
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  contractor?: Contractor;
+  property?: any;
+  task?: any;
+}
+
+export const useWorkOrderManagement = () => {
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
+  const [contractors, setContractors] = useState<Contractor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const fetchContractors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contractors')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setContractors(data || []);
+    } catch (error) {
+      console.error('Error fetching contractors:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch contractors',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const fetchWorkOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('work_orders')
+        .select(`
+          *,
+          contractor:contractors(*),
+          property:properties(*),
+          task:tasks(*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setWorkOrders(data || []);
+    } catch (error) {
+      console.error('Error fetching work orders:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch work orders',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const createContractor = async (contractorData: Omit<Contractor, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('contractors')
+        .insert([{ ...contractorData, created_by: user.id }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setContractors(prev => [data, ...prev]);
+      toast({
+        title: 'Success',
+        description: 'Contractor created successfully',
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('Error creating contractor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create contractor',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const createWorkOrder = async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'contractor' | 'property' | 'task'>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('work_orders')
+        .insert([{ ...workOrderData, created_by: user.id }])
+        .select(`
+          *,
+          contractor:contractors(*),
+          property:properties(*),
+          task:tasks(*)
+        `)
+        .single();
+
+      if (error) throw error;
+      
+      setWorkOrders(prev => [data, ...prev]);
+      toast({
+        title: 'Success',
+        description: 'Work order created successfully',
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('Error creating work order:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create work order',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const updateWorkOrder = async (workOrderId: string, updates: Partial<WorkOrder>) => {
+    try {
+      const { data, error } = await supabase
+        .from('work_orders')
+        .update(updates)
+        .eq('id', workOrderId)
+        .select(`
+          *,
+          contractor:contractors(*),
+          property:properties(*),
+          task:tasks(*)
+        `)
+        .single();
+
+      if (error) throw error;
+      
+      setWorkOrders(prev => prev.map(wo => 
+        wo.id === workOrderId ? data : wo
+      ));
+      
+      return data;
+    } catch (error) {
+      console.error('Error updating work order:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update work order',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const deleteWorkOrder = async (workOrderId: string) => {
+    try {
+      const { error } = await supabase
+        .from('work_orders')
+        .delete()
+        .eq('id', workOrderId);
+
+      if (error) throw error;
+      
+      setWorkOrders(prev => prev.filter(wo => wo.id !== workOrderId));
+      toast({
+        title: 'Success',
+        description: 'Work order deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting work order:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete work order',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchContractors(), fetchWorkOrders()]);
+      setLoading(false);
+    };
+
+    loadData();
+  }, []);
+
+  return {
+    workOrders,
+    contractors,
+    loading,
+    createContractor,
+    createWorkOrder,
+    updateWorkOrder,
+    deleteWorkOrder,
+    refreshData: () => Promise.all([fetchContractors(), fetchWorkOrders()]),
+  };
+};
