@@ -5,12 +5,14 @@ const FamilyPhotoSection = () => {
   return (
     <div className="w-full">
       <div className="space-y-6">
-        <div className="aspect-[4/3] relative overflow-hidden bg-gradient-to-br from-gradient-from/20 to-gradient-accent-from/30 rounded-lg border border-gradient-from/20 flex items-center justify-center">
-          <div className="text-center p-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-full mx-auto mb-4 flex items-center justify-center">
-              <span className="text-white text-2xl font-bold">M</span>
-            </div>
-            <p className="text-gray-600 font-medium">Moxie Vacation Rentals</p>
+        <div className="relative group">
+          <div className="absolute -inset-2 bg-gradient-to-r from-gradient-from/30 to-gradient-accent-from/30 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
+              alt="Robert and Shelly"
+              className="rounded-2xl shadow-xl w-full h-auto object-cover"
+            />
           </div>
         </div>
       </div>
