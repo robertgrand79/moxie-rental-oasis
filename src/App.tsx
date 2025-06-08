@@ -15,8 +15,14 @@ import Auth from '@/pages/Auth';
 import Admin from '@/pages/Admin';
 import AdminProperties from '@/pages/admin/AdminProperties';
 import AdminAITools from '@/pages/admin/AdminAITools';
-import SiteSettings from '@/pages/SiteSettings';
 import AdminContentWorkflows from '@/pages/admin/AdminContentWorkflows';
+import AdminAnalytics from '@/pages/admin/AdminAnalytics';
+import AdminTestimonials from '@/pages/admin/AdminTestimonials';
+import AdminNewsletter from '@/pages/admin/AdminNewsletter';
+import BlogManagement from '@/pages/BlogManagement';
+import PageManagement from '@/pages/PageManagement';
+import AdminProfile from '@/pages/AdminProfile';
+import SiteSettings from '@/pages/SiteSettings';
 
 function App() {
   return (
@@ -38,10 +44,19 @@ function App() {
         {/* Admin Routes */}
         <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
           <Route index element={<Admin />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="properties" element={<AdminProperties />} />
+          <Route path="properties/new" element={<AdminProperties />} />
           <Route path="content-workflows" element={<AdminContentWorkflows />} />
           <Route path="ai-tools" element={<AdminAITools />} />
-          <Route path="properties" element={<AdminProperties />} />
+          <Route path="blog" element={<BlogManagement />} />
+          <Route path="newsletter" element={<AdminNewsletter />} />
+          <Route path="testimonials" element={<AdminTestimonials />} />
+          <Route path="users" element={<PageManagement />} />
+          <Route path="roles" element={<PageManagement />} />
           <Route path="settings" element={<SiteSettings />} />
+          <Route path="integrations" element={<SiteSettings />} />
+          <Route path="profile" element={<AdminProfile />} />
         </Route>
       </Routes>
     </Router>

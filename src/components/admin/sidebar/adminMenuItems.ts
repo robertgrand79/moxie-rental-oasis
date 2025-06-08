@@ -1,4 +1,18 @@
-import { Home, LayoutDashboard, Settings, Users, Wand2, FileText, Mail, Star, Sparkles } from 'lucide-react';
+
+import { 
+  Home, 
+  LayoutDashboard, 
+  Settings, 
+  Users, 
+  Wand2, 
+  FileText, 
+  Mail, 
+  Star, 
+  Sparkles,
+  Plus,
+  Shield,
+  GitFork
+} from 'lucide-react';
 
 export const adminMenuItems = [
   {
@@ -21,43 +35,41 @@ export const adminMenuItems = [
       },
       {
         title: "Add New",
-        icon: "Plus",
+        icon: Plus,
         href: "/admin/properties/new"
       }
     ]
   },
-  
   {
     title: "Content & Marketing",
     items: [
       {
         title: "Content Workflows",
-        icon: "Wand2",
+        icon: Wand2,
         href: "/admin/content-workflows"
       },
       {
         title: "AI Tools",
-        icon: "Sparkles", 
+        icon: Sparkles, 
         href: "/admin/ai-tools"
       },
       {
         title: "Blog Management",
-        icon: "FileText",
+        icon: FileText,
         href: "/admin/blog"
       },
       {
         title: "Newsletter",
-        icon: "Mail",
+        icon: Mail,
         href: "/admin/newsletter"
       },
       {
         title: "Testimonials",
-        icon: "Star",
+        icon: Star,
         href: "/admin/testimonials"
       }
     ]
   },
-
   {
     title: "Users & Roles",
     items: [
@@ -68,7 +80,7 @@ export const adminMenuItems = [
       },
       {
         title: "Roles & Permissions",
-        icon: "Shield",
+        icon: Shield,
         href: "/admin/roles"
       }
     ]
@@ -83,7 +95,7 @@ export const adminMenuItems = [
       },
       {
         title: "Integrations",
-        icon: "GitFork",
+        icon: GitFork,
         href: "/admin/integrations"
       }
     ]
