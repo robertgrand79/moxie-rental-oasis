@@ -12,7 +12,7 @@ import {
 
 export const navigationItems = [
   { name: 'Home', href: '/', title: 'Home', icon: Home },
-  { name: 'Properties', href: '/listings', title: 'Properties', icon: Building2 },
+  { name: 'Properties', href: '/properties', title: 'Properties', icon: Building2 },
   { name: 'About', href: '/about', title: 'About', icon: Info },
   { name: 'Experiences', href: '/experiences', title: 'Experiences', icon: Calendar },
   { name: 'Events', href: '/events', title: 'Events', icon: Calendar },
