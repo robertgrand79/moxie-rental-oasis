@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useForm } from 'react-hook-form';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
+import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 import NewsletterOverview from './NewsletterOverview';
 import NewsletterAIGenerator from './NewsletterAIGenerator';
 import NewsletterEditorLayout from './NewsletterEditorLayout';
@@ -18,10 +19,10 @@ interface NewsletterFormData {
 
 const NewsletterManager = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
   const [content, setContent] = useState('');
   const { toast } = useToast();
   const { blogPosts, loading: blogPostsLoading } = useBlogPosts();
+  const { subscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
   
   const form = useForm<NewsletterFormData>({
     defaultValues: {
@@ -30,24 +31,6 @@ const NewsletterManager = () => {
       blogPostId: '',
     },
   });
-
-  React.useEffect(() => {
-    fetchSubscriberCount();
-  }, []);
-
-  const fetchSubscriberCount = async () => {
-    try {
-      const { count, error } = await supabase
-        .from('newsletter_subscribers')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
-
-      if (error) throw error;
-      setSubscriberCount(count || 0);
-    } catch (error) {
-      console.error('Error fetching subscriber count:', error);
-    }
-  };
 
   const onSubmit = async (data: NewsletterFormData) => {
     setIsLoading(true);
@@ -72,6 +55,7 @@ const NewsletterManager = () => {
       
       form.reset();
       setContent('');
+      refetchSubscriberCount();
     } catch (error: any) {
       console.error('Newsletter send error:', error);
       toast({

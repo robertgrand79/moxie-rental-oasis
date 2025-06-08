@@ -7,11 +7,10 @@ import { usePointsOfInterest } from '@/hooks/usePointsOfInterest';
 import { useLifestyleGallery } from '@/hooks/useLifestyleGallery';
 import { useTestimonials } from '@/hooks/useTestimonials';
 import { usePages } from '@/hooks/usePages';
+import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 import AdminWelcomeSection from './dashboard/AdminWelcomeSection';
-import AdminQuickStats from './dashboard/AdminQuickStats';
-import AdminFeatureStats from './dashboard/AdminFeatureStats';
+import AdminContentStatsGrid from './dashboard/AdminContentStatsGrid';
 import AdminRecentActivity from './dashboard/AdminRecentActivity';
-import AdminQuickActionsEnhanced from './dashboard/AdminQuickActionsEnhanced';
 
 const EnhancedAdminDashboard = () => {
   const { properties } = useProperties();
@@ -21,36 +20,33 @@ const EnhancedAdminDashboard = () => {
   const { galleryItems } = useLifestyleGallery();
   const { testimonials } = useTestimonials();
   const { pages } = usePages();
+  const { subscriberCount } = useNewsletterStats();
 
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <AdminWelcomeSection />
 
-      {/* Main Content */}
+      {/* Enhanced Content Stats Grid */}
       <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20">
-        {/* Quick Stats Grid */}
-        <div className="mb-8">
-          <AdminQuickStats 
-            properties={properties}
-            blogPosts={blogPosts}
-            pages={pages}
-            events={events}
-          />
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Content Overview</h2>
+          <p className="text-gray-600">Manage all your content and view quick stats at a glance</p>
         </div>
-
-        {/* Feature Stats */}
-        <AdminFeatureStats 
+        
+        <AdminContentStatsGrid 
+          properties={properties}
+          blogPosts={blogPosts}
           pointsOfInterest={pointsOfInterest}
           galleryItems={galleryItems}
           testimonials={testimonials}
+          subscriberCount={subscriberCount}
         />
       </div>
 
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Recent Activity */}
+      <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
         <AdminRecentActivity blogPosts={blogPosts} />
-        <AdminQuickActionsEnhanced />
       </div>
     </div>
   );
