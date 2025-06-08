@@ -4,10 +4,12 @@ import { useLocation } from 'react-router-dom';
 import LogoSection from './navbar/LogoSection';
 import DesktopNavigation from './navbar/DesktopNavigation';
 import AuthSection from './navbar/AuthSection';
+import MobileNavigation from './navbar/MobileNavigation';
 
 const NavBar = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isHomePage = location.pathname === '/';
 
@@ -40,8 +42,17 @@ const NavBar = () => {
             <DesktopNavigation />
           </div>
           
-          <div className="hidden lg:block">
-            <AuthSection />
+          <div className="flex items-center space-x-4">
+            <div className="hidden lg:block">
+              <AuthSection />
+            </div>
+            
+            <div className="lg:hidden">
+              <MobileNavigation 
+                isMobileMenuOpen={isMobileMenuOpen}
+                setIsMobileMenuOpen={setIsMobileMenuOpen}
+              />
+            </div>
           </div>
         </div>
       </div>

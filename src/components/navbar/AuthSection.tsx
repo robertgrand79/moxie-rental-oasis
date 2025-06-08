@@ -36,51 +36,53 @@ const AuthSection = () => {
   const displayName = user?.user_metadata?.full_name || user?.email || 'User';
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex items-center space-x-3">
       {user ? (
         <>
           <div className="hidden sm:flex items-center space-x-3">
             <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
-              <User className="h-4 w-4 text-icon-gray mr-2" />
+              <User className="h-4 w-4 text-gray-600 mr-2" />
               <span className="text-sm font-medium text-gray-700">{displayName}</span>
             </div>
           </div>
           
           {!isAdminPage && (
-            <Link to="/admin">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                <Shield className="h-4 w-4 mr-2 text-icon-gray" />
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+            >
+              <Link to="/admin" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
                 <span className="hidden sm:inline">Admin Panel</span>
                 <span className="sm:hidden">Admin</span>
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )}
           
           <Button
             variant="outline"
             size="sm"
             onClick={handleSignOut}
-            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-50"
           >
-            <LogOut className="h-4 w-4 mr-2 text-icon-gray" />
+            <LogOut className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Sign Out</span>
           </Button>
         </>
       ) : (
-        <Link to="/auth">
-          <Button 
-            variant="outline"
-            size="sm"
-            className="border-gray-300 text-gray-700 hover:bg-gray-50"
-          >
-            <Settings className="h-4 w-4 mr-2 text-icon-gray" />
+        <Button 
+          variant="outline"
+          size="sm"
+          asChild
+          className="text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+        >
+          <Link to="/auth" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
             Admin Login
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       )}
     </div>
   );
