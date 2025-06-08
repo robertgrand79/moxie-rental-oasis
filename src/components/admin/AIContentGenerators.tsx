@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wand2, MapPin, Calendar, Camera, Loader2, Plus, RefreshCw } from 'lucide-react';
+import { Wand2, MapPin, Calendar, Camera, Loader2, Plus, RefreshCw, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,6 +52,30 @@ const AIContentGenerators = () => {
     'outdoor', 'dining', 'entertainment', 'culture', 'shopping', 
     'recreation', 'nature', 'sports', 'adventure', 'relaxation'
   ];
+
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+
+  const quickTemplates = {
+    poi: [
+      "Generate family-friendly restaurants with outdoor seating in Eugene",
+      "Create outdoor activity spots perfect for vacation rental guests",
+      "List unique shopping destinations that locals love in Eugene",
+      "Find cultural attractions that showcase Eugene's character"
+    ],
+    events: [
+      "Generate summer outdoor festivals and events in Eugene",
+      "Create family-friendly seasonal events happening this month",
+      "List arts and culture events perfect for weekend visitors",
+      "Find food and drink events that showcase local flavor"
+    ],
+    lifestyle: [
+      "Generate outdoor adventure activities around Eugene",
+      "Create romantic date ideas for couples visiting Eugene",
+      "List family activities that create lasting memories",
+      "Find Instagram-worthy spots for vacation photos"
+    ]
+  };
 
   const generateAIContent = async (type: 'poi' | 'events' | 'lifestyle', prompt: string, category: string, count: number) => {
     setIsGenerating(true);
@@ -165,6 +188,21 @@ const AIContentGenerators = () => {
     setGeneratedContent(prev => prev.filter(item => item.id !== id));
   };
 
+  const useQuickTemplate = (template: string, type: 'poi' | 'events' | 'lifestyle') => {
+    if (type === 'poi') {
+      setPoiPrompt(template);
+    } else if (type === 'events') {
+      setEventsPrompt(template);
+    } else if (type === 'lifestyle') {
+      setLifestylePrompt(template);
+    }
+
+    toast({
+      title: "Template Applied",
+      description: "Quick template has been applied to your prompt.",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -176,18 +214,15 @@ const AIContentGenerators = () => {
 
       <Tabs defaultValue="poi" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="poi">
-            <MapPin className="h-4 w-4 mr-2" />
+          <MapPin className="h-4 w-4 mr-2" />
             Points of Interest
-          </TabsTrigger>
-          <TabsTrigger value="events">
-            <Calendar className="h-4 w-4 mr-2" />
+          
+          <Calendar className="h-4 w-4 mr-2" />
             Events
-          </TabsTrigger>
-          <TabsTrigger value="lifestyle">
-            <Camera className="h-4 w-4 mr-2" />
+          
+          <Camera className="h-4 w-4 mr-2" />
             Lifestyle
-          </TabsTrigger>
+          
         </TabsList>
 
         <TabsContent value="poi">
@@ -199,61 +234,94 @@ const AIContentGenerators = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="poi-prompt">Description Prompt</Label>
-                <Textarea
-                  id="poi-prompt"
-                  value={poiPrompt}
-                  onChange={(e) => setPoiPrompt(e.target.value)}
-                  placeholder="e.g., Generate family-friendly restaurants with outdoor seating"
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="poi-category">Category</Label>
-                  <Select value={poiCategory} onValueChange={setPoiCategory}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {poiCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="poi-count">Number to Generate</Label>
-                  <Input
-                    id="poi-count"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={poiCount}
-                    onChange={(e) => setPoiCount(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-              <Button
-                onClick={() => generateAIContent('poi', poiPrompt, poiCategory, poiCount)}
-                disabled={isGenerating || !poiPrompt}
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="h-4 w-4 mr-2" />
-                    Generate POI Content
-                  </>
-                )}
-              </Button>
+              {/* Quick Templates Section */}
+              <Card className="bg-blue-50 border-blue-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Quick Templates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-2">
+                    {quickTemplates.poi.map((template, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => useQuickTemplate(template, 'poi')}
+                        className="text-left justify-start h-auto p-2 text-xs"
+                      >
+                        {template}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              
+                
+                  Description Prompt
+                  
+                  
+                    e.g., Generate family-friendly restaurants with outdoor seating
+                    
+                  
+                
+                
+                  
+                    
+                      Category
+                      
+                      
+                        
+                          
+                        
+                        
+                          {poiCategories.map((cat) => (
+                            
+                              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                            
+                          ))}
+                        
+                      
+                    
+                  
+                  
+                    
+                      Number to Generate
+                      
+                      
+                        
+                      
+                    
+                  
+                
+                
+                  
+                    
+                      
+                        
+                          
+                            
+                              
+                            
+                            Generating...
+                          
+                        
+                      
+                      
+                        
+                          
+                            
+                          
+                          Generate POI Content
+                        
+                      
+                    
+                  
+                
+              
             </CardContent>
           </Card>
         </TabsContent>
@@ -267,61 +335,94 @@ const AIContentGenerators = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="events-prompt">Description Prompt</Label>
-                <Textarea
-                  id="events-prompt"
-                  value={eventsPrompt}
-                  onChange={(e) => setEventsPrompt(e.target.value)}
-                  placeholder="e.g., Generate summer outdoor festivals in Eugene"
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="events-category">Category</Label>
-                  <Select value={eventsCategory} onValueChange={setEventsCategory}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {eventCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="events-count">Number to Generate</Label>
-                  <Input
-                    id="events-count"
-                    type="number"
-                    min="1"
-                    max="8"
-                    value={eventsCount}
-                    onChange={(e) => setEventsCount(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-              <Button
-                onClick={() => generateAIContent('events', eventsPrompt, eventsCategory, eventsCount)}
-                disabled={isGenerating || !eventsPrompt}
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="h-4 w-4 mr-2" />
-                    Generate Events
-                  </>
-                )}
-              </Button>
+              {/* Quick Templates Section */}
+              <Card className="bg-green-50 border-green-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Quick Templates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-2">
+                    {quickTemplates.events.map((template, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => useQuickTemplate(template, 'events')}
+                        className="text-left justify-start h-auto p-2 text-xs"
+                      >
+                        {template}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              
+                
+                  Description Prompt
+                  
+                  
+                    e.g., Generate summer outdoor festivals in Eugene
+                    
+                  
+                
+                
+                  
+                    
+                      Category
+                      
+                      
+                        
+                          
+                        
+                        
+                          {eventCategories.map((cat) => (
+                            
+                              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                            
+                          ))}
+                        
+                      
+                    
+                  
+                  
+                    
+                      Number to Generate
+                      
+                      
+                        
+                      
+                    
+                  
+                
+                
+                  
+                    
+                      
+                        
+                          
+                            
+                              
+                            
+                            Generating...
+                          
+                        
+                      
+                      
+                        
+                          
+                            
+                          
+                          Generate Events
+                        
+                      
+                    
+                  
+                
+              
             </CardContent>
           </Card>
         </TabsContent>
@@ -335,61 +436,94 @@ const AIContentGenerators = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="lifestyle-prompt">Description Prompt</Label>
-                <Textarea
-                  id="lifestyle-prompt"
-                  value={lifestylePrompt}
-                  onChange={(e) => setLifestylePrompt(e.target.value)}
-                  placeholder="e.g., Generate outdoor hiking and nature activities around Eugene"
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="lifestyle-category">Category</Label>
-                  <Select value={lifestyleCategory} onValueChange={setLifestyleCategory}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {lifestyleCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="lifestyle-count">Number to Generate</Label>
-                  <Input
-                    id="lifestyle-count"
-                    type="number"
-                    min="1"
-                    max="8"
-                    value={lifestyleCount}
-                    onChange={(e) => setLifestyleCount(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-              <Button
-                onClick={() => generateAIContent('lifestyle', lifestylePrompt, lifestyleCategory, lifestyleCount)}
-                disabled={isGenerating || !lifestylePrompt}
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="h-4 w-4 mr-2" />
-                    Generate Lifestyle Content
-                  </>
-                )}
-              </Button>
+              {/* Quick Templates Section */}
+              <Card className="bg-purple-50 border-purple-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Quick Templates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-2">
+                    {quickTemplates.lifestyle.map((template, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => useQuickTemplate(template, 'lifestyle')}
+                        className="text-left justify-start h-auto p-2 text-xs"
+                      >
+                        {template}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              
+                
+                  Description Prompt
+                  
+                  
+                    e.g., Generate outdoor hiking and nature activities around Eugene
+                    
+                  
+                
+                
+                  
+                    
+                      Category
+                      
+                      
+                        
+                          
+                        
+                        
+                          {lifestyleCategories.map((cat) => (
+                            
+                              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                            
+                          ))}
+                        
+                      
+                    
+                  
+                  
+                    
+                      Number to Generate
+                      
+                      
+                        
+                      
+                    
+                  
+                
+                
+                  
+                    
+                      
+                        
+                          
+                            
+                              
+                            
+                            Generating...
+                          
+                        
+                      
+                      
+                        
+                          
+                            
+                          
+                          Generate Lifestyle Content
+                        
+                      
+                    
+                  
+                
+              
             </CardContent>
           </Card>
         </TabsContent>
@@ -408,34 +542,37 @@ const AIContentGenerators = () => {
             <div className="space-y-4">
               {generatedContent.map((item) => (
                 <div key={item.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold">{item.content.name || item.content.title}</h4>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary">{item.content.type}</Badge>
-                      <Badge variant="outline">{item.content.category}</Badge>
-                    </div>
-                  </div>
+                  
+                    
+                      {item.content.name || item.content.title}
+                    
+                    
+                      
+                        {item.content.type}
+                      
+                      
+                        {item.content.category}
+                      
+                    
+                  
                   {item.content.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">
+                    
                       {item.content.description}
-                    </p>
+                    
                   )}
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => removeContent(item.id)}
-                    >
+                  
+                    
                       Remove
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => approveAndSave(item)}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Approve & Save
-                    </Button>
-                  </div>
+                    
+                    
+                      
+                        
+                          
+                        
+                        Approve & Save
+                      
+                    
+                  
                 </div>
               ))}
             </div>
