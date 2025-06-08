@@ -7,7 +7,6 @@ export const sanitizeHtml = (html: string): string => {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'img', 'blockquote'],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target'],
     ALLOW_DATA_ATTR: false,
-    FORBID_SCRIPT: true,
     FORBID_TAGS: ['script', 'object', 'embed', 'iframe', 'form', 'input'],
     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'style']
   });
@@ -51,7 +50,7 @@ export const sanitizeRichTextContent = (content: string): string => {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'blockquote'],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'target'],
     ALLOW_DATA_ATTR: false,
-    FORBID_SCRIPT: true,
+    FORBID_TAGS: ['script', 'object', 'embed', 'iframe', 'form', 'input'],
     SANITIZE_DOM: true
   });
 };
