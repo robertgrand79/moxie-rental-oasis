@@ -20,6 +20,9 @@ import AdminAnalytics from '@/pages/admin/AdminAnalytics';
 import AdminSiteMetrics from '@/pages/admin/AdminSiteMetrics';
 import AdminTestimonials from '@/pages/admin/AdminTestimonials';
 import AdminNewsletter from '@/pages/admin/AdminNewsletter';
+import AdminNewsletterManagement from '@/pages/admin/AdminNewsletterManagement';
+import AdminAIContentReview from '@/pages/admin/AdminAIContentReview';
+import AdminSiteSettingsRedesigned from '@/pages/admin/AdminSiteSettingsRedesigned';
 import AdminEvents from '@/pages/admin/AdminEvents';
 import AdminPOI from '@/pages/admin/AdminPOI';
 import AdminLifestyle from '@/pages/admin/AdminLifestyle';
@@ -62,14 +65,16 @@ function App() {
           <Route path="poi" element={<AdminPOI />} />
           <Route path="content-workflows" element={<AdminContentWorkflows />} />
           <Route path="ai-tools" element={<AdminAITools />} />
+          <Route path="ai-content-review" element={<AdminAIContentReview />} />
           <Route path="pages" element={<PageManagement />} />
           <Route path="blog" element={<BlogManagement />} />
           <Route path="newsletter" element={<AdminNewsletter />} />
+          <Route path="newsletter-management" element={<AdminNewsletterManagement />} />
           <Route path="testimonials" element={<AdminTestimonials />} />
           <Route path="lifestyle" element={<AdminLifestyle />} />
           <Route path="users" element={<AdminUserManagement />} />
           <Route path="roles" element={<AdminRolesPermissions />} />
-          <Route path="settings" element={<SiteSettings />} />
+          <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
           <Route path="integrations" element={<SiteSettings />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>

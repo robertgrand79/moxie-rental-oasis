@@ -52,7 +52,7 @@ export const adminMenuItems = [
       {
         title: "Add New Property",
         icon: Plus,
-        href: "/admin/properties/new"
+        href: "/admin/properties/new?action=add"
       }
     ]
   },
@@ -95,6 +95,11 @@ export const adminMenuItems = [
         href: "/admin/ai-tools"
       },
       {
+        title: "AI Generated Content",
+        icon: Wand2,
+        href: "/admin/ai-content-review"
+      },
+      {
         title: "Site Pages",
         icon: File,
         href: "/admin/pages"
@@ -105,9 +110,9 @@ export const adminMenuItems = [
         href: "/admin/blog"
       },
       {
-        title: "Newsletter",
+        title: "Newsletter Management",
         icon: Mail,
-        href: "/admin/newsletter"
+        href: "/admin/newsletter-management"
       },
       {
         title: "Testimonials",
