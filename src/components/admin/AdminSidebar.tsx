@@ -5,6 +5,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import AdminSidebarSection from './sidebar/AdminSidebarSection';
 import AdminSidebarFooter from './sidebar/AdminSidebarFooter';
@@ -28,8 +29,9 @@ const AdminSidebar = () => {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="p-4">
+        <div className="flex items-center justify-between p-4">
           <h2 className="text-xl font-bold text-gray-900">Moxie Command</h2>
+          <SidebarTrigger className="h-6 w-6" />
         </div>
       </SidebarHeader>
       <SidebarContent>

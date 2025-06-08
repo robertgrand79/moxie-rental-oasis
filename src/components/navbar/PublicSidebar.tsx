@@ -12,6 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { navigationItems } from './navigationItems';
 import AuthSection from './AuthSection';
@@ -25,10 +26,11 @@ const PublicSidebar = () => {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center px-4 py-2">
+        <div className="flex items-center justify-between px-4 py-2">
           <Link to="/" className="flex items-center space-x-2">
             <span className="text-xl font-bold text-primary">Moxie</span>
           </Link>
+          <SidebarTrigger className="h-6 w-6" />
         </div>
       </SidebarHeader>
       
