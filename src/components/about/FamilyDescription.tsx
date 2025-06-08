@@ -32,17 +32,17 @@ const FamilyDescription = () => {
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
-          <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
-            <div className="text-xl font-bold text-primary mb-1">Oregon</div>
-            <div className="text-sm text-gray-600">Born & Raised</div>
+          <div className="text-center p-6 bg-gradient-to-br from-gradient-from/30 to-gradient-accent-from/30 rounded-xl border border-gradient-from/20 shadow-lg hover:shadow-xl transition-all duration-300 group">
+            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-gradient-accent-from bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300">Oregon</div>
+            <div className="text-sm text-gray-600 font-medium">Born & Raised</div>
           </div>
-          <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
-            <div className="text-xl font-bold text-primary mb-1">Adventure</div>
-            <div className="text-sm text-gray-600">Loving Couple</div>
+          <div className="text-center p-6 bg-gradient-to-br from-gradient-accent-from/30 to-gradient-accent-to/30 rounded-xl border border-gradient-accent-from/20 shadow-lg hover:shadow-xl transition-all duration-300 group">
+            <div className="text-2xl font-bold bg-gradient-to-r from-icon-emerald to-icon-teal bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300">Adventure</div>
+            <div className="text-sm text-gray-600 font-medium">Loving Couple</div>
           </div>
-          <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
-            <div className="text-xl font-bold text-primary mb-1">Excellence</div>
-            <div className="text-sm text-gray-600">In Hospitality</div>
+          <div className="text-center p-6 bg-gradient-to-br from-gradient-from/30 to-gradient-accent-from/30 rounded-xl border border-gradient-from/20 shadow-lg hover:shadow-xl transition-all duration-300 group">
+            <div className="text-2xl font-bold bg-gradient-to-r from-icon-amber to-icon-orange bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300">Excellence</div>
+            <div className="text-sm text-gray-600 font-medium">In Hospitality</div>
           </div>
         </div>
       </div>

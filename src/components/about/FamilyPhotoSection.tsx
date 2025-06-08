@@ -1,6 +1,5 @@
 
 import React from 'react';
-import OptimizedImage from '@/components/ui/optimized-image';
 
 const FamilyPhotoSection = () => {
   const photos = [
@@ -22,11 +21,11 @@ const FamilyPhotoSection = () => {
             key={index}
             className="aspect-[4/3] relative overflow-hidden bg-gray-100 rounded-lg"
           >
-            <OptimizedImage
+            <img
               src={photo.src}
               alt={photo.alt}
               className="w-full h-full object-cover"
-              priority={true}
+              loading="eager"
             />
           </div>
         ))}
