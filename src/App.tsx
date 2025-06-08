@@ -12,6 +12,7 @@ import About from "./pages/About";
 import Listings from "./pages/Listings";
 import Properties from "./pages/Properties";
 import Experiences from "./pages/Experiences";
+import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AdminProfile from "./pages/AdminProfile";
@@ -119,6 +120,7 @@ function App() {
                 <Route path="listings" element={<Listings />} />
                 <Route path="properties" element={<Properties />} />
                 <Route path="experiences" element={<Experiences />} />
+                <Route path="contact" element={<Contact />} />
                 <Route path="auth" element={<Auth />} />
                 <Route path="privacy" element={<PrivacyPolicy />} />
                 <Route path="terms" element={<TermsOfService />} />

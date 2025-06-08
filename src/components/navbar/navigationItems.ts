@@ -7,7 +7,8 @@ import {
   BookOpen,
   Settings,
   Shield,
-  ArrowLeft
+  ArrowLeft,
+  Mail
 } from 'lucide-react';
 
 export const navigationItems = [
@@ -17,6 +18,7 @@ export const navigationItems = [
   { name: 'Experiences', href: '/experiences', title: 'Experiences', icon: Calendar },
   { name: 'Events', href: '/events', title: 'Events', icon: Calendar },
   { name: 'Blog', href: '/blog', title: 'Moxie Travel Blog', icon: BookOpen },
+  { name: 'Contact', href: '/contact', title: 'Contact', icon: Mail },
   { name: 'Admin', href: '/admin', title: 'Admin', icon: Shield },
 ];
 

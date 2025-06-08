@@ -41,6 +41,14 @@ export const getDefaultPages = (userId: string) => [
     created_by: userId
   },
   {
+    title: 'Contact',
+    slug: 'contact',
+    content: 'Get in touch with us for any questions, booking inquiries, or support needs.',
+    meta_description: 'Contact us for vacation rental inquiries and guest support',
+    is_published: true,
+    created_by: userId
+  },
+  {
     title: 'FAQ',
     slug: 'faq',
     content: 'Frequently asked questions about our services and properties.',
