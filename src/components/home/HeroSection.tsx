@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/EnhancedAuthContext';
 import OptimizedImage from '@/components/ui/optimized-image';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { ArrowRight, MapPin, Star } from 'lucide-react';
