@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { navigationItems, adminNavigationItems } from './navigationItems';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DesktopNavigationProps {
   isAdminPage: boolean;
@@ -9,7 +10,13 @@ interface DesktopNavigationProps {
 
 const DesktopNavigation = ({ isAdminPage }: DesktopNavigationProps) => {
   const location = useLocation();
+  const { user } = useAuth();
   const items = isAdminPage ? adminNavigationItems : navigationItems;
+
+  // Filter out Admin link if user is not authenticated
+  const filteredItems = isAdminPage ? items : items.filter(item => 
+    item.href !== '/admin' || user
+  );
 
   const getIconColor = (href: string) => {
     switch (href) {
@@ -23,9 +30,9 @@ const DesktopNavigation = ({ isAdminPage }: DesktopNavigationProps) => {
         return 'text-icon-amber';
       case '/experiences':
         return 'text-icon-teal';
-      // Admin colors
       case '/admin':
-        return 'text-icon-blue';
+        return 'text-icon-gray';
+      // Admin colors
       case '/properties':
         return 'text-icon-emerald';
       case '/page-management':
@@ -47,7 +54,7 @@ const DesktopNavigation = ({ isAdminPage }: DesktopNavigationProps) => {
 
   return (
     <div className="hidden lg:flex items-center space-x-8">
-      {items.map((item) => {
+      {filteredItems.map((item) => {
         const IconComponent = item.icon;
         const iconColor = getIconColor(item.href);
         return (

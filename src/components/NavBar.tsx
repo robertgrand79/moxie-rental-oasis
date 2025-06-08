@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 import LogoSection from './navbar/LogoSection';
 import DesktopNavigation from './navbar/DesktopNavigation';
 import MobileNavigation from './navbar/MobileNavigation';
-import AuthSection from './navbar/AuthSection';
 
 const NavBar = () => {
   const location = useLocation();
@@ -43,10 +42,7 @@ const NavBar = () => {
           <LogoSection isAdminPage={isAdminPage} />
           <DesktopNavigation isAdminPage={isAdminPage} />
           
-          <div className="flex items-center space-x-4">
-            <div className="hidden lg:block">
-              <AuthSection />
-            </div>
+          <div className="flex items-center">
             <MobileNavigation 
               isAdminPage={isAdminPage}
               isMobileMenuOpen={isMobileMenuOpen}

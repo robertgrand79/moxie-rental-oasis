@@ -1,4 +1,3 @@
-
 import { 
   Home, 
   Building2, 
@@ -10,7 +9,8 @@ import {
   MessageSquare,
   FileCheck,
   User,
-  Edit3
+  Edit3,
+  Shield
 } from 'lucide-react';
 
 export const navigationItems = [
@@ -20,6 +20,7 @@ export const navigationItems = [
   { name: 'Experiences', href: '/experiences', title: 'Experiences', icon: Calendar },
   { name: 'Events', href: '/events', title: 'Events', icon: Calendar },
   { name: 'Blog', href: '/blog', title: 'Blog', icon: BookOpen },
+  { name: 'Admin', href: '/admin', title: 'Admin', icon: Shield },
 ];
 
 export const adminNavigationItems = [
