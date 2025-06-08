@@ -5,7 +5,7 @@ import TaskManagementHeader from '@/components/admin/tasks/TaskManagementHeader'
 import TaskKanbanBoard from '@/components/admin/tasks/TaskKanbanBoard';
 import CreateTaskModal from '@/components/admin/tasks/CreateTaskModal';
 import CreateProjectModal from '@/components/admin/tasks/CreateProjectModal';
-import { LoadingState } from '@/components/ui/loading-state';
+import LoadingState from '@/components/ui/loading-state';
 
 const AdminTaskManagement = () => {
   const {
@@ -47,6 +47,14 @@ const AdminTaskManagement = () => {
       setEditingTask(null);
     } else {
       await createTask(taskData);
+    }
+  };
+
+  const handleCreateProject = async (projectData: any) => {
+    try {
+      await createProject(projectData);
+    } catch (error) {
+      console.error('Error creating project:', error);
     }
   };
 
@@ -109,7 +117,7 @@ const AdminTaskManagement = () => {
       <CreateProjectModal
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
-        onCreateProject={createProject}
+        onCreateProject={handleCreateProject}
       />
     </div>
   );
