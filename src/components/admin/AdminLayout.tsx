@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/button';
 const AdminLayout = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <SidebarProvider>
-        <div className="flex w-full">
+      <SidebarProvider defaultOpen={true}>
+        <div className="flex w-full min-h-screen">
           <AdminSidebar />
-          <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarInset className="flex-1">
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white">
               <SidebarTrigger className="-ml-1" />
               <div className="flex items-center justify-between w-full">
                 <h1 className="text-lg font-semibold">Moxie Command</h1>
@@ -25,7 +25,7 @@ const AdminLayout = () => {
                 </Button>
               </div>
             </header>
-            <main className="flex-1 p-8">
+            <main className="flex-1 p-8 overflow-auto">
               <Outlet />
             </main>
           </SidebarInset>

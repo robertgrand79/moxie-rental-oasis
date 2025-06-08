@@ -2,20 +2,23 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
+import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 
 const Footer = () => {
-  // Hardcoded site data - no more settings dependencies
+  const { settings } = useStableSiteSettings();
+
+  // Fallback data in case settings are not loaded
   const siteData = {
-    siteName: 'Moxie Vacation Rentals',
-    description: 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
-    contactEmail: 'gabby@moxievactionrental.com',
-    phone: '+1 541-255-1698',
-    address: '2472 Willamette St Eugene OR 97405',
+    siteName: settings.siteName || 'Moxie Vacation Rentals',
+    description: settings.description || 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
+    contactEmail: settings.contactEmail || 'gabby@moxievactionrental.com',
+    phone: settings.phone || '+1 541-255-1698',
+    address: settings.address || '2472 Willamette St Eugene OR 97405',
     socialMedia: {
-      facebook: 'https://www.facebook.com/moxievacationrentals',
-      instagram: 'https://www.instagram.com/moxievacationrentals/',
-      twitter: '',
-      googlePlaces: ''
+      facebook: settings.socialMedia?.facebook || 'https://www.facebook.com/moxievacationrentals',
+      instagram: settings.socialMedia?.instagram || 'https://www.instagram.com/moxievacationrentals/',
+      twitter: settings.socialMedia?.twitter || '',
+      googlePlaces: settings.socialMedia?.googlePlaces || ''
     }
   };
 
