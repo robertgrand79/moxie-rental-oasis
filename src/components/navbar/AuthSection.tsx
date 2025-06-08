@@ -39,12 +39,14 @@ const AuthSection = () => {
     <div className="flex items-center space-x-3">
       {user ? (
         <>
-          <div className="hidden sm:flex items-center space-x-3">
-            <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
-              <User className="h-4 w-4 text-gray-600 mr-2" />
-              <span className="text-sm font-medium text-gray-700">{displayName}</span>
+          {!isAdminPage && (
+            <div className="hidden sm:flex items-center space-x-3">
+              <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
+                <User className="h-4 w-4 text-gray-600 mr-2" />
+                <span className="text-sm font-medium text-gray-700">{displayName}</span>
+              </div>
             </div>
-          </div>
+          )}
           
           {!isAdminPage && (
             <Button
