@@ -14,6 +14,8 @@ import {
   Zap,
   RefreshCw
 } from 'lucide-react';
+import ErrorDetailsModal from '@/components/admin/ErrorDetailsModal';
+import { useErrorTracking } from '@/hooks/useErrorTracking';
 
 interface MetricCardProps {
   title: string;
@@ -22,9 +24,20 @@ interface MetricCardProps {
   icon: React.ReactNode;
   status?: 'good' | 'warning' | 'error';
   trend?: 'up' | 'down' | 'stable';
+  onClick?: () => void;
+  clickable?: boolean;
 }
 
-const MetricCard = ({ title, value, description, icon, status = 'good', trend }: MetricCardProps) => {
+const MetricCard = ({ 
+  title, 
+  value, 
+  description, 
+  icon, 
+  status = 'good', 
+  trend, 
+  onClick, 
+  clickable = false 
+}: MetricCardProps) => {
   const statusColors = {
     good: 'text-green-600 bg-green-50 border-green-200',
     warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
@@ -32,7 +45,12 @@ const MetricCard = ({ title, value, description, icon, status = 'good', trend }:
   };
 
   return (
-    <Card className={`border-l-4 ${statusColors[status]}`}>
+    <Card 
+      className={`border-l-4 ${statusColors[status]} ${
+        clickable ? 'cursor-pointer hover:shadow-md transition-shadow' : ''
+      }`}
+      onClick={clickable ? onClick : undefined}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         {icon}
@@ -48,7 +66,12 @@ const MetricCard = ({ title, value, description, icon, status = 'good', trend }:
             }`} />
           )}
         </div>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p className="text-xs text-muted-foreground">
+          {description}
+          {clickable && (
+            <span className="ml-2 text-blue-600 font-medium">Click to view details</span>
+          )}
+        </p>
       </CardContent>
     </Card>
   );
@@ -58,12 +81,20 @@ const SiteMetricsDashboard = () => {
   const [metrics, setMetrics] = useState({
     uptime: '99.9%',
     loadTime: '1.2s',
-    errors: 3,
     visitors: 1247,
     lastCheck: new Date().toLocaleTimeString()
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+
+  const { 
+    errors, 
+    resolveError, 
+    acknowledgeError, 
+    getActiveErrorCount, 
+    getCriticalErrorCount 
+  } = useErrorTracking();
 
   // Simulate real-time metrics (in production, this would fetch from your monitoring service)
   const refreshMetrics = async () => {
@@ -75,7 +106,6 @@ const SiteMetricsDashboard = () => {
     setMetrics({
       uptime: Math.random() > 0.1 ? '99.9%' : '98.5%',
       loadTime: `${(Math.random() * 2 + 0.8).toFixed(1)}s`,
-      errors: Math.floor(Math.random() * 10),
       visitors: Math.floor(Math.random() * 500 + 1000),
       lastCheck: new Date().toLocaleTimeString()
     });
@@ -96,11 +126,14 @@ const SiteMetricsDashboard = () => {
     return 'error';
   };
 
-  const getErrorStatus = (errors: number) => {
-    if (errors === 0) return 'good';
-    if (errors < 5) return 'warning';
+  const getErrorStatus = (errorCount: number) => {
+    if (errorCount === 0) return 'good';
+    if (errorCount < 5) return 'warning';
     return 'error';
   };
+
+  const activeErrorCount = getActiveErrorCount();
+  const criticalErrorCount = getCriticalErrorCount();
 
   return (
     <div className="space-y-6">
@@ -141,10 +174,12 @@ const SiteMetricsDashboard = () => {
         
         <MetricCard
           title="Active Errors"
-          value={metrics.errors}
-          description="Current error count"
+          value={activeErrorCount}
+          description={`${criticalErrorCount} critical errors detected`}
           icon={<AlertTriangle className="h-4 w-4 text-orange-600" />}
-          status={getErrorStatus(metrics.errors)}
+          status={getErrorStatus(activeErrorCount)}
+          onClick={() => setIsErrorModalOpen(true)}
+          clickable={true}
         />
         
         <MetricCard
@@ -273,6 +308,15 @@ const SiteMetricsDashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Error Details Modal */}
+      <ErrorDetailsModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        errors={errors}
+        onResolveError={resolveError}
+        onAcknowledgeError={acknowledgeError}
+      />
     </div>
   );
 };
