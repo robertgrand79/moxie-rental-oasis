@@ -49,10 +49,10 @@ const Blog = () => {
 
   const categories = [
     { id: 'all', name: 'All Posts', icon: BookOpen },
+    { id: 'eugene', name: 'Eugene Local', icon: MapPin },
     { id: 'robert-shelly', name: "Robert & Shelly's Travels", icon: Plane },
     { id: 'travel', name: 'Travel Tips', icon: MapPin },
-    { id: 'destinations', name: 'Destinations', icon: MapPin },
-    { id: 'eugene', name: 'Eugene Local', icon: MapPin }
+    { id: 'destinations', name: 'Destinations', icon: MapPin }
   ];
 
   if (loading) {
@@ -214,7 +214,7 @@ const Blog = () => {
 
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Blog Posts */}
+            {/* Blog Posts - Changed to single column stacked layout */}
             <div className="lg:col-span-3">
               {filteredPosts.length === 0 ? (
                 <div className="text-center py-16">
@@ -246,54 +246,59 @@ const Blog = () => {
                     </h2>
                   )}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Stacked article layout */}
+                  <div className="space-y-6">
                     {filteredPosts.map((post) => (
                       <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-card border-border hover:shadow-lg">
-                        {post.image_url && (
-                          <div className="overflow-hidden">
-                            <img
-                              src={post.image_url}
-                              alt={post.title}
-                              className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          </div>
-                        )}
-                        <CardHeader>
-                          <div className="flex items-center text-sm text-muted-foreground mb-2">
-                            <Calendar className="h-4 w-4 mr-1" />
-                            {formatDate(post.published_at || post.created_at)}
-                            <User className="h-4 w-4 ml-4 mr-1" />
-                            {post.author}
-                          </div>
-                          <CardTitle className="group-hover:text-primary transition-colors line-clamp-2">
-                            {post.title}
-                          </CardTitle>
-                          <CardDescription className="line-clamp-3">
-                            {post.excerpt}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          {post.tags && post.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {post.tags.slice(0, 3).map((tag) => (
-                                <Badge 
-                                  key={tag} 
-                                  variant="secondary" 
-                                  className={`text-xs transition-colors ${getTagColor(tag)}`}
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
+                        <div className="md:flex">
+                          {post.image_url && (
+                            <div className="md:w-1/3 overflow-hidden">
+                              <img
+                                src={post.image_url}
+                                alt={post.title}
+                                className="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
                             </div>
                           )}
-                          <Link 
-                            to={`/blog/${post.slug}`}
-                            className="inline-flex items-center text-primary hover:text-primary/80 font-medium group-hover:gap-2 transition-all"
-                          >
-                            Read More
-                            <ArrowRight className="h-4 w-4 ml-1 group-hover:ml-2 transition-all" />
-                          </Link>
-                        </CardContent>
+                          <div className={`${post.image_url ? 'md:w-2/3' : 'w-full'}`}>
+                            <CardHeader>
+                              <div className="flex items-center text-sm text-muted-foreground mb-2">
+                                <Calendar className="h-4 w-4 mr-1" />
+                                {formatDate(post.published_at || post.created_at)}
+                                <User className="h-4 w-4 ml-4 mr-1" />
+                                {post.author}
+                              </div>
+                              <CardTitle className="group-hover:text-primary transition-colors line-clamp-2">
+                                {post.title}
+                              </CardTitle>
+                              <CardDescription className="line-clamp-3">
+                                {post.excerpt}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              {post.tags && post.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                  {post.tags.slice(0, 3).map((tag) => (
+                                    <Badge 
+                                      key={tag} 
+                                      variant="secondary" 
+                                      className={`text-xs transition-colors ${getTagColor(tag)}`}
+                                    >
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              <Link 
+                                to={`/blog/${post.slug}`}
+                                className="inline-flex items-center text-primary hover:text-primary/80 font-medium group-hover:gap-2 transition-all"
+                              >
+                                Read More
+                                <ArrowRight className="h-4 w-4 ml-1 group-hover:ml-2 transition-all" />
+                              </Link>
+                            </CardContent>
+                          </div>
+                        </div>
                       </Card>
                     ))}
                   </div>
