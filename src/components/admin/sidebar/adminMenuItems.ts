@@ -1,111 +1,116 @@
-
-import { 
-  LayoutDashboard, 
-  Building, 
-  FileText, 
-  PenTool, 
-  User, 
-  Calendar,
-  MapPin,
-  Camera,
-  MessageSquare,
-  Sparkles,
+import {
+  Home,
   Settings,
-  Database,
+  BarChart3,
+  FileText,
+  Calendar,
+  Users,
+  Zap,
+  Image,
+  MapPin,
+  MessageSquare,
+  Star,
   Mail,
-  Activity,
-  Globe
+  Wrench,
+  CheckSquare,
+  Kanban
 } from 'lucide-react';
 
 export const coreMenuItems = [
   {
     title: 'Dashboard',
     url: '/admin',
-    icon: LayoutDashboard,
-    color: 'text-blue-600'
+    icon: Home,
+    color: 'text-blue-600',
+  },
+  {
+    title: 'Task Management',
+    url: '/admin/tasks',
+    icon: Kanban,
+    color: 'text-purple-600',
+  },
+  {
+    title: 'Properties',
+    url: '/admin/properties',
+    icon: Home,
+    color: 'text-green-600',
+  },
+  {
+    title: 'Analytics',
+    url: '/admin/analytics',
+    icon: BarChart3,
+    color: 'text-indigo-600',
   },
   {
     title: 'Site Metrics',
-    url: '/admin/analytics',
-    icon: Activity,
-    color: 'text-green-600'
-  }
+    url: '/admin/site-metrics',
+    icon: Zap,
+    color: 'text-yellow-600',
+  },
 ];
 
 export const contentMenuItems = [
   {
-    title: 'Properties',
-    url: '/admin/properties',
-    icon: Building,
-    color: 'text-purple-600'
-  },
-  {
-    title: 'Blog Management',
-    url: '/admin/blog-management',
-    icon: PenTool,
-    color: 'text-blue-600'
-  },
-  {
-    title: 'Page Management',
-    url: '/admin/page-management',
+    title: 'Pages',
+    url: '/admin/pages',
     icon: FileText,
-    color: 'text-gray-600'
+    color: 'text-gray-600',
+  },
+  {
+    title: 'Blog Posts',
+    url: '/admin/blog-management',
+    icon: FileText,
+    color: 'text-orange-600',
   },
   {
     title: 'Events',
     url: '/admin/events',
     icon: Calendar,
-    color: 'text-orange-600'
+    color: 'text-red-600',
+  },
+  {
+    title: 'Lifestyle Gallery',
+    url: '/admin/lifestyle',
+    icon: Image,
+    color: 'text-pink-600',
   },
   {
     title: 'Points of Interest',
     url: '/admin/poi',
     icon: MapPin,
-    color: 'text-red-600'
-  },
-  {
-    title: 'Lifestyle Gallery',
-    url: '/admin/lifestyle',
-    icon: Camera,
-    color: 'text-pink-600'
+    color: 'text-cyan-600',
   },
   {
     title: 'Testimonials',
     url: '/admin/testimonials',
     icon: MessageSquare,
-    color: 'text-teal-600'
+    color: 'text-amber-600',
   },
   {
     title: 'Newsletter',
     url: '/admin/newsletter',
     icon: Mail,
-    color: 'text-indigo-600'
-  }
+    color: 'text-lime-600',
+  },
 ];
 
 export const toolsMenuItems = [
   {
     title: 'AI Tools',
     url: '/admin/ai-tools',
-    icon: Sparkles,
-    color: 'text-yellow-600'
+    icon: Wrench,
+    color: 'text-violet-600',
   },
   {
     title: 'Site Settings',
     url: '/admin/site-settings',
     icon: Settings,
-    color: 'text-gray-600'
+    color: 'text-teal-600',
   },
   {
     title: 'Sample Data',
     url: '/admin/sample-data',
-    icon: Database,
-    color: 'text-cyan-600'
+    icon: CheckSquare,
+    color: 'text-fuchsia-600',
   },
-  {
-    title: 'Profile',
-    url: '/admin/profile',
-    icon: User,
-    color: 'text-emerald-600'
-  }
 ];
