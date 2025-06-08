@@ -63,7 +63,7 @@ const HeroSection = () => {
             {/* CTA Button */}
             <Link to="/listings">
               <EnhancedButton 
-                variant="gradient" 
+                variant="default" 
                 size="lg" 
                 className="text-lg shadow-xl"
                 icon={<ArrowRight className="h-5 w-5" />}
