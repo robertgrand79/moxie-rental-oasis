@@ -154,6 +154,11 @@ export const useSiteSettings = () => {
       // Update local state immediately
       setSettings(prev => ({ ...prev, [key]: value }));
       
+      // Force a refetch to ensure consistency
+      setTimeout(() => {
+        fetchSettings();
+      }, 100);
+      
       return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

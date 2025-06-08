@@ -1,11 +1,29 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Footer = () => {
-  const { getSetting, loading } = useSiteSettings();
+  const { getSetting, loading, refetch } = useSiteSettings();
+
+  // Refetch settings on mount and when component receives focus
+  useEffect(() => {
+    const handleFocus = () => {
+      refetch();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    // Also refetch when the component mounts
+    if (!loading) {
+      refetch();
+    }
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [refetch, loading]);
 
   // Don't render footer until settings are loaded
   if (loading) {
@@ -204,7 +222,6 @@ const Footer = () => {
           <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
         </div>
 
-        {/* Bottom Section */}
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <p className="text-sm text-muted-foreground">
             © 2024 {siteData.siteName}. All rights reserved.
