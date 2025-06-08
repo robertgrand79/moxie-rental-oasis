@@ -2,24 +2,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
-import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Footer = () => {
-  const { getSetting, loading } = useSiteSettings();
-
-  // Always render footer with fallback data to prevent page breaks
+  // Hardcoded site data - no more settings dependencies
   const siteData = {
-    siteName: getSetting('siteName', 'Moxie Vacation Rentals'),
-    description: getSetting('description', 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.'),
-    contactEmail: getSetting('contactEmail', 'hello@moxievacationrentals.com'),
-    phone: getSetting('phone', '(541) 555-0123'),
-    address: getSetting('address', 'Eugene, Oregon'),
-    socialMedia: getSetting('socialMedia', {
-      facebook: '',
-      instagram: '',
+    siteName: 'Moxie Vacation Rentals',
+    description: 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
+    contactEmail: 'gabby@moxievactionrental.com',
+    phone: '+1 541-255-1698',
+    address: '2472 Willamette St Eugene OR 97405',
+    socialMedia: {
+      facebook: 'https://www.facebook.com/moxievacationrentals',
+      instagram: 'https://www.instagram.com/moxievacationrentals/',
       twitter: '',
       googlePlaces: ''
-    })
+    }
   };
 
   return (
