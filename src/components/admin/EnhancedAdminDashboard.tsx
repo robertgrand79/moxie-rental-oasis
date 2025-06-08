@@ -11,7 +11,7 @@ import AdminWelcomeSection from './dashboard/AdminWelcomeSection';
 import AdminQuickStats from './dashboard/AdminQuickStats';
 import AdminFeatureStats from './dashboard/AdminFeatureStats';
 import AdminRecentActivity from './dashboard/AdminRecentActivity';
-import AdminQuickActions from './dashboard/AdminQuickActions';
+import AdminQuickActionsEnhanced from './dashboard/AdminQuickActionsEnhanced';
 
 const EnhancedAdminDashboard = () => {
   const { properties } = useProperties();
@@ -50,7 +50,7 @@ const EnhancedAdminDashboard = () => {
       {/* Recent Activity & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <AdminRecentActivity blogPosts={blogPosts} />
-        <AdminQuickActions />
+        <AdminQuickActionsEnhanced />
       </div>
     </div>
   );

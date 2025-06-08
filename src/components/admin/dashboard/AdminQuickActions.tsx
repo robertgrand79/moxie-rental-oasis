@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Building2, BookOpen, Calendar, Settings, BarChart3, Mail } from 'lucide-react';
+import { TrendingUp, Building2, BookOpen, Calendar, Settings, BarChart3, Mail, FileText } from 'lucide-react';
 
 const AdminQuickActions = () => {
   return (
@@ -28,15 +28,21 @@ const AdminQuickActions = () => {
           </Link>
         </Button>
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/newsletter">
-            <Mail className="h-4 w-4 mr-2" />
-            Send Newsletter
+          <Link to="/admin/page-management?action=add">
+            <FileText className="h-4 w-4 mr-2" />
+            Create Page
           </Link>
         </Button>
         <Button asChild className="w-full justify-start" variant="outline">
           <Link to="/admin/events?action=add">
             <Calendar className="h-4 w-4 mr-2" />
             Create Event
+          </Link>
+        </Button>
+        <Button asChild className="w-full justify-start" variant="outline">
+          <Link to="/admin/newsletter">
+            <Mail className="h-4 w-4 mr-2" />
+            Send Newsletter
           </Link>
         </Button>
         <Button asChild className="w-full justify-start" variant="outline">
