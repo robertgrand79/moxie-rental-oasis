@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Wand2 } from 'lucide-react';
@@ -21,6 +21,7 @@ const EventsManager = () => {
   const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EugeneEvent | null>(null);
   const [enhancingId, setEnhancingId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const categories = [
     { value: 'festival', label: 'Festival' },
@@ -31,6 +32,20 @@ const EventsManager = () => {
     { value: 'music', label: 'Music' },
     { value: 'seasonal', label: 'Seasonal' }
   ];
+
+  // Check for action parameter and auto-open add dialog
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'add') {
+      setEditingEvent(null);
+      setIsDialogOpen(true);
+      // Clear the parameter from URL
+      setSearchParams(prev => {
+        prev.delete('action');
+        return prev;
+      });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleSubmit = async (formData: EventFormData) => {
     if (!formData.title || !formData.event_date) {

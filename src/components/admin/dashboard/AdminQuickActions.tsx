@@ -16,19 +16,19 @@ const AdminQuickActions = () => {
       </CardHeader>
       <CardContent className="space-y-3">
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/properties">
+          <Link to="/admin/properties?action=add">
             <Building2 className="h-4 w-4 mr-2" />
             Add New Property
           </Link>
         </Button>
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/blog-management">
+          <Link to="/admin/blog-management?action=add">
             <BookOpen className="h-4 w-4 mr-2" />
             Write Blog Post
           </Link>
         </Button>
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/events">
+          <Link to="/admin/events?action=add">
             <Calendar className="h-4 w-4 mr-2" />
             Create Event
           </Link>

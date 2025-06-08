@@ -1,11 +1,27 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import BlogManagementTabs from '@/components/admin/blog/BlogManagementTabs';
 
 const BlogManagement = () => {
   const { loading } = useBlogPosts();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [autoOpenAdd, setAutoOpenAdd] = useState(false);
+
+  // Check for action parameter
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'add') {
+      setAutoOpenAdd(true);
+      // Clear the parameter from URL
+      setSearchParams(prev => {
+        prev.delete('action');
+        return prev;
+      });
+    }
+  }, [searchParams, setSearchParams]);
 
   if (loading) {
     return (
@@ -26,7 +42,7 @@ const BlogManagement = () => {
       description="Create and manage your blog posts and newsletters"
     >
       <div className="p-6">
-        <BlogManagementTabs />
+        <BlogManagementTabs autoOpenAdd={autoOpenAdd} />
       </div>
     </AdminPageWrapper>
   );

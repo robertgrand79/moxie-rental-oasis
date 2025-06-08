@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import PropertyForm from '@/components/PropertyForm';
 import PropertyList from '@/components/PropertyList';
 import EmptyPropertyState from '@/components/EmptyPropertyState';
@@ -15,9 +16,24 @@ import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 const Properties = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const { properties, loading, addProperty, editProperty, deleteProperty } = useProperties();
   const { createPropertyPage } = usePropertyPages();
   const { uploadPhotos } = usePhotoUpload();
+
+  // Check for action parameter and auto-open add form
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'add') {
+      setShowAddForm(true);
+      setEditingProperty(null);
+      // Clear the parameter from URL
+      setSearchParams(prev => {
+        prev.delete('action');
+        return prev;
+      });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleAddProperty = () => {
     setShowAddForm(true);

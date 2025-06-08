@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,10 +7,22 @@ import NewsletterManager from '@/components/NewsletterManager';
 import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
 import BlogPostsList from './BlogPostsList';
 
-const BlogManagementTabs = () => {
+interface BlogManagementTabsProps {
+  autoOpenAdd?: boolean;
+}
+
+const BlogManagementTabs = ({ autoOpenAdd }: BlogManagementTabsProps) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const { blogPosts, addBlogPost, updateBlogPost, deleteBlogPost } = useBlogPosts();
+
+  // Auto-open add form when autoOpenAdd prop is true
+  useEffect(() => {
+    if (autoOpenAdd) {
+      setEditingPost(null);
+      setShowAddForm(true);
+    }
+  }, [autoOpenAdd]);
 
   const handleAddPost = () => {
     setEditingPost(null);
