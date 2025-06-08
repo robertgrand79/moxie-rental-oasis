@@ -16,8 +16,7 @@ import {
   TrendingUp,
   Wrench,
   CheckSquare,
-  Calendar,
-  File
+  Calendar
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -68,6 +67,21 @@ export const adminMenuItems = [
         title: "Work Orders",
         icon: Wrench,
         href: "/admin/work-orders"
+      }
+    ]
+  },
+  {
+    title: "Content Management",
+    items: [
+      {
+        title: "Testimonials",
+        icon: Star,
+        href: "/admin/testimonials"
+      },
+      {
+        title: "Lifestyle Gallery",
+        icon: Home,
+        href: "/admin/lifestyle"
       },
       {
         title: "Events",
@@ -82,47 +96,32 @@ export const adminMenuItems = [
     ]
   },
   {
-    title: "Content & Marketing",
+    title: "AI & Content Tools",
     items: [
       {
-        title: "Content Workflows",
+        title: "AI Content Generator",
         icon: Wand2,
-        href: "/admin/content-workflows"
-      },
-      {
-        title: "AI Tools",
-        icon: Sparkles, 
         href: "/admin/ai-tools"
       },
       {
-        title: "AI Generated Content",
-        icon: Wand2,
-        href: "/admin/ai-content-review"
-      },
-      {
-        title: "Site Pages",
-        icon: File,
-        href: "/admin/pages"
-      },
-      {
-        title: "Blog Management",
-        icon: FileText,
-        href: "/admin/blog"
-      },
+        title: "Content Workflows",
+        icon: Sparkles,
+        href: "/admin/content-workflows"
+      }
+    ]
+  },
+  {
+    title: "Marketing",
+    items: [
       {
         title: "Newsletter Management",
         icon: Mail,
         href: "/admin/newsletter-management"
       },
       {
-        title: "Testimonials",
-        icon: Star,
-        href: "/admin/testimonials"
-      },
-      {
-        title: "Lifestyle Gallery",
-        icon: Home,
-        href: "/admin/lifestyle"
+        title: "Blog Management",
+        icon: FileText,
+        href: "/admin/blog"
       }
     ]
   },
@@ -143,11 +142,6 @@ export const adminMenuItems = [
         title: "Site Settings",
         icon: Settings,
         href: "/admin/settings"
-      },
-      {
-        title: "Integrations",
-        icon: GitFork,
-        href: "/admin/integrations"
       }
     ]
   }

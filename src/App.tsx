@@ -8,20 +8,21 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Index from '@/pages/Index';
 import About from '@/pages/About';
 import Properties from '@/pages/Properties';
+import Experiences from '@/pages/Experiences';
+import Events from '@/pages/Events';
 import Blog from '@/pages/Blog';
 import BlogPost from '@/pages/BlogPost';
 import Contact from '@/pages/Contact';
 import Auth from '@/pages/Auth';
 import Admin from '@/pages/Admin';
 import AdminProperties from '@/pages/admin/AdminProperties';
-import AdminAITools from '@/pages/admin/AdminAITools';
+import AdminAIToolsSimplified from '@/pages/admin/AdminAIToolsSimplified';
 import AdminContentWorkflows from '@/pages/admin/AdminContentWorkflows';
 import AdminAnalytics from '@/pages/admin/AdminAnalytics';
 import AdminSiteMetrics from '@/pages/admin/AdminSiteMetrics';
 import AdminTestimonials from '@/pages/admin/AdminTestimonials';
 import AdminNewsletter from '@/pages/admin/AdminNewsletter';
 import AdminNewsletterManagement from '@/pages/admin/AdminNewsletterManagement';
-import AdminAIContentReview from '@/pages/admin/AdminAIContentReview';
 import AdminSiteSettingsRedesigned from '@/pages/admin/AdminSiteSettingsRedesigned';
 import AdminEvents from '@/pages/admin/AdminEvents';
 import AdminPOI from '@/pages/admin/AdminPOI';
@@ -31,9 +32,7 @@ import AdminWorkOrders from '@/pages/admin/AdminWorkOrders';
 import AdminUserManagement from '@/pages/admin/AdminUserManagement';
 import AdminRolesPermissions from '@/pages/admin/AdminRolesPermissions';
 import BlogManagement from '@/pages/BlogManagement';
-import PageManagement from '@/pages/PageManagement';
 import AdminProfile from '@/pages/AdminProfile';
-import SiteSettings from '@/pages/SiteSettings';
 
 function App() {
   return (
@@ -44,6 +43,8 @@ function App() {
           <Route index element={<Index />} />
           <Route path="about" element={<About />} />
           <Route path="properties" element={<Properties />} />
+          <Route path="experiences" element={<Experiences />} />
+          <Route path="events" element={<Events />} />
           <Route path="blog" element={<Blog />} />
           <Route path="blog/:id" element={<BlogPost />} />
           <Route path="contact" element={<Contact />} />
@@ -64,9 +65,7 @@ function App() {
           <Route path="events" element={<AdminEvents />} />
           <Route path="poi" element={<AdminPOI />} />
           <Route path="content-workflows" element={<AdminContentWorkflows />} />
-          <Route path="ai-tools" element={<AdminAITools />} />
-          <Route path="ai-content-review" element={<AdminAIContentReview />} />
-          <Route path="pages" element={<PageManagement />} />
+          <Route path="ai-tools" element={<AdminAIToolsSimplified />} />
           <Route path="blog" element={<BlogManagement />} />
           <Route path="newsletter" element={<AdminNewsletter />} />
           <Route path="newsletter-management" element={<AdminNewsletterManagement />} />
@@ -75,7 +74,6 @@ function App() {
           <Route path="users" element={<AdminUserManagement />} />
           <Route path="roles" element={<AdminRolesPermissions />} />
           <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
-          <Route path="integrations" element={<SiteSettings />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>
       </Routes>

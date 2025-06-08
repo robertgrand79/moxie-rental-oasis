@@ -1,169 +1,83 @@
 
 import React from 'react';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
-import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
-
-interface SocialMediaLinks {
-  facebook?: string;
-  instagram?: string;
-  twitter?: string;
-  googlePlaces?: string;
-}
+import { Phone, Mail, MapPin, Clock, Facebook, Instagram, Twitter } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const ContactInfo = () => {
-  const { settings } = useStableSiteSettings();
-
-  const contactEmail = settings.contactEmail || 'gabby@moxievactionrental.com';
-  const phone = settings.phone || '+1 541-255-1698';
-  const address = settings.address || '2472 Willamette St Eugene OR 97405';
-  
-  // Properly type the socialMedia object with fallback values
-  const socialMedia: SocialMediaLinks = settings.socialMedia || {
-    facebook: '',
-    instagram: '',
-    twitter: '',
-    googlePlaces: ''
-  };
-  
-  const facebook = socialMedia.facebook || '';
-  const instagram = socialMedia.instagram || '';
-  const twitter = socialMedia.twitter || '';
-  const googlePlaces = socialMedia.googlePlaces || '';
-
   return (
-    <div className="space-y-8">
-      <div className="bg-card rounded-lg shadow-lg p-8">
-        <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
-        
-        <div className="space-y-6">
-          <div className="flex items-start space-x-4">
-            <div className="bg-background rounded-lg p-3">
-              <MapPin className="h-6 w-6 text-icon-blue" />
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Contact Information</CardTitle>
+          <CardDescription>
+            Get in touch with us. We're here to help!
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4 text-center">
+            <div className="flex flex-col items-center space-y-2">
+              <Phone className="h-5 w-5 text-primary" />
+              <span className="font-medium">Phone</span>
+              <span className="text-gray-600">(541) 555-0123</span>
             </div>
-            <div>
-              <h3 className="font-semibold mb-1">Address</h3>
-              <p className="text-muted-foreground">{address}</p>
+            
+            <div className="flex flex-col items-center space-y-2">
+              <Mail className="h-5 w-5 text-primary" />
+              <span className="font-medium">Email</span>
+              <span className="text-gray-600">hello@moxievacationrentals.com</span>
             </div>
-          </div>
-          
-          <div className="flex items-start space-x-4">
-            <div className="bg-background rounded-lg p-3">
-              <Phone className="h-6 w-6 text-icon-emerald" />
+            
+            <div className="flex flex-col items-center space-y-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              <span className="font-medium">Address</span>
+              <span className="text-gray-600 text-center">
+                2472 Willamette Street<br />
+                Eugene, OR 97405
+              </span>
             </div>
-            <div>
-              <h3 className="font-semibold mb-1">Phone</h3>
-              <a 
-                href={`tel:${phone}`}
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                {phone}
-              </a>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-4">
-            <div className="bg-background rounded-lg p-3">
-              <Mail className="h-6 w-6 text-icon-amber" />
-            </div>
-            <div>
-              <h3 className="font-semibold mb-1">Email</h3>
-              <a 
-                href={`mailto:${contactEmail}`}
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                {contactEmail}
-              </a>
+            
+            <div className="flex flex-col items-center space-y-2">
+              <Clock className="h-5 w-5 text-primary" />
+              <span className="font-medium">Business Hours</span>
+              <span className="text-gray-600 text-center">
+                Monday - Friday: 9:00 AM - 6:00 PM<br />
+                Saturday - Sunday: 10:00 AM - 4:00 PM
+              </span>
             </div>
           </div>
-          
-          <div className="flex items-start space-x-4">
-            <div className="bg-background rounded-lg p-3">
-              <Clock className="h-6 w-6 text-icon-purple" />
-            </div>
-            <div>
-              <h3 className="font-semibold mb-1">Support Hours</h3>
-              <p className="text-muted-foreground">24/7 Guest Support</p>
-              <p className="text-sm text-muted-foreground">Office: Mon-Fri 9AM-5PM PST</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Social Media */}
-      <div className="bg-card rounded-lg shadow-lg p-8">
-        <h3 className="text-xl font-bold mb-4">Follow Us</h3>
-        <div className="flex space-x-4">
-          {facebook && (
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-center">Follow Us</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center space-x-6">
             <a 
-              href={facebook} 
-              className="bg-background hover:bg-muted p-3 rounded-lg transition-colors" 
-              target="_blank" 
-              rel="noopener noreferrer"
+              href="#" 
+              className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
               aria-label="Facebook"
             >
-              <Facebook className="h-6 w-6 text-icon-blue" />
+              <Facebook className="h-5 w-5" />
             </a>
-          )}
-          {instagram && (
             <a 
-              href={instagram} 
-              className="bg-background hover:bg-muted p-3 rounded-lg transition-colors" 
-              target="_blank" 
-              rel="noopener noreferrer"
+              href="#" 
+              className="flex items-center justify-center w-10 h-10 bg-pink-600 text-white rounded-full hover:bg-pink-700 transition-colors"
               aria-label="Instagram"
             >
-              <Instagram className="h-6 w-6 text-icon-rose" />
+              <Instagram className="h-5 w-5" />
             </a>
-          )}
-          {twitter && (
             <a 
-              href={twitter} 
-              className="bg-background hover:bg-muted p-3 rounded-lg transition-colors" 
-              target="_blank" 
-              rel="noopener noreferrer"
+              href="#" 
+              className="flex items-center justify-center w-10 h-10 bg-blue-400 text-white rounded-full hover:bg-blue-500 transition-colors"
               aria-label="Twitter"
             >
-              <Twitter className="h-6 w-6 text-icon-blue" />
+              <Twitter className="h-5 w-5" />
             </a>
-          )}
-          {googlePlaces && (
-            <a 
-              href={googlePlaces} 
-              className="bg-background hover:bg-muted p-3 rounded-lg transition-colors" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              aria-label="Google Places"
-            >
-              <MapPinIcon className="h-6 w-6 text-icon-emerald" />
-            </a>
-          )}
-        </div>
-      </div>
-      
-      {/* Business Hours */}
-      <div className="bg-card rounded-lg shadow-lg p-8">
-        <h3 className="text-xl font-bold mb-4">Business Hours</h3>
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Monday - Friday</span>
-            <span className="font-medium">9:00 AM - 5:00 PM</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Saturday</span>
-            <span className="font-medium">10:00 AM - 3:00 PM</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Sunday</span>
-            <span className="font-medium">Closed</span>
-          </div>
-          <div className="pt-2 border-t">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Guest Support</span>
-              <span className="font-medium text-primary">24/7 Available</span>
-            </div>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

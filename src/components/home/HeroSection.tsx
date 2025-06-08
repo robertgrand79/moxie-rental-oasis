@@ -1,89 +1,84 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import OptimizedImage from '@/components/ui/optimized-image';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { ArrowRight, MapPin, Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 
 const HeroSection = () => {
-  const { user } = useAuth();
-  const { settings } = useStableSiteSettings();
-
-  // Get hero content from stable site settings with fallbacks
-  const heroTitle = settings.heroTitle || 'Your Home Away From Home';
-  const heroSubtitle = settings.heroSubtitle || 'in Eugene';
-  const heroDescription = settings.heroDescription || 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.';
-  const heroBackgroundImage = settings.heroBackgroundImage || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80';
-  const heroLocationText = settings.heroLocationText || 'Eugene, Oregon';
-  const heroRating = settings.heroRating || '4.9';
-  const heroCTAText = settings.heroCTAText || 'View Properties';
-
   return (
-    <div className="relative overflow-hidden min-h-screen flex items-center">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <OptimizedImage 
-          src={heroBackgroundImage}
-          alt={`${heroLocationText} landscape`}
-          className="w-full h-full object-cover"
-          priority={true}
-        />
-        <div className="absolute inset-0 bg-black/40"></div>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image with proper spacing */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png')`,
+          marginTop: '80px' // Add space for the header
+        }}
+      >
+        <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full">
-        <div className="container mx-auto px-4 py-20">
-          <div className="max-w-3xl mx-auto text-center">
-            {/* Location Badge */}
-            <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-              <MapPin className="h-4 w-4 text-white mr-2" />
-              <span className="text-white text-sm font-medium">{heroLocationText}</span>
-              <div className="flex items-center ml-3 pl-3 border-l border-white/30">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="text-white text-sm ml-1">{heroRating} Rating</span>
-              </div>
+      <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto pt-20">
+        <div className="space-y-8">
+          {/* Main Heading */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight">
+            Discover Eugene's 
+            <span className="text-accent block sm:inline sm:ml-3">
+              Hidden Gems
+            </span>
+          </h1>
+
+          {/* Subheading */}
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
+            Experience the Pacific Northwest's best-kept secret with our curated collection 
+            of luxury vacation rentals in the heart of Oregon's cultural capital.
+          </p>
+
+          {/* Stats */}
+          <div className="flex flex-wrap justify-center gap-8 py-6">
+            <div className="flex items-center space-x-2">
+              <Star className="h-5 w-5 text-accent" />
+              <span className="text-sm font-medium">5-Star Experiences</span>
             </div>
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-5 w-5 text-accent" />
+              <span className="text-sm font-medium">Prime Locations</span>
+            </div>
+          </div>
 
-            {/* Main Heading */}
-            <h1 className="text-4xl sm:text-6xl font-bold text-white mb-6 leading-tight">
-              {heroTitle}
-              <span className="block text-3xl sm:text-5xl mt-2 text-blue-200">
-                {heroSubtitle}
-              </span>
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-              {heroDescription}
-            </p>
-
-            {/* CTA Button */}
-            <Link to="/listings">
-              <EnhancedButton 
-                variant="secondary" 
-                size="lg" 
-                className="text-lg shadow-xl"
-                icon={<ArrowRight className="h-5 w-5" />}
-              >
-                {heroCTAText}
-              </EnhancedButton>
-            </Link>
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+            <Button 
+              asChild
+              size="lg" 
+              className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold px-8 py-4 text-lg"
+            >
+              <Link to="/properties" className="flex items-center space-x-2">
+                <span>View Properties</span>
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            </Button>
+            
+            <Button 
+              asChild
+              size="lg" 
+              variant="outline" 
+              className="border-white text-white hover:bg-white hover:text-gray-900 font-semibold px-8 py-4 text-lg"
+            >
+              <Link to="/about">Learn More</Link>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Simple scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
-        <div className="animate-bounce">
-          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-white/70 rounded-full mt-2"></div>
-          </div>
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
+          <div className="w-1 h-3 bg-white rounded-full mt-2"></div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
