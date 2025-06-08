@@ -7,9 +7,10 @@ import { PropertyFormData } from './types';
 
 interface AmenitiesFieldProps {
   form: UseFormReturn<PropertyFormData>;
+  disabled?: boolean;
 }
 
-const AmenitiesField = ({ form }: AmenitiesFieldProps) => {
+const AmenitiesField = ({ form, disabled = false }: AmenitiesFieldProps) => {
   return (
     <FormField
       control={form.control}
@@ -20,6 +21,7 @@ const AmenitiesField = ({ form }: AmenitiesFieldProps) => {
           <FormControl>
             <Textarea 
               placeholder="WiFi, Pool, Kitchen, Parking, etc."
+              disabled={disabled}
               {...field} 
             />
           </FormControl>

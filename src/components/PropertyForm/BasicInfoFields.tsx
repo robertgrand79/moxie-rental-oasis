@@ -8,9 +8,10 @@ import { PropertyFormData } from './types';
 
 interface BasicInfoFieldsProps {
   form: UseFormReturn<PropertyFormData>;
+  disabled?: boolean;
 }
 
-const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
+const BasicInfoFields = ({ form, disabled = false }: BasicInfoFieldsProps) => {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -21,7 +22,7 @@ const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
             <FormItem>
               <FormLabel>Property Title</FormLabel>
               <FormControl>
-                <Input placeholder="Beautiful Beachfront Villa" {...field} />
+                <Input placeholder="Beautiful Beachfront Villa" disabled={disabled} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -35,7 +36,7 @@ const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
             <FormItem>
               <FormLabel>Location</FormLabel>
               <FormControl>
-                <Input placeholder="Malibu, CA" {...field} />
+                <Input placeholder="Malibu, CA" disabled={disabled} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -53,6 +54,7 @@ const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
               <Textarea 
                 placeholder="Describe your property, its features, and what makes it special..."
                 className="min-h-[100px]"
+                disabled={disabled}
                 {...field} 
               />
             </FormControl>

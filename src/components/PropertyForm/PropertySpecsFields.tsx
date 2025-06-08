@@ -7,9 +7,10 @@ import { PropertyFormData } from './types';
 
 interface PropertySpecsFieldsProps {
   form: UseFormReturn<PropertyFormData>;
+  disabled?: boolean;
 }
 
-const PropertySpecsFields = ({ form }: PropertySpecsFieldsProps) => {
+const PropertySpecsFields = ({ form, disabled = false }: PropertySpecsFieldsProps) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <FormField
@@ -18,7 +19,7 @@ const PropertySpecsFields = ({ form }: PropertySpecsFieldsProps) => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Bedrooms</FormLabel>
-            <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+            <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()} disabled={disabled}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select bedrooms" />
@@ -44,7 +45,7 @@ const PropertySpecsFields = ({ form }: PropertySpecsFieldsProps) => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Bathrooms</FormLabel>
-            <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+            <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()} disabled={disabled}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select bathrooms" />
@@ -69,7 +70,7 @@ const PropertySpecsFields = ({ form }: PropertySpecsFieldsProps) => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Max Guests</FormLabel>
-            <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+            <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()} disabled={disabled}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select guests" />
@@ -99,7 +100,7 @@ const PropertySpecsFields = ({ form }: PropertySpecsFieldsProps) => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Price per Night ($)</FormLabel>
-            <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+            <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()} disabled={disabled}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select price" />
