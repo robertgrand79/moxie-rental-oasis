@@ -12,10 +12,10 @@ const ContactInfo = () => {
   
   // Ensure socialMedia has proper structure with fallback values
   const socialMedia = settings.socialMedia || {};
-  const facebook = socialMedia.facebook || '';
-  const instagram = socialMedia.instagram || '';
-  const twitter = socialMedia.twitter || '';
-  const googlePlaces = socialMedia.googlePlaces || '';
+  const facebook = socialMedia?.facebook || '';
+  const instagram = socialMedia?.instagram || '';
+  const twitter = socialMedia?.twitter || '';
+  const googlePlaces = socialMedia?.googlePlaces || '';
 
   return (
     <div className="space-y-8">
