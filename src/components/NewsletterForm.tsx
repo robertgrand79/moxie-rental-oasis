@@ -94,7 +94,7 @@ const NewsletterForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {blogPosts.map((post) => (
                         <SelectItem key={post.id} value={post.slug}>
                           {post.title}
