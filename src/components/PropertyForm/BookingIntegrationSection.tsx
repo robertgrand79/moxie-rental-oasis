@@ -10,6 +10,9 @@ interface BookingIntegrationSectionProps {
 }
 
 const BookingIntegrationSection = ({ form }: BookingIntegrationSectionProps) => {
+  const hospitableBookingUrl = form.watch('hospitableBookingUrl');
+  const hasValidUrl = hospitableBookingUrl && hospitableBookingUrl.trim() !== '';
+
   return (
     <>
       {/* Hospitable Booking Integration */}
@@ -18,7 +21,7 @@ const BookingIntegrationSection = ({ form }: BookingIntegrationSectionProps) => 
         name="hospitableBookingUrl"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Hospitable Booking URL</FormLabel>
+            <FormLabel>Hospitable Booking URL (Optional)</FormLabel>
             <FormControl>
               <Input 
                 placeholder="https://booking.hospitable.com/widget/your-widget-id/property-id"
@@ -26,20 +29,20 @@ const BookingIntegrationSection = ({ form }: BookingIntegrationSectionProps) => 
               />
             </FormControl>
             <FormDescription>
-              Enter the full Hospitable booking widget URL for this property
+              Enter the full Hospitable booking widget URL for this property. You can add this later if you don't have it yet.
             </FormDescription>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Booking Preview */}
-      {form.watch('hospitableBookingUrl') && (
+      {/* Booking Preview - Only show if there's a valid URL */}
+      {hasValidUrl && (
         <div className="space-y-2">
           <FormLabel>Booking Widget Preview</FormLabel>
           <div className="border rounded-lg overflow-hidden">
             <iframe
-              src={form.watch('hospitableBookingUrl')}
+              src={hospitableBookingUrl}
               style={{ width: '100%', height: '400px' }}
               frameBorder="0"
               sandbox="allow-top-navigation allow-scripts allow-same-origin"

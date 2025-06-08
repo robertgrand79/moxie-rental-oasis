@@ -7,7 +7,7 @@ export interface PropertyFormData {
   bathrooms: number;
   maxGuests: number;
   pricePerNight: number;
-  hospitableBookingUrl: string;
+  hospitableBookingUrl?: string;
   amenities?: string;
   photos?: File[];
   images?: string[]; // Existing uploaded images

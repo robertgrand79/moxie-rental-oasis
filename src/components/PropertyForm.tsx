@@ -21,7 +21,7 @@ const propertySchema = z.object({
   bathrooms: z.number().min(1, 'At least 1 bathroom required'),
   maxGuests: z.number().min(1, 'At least 1 guest capacity required'),
   pricePerNight: z.number().min(1, 'Price must be greater than 0'),
-  hospitableBookingUrl: z.string().url('Valid Hospitable booking URL required'),
+  hospitableBookingUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   amenities: z.string().optional(),
 });
 
