@@ -63,7 +63,7 @@ const CreateTaskModal = ({ isOpen, onClose, onCreateTask, projects, editingTask 
     status: editingTask?.status || 'todo',
     priority: editingTask?.priority || 'medium',
     category: editingTask?.category || 'general',
-    project_id: editingTask?.project_id || '',
+    project_id: editingTask?.project_id || 'none',
     property_id: editingTask?.property_id || '',
     due_date: editingTask?.due_date || '',
   });
@@ -80,6 +80,7 @@ const CreateTaskModal = ({ isOpen, onClose, onCreateTask, projects, editingTask 
     try {
       await onCreateTask({
         ...formData,
+        project_id: formData.project_id === 'none' ? undefined : formData.project_id,
         due_date: dueDate ? format(dueDate, 'yyyy-MM-dd') : undefined,
       });
       
@@ -89,7 +90,7 @@ const CreateTaskModal = ({ isOpen, onClose, onCreateTask, projects, editingTask 
         status: 'todo',
         priority: 'medium',
         category: 'general',
-        project_id: '',
+        project_id: 'none',
         property_id: '',
         due_date: '',
       });
@@ -201,7 +202,7 @@ const CreateTaskModal = ({ isOpen, onClose, onCreateTask, projects, editingTask 
                 <SelectValue placeholder="Select a project..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Project</SelectItem>
+                <SelectItem value="none">No Project</SelectItem>
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.title}
