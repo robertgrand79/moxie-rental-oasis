@@ -37,9 +37,6 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
       { key: 'siteName', value: siteData.siteName },
       { key: 'tagline', value: siteData.tagline },
       { key: 'description', value: siteData.description },
-      { key: 'contactEmail', value: siteData.contactEmail },
-      { key: 'phone', value: siteData.phone },
-      { key: 'address', value: siteData.address },
     ];
 
     let allSuccessful = true;
@@ -85,27 +82,41 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
     }
   };
 
-  const handleSaveSocialSettings = async () => {
-    const success = await updateSetting('socialMedia', siteData.socialMedia);
-    if (success) {
+  const handleSaveContactSettings = async () => {
+    const settingsToSave = [
+      { key: 'contactEmail', value: siteData.contactEmail },
+      { key: 'phone', value: siteData.phone },
+      { key: 'address', value: siteData.address },
+      { key: 'socialMedia', value: siteData.socialMedia },
+    ];
+
+    let allSuccessful = true;
+    for (const setting of settingsToSave) {
+      const success = await updateSetting(setting.key, setting.value);
+      if (!success) {
+        allSuccessful = false;
+      }
+    }
+
+    if (allSuccessful) {
       toast({
-        title: "Social Media Settings Saved",
-        description: "Your social media links have been successfully updated.",
+        title: "Contact Settings Saved",
+        description: "Your contact information and social media links have been successfully updated.",
       });
     }
   };
 
   // Calculate completion status
-  const isBasicComplete = siteData.siteName && siteData.tagline && siteData.description && siteData.contactEmail;
+  const isBasicComplete = siteData.siteName && siteData.tagline && siteData.description;
   const isHeroComplete = siteData.heroTitle && siteData.heroSubtitle && siteData.heroDescription;
-  const isSocialComplete = Object.values(siteData.socialMedia).some((url: any) => url?.trim());
+  const isContactComplete = siteData.contactEmail;
 
   return (
     <div className="space-y-8">
       <QuickSetupProgress 
         isBasicComplete={isBasicComplete}
         isHeroComplete={isHeroComplete}
-        isSocialComplete={isSocialComplete}
+        isSocialComplete={isContactComplete}
       />
 
       <GeneralInformationSettings
@@ -124,7 +135,7 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting }: BasicSetting
         siteData={siteData}
         onInputChange={handleInputChange}
         onSocialMediaChange={handleSocialMediaChange}
-        onSave={handleSaveSocialSettings}
+        onSave={handleSaveContactSettings}
       />
     </div>
   );

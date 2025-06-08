@@ -32,7 +32,7 @@ const ContactInformationSettings = ({ siteData, onInputChange, onSocialMediaChan
             <Input
               id="contactEmail"
               type="email"
-              value={siteData.contactEmail}
+              value={siteData.contactEmail || ''}
               onChange={(e) => onInputChange('contactEmail', e.target.value)}
               placeholder="contact@yoursite.com"
               className="mt-1"
@@ -42,7 +42,7 @@ const ContactInformationSettings = ({ siteData, onInputChange, onSocialMediaChan
             <Label htmlFor="phone">Phone Number</Label>
             <Input
               id="phone"
-              value={siteData.phone}
+              value={siteData.phone || ''}
               onChange={(e) => onInputChange('phone', e.target.value)}
               placeholder="+1 (555) 123-4567"
               className="mt-1"
@@ -52,7 +52,7 @@ const ContactInformationSettings = ({ siteData, onInputChange, onSocialMediaChan
             <Label htmlFor="address">Business Address</Label>
             <Input
               id="address"
-              value={siteData.address}
+              value={siteData.address || ''}
               onChange={(e) => onInputChange('address', e.target.value)}
               placeholder="123 Main St, City, State"
               className="mt-1"
@@ -67,7 +67,7 @@ const ContactInformationSettings = ({ siteData, onInputChange, onSocialMediaChan
               <Label htmlFor="facebook">Facebook URL</Label>
               <Input
                 id="facebook"
-                value={siteData.socialMedia.facebook}
+                value={siteData.socialMedia?.facebook || ''}
                 onChange={(e) => onSocialMediaChange('facebook', e.target.value)}
                 placeholder="https://facebook.com/yourpage"
                 className="mt-1"
@@ -77,7 +77,7 @@ const ContactInformationSettings = ({ siteData, onInputChange, onSocialMediaChan
               <Label htmlFor="instagram">Instagram URL</Label>
               <Input
                 id="instagram"
-                value={siteData.socialMedia.instagram}
+                value={siteData.socialMedia?.instagram || ''}
                 onChange={(e) => onSocialMediaChange('instagram', e.target.value)}
                 placeholder="https://instagram.com/youraccount"
                 className="mt-1"
@@ -87,7 +87,7 @@ const ContactInformationSettings = ({ siteData, onInputChange, onSocialMediaChan
               <Label htmlFor="twitter">Twitter URL</Label>
               <Input
                 id="twitter"
-                value={siteData.socialMedia.twitter}
+                value={siteData.socialMedia?.twitter || ''}
                 onChange={(e) => onSocialMediaChange('twitter', e.target.value)}
                 placeholder="https://twitter.com/youraccount"
                 className="mt-1"
@@ -97,7 +97,7 @@ const ContactInformationSettings = ({ siteData, onInputChange, onSocialMediaChan
               <Label htmlFor="googlePlaces">Google Places URL</Label>
               <Input
                 id="googlePlaces"
-                value={siteData.socialMedia.googlePlaces}
+                value={siteData.socialMedia?.googlePlaces || ''}
                 onChange={(e) => onSocialMediaChange('googlePlaces', e.target.value)}
                 placeholder="https://maps.google.com/yourplace"
                 className="mt-1"
