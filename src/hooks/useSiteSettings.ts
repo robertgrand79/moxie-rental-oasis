@@ -20,6 +20,7 @@ export const useSiteSettings = () => {
 
   const fetchSettings = async () => {
     console.log('Fetching site settings...');
+    console.log('Current user:', user?.id, user?.email);
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -30,7 +31,7 @@ export const useSiteSettings = () => {
         console.error('Error fetching site settings:', error);
         toast({
           title: 'Error',
-          description: 'Failed to fetch site settings.',
+          description: `Failed to fetch site settings: ${error.message}`,
           variant: 'destructive'
         });
       } else {
@@ -39,6 +40,7 @@ export const useSiteSettings = () => {
           acc[setting.key] = setting.value;
           return acc;
         }, {} as Record<string, any>) || {};
+        console.log('Settings map:', settingsMap);
         setSettings(settingsMap);
       }
     } catch (error) {
@@ -54,7 +56,11 @@ export const useSiteSettings = () => {
   };
 
   const updateSetting = async (key: string, value: any): Promise<boolean> => {
+    console.log('Updating setting:', key, 'with value:', value);
+    console.log('Current user for update:', user?.id);
+    
     if (!user) {
+      console.error('No user found for updating settings');
       toast({
         title: 'Error',
         description: 'You must be logged in to update settings.',
@@ -64,7 +70,8 @@ export const useSiteSettings = () => {
     }
 
     try {
-      const { error } = await supabase
+      console.log('Attempting to upsert setting...');
+      const { data, error } = await supabase
         .from('site_settings')
         .upsert({
           key,
@@ -72,18 +79,22 @@ export const useSiteSettings = () => {
           created_by: user.id
         }, {
           onConflict: 'key'
-        });
+        })
+        .select();
+
+      console.log('Upsert response:', { data, error });
 
       if (error) {
         console.error('Error updating setting:', error);
         toast({
           title: 'Error',
-          description: `Failed to update ${key} setting.`,
+          description: `Failed to update ${key}: ${error.message}`,
           variant: 'destructive'
         });
         return false;
       }
 
+      console.log('Successfully updated setting:', data);
       setSettings(prev => ({ ...prev, [key]: value }));
       toast({
         title: 'Success',
@@ -103,12 +114,16 @@ export const useSiteSettings = () => {
   };
 
   const getSetting = (key: string, defaultValue?: any) => {
-    return settings[key] ?? defaultValue;
+    const value = settings[key] ?? defaultValue;
+    console.log(`Getting setting ${key}:`, value);
+    return value;
   };
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (user) {
+      fetchSettings();
+    }
+  }, [user]);
 
   return {
     settings,

@@ -6,19 +6,19 @@ export const useSettingsData = () => {
   const { settings, loading, updateSetting, getSetting } = useSiteSettings();
 
   const [siteData, setSiteData] = useState({
-    siteName: 'Moxie Vacation Rentals',
-    tagline: 'Your perfect getaway is just a click away.',
-    description: 'Discover amazing vacation rental properties in prime locations.',
-    heroTitle: 'Your Home Away From Home',
-    heroSubtitle: 'in Eugene',
-    heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
-    heroBackgroundImage: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80',
-    heroLocationText: 'Eugene, Oregon',
-    heroRating: '4.9',
-    heroCTAText: 'View Properties',
-    contactEmail: 'contact@moxievacationrentals.com',
-    phone: '+1 (555) 123-4567',
-    address: '123 Vacation St, Resort City, RC 12345',
+    siteName: '',
+    tagline: '',
+    description: '',
+    heroTitle: '',
+    heroSubtitle: '',
+    heroDescription: '',
+    heroBackgroundImage: '',
+    heroLocationText: '',
+    heroRating: '',
+    heroCTAText: '',
+    contactEmail: '',
+    phone: '',
+    address: '',
     socialMedia: {
       facebook: '',
       instagram: '',
@@ -29,8 +29,8 @@ export const useSettingsData = () => {
 
   const [mapboxToken, setMapboxToken] = useState('');
   const [seoData, setSeoData] = useState({
-    siteTitle: 'Moxie Vacation Rentals',
-    metaDescription: 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.',
+    siteTitle: '',
+    metaDescription: '',
     ogTitle: '',
     ogDescription: '',
     ogImage: '',
@@ -47,8 +47,10 @@ export const useSettingsData = () => {
   });
 
   useEffect(() => {
-    if (!loading && Object.keys(settings).length > 0) {
-      setSiteData({
+    console.log('useSettingsData - loading:', loading, 'settings:', Object.keys(settings));
+    
+    if (!loading) {
+      const newSiteData = {
         siteName: getSetting('siteName', 'Moxie Vacation Rentals'),
         tagline: getSetting('tagline', 'Your perfect getaway is just a click away.'),
         description: getSetting('description', 'Discover amazing vacation rental properties in prime locations.'),
@@ -68,7 +70,10 @@ export const useSettingsData = () => {
           twitter: '',
           googlePlaces: ''
         })
-      });
+      };
+      
+      console.log('Setting new site data:', newSiteData);
+      setSiteData(newSiteData);
       
       setMapboxToken(getSetting('mapboxToken', ''));
       
