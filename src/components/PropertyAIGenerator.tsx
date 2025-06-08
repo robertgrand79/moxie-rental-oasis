@@ -39,26 +39,54 @@ const PropertyAIGenerator = ({ onContentGenerated, propertyData }: PropertyAIGen
     setIsGenerating(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-site-content', {
+      // Prepare the prompt based on selected field and property data
+      const { location, bedrooms, bathrooms, maxGuests, pricePerNight } = propertyData;
+      const propertyInfo = `${bedrooms || 0} bedroom, ${bathrooms || 0} bathroom property in ${location || 'a great location'} that sleeps ${maxGuests || 2} guests at $${pricePerNight || 100}/night`;
+      
+      let enhancedPrompt = '';
+      if (selectedField === 'title') {
+        enhancedPrompt = `Create a compelling property title for a ${propertyInfo}. ${aiPrompt}`;
+      } else if (selectedField === 'description') {
+        enhancedPrompt = `Write an engaging property description for a ${propertyInfo}. ${aiPrompt}`;
+      } else if (selectedField === 'amenities') {
+        enhancedPrompt = `List amenities and features for a ${propertyInfo}. ${aiPrompt}`;
+      }
+
+      const { data, error } = await supabase.functions.invoke('generate-content-ai', {
         body: {
-          prompt: aiPrompt,
-          context: {
-            businessType: 'vacation rental property',
-            propertyData: {
-              location: propertyData.location || '',
-              bedrooms: propertyData.bedrooms || 0,
-              bathrooms: propertyData.bathrooms || 0,
-              maxGuests: propertyData.maxGuests || 0,
-              pricePerNight: propertyData.pricePerNight || 0
-            },
-            field: selectedField
-          }
+          type: 'poi', // Using poi type as it generates descriptive content
+          prompt: enhancedPrompt,
+          category: 'property',
+          count: 1,
+          location: location || 'Eugene, Oregon'
         }
       });
 
       if (error) throw error;
 
-      setGeneratedContent(data.content);
+      // Extract the generated content from the response
+      let content = '';
+      if (data.content && data.content.length > 0) {
+        const generated = data.content[0];
+        if (selectedField === 'title') {
+          content = generated.name || generated.title || 'Generated Property Title';
+        } else if (selectedField === 'description') {
+          content = generated.description || 'Generated property description';
+        } else if (selectedField === 'amenities') {
+          // Extract amenities-like content from the generated data
+          const amenities = [];
+          if (generated.amenities) amenities.push(generated.amenities);
+          if (generated.features) amenities.push(generated.features);
+          if (generated.description && selectedField === 'amenities') {
+            // For amenities, create a list format
+            content = generated.description.split('.').filter(item => item.trim()).map(item => `• ${item.trim()}`).join('\n');
+          } else {
+            content = amenities.join(', ') || generated.description || 'Generated amenities list';
+          }
+        }
+      }
+
+      setGeneratedContent(content);
       
       toast({
         title: "Content Generated!",
