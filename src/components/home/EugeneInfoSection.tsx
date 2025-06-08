@@ -38,7 +38,7 @@ const EugeneInfoSection = () => {
             </div>
 
             {/* Visual Side */}
-            <div className="bg-gradient-to-br from-gradient-from to-gradient-accent-from p-12 lg:p-16 flex items-center justify-center">
+            <div className="bg-gradient-to-br from-gray-700 to-gray-800 p-12 lg:p-16 flex items-center justify-center">
               <div className="text-center text-white">
                 <div className="grid grid-cols-3 gap-4 mb-8">
                   <div className="flex flex-col items-center group">
