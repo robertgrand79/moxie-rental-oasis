@@ -1,131 +1,96 @@
 
-import {
-  LayoutDashboard,
-  BarChart3,
-  MessageSquare,
-  CheckSquare,
-  User,
+import { 
+  LayoutDashboard, 
+  Building, 
+  FileText, 
+  PenTool, 
+  User, 
   Calendar,
   MapPin,
   Camera,
-  Star,
-  Brain,
-  Database,
+  MessageSquare,
+  Sparkles,
   Settings,
-  Building2,
-  ArrowLeft,
-  FileText,
-  BookOpen,
-  Mail
+  Database,
+  Mail,
+  Activity
 } from 'lucide-react';
 
 export const coreMenuItems = [
   {
-    title: 'Back to Site',
-    href: '/',
-    icon: ArrowLeft,
-    color: 'text-icon-gray'
-  },
-  {
     title: 'Dashboard',
-    href: '/admin',
-    icon: LayoutDashboard,
-    color: 'text-icon-blue'
+    url: '/admin',
+    icon: LayoutDashboard
   },
   {
-    title: 'Analytics',
-    href: '/admin/analytics',
-    icon: BarChart3,
-    color: 'text-icon-indigo'
-  },
-  {
-    title: 'Profile',
-    href: '/admin/profile',
-    icon: User,
-    color: 'text-icon-gray'
+    title: 'Site Metrics',
+    url: '/admin/site-metrics',
+    icon: Activity
   }
 ];
 
 export const contentMenuItems = [
   {
     title: 'Properties',
-    href: '/admin/properties',
-    icon: Building2,
-    color: 'text-icon-emerald'
-  },
-  {
-    title: 'Content Approval',
-    href: '/admin/content-approval',
-    icon: CheckSquare,
-    color: 'text-icon-emerald'
-  },
-  {
-    title: 'Page Management',
-    href: '/admin/page-management',
-    icon: FileText,
-    color: 'text-icon-blue'
+    url: '/admin/properties',
+    icon: Building
   },
   {
     title: 'Blog Management',
-    href: '/admin/blog-management',
-    icon: BookOpen,
-    color: 'text-icon-purple'
+    url: '/admin/blog-management',
+    icon: PenTool
   },
   {
-    title: 'Newsletter',
-    href: '/admin/newsletter',
-    icon: Mail,
-    color: 'text-icon-indigo'
+    title: 'Page Management',
+    url: '/admin/page-management',
+    icon: FileText
   },
   {
     title: 'Events',
-    href: '/admin/events',
-    icon: Calendar,
-    color: 'text-icon-purple'
+    url: '/admin/events',
+    icon: Calendar
   },
   {
     title: 'Points of Interest',
-    href: '/admin/poi',
-    icon: MapPin,
-    color: 'text-icon-amber'
+    url: '/admin/poi',
+    icon: MapPin
   },
   {
     title: 'Lifestyle Gallery',
-    href: '/admin/lifestyle',
-    icon: Camera,
-    color: 'text-icon-teal'
+    url: '/admin/lifestyle',
+    icon: Camera
   },
   {
     title: 'Testimonials',
-    href: '/admin/testimonials',
-    icon: Star,
-    color: 'text-icon-orange'
+    url: '/admin/testimonials',
+    icon: MessageSquare
+  },
+  {
+    title: 'Newsletter',
+    url: '/admin/newsletter',
+    icon: Mail
   }
 ];
 
 export const toolsMenuItems = [
   {
-    title: 'Chat Support',
-    href: '/admin/chat-support',
-    icon: MessageSquare,
-    color: 'text-icon-rose'
+    title: 'AI Tools',
+    url: '/admin/ai-tools',
+    icon: Sparkles
   },
   {
-    title: 'AI Tools',
-    href: '/admin/ai-tools',
-    icon: Brain,
-    color: 'text-icon-violet'
+    title: 'Site Settings',
+    url: '/admin/site-settings',
+    icon: Settings
   },
   {
     title: 'Sample Data',
-    href: '/admin/sample-data',
-    icon: Database,
-    color: 'text-icon-slate'
+    url: '/admin/sample-data',
+    icon: Database
   },
   {
-    title: 'Settings',
-    href: '/admin/settings',
-    icon: Settings,
-    color: 'text-icon-gray'
+    title: 'Profile',
+    url: '/admin/profile',
+    icon: User
   }
 ];

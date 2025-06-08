@@ -10,6 +10,7 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import SiteHead from "@/components/SiteHead";
 import AdminLayout from "@/components/admin/AdminLayout";
+import ChatWidget from "@/components/chat/ChatWidget";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Listings from "./pages/Listings";
@@ -39,6 +40,7 @@ import AdminPOI from "./pages/admin/AdminPOI";
 import AdminTestimonials from "./pages/admin/AdminTestimonials";
 import AdminNewsletter from "./pages/admin/AdminNewsletter";
 import AdminSiteSettings from "./pages/admin/AdminSiteSettings";
+import AdminSiteMetrics from "./pages/admin/AdminSiteMetrics";
 
 const queryClient = new QueryClient();
 
@@ -190,6 +192,7 @@ const App = () => {
                   }
                 >
                   <Route index element={<Admin />} />
+                  <Route path="site-metrics" element={<AdminSiteMetrics />} />
                   <Route path="properties" element={<Properties />} />
                   <Route path="page-management" element={<PageManagement />} />
                   <Route path="blog-management" element={<BlogManagement />} />
@@ -215,6 +218,9 @@ const App = () => {
                   </>
                 } />
               </Routes>
+
+              {/* Chat Widget - appears on all pages */}
+              <ChatWidget />
             </div>
             <Toaster />
             <Sonner />
