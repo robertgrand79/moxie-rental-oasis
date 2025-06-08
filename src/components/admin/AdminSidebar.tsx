@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
@@ -10,6 +11,20 @@ import AdminSidebarFooter from './sidebar/AdminSidebarFooter';
 import { coreMenuItems, contentMenuItems, toolsMenuItems } from './sidebar/adminMenuItems';
 
 const AdminSidebar = () => {
+  const location = useLocation();
+
+  // Update menu items with active state based on current path
+  const updateMenuItemsWithActiveState = (items: any[]) => {
+    return items.map(item => ({
+      ...item,
+      isActive: location.pathname === item.url || location.pathname.startsWith(item.url + '/')
+    }));
+  };
+
+  const activeCoreMenuItems = updateMenuItemsWithActiveState(coreMenuItems);
+  const activeContentMenuItems = updateMenuItemsWithActiveState(contentMenuItems);
+  const activeToolsMenuItems = updateMenuItemsWithActiveState(toolsMenuItems);
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -18,9 +33,9 @@ const AdminSidebar = () => {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <AdminSidebarSection title="Navigation" items={coreMenuItems} />
-        <AdminSidebarSection title="Content Management" items={contentMenuItems} />
-        <AdminSidebarSection title="Tools & Settings" items={toolsMenuItems} />
+        <AdminSidebarSection title="Navigation" items={activeCoreMenuItems} />
+        <AdminSidebarSection title="Content Management" items={activeContentMenuItems} />
+        <AdminSidebarSection title="Tools & Settings" items={activeToolsMenuItems} />
       </SidebarContent>
       <AdminSidebarFooter />
     </Sidebar>
