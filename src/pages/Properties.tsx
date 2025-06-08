@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import PropertyForm from '@/components/PropertyForm';
@@ -10,8 +9,8 @@ import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 import { Property } from '@/types/property';
 import { PropertyFormData } from '@/components/PropertyForm/types';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { EnhancedCard, EnhancedCardContent } from '@/components/ui/enhanced-card';
 import LoadingState from '@/components/ui/loading-state';
+import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 
 const Properties = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -92,57 +91,49 @@ const Properties = () => {
     return <LoadingState variant="page" message="Loading your properties..." />;
   }
 
+  const pageActions = !showAddForm ? (
+    <EnhancedButton 
+      onClick={handleAddProperty} 
+      variant="gradient"
+      icon={<Plus className="h-4 w-4" />}
+    >
+      Add Property
+    </EnhancedButton>
+  ) : null;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
-      <div className="container mx-auto px-4 py-8">
-        <EnhancedCard variant="glass" className="mx-auto animate-fade-in">
-          <EnhancedCardContent className="p-8">
-            <div className="flex justify-between items-center mb-8">
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  Property Management
-                </h1>
-                <p className="text-gray-600 mt-2">Manage your rental properties and listings</p>
-              </div>
-              {!showAddForm && (
-                <EnhancedButton 
-                  onClick={handleAddProperty} 
-                  variant="gradient"
-                  icon={<Plus className="h-4 w-4" />}
-                >
-                  Add Property
-                </EnhancedButton>
-              )}
-            </div>
+    <AdminPageWrapper
+      title="Property Management"
+      description={`Manage your rental properties and listings (${properties.length} properties)`}
+      actions={pageActions}
+    >
+      <div className="p-8">
+        {showAddForm && (
+          <div className="mb-8 animate-scale-in">
+            <PropertyForm 
+              initialData={editingProperty || undefined}
+              isEditing={!!editingProperty}
+              onSubmit={handleFormSubmit}
+              onCancel={handleFormCancel}
+            />
+          </div>
+        )}
 
-            {showAddForm && (
-              <div className="mb-8 animate-scale-in">
-                <PropertyForm 
-                  initialData={editingProperty || undefined}
-                  isEditing={!!editingProperty}
-                  onSubmit={handleFormSubmit}
-                  onCancel={handleFormCancel}
-                />
-              </div>
+        {!showAddForm && (
+          <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+            {properties.length > 0 ? (
+              <PropertyList
+                properties={properties}
+                onEdit={handleEditProperty}
+                onDelete={deleteProperty}
+              />
+            ) : (
+              <EmptyPropertyState onAddProperty={handleAddProperty} />
             )}
-
-            {!showAddForm && (
-              <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-                {properties.length > 0 ? (
-                  <PropertyList
-                    properties={properties}
-                    onEdit={handleEditProperty}
-                    onDelete={deleteProperty}
-                  />
-                ) : (
-                  <EmptyPropertyState onAddProperty={handleAddProperty} />
-                )}
-              </div>
-            )}
-          </EnhancedCardContent>
-        </EnhancedCard>
+          </div>
+        )}
       </div>
-    </div>
+    </AdminPageWrapper>
   );
 };
 
