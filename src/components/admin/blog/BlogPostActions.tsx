@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Eye } from 'lucide-react';
@@ -13,7 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { BlogPost } from '@/hooks/useBlogPosts';
+import { BlogPost } from '@/types/blogPost';
 
 interface BlogPostActionsProps {
   post: BlogPost;

@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { BlogPost } from '@/hooks/useBlogPosts';
+import { BlogPost } from '@/types/blogPost';
 import BlogPostCard from './BlogPostCard';
 
 interface BlogPostsListProps {

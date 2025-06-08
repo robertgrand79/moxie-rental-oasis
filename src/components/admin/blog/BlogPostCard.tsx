@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
-import { BlogPost } from '@/hooks/useBlogPosts';
+import { BlogPost } from '@/types/blogPost';
 import BlogPostActions from './BlogPostActions';
 
 interface BlogPostCardProps {
