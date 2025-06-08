@@ -3,6 +3,13 @@ import React from 'react';
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
 
+interface SocialMediaLinks {
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  googlePlaces?: string;
+}
+
 const ContactInfo = () => {
   const { settings } = useStableSiteSettings();
 
@@ -10,12 +17,18 @@ const ContactInfo = () => {
   const phone = settings.phone || '+1 541-255-1698';
   const address = settings.address || '2472 Willamette St Eugene OR 97405';
   
-  // Ensure socialMedia has proper structure with fallback values
-  const socialMedia = settings.socialMedia || {};
-  const facebook = socialMedia?.facebook || '';
-  const instagram = socialMedia?.instagram || '';
-  const twitter = socialMedia?.twitter || '';
-  const googlePlaces = socialMedia?.googlePlaces || '';
+  // Properly type the socialMedia object with fallback values
+  const socialMedia: SocialMediaLinks = settings.socialMedia || {
+    facebook: '',
+    instagram: '',
+    twitter: '',
+    googlePlaces: ''
+  };
+  
+  const facebook = socialMedia.facebook || '';
+  const instagram = socialMedia.instagram || '';
+  const twitter = socialMedia.twitter || '';
+  const googlePlaces = socialMedia.googlePlaces || '';
 
   return (
     <div className="space-y-8">
