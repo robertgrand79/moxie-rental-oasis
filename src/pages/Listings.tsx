@@ -67,8 +67,8 @@ const Listings = () => {
             {features.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
-                <div key={index} className="group">
-                  <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300">
+                <div key={index} className="group h-full">
+                  <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/20 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 h-full">
                     {/* Icon Container */}
                     <div className="w-16 h-16 bg-gradient-to-br from-gradient-from to-gradient-accent-from rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                       <IconComponent className={`h-8 w-8 ${feature.color} transition-colors duration-300`} />
