@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Send } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
+import { BlogPost } from '@/hooks/useBlogPosts';
 import TiptapEditor from './TiptapEditor';
 
 interface NewsletterFormData {
@@ -22,6 +24,8 @@ interface NewsletterFormProps {
   onSubmit: (data: NewsletterFormData) => void;
   isLoading: boolean;
   subscriberCount: number | null;
+  blogPosts: BlogPost[];
+  blogPostsLoading: boolean;
 }
 
 const NewsletterForm = ({ 
@@ -30,7 +34,9 @@ const NewsletterForm = ({
   setContent, 
   onSubmit, 
   isLoading, 
-  subscriberCount 
+  subscriberCount,
+  blogPosts,
+  blogPostsLoading
 }: NewsletterFormProps) => {
   return (
     <Card>
@@ -74,10 +80,28 @@ const NewsletterForm = ({
               name="blogPostId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Blog Post ID (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Link to a specific blog post..." {...field} />
-                  </FormControl>
+                  <FormLabel>Link to Blog Post (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={
+                          blogPostsLoading 
+                            ? "Loading blog posts..." 
+                            : blogPosts.length === 0 
+                              ? "No published blog posts available"
+                              : "Select a blog post (optional)"
+                        } />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {blogPosts.map((post) => (
+                        <SelectItem key={post.id} value={post.slug}>
+                          {post.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

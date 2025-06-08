@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useForm } from 'react-hook-form';
+import { useBlogPosts } from '@/hooks/useBlogPosts';
 import NewsletterOverview from './NewsletterOverview';
 import NewsletterAIGenerator from './NewsletterAIGenerator';
 import NewsletterForm from './NewsletterForm';
@@ -20,6 +21,7 @@ const NewsletterManager = () => {
   const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
   const [content, setContent] = useState('');
   const { toast } = useToast();
+  const { blogPosts, loading: blogPostsLoading } = useBlogPosts();
   
   const form = useForm<NewsletterFormData>({
     defaultValues: {
@@ -106,6 +108,9 @@ const NewsletterManager = () => {
     }
   };
 
+  // Filter to only show published blog posts
+  const publishedBlogPosts = blogPosts.filter(post => post.status === 'published');
+
   return (
     <div className="space-y-6">
       <NewsletterOverview subscriberCount={subscriberCount} />
@@ -123,6 +128,8 @@ const NewsletterManager = () => {
         onSubmit={onSubmit}
         isLoading={isLoading}
         subscriberCount={subscriberCount}
+        blogPosts={publishedBlogPosts}
+        blogPostsLoading={blogPostsLoading}
       />
 
       <NewsletterPreview
