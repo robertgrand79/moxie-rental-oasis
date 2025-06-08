@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, User, ArrowLeft, Clock } from 'lucide-react';
+import { Calendar, User, ArrowLeft, Clock, Globe, MapPin } from 'lucide-react';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
 
 const BlogPost = () => {
@@ -13,6 +12,9 @@ const BlogPost = () => {
   const post = blogPosts.find(p => p.slug === slug && p.status === 'published');
 
   const getTagColor = (tag: string) => {
+    if (tag === "Robert & Shelly's Travels") {
+      return 'bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border-indigo-200';
+    }
     switch (tag.toLowerCase()) {
       case 'travel':
         return 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 border-blue-200';
@@ -103,6 +105,7 @@ const BlogPost = () => {
   }
 
   const readingTime = estimateReadingTime(post.content);
+  const isRobertShellyTravel = post.tags?.includes("Robert & Shelly's Travels");
 
   return (
     <div className="py-32 relative">
@@ -112,12 +115,29 @@ const BlogPost = () => {
           <div className="mb-8">
             <Link 
               to="/blog" 
-              className="inline-flex items-center px-4 py-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg text-gray-700 hover:text-blue-600 hover:border-blue-300 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              className="inline-flex items-center px-6 py-3 bg-white/90 backdrop-blur-sm border-2 border-blue-200 rounded-xl text-blue-700 hover:text-blue-800 hover:border-blue-300 hover:bg-blue-50 font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-5 w-5 mr-2" />
               Back to Blog
             </Link>
           </div>
+
+          {/* Robert & Shelly's Travel Feature Banner */}
+          {isRobertShellyTravel && (
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center">
+                    <Globe className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-indigo-900">Robert & Shelly's World Adventures</h2>
+                    <p className="text-indigo-700">Follow our hosts' incredible journeys around the globe</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Main Article */}
           <article className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 hover:shadow-3xl transition-all duration-300">
@@ -130,6 +150,14 @@ const BlogPost = () => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                {isRobertShellyTravel && (
+                  <div className="absolute top-6 left-6">
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
+                      <Globe className="h-4 w-4" />
+                      <span className="font-semibold">World Adventure</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -140,8 +168,9 @@ const BlogPost = () => {
                   {post.tags.map((tag) => (
                     <span 
                       key={tag}
-                      className={`px-4 py-2 text-sm rounded-full border ${getTagColor(tag)} font-medium`}
+                      className={`px-4 py-2 text-sm rounded-full border ${getTagColor(tag)} font-medium flex items-center gap-1`}
                     >
+                      {tag === "Robert & Shelly's Travels" && <Globe className="h-3 w-3" />}
                       {tag}
                     </span>
                   ))}
@@ -171,6 +200,12 @@ const BlogPost = () => {
                   <Clock className="h-5 w-5 mr-3 text-icon-purple" />
                   <span>{readingTime} min read</span>
                 </div>
+                {isRobertShellyTravel && (
+                  <div className="flex items-center">
+                    <MapPin className="h-5 w-5 mr-3 text-indigo-600" />
+                    <span className="text-indigo-700 font-medium">Travel Adventure</span>
+                  </div>
+                )}
               </div>
 
               {/* Excerpt */}

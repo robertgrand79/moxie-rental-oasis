@@ -13,7 +13,8 @@ import {
   Settings,
   Database,
   Mail,
-  Activity
+  Activity,
+  Globe
 } from 'lucide-react';
 
 export const coreMenuItems = [
