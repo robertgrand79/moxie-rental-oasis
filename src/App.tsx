@@ -3,15 +3,9 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Index from './pages/Index';
 import Listings from './pages/Listings';
-import SiteSettings from './pages/SiteSettings';
-import Admin from './pages/Admin';
 import About from './pages/About';
 import Experiences from './pages/Experiences';
 import Events from './pages/Events';
-import Properties from './pages/Properties';
-import PageManagement from './pages/PageManagement';
-import BlogManagement from './pages/BlogManagement';
-import AdminProfile from './pages/AdminProfile';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import FAQ from './pages/FAQ';
@@ -24,9 +18,21 @@ import { AuthProvider } from './contexts/AuthContext';
 import Auth from './pages/Auth';
 import ProtectedRoute from './components/ProtectedRoute';
 import SiteHead from '@/components/SiteHead';
+import AdminLayout from '@/components/admin/AdminLayout';
+import Admin from './pages/Admin';
+import Properties from './pages/Properties';
+import PageManagement from './pages/PageManagement';
+import BlogManagement from './pages/BlogManagement';
+import SiteSettings from './pages/SiteSettings';
+import AdminProfile from './pages/AdminProfile';
 import AIAnalyticsDashboard from '@/components/admin/AIAnalyticsDashboard';
 import AdminChatSupport from '@/components/admin/AdminChatSupport';
 import ContentApprovalWorkflow from '@/components/admin/ContentApprovalWorkflow';
+import AdminEvents from './pages/admin/AdminEvents';
+import AdminPOI from './pages/admin/AdminPOI';
+import AdminLifestyle from './pages/admin/AdminLifestyle';
+import AdminTestimonials from './pages/admin/AdminTestimonials';
+import AdminAITools from './pages/admin/AdminAITools';
 
 const queryClient = new QueryClient();
 
@@ -52,16 +58,29 @@ const App = () => {
               <Route path="/search" element={<SearchResults />} />
               <Route path="/" element={<Index />} />
               
-              {/* Protected Admin Routes */}
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              {/* Protected Admin Routes with AdminLayout */}
+              <Route path="/admin/*" element={
+                <ProtectedRoute>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<Admin />} />
+                <Route path="analytics" element={<AIAnalyticsDashboard />} />
+                <Route path="chat-support" element={<AdminChatSupport />} />
+                <Route path="content-approval" element={<ContentApprovalWorkflow />} />
+                <Route path="profile" element={<AdminProfile />} />
+                <Route path="events" element={<AdminEvents />} />
+                <Route path="poi" element={<AdminPOI />} />
+                <Route path="lifestyle" element={<AdminLifestyle />} />
+                <Route path="testimonials" element={<AdminTestimonials />} />
+                <Route path="ai-tools" element={<AdminAITools />} />
+              </Route>
+              
+              {/* Standalone Admin Pages (outside AdminLayout for specific reasons) */}
               <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
               <Route path="/page-management" element={<ProtectedRoute><PageManagement /></ProtectedRoute>} />
               <Route path="/blog-management" element={<ProtectedRoute><BlogManagement /></ProtectedRoute>} />
               <Route path="/site-settings" element={<ProtectedRoute><SiteSettings /></ProtectedRoute>} />
-              <Route path="/admin/profile" element={<ProtectedRoute><AdminProfile /></ProtectedRoute>} />
-              <Route path="/admin/analytics" element={<ProtectedRoute><AIAnalyticsDashboard /></ProtectedRoute>} />
-              <Route path="/admin/chat-support" element={<ProtectedRoute><AdminChatSupport /></ProtectedRoute>} />
-              <Route path="/admin/content-approval" element={<ProtectedRoute><ContentApprovalWorkflow /></ProtectedRoute>} />
               
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />

@@ -5,28 +5,46 @@ import { ChevronRight, Home } from 'lucide-react';
 
 const routeLabels: Record<string, string> = {
   '/admin': 'Dashboard',
-  '/properties': 'Properties',
-  '/page-management': 'Page Management',
-  '/blog-management': 'Blog Management',
   '/admin/analytics': 'Analytics',
   '/admin/chat-support': 'Chat Support',
+  '/admin/content-approval': 'Content Approval',
   '/admin/profile': 'Profile',
-  '/site-settings': 'Site Settings',
   '/admin/events': 'Events',
   '/admin/poi': 'Points of Interest',
   '/admin/lifestyle': 'Lifestyle Gallery',
   '/admin/testimonials': 'Testimonials',
   '/admin/ai-tools': 'AI Tools',
+  '/properties': 'Properties',
+  '/page-management': 'Page Management',
+  '/blog-management': 'Blog Management',
+  '/site-settings': 'Site Settings',
 };
 
 export function AdminBreadcrumb() {
   const location = useLocation();
-  const pathSegments = location.pathname.split('/').filter(Boolean);
+  
+  // For routes outside the admin layout structure
+  if (!location.pathname.startsWith('/admin')) {
+    const label = routeLabels[location.pathname] || 'Admin';
+    return (
+      <nav className="flex items-center space-x-2 text-sm">
+        <Link 
+          to="/admin"
+          className="text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          Dashboard
+        </Link>
+        <ChevronRight className="h-4 w-4 text-gray-400" />
+        <span className="text-gray-900 font-medium">{label}</span>
+      </nav>
+    );
+  }
 
+  const pathSegments = location.pathname.split('/').filter(Boolean);
   const breadcrumbs = [];
   let currentPath = '';
 
-  // Add home breadcrumb
+  // Add dashboard breadcrumb
   breadcrumbs.push({
     label: 'Dashboard',
     path: '/admin',
