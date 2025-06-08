@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -26,6 +25,7 @@ import {
   AlignCenter,
   AlignRight
 } from 'lucide-react';
+import { isValidUrl, sanitizeRichTextContent } from '@/utils/security';
 
 interface TiptapEditorProps {
   content: string;
@@ -48,6 +48,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         HTMLAttributes: {
           class: 'text-blue-600 underline cursor-pointer',
         },
+        validate: href => isValidUrl(href),
       }),
       Placeholder.configure({
         placeholder,
@@ -58,13 +59,19 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
     ],
     content,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      const htmlContent = editor.getHTML();
+      const sanitizedContent = sanitizeRichTextContent(htmlContent);
+      onChange(sanitizedContent);
     },
   });
 
   const addImage = () => {
     const url = window.prompt('Enter image URL:');
     if (url && editor) {
+      if (!isValidUrl(url)) {
+        alert('Please enter a valid HTTP or HTTPS URL');
+        return;
+      }
       editor.chain().focus().setImage({ src: url }).run();
     }
   };
@@ -80,6 +87,11 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
       return;
     }
 
+    if (!isValidUrl(url)) {
+      alert('Please enter a valid HTTP or HTTPS URL');
+      return;
+    }
+
     editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   };
 
@@ -91,6 +103,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
     <div className={`border border-gray-300 rounded-lg ${className}`}>
       {/* Toolbar */}
       <div className="border-b border-gray-200 p-2 flex flex-wrap gap-1">
+        
         <Button
           variant="ghost"
           size="sm"

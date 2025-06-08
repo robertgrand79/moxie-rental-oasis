@@ -1,6 +1,7 @@
 
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useEffect } from 'react';
+import { sanitizeHtml } from '@/utils/security';
 
 const SiteHead = () => {
   const { getSetting } = useSiteSettings();
@@ -17,6 +18,26 @@ const SiteHead = () => {
   const customHeaderScripts = getSetting('customHeaderScripts', '');
   const customFooterScripts = getSetting('customFooterScripts', '');
   const customCss = getSetting('customCss', '');
+
+  // Security function to validate and sanitize scripts
+  const sanitizeScript = (script: string): string => {
+    // Remove potentially dangerous patterns
+    const dangerousPatterns = [
+      /document\.write/gi,
+      /eval\(/gi,
+      /Function\(/gi,
+      /setTimeout\s*\(\s*["'].*["']/gi,
+      /setInterval\s*\(\s*["'].*["']/gi,
+      /<script[^>]*src=[^>]*>/gi
+    ];
+
+    let sanitized = script;
+    dangerousPatterns.forEach(pattern => {
+      sanitized = sanitized.replace(pattern, '');
+    });
+
+    return sanitized;
+  };
 
   useEffect(() => {
     // Update document title
@@ -53,8 +74,8 @@ const SiteHead = () => {
       ogImageMeta.setAttribute('content', ogImage);
     }
 
-    // Add Google Analytics
-    if (googleAnalyticsId && !document.querySelector(`script[src*="${googleAnalyticsId}"]`)) {
+    // Add Google Analytics (if valid GA ID format)
+    if (googleAnalyticsId && /^G-[A-Z0-9]+$/.test(googleAnalyticsId) && !document.querySelector(`script[src*="${googleAnalyticsId}"]`)) {
       const gaScript = document.createElement('script');
       gaScript.async = true;
       gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`;
@@ -70,8 +91,8 @@ const SiteHead = () => {
       document.head.appendChild(gaConfigScript);
     }
 
-    // Add Google Tag Manager
-    if (googleTagManagerId && !document.querySelector(`script[src*="${googleTagManagerId}"]`)) {
+    // Add Google Tag Manager (if valid GTM ID format)
+    if (googleTagManagerId && /^GTM-[A-Z0-9]+$/.test(googleTagManagerId) && !document.querySelector(`script[src*="${googleTagManagerId}"]`)) {
       const gtmScript = document.createElement('script');
       gtmScript.innerHTML = `
         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -83,8 +104,8 @@ const SiteHead = () => {
       document.head.appendChild(gtmScript);
     }
 
-    // Add Facebook Pixel
-    if (facebookPixelId && !document.querySelector(`script[src*="connect.facebook.net"]`)) {
+    // Add Facebook Pixel (if valid pixel ID format)
+    if (facebookPixelId && /^[0-9]+$/.test(facebookPixelId) && !document.querySelector(`script[src*="connect.facebook.net"]`)) {
       const fbScript = document.createElement('script');
       fbScript.innerHTML = `
         !function(f,b,e,v,n,t,s)
@@ -101,14 +122,17 @@ const SiteHead = () => {
       document.head.appendChild(fbScript);
     }
 
-    // Add custom header scripts
+    // Add custom header scripts (sanitized)
     if (customHeaderScripts) {
-      const customScript = document.createElement('script');
-      customScript.innerHTML = customHeaderScripts;
-      document.head.appendChild(customScript);
+      const sanitizedHeaderScripts = sanitizeScript(customHeaderScripts);
+      if (sanitizedHeaderScripts.trim()) {
+        const customScript = document.createElement('script');
+        customScript.innerHTML = sanitizedHeaderScripts;
+        document.head.appendChild(customScript);
+      }
     }
 
-    // Add custom CSS
+    // Add custom CSS (sanitized)
     if (customCss) {
       let customStyle = document.querySelector('#custom-site-css');
       if (!customStyle) {
@@ -116,14 +140,23 @@ const SiteHead = () => {
         customStyle.id = 'custom-site-css';
         document.head.appendChild(customStyle);
       }
-      customStyle.innerHTML = customCss;
+      // Basic CSS sanitization - remove dangerous patterns
+      const sanitizedCss = customCss
+        .replace(/javascript:/gi, '')
+        .replace(/expression\(/gi, '')
+        .replace(/behavior:/gi, '')
+        .replace(/@import/gi, '');
+      customStyle.innerHTML = sanitizedCss;
     }
 
-    // Add custom footer scripts
+    // Add custom footer scripts (sanitized)
     if (customFooterScripts) {
-      const footerScript = document.createElement('script');
-      footerScript.innerHTML = customFooterScripts;
-      document.body.appendChild(footerScript);
+      const sanitizedFooterScripts = sanitizeScript(customFooterScripts);
+      if (sanitizedFooterScripts.trim()) {
+        const footerScript = document.createElement('script');
+        footerScript.innerHTML = sanitizedFooterScripts;
+        document.body.appendChild(footerScript);
+      }
     }
 
   }, [siteTitle, metaDescription, ogTitle, ogDescription, ogImage, favicon, googleAnalyticsId, googleTagManagerId, facebookPixelId, customHeaderScripts, customFooterScripts, customCss]);

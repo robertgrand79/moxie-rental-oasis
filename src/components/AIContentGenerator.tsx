@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Wand2, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useSecureInput } from '@/hooks/useSecureInput';
+import { createRateLimiter } from '@/utils/security';
 
 interface AIContentGeneratorProps {
   onContentGenerated: (field: 'title' | 'excerpt' | 'content', content: string) => void;
@@ -17,18 +19,38 @@ interface AIContentGeneratorProps {
   };
 }
 
+// Rate limiter: 5 requests per minute
+const rateLimiter = createRateLimiter(60000, 5);
+
 const AIContentGenerator = ({ onContentGenerated, currentContent }: AIContentGeneratorProps) => {
+  const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
   const [selectedField, setSelectedField] = useState<'title' | 'excerpt' | 'content'>('title');
   const [generatedContent, setGeneratedContent] = useState('');
-  const { toast } = useToast();
+
+  const aiPrompt = useSecureInput('', {
+    required: true,
+    minLength: 10,
+    maxLength: 500,
+    custom: (value: string) => {
+      if (value.includes('<script>') || value.includes('javascript:')) {
+        return 'Prompt contains potentially unsafe content';
+      }
+      return null;
+    }
+  });
 
   const generateContent = async () => {
-    if (!aiPrompt.trim()) {
+    if (!aiPrompt.validate()) {
+      return;
+    }
+
+    // Rate limiting check
+    const userIdentifier = 'ai-content-generator'; // In a real app, use user ID
+    if (!rateLimiter(userIdentifier)) {
       toast({
-        title: "Prompt Required",
-        description: "Please enter a prompt to generate content.",
+        title: "Rate Limit Exceeded",
+        description: "Please wait before generating more content.",
         variant: "destructive",
       });
       return;
@@ -39,7 +61,7 @@ const AIContentGenerator = ({ onContentGenerated, currentContent }: AIContentGen
     try {
       const { data, error } = await supabase.functions.invoke('generate-site-content', {
         body: {
-          prompt: aiPrompt,
+          prompt: aiPrompt.value,
           context: {
             businessType: 'vacation rental blog',
             currentContent: {
@@ -84,7 +106,7 @@ const AIContentGenerator = ({ onContentGenerated, currentContent }: AIContentGen
     });
 
     setGeneratedContent('');
-    setAiPrompt('');
+    aiPrompt.reset();
   };
 
   return (
@@ -116,17 +138,20 @@ const AIContentGenerator = ({ onContentGenerated, currentContent }: AIContentGen
           <Label htmlFor="aiPrompt">AI Prompt</Label>
           <Textarea
             id="aiPrompt"
-            value={aiPrompt}
-            onChange={(e) => setAiPrompt(e.target.value)}
+            value={aiPrompt.value}
+            onChange={(e) => aiPrompt.setValue(e.target.value)}
             placeholder="Describe what kind of content you want AI to generate..."
             rows={3}
-            className="mt-1"
+            className={`mt-1 ${aiPrompt.error ? 'border-red-500' : ''}`}
           />
+          {aiPrompt.error && (
+            <p className="text-sm text-red-600 mt-1">{aiPrompt.error}</p>
+          )}
         </div>
 
         <Button 
           onClick={generateContent} 
-          disabled={isGenerating || !aiPrompt.trim()}
+          disabled={isGenerating || !aiPrompt.isValid}
           className="w-full"
         >
           <Sparkles className="h-4 w-4 mr-2" />
