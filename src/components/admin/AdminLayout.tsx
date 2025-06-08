@@ -3,7 +3,7 @@ import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 
 const AdminLayout = () => {
@@ -14,6 +14,7 @@ const AdminLayout = () => {
           <AdminSidebar />
           <SidebarInset className="flex-1">
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white">
+              <SidebarTrigger className="-ml-1" />
               <div className="flex items-center justify-between w-full">
                 <h1 className="text-lg font-semibold">Moxie Command</h1>
                 <Button variant="outline" size="sm" asChild>
