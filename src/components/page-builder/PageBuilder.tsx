@@ -25,7 +25,20 @@ const ContentUpdater = ({ onContentChange }: { onContentChange?: (content: strin
   return null;
 };
 
+const isValidCraftJSData = (content: string): boolean => {
+  if (!content) return false;
+  try {
+    const parsed = JSON.parse(content);
+    return parsed && typeof parsed === 'object' && parsed.ROOT;
+  } catch {
+    return false;
+  }
+};
+
 export const PageBuilder = ({ initialContent, onContentChange }: PageBuilderProps) => {
+  // Check if initialContent is valid CraftJS data or HTML
+  const craftJSData = initialContent && isValidCraftJSData(initialContent) ? initialContent : undefined;
+  
   return (
     <div className="h-full flex">
       <Editor
@@ -40,7 +53,7 @@ export const PageBuilder = ({ initialContent, onContentChange }: PageBuilderProp
         
         <div className="flex-1 bg-gray-50 p-4 overflow-auto">
           <div className="bg-white min-h-96 rounded-lg shadow-sm">
-            <Frame data={initialContent}>
+            <Frame data={craftJSData}>
               <Element is={Container} canvas background="#ffffff" padding={20}>
                 <Text text="Start building your page by dragging components from the left panel" fontSize={16} textAlign="left" color="#000000" />
               </Element>

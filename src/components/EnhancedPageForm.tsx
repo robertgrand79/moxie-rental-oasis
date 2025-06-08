@@ -160,13 +160,13 @@ const EnhancedPageForm = ({ page, onSubmit, onCancel }: EnhancedPageFormProps) =
                   <FileText className="h-4 w-4" />
                   Rich Text
                 </TabsTrigger>
-                <TabsTrigger value="visual" className="flex items-center gap-2">
-                  <Layout className="h-4 w-4" />
-                  Visual Builder
-                </TabsTrigger>
                 <TabsTrigger value="html" className="flex items-center gap-2">
                   <Code className="h-4 w-4" />
                   HTML
+                </TabsTrigger>
+                <TabsTrigger value="visual" className="flex items-center gap-2">
+                  <Layout className="h-4 w-4" />
+                  Visual Builder
                 </TabsTrigger>
                 <TabsTrigger value="preview" className="flex items-center gap-2">
                   <Eye className="h-4 w-4" />
@@ -182,15 +182,6 @@ const EnhancedPageForm = ({ page, onSubmit, onCancel }: EnhancedPageFormProps) =
                   className="min-h-96"
                 />
               </TabsContent>
-              
-              <TabsContent value="visual" className="mt-4">
-                <div className="border rounded-lg h-96">
-                  <PageBuilder
-                    initialContent={formData.content}
-                    onContentChange={handleContentChange}
-                  />
-                </div>
-              </TabsContent>
 
               <TabsContent value="html" className="mt-4">
                 <textarea
@@ -200,6 +191,14 @@ const EnhancedPageForm = ({ page, onSubmit, onCancel }: EnhancedPageFormProps) =
                   rows={20}
                   className="w-full p-3 border rounded-lg font-mono text-sm"
                 />
+              </TabsContent>
+              
+              <TabsContent value="visual" className="mt-4">
+                <div className="border rounded-lg h-96">
+                  <PageBuilder
+                    onContentChange={handleContentChange}
+                  />
+                </div>
               </TabsContent>
               
               <TabsContent value="preview" className="mt-4">
