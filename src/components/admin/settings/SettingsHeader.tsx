@@ -8,9 +8,10 @@ import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 interface SettingsHeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  children?: React.ReactNode;
 }
 
-const SettingsHeader = ({ searchQuery, setSearchQuery }: SettingsHeaderProps) => {
+const SettingsHeader = ({ searchQuery, setSearchQuery, children }: SettingsHeaderProps) => {
   return (
     <AdminPageWrapper 
       title="Site Settings"
@@ -36,6 +37,9 @@ const SettingsHeader = ({ searchQuery, setSearchQuery }: SettingsHeaderProps) =>
             />
           </div>
         </div>
+        
+        {/* Render children (the Tabs component) */}
+        {children}
       </div>
     </AdminPageWrapper>
   );
