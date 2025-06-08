@@ -72,11 +72,13 @@ function App() {
                 <Route path="poi" element={<AdminPOI />} />
                 <Route path="testimonials" element={<AdminTestimonials />} />
                 <Route path="pages" element={<AdminPageManagement />} />
+                <Route path="page-management" element={<PageManagement />} />
+                <Route path="blog-management" element={<BlogManagement />} />
                 <Route path="newsletter" element={<AdminNewsletter />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
-                <Route path="metrics" element={<AdminSiteMetrics />} />
+                <Route path="site-metrics" element={<AdminSiteMetrics />} />
                 <Route path="tasks" element={<AdminTaskManagement />} />
-                <Route path="workorders" element={<AdminWorkOrders />} />
+                <Route path="work-orders" element={<AdminWorkOrders />} />
                 <Route path="ai-tools" element={<AdminAITools />} />
               </Route>
 
