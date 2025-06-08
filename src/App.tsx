@@ -3,7 +3,6 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
 import Properties from './pages/Properties';
-import PropertyDetails from './pages/PropertyDetails';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import Auth from './pages/Auth';
@@ -23,7 +22,6 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/properties" element={<Properties />} />
-          <Route path="/properties/:id" element={<PropertyDetails />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogPost />} />
           <Route path="/auth" element={<Auth />} />
