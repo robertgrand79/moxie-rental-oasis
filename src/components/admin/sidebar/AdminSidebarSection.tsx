@@ -13,7 +13,7 @@ import {
 
 type MenuItem = {
   title: string;
-  href: string;
+  url: string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
 };
@@ -35,12 +35,12 @@ const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
         <SidebarMenu>
           {items.map((item) => {
             const IconComponent = item.icon;
-            const isActive = location.pathname === item.href;
+            const isActive = location.pathname === item.url;
             
             return (
-              <SidebarMenuItem key={item.href}>
+              <SidebarMenuItem key={item.url}>
                 <SidebarMenuButton asChild isActive={isActive}>
-                  <Link to={item.href} className="flex items-center space-x-3">
+                  <Link to={item.url} className="flex items-center space-x-3">
                     <IconComponent className={cn("h-5 w-5", item.color)} />
                     <span className="font-medium">{item.title}</span>
                   </Link>
