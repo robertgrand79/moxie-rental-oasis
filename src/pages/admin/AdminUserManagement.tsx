@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Plus, UserPlus, Mail, Shield, MoreHorizontal } from 'lucide-react';
+import { Plus, UserPlus, Mail, Shield, MoreHorizontal, Users } from 'lucide-react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
