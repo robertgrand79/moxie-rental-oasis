@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import PageForm from '@/components/PageForm';
-import PageList from '@/components/PageList';
+import EnhancedPageForm from '@/components/EnhancedPageForm';
+import EnhancedPageList from '@/components/EnhancedPageList';
+import PageTemplateSelector from '@/components/PageTemplateSelector';
 import EmptyPageState from '@/components/EmptyPageState';
 import { usePages } from '@/hooks/usePages';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
@@ -12,6 +13,7 @@ import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 
 const AdminPageManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [editingPage, setEditingPage] = useState<any>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const { pages, loading, addPage, editPage, deletePage } = usePages();
@@ -20,7 +22,7 @@ const AdminPageManagement = () => {
   useEffect(() => {
     const action = searchParams.get('action');
     if (action === 'add') {
-      setShowAddForm(true);
+      setShowTemplateSelector(true);
       setEditingPage(null);
       // Clear the parameter from URL
       setSearchParams(prev => {
@@ -31,27 +33,48 @@ const AdminPageManagement = () => {
   }, [searchParams, setSearchParams]);
 
   const handleAddPage = () => {
-    setShowAddForm(true);
+    setShowTemplateSelector(true);
     setEditingPage(null);
+  };
+
+  const handleSelectTemplate = (template: any) => {
+    setEditingPage({
+      title: template.name,
+      slug: template.slug,
+      content: template.content,
+      meta_description: template.description,
+      is_published: false
+    });
+    setShowTemplateSelector(false);
+    setShowAddForm(true);
+  };
+
+  const handleStartBlank = () => {
+    setEditingPage(null);
+    setShowTemplateSelector(false);
+    setShowAddForm(true);
   };
 
   const handleEditPage = (page: any) => {
     setEditingPage(page);
     setShowAddForm(true);
+    setShowTemplateSelector(false);
   };
 
   const handleFormSubmit = (data: any) => {
-    if (editingPage) {
+    if (editingPage && editingPage.id) {
       editPage(editingPage.id, data);
     } else {
       addPage(data);
     }
     setShowAddForm(false);
+    setShowTemplateSelector(false);
     setEditingPage(null);
   };
 
   const handleFormCancel = () => {
     setShowAddForm(false);
+    setShowTemplateSelector(false);
     setEditingPage(null);
   };
 
@@ -59,7 +82,7 @@ const AdminPageManagement = () => {
     return <LoadingState variant="page" message="Loading your pages..." />;
   }
 
-  const pageActions = !showAddForm ? (
+  const pageActions = (!showAddForm && !showTemplateSelector) ? (
     <EnhancedButton 
       onClick={handleAddPage} 
       variant="gradient"
@@ -72,13 +95,30 @@ const AdminPageManagement = () => {
   return (
     <AdminPageWrapper
       title="Page Management"
-      description={`Manage your website pages and content (${pages.length} pages total)`}
+      description={`Create and manage your website pages with rich content editor (${pages.length} pages total)`}
       actions={pageActions}
     >
       <div className="p-8">
+        {showTemplateSelector && (
+          <div className="mb-8 animate-scale-in">
+            <PageTemplateSelector
+              onSelectTemplate={handleSelectTemplate}
+              onStartBlank={handleStartBlank}
+            />
+            <div className="mt-4 text-center">
+              <button
+                onClick={handleFormCancel}
+                className="text-gray-500 hover:text-gray-700 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         {showAddForm && (
           <div className="mb-8 animate-scale-in">
-            <PageForm 
+            <EnhancedPageForm 
               page={editingPage}
               onSubmit={handleFormSubmit}
               onCancel={handleFormCancel}
@@ -86,10 +126,10 @@ const AdminPageManagement = () => {
           </div>
         )}
 
-        {!showAddForm && (
+        {!showAddForm && !showTemplateSelector && (
           <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
             {pages.length > 0 ? (
-              <PageList
+              <EnhancedPageList
                 pages={pages}
                 onEdit={handleEditPage}
                 onDelete={deletePage}
