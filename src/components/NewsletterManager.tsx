@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
 import NewsletterOverview from './NewsletterOverview';
 import NewsletterAIGenerator from './NewsletterAIGenerator';
-import NewsletterForm from './NewsletterForm';
+import NewsletterEditorLayout from './NewsletterEditorLayout';
 import NewsletterPreview from './NewsletterPreview';
 import NewsletterQuickActions from './NewsletterQuickActions';
 
@@ -121,7 +121,7 @@ const NewsletterManager = () => {
         onContentGenerated={handleContentGenerated}
       />
 
-      <NewsletterForm
+      <NewsletterEditorLayout
         form={form}
         content={content}
         setContent={setContent}
