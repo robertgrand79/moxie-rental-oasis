@@ -5,7 +5,6 @@ import ExperienceHero from '@/components/experiences/ExperienceHero';
 import ExperienceCategories from '@/components/experiences/ExperienceCategories';
 import HowItWorks from '@/components/experiences/HowItWorks';
 import ExperienceCallToAction from '@/components/experiences/ExperienceCallToAction';
-import Footer from '@/components/Footer';
 
 const Experiences = () => {
   return (
@@ -25,7 +24,6 @@ const Experiences = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

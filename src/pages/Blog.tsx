@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import Footer from '@/components/Footer';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import { getTagColor } from '@/utils/blogPostUtils';
 
@@ -84,7 +83,6 @@ const Blog = () => {
             </div>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -361,7 +359,6 @@ const Blog = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

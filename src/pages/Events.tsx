@@ -1,13 +1,11 @@
 
 import React, { useState } from 'react';
 import { useEugeneEvents } from '@/hooks/useEugeneEvents';
-import Footer from '@/components/Footer';
 import EventsHeader from '@/components/events/EventsHeader';
 import EventsFilters from '@/components/events/EventsFilters';
 import EventsGrid from '@/components/events/EventsGrid';
 import EventsEmptyState from '@/components/events/EventsEmptyState';
 import EventsLoadingState from '@/components/events/EventsLoadingState';
-import ChatWidget from '@/components/chat/ChatWidget';
 
 const Events = () => {
   const { events, isLoading } = useEugeneEvents();
@@ -47,30 +45,26 @@ const Events = () => {
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
-        <div className="container mx-auto px-4 py-16">
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
-            <EventsHeader />
-            
-            <EventsFilters
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              timeFilter={timeFilter}
-              setTimeFilter={setTimeFilter}
-            />
+    <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
+      <div className="container mx-auto px-4 py-16">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
+          <EventsHeader />
+          
+          <EventsFilters
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            timeFilter={timeFilter}
+            setTimeFilter={setTimeFilter}
+          />
 
-            {filteredEvents.length > 0 ? (
-              <EventsGrid events={filteredEvents} />
-            ) : (
-              <EventsEmptyState onClearFilters={handleClearFilters} />
-            )}
-          </div>
+          {filteredEvents.length > 0 ? (
+            <EventsGrid events={filteredEvents} />
+          ) : (
+            <EventsEmptyState onClearFilters={handleClearFilters} />
+          )}
         </div>
-        <Footer />
       </div>
-      <ChatWidget />
-    </>
+    </div>
   );
 };
 

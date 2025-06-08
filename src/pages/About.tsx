@@ -9,7 +9,6 @@ import MissionSection from '@/components/about/MissionSection';
 import ValuesSection from '@/components/about/ValuesSection';
 import ExcellenceAuthenticitySection from '@/components/about/ExcellenceAuthenticitySection';
 import ClosingStatement from '@/components/about/ClosingStatement';
-import Footer from '@/components/Footer';
 
 const About = () => {
   return (
@@ -67,7 +66,6 @@ const About = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </BackgroundWrapper>
   );
 };
