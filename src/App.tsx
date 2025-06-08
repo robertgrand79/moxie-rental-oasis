@@ -77,13 +77,10 @@ const App = () => {
                 <Route path="ai-tools" element={<AdminAITools />} />
                 <Route path="sample-data" element={<SampleDataManagement />} />
                 <Route path="settings" element={<AdminSiteSettings />} />
+                <Route path="properties" element={<Properties />} />
+                <Route path="page-management" element={<PageManagement />} />
+                <Route path="blog-management" element={<BlogManagement />} />
               </Route>
-              
-              {/* Standalone Admin Pages (outside AdminLayout for specific reasons) */}
-              <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
-              <Route path="/page-management" element={<ProtectedRoute><PageManagement /></ProtectedRoute>} />
-              <Route path="/blog-management" element={<ProtectedRoute><BlogManagement /></ProtectedRoute>} />
-              <Route path="/site-settings" element={<ProtectedRoute><AdminSiteSettings /></ProtectedRoute>} />
               
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />

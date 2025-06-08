@@ -13,7 +13,9 @@ import {
   Database,
   Settings,
   Building2,
-  ArrowLeft
+  ArrowLeft,
+  FileText,
+  BookOpen
 } from 'lucide-react';
 
 export const coreMenuItems = [
@@ -46,7 +48,7 @@ export const coreMenuItems = [
 export const contentMenuItems = [
   {
     title: 'Properties',
-    href: '/properties',
+    href: '/admin/properties',
     icon: Building2,
     color: 'text-icon-emerald'
   },
@@ -55,6 +57,18 @@ export const contentMenuItems = [
     href: '/admin/content-approval',
     icon: CheckSquare,
     color: 'text-icon-emerald'
+  },
+  {
+    title: 'Page Management',
+    href: '/admin/page-management',
+    icon: FileText,
+    color: 'text-icon-blue'
+  },
+  {
+    title: 'Blog Management',
+    href: '/admin/blog-management',
+    icon: BookOpen,
+    color: 'text-icon-purple'
   },
   {
     title: 'Events',
@@ -103,7 +117,7 @@ export const toolsMenuItems = [
   },
   {
     title: 'Settings',
-    href: '/site-settings',
+    href: '/admin/settings',
     icon: Settings,
     color: 'text-icon-gray'
   }
