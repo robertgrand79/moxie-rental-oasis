@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import LogoSection from './navbar/LogoSection';
 import DesktopNavigation from './navbar/DesktopNavigation';
-import AuthSection from './navbar/AuthSection';
 import MobileNavigation from './navbar/MobileNavigation';
 
 const NavBar = () => {
@@ -43,8 +42,7 @@ const NavBar = () => {
           <LogoSection isAdminPage={isAdminPage} />
           <DesktopNavigation isAdminPage={isAdminPage} />
           
-          <div className="flex items-center space-x-4">
-            <AuthSection />
+          <div className="flex items-center">
             <MobileNavigation 
               isAdminPage={isAdminPage}
               isMobileMenuOpen={isMobileMenuOpen}
