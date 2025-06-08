@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blogPost';
 import { toast } from '@/hooks/use-toast';
@@ -26,7 +25,11 @@ export const blogPostService = {
       }
 
       console.log('✅ Fetched blog posts:', data?.length || 0, 'posts');
-      return data || [];
+      // Cast the status field to the correct type
+      return (data || []).map(post => ({
+        ...post,
+        status: post.status as 'published' | 'draft'
+      }));
     } catch (error) {
       console.error('💥 Error in fetchBlogPosts:', error);
       toast({
@@ -55,7 +58,11 @@ export const blogPostService = {
       }
 
       console.log('✅ Fetched blog post by slug:', data?.title || 'Not found');
-      return data;
+      // Cast the status field to the correct type
+      return data ? {
+        ...data,
+        status: data.status as 'published' | 'draft'
+      } : null;
     } catch (error) {
       console.error('💥 Error in fetchBlogPostBySlug:', error);
       toast({
@@ -95,7 +102,11 @@ export const blogPostService = {
         title: 'Success',
         description: 'Blog post created successfully!'
       });
-      return data;
+      // Cast the status field to the correct type
+      return {
+        ...data,
+        status: data.status as 'published' | 'draft'
+      };
     } catch (error) {
       console.error('💥 Error in createBlogPost:', error);
       toast({
@@ -133,7 +144,11 @@ export const blogPostService = {
         title: 'Success',
         description: 'Blog post updated successfully!'
       });
-      return data;
+      // Cast the status field to the correct type
+      return {
+        ...data,
+        status: data.status as 'published' | 'draft'
+      };
     } catch (error) {
       console.error('💥 Error in updateBlogPost:', error);
       toast({
