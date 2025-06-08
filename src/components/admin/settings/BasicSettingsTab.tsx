@@ -5,7 +5,6 @@ import QuickSetupProgress from './QuickSetupProgress';
 import GeneralInformationSettings from './GeneralInformationSettings';
 import HeroSectionSettings from './HeroSectionSettings';
 import ContactInformationSettings from './ContactInformationSettings';
-import DebugInfoPanel from './DebugInfoPanel';
 import { useBasicSettingsSave } from '@/hooks/useBasicSettingsSave';
 
 interface BasicSettingsTabProps {
@@ -18,17 +17,12 @@ interface BasicSettingsTabProps {
 const BasicSettingsTab = ({ siteData, setSiteData, updateSetting, isUserEditing }: BasicSettingsTabProps) => {
   const { user } = useAuth();
 
-  console.log('🎯 BasicSettingsTab - Current user:', user?.id, user?.email);
-  console.log('📊 BasicSettingsTab - Current siteData:', siteData);
-  console.log('✏️ BasicSettingsTab - User editing:', isUserEditing);
-
   const { handleSaveBasicSettings, handleSaveHeroSettings, handleSaveContactSettings } = useBasicSettingsSave({
     siteData,
     updateSetting,
   });
 
   const handleInputChange = (field: string, value: string) => {
-    console.log('✏️ Input change:', field, value);
     setSiteData((prev: any) => ({
       ...prev,
       [field]: value
@@ -36,7 +30,6 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting, isUserEditing 
   };
 
   const handleSocialMediaChange = (platform: string, value: string) => {
-    console.log('📱 Social media change:', platform, value);
     setSiteData((prev: any) => ({
       ...prev,
       socialMedia: {
@@ -53,8 +46,6 @@ const BasicSettingsTab = ({ siteData, setSiteData, updateSetting, isUserEditing 
 
   return (
     <div className="space-y-8">
-      <DebugInfoPanel siteData={siteData} isUserEditing={isUserEditing} />
-
       <QuickSetupProgress 
         isBasicComplete={isBasicComplete}
         isHeroComplete={isHeroComplete}

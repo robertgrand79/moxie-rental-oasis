@@ -5,7 +5,12 @@ import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } 
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Footer = () => {
-  const { getSetting } = useSiteSettings();
+  const { getSetting, loading } = useSiteSettings();
+
+  // Don't render footer until settings are loaded
+  if (loading) {
+    return null;
+  }
 
   const siteData = {
     siteName: getSetting('siteName', 'Moxie Vacation Rentals'),

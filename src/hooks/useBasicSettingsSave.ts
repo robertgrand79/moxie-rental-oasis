@@ -10,12 +10,6 @@ export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettin
   const { toast } = useToast();
 
   const handleSaveBasicSettings = async () => {
-    console.log('💾 Saving basic settings:', { 
-      siteName: siteData.siteName, 
-      tagline: siteData.tagline, 
-      description: siteData.description 
-    });
-
     // Validate required fields
     if (!siteData.siteName?.trim()) {
       toast({
@@ -54,14 +48,11 @@ export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettin
     let failureCount = 0;
 
     for (const setting of settingsToSave) {
-      console.log(`🔄 Saving ${setting.key}:`, setting.value);
       const success = await updateSetting(setting.key, setting.value);
       if (success) {
         successCount++;
-        console.log(`✅ Successfully saved ${setting.key}`);
       } else {
         failureCount++;
-        console.error(`❌ Failed to save ${setting.key}`);
       }
     }
 
@@ -86,12 +77,6 @@ export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettin
   };
 
   const handleSaveHeroSettings = async () => {
-    console.log('💾 Saving hero settings:', { 
-      heroTitle: siteData.heroTitle, 
-      heroSubtitle: siteData.heroSubtitle, 
-      heroDescription: siteData.heroDescription 
-    });
-
     // Validate required fields
     if (!siteData.heroTitle?.trim()) {
       toast({
@@ -125,14 +110,11 @@ export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettin
     let failureCount = 0;
 
     for (const setting of settingsToSave) {
-      console.log(`🔄 Saving ${setting.key}:`, setting.value);
       const success = await updateSetting(setting.key, setting.value);
       if (success) {
         successCount++;
-        console.log(`✅ Successfully saved ${setting.key}`);
       } else {
         failureCount++;
-        console.error(`❌ Failed to save ${setting.key}`);
       }
     }
 
@@ -157,13 +139,6 @@ export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettin
   };
 
   const handleSaveContactSettings = async () => {
-    console.log('💾 Saving contact settings:', { 
-      contactEmail: siteData.contactEmail, 
-      phone: siteData.phone, 
-      address: siteData.address,
-      socialMedia: siteData.socialMedia
-    });
-
     // Validate required fields
     if (!siteData.contactEmail?.trim()) {
       toast({
@@ -196,14 +171,11 @@ export const useBasicSettingsSave = ({ siteData, updateSetting }: UseBasicSettin
     let failureCount = 0;
 
     for (const setting of settingsToSave) {
-      console.log(`🔄 Saving ${setting.key}:`, setting.value);
       const success = await updateSetting(setting.key, setting.value);
       if (success) {
         successCount++;
-        console.log(`✅ Successfully saved ${setting.key}`);
       } else {
         failureCount++;
-        console.error(`❌ Failed to save ${setting.key}`);
       }
     }
 

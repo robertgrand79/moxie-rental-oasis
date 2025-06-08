@@ -6,6 +6,7 @@ export const useSettingsData = () => {
   const { settings, loading, updateSetting, getSetting, error } = useSiteSettings();
   const isUserEditing = useRef(false);
   const lastLoadedSettings = useRef<any>({});
+  const hasInitialized = useRef(false);
 
   const [siteData, setSiteData] = useState({
     siteName: '',
@@ -48,13 +49,13 @@ export const useSettingsData = () => {
     customCss: ''
   });
 
-  // Function to mark that user is editing
+  // Function to mark that user is editing (prevents overwrites)
   const markUserEditing = () => {
     isUserEditing.current = true;
-    // Clear the flag after a delay to allow for database updates
+    // Clear the flag after a longer delay to prevent frequent overwrites
     setTimeout(() => {
       isUserEditing.current = false;
-    }, 2000);
+    }, 5000);
   };
 
   // Enhanced setSiteData that marks user editing
@@ -63,11 +64,9 @@ export const useSettingsData = () => {
     setSiteData(updater);
   };
 
+  // Initialize data from database only once when not loading and not editing
   useEffect(() => {
-    console.log('🔄 useSettingsData - loading:', loading, 'settings keys:', Object.keys(settings));
-    console.log('👤 User currently editing:', isUserEditing.current);
-    
-    if (!loading && !isUserEditing.current) {
+    if (!loading && !isUserEditing.current && !hasInitialized.current && Object.keys(settings).length > 0) {
       const newSiteData = {
         siteName: getSetting('siteName', 'Moxie Vacation Rentals'),
         tagline: getSetting('tagline', 'Your perfect getaway is just a click away.'),
@@ -90,13 +89,9 @@ export const useSettingsData = () => {
         })
       };
       
-      // Only update if the data actually changed from database
-      const hasChanged = JSON.stringify(newSiteData) !== JSON.stringify(lastLoadedSettings.current);
-      if (hasChanged) {
-        console.log('📊 Setting new site data from database:', newSiteData);
-        setSiteData(newSiteData);
-        lastLoadedSettings.current = newSiteData;
-      }
+      setSiteData(newSiteData);
+      lastLoadedSettings.current = newSiteData;
+      hasInitialized.current = true;
       
       setMapboxToken(getSetting('mapboxToken', ''));
       

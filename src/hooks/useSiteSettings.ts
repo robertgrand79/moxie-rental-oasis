@@ -20,8 +20,6 @@ export const useSiteSettings = () => {
   const { user } = useAuth();
 
   const fetchSettings = async () => {
-    console.log('🔍 Fetching site settings...');
-    console.log('👤 Current user:', user?.id, user?.email);
     setLoading(true);
     setError(null);
     
@@ -31,7 +29,7 @@ export const useSiteSettings = () => {
         .select('*');
 
       if (error) {
-        console.error('❌ Error fetching site settings:', error);
+        console.error('Error fetching site settings:', error);
         setError(`Failed to fetch site settings: ${error.message}`);
         toast({
           title: 'Error',
@@ -39,16 +37,14 @@ export const useSiteSettings = () => {
           variant: 'destructive'
         });
       } else {
-        console.log('✅ Fetched site settings:', data);
         const settingsMap = data?.reduce((acc, setting) => {
           acc[setting.key] = setting.value;
           return acc;
         }, {} as Record<string, any>) || {};
-        console.log('📊 Settings map:', settingsMap);
         setSettings(settingsMap);
       }
     } catch (error) {
-      console.error('💥 Error in fetchSettings:', error);
+      console.error('Error in fetchSettings:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setError(errorMessage);
       toast({
@@ -63,8 +59,6 @@ export const useSiteSettings = () => {
 
   const createDefaultSettingsIfMissing = async () => {
     if (!user) return;
-    
-    console.log('🔧 Checking for missing default settings...');
     
     const defaultSettings = [
       { key: 'siteName', value: 'Moxie Vacation Rentals' },
@@ -85,18 +79,13 @@ export const useSiteSettings = () => {
 
     for (const defaultSetting of defaultSettings) {
       if (!settings[defaultSetting.key]) {
-        console.log(`🆕 Creating missing setting: ${defaultSetting.key}`);
         await updateSetting(defaultSetting.key, defaultSetting.value);
       }
     }
   };
 
   const updateSetting = async (key: string, value: any): Promise<boolean> => {
-    console.log('💾 Updating setting:', key, 'with value:', value);
-    console.log('👤 Current user for update:', user?.id);
-    
     if (!user) {
-      console.error('❌ No user found for updating settings');
       setError('You must be logged in to update settings');
       toast({
         title: 'Authentication Required',
@@ -107,7 +96,6 @@ export const useSiteSettings = () => {
     }
 
     if (!key || value === undefined || value === null) {
-      console.error('❌ Invalid key or value provided:', { key, value });
       toast({
         title: 'Invalid Input',
         description: 'Setting key and value are required.',
@@ -117,8 +105,6 @@ export const useSiteSettings = () => {
     }
 
     try {
-      console.log('🔄 Attempting to upsert setting...');
-      
       // First try to update existing setting
       const { data: existingData, error: selectError } = await supabase
         .from('site_settings')
@@ -127,14 +113,12 @@ export const useSiteSettings = () => {
         .maybeSingle();
 
       if (selectError) {
-        console.error('❌ Error checking existing setting:', selectError);
         throw selectError;
       }
 
       let result;
       if (existingData) {
         // Update existing setting
-        console.log('🔄 Updating existing setting with ID:', existingData.id);
         result = await supabase
           .from('site_settings')
           .update({
@@ -145,7 +129,6 @@ export const useSiteSettings = () => {
           .select();
       } else {
         // Insert new setting
-        console.log('➕ Creating new setting');
         result = await supabase
           .from('site_settings')
           .insert({
@@ -157,10 +140,8 @@ export const useSiteSettings = () => {
       }
 
       const { data, error } = result;
-      console.log('📝 Upsert response:', { data, error });
 
       if (error) {
-        console.error('❌ Error updating setting:', error);
         setError(`Failed to update ${key}: ${error.message}`);
         toast({
           title: 'Error',
@@ -170,18 +151,11 @@ export const useSiteSettings = () => {
         return false;
       }
 
-      console.log('✅ Successfully updated setting:', data);
       // Update local state immediately
       setSettings(prev => ({ ...prev, [key]: value }));
       
-      toast({
-        title: 'Success',
-        description: `${key} setting updated successfully!`
-      });
-      
       return true;
     } catch (error) {
-      console.error('💥 Error in updateSetting:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setError(errorMessage);
       toast({
@@ -194,20 +168,16 @@ export const useSiteSettings = () => {
   };
 
   const getSetting = (key: string, defaultValue?: any) => {
-    const value = settings[key] ?? defaultValue;
-    console.log(`🔍 Getting setting ${key}:`, value);
-    return value;
+    return settings[key] ?? defaultValue;
   };
 
   useEffect(() => {
-    console.log('🚀 useSiteSettings useEffect triggered, user:', user?.id);
     if (user) {
       fetchSettings().then(() => {
         // After fetching, create any missing default settings
         createDefaultSettingsIfMissing();
       });
     } else {
-      console.log('⏳ No user yet, waiting...');
       setLoading(false);
     }
   }, [user]);
