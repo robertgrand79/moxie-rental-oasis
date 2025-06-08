@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/EnhancedAuthContext';
 import { toast } from '@/hooks/use-toast';
 import { LogOut, User, Settings, Shield } from 'lucide-react';
 
