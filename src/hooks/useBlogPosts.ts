@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { BlogPost } from '@/types/blogPost';
 import { blogPostService } from '@/services/blogPostService';
 import { toast } from '@/hooks/use-toast';
 
-export { BlogPost } from '@/types/blogPost';
+export type { BlogPost } from '@/types/blogPost';
 
 export const useBlogPosts = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
