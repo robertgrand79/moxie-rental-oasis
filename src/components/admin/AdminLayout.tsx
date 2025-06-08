@@ -1,12 +1,16 @@
 
 import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 
-const AdminLayout = () => {
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
+
+const AdminLayout = ({ children }: AdminLayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <SidebarProvider defaultOpen={true}>
@@ -26,7 +30,7 @@ const AdminLayout = () => {
               </div>
             </header>
             <main className="flex-1 p-8 overflow-auto">
-              <Outlet />
+              {children}
             </main>
           </SidebarInset>
         </div>
