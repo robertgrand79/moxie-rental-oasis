@@ -17,7 +17,8 @@ import {
   TrendingUp,
   Plus,
   Activity,
-  BarChart3
+  BarChart3,
+  Settings
 } from 'lucide-react';
 import { useProperties } from '@/hooks/useProperties';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
@@ -32,7 +33,7 @@ const EnhancedAdminDashboard = () => {
   const { blogPosts } = useBlogPosts();
   const { events } = useEugeneEvents();
   const { pointsOfInterest } = usePointsOfInterest();
-  const { lifestyleItems } = useLifestyleGallery();
+  const { galleryItems } = useLifestyleGallery();
   const { testimonials } = useTestimonials();
   const { pages } = usePages();
 
@@ -80,7 +81,7 @@ const EnhancedAdminDashboard = () => {
     },
     {
       title: 'Lifestyle Gallery',
-      value: lifestyleItems.length,
+      value: galleryItems.length,
       icon: Camera,
       href: '/admin/lifestyle'
     },
