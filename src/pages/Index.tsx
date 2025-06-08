@@ -12,14 +12,12 @@ import EnhancedWhatsNearbySection from '@/components/home/EnhancedWhatsNearbySec
 import EnhancedEugeneEventsSection from '@/components/home/EnhancedEugeneEventsSection';
 import BookingBenefitsSection from '@/components/home/BookingBenefitsSection';
 import FinalFeaturesSection from '@/components/home/FinalFeaturesSection';
-import NavBar from '@/components/NavBar';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import ChatWidget from '@/components/chat/ChatWidget';
 
 const Index = () => {
   return (
     <BackgroundWrapper>
-      <NavBar />
       <main>
         <HeroSection />
         <CompactPropertyShowcase />
