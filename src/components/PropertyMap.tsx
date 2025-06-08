@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Property } from '@/types/property';
-import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 
@@ -14,13 +14,13 @@ interface PropertyMapProps {
 const PropertyMap = ({ properties }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const { getSetting } = useSiteSettings();
+  const { settings } = useStableSiteSettings();
 
   // Eugene, Oregon coordinates for center
   const eugeneCenter: [number, number] = [-123.0917, 44.0520];
 
   // Get Mapbox token from site settings
-  const mapboxToken = getSetting('mapboxToken', '');
+  const mapboxToken = settings.mapboxToken || '';
 
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;

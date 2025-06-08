@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 
 export const useSettingsData = () => {
-  const { settings, loading, updateSetting, getSetting, error } = useSiteSettings();
+  const { settings, loading, saveSetting, error } = useStableSiteSettings();
 
   const [siteData, setSiteData] = useState({
     siteName: '',
@@ -50,48 +50,48 @@ export const useSettingsData = () => {
   useEffect(() => {
     if (!loading && Object.keys(settings).length > 0) {
       setSiteData({
-        siteName: getSetting('siteName', 'Moxie Vacation Rentals'),
-        tagline: getSetting('tagline', 'Your perfect getaway is just a click away.'),
-        description: getSetting('description', 'Discover amazing vacation rental properties in prime locations.'),
-        heroTitle: getSetting('heroTitle', 'Your Home Away From Home'),
-        heroSubtitle: getSetting('heroSubtitle', 'in Eugene'),
-        heroDescription: getSetting('heroDescription', 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.'),
-        heroBackgroundImage: getSetting('heroBackgroundImage', 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80'),
-        heroLocationText: getSetting('heroLocationText', 'Eugene, Oregon'),
-        heroRating: getSetting('heroRating', '4.9'),
-        heroCTAText: getSetting('heroCTAText', 'View Properties'),
-        contactEmail: getSetting('contactEmail', 'contact@moxievacationrentals.com'),
-        phone: getSetting('phone', '+1 (555) 123-4567'),
-        address: getSetting('address', '123 Vacation St, Resort City, RC 12345'),
-        socialMedia: getSetting('socialMedia', {
+        siteName: settings.siteName || 'Moxie Vacation Rentals',
+        tagline: settings.tagline || 'Your perfect getaway is just a click away.',
+        description: settings.description || 'Discover amazing vacation rental properties in prime locations.',
+        heroTitle: settings.heroTitle || 'Your Home Away From Home',
+        heroSubtitle: settings.heroSubtitle || 'in Eugene',
+        heroDescription: settings.heroDescription || 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
+        heroBackgroundImage: settings.heroBackgroundImage || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80',
+        heroLocationText: settings.heroLocationText || 'Eugene, Oregon',
+        heroRating: settings.heroRating || '4.9',
+        heroCTAText: settings.heroCTAText || 'View Properties',
+        contactEmail: settings.contactEmail || 'contact@moxievacationrentals.com',
+        phone: settings.phone || '+1 (555) 123-4567',
+        address: settings.address || '123 Vacation St, Resort City, RC 12345',
+        socialMedia: settings.socialMedia || {
           facebook: '',
           instagram: '',
           twitter: '',
           googlePlaces: ''
-        })
+        }
       });
       
-      setMapboxToken(getSetting('mapboxToken', ''));
+      setMapboxToken(settings.mapboxToken || '');
       
       setSeoData({
-        siteTitle: getSetting('siteTitle', 'Moxie Vacation Rentals'),
-        metaDescription: getSetting('metaDescription', 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.'),
-        ogTitle: getSetting('ogTitle', ''),
-        ogDescription: getSetting('ogDescription', ''),
-        ogImage: getSetting('ogImage', ''),
-        favicon: getSetting('favicon', '')
+        siteTitle: settings.siteTitle || 'Moxie Vacation Rentals',
+        metaDescription: settings.metaDescription || 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.',
+        ogTitle: settings.ogTitle || '',
+        ogDescription: settings.ogDescription || '',
+        ogImage: settings.ogImage || '',
+        favicon: settings.favicon || ''
       });
 
       setAnalyticsData({
-        googleAnalyticsId: getSetting('googleAnalyticsId', ''),
-        googleTagManagerId: getSetting('googleTagManagerId', ''),
-        facebookPixelId: getSetting('facebookPixelId', ''),
-        customHeaderScripts: getSetting('customHeaderScripts', ''),
-        customFooterScripts: getSetting('customFooterScripts', ''),
-        customCss: getSetting('customCss', '')
+        googleAnalyticsId: settings.googleAnalyticsId || '',
+        googleTagManagerId: settings.googleTagManagerId || '',
+        facebookPixelId: settings.facebookPixelId || '',
+        customHeaderScripts: settings.customHeaderScripts || '',
+        customFooterScripts: settings.customFooterScripts || '',
+        customCss: settings.customCss || ''
       });
     }
-  }, [loading, settings, getSetting]);
+  }, [loading, settings]);
 
   return {
     siteData,
@@ -102,7 +102,7 @@ export const useSettingsData = () => {
     setSeoData,
     analyticsData,
     setAnalyticsData,
-    updateSetting,
+    updateSetting: saveSetting,
     loading,
     error,
     isUserEditing: false
