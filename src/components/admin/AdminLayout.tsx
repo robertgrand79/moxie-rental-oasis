@@ -2,13 +2,11 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
-import NavBar from '@/components/NavBar';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 
 const AdminLayout = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavBar />
       <SidebarProvider>
         <div className="flex w-full">
           <AdminSidebar />
