@@ -1,9 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BlogForm from '@/components/BlogForm';
-import NewsletterManager from '@/components/NewsletterManager';
 import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
 import BlogPostsList from './BlogPostsList';
 
@@ -57,12 +56,9 @@ const BlogManagementTabs = ({ autoOpenAdd }: BlogManagementTabsProps) => {
   };
 
   return (
-    <Tabs defaultValue="posts" className="space-y-6">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <TabsList>
-          <TabsTrigger value="posts">Blog Posts</TabsTrigger>
-          <TabsTrigger value="newsletter">Newsletter</TabsTrigger>
-        </TabsList>
+        <h2 className="text-2xl font-bold">Blog Posts</h2>
         {!showAddForm && (
           <Button onClick={handleAddPost} className="flex items-center">
             <Plus className="h-4 w-4 mr-2" />
@@ -71,29 +67,23 @@ const BlogManagementTabs = ({ autoOpenAdd }: BlogManagementTabsProps) => {
         )}
       </div>
 
-      <TabsContent value="posts">
-        {showAddForm ? (
-          <div className="mb-8">
-            <BlogForm 
-              post={editingPost}
-              onSubmit={handleFormSubmit}
-              onCancel={handleFormCancel}
-            />
-          </div>
-        ) : (
-          <BlogPostsList 
-            posts={blogPosts}
-            onEdit={handleEditPost}
-            onDelete={handleDeletePost}
-            onAddPost={handleAddPost}
+      {showAddForm ? (
+        <div className="mb-8">
+          <BlogForm 
+            post={editingPost}
+            onSubmit={handleFormSubmit}
+            onCancel={handleFormCancel}
           />
-        )}
-      </TabsContent>
-
-      <TabsContent value="newsletter">
-        <NewsletterManager />
-      </TabsContent>
-    </Tabs>
+        </div>
+      ) : (
+        <BlogPostsList 
+          posts={blogPosts}
+          onEdit={handleEditPost}
+          onDelete={handleDeletePost}
+          onAddPost={handleAddPost}
+        />
+      )}
+    </div>
   );
 };
 

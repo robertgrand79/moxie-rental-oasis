@@ -34,6 +34,7 @@ import AdminPOI from './pages/admin/AdminPOI';
 import AdminLifestyle from './pages/admin/AdminLifestyle';
 import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminAITools from './pages/admin/AdminAITools';
+import AdminNewsletter from './pages/admin/AdminNewsletter';
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,7 @@ const App = () => {
                 <Route path="lifestyle" element={<AdminLifestyle />} />
                 <Route path="testimonials" element={<AdminTestimonials />} />
                 <Route path="ai-tools" element={<AdminAITools />} />
+                <Route path="newsletter" element={<AdminNewsletter />} />
                 <Route path="sample-data" element={<SampleDataManagement />} />
                 <Route path="settings" element={<AdminSiteSettings />} />
                 <Route path="properties" element={<Properties />} />

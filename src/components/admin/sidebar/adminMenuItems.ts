@@ -15,7 +15,8 @@ import {
   Building2,
   ArrowLeft,
   FileText,
-  BookOpen
+  BookOpen,
+  Mail
 } from 'lucide-react';
 
 export const coreMenuItems = [
@@ -69,6 +70,12 @@ export const contentMenuItems = [
     href: '/admin/blog-management',
     icon: BookOpen,
     color: 'text-icon-purple'
+  },
+  {
+    title: 'Newsletter',
+    href: '/admin/newsletter',
+    icon: Mail,
+    color: 'text-icon-indigo'
   },
   {
     title: 'Events',
