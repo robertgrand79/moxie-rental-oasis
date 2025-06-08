@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Save, Globe, Home, Mail } from 'lucide-react';
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import HeroImageUploader from '@/components/HeroImageUploader';
 
 const StableBasicSettingsTab = () => {
   const { settings, saving, updateSettingOptimistic, saveSettings } = useStableSiteSettings();
@@ -24,6 +24,15 @@ const StableBasicSettingsTab = () => {
     }));
     // Optimistic update
     updateSettingOptimistic({ [field]: value } as any);
+  };
+
+  const handleImageChange = (imageUrl: string | null) => {
+    const newImageUrl = imageUrl || '';
+    setLocalSettings(prev => ({
+      ...prev,
+      heroBackgroundImage: newImageUrl
+    }));
+    updateSettingOptimistic({ heroBackgroundImage: newImageUrl });
   };
 
   const handleSocialMediaChange = (platform: string, value: string) => {
@@ -174,16 +183,10 @@ const StableBasicSettingsTab = () => {
             />
           </div>
 
-          <div>
-            <Label htmlFor="heroBackgroundImage">Background Image URL</Label>
-            <Input
-              id="heroBackgroundImage"
-              value={localSettings.heroBackgroundImage}
-              onChange={(e) => handleInputChange('heroBackgroundImage', e.target.value)}
-              placeholder="https://example.com/beautiful-image.jpg"
-              className="mt-1"
-            />
-          </div>
+          <HeroImageUploader
+            currentImageUrl={localSettings.heroBackgroundImage || null}
+            onImageChange={handleImageChange}
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
