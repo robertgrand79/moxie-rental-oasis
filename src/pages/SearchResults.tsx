@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PropertyShowcase from '@/components/PropertyShowcase';
 import HospitableSearchBar from '@/components/HospitableSearchBar';
+import NavBar from '@/components/NavBar';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -28,41 +29,44 @@ const SearchResults = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
-      <div className="container mx-auto px-4 py-6 sm:py-8">
-        <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-6 mb-6 sm:mb-8 border border-white/20">
-          <HospitableSearchBar />
-        </div>
-        
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 sm:p-16 mx-auto border border-white/20">
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-              Search Results
-              {location && (
-                <span className="text-lg font-normal text-gray-600 ml-2">
-                  in {location}
-                </span>
+    <>
+      <NavBar />
+      <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
+        <div className="container mx-auto px-4 py-6 sm:py-8">
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-6 mb-6 sm:mb-8 border border-white/20">
+            <HospitableSearchBar />
+          </div>
+          
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 sm:p-16 mx-auto border border-white/20">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+                Search Results
+                {location && (
+                  <span className="text-lg font-normal text-gray-600 ml-2">
+                    in {location}
+                  </span>
+                )}
+              </h1>
+              
+              {(checkin || checkout || guests) && (
+                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                  {checkin && <span>Check-in: {checkin}</span>}
+                  {checkout && <span>Check-out: {checkout}</span>}
+                  {guests && <span>Guests: {guests}</span>}
+                </div>
               )}
-            </h1>
-            
-            {(checkin || checkout || guests) && (
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                {checkin && <span>Check-in: {checkin}</span>}
-                {checkout && <span>Check-out: {checkout}</span>}
-                {guests && <span>Guests: {guests}</span>}
-              </div>
-            )}
-          </div>
+            </div>
 
-          {/* Hospitable Search Widget */}
-          <div className="mb-8">
-            <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom"></hospitable-direct-mps>
-          </div>
+            {/* Hospitable Search Widget */}
+            <div className="mb-8">
+              <hospitable-direct-mps identifier="fd74480f-9b42-4ff4-bd3d-c586d3ae77ab" type="custom"></hospitable-direct-mps>
+            </div>
 
-          <PropertyShowcase />
+            <PropertyShowcase />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
