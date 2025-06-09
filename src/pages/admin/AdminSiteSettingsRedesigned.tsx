@@ -270,10 +270,10 @@ const AdminSiteSettingsRedesigned = () => {
       title="Site Settings"
       description="Configure and customize your website settings"
     >
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
         {/* Search Section */}
-        <div className="mb-8">
-          <div className="relative max-w-md">
+        <div className="max-w-md">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search settings..."
@@ -284,9 +284,9 @@ const AdminSiteSettingsRedesigned = () => {
           </div>
         </div>
 
-        {/* Horizontal Category Navigation */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Settings Categories</h3>
+        {/* Category Navigation - Simplified Layout */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Settings Categories</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {filteredCategories.map((category) => {
               const IconComponent = category.icon;
@@ -297,38 +297,41 @@ const AdminSiteSettingsRedesigned = () => {
                   key={category.id}
                   variant={activeCategory === category.id ? "default" : "outline"}
                   className={cn(
-                    "h-auto p-4 text-left justify-start relative group",
+                    "h-auto p-4 text-left justify-start group transition-all duration-200",
                     activeCategory === category.id 
                       ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2" 
                       : "hover:border-primary/50 hover:bg-primary/5"
                   )}
                   onClick={() => setActiveCategory(category.id)}
                 >
-                  <div className="flex items-start gap-3 w-full">
-                    <div className={cn(
-                      "p-2 rounded-lg flex-shrink-0 transition-colors",
-                      activeCategory === category.id ? "bg-primary-foreground/20" : category.color
-                    )}>
-                      <IconComponent className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className="font-semibold text-sm leading-tight">
-                          {category.title}
-                        </h4>
-                        {needsSetupCount > 0 && (
-                          <Badge 
-                            variant="destructive" 
-                            className="text-xs px-2 py-1 h-5 flex-shrink-0"
-                          >
-                            {needsSetupCount}
-                          </Badge>
-                        )}
+                  <div className="w-full min-w-0">
+                    {/* Header with icon and badge */}
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className={cn(
+                        "p-2 rounded-lg flex-shrink-0 transition-colors",
+                        activeCategory === category.id ? "bg-primary-foreground/20" : category.color
+                      )}>
+                        <IconComponent className="h-4 w-4" />
                       </div>
-                      <p className="text-xs opacity-75 leading-relaxed">
-                        {category.description}
-                      </p>
+                      {needsSetupCount > 0 && (
+                        <Badge 
+                          variant="destructive" 
+                          className="text-xs px-2 py-0.5 h-auto flex-shrink-0"
+                        >
+                          {needsSetupCount}
+                        </Badge>
+                      )}
                     </div>
+                    
+                    {/* Title */}
+                    <h4 className="font-semibold text-sm leading-tight mb-1">
+                      {category.title}
+                    </h4>
+                    
+                    {/* Description */}
+                    <p className="text-xs opacity-75 leading-relaxed line-clamp-2">
+                      {category.description}
+                    </p>
                   </div>
                 </Button>
               );
@@ -336,44 +339,40 @@ const AdminSiteSettingsRedesigned = () => {
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-gray-200 mb-8"></div>
-
         {/* Settings Content */}
         {filteredCategories.find(cat => cat.id === activeCategory) && (
           <div className="space-y-6">
             {/* Active Category Header */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                {(() => {
-                  const activeCategory_obj = filteredCategories.find(cat => cat.id === activeCategory);
-                  const IconComponent = activeCategory_obj?.icon || Settings;
-                  return (
-                    <>
-                      <div className={cn("p-2 rounded-lg", activeCategory_obj?.color || "bg-gray-100")}>
-                        <IconComponent className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold text-gray-900">
-                          {activeCategory_obj?.title}
-                        </h2>
-                        <p className="text-gray-600 text-sm">
-                          {activeCategory_obj?.description}
-                        </p>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
+            <div className="flex items-center gap-3 pb-4 border-b border-gray-200">
+              {(() => {
+                const activeCategory_obj = filteredCategories.find(cat => cat.id === activeCategory);
+                const IconComponent = activeCategory_obj?.icon || Settings;
+                return (
+                  <>
+                    <div className={cn("p-3 rounded-lg", activeCategory_obj?.color || "bg-gray-100")}>
+                      <IconComponent className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        {activeCategory_obj?.title}
+                      </h2>
+                      <p className="text-gray-600 text-sm mt-1">
+                        {activeCategory_obj?.description}
+                      </p>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
-            {/* Settings Cards */}
-            <div className="grid gap-4">
+            {/* Settings Cards - Improved Layout */}
+            <div className="space-y-4">
               {activeSettings.map((setting, index) => (
                 <Card key={index} className="hover:shadow-md transition-all duration-200 border border-gray-200">
                   <CardHeader className="pb-4">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                      <div className="flex-1 space-y-2">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
+                      {/* Title and Description - Takes 2 columns on large screens */}
+                      <div className="lg:col-span-2 space-y-2">
                         <CardTitle className="text-lg font-semibold text-gray-900">
                           {setting.name}
                         </CardTitle>
@@ -381,21 +380,25 @@ const AdminSiteSettingsRedesigned = () => {
                           {setting.description}
                         </CardDescription>
                       </div>
-                      <div className="flex-shrink-0">
+                      
+                      {/* Status Badge - Takes 1 column */}
+                      <div className="flex justify-start lg:justify-center">
                         {getStatusBadge(setting.status)}
+                      </div>
+                      
+                      {/* Configure Button - Takes 1 column */}
+                      <div className="flex justify-start lg:justify-end">
+                        <Button 
+                          variant={setting.status === 'needs-setup' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handleSettingClick(setting.key)}
+                          className="w-full sm:w-auto"
+                        >
+                          {setting.status === 'needs-setup' ? 'Set Up' : 'Configure'}
+                        </Button>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <Button 
-                      variant={setting.status === 'needs-setup' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handleSettingClick(setting.key)}
-                      className="w-full sm:w-auto"
-                    >
-                      {setting.status === 'needs-setup' ? 'Set Up' : 'Configure'}
-                    </Button>
-                  </CardContent>
                 </Card>
               ))}
             </div>
