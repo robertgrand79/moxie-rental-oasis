@@ -42,41 +42,36 @@ const SettingsCategoryGrid = ({
               key={category.id}
               variant={activeCategory === category.id ? "default" : "outline"}
               className={cn(
-                "h-auto p-4 text-left justify-start group transition-all duration-200",
+                "h-auto p-6 text-center justify-center group transition-all duration-200 relative",
                 activeCategory === category.id 
                   ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2" 
                   : "hover:border-primary/50 hover:bg-primary/5"
               )}
               onClick={() => setActiveCategory(category.id)}
             >
-              <div className="w-full min-w-0">
-                {/* Header with icon and badge */}
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className={cn(
-                    "p-2 rounded-lg flex-shrink-0 transition-colors",
-                    activeCategory === category.id ? "bg-primary-foreground/20" : category.color
-                  )}>
-                    <IconComponent className="h-4 w-4" />
-                  </div>
-                  {needsSetupCount > 0 && (
-                    <Badge 
-                      variant="destructive" 
-                      className="text-xs px-2 py-0.5 h-auto flex-shrink-0"
-                    >
-                      {needsSetupCount}
-                    </Badge>
-                  )}
+              <div className="w-full flex flex-col items-center space-y-3">
+                {/* Badge positioned absolutely in top-right corner */}
+                {needsSetupCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-2 -right-2 text-xs px-2 py-0.5 h-auto min-w-[20px] flex items-center justify-center"
+                  >
+                    {needsSetupCount}
+                  </Badge>
+                )}
+                
+                {/* Centered Icon */}
+                <div className={cn(
+                  "p-3 rounded-lg transition-colors",
+                  activeCategory === category.id ? "bg-primary-foreground/20" : category.color
+                )}>
+                  <IconComponent className="h-6 w-6" />
                 </div>
                 
-                {/* Title */}
-                <h4 className="font-semibold text-sm leading-tight mb-1">
+                {/* Centered Title */}
+                <h4 className="font-semibold text-sm leading-tight text-center">
                   {category.title}
                 </h4>
-                
-                {/* Description */}
-                <p className="text-xs opacity-75 leading-relaxed line-clamp-2">
-                  {category.description}
-                </p>
               </div>
             </Button>
           );
