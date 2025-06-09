@@ -11,9 +11,10 @@ interface GeneralInformationSettingsProps {
   siteData: any;
   onInputChange: (field: string, value: string) => void;
   onSave: () => Promise<void>;
+  saving: boolean;
 }
 
-const GeneralInformationSettings = ({ siteData, onInputChange, onSave }: GeneralInformationSettingsProps) => {
+const GeneralInformationSettings = ({ siteData, onInputChange, onSave, saving }: GeneralInformationSettingsProps) => {
   return (
     <EnhancedCard variant="glass">
       <EnhancedCardHeader>
@@ -59,12 +60,15 @@ const GeneralInformationSettings = ({ siteData, onInputChange, onSave }: General
             rows={3}
             className="mt-1"
           />
-          <p className="text-xs text-gray-500 mt-1">This appears in search results and social media previews</p>
         </div>
 
-        <Button onClick={onSave} className="w-full">
+        <Button 
+          onClick={onSave} 
+          disabled={saving}
+          className="w-full"
+        >
           <Save className="h-4 w-4 mr-2" />
-          Save General Information
+          {saving ? 'Saving...' : 'Save General Information'}
         </Button>
       </EnhancedCardContent>
     </EnhancedCard>
