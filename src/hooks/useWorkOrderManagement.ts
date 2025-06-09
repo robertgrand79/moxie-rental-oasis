@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -228,6 +227,63 @@ export const useWorkOrderManagement = () => {
     }
   };
 
+  const updateContractor = async (contractorId: string, updates: Partial<Contractor>) => {
+    try {
+      const { data, error } = await supabase
+        .from('contractors')
+        .update(updates)
+        .eq('id', contractorId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setContractors(prev => prev.map(contractor => 
+        contractor.id === contractorId ? data : contractor
+      ));
+
+      toast({
+        title: 'Success',
+        description: 'Contractor updated successfully',
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('Error updating contractor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update contractor',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const deleteContractor = async (contractorId: string) => {
+    try {
+      const { error } = await supabase
+        .from('contractors')
+        .delete()
+        .eq('id', contractorId);
+
+      if (error) throw error;
+      
+      setContractors(prev => prev.filter(contractor => contractor.id !== contractorId));
+      toast({
+        title: 'Success',
+        description: 'Contractor deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting contractor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete contractor',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -246,6 +302,8 @@ export const useWorkOrderManagement = () => {
     createWorkOrder,
     updateWorkOrder,
     deleteWorkOrder,
+    updateContractor,
+    deleteContractor,
     refreshData: () => Promise.all([fetchContractors(), fetchWorkOrders()]),
   };
 };
