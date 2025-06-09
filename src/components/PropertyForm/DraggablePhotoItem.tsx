@@ -2,9 +2,12 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button } from '@/components/ui/button';
-import { GripVertical, Star, X, ChevronUp, ChevronDown, Heart } from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
+import PhotoActionButtons from './PhotoActionButtons';
+import PhotoIndicators from './PhotoIndicators';
+import PhotoControls from './PhotoControls';
+import PhotoOverlays from './PhotoOverlays';
 
 interface Photo {
   id: string;
@@ -83,118 +86,41 @@ const DraggablePhotoItem = ({
         />
       </div>
 
-      {/* Cover indicator */}
-      <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-        {isSelected && <Star className="h-3 w-3 fill-current text-yellow-400" />}
-        {isSelected ? 'Cover' : index + 1}
-      </div>
-
-      {/* Featured indicator */}
-      {isFeatured && (
-        <div className="absolute top-2 right-14 bg-red-500 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-          <Heart className="h-3 w-3 fill-current" />
-        </div>
-      )}
+      {/* Indicators */}
+      <PhotoIndicators 
+        isSelected={isSelected}
+        isFeatured={isFeatured}
+        index={index}
+      />
 
       {/* Action buttons overlay */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-        <div className="flex gap-2">
-          {/* Cover photo button */}
-          <Button
-            type="button"
-            variant={isSelected ? "default" : "secondary"}
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!disabled) onCoverSelect(index);
-            }}
-            disabled={disabled}
-            title={isSelected ? "Cover photo" : "Set as cover"}
-          >
-            <Star className={`h-3 w-3 ${isSelected ? 'fill-current' : ''}`} />
-          </Button>
-
-          {/* Featured photo button */}
-          <Button
-            type="button"
-            variant={isFeatured ? "default" : "secondary"}
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!disabled && (isFeatured || canAddMoreFeatured)) {
-                onFeaturedToggle(photo.url);
-              }
-            }}
-            disabled={disabled || (!isFeatured && !canAddMoreFeatured)}
-            title={isFeatured ? "Remove from featured" : "Add to featured"}
-          >
-            <Heart className={`h-3 w-3 ${isFeatured ? 'fill-current' : ''}`} />
-          </Button>
-        </div>
-      </div>
+      <PhotoActionButtons
+        isSelected={isSelected}
+        isFeatured={isFeatured}
+        canAddMoreFeatured={canAddMoreFeatured}
+        disabled={disabled}
+        index={index}
+        photoUrl={photo.url}
+        onCoverSelect={onCoverSelect}
+        onFeaturedToggle={onFeaturedToggle}
+      />
 
       {/* Controls */}
-      <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-        {/* Move buttons */}
-        <div className="flex gap-1">
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            className="h-6 w-6"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveUp(index);
-            }}
-            disabled={disabled || index === 0}
-          >
-            <ChevronUp className="h-3 w-3" />
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            className="h-6 w-6"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveDown(index);
-            }}
-            disabled={disabled || index === totalPhotos - 1}
-          >
-            <ChevronDown className="h-3 w-3" />
-          </Button>
-        </div>
+      <PhotoControls
+        photo={photo}
+        index={index}
+        totalPhotos={totalPhotos}
+        disabled={disabled}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        onRemove={onRemove}
+      />
 
-        {/* Remove button for new uploads */}
-        {!photo.isExisting && !disabled && (
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            className="h-6 w-6"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(index);
-            }}
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        )}
-      </div>
-
-      {/* Selection overlay */}
-      {isSelected && (
-        <div className="absolute inset-0 bg-primary/10 flex items-center justify-center pointer-events-none">
-          <div className="bg-primary text-primary-foreground rounded-full p-2">
-            <Star className="h-4 w-4 fill-current" />
-          </div>
-        </div>
-      )}
-
-      {/* Featured overlay */}
-      {isFeatured && !isSelected && (
-        <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />
-      )}
+      {/* Overlays */}
+      <PhotoOverlays
+        isSelected={isSelected}
+        isFeatured={isFeatured}
+      />
     </div>
   );
 };
