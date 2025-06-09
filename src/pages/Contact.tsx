@@ -3,7 +3,6 @@ import React from 'react';
 import ContactHero from '@/components/contact/ContactHero';
 import ContactForm from '@/components/contact/ContactForm';
 import ContactInfo from '@/components/contact/ContactInfo';
-import PropertyMap from '@/components/PropertyMap';
 
 const Contact = () => {
   return (
@@ -21,14 +20,6 @@ const Contact = () => {
           <div>
             <ContactInfo />
           </div>
-        </div>
-        
-        {/* Map Section */}
-        <div className="mt-16">
-          <h3 className="text-2xl font-bold text-foreground mb-6 text-center">
-            Find Us
-          </h3>
-          <PropertyMap properties={[]} />
         </div>
       </div>
     </div>

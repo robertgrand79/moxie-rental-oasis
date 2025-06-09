@@ -12,6 +12,7 @@ import EnhancedWhatsNearbySection from '@/components/home/EnhancedWhatsNearbySec
 import EnhancedEugeneEventsSection from '@/components/home/EnhancedEugeneEventsSection';
 import BookingBenefitsSection from '@/components/home/BookingBenefitsSection';
 import FinalFeaturesSection from '@/components/home/FinalFeaturesSection';
+import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 
 const Index = () => {
@@ -26,6 +27,16 @@ const Index = () => {
         <AmenitiesSection />
         <EugeneInfoSection />
         <EnhancedLifestyleGallerySection />
+        
+        {/* Newsletter Section - Added before What's Nearby */}
+        <section className="py-20 relative">
+          <div className="container mx-auto px-4">
+            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
+              <TravelNewsletterSignup />
+            </div>
+          </div>
+        </section>
+        
         <EnhancedWhatsNearbySection />
         <EnhancedEugeneEventsSection />
         <BookingBenefitsSection />

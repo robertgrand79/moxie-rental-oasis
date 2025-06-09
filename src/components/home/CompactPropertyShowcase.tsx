@@ -94,9 +94,9 @@ const CompactPropertyShowcase = () => {
                 })}
               </div>
               
-              {/* View All Properties Button */}
+              {/* View All Properties Button - Fixed to link to /properties */}
               <div className="text-center">
-                <Link to="/listings">
+                <Link to="/properties">
                   <Button variant="outline" size="lg" className="px-8 min-h-[48px] border-2">
                     View All Properties
                   </Button>

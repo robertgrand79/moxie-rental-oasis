@@ -3,23 +3,24 @@ import React from 'react';
 import { ArrowRight, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import OptimizedImage from '@/components/ui/optimized-image';
 
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with proper spacing */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url('/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png')`,
-          marginTop: '80px' // Add space for the header
-        }}
-      >
+      <div className="absolute inset-0">
+        <OptimizedImage
+          src="/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png"
+          alt="Eugene Oregon scenic background"
+          className="w-full h-full object-cover"
+          priority={true}
+        />
         <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
       {/* Content */}
-      <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto pt-20">
+      <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <div className="space-y-8">
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight">
