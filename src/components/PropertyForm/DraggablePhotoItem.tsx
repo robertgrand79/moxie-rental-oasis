@@ -3,7 +3,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Star, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { GripVertical, Star, X, ChevronUp, ChevronDown, Heart } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
 
 interface Photo {
@@ -16,24 +16,30 @@ interface DraggablePhotoItemProps {
   photo: Photo;
   index: number;
   isSelected: boolean;
+  isFeatured: boolean;
   onCoverSelect: (index: number) => void;
+  onFeaturedToggle: (imageUrl: string) => void;
   onRemove: (index: number) => void;
   onMoveUp: (index: number) => void;
   onMoveDown: (index: number) => void;
   disabled?: boolean;
   totalPhotos: number;
+  canAddMoreFeatured: boolean;
 }
 
 const DraggablePhotoItem = ({
   photo,
   index,
   isSelected,
+  isFeatured,
   onCoverSelect,
+  onFeaturedToggle,
   onRemove,
   onMoveUp,
   onMoveDown,
   disabled = false,
-  totalPhotos
+  totalPhotos,
+  canAddMoreFeatured
 }: DraggablePhotoItemProps) => {
   const {
     attributes,
@@ -67,10 +73,7 @@ const DraggablePhotoItem = ({
       </div>
 
       {/* Photo */}
-      <div
-        className="cursor-pointer"
-        onClick={() => !disabled && onCoverSelect(index)}
-      >
+      <div className="cursor-pointer">
         <OptimizedImage
           src={photo.url}
           alt={`Property image ${index + 1}`}
@@ -84,6 +87,50 @@ const DraggablePhotoItem = ({
       <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
         {isSelected && <Star className="h-3 w-3 fill-current text-yellow-400" />}
         {isSelected ? 'Cover' : index + 1}
+      </div>
+
+      {/* Featured indicator */}
+      {isFeatured && (
+        <div className="absolute top-2 right-14 bg-red-500 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+          <Heart className="h-3 w-3 fill-current" />
+        </div>
+      )}
+
+      {/* Action buttons overlay */}
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+        <div className="flex gap-2">
+          {/* Cover photo button */}
+          <Button
+            type="button"
+            variant={isSelected ? "default" : "secondary"}
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!disabled) onCoverSelect(index);
+            }}
+            disabled={disabled}
+            title={isSelected ? "Cover photo" : "Set as cover"}
+          >
+            <Star className={`h-3 w-3 ${isSelected ? 'fill-current' : ''}`} />
+          </Button>
+
+          {/* Featured photo button */}
+          <Button
+            type="button"
+            variant={isFeatured ? "default" : "secondary"}
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!disabled && (isFeatured || canAddMoreFeatured)) {
+                onFeaturedToggle(photo.url);
+              }
+            }}
+            disabled={disabled || (!isFeatured && !canAddMoreFeatured)}
+            title={isFeatured ? "Remove from featured" : "Add to featured"}
+          >
+            <Heart className={`h-3 w-3 ${isFeatured ? 'fill-current' : ''}`} />
+          </Button>
+        </div>
       </div>
 
       {/* Controls */}
@@ -142,6 +189,11 @@ const DraggablePhotoItem = ({
             <Star className="h-4 w-4 fill-current" />
           </div>
         </div>
+      )}
+
+      {/* Featured overlay */}
+      {isFeatured && !isSelected && (
+        <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />
       )}
     </div>
   );
