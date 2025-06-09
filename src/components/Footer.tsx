@@ -35,7 +35,7 @@ const Footer = () => {
             <p className="mb-6 leading-relaxed text-muted-foreground">
               {siteData.description}
             </p>
-            <div className="flex space-x-4">
+            <div className="flex justify-center space-x-4">
               {siteData.socialMedia.facebook && (
                 <a 
                   href={siteData.socialMedia.facebook} 
