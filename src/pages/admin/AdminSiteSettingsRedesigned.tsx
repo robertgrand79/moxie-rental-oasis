@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Settings, Palette, Globe, Code, Shield, Mail } from 'lucide-react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
@@ -164,11 +163,11 @@ const AdminSiteSettingsRedesigned = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'configured':
-        return <Badge variant="default" className="bg-green-100 text-green-700">Configured</Badge>;
+        return <Badge variant="default" className="bg-green-100 text-green-700 text-xs">Configured</Badge>;
       case 'needs-setup':
-        return <Badge variant="destructive">Needs Setup</Badge>;
+        return <Badge variant="destructive" className="text-xs">Needs Setup</Badge>;
       default:
-        return <Badge variant="secondary">Unknown</Badge>;
+        return <Badge variant="secondary" className="text-xs">Unknown</Badge>;
     }
   };
 
@@ -270,9 +269,10 @@ const AdminSiteSettingsRedesigned = () => {
       title="Site Settings"
       description="Configure and customize your website settings"
     >
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
+        {/* Search Section */}
         <div className="mb-6">
-          <div className="relative">
+          <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search settings..."
@@ -283,75 +283,96 @@ const AdminSiteSettingsRedesigned = () => {
           </div>
         </div>
 
+        {/* Responsive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Categories Sidebar */}
-          <div className="lg:col-span-1 space-y-2">
-            <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wide mb-4">
-              Settings Categories
-            </h3>
-            {filteredCategories.map((category) => {
-              const IconComponent = category.icon;
-              const needsSetupCount = category.settings.filter(s => s.status === 'needs-setup').length;
-              
-              return (
-                <Button
-                  key={category.id}
-                  variant={activeCategory === category.id ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start h-auto p-3 text-left",
-                    activeCategory === category.id && "bg-primary text-primary-foreground"
-                  )}
-                  onClick={() => setActiveCategory(category.id)}
-                >
-                  <div className="flex items-start gap-3 w-full">
-                    <div className={cn("p-1 rounded", category.color)}>
-                      <IconComponent className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-sm truncate">{category.title}</p>
-                        {needsSetupCount > 0 && (
-                          <Badge variant="destructive" className="ml-2 text-xs">
-                            {needsSetupCount}
-                          </Badge>
-                        )}
+          <div className="lg:col-span-1 order-2 lg:order-1">
+            <div className="space-y-2">
+              <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wide mb-4 px-2">
+                Categories
+              </h3>
+              {filteredCategories.map((category) => {
+                const IconComponent = category.icon;
+                const needsSetupCount = category.settings.filter(s => s.status === 'needs-setup').length;
+                
+                return (
+                  <Button
+                    key={category.id}
+                    variant={activeCategory === category.id ? "default" : "ghost"}
+                    className={cn(
+                      "w-full justify-start h-auto p-3 text-left relative",
+                      activeCategory === category.id && "bg-primary text-primary-foreground"
+                    )}
+                    onClick={() => setActiveCategory(category.id)}
+                  >
+                    <div className="flex items-start gap-3 w-full min-w-0">
+                      <div className={cn("p-1.5 rounded-md flex-shrink-0", category.color)}>
+                        <IconComponent className="h-4 w-4" />
                       </div>
-                      <p className="text-xs opacity-70 mt-1">{category.description}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm leading-tight mb-1 truncate">
+                              {category.title}
+                            </p>
+                            <p className="text-xs opacity-75 leading-tight line-clamp-2">
+                              {category.description}
+                            </p>
+                          </div>
+                          {needsSetupCount > 0 && (
+                            <Badge 
+                              variant="destructive" 
+                              className="text-xs px-1.5 py-0.5 h-5 flex-shrink-0 mt-0.5"
+                            >
+                              {needsSetupCount}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Button>
-              );
-            })}
+                  </Button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Settings Details */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 order-1 lg:order-2">
             {filteredCategories.find(cat => cat.id === activeCategory) && (
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-2xl font-bold">
+              <div className="space-y-6">
+                {/* Header */}
+                <div className="space-y-2">
+                  <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
                     {filteredCategories.find(cat => cat.id === activeCategory)?.title}
                   </h2>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-gray-600 text-base leading-relaxed">
                     {filteredCategories.find(cat => cat.id === activeCategory)?.description}
                   </p>
                 </div>
 
+                {/* Settings Cards */}
                 <div className="grid gap-4">
                   {activeSettings.map((setting, index) => (
                     <Card key={index} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">{setting.name}</CardTitle>
-                          {getStatusBadge(setting.status)}
+                      <CardHeader className="pb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <CardTitle className="text-lg leading-tight">{setting.name}</CardTitle>
+                            <CardDescription className="text-sm leading-relaxed">
+                              {setting.description}
+                            </CardDescription>
+                          </div>
+                          <div className="flex-shrink-0">
+                            {getStatusBadge(setting.status)}
+                          </div>
                         </div>
-                        <CardDescription>{setting.description}</CardDescription>
                       </CardHeader>
                       <CardContent className="pt-0">
                         <Button 
                           variant={setting.status === 'needs-setup' ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => handleSettingClick(setting.key)}
+                          className="w-full sm:w-auto"
                         >
                           {setting.status === 'needs-setup' ? 'Set Up' : 'Configure'}
                         </Button>
@@ -360,10 +381,11 @@ const AdminSiteSettingsRedesigned = () => {
                   ))}
                 </div>
 
+                {/* Empty State */}
                 {activeSettings.length === 0 && (
                   <Card>
-                    <CardContent className="py-8 text-center text-gray-500">
-                      No settings found for this category.
+                    <CardContent className="py-12 text-center text-gray-500">
+                      <p className="text-base">No settings found for this category.</p>
                     </CardContent>
                   </Card>
                 )}
@@ -374,13 +396,13 @@ const AdminSiteSettingsRedesigned = () => {
 
         {/* Settings Modal */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-xl">
                 {selectedSetting && activeSettings.find(s => s.key === selectedSetting)?.name}
               </DialogTitle>
             </DialogHeader>
-            <div className="mt-4">
+            <div className="mt-6">
               {renderSettingContent()}
             </div>
           </DialogContent>
