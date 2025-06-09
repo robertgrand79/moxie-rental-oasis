@@ -89,16 +89,33 @@ export const usePropertyManagement = () => {
 
   const fetchProjects = async () => {
     try {
+      // Direct query without joins until types are updated
       const { data, error } = await supabase
-        .from('property_projects')
-        .select(`
-          *,
-          property:properties(*)
-        `)
+        .from('property_projects' as any)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProjects(data || []);
+      
+      // Fetch related properties separately
+      if (data && data.length > 0) {
+        const propertyIds = [...new Set(data.map((p: any) => p.property_id))];
+        const { data: propertiesData } = await supabase
+          .from('properties')
+          .select('*')
+          .in('id', propertyIds);
+
+        const propertiesMap = new Map(propertiesData?.map(p => [p.id, p]) || []);
+        
+        const projectsWithProperties = data.map((project: any) => ({
+          ...project,
+          property: propertiesMap.get(project.property_id)
+        }));
+        
+        setProjects(projectsWithProperties);
+      } else {
+        setProjects([]);
+      }
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast({
@@ -111,17 +128,37 @@ export const usePropertyManagement = () => {
 
   const fetchTasks = async () => {
     try {
+      // Direct query without joins until types are updated
       const { data, error } = await supabase
-        .from('property_tasks')
-        .select(`
-          *,
-          property:properties(*),
-          project:property_projects(*)
-        `)
+        .from('property_tasks' as any)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTasks(data || []);
+      
+      // Fetch related data separately
+      if (data && data.length > 0) {
+        const propertyIds = [...new Set(data.map((t: any) => t.property_id).filter(Boolean))];
+        const projectIds = [...new Set(data.map((t: any) => t.project_id).filter(Boolean))];
+        
+        const [propertiesData, projectsData] = await Promise.all([
+          propertyIds.length > 0 ? supabase.from('properties').select('*').in('id', propertyIds) : { data: [] },
+          projectIds.length > 0 ? supabase.from('property_projects' as any).select('*').in('id', projectIds) : { data: [] }
+        ]);
+
+        const propertiesMap = new Map(propertiesData.data?.map(p => [p.id, p]) || []);
+        const projectsMap = new Map(projectsData.data?.map(p => [p.id, p]) || []);
+        
+        const tasksWithRelations = data.map((task: any) => ({
+          ...task,
+          property: task.property_id ? propertiesMap.get(task.property_id) : undefined,
+          project: task.project_id ? projectsMap.get(task.project_id) : undefined
+        }));
+        
+        setTasks(tasksWithRelations);
+      } else {
+        setTasks([]);
+      }
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast({
@@ -138,21 +175,31 @@ export const usePropertyManagement = () => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('property_projects')
+        .from('property_projects' as any)
         .insert([{ ...projectData, created_by: user.id }])
-        .select(`
-          *,
-          property:properties(*)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
       
-      setProjects(prev => [data, ...prev]);
-      toast({
-        title: 'Success',
-        description: 'Project created successfully',
-      });
+      // Fetch the property for the created project
+      if (data.property_id) {
+        const { data: property } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('id', data.property_id)
+          .single();
+        
+        const projectWithProperty = { ...data, property };
+        setProjects(prev => [projectWithProperty, ...prev]);
+        
+        toast({
+          title: 'Success',
+          description: 'Project created successfully',
+        });
+        
+        return projectWithProperty;
+      }
       
       return data;
     } catch (error) {
@@ -172,24 +219,32 @@ export const usePropertyManagement = () => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('property_tasks')
+        .from('property_tasks' as any)
         .insert([{ ...taskData, created_by: user.id }])
-        .select(`
-          *,
-          property:properties(*),
-          project:property_projects(*)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
       
-      setTasks(prev => [data, ...prev]);
+      // Fetch related data
+      const [propertyData, projectData] = await Promise.all([
+        data.property_id ? supabase.from('properties').select('*').eq('id', data.property_id).single() : { data: null },
+        data.project_id ? supabase.from('property_projects' as any).select('*').eq('id', data.project_id).single() : { data: null }
+      ]);
+      
+      const taskWithRelations = {
+        ...data,
+        property: propertyData.data,
+        project: projectData.data
+      };
+      
+      setTasks(prev => [taskWithRelations, ...prev]);
       toast({
         title: 'Success',
         description: 'Task created successfully',
       });
       
-      return data;
+      return taskWithRelations;
     } catch (error) {
       console.error('Error creating task:', error);
       toast({
@@ -204,28 +259,61 @@ export const usePropertyManagement = () => {
   const updateTask = async (taskId: string, updates: Partial<PropertyTask>) => {
     try {
       const { data, error } = await supabase
-        .from('property_tasks')
+        .from('property_tasks' as any)
         .update(updates)
         .eq('id', taskId)
-        .select(`
-          *,
-          property:properties(*),
-          project:property_projects(*)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
       
+      // Fetch related data
+      const [propertyData, projectData] = await Promise.all([
+        data.property_id ? supabase.from('properties').select('*').eq('id', data.property_id).single() : { data: null },
+        data.project_id ? supabase.from('property_projects' as any).select('*').eq('id', data.project_id).single() : { data: null }
+      ]);
+      
+      const updatedTask = {
+        ...data,
+        property: propertyData.data,
+        project: projectData.data
+      };
+      
       setTasks(prev => prev.map(task => 
-        task.id === taskId ? data : task
+        task.id === taskId ? updatedTask : task
       ));
       
-      return data;
+      return updatedTask;
     } catch (error) {
       console.error('Error updating task:', error);
       toast({
         title: 'Error',
         description: 'Failed to update task',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    try {
+      const { error } = await supabase
+        .from('property_tasks' as any)
+        .delete()
+        .eq('id', taskId);
+
+      if (error) throw error;
+      
+      setTasks(prev => prev.filter(task => task.id !== taskId));
+      toast({
+        title: 'Success',
+        description: 'Task deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete task',
         variant: 'destructive',
       });
       throw error;
@@ -285,23 +373,31 @@ export const usePropertyManagement = () => {
       }));
 
       const { data, error } = await supabase
-        .from('property_tasks')
+        .from('property_tasks' as any)
         .insert(tasksToCreate)
-        .select(`
-          *,
-          property:properties(*),
-          project:property_projects(*)
-        `);
+        .select();
 
       if (error) throw error;
       
-      setTasks(prev => [...(data || []), ...prev]);
+      // Fetch property data for the new tasks
+      const { data: property } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', propertyId)
+        .single();
+
+      const tasksWithProperty = (data || []).map((task: any) => ({
+        ...task,
+        property
+      }));
+      
+      setTasks(prev => [...tasksWithProperty, ...prev]);
       toast({
         title: 'Success',
         description: `Generated ${turnoverTasks.length} turnover tasks`,
       });
       
-      return data;
+      return tasksWithProperty;
     } catch (error) {
       console.error('Error generating turnover tasks:', error);
       toast({
@@ -332,6 +428,7 @@ export const usePropertyManagement = () => {
     createProject,
     createTask,
     updateTask,
+    deleteTask,
     generateTurnoverTasks,
     refreshData: () => Promise.all([fetchProperties(), fetchProjects(), fetchTasks()]),
   };

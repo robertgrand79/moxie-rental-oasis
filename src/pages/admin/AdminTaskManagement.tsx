@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
-import { useTaskManagement, Task } from '@/hooks/useTaskManagement';
+import { usePropertyManagement, PropertyTask } from '@/hooks/usePropertyManagement';
 import { useWorkOrderManagement } from '@/hooks/useWorkOrderManagement';
-import TaskManagementHeader from '@/components/admin/tasks/TaskManagementHeader';
-import TaskKanbanBoard from '@/components/admin/tasks/TaskKanbanBoard';
-import CreateTaskModal from '@/components/admin/tasks/CreateTaskModal';
-import CreateProjectModal from '@/components/admin/tasks/CreateProjectModal';
+import PropertyTaskManagementHeader from '@/components/admin/tasks/PropertyTaskManagementHeader';
+import PropertyTaskKanbanBoard from '@/components/admin/tasks/PropertyTaskKanbanBoard';
+import CreatePropertyTaskModal from '@/components/admin/tasks/CreatePropertyTaskModal';
+import CreatePropertyProjectModal from '@/components/admin/tasks/CreatePropertyProjectModal';
 import CreateWorkOrderModal from '@/components/admin/workorders/CreateWorkOrderModal';
 import LoadingState from '@/components/ui/loading-state';
 
 const AdminTaskManagement = () => {
   const {
+    properties,
     projects,
     tasks,
     loading,
@@ -18,7 +19,7 @@ const AdminTaskManagement = () => {
     createTask,
     updateTask,
     deleteTask,
-  } = useTaskManagement();
+  } = usePropertyManagement();
 
   const {
     contractors,
@@ -29,17 +30,21 @@ const AdminTaskManagement = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isWorkOrderModalOpen, setIsWorkOrderModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [selectedTaskForWorkOrder, setSelectedTaskForWorkOrder] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<PropertyTask | null>(null);
+  const [selectedTaskForWorkOrder, setSelectedTaskForWorkOrder] = useState<PropertyTask | null>(null);
 
-  const completedTasks = tasks.filter(task => task.status === 'done').length;
+  const completedTasks = tasks.filter(task => task.status === 'completed').length;
+  const pendingTasks = tasks.filter(task => task.status === 'pending').length;
+  const overdueTasks = tasks.filter(task => 
+    task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
+  ).length;
 
-  const handleTaskClick = (task: Task) => {
+  const handleTaskClick = (task: PropertyTask) => {
     setEditingTask(task);
     setIsTaskModalOpen(true);
   };
 
-  const handleCreateWorkOrder = (task: Task) => {
+  const handleCreateWorkOrder = (task: PropertyTask) => {
     setSelectedTaskForWorkOrder(task);
     setIsWorkOrderModalOpen(true);
   };
@@ -47,15 +52,15 @@ const AdminTaskManagement = () => {
   const handleStatusChange = async (taskId: string, status: string) => {
     try {
       await updateTask(taskId, { 
-        status, 
-        completed_at: status === 'done' ? new Date().toISOString() : null 
+        status: status as any, 
+        // completed_at: status === 'completed' ? new Date().toISOString() : null 
       });
     } catch (error) {
       console.error('Error updating task status:', error);
     }
   };
 
-  const handleCreateTask = async (taskData: Omit<Task, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'project'>) => {
+  const handleCreateTask = async (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project'>) => {
     if (editingTask) {
       await updateTask(editingTask.id, taskData);
       setEditingTask(null);
@@ -96,9 +101,11 @@ const AdminTaskManagement = () => {
 
   return (
     <div className="space-y-6">
-      <TaskManagementHeader
+      <PropertyTaskManagementHeader
         totalTasks={tasks.length}
         completedTasks={completedTasks}
+        pendingTasks={pendingTasks}
+        overdueTasks={overdueTasks}
         onCreateTask={() => {
           setEditingTask(null);
           setIsTaskModalOpen(true);
@@ -109,7 +116,7 @@ const AdminTaskManagement = () => {
       />
 
       {view === 'kanban' && (
-        <TaskKanbanBoard
+        <PropertyTaskKanbanBoard
           tasks={tasks}
           onTaskClick={handleTaskClick}
           onStatusChange={handleStatusChange}
@@ -130,21 +137,23 @@ const AdminTaskManagement = () => {
         </div>
       )}
 
-      <CreateTaskModal
+      <CreatePropertyTaskModal
         isOpen={isTaskModalOpen}
         onClose={() => {
           setIsTaskModalOpen(false);
           setEditingTask(null);
         }}
         onCreateTask={handleCreateTask}
+        properties={properties}
         projects={projects}
         editingTask={editingTask}
       />
 
-      <CreateProjectModal
+      <CreatePropertyProjectModal
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
         onCreateProject={handleCreateProject}
+        properties={properties}
       />
 
       <CreateWorkOrderModal

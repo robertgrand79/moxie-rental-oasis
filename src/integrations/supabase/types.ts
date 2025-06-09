@@ -353,6 +353,50 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_schedules: {
+        Row: {
+          created_at: string
+          frequency: string
+          id: string
+          is_active: boolean
+          last_completed: string | null
+          next_due_date: string
+          property_id: string
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          frequency: string
+          id?: string
+          is_active?: boolean
+          last_completed?: string | null
+          next_due_date: string
+          property_id: string
+          task_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_completed?: string | null
+          next_due_date?: string
+          property_id?: string
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_schedules_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_campaigns: {
         Row: {
           blog_post_id: string | null
@@ -658,6 +702,152 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      property_projects: {
+        Row: {
+          actual_completion_date: string | null
+          actual_cost: number | null
+          budget: number | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          priority: string
+          property_id: string
+          start_date: string | null
+          status: string
+          target_completion_date: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          actual_completion_date?: string | null
+          actual_cost?: number | null
+          budget?: number | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          priority?: string
+          property_id: string
+          start_date?: string | null
+          status?: string
+          target_completion_date?: string | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          actual_completion_date?: string | null
+          actual_cost?: number | null
+          budget?: number | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          priority?: string
+          property_id?: string
+          start_date?: string | null
+          status?: string
+          target_completion_date?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_projects_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_tasks: {
+        Row: {
+          actual_hours: number | null
+          assigned_to: string | null
+          checklist_items: string[] | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          estimated_hours: number | null
+          id: string
+          is_recurring: boolean
+          notes: string | null
+          photos: string[] | null
+          priority: string
+          project_id: string | null
+          property_id: string | null
+          recurrence_pattern: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          assigned_to?: string | null
+          checklist_items?: string[] | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          is_recurring?: boolean
+          notes?: string | null
+          photos?: string[] | null
+          priority?: string
+          project_id?: string | null
+          property_id?: string | null
+          recurrence_pattern?: string | null
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          assigned_to?: string | null
+          checklist_items?: string[] | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          is_recurring?: boolean
+          notes?: string | null
+          photos?: string[] | null
+          priority?: string
+          project_id?: string | null
+          property_id?: string | null
+          recurrence_pattern?: string | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "property_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_tasks_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {
