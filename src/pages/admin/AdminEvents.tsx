@@ -1,9 +1,9 @@
 
 import React from 'react';
-import EugeneEventsManager from '@/components/admin/EugeneEventsManager';
+import EventsManager from '@/components/admin/events/EventsManager';
 
 const AdminEvents = () => {
-  return <EugeneEventsManager />;
+  return <EventsManager />;
 };
 
 export default AdminEvents;

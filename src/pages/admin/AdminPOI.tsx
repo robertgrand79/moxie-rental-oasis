@@ -1,9 +1,9 @@
 
 import React from 'react';
-import PointsOfInterestManager from '@/components/admin/PointsOfInterestManager';
+import POIManager from '@/components/admin/poi/POIManager';
 
 const AdminPOI = () => {
-  return <PointsOfInterestManager />;
+  return <POIManager />;
 };
 
 export default AdminPOI;
