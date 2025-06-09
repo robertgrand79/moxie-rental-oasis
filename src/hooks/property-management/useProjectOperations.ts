@@ -14,19 +14,24 @@ export const useProjectOperations = (
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('property_projects' as any)
+        .from('property_projects')
         .insert([{ ...projectData, created_by: user.id }])
         .select()
         .single();
 
       if (error) throw error;
       
-      if (data && data.property_id) {
-        const { data: property } = await supabase
-          .from('properties')
-          .select('*')
-          .eq('id', data.property_id)
-          .single();
+      if (data) {
+        // Fetch the property data if property_id exists
+        let property = null;
+        if (data.property_id) {
+          const { data: propertyData } = await supabase
+            .from('properties')
+            .select('*')
+            .eq('id', data.property_id)
+            .single();
+          property = propertyData;
+        }
         
         const projectWithProperty = { ...data, property };
         setProjects(prev => [projectWithProperty, ...prev]);

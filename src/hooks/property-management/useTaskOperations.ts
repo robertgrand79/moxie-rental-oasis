@@ -14,7 +14,7 @@ export const useTaskOperations = (
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('property_tasks' as any)
+        .from('property_tasks')
         .insert([{ ...taskData, created_by: user.id }])
         .select()
         .single();
@@ -22,15 +22,31 @@ export const useTaskOperations = (
       if (error) throw error;
       
       if (data) {
-        const [propertyData, projectData] = await Promise.all([
-          data.property_id ? supabase.from('properties').select('*').eq('id', data.property_id).single() : { data: null },
-          data.project_id ? supabase.from('property_projects' as any).select('*').eq('id', data.project_id).single() : { data: null }
-        ]);
+        // Fetch related data
+        const fetchPromises = [];
+        
+        if (data.property_id) {
+          fetchPromises.push(
+            supabase.from('properties').select('*').eq('id', data.property_id).single()
+          );
+        } else {
+          fetchPromises.push(Promise.resolve({ data: null }));
+        }
+        
+        if (data.project_id) {
+          fetchPromises.push(
+            supabase.from('property_projects').select('*').eq('id', data.project_id).single()
+          );
+        } else {
+          fetchPromises.push(Promise.resolve({ data: null }));
+        }
+        
+        const [propertyResult, projectResult] = await Promise.all(fetchPromises);
         
         const taskWithRelations = {
           ...data,
-          property: propertyData.data,
-          project: projectData.data
+          property: propertyResult.data,
+          project: projectResult.data
         };
         
         setTasks(prev => [taskWithRelations, ...prev]);
@@ -57,7 +73,7 @@ export const useTaskOperations = (
   const updateTask = async (taskId: string, updates: Partial<PropertyTask>) => {
     try {
       const { data, error } = await supabase
-        .from('property_tasks' as any)
+        .from('property_tasks')
         .update(updates)
         .eq('id', taskId)
         .select()
@@ -66,15 +82,31 @@ export const useTaskOperations = (
       if (error) throw error;
       
       if (data) {
-        const [propertyData, projectData] = await Promise.all([
-          data.property_id ? supabase.from('properties').select('*').eq('id', data.property_id).single() : { data: null },
-          data.project_id ? supabase.from('property_projects' as any).select('*').eq('id', data.project_id).single() : { data: null }
-        ]);
+        // Fetch related data
+        const fetchPromises = [];
+        
+        if (data.property_id) {
+          fetchPromises.push(
+            supabase.from('properties').select('*').eq('id', data.property_id).single()
+          );
+        } else {
+          fetchPromises.push(Promise.resolve({ data: null }));
+        }
+        
+        if (data.project_id) {
+          fetchPromises.push(
+            supabase.from('property_projects').select('*').eq('id', data.project_id).single()
+          );
+        } else {
+          fetchPromises.push(Promise.resolve({ data: null }));
+        }
+        
+        const [propertyResult, projectResult] = await Promise.all(fetchPromises);
         
         const updatedTask = {
           ...data,
-          property: propertyData.data,
-          project: projectData.data
+          property: propertyResult.data,
+          project: projectResult.data
         };
         
         setTasks(prev => prev.map(task => 
@@ -97,7 +129,7 @@ export const useTaskOperations = (
   const deleteTask = async (taskId: string) => {
     try {
       const { error } = await supabase
-        .from('property_tasks' as any)
+        .from('property_tasks')
         .delete()
         .eq('id', taskId);
 

@@ -34,31 +34,39 @@ export const usePropertyData = () => {
   const fetchProjects = async () => {
     try {
       const { data, error } = await supabase
-        .from('property_projects' as any)
+        .from('property_projects')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
       if (data && data.length > 0) {
-        const propertyIds = [...new Set(data.map((p: any) => p.property_id).filter(Boolean))];
+        // Get unique property IDs
+        const propertyIds = Array.from(new Set(
+          data.map(project => project.property_id).filter(id => id)
+        ));
+        
+        let propertiesMap = new Map();
+        
         if (propertyIds.length > 0) {
           const { data: propertiesData } = await supabase
             .from('properties')
             .select('*')
             .in('id', propertyIds);
 
-          const propertiesMap = new Map(propertiesData?.map((p: any) => [p.id, p]) || []);
-          
-          const projectsWithProperties = data.map((project: any) => ({
-            ...project,
-            property: project.property_id ? propertiesMap.get(project.property_id) : undefined
-          }));
-          
-          setProjects(projectsWithProperties);
-        } else {
-          setProjects(data);
+          if (propertiesData) {
+            propertiesMap = new Map(
+              propertiesData.map(property => [property.id, property])
+            );
+          }
         }
+        
+        const projectsWithProperties = data.map(project => ({
+          ...project,
+          property: project.property_id ? propertiesMap.get(project.property_id) : undefined
+        }));
+        
+        setProjects(projectsWithProperties as PropertyProject[]);
       } else {
         setProjects([]);
       }
@@ -75,31 +83,56 @@ export const usePropertyData = () => {
   const fetchTasks = async () => {
     try {
       const { data, error } = await supabase
-        .from('property_tasks' as any)
+        .from('property_tasks')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
       if (data && data.length > 0) {
-        const propertyIds = [...new Set(data.map((t: any) => t.property_id).filter(Boolean))];
-        const projectIds = [...new Set(data.map((t: any) => t.project_id).filter(Boolean))];
+        // Get unique IDs
+        const propertyIds = Array.from(new Set(
+          data.map(task => task.property_id).filter(id => id)
+        ));
+        const projectIds = Array.from(new Set(
+          data.map(task => task.project_id).filter(id => id)
+        ));
         
-        const [propertiesData, projectsData] = await Promise.all([
-          propertyIds.length > 0 ? supabase.from('properties').select('*').in('id', propertyIds) : { data: [] },
-          projectIds.length > 0 ? supabase.from('property_projects' as any).select('*').in('id', projectIds) : { data: [] }
-        ]);
+        // Fetch related data
+        const fetchPromises = [];
+        
+        if (propertyIds.length > 0) {
+          fetchPromises.push(
+            supabase.from('properties').select('*').in('id', propertyIds)
+          );
+        } else {
+          fetchPromises.push(Promise.resolve({ data: [] }));
+        }
+        
+        if (projectIds.length > 0) {
+          fetchPromises.push(
+            supabase.from('property_projects').select('*').in('id', projectIds)
+          );
+        } else {
+          fetchPromises.push(Promise.resolve({ data: [] }));
+        }
 
-        const propertiesMap = new Map(propertiesData.data?.map((p: any) => [p.id, p]) || []);
-        const projectsMap = new Map(projectsData.data?.map((p: any) => [p.id, p]) || []);
+        const [propertiesResult, projectsResult] = await Promise.all(fetchPromises);
+
+        const propertiesMap = new Map(
+          (propertiesResult.data || []).map(property => [property.id, property])
+        );
+        const projectsMap = new Map(
+          (projectsResult.data || []).map(project => [project.id, project])
+        );
         
-        const tasksWithRelations = data.map((task: any) => ({
+        const tasksWithRelations = data.map(task => ({
           ...task,
           property: task.property_id ? propertiesMap.get(task.property_id) : undefined,
           project: task.project_id ? projectsMap.get(task.project_id) : undefined
         }));
         
-        setTasks(tasksWithRelations);
+        setTasks(tasksWithRelations as PropertyTask[]);
       } else {
         setTasks([]);
       }
