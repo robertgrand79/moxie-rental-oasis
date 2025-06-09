@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Star, Heart } from 'lucide-react';
+import React from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
 import DraggablePhotoItem from './DraggablePhotoItem';
+import PhotoGridHeader from './PhotoGridHeader';
+import PhotoGridInstructions from './PhotoGridInstructions';
+import PhotoGridPagination from './PhotoGridPagination';
+import { usePhotoPagination } from '@/hooks/usePhotoPagination';
 
 interface Photo {
   id: string;
@@ -25,8 +26,6 @@ interface PaginatedPhotoGridProps {
   itemsPerPage?: number;
 }
 
-const ITEMS_PER_PAGE = 12;
-
 const PaginatedPhotoGrid = ({
   photos,
   selectedCoverIndex,
@@ -36,9 +35,16 @@ const PaginatedPhotoGrid = ({
   onRemove,
   onMove,
   disabled = false,
-  itemsPerPage = ITEMS_PER_PAGE
+  itemsPerPage = 12
 }: PaginatedPhotoGridProps) => {
-  const [currentPage, setCurrentPage] = useState(0);
+  const {
+    currentPage,
+    totalPages,
+    startIndex,
+    currentPhotos,
+    handlePrevPage,
+    handleNextPage
+  } = usePhotoPagination(photos, itemsPerPage);
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -46,19 +52,6 @@ const PaginatedPhotoGrid = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-  
-  const totalPages = Math.ceil(photos.length / itemsPerPage);
-  const startIndex = currentPage * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, photos.length);
-  const currentPhotos = photos.slice(startIndex, endIndex);
-
-  const handlePrevPage = () => {
-    setCurrentPage(prev => Math.max(0, prev - 1));
-  };
-
-  const handleNextPage = () => {
-    setCurrentPage(prev => Math.min(totalPages - 1, prev + 1));
-  };
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -92,10 +85,8 @@ const PaginatedPhotoGrid = ({
     if (disabled) return;
     
     if (featuredPhotos.includes(imageUrl)) {
-      // Remove from featured
       onFeaturedPhotosChange(featuredPhotos.filter(url => url !== imageUrl));
     } else if (featuredPhotos.length < 10) {
-      // Add to featured (max 10)
       onFeaturedPhotosChange([...featuredPhotos, imageUrl]);
     }
   };
@@ -106,27 +97,11 @@ const PaginatedPhotoGrid = ({
 
   return (
     <div className="space-y-4">
-      {/* Header with indicators */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h3 className="text-lg font-semibold">Photo Gallery ({photos.length} photos)</h3>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Star className="h-3 w-3" />
-              Cover Photo
-            </Badge>
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Heart className="h-3 w-3" />
-              Featured: {featuredPhotos.length}/10
-            </Badge>
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Hover photos to select cover and featured images
-        </p>
-      </div>
+      <PhotoGridHeader 
+        photoCount={photos.length} 
+        featuredCount={featuredPhotos.length} 
+      />
 
-      {/* Photo Grid */}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -164,51 +139,15 @@ const PaginatedPhotoGrid = ({
         </SortableContext>
       </DndContext>
 
-      {/* Instructions */}
-      <div className="text-center space-y-2">
-        <p className="text-xs text-muted-foreground">
-          The starred image will be used as the cover photo for your property listing.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Featured photos (♥) will be displayed in the property page gallery (max 10).
-        </p>
-        {featuredPhotos.length === 10 && (
-          <p className="text-xs text-amber-600">
-            Maximum of 10 featured photos selected. Remove a photo to choose a different one.
-          </p>
-        )}
-      </div>
+      <PhotoGridInstructions featuredCount={featuredPhotos.length} />
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handlePrevPage}
-            disabled={currentPage === 0 || disabled}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Previous
-          </Button>
-          
-          <span className="text-sm text-muted-foreground">
-            Page {currentPage + 1} of {totalPages}
-          </span>
-          
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleNextPage}
-            disabled={currentPage === totalPages - 1 || disabled}
-          >
-            Next
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-      )}
+      <PhotoGridPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPrevPage={handlePrevPage}
+        onNextPage={handleNextPage}
+        disabled={disabled}
+      />
     </div>
   );
 };
