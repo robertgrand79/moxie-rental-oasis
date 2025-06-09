@@ -1,75 +1,197 @@
-import {
-  LayoutDashboard,
-  Settings,
-  Building,
-  FileText,
+
+import { 
+  BarChart3, 
+  FileText, 
+  Users, 
+  Settings, 
+  Home,
+  MessageSquare,
   Calendar,
   MapPin,
   Camera,
-  MessageSquare,
-  Wand2,
-  File,
-  TrendingUp,
-  Monitor,
-  Eye,
+  Star,
   Mail,
-  Send,
-  Users,
+  TrendingUp,
+  Wand2,
+  UserCheck,
   Shield,
-  CheckSquare,
-  Clipboard,
+  CheckSquare2,
   Wrench,
-  Cog,
+  Building2,
+  ClipboardList
 } from 'lucide-react';
 
-export const adminMenuItems = [
+export interface MenuItem {
+  title: string;
+  icon: any;
+  href: string;
+  description?: string;
+}
+
+export interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
+export const adminMenuItems: MenuSection[] = [
   {
-    title: 'Dashboard',
+    title: 'Overview',
     items: [
-      { title: 'Overview', href: '/admin', icon: LayoutDashboard },
-      { title: 'Analytics', href: '/admin/analytics', icon: TrendingUp },
-      { title: 'Site Metrics', href: '/admin/site-metrics', icon: Monitor },
+      {
+        title: 'Dashboard',
+        icon: BarChart3,
+        href: '/admin',
+        description: 'Overview and analytics'
+      },
+      {
+        title: 'Analytics',
+        icon: TrendingUp,
+        href: '/admin/analytics',
+        description: 'Detailed performance metrics'
+      },
+      {
+        title: 'Site Metrics',
+        icon: BarChart3,
+        href: '/admin/site-metrics',
+        description: 'Website performance data'
+      }
     ]
   },
   {
     title: 'Content Management',
     items: [
-      { title: 'AI Assistant', href: '/admin/ai-chat', icon: Wand2 },
-      { title: 'AI Content Review', href: '/admin/ai-content-review', icon: Eye },
-      { title: 'Properties', href: '/admin/properties', icon: Building },
-      { title: 'Blog Posts', href: '/admin/blog', icon: FileText },
-      { title: 'Pages', href: '/admin/pages', icon: File },
-      { title: 'Events', href: '/admin/events', icon: Calendar },
-      { title: 'Points of Interest', href: '/admin/poi', icon: MapPin },
-      { title: 'Lifestyle Gallery', href: '/admin/lifestyle', icon: Camera },
-      { title: 'Testimonials', href: '/admin/testimonials', icon: MessageSquare },
-    ]
-  },
-  {
-    title: 'Communications',
-    items: [
-      { title: 'Newsletter', href: '/admin/newsletter', icon: Mail },
-      { title: 'Newsletter Management', href: '/admin/newsletter-management', icon: Send },
-    ]
-  },
-  {
-    title: 'User & Access Management',
-    items: [
-      { title: 'User Management', href: '/admin/user-management', icon: Users },
-      { title: 'Roles & Permissions', href: '/admin/roles-permissions', icon: Shield },
+      {
+        title: 'Properties',
+        icon: Home,
+        href: '/admin/properties',
+        description: 'Manage rental listings'
+      },
+      {
+        title: 'Blog Posts',
+        icon: FileText,
+        href: '/admin/blog',
+        description: 'Create and edit blog content'
+      },
+      {
+        title: 'Pages',
+        icon: FileText,
+        href: '/admin/pages',
+        description: 'Manage website pages'
+      }
     ]
   },
   {
     title: 'Operations',
     items: [
-      { title: 'Task Management', href: '/admin/task-management', icon: CheckSquare },
-      { title: 'Work Orders', href: '/admin/work-orders', icon: Wrench },
+      {
+        title: 'Property Management',
+        icon: Building2,
+        href: '/admin/property-management',
+        description: 'Comprehensive property operations'
+      },
+      {
+        title: 'Task Management',
+        icon: CheckSquare2,
+        href: '/admin/task-management',
+        description: 'Project and task tracking'
+      },
+      {
+        title: 'Work Orders',
+        icon: Wrench,
+        href: '/admin/work-orders',
+        description: 'Contractor work orders'
+      }
     ]
   },
   {
-    title: 'Settings',
+    title: 'Local Content',
     items: [
-      { title: 'Site Settings', href: '/admin/settings', icon: Settings },
+      {
+        title: 'Events',
+        icon: Calendar,
+        href: '/admin/events',
+        description: 'Eugene events calendar'
+      },
+      {
+        title: 'Lifestyle Gallery',
+        icon: Camera,
+        href: '/admin/lifestyle',
+        description: 'Local lifestyle photos'
+      },
+      {
+        title: 'Points of Interest',
+        icon: MapPin,
+        href: '/admin/poi',
+        description: 'Local attractions and venues'
+      },
+      {
+        title: 'Testimonials',
+        icon: Star,
+        href: '/admin/testimonials',
+        description: 'Guest reviews and feedback'
+      }
+    ]
+  },
+  {
+    title: 'AI & Automation',
+    items: [
+      {
+        title: 'AI Chat',
+        icon: MessageSquare,
+        href: '/admin/ai-chat',
+        description: 'AI assistant and chat tools'
+      },
+      {
+        title: 'Content Review',
+        icon: Wand2,
+        href: '/admin/ai-content-review',
+        description: 'AI-generated content approval'
+      }
+    ]
+  },
+  {
+    title: 'Marketing',
+    items: [
+      {
+        title: 'Newsletter',
+        icon: Mail,
+        href: '/admin/newsletter',
+        description: 'Email newsletter management'
+      },
+      {
+        title: 'Newsletter Management',
+        icon: Mail,
+        href: '/admin/newsletter-management',
+        description: 'Advanced newsletter tools'
+      }
+    ]
+  },
+  {
+    title: 'User Management',
+    items: [
+      {
+        title: 'Users',
+        icon: Users,
+        href: '/admin/user-management',
+        description: 'Manage user accounts'
+      },
+      {
+        title: 'Roles & Permissions',
+        icon: Shield,
+        href: '/admin/roles-permissions',
+        description: 'User access control'
+      }
+    ]
+  },
+  {
+    title: 'Configuration',
+    items: [
+      {
+        title: 'Site Settings',
+        icon: Settings,
+        href: '/admin/settings',
+        description: 'Website configuration'
+      }
     ]
   }
 ];
