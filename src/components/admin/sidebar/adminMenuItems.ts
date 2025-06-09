@@ -1,147 +1,146 @@
-
-import { 
-  Home, 
-  LayoutDashboard, 
-  Settings, 
-  Users, 
-  Wand2, 
-  FileText, 
-  Mail, 
-  Star, 
-  Sparkles,
-  Plus,
-  Shield,
-  GitFork,
-  BarChart3,
-  TrendingUp,
+import {
+  LayoutDashboard,
+  FileText,
+  Globe,
+  Mail,
+  Home,
+  MapPin,
+  Calendar,
+  Camera,
+  Star,
   Wrench,
   CheckSquare,
-  Calendar
-} from 'lucide-react';
+  BarChart3,
+  Bot,
+  GitBranch,
+  Settings,
+  Users
+} from "lucide-react"
 
 export const adminMenuItems = [
   {
     title: "Dashboard",
+    icon: LayoutDashboard,
+    path: "/admin",
+    description: "Overview and quick actions"
+  },
+  {
+    title: "Content",
+    icon: FileText,
     items: [
       {
-        title: "Overview",
-        icon: LayoutDashboard,
-        href: "/admin"
+        title: "Blog Management",
+        icon: FileText,
+        path: "/admin/blog",
+        description: "Manage blog posts and content"
       },
       {
-        title: "Analytics",
-        icon: BarChart3,
-        href: "/admin/analytics"
+        title: "Page Management",
+        icon: Globe,
+        path: "/admin/pages",
+        description: "Manage website pages"
       },
       {
-        title: "Site Metrics", 
-        icon: TrendingUp,
-        href: "/admin/site-metrics"
+        title: "Newsletter",
+        icon: Mail,
+        path: "/admin/newsletter",
+        description: "Manage newsletter campaigns"
       }
     ]
   },
   {
     title: "Properties",
+    icon: Home,
+    path: "/admin/properties",
+    description: "Manage property listings"
+  },
+  {
+    title: "Local Content",
+    icon: MapPin,
     items: [
       {
-        title: "All Properties",
-        icon: Home,
-        href: "/admin/properties"
+        title: "Events",
+        icon: Calendar,
+        path: "/admin/events",
+        description: "Manage Eugene events"
       },
       {
-        title: "Add New Property",
-        icon: Plus,
-        href: "/admin/properties/new?action=add"
+        title: "Lifestyle Gallery",
+        icon: Camera,
+        path: "/admin/lifestyle",
+        description: "Manage lifestyle content"
+      },
+      {
+        title: "Points of Interest",
+        icon: MapPin,
+        path: "/admin/poi",
+        description: "Manage local attractions"
+      },
+      {
+        title: "Testimonials",
+        icon: Star,
+        path: "/admin/testimonials",
+        description: "Manage customer reviews"
       }
     ]
   },
   {
-    title: "Operations & Management",
+    title: "Operations",
+    icon: Wrench,
     items: [
       {
         title: "Task Management",
         icon: CheckSquare,
-        href: "/admin/tasks"
+        path: "/admin/tasks",
+        description: "Manage tasks and projects"
       },
       {
         title: "Work Orders",
         icon: Wrench,
-        href: "/admin/work-orders"
+        path: "/admin/work-orders",
+        description: "Manage maintenance requests"
       }
     ]
   },
   {
-    title: "Content Management",
+    title: "Analytics & AI",
+    icon: BarChart3,
     items: [
       {
-        title: "Testimonials",
-        icon: Star,
-        href: "/admin/testimonials"
+        title: "Site Metrics",
+        icon: BarChart3,
+        path: "/admin/metrics",
+        description: "View website analytics"
       },
       {
-        title: "Lifestyle Gallery",
-        icon: Home,
-        href: "/admin/lifestyle"
-      },
-      {
-        title: "Events",
-        icon: Calendar,
-        href: "/admin/events"
-      },
-      {
-        title: "Points of Interest",
-        icon: Star,
-        href: "/admin/poi"
-      }
-    ]
-  },
-  {
-    title: "AI & Content Tools",
-    items: [
-      {
-        title: "AI Content Generator",
-        icon: Wand2,
-        href: "/admin/ai-tools"
+        title: "AI Tools",
+        icon: Bot,
+        path: "/admin/ai-tools",
+        description: "AI content generation tools"
       },
       {
         title: "Content Workflows",
-        icon: Sparkles,
-        href: "/admin/content-workflows"
+        icon: GitBranch,
+        path: "/admin/workflows",
+        description: "Manage content approval"
       }
     ]
   },
   {
-    title: "Marketing",
+    title: "System",
+    icon: Settings,
     items: [
-      {
-        title: "Newsletter Management",
-        icon: Mail,
-        href: "/admin/newsletter-management"
-      },
-      {
-        title: "Blog Management",
-        icon: FileText,
-        href: "/admin/blog"
-      }
-    ]
-  },
-  {
-    title: "Settings & Admin",
-    items: [
-      {
-        title: "Users",
-        icon: Users,
-        href: "/admin/users"
-      },
-      {
-        title: "Roles & Permissions",
-        icon: Shield,
-        href: "/admin/roles"
-      },
       {
         title: "Site Settings",
         icon: Settings,
-        href: "/admin/settings"
+        path: "/admin/settings",
+        description: "Configure website settings"
+      },
+      {
+        title: "User Permissions",
+        icon: Users,
+        path: "/admin/user-permissions",
+        description: "Manage users, roles and permissions"
       }
     ]
   }

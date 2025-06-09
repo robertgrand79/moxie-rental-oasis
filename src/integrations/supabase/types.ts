@@ -534,6 +534,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          permissions: Json | null
           role: string
           updated_at: string
         }
@@ -543,6 +544,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          permissions?: Json | null
           role?: string
           updated_at?: string
         }
@@ -552,6 +554,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          permissions?: Json | null
           role?: string
           updated_at?: string
         }
@@ -978,12 +981,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage_users: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       generate_work_order_number: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
       is_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_has_permission: {
+        Args: { user_id: string; permission_key: string }
         Returns: boolean
       }
     }
