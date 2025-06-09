@@ -73,6 +73,12 @@ export const createSettingsCategories = (siteData: any, seoData: any, analyticsD
     color: 'bg-orange-100 text-orange-700',
     settings: [
       { 
+        name: 'Email Services', 
+        description: 'SendGrid for newsletters and transactional emails', 
+        status: 'needs-setup',
+        key: 'email-services'
+      },
+      { 
         name: 'Maps Integration', 
         description: 'Mapbox for location features', 
         status: mapboxToken ? 'configured' : 'needs-setup',

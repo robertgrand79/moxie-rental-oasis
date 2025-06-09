@@ -8,6 +8,7 @@ import DesignBrandingTab from '@/components/admin/settings/DesignBrandingTab';
 import SEOSettingsTab from '@/components/admin/settings/SEOSettingsTab';
 import AnalyticsSettingsTab from '@/components/admin/settings/AnalyticsSettingsTab';
 import MapsSettingsTab from '@/components/admin/settings/MapsSettingsTab';
+import EmailServicesTab from '@/components/admin/settings/EmailServicesTab';
 import AdvancedSettingsTab from '@/components/admin/settings/AdvancedSettingsTab';
 
 interface SettingsDialogProps {
@@ -110,6 +111,8 @@ const SettingsDialog = ({
             }}
           />
         );
+      case 'email-services':
+        return <EmailServicesTab />;
       case 'maps-settings':
         return (
           <MapsSettingsTab

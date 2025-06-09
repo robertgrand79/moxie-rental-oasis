@@ -9,7 +9,6 @@ import StableBasicSettingsTab from '@/components/admin/settings/StableBasicSetti
 import ContentManagementTab from '@/components/admin/settings/ContentManagementTab';
 import DesignBrandingTab from '@/components/admin/settings/DesignBrandingTab';
 import SEOAnalyticsTab from '@/components/admin/settings/SEOAnalyticsTab';
-import EmailServicesTab from '@/components/admin/settings/EmailServicesTab';
 import AIToolsTab from '@/components/admin/settings/AIToolsTab';
 import AdvancedSettingsTab from '@/components/admin/settings/AdvancedSettingsTab';
 import TabsErrorBoundary from '@/components/admin/settings/TabsErrorBoundary';
@@ -92,10 +91,6 @@ const AdminSiteSettings = () => {
                   setMapboxToken={() => {}} // This will be handled by the stable hook
                   updateSetting={async () => true} // This will be handled by the stable hook
                 />
-              </TabsContent>
-
-              <TabsContent value="email" className="space-y-6 mt-0">
-                <EmailServicesTab />
               </TabsContent>
 
               <TabsContent value="ai" className="space-y-6 mt-0">
