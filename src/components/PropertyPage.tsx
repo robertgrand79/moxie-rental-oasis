@@ -5,7 +5,6 @@ import { useProperties } from '@/hooks/useProperties';
 import LoadingState from '@/components/ui/loading-state';
 import PropertyPageHero from '@/components/property/PropertyPageHero';
 import MobilePropertyHero from '@/components/property/MobilePropertyHero';
-import PropertyPhotoCollage from '@/components/property/PropertyPhotoCollage';
 import AboutPropertySection from '@/components/property/AboutPropertySection';
 import AmenitiesSection from '@/components/property/AmenitiesSection';
 import PhotoSpotlight from '@/components/property/PhotoSpotlight';
@@ -107,16 +106,6 @@ const PropertyPage = () => {
 
       {/* Quick Info Section - Mobile Only */}
       {isMobile && <QuickInfoSection property={property} />}
-
-      {/* Photo Collage - Desktop only, only if no featured photos */}
-      {!isMobile && (!property.featured_photos || property.featured_photos.length === 0) && property.images && property.images.length > 0 && (
-        <div className="container mx-auto px-4 py-8">
-          <PropertyPhotoCollage
-            images={property.images}
-            title={property.title}
-          />
-        </div>
-      )}
 
       {/* About This Property Section */}
       <AboutPropertySection property={property} />
