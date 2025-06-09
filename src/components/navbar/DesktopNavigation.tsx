@@ -13,37 +13,18 @@ const DesktopNavigation = () => {
     item.href !== '/admin' || user
   );
 
-  const getIconColor = (href: string) => {
-    switch (href) {
-      case '/':
-        return 'text-icon-blue';
-      case '/listings':
-        return 'text-icon-emerald';
-      case '/blog':
-        return 'text-icon-purple';
-      case '/about':
-        return 'text-icon-amber';
-      case '/experiences':
-        return 'text-icon-teal';
-      case '/admin':
-        return 'text-icon-gray';
-      default:
-        return 'text-icon-gray';
-    }
-  };
-
   return (
     <div className="hidden lg:flex items-center space-x-8">
       {filteredItems.map((item) => {
-        const IconComponent = item.icon;
-        const iconColor = getIconColor(item.href);
+        const isActive = location.pathname === item.href;
         return (
           <Link
             key={item.title}
             to={item.href}
-            className="flex items-center space-x-2 font-medium text-sm transition-colors duration-200 group text-gray-700 hover:text-gray-900"
+            className={`font-medium text-sm transition-colors duration-200 hover:text-primary ${
+              isActive ? 'text-primary' : 'text-gray-700'
+            }`}
           >
-            <IconComponent className={`h-4 w-4 group-hover:scale-110 transition-transform duration-200 ${iconColor}`} />
             <span>{item.title}</span>
           </Link>
         );

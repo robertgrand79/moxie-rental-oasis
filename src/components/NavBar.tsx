@@ -11,8 +11,6 @@ const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const isHomePage = location.pathname === '/';
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -22,13 +20,8 @@ const NavBar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navClasses = isHomePage 
-    ? `fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white shadow-md' 
-          : 'bg-transparent'
-      }`
-    : 'bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50';
+  // Always use white background with shadow for consistency
+  const navClasses = 'bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50';
 
   return (
     <nav className={navClasses}>

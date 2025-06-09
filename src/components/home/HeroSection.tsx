@@ -48,8 +48,8 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+          {/* Single CTA Button - Removed Learn More button */}
+          <div className="flex justify-center items-center pt-4">
             <Button 
               asChild
               size="lg" 
@@ -59,15 +59,6 @@ const HeroSection = () => {
                 <span>View Properties</span>
                 <ArrowRight className="h-5 w-5" />
               </Link>
-            </Button>
-            
-            <Button 
-              asChild
-              size="lg" 
-              variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-gray-900 font-semibold px-8 py-4 text-lg"
-            >
-              <Link to="/about">Learn More</Link>
             </Button>
           </div>
         </div>

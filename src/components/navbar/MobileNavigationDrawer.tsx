@@ -26,23 +26,6 @@ const MobileNavigationDrawer = ({
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
-  const getIconColor = (href: string) => {
-    switch (href) {
-      case '/':
-        return 'text-icon-blue';
-      case '/listings':
-        return 'text-icon-emerald';
-      case '/blog':
-        return 'text-icon-purple';
-      case '/about':
-        return 'text-icon-amber';
-      case '/experiences':
-        return 'text-icon-teal';
-      default:
-        return 'text-icon-gray';
-    }
-  };
-
   const handleLinkClick = () => {
     onClose();
   };
@@ -86,25 +69,22 @@ const MobileNavigationDrawer = ({
           </SheetTitle>
         </SheetHeader>
         
-        {/* Navigation Links */}
+        {/* Navigation Links - Simplified without colored icons */}
         <nav className="flex flex-col space-y-2">
           {navigationItems.map((item) => {
-            const IconComponent = item.icon;
             const isActive = location.pathname === item.href;
-            const iconColor = getIconColor(item.href);
             
             return (
               <Link
                 key={item.title}
                 to={item.href}
-                className={`flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 ${
+                className={`flex items-center px-4 py-4 rounded-xl font-medium transition-all duration-200 ${
                   isActive 
-                    ? 'text-blue-600 bg-blue-50 border border-blue-100' 
+                    ? 'text-primary bg-primary/10 border border-primary/20' 
                     : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent'
                 }`}
                 onClick={handleLinkClick}
               >
-                <IconComponent className={`h-6 w-6 ${iconColor}`} />
                 <span className="text-base">{item.title}</span>
               </Link>
             );
@@ -120,7 +100,7 @@ const MobileNavigationDrawer = ({
             <>
               {/* User Info */}
               <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl">
-                <User className="h-5 w-5 text-icon-gray mr-3" />
+                <User className="h-5 w-5 text-gray-500 mr-3" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-700 truncate">
                     {displayName}
@@ -133,7 +113,7 @@ const MobileNavigationDrawer = ({
                 onClick={handleAdminPanel}
                 className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
               >
-                <Shield className="h-6 w-6 text-icon-gray" />
+                <Shield className="h-6 w-6 text-gray-500" />
                 <span className="text-base">Admin Panel</span>
               </button>
 
@@ -142,7 +122,7 @@ const MobileNavigationDrawer = ({
                 onClick={handleSignOut}
                 className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
               >
-                <LogOut className="h-6 w-6 text-icon-gray" />
+                <LogOut className="h-6 w-6 text-gray-500" />
                 <span className="text-base">Sign Out</span>
               </button>
             </>
@@ -152,7 +132,7 @@ const MobileNavigationDrawer = ({
               onClick={handleAdminLogin}
               className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
             >
-              <Settings className="h-6 w-6 text-icon-gray" />
+              <Settings className="h-6 w-6 text-gray-500" />
               <span className="text-base">Admin Login</span>
             </button>
           )}
