@@ -1,29 +1,17 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
-import AdminDashboard from '@/pages/admin/AdminDashboard';
-import AdminProperties from '@/pages/admin/AdminProperties';
-import AdminUsers from '@/pages/admin/AdminUsers';
-import AdminBlog from '@/pages/admin/AdminBlog';
-import AdminPages from '@/pages/admin/AdminPages';
-import AdminNewsletter from '@/pages/admin/AdminNewsletter';
-import AdminEvents from '@/pages/admin/AdminEvents';
-import AdminPOI from '@/pages/admin/AdminPOI';
-import AdminLifestyle from '@/pages/admin/AdminLifestyle';
-import AdminTestimonials from '@/pages/admin/AdminTestimonials';
-import AdminSiteSettings from '@/pages/admin/AdminSiteSettings';
-import AdminAppearance from '@/pages/admin/AdminAppearance';
-import AdminIntegrations from '@/pages/admin/AdminIntegrations';
-import AdminAITools from '@/pages/admin/AdminAITools';
-import PublicHome from '@/pages/PublicHome';
-import PublicProperties from '@/pages/PublicProperties';
-import PublicPropertyDetails from '@/pages/PublicPropertyDetails';
-import PublicBlog from '@/pages/PublicBlog';
-import PublicBlogPost from '@/pages/PublicBlogPost';
-import PublicPages from '@/pages/PublicPages';
-import Login from '@/pages/Login';
+import Admin from '@/pages/Admin';
+import Properties from '@/pages/Properties';
+import Blog from '@/pages/Blog';
+import PageManagement from '@/pages/PageManagement';
+import SiteSettings from '@/pages/SiteSettings';
+import Index from '@/pages/Index';
+import BlogPost from '@/pages/BlogPost';
+import Auth from '@/pages/Auth';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminAIToolsSimplified from '@/pages/admin/AdminAIToolsSimplified';
 import AdminAIChat from '@/pages/admin/AdminAIChat';
@@ -36,82 +24,35 @@ function App() {
           <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
             <Toaster />
             <Routes>
-              <Route path="/" element={<PublicHome />} />
-              <Route path="/properties" element={<PublicProperties />} />
-              <Route path="/properties/:id" element={<PublicPropertyDetails />} />
-              <Route path="/blog" element={<PublicBlog />} />
-              <Route path="/blog/:id" element={<PublicBlogPost />} />
-              <Route path="/pages/:slug" element={<PublicPages />} />
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/properties" element={<Properties />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogPost />} />
+              <Route path="/auth" element={<Auth />} />
 
               <Route path="/admin" element={
                 <ProtectedRoute>
-                  <AdminDashboard />
+                  <Admin />
                 </ProtectedRoute>
               } />
               <Route path="/admin/properties" element={
                 <ProtectedRoute>
-                  <AdminProperties />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/users" element={
-                <ProtectedRoute>
-                  <AdminUsers />
+                  <Properties />
                 </ProtectedRoute>
               } />
               <Route path="/admin/blog" element={
                 <ProtectedRoute>
-                  <AdminBlog />
+                  <Blog />
                 </ProtectedRoute>
               } />
               <Route path="/admin/pages" element={
                 <ProtectedRoute>
-                  <AdminPages />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/newsletter" element={
-                <ProtectedRoute>
-                  <AdminNewsletter />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/events" element={
-                <ProtectedRoute>
-                  <AdminEvents />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/poi" element={
-                <ProtectedRoute>
-                  <AdminPOI />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/lifestyle" element={
-                <ProtectedRoute>
-                  <AdminLifestyle />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/testimonials" element={
-                <ProtectedRoute>
-                  <AdminTestimonials />
+                  <PageManagement />
                 </ProtectedRoute>
               } />
               <Route path="/admin/settings" element={
                 <ProtectedRoute>
-                  <AdminSiteSettings />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/appearance" element={
-                <ProtectedRoute>
-                  <AdminAppearance />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/integrations" element={
-                <ProtectedRoute>
-                  <AdminIntegrations />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/ai-tools" element={
-                <ProtectedRoute>
-                  <AdminAITools />
+                  <SiteSettings />
                 </ProtectedRoute>
               } />
               <Route path="/admin/ai-tools-simplified" element={
