@@ -10,3 +10,5 @@ export const tabs = [
   { id: 'ai', label: 'AI Tools', icon: Wand2, description: 'AI-powered features' },
   { id: 'advanced', label: 'Advanced', icon: Code, description: 'Custom code & scripts' }
 ];
+
+console.log('SettingsTabsConfig loaded with tabs:', tabs.map(t => ({ id: t.id, label: t.label })));
