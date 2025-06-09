@@ -8,8 +8,7 @@ import MobilePropertyHero from '@/components/property/MobilePropertyHero';
 import PropertyPhotoCollage from '@/components/property/PropertyPhotoCollage';
 import AboutPropertySection from '@/components/property/AboutPropertySection';
 import AmenitiesSection from '@/components/property/AmenitiesSection';
-import MasonryPhotoGallery from '@/components/property/MasonryPhotoGallery';
-import ModernPhotoGallery from '@/components/property/ModernPhotoGallery';
+import PhotoSpotlight from '@/components/property/PhotoSpotlight';
 import BookingCard from '@/components/property/BookingCard';
 import FloatingBookingCard from '@/components/property/FloatingBookingCard';
 import MobileBookingBar from '@/components/property/MobileBookingBar';
@@ -125,12 +124,14 @@ const PropertyPage = () => {
       {/* Amenities Section */}
       <AmenitiesSection amenities={property.amenities} />
 
-      {/* Photo Gallery - Modern responsive version */}
-      <ModernPhotoGallery
-        images={property.images || []}
-        featuredPhotos={property.featured_photos}
-        title={property.title}
-      />
+      {/* Photo Spotlight - Compact featured photos section */}
+      {property.images && property.images.length > 0 && (
+        <PhotoSpotlight
+          images={property.images}
+          featuredPhotos={property.featured_photos}
+          title={property.title}
+        />
+      )}
 
       {/* Booking Section - Desktop */}
       {!isMobile && (
