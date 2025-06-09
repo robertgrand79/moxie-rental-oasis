@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Plus, UserPlus, Mail, Shield, MoreHorizontal, Users } from 'lucide-react';
+import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2 } from 'lucide-react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,56 +20,92 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useUserManagement } from '@/hooks/useUserManagement';
+import UserInviteModal from '@/components/admin/UserInviteModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminUserManagement = () => {
-  const [users] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'Admin',
-      status: 'Active',
-      lastLogin: '2024-01-15'
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      role: 'Editor',
-      status: 'Active',
-      lastLogin: '2024-01-14'
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      role: 'User',
-      status: 'Inactive',
-      lastLogin: '2024-01-10'
-    }
-  ]);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const { users, loading, error, updateUserRole, deleteUser, inviteUser } = useUserManagement();
+  const { user: currentUser } = useAuth();
 
-  const handleInviteUser = () => {
-    console.log('Invite user functionality would go here');
-  };
-
-  const handleEditUser = (userId: number) => {
+  const handleEditUser = (userId: string) => {
     console.log('Edit user:', userId);
+    // TODO: Implement edit user functionality
   };
 
-  const handleDeleteUser = (userId: number) => {
-    console.log('Delete user:', userId);
+  const handleDeleteUser = async (userId: string) => {
+    if (userId === currentUser?.id) {
+      alert('You cannot delete your own account');
+      return;
+    }
+    
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      await deleteUser(userId);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, currentRole: string) => {
+    if (userId === currentUser?.id) {
+      alert('You cannot change your own role');
+      return;
+    }
+    
+    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+    await updateUserRole(userId, newRole);
   };
 
   const pageActions = (
     <EnhancedButton 
-      onClick={handleInviteUser} 
+      onClick={() => setIsInviteModalOpen(true)} 
       variant="gradient"
       icon={<UserPlus className="h-4 w-4" />}
     >
       Invite User
     </EnhancedButton>
   );
+
+  if (loading) {
+    return (
+      <AdminPageWrapper
+        title="User Management"
+        description="Manage system users, invitations, and access controls"
+        actions={pageActions}
+      >
+        <div className="p-8">
+          <div className="animate-pulse space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded-lg"></div>
+              ))}
+            </div>
+            <div className="h-64 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+      </AdminPageWrapper>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminPageWrapper
+        title="User Management"
+        description="Manage system users, invitations, and access controls"
+        actions={pageActions}
+      >
+        <div className="p-8">
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-red-600">Error loading users: {error}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </AdminPageWrapper>
+    );
+  }
+
+  const activeUsers = users.filter(u => u.role !== 'inactive');
+  const adminUsers = users.filter(u => u.role === 'admin');
 
   return (
     <AdminPageWrapper
@@ -86,7 +123,7 @@ const AdminUserManagement = () => {
             <CardContent>
               <div className="text-2xl font-bold">{users.length}</div>
               <p className="text-xs text-muted-foreground">
-                +2 from last month
+                Registered accounts
               </p>
             </CardContent>
           </Card>
@@ -97,24 +134,22 @@ const AdminUserManagement = () => {
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {users.filter(u => u.status === 'Active').length}
-              </div>
+              <div className="text-2xl font-bold">{activeUsers.length}</div>
               <p className="text-xs text-muted-foreground">
-                Currently online
+                Currently active
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Invites</CardTitle>
+              <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
               <Mail className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{adminUsers.length}</div>
               <p className="text-xs text-muted-foreground">
-                No pending invitations
+                Administrative access
               </p>
             </CardContent>
           </Card>
@@ -134,27 +169,29 @@ const AdminUserManagement = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Login</TableHead>
+                  <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {user.full_name || 'No name set'}
+                    </TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
-                      <Badge variant={user.role === 'Admin' ? 'default' : 'secondary'}>
+                      <Badge 
+                        variant={user.role === 'admin' ? 'default' : 'secondary'}
+                        className="cursor-pointer"
+                        onClick={() => handleRoleChange(user.id, user.role)}
+                      >
                         {user.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.status === 'Active' ? 'default' : 'destructive'}>
-                        {user.status}
-                      </Badge>
+                      {new Date(user.created_at).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>{user.lastLogin}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -165,12 +202,22 @@ const AdminUserManagement = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleEditUser(user.id)}>
+                            <Edit className="mr-2 h-4 w-4" />
                             Edit user
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleRoleChange(user.id, user.role)}
+                            disabled={user.id === currentUser?.id}
+                          >
+                            <Shield className="mr-2 h-4 w-4" />
+                            Toggle role
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-destructive"
                             onClick={() => handleDeleteUser(user.id)}
+                            disabled={user.id === currentUser?.id}
                           >
+                            <Trash2 className="mr-2 h-4 w-4" />
                             Delete user
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -183,6 +230,12 @@ const AdminUserManagement = () => {
           </CardContent>
         </Card>
       </div>
+
+      <UserInviteModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onInvite={inviteUser}
+      />
     </AdminPageWrapper>
   );
 };
