@@ -13,7 +13,6 @@ import Index from '@/pages/Index';
 import BlogPost from '@/pages/BlogPost';
 import Auth from '@/pages/Auth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import AdminAIToolsSimplified from '@/pages/admin/AdminAIToolsSimplified';
 import AdminAIChat from '@/pages/admin/AdminAIChat';
 
 function App() {
@@ -53,11 +52,6 @@ function App() {
               <Route path="/admin/settings" element={
                 <ProtectedRoute>
                   <SiteSettings />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/ai-tools-simplified" element={
-                <ProtectedRoute>
-                  <AdminAIToolsSimplified />
                 </ProtectedRoute>
               } />
               <Route path="/admin/ai-chat" element={

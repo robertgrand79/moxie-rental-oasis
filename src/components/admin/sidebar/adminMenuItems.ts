@@ -1,3 +1,4 @@
+
 import {
   BarChart3,
   Building,
@@ -16,7 +17,6 @@ import {
   User,
   Users,
   Wand2,
-  Bot,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -54,7 +54,6 @@ export const adminMenuItems = [
     title: 'Content Management',
     items: [
       { title: 'AI Assistant', href: '/admin/ai-chat', icon: 'Wand2' },
-      { title: 'AI Tools (Legacy)', href: '/admin/ai-tools', icon: 'Bot' },
       { title: 'Blog Posts', href: '/admin/blog', icon: 'FileText' },
       { title: 'Pages', href: '/admin/pages', icon: 'File' },
       { title: 'Newsletter', href: '/admin/newsletter', icon: 'Mail' },
