@@ -62,8 +62,8 @@ const Blog = () => {
             <Skeleton className="h-6 w-128 mx-auto" />
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {[1, 2, 3, 4].map((i) => (
                   <Card key={i} className="overflow-hidden">
@@ -204,9 +204,9 @@ const Blog = () => {
           </div>
         )}
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Blog Posts - Changed to single column stacked layout */}
+        {/* Main Content - Now using 3/4 layout with sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-16">
+          {/* Blog Posts */}
           <div className="lg:col-span-3">
             {filteredPosts.length === 0 ? (
               <div className="text-center py-16">
@@ -300,11 +300,6 @@ const Blog = () => {
 
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-8">
-            {/* Newsletter Signup */}
-            <div className="sticky top-8">
-              <TravelNewsletterSignup />
-            </div>
-
             {/* Featured Post */}
             {featuredPost && selectedCategory === 'all' && (
               <Card className="bg-muted border-border">
@@ -356,6 +351,13 @@ const Blog = () => {
                 </Link>
               </CardContent>
             </Card>
+          </div>
+        </div>
+
+        {/* Newsletter Signup Section - Now at the bottom */}
+        <div className="border-t border-border pt-16">
+          <div className="max-w-2xl mx-auto text-center">
+            <TravelNewsletterSignup />
           </div>
         </div>
       </div>
