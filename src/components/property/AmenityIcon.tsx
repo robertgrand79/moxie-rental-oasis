@@ -4,9 +4,10 @@ import { Wifi, Car, ChefHat, Tv, Star } from 'lucide-react';
 
 interface AmenityIconProps {
   amenity: string;
+  className?: string;
 }
 
-const AmenityIcon = ({ amenity }: AmenityIconProps) => {
+const AmenityIcon = ({ amenity, className }: AmenityIconProps) => {
   const getIconAndColor = (amenityName: string) => {
     const name = amenityName.toLowerCase();
     
@@ -27,7 +28,7 @@ const AmenityIcon = ({ amenity }: AmenityIconProps) => {
 
   const { Icon, color } = getIconAndColor(amenity);
 
-  return <Icon className={`h-4 w-4 ${color} transition-colors duration-200`} />;
+  return <Icon className={`h-4 w-4 ${color} transition-colors duration-200 ${className || ''}`} />;
 };
 
 export default AmenityIcon;
