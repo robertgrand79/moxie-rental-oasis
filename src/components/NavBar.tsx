@@ -31,7 +31,7 @@ const NavBar = () => {
             <LogoSection />
           </div>
           
-          <div className="hidden lg:block">
+          <div className="hidden lg:flex items-center flex-1 justify-center">
             <DesktopNavigation />
           </div>
           

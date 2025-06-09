@@ -31,7 +31,7 @@ const MobileNavigation = ({
         onClick={toggleMobileMenu}
         aria-label="Open navigation menu"
       >
-        <Menu className="h-6 w-6 text-icon-indigo" />
+        <Menu className="h-6 w-6 text-gray-700" />
       </Button>
 
       {/* Mobile Navigation Drawer */}

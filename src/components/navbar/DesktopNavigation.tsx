@@ -14,17 +14,20 @@ const DesktopNavigation = () => {
   );
 
   return (
-    <div className="hidden lg:flex items-center space-x-8">
+    <div className="hidden lg:flex items-center space-x-6">
       {filteredItems.map((item) => {
         const isActive = location.pathname === item.href;
+        const IconComponent = item.icon;
+        
         return (
           <Link
             key={item.title}
             to={item.href}
-            className={`font-medium text-sm transition-colors duration-200 hover:text-primary ${
-              isActive ? 'text-primary' : 'text-gray-700'
+            className={`flex items-center space-x-2 font-medium text-sm transition-colors duration-200 hover:text-primary px-3 py-2 rounded-md ${
+              isActive ? 'text-primary bg-primary/10' : 'text-gray-700'
             }`}
           >
+            <IconComponent className="h-4 w-4" />
             <span>{item.title}</span>
           </Link>
         );
