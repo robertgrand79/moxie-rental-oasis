@@ -14,7 +14,7 @@ const DesktopNavigation = () => {
   );
 
   return (
-    <div className="hidden lg:flex items-center space-x-6">
+    <div className="hidden lg:flex items-center space-x-4">
       {filteredItems.map((item) => {
         const isActive = location.pathname === item.href;
         const IconComponent = item.icon;
@@ -23,7 +23,7 @@ const DesktopNavigation = () => {
           <Link
             key={item.title}
             to={item.href}
-            className={`flex items-center space-x-2 font-medium text-sm transition-colors duration-200 hover:text-primary px-3 py-2 rounded-md ${
+            className={`flex items-center space-x-1.5 font-medium text-sm transition-colors duration-200 hover:text-primary px-2.5 py-2 rounded-md ${
               isActive ? 'text-primary bg-primary/10' : 'text-gray-700'
             }`}
           >
