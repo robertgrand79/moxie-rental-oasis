@@ -42,19 +42,23 @@ export const usePropertyData = () => {
       
       if (data && data.length > 0) {
         const propertyIds = [...new Set(data.map((p: any) => p.property_id).filter(Boolean))];
-        const { data: propertiesData } = await supabase
-          .from('properties')
-          .select('*')
-          .in('id', propertyIds);
+        if (propertyIds.length > 0) {
+          const { data: propertiesData } = await supabase
+            .from('properties')
+            .select('*')
+            .in('id', propertyIds);
 
-        const propertiesMap = new Map(propertiesData?.map((p: any) => [p.id, p]) || []);
-        
-        const projectsWithProperties = data.map((project: any) => ({
-          ...project,
-          property: project.property_id ? propertiesMap.get(project.property_id) : undefined
-        }));
-        
-        setProjects(projectsWithProperties);
+          const propertiesMap = new Map(propertiesData?.map((p: any) => [p.id, p]) || []);
+          
+          const projectsWithProperties = data.map((project: any) => ({
+            ...project,
+            property: project.property_id ? propertiesMap.get(project.property_id) : undefined
+          }));
+          
+          setProjects(projectsWithProperties);
+        } else {
+          setProjects(data);
+        }
       } else {
         setProjects([]);
       }

@@ -21,7 +21,7 @@ export const useProjectOperations = (
 
       if (error) throw error;
       
-      if (data?.property_id) {
+      if (data && data.property_id) {
         const { data: property } = await supabase
           .from('properties')
           .select('*')

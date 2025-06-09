@@ -29,15 +29,16 @@ import AdminLifestyle from '@/pages/admin/AdminLifestyle';
 import AdminPOI from '@/pages/admin/AdminPOI';
 import AdminTestimonials from '@/pages/admin/AdminTestimonials';
 import AdminAnalytics from '@/pages/admin/AdminAnalytics';
-import AdminNewsletter from '@/pages/admin/AdminNewsletter';
+import AdminNewsletterManagement from '@/pages/admin/AdminNewsletterManagement';
 import AdminSiteMetrics from '@/pages/admin/AdminSiteMetrics';
 import AdminAIContentReview from '@/pages/admin/AdminAIContentReview';
-import AdminNewsletterManagement from '@/pages/admin/AdminNewsletterManagement';
 import AdminUserManagement from '@/pages/admin/AdminUserManagement';
 import AdminRolesPermissions from '@/pages/admin/AdminRolesPermissions';
 import AdminTaskManagement from '@/pages/admin/AdminTaskManagement';
 import AdminWorkOrders from '@/pages/admin/AdminWorkOrders';
 import AdminPropertyManagement from '@/pages/admin/AdminPropertyManagement';
+import AdminProperties from '@/pages/admin/AdminProperties';
+import BlogManagement from '@/pages/BlogManagement';
 import AdminSiteSettingsRedesigned from '@/pages/admin/AdminSiteSettingsRedesigned';
 
 function App() {
@@ -76,8 +77,8 @@ function App() {
                 <Route index element={<Admin />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="site-metrics" element={<AdminSiteMetrics />} />
-                <Route path="properties" element={<Properties />} />
-                <Route path="blog" element={<Blog />} />
+                <Route path="properties" element={<AdminProperties />} />
+                <Route path="blog" element={<BlogManagement />} />
                 <Route path="pages" element={<PageManagement />} />
                 <Route path="ai-chat" element={<AdminAIChat />} />
                 <Route path="ai-content-review" element={<AdminAIContentReview />} />
@@ -85,7 +86,6 @@ function App() {
                 <Route path="lifestyle" element={<AdminLifestyle />} />
                 <Route path="poi" element={<AdminPOI />} />
                 <Route path="testimonials" element={<AdminTestimonials />} />
-                <Route path="newsletter" element={<AdminNewsletter />} />
                 <Route path="newsletter-management" element={<AdminNewsletterManagement />} />
                 <Route path="user-management" element={<AdminUserManagement />} />
                 <Route path="roles-permissions" element={<AdminRolesPermissions />} />

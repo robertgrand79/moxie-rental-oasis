@@ -153,16 +153,10 @@ export const adminMenuItems: MenuSection[] = [
     title: 'Marketing',
     items: [
       {
-        title: 'Newsletter',
-        icon: Mail,
-        href: '/admin/newsletter',
-        description: 'Email newsletter management'
-      },
-      {
         title: 'Newsletter Management',
         icon: Mail,
         href: '/admin/newsletter-management',
-        description: 'Advanced newsletter tools'
+        description: 'Email newsletter management'
       }
     ]
   },

@@ -21,24 +21,28 @@ export const useTaskOperations = (
 
       if (error) throw error;
       
-      const [propertyData, projectData] = await Promise.all([
-        data?.property_id ? supabase.from('properties').select('*').eq('id', data.property_id).single() : { data: null },
-        data?.project_id ? supabase.from('property_projects' as any).select('*').eq('id', data.project_id).single() : { data: null }
-      ]);
+      if (data) {
+        const [propertyData, projectData] = await Promise.all([
+          data.property_id ? supabase.from('properties').select('*').eq('id', data.property_id).single() : { data: null },
+          data.project_id ? supabase.from('property_projects' as any).select('*').eq('id', data.project_id).single() : { data: null }
+        ]);
+        
+        const taskWithRelations = {
+          ...data,
+          property: propertyData.data,
+          project: projectData.data
+        };
+        
+        setTasks(prev => [taskWithRelations, ...prev]);
+        toast({
+          title: 'Success',
+          description: 'Task created successfully',
+        });
+        
+        return taskWithRelations;
+      }
       
-      const taskWithRelations = {
-        ...data,
-        property: propertyData.data,
-        project: projectData.data
-      };
-      
-      setTasks(prev => [taskWithRelations, ...prev]);
-      toast({
-        title: 'Success',
-        description: 'Task created successfully',
-      });
-      
-      return taskWithRelations;
+      return data;
     } catch (error) {
       console.error('Error creating task:', error);
       toast({
@@ -61,22 +65,24 @@ export const useTaskOperations = (
 
       if (error) throw error;
       
-      const [propertyData, projectData] = await Promise.all([
-        data?.property_id ? supabase.from('properties').select('*').eq('id', data.property_id).single() : { data: null },
-        data?.project_id ? supabase.from('property_projects' as any).select('*').eq('id', data.project_id).single() : { data: null }
-      ]);
-      
-      const updatedTask = {
-        ...data,
-        property: propertyData.data,
-        project: projectData.data
-      };
-      
-      setTasks(prev => prev.map(task => 
-        task.id === taskId ? updatedTask : task
-      ));
-      
-      return updatedTask;
+      if (data) {
+        const [propertyData, projectData] = await Promise.all([
+          data.property_id ? supabase.from('properties').select('*').eq('id', data.property_id).single() : { data: null },
+          data.project_id ? supabase.from('property_projects' as any).select('*').eq('id', data.project_id).single() : { data: null }
+        ]);
+        
+        const updatedTask = {
+          ...data,
+          property: propertyData.data,
+          project: projectData.data
+        };
+        
+        setTasks(prev => prev.map(task => 
+          task.id === taskId ? updatedTask : task
+        ));
+        
+        return updatedTask;
+      }
     } catch (error) {
       console.error('Error updating task:', error);
       toast({
