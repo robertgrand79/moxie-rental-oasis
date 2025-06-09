@@ -39,6 +39,11 @@ interface SettingsState {
     googlePlaces: string;
   };
   
+  // Email settings
+  emailFromAddress: string;
+  emailFromName: string;
+  emailReplyTo: string;
+  
   // SEO settings
   siteTitle: string;
   metaDescription: string;
@@ -79,6 +84,9 @@ const defaultSettings: SettingsState = {
     twitter: '',
     googlePlaces: ''
   },
+  emailFromAddress: 'noreply@moxievacationrentals.com',
+  emailFromName: 'Moxie Vacation Rentals',
+  emailReplyTo: 'contact@moxievacationrentals.com',
   siteTitle: 'Moxie Vacation Rentals',
   metaDescription: 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.',
   ogTitle: '',
