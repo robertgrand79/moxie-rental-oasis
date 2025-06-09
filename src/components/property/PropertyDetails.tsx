@@ -13,7 +13,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
   const [showAllAmenities, setShowAllAmenities] = useState(false);
 
   // Convert amenities string to array if needed
-  const amenitiesArray = React.useMemo(() => {
+  const amenitiesArray: string[] = React.useMemo(() => {
     if (!property.amenities) return [];
     if (Array.isArray(property.amenities)) return property.amenities;
     // If it's a string, split by common delimiters
