@@ -28,6 +28,17 @@ import AdminEvents from '@/pages/admin/AdminEvents';
 import AdminLifestyle from '@/pages/admin/AdminLifestyle';
 import AdminPOI from '@/pages/admin/AdminPOI';
 import AdminTestimonials from '@/pages/admin/AdminTestimonials';
+import AdminAnalytics from '@/pages/admin/AdminAnalytics';
+import AdminNewsletter from '@/pages/admin/AdminNewsletter';
+import AdminSiteMetrics from '@/pages/admin/AdminSiteMetrics';
+import AdminAIContentReview from '@/pages/admin/AdminAIContentReview';
+import AdminNewsletterManagement from '@/pages/admin/AdminNewsletterManagement';
+import AdminUserManagement from '@/pages/admin/AdminUserManagement';
+import AdminRolesPermissions from '@/pages/admin/AdminRolesPermissions';
+import AdminTaskManagement from '@/pages/admin/AdminTaskManagement';
+import AdminWorkOrders from '@/pages/admin/AdminWorkOrders';
+import AdminSiteSettings from '@/pages/admin/AdminSiteSettings';
+import AdminSiteSettingsRedesigned from '@/pages/admin/AdminSiteSettingsRedesigned';
 
 function App() {
   return (
@@ -63,15 +74,25 @@ function App() {
                 </ProtectedRoute>
               }>
                 <Route index element={<Admin />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="site-metrics" element={<AdminSiteMetrics />} />
                 <Route path="properties" element={<Properties />} />
                 <Route path="blog" element={<Blog />} />
                 <Route path="pages" element={<PageManagement />} />
-                <Route path="settings" element={<SiteSettings />} />
                 <Route path="ai-chat" element={<AdminAIChat />} />
+                <Route path="ai-content-review" element={<AdminAIContentReview />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="lifestyle" element={<AdminLifestyle />} />
                 <Route path="poi" element={<AdminPOI />} />
                 <Route path="testimonials" element={<AdminTestimonials />} />
+                <Route path="newsletter" element={<AdminNewsletter />} />
+                <Route path="newsletter-management" element={<AdminNewsletterManagement />} />
+                <Route path="user-management" element={<AdminUserManagement />} />
+                <Route path="roles-permissions" element={<AdminRolesPermissions />} />
+                <Route path="task-management" element={<AdminTaskManagement />} />
+                <Route path="work-orders" element={<AdminWorkOrders />} />
+                <Route path="settings" element={<AdminSiteSettings />} />
+                <Route path="settings-redesigned" element={<AdminSiteSettingsRedesigned />} />
               </Route>
             </Routes>
           </div>
