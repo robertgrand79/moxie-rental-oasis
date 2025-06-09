@@ -34,9 +34,9 @@ const BasicInfoFields = ({ form, disabled = false }: BasicInfoFieldsProps) => {
           name="location"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Location</FormLabel>
+              <FormLabel>Property Address</FormLabel>
               <FormControl>
-                <Input placeholder="Malibu, CA" disabled={disabled} {...field} />
+                <Input placeholder="123 Main Street, Eugene, OR 97401" disabled={disabled} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

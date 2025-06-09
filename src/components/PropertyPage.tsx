@@ -6,6 +6,7 @@ import { parseAddressSlug } from '@/utils/addressSlug';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import PropertyHeader from './property/PropertyHeader';
 import PropertyDetails from './property/PropertyDetails';
+import PropertyPhotoCollage from './property/PropertyPhotoCollage';
 import BookingCard from './property/BookingCard';
 import LoadingState from '@/components/ui/loading-state';
 
@@ -70,18 +71,22 @@ const PropertyPage = () => {
     );
   }
 
+  // Prepare images array - use images array if available, fallback to single image_url
+  const propertyImages = property.images && property.images.length > 0 
+    ? property.images 
+    : property.image_url 
+      ? [property.image_url] 
+      : [];
+
   return (
     <BackgroundWrapper>
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20">
-          {/* Property Image */}
-          <div className="aspect-video lg:aspect-[2/1] relative">
-            <img 
-              src={property.image_url} 
-              alt={property.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          {/* Property Photo Collage */}
+          <PropertyPhotoCollage 
+            images={propertyImages}
+            title={property.title}
+          />
 
           <div className="p-8 lg:p-12">
             <PropertyHeader property={property} />

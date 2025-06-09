@@ -1,7 +1,8 @@
 
-import React from 'react';
-import { Bed, Bath, Users } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bed, Bath, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { Property } from '@/types/property';
+import { Button } from '@/components/ui/button';
 import AmenityIcon from './AmenityIcon';
 
 interface PropertyDetailsProps {
@@ -9,6 +10,8 @@ interface PropertyDetailsProps {
 }
 
 const PropertyDetails = ({ property }: PropertyDetailsProps) => {
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
+
   // Convert amenities string to array if needed
   const amenitiesArray = React.useMemo(() => {
     if (!property.amenities) return [];
@@ -19,6 +22,12 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
       .map(amenity => amenity.trim())
       .filter(amenity => amenity.length > 0);
   }, [property.amenities]);
+
+  const AMENITIES_LIMIT = 6;
+  const displayedAmenities = showAllAmenities 
+    ? amenitiesArray 
+    : amenitiesArray.slice(0, AMENITIES_LIMIT);
+  const hasMoreAmenities = amenitiesArray.length > AMENITIES_LIMIT;
 
   return (
     <div className="lg:col-span-2">
@@ -50,14 +59,36 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
       {amenitiesArray.length > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Amenities</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {amenitiesArray.map((amenity, index) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+            {displayedAmenities.map((amenity, index) => (
               <div key={index} className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg border hover:shadow-md hover:bg-muted/70 transition-all duration-200">
                 <AmenityIcon amenity={amenity} />
                 <span className="text-muted-foreground hover:text-foreground transition-colors duration-200">{amenity}</span>
               </div>
             ))}
           </div>
+          
+          {hasMoreAmenities && (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                onClick={() => setShowAllAmenities(!showAllAmenities)}
+                className="flex items-center gap-2"
+              >
+                {showAllAmenities ? (
+                  <>
+                    <ChevronUp className="h-4 w-4" />
+                    Show Less Amenities
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-4 w-4" />
+                    Show All Amenities ({amenitiesArray.length})
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
