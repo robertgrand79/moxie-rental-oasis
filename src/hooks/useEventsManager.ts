@@ -2,20 +2,16 @@
 import { useState } from 'react';
 import { useEugeneEvents, EugeneEvent } from '@/hooks/useEugeneEvents';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAIContentGeneration } from '@/hooks/useAIContentGeneration';
 import { useCrossContentIntegration } from '@/hooks/useCrossContentIntegration';
 import { EventFormData } from '@/components/admin/events/EventFormFields';
 
 export const useEventsManager = () => {
   const { events, isLoading, createEvent, updateEvent, deleteEvent } = useEugeneEvents();
   const { user } = useAuth();
-  const { enhanceContent, isEnhancing } = useAIContentGeneration();
   const { getLocationBasedSuggestions, getCategoryBasedSuggestions } = useCrossContentIntegration();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EugeneEvent | null>(null);
-  const [enhancingId, setEnhancingId] = useState<string | null>(null);
 
   const categories = [
     { value: 'festival', label: 'Festival' },
@@ -65,49 +61,9 @@ export const useEventsManager = () => {
     }
   };
 
-  const handleAIGeneration = async (content: any[]) => {
-    for (const item of content) {
-      try {
-        const defaultImageUrl = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80';
-        
-        await createEvent.mutateAsync({
-          title: item.title,
-          description: item.description,
-          event_date: item.event_date || new Date().toISOString().split('T')[0],
-          end_date: item.end_date || '',
-          time_start: item.time_start || '',
-          time_end: item.time_end || '',
-          location: item.location || 'Eugene, Oregon',
-          category: item.category || 'festival',
-          image_url: item.image_url || defaultImageUrl,
-          website_url: item.website_url || '',
-          ticket_url: item.ticket_url || '',
-          price_range: item.price_range || '',
-          is_featured: false,
-          is_active: true,
-          is_recurring: false,
-          recurrence_pattern: '',
-          created_by: user?.id || ''
-        });
-      } catch (error) {
-        console.error('Error saving AI-generated event:', error);
-      }
-    }
-  };
-
   const handleEnhanceItem = async (item: EugeneEvent) => {
-    setEnhancingId(item.id);
-    try {
-      const enhanced = await enhanceContent('events', item);
-      if (enhanced) {
-        await updateEvent.mutateAsync({
-          id: item.id,
-          ...enhanced
-        });
-      }
-    } finally {
-      setEnhancingId(null);
-    }
+    // Enhancement functionality can be handled through the unified AI chat
+    console.log('Enhancement can be done through the AI Assistant', item);
   };
 
   const handleAddNew = () => {
@@ -128,15 +84,12 @@ export const useEventsManager = () => {
     categories,
     isDialogOpen,
     setIsDialogOpen,
-    isAIDialogOpen,
-    setIsAIDialogOpen,
     editingEvent,
-    enhancingId,
-    isEnhancing,
+    enhancingId: null,
+    isEnhancing: false,
     handleSubmit,
     handleEdit,
     handleDelete,
-    handleAIGeneration,
     handleEnhanceItem,
     handleAddNew,
     getSuggestions

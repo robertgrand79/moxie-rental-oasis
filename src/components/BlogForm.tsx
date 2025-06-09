@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import AIContentGenerator from './AIContentGenerator';
 import BlogEditorLayout from './BlogEditorLayout';
 
 interface BlogPost {
@@ -37,17 +36,6 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
     }
   });
 
-  const watchedValues = form.watch();
-
-  const handleContentGenerated = (field: 'title' | 'excerpt' | 'content', generatedContent: string) => {
-    if (field === 'content') {
-      setContent(generatedContent);
-      form.setValue('content', generatedContent);
-    } else {
-      form.setValue(field, generatedContent);
-    }
-  };
-
   const onFormSubmit = (data: any) => {
     const formData = {
       ...data,
@@ -62,15 +50,6 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
 
   return (
     <div className="space-y-6">
-      <AIContentGenerator
-        onContentGenerated={handleContentGenerated}
-        currentContent={{
-          title: watchedValues.title || '',
-          excerpt: watchedValues.excerpt || '',
-          content: content
-        }}
-      />
-
       <BlogEditorLayout
         form={form}
         content={content}
