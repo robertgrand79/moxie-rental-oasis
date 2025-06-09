@@ -601,6 +601,7 @@ export type Database = {
           amenities: string | null
           bathrooms: number
           bedrooms: number
+          cover_image_url: string | null
           created_at: string
           created_by: string
           description: string
@@ -619,6 +620,7 @@ export type Database = {
           amenities?: string | null
           bathrooms: number
           bedrooms: number
+          cover_image_url?: string | null
           created_at?: string
           created_by: string
           description: string
@@ -637,6 +639,7 @@ export type Database = {
           amenities?: string | null
           bathrooms?: number
           bedrooms?: number
+          cover_image_url?: string | null
           created_at?: string
           created_by?: string
           description?: string

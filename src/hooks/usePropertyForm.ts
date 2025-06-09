@@ -51,6 +51,10 @@ export const usePropertyForm = () => {
       // Use reordered existing images if provided, otherwise use original
       const finalImages = data.reorderedExistingImages || editingProperty?.images || [];
       
+      // The first image in the final images array is always the cover photo
+      const coverImageUrl = finalImages.length > 0 ? finalImages[0] : undefined;
+      const regularImageUrl = finalImages.length > 0 ? finalImages[0] : undefined;
+
       // Convert PropertyFormData to Property format
       const propertyData: Omit<Property, 'id'> = {
         title: data.title,
@@ -62,8 +66,8 @@ export const usePropertyForm = () => {
         price_per_night: data.pricePerNight,
         hospitable_booking_url: data.hospitableBookingUrl,
         amenities: data.amenities,
-        image_url: undefined,
-        cover_image_url: undefined,
+        image_url: regularImageUrl,
+        cover_image_url: coverImageUrl, // Set cover image to first photo
         images: finalImages,
         featured_photos: data.featuredPhotos || [],
       };
@@ -89,21 +93,21 @@ export const usePropertyForm = () => {
       }
 
       // Update property with complete image information
-      if (uploadedImageUrls.length > 0 || finalImages.length > 0) {
+      if (uploadedImageUrls.length > 0) {
         const allImages = [...finalImages, ...uploadedImageUrls];
         
-        // First image is always the cover photo (simplified logic)
-        const coverImageUrl = allImages.length > 0 ? allImages[0] : undefined;
-        const regularImageUrl = allImages.length > 0 ? allImages[0] : undefined;
+        // First image is always the cover photo
+        const updatedCoverImageUrl = allImages.length > 0 ? allImages[0] : coverImageUrl;
+        const updatedRegularImageUrl = allImages.length > 0 ? allImages[0] : regularImageUrl;
 
-        console.log('Setting cover image (first photo):', coverImageUrl);
+        console.log('Setting cover image (first photo):', updatedCoverImageUrl);
 
         // Update the property with the new images and cover image
         const updatedPropertyData = {
           ...propertyData,
           images: allImages,
-          image_url: regularImageUrl,
-          cover_image_url: coverImageUrl, // Always use first image as cover
+          image_url: updatedRegularImageUrl,
+          cover_image_url: updatedCoverImageUrl, // Always use first image as cover
           featured_photos: data.featuredPhotos || [],
         };
 
