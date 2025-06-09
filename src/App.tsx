@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
@@ -45,7 +44,6 @@ function App() {
           <Route path="about" element={<About />} />
           <Route path="properties" element={<Properties />} />
           <Route path="property/:addressSlug" element={<PropertyPage />} />
-          <Route path="property/:propertyId" element={<PropertyPage />} />
           <Route path="experiences" element={<Experiences />} />
           <Route path="events" element={<Events />} />
           <Route path="blog" element={<Blog />} />

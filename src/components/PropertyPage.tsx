@@ -11,10 +11,17 @@ import MasonryPhotoGallery from '@/components/property/MasonryPhotoGallery';
 import BookingCard from '@/components/property/BookingCard';
 import FloatingBookingCard from '@/components/property/FloatingBookingCard';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
+import { generateAddressSlug } from '@/utils/addressSlug';
 
 const PropertyPage = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug, addressSlug } = useParams<{ slug?: string; addressSlug?: string }>();
   const { properties, loading } = useProperties();
+
+  // Use addressSlug if available (from /property/:addressSlug route), otherwise use slug
+  const currentSlug = addressSlug || slug;
+
+  console.log('PropertyPage - Current slug from URL:', currentSlug);
+  console.log('PropertyPage - Available properties:', properties.length);
 
   if (loading) {
     return (
@@ -26,17 +33,17 @@ const PropertyPage = () => {
     );
   }
 
-  // Find property by extracting address from slug
+  // Find property by generating consistent slug from location
   const property = properties.find(p => {
     if (!p.location) return false;
-    const addressSlug = p.location
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-    return slug === addressSlug;
+    
+    const propertySlug = generateAddressSlug(p.location);
+    console.log(`Comparing: "${currentSlug}" with "${propertySlug}" for property: ${p.location}`);
+    
+    return currentSlug === propertySlug;
   });
+
+  console.log('PropertyPage - Found property:', property ? property.title : 'Not found');
 
   if (!property) {
     return (
@@ -45,6 +52,7 @@ const PropertyPage = () => {
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Property Not Found</h1>
             <p className="text-xl text-gray-600">The property you're looking for doesn't exist or has been removed.</p>
+            <p className="text-sm text-gray-500 mt-4">Looking for slug: {currentSlug}</p>
           </div>
         </div>
       </BackgroundWrapper>
