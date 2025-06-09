@@ -68,7 +68,7 @@ const DraggablePhotoItem = ({
     >
       {/* Cover Photo Badge */}
       {index === 0 && (
-        <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-md font-medium z-10">
+        <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-md font-medium z-20">
           Cover Photo
         </div>
       )}
@@ -84,28 +84,22 @@ const DraggablePhotoItem = ({
         />
       </div>
 
-      {/* Indicators */}
+      {/* Background overlays - lowest z-index */}
+      <PhotoOverlays 
+        isSelected={isSelected}
+        isFeatured={isFeatured}
+      />
+
+      {/* Indicators - middle z-index */}
       <PhotoIndicators 
         isSelected={isSelected}
         isFeatured={isFeatured}
         index={index}
       />
 
-      {/* Action buttons overlay */}
-      <PhotoActionButtons
-        isSelected={isSelected}
-        isFeatured={isFeatured}
-        canAddMoreFeatured={canAddMoreFeatured}
-        disabled={disabled}
-        index={index}
-        photoUrl={photo.url}
-        onCoverSelect={onCoverSelect}
-        onFeaturedToggle={onFeaturedToggle}
-      />
-
-      {/* Controls - Hide move buttons since we auto-move */}
-      <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        {!photo.isExisting && !disabled && (
+      {/* Remove button for new photos only - positioned separately */}
+      {!photo.isExisting && !disabled && (
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
           <button
             type="button"
             onClick={(e) => {
@@ -116,13 +110,19 @@ const DraggablePhotoItem = ({
           >
             Remove
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Overlays */}
-      <PhotoOverlays
+      {/* Action buttons overlay - highest z-index to ensure clickability */}
+      <PhotoActionButtons
         isSelected={isSelected}
         isFeatured={isFeatured}
+        canAddMoreFeatured={canAddMoreFeatured}
+        disabled={disabled}
+        index={index}
+        photoUrl={photo.url}
+        onCoverSelect={onCoverSelect}
+        onFeaturedToggle={onFeaturedToggle}
       />
     </div>
   );

@@ -10,18 +10,14 @@ interface PhotoOverlaysProps {
 const PhotoOverlays = ({ isSelected, isFeatured }: PhotoOverlaysProps) => {
   return (
     <>
-      {/* Selection overlay */}
+      {/* Selection overlay - background only, no interactive elements */}
       {isSelected && (
-        <div className="absolute inset-0 bg-primary/10 flex items-center justify-center pointer-events-none">
-          <div className="bg-primary text-primary-foreground rounded-full p-2">
-            <Star className="h-4 w-4 fill-current" />
-          </div>
-        </div>
+        <div className="absolute inset-0 bg-primary/10 pointer-events-none z-10" />
       )}
 
-      {/* Featured overlay */}
+      {/* Featured overlay - background only, no interactive elements */}
       {isFeatured && !isSelected && (
-        <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-red-500/10 pointer-events-none z-10" />
       )}
     </>
   );
