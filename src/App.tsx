@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -37,7 +36,6 @@ import AdminUserManagement from '@/pages/admin/AdminUserManagement';
 import AdminRolesPermissions from '@/pages/admin/AdminRolesPermissions';
 import AdminTaskManagement from '@/pages/admin/AdminTaskManagement';
 import AdminWorkOrders from '@/pages/admin/AdminWorkOrders';
-import AdminSiteSettings from '@/pages/admin/AdminSiteSettings';
 import AdminSiteSettingsRedesigned from '@/pages/admin/AdminSiteSettingsRedesigned';
 
 function App() {
@@ -91,8 +89,7 @@ function App() {
                 <Route path="roles-permissions" element={<AdminRolesPermissions />} />
                 <Route path="task-management" element={<AdminTaskManagement />} />
                 <Route path="work-orders" element={<AdminWorkOrders />} />
-                <Route path="settings" element={<AdminSiteSettings />} />
-                <Route path="settings-redesigned" element={<AdminSiteSettingsRedesigned />} />
+                <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
               </Route>
             </Routes>
           </div>

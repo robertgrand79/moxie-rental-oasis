@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Settings,
@@ -71,7 +70,6 @@ export const adminMenuItems = [
     title: 'Settings',
     items: [
       { title: 'Site Settings', href: '/admin/settings', icon: Settings },
-      { title: 'Advanced Settings', href: '/admin/settings-redesigned', icon: Cog },
     ]
   }
 ];
