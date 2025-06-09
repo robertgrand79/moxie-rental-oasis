@@ -4,14 +4,25 @@ import { ArrowRight, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import OptimizedImage from '@/components/ui/optimized-image';
+import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 
 const HeroSection = () => {
+  const { settings, loading } = useStableSiteSettings();
+
+  // Use fallback values while loading or if settings are not available
+  const heroTitle = settings.heroTitle || 'Discover Eugene\'s';
+  const heroSubtitle = settings.heroSubtitle || 'Hidden Gems';
+  const heroDescription = settings.heroDescription || 'Experience the Pacific Northwest\'s best-kept secret with our curated collection of luxury vacation rentals in the heart of Oregon\'s cultural capital.';
+  const heroBackgroundImage = settings.heroBackgroundImage || '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png';
+  const heroLocationText = settings.heroLocationText || 'Prime Locations';
+  const heroCTAText = settings.heroCTAText || 'View Properties';
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with proper spacing */}
       <div className="absolute inset-0">
         <OptimizedImage
-          src="/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png"
+          src={heroBackgroundImage}
           alt="Eugene Oregon scenic background"
           className="w-full h-full object-cover"
           priority={true}
@@ -24,16 +35,15 @@ const HeroSection = () => {
         <div className="space-y-8">
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight">
-            Discover Eugene's 
+            {heroTitle}
             <span className="text-accent block sm:inline sm:ml-3">
-              Hidden Gems
+              {heroSubtitle}
             </span>
           </h1>
 
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
-            Experience the Pacific Northwest's best-kept secret with our curated collection 
-            of luxury vacation rentals in the heart of Oregon's cultural capital.
+            {heroDescription}
           </p>
 
           {/* Stats */}
@@ -44,11 +54,11 @@ const HeroSection = () => {
             </div>
             <div className="flex items-center space-x-2">
               <MapPin className="h-5 w-5 text-accent" />
-              <span className="text-sm font-medium">Prime Locations</span>
+              <span className="text-sm font-medium">{heroLocationText}</span>
             </div>
           </div>
 
-          {/* Single CTA Button - Removed Learn More button */}
+          {/* Single CTA Button */}
           <div className="flex justify-center items-center pt-4">
             <Button 
               asChild
@@ -56,7 +66,7 @@ const HeroSection = () => {
               className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold px-8 py-4 text-lg"
             >
               <Link to="/properties" className="flex items-center space-x-2">
-                <span>View Properties</span>
+                <span>{heroCTAText}</span>
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </Button>
