@@ -43,8 +43,11 @@ export const useTaskOperations = (
         
         const [propertyResult, projectResult] = await Promise.all(fetchPromises);
         
-        const taskWithRelations = {
+        const taskWithRelations: PropertyTask = {
           ...data,
+          type: data.type as PropertyTask['type'],
+          status: data.status as PropertyTask['status'],
+          priority: data.priority as PropertyTask['priority'],
           property: propertyResult.data,
           project: projectResult.data
         };
@@ -103,8 +106,11 @@ export const useTaskOperations = (
         
         const [propertyResult, projectResult] = await Promise.all(fetchPromises);
         
-        const updatedTask = {
+        const updatedTask: PropertyTask = {
           ...data,
+          type: data.type as PropertyTask['type'],
+          status: data.status as PropertyTask['status'],
+          priority: data.priority as PropertyTask['priority'],
           property: propertyResult.data,
           project: projectResult.data
         };

@@ -33,7 +33,14 @@ export const useProjectOperations = (
           property = propertyData;
         }
         
-        const projectWithProperty = { ...data, property };
+        const projectWithProperty: PropertyProject = {
+          ...data,
+          type: data.type as PropertyProject['type'],
+          status: data.status as PropertyProject['status'],
+          priority: data.priority as PropertyProject['priority'],
+          property
+        };
+        
         setProjects(prev => [projectWithProperty, ...prev]);
         
         toast({

@@ -46,7 +46,7 @@ export const usePropertyData = () => {
           data.map(project => project.property_id).filter(id => id)
         ));
         
-        let propertiesMap = new Map();
+        let propertiesMap = new Map<string, any>();
         
         if (propertyIds.length > 0) {
           const { data: propertiesData } = await supabase
@@ -61,12 +61,15 @@ export const usePropertyData = () => {
           }
         }
         
-        const projectsWithProperties = data.map(project => ({
+        const projectsWithProperties: PropertyProject[] = data.map(project => ({
           ...project,
+          type: project.type as PropertyProject['type'],
+          status: project.status as PropertyProject['status'],
+          priority: project.priority as PropertyProject['priority'],
           property: project.property_id ? propertiesMap.get(project.property_id) : undefined
         }));
         
-        setProjects(projectsWithProperties as PropertyProject[]);
+        setProjects(projectsWithProperties);
       } else {
         setProjects([]);
       }
@@ -119,20 +122,23 @@ export const usePropertyData = () => {
 
         const [propertiesResult, projectsResult] = await Promise.all(fetchPromises);
 
-        const propertiesMap = new Map(
+        const propertiesMap = new Map<string, any>(
           (propertiesResult.data || []).map(property => [property.id, property])
         );
-        const projectsMap = new Map(
+        const projectsMap = new Map<string, any>(
           (projectsResult.data || []).map(project => [project.id, project])
         );
         
-        const tasksWithRelations = data.map(task => ({
+        const tasksWithRelations: PropertyTask[] = data.map(task => ({
           ...task,
+          type: task.type as PropertyTask['type'],
+          status: task.status as PropertyTask['status'],
+          priority: task.priority as PropertyTask['priority'],
           property: task.property_id ? propertiesMap.get(task.property_id) : undefined,
           project: task.project_id ? projectsMap.get(task.project_id) : undefined
         }));
         
-        setTasks(tasksWithRelations as PropertyTask[]);
+        setTasks(tasksWithRelations);
       } else {
         setTasks([]);
       }
