@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import OptimizedImage from '@/components/ui/optimized-image';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
+import DraggablePhotoItem from './DraggablePhotoItem';
 
 interface Photo {
   id: string;
@@ -34,6 +35,13 @@ const PaginatedPhotoGrid = ({
 }: PaginatedPhotoGridProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+  
   const totalPages = Math.ceil(photos.length / itemsPerPage);
   const startIndex = currentPage * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, photos.length);
@@ -47,10 +55,32 @@ const PaginatedPhotoGrid = ({
     setCurrentPage(prev => Math.min(totalPages - 1, prev + 1));
   };
 
-  const handleMove = (fromIndex: number, toIndex: number) => {
-    const actualFromIndex = startIndex + fromIndex;
-    const actualToIndex = startIndex + toIndex;
-    onMove(actualFromIndex, actualToIndex);
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = currentPhotos.findIndex(photo => photo.id === active.id);
+      const newIndex = currentPhotos.findIndex(photo => photo.id === over.id);
+      
+      const actualOldIndex = startIndex + oldIndex;
+      const actualNewIndex = startIndex + newIndex;
+      
+      onMove(actualOldIndex, actualNewIndex);
+    }
+  };
+
+  const handleMoveUp = (index: number) => {
+    const actualIndex = startIndex + index;
+    if (actualIndex > 0) {
+      onMove(actualIndex, actualIndex - 1);
+    }
+  };
+
+  const handleMoveDown = (index: number) => {
+    const actualIndex = startIndex + index;
+    if (actualIndex < photos.length - 1) {
+      onMove(actualIndex, actualIndex + 1);
+    }
   };
 
   if (photos.length === 0) return null;
@@ -58,66 +88,38 @@ const PaginatedPhotoGrid = ({
   return (
     <div className="space-y-4">
       {/* Photo Grid */}
-      <SortableContext 
-        items={currentPhotos.map((_, index) => `photo-${startIndex + index}`)}
-        strategy={verticalListSortingStrategy}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {currentPhotos.map((photo, index) => {
-            const actualIndex = startIndex + index;
-            const isSelected = selectedCoverIndex === actualIndex;
-            
-            return (
-              <div
-                key={`photo-${actualIndex}`}
-                className="relative group cursor-pointer border-2 rounded-lg overflow-hidden transition-all hover:shadow-md"
-                style={{
-                  borderColor: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                }}
-                onClick={() => !disabled && onCoverSelect(actualIndex)}
-              >
-                <OptimizedImage
-                  src={photo.url}
-                  alt={`Property image ${actualIndex + 1}`}
-                  width={200}
-                  height={150}
-                  className="w-full h-24 object-cover"
+        <SortableContext 
+          items={currentPhotos.map(photo => photo.id)}
+          strategy={rectSortingStrategy}
+        >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {currentPhotos.map((photo, index) => {
+              const actualIndex = startIndex + index;
+              const isSelected = selectedCoverIndex === actualIndex;
+              
+              return (
+                <DraggablePhotoItem
+                  key={photo.id}
+                  photo={photo}
+                  index={actualIndex}
+                  isSelected={isSelected}
+                  onCoverSelect={onCoverSelect}
+                  onRemove={onRemove}
+                  onMoveUp={handleMoveUp}
+                  onMoveDown={handleMoveDown}
+                  disabled={disabled}
+                  totalPhotos={photos.length}
                 />
-                
-                {/* Cover indicator */}
-                <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-1 rounded">
-                  {isSelected ? 'Cover' : actualIndex + 1}
-                </div>
-
-                {/* Remove button for new uploads */}
-                {!photo.isExisting && !disabled && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRemove(actualIndex);
-                    }}
-                  >
-                    ×
-                  </Button>
-                )}
-
-                {/* Selection overlay */}
-                {isSelected && (
-                  <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                    <div className="bg-primary text-primary-foreground rounded-full p-1">
-                      ★
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </SortableContext>
+              );
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {/* Pagination Controls */}
       {totalPages > 1 && (

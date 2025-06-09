@@ -3,11 +3,10 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
 import { parseAddressSlug } from '@/utils/addressSlug';
-import BackgroundWrapper from '@/components/home/BackgroundWrapper';
-import PropertyHeader from './property/PropertyHeader';
-import PropertyDetails from './property/PropertyDetails';
-import PropertyPhotoCollage from './property/PropertyPhotoCollage';
-import BookingCard from './property/BookingCard';
+import PropertyPageHero from './property/PropertyPageHero';
+import MasonryPhotoGallery from './property/MasonryPhotoGallery';
+import EnhancedPropertyDetails from './property/EnhancedPropertyDetails';
+import FloatingBookingCard from './property/FloatingBookingCard';
 import LoadingState from '@/components/ui/loading-state';
 
 const PropertyPage = () => {
@@ -16,11 +15,9 @@ const PropertyPage = () => {
 
   if (loading) {
     return (
-      <BackgroundWrapper>
-        <div className="container mx-auto px-4 py-16">
-          <LoadingState variant="page" message="Loading property details..." />
-        </div>
-      </BackgroundWrapper>
+      <div className="min-h-screen bg-background">
+        <LoadingState variant="page" message="Loading property details..." />
+      </div>
     );
   }
 
@@ -66,14 +63,12 @@ const PropertyPage = () => {
 
   if (!property) {
     return (
-      <BackgroundWrapper>
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Property Not Found</h1>
-            <p className="text-xl text-gray-600">The property you're looking for doesn't exist or may have been removed.</p>
-          </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-foreground mb-4">Property Not Found</h1>
+          <p className="text-xl text-muted-foreground">The property you're looking for doesn't exist or may have been removed.</p>
         </div>
-      </BackgroundWrapper>
+      </div>
     );
   }
 
@@ -84,27 +79,29 @@ const PropertyPage = () => {
       ? [property.image_url] 
       : [];
 
+  const coverImage = propertyImages[0] || '/placeholder.svg';
+
   return (
-    <BackgroundWrapper>
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20">
-          {/* Property Photo Collage */}
-          <PropertyPhotoCollage 
-            images={propertyImages}
-            title={property.title}
-          />
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <PropertyPageHero property={property} coverImage={coverImage} />
 
-          <div className="p-8 lg:p-12">
-            <PropertyHeader property={property} />
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <PropertyDetails property={property} />
-              <BookingCard property={property} />
-            </div>
-          </div>
-        </div>
+      {/* Floating Booking Card */}
+      <div className="fixed top-8 right-8 z-40 hidden lg:block">
+        <FloatingBookingCard property={property} />
       </div>
-    </BackgroundWrapper>
+
+      {/* Photo Gallery */}
+      <MasonryPhotoGallery images={propertyImages} title={property.title} />
+
+      {/* Property Details */}
+      <EnhancedPropertyDetails property={property} />
+
+      {/* Mobile Booking Card */}
+      <div className="lg:hidden sticky bottom-0 z-40 bg-background border-t border-border p-4">
+        <FloatingBookingCard property={property} />
+      </div>
+    </div>
   );
 };
 

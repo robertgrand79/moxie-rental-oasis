@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormLabel } from '@/components/ui/form';
-import { Upload, X, Star, ChevronUp, ChevronDown } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import PaginatedPhotoGrid from './PaginatedPhotoGrid';
 
@@ -115,22 +115,29 @@ const PhotoUploadSection = ({
   const movePhoto = (fromIndex: number, toIndex: number) => {
     if (disabled) return;
     
-    // Simple reordering logic - for now just update cover selection
+    // For now, just update cover selection based on the move
     if (selectedCoverIndex === fromIndex) {
       onCoverSelect?.(toIndex);
+    } else if (selectedCoverIndex === toIndex) {
+      onCoverSelect?.(fromIndex);
     }
   };
 
   return (
-    <div className="space-y-4">
-      <FormLabel>Property Photos</FormLabel>
+    <div className="space-y-6">
+      <FormLabel className="text-lg font-semibold">Property Photos</FormLabel>
       
       {/* Photo Gallery */}
       {allPhotos.length > 0 && (
-        <div className="space-y-2">
-          <FormLabel className="text-sm font-medium">
-            All Property Images ({allPhotos.length}) - Click to select cover photo
-          </FormLabel>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <FormLabel className="text-sm font-medium">
+              Photo Gallery ({allPhotos.length} photos)
+            </FormLabel>
+            <p className="text-xs text-muted-foreground">
+              Drag photos to reorder • Click to select cover photo
+            </p>
+          </div>
           <PaginatedPhotoGrid
             photos={allPhotos}
             selectedCoverIndex={selectedCoverIndex}
@@ -139,8 +146,8 @@ const PhotoUploadSection = ({
             onMove={movePhoto}
             disabled={disabled}
           />
-          <p className="text-xs text-muted-foreground">
-            The starred image will be used as the cover photo.
+          <p className="text-xs text-muted-foreground text-center">
+            The starred image will be used as the cover photo for your property listing.
           </p>
         </div>
       )}
@@ -148,9 +155,9 @@ const PhotoUploadSection = ({
       {/* Photo Upload Area */}
       <div
         className={cn(
-          "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
-          dragActive && !disabled ? "border-primary bg-primary/5" : "border-muted-foreground/25",
-          !disabled && "hover:border-primary hover:bg-primary/5",
+          "border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300",
+          dragActive && !disabled ? "border-primary bg-primary/5 scale-105" : "border-muted-foreground/25",
+          !disabled && "hover:border-primary hover:bg-primary/5 cursor-pointer",
           disabled && "opacity-50 cursor-not-allowed"
         )}
         onDragEnter={handleDrag}
@@ -158,14 +165,16 @@ const PhotoUploadSection = ({
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-        <div className="space-y-2">
-          <p className="text-sm font-medium">
-            {disabled ? 'Upload in progress...' : 'Add more photos'}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {disabled ? 'Please wait while photos are being processed' : 'Drag and drop or click to select files (JPEG, PNG, WebP, GIF)'}
-          </p>
+        <Upload className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+        <div className="space-y-4">
+          <div>
+            <p className="text-lg font-medium">
+              {disabled ? 'Upload in progress...' : 'Add more photos'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {disabled ? 'Please wait while photos are being processed' : 'Drag and drop or click to select files (JPEG, PNG, WebP, GIF)'}
+            </p>
+          </div>
           {!disabled && (
             <>
               <input
@@ -179,8 +188,9 @@ const PhotoUploadSection = ({
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
+                size="lg"
                 onClick={() => document.getElementById('photo-upload')?.click()}
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               >
                 Choose Files
               </Button>
