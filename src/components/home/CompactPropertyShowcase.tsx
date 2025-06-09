@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Bed, Bath, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
+import { generateAddressSlug } from '@/utils/addressSlug';
 import OptimizedImage from '@/components/ui/optimized-image';
 import PropertyCardSkeleton from '@/components/ui/property-card-skeleton';
 
@@ -36,56 +37,60 @@ const CompactPropertyShowcase = () => {
             <>
               {/* Properties Grid - Limit to 4 for cleaner layout */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-                {properties.slice(0, 4).map((property) => (
-                  <Card key={property.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-md">
-                    <div className="aspect-[4/3] relative overflow-hidden">
-                      <OptimizedImage 
-                        src={property.image_url} 
-                        alt={property.title}
-                        width={300}
-                        height={225}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <CardContent className="p-6">
-                      <h3 className="font-bold text-lg mb-2 line-clamp-2 text-gray-900 min-h-[3.5rem]">
-                        {property.title}
-                      </h3>
-                      
-                      <div className="flex items-center text-sm text-gray-500 mb-4">
-                        <MapPin className="h-4 w-4 mr-1 flex-shrink-0 text-icon-blue" />
-                        <span className="line-clamp-1">{property.location}</span>
+                {properties.slice(0, 4).map((property) => {
+                  const addressSlug = generateAddressSlug(property.location, property.id);
+                  
+                  return (
+                    <Card key={property.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-md">
+                      <div className="aspect-[4/3] relative overflow-hidden">
+                        <OptimizedImage 
+                          src={property.image_url} 
+                          alt={property.title}
+                          width={300}
+                          height={225}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
                       </div>
-                      
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
-                        <div className="flex items-center">
-                          <Bed className="h-4 w-4 mr-1 text-icon-purple" />
-                          <span>{property.bedrooms}</span>
+                      <CardContent className="p-6">
+                        <h3 className="font-bold text-lg mb-2 line-clamp-2 text-gray-900 min-h-[3.5rem]">
+                          {property.title}
+                        </h3>
+                        
+                        <div className="flex items-center text-sm text-gray-500 mb-4">
+                          <MapPin className="h-4 w-4 mr-1 flex-shrink-0 text-icon-blue" />
+                          <span className="line-clamp-1">{property.location}</span>
                         </div>
-                        <div className="flex items-center">
-                          <Bath className="h-4 w-4 mr-1 text-icon-teal" />
-                          <span>{property.bathrooms}</span>
+                        
+                        <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
+                          <div className="flex items-center">
+                            <Bed className="h-4 w-4 mr-1 text-icon-purple" />
+                            <span>{property.bedrooms}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Bath className="h-4 w-4 mr-1 text-icon-teal" />
+                            <span>{property.bathrooms}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-1 text-icon-emerald" />
+                            <span>{property.max_guests}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-1 text-icon-emerald" />
-                          <span>{property.max_guests}</span>
-                        </div>
-                      </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="font-bold text-lg text-gray-900">
-                          ${property.price_per_night}
-                          <span className="text-sm font-normal text-gray-500">/night</span>
+                        <div className="flex items-center justify-between">
+                          <div className="font-bold text-lg text-gray-900">
+                            ${property.price_per_night}
+                            <span className="text-sm font-normal text-gray-500">/night</span>
+                          </div>
+                          <Link to={`/property/${addressSlug}`}>
+                            <Button size="sm" className="min-h-[40px]">
+                              View Details
+                            </Button>
+                          </Link>
                         </div>
-                        <Link to={`/property/${property.id}`}>
-                          <Button size="sm" className="min-h-[40px]">
-                            View Details
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
               
               {/* View All Properties Button */}

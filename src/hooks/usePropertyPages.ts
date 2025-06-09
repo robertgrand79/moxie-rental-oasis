@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Property } from '@/types/property';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { generateAddressSlug } from '@/utils/addressSlug';
 
 export const usePropertyPages = () => {
   const { toast } = useToast();
@@ -11,14 +12,8 @@ export const usePropertyPages = () => {
   const createPropertyPage = async (property: Property) => {
     if (!user) return;
 
-    // Generate SEO-friendly slug with property ID for uniqueness
-    const locationSlug = property.location
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .trim();
-    
-    const slug = `property-${property.id}-${locationSlug}`;
+    // Generate SEO-friendly slug using the new address slug function
+    const slug = generateAddressSlug(property.location, property.id);
 
     // Create SEO-optimized content
     const pageTitle = `${property.title} - ${property.location}`;
@@ -82,14 +77,8 @@ Ready to experience this amazing property? Book now through our secure booking s
     if (!user) return;
 
     try {
-      // Generate the same slug that was used during creation (with property ID)
-      const locationSlug = property.location
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .trim();
-
-      const pageSlug = `property-${property.id}-${locationSlug}`;
+      // Generate the same slug that was used during creation
+      const pageSlug = generateAddressSlug(property.location, property.id);
 
       console.log('Attempting to delete page with slug:', pageSlug);
 

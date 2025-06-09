@@ -2,6 +2,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
+import { parseAddressSlug } from '@/utils/addressSlug';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import PropertyHeader from './property/PropertyHeader';
 import PropertyDetails from './property/PropertyDetails';
@@ -9,7 +10,7 @@ import BookingCard from './property/BookingCard';
 import LoadingState from '@/components/ui/loading-state';
 
 const PropertyPage = () => {
-  const { propertyId, slug } = useParams<{ propertyId?: string; slug?: string }>();
+  const { propertyId, addressSlug } = useParams<{ propertyId?: string; addressSlug?: string }>();
   const { properties, loading } = useProperties();
 
   if (loading) {
@@ -22,22 +23,38 @@ const PropertyPage = () => {
     );
   }
 
-  // Find property by ID or by matching slug pattern
+  // Find property by ID or by address slug
   let property = null;
   
   if (propertyId) {
+    // Try to find by property ID first (handles both UUID and legacy routing)
     property = properties.find(p => p.id === propertyId);
-  } else if (slug) {
-    // Convert slug back to location format for matching
-    const locationFromSlug = slug
-      .replace('property-', '')
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, l => l.toUpperCase());
     
-    property = properties.find(p => 
-      p.location.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim() === 
-      locationFromSlug.toLowerCase()
-    );
+    // If not found by ID, try to parse as address slug with ID suffix
+    if (!property) {
+      const { location, propertyId: extractedId } = parseAddressSlug(propertyId);
+      if (extractedId) {
+        property = properties.find(p => p.id.startsWith(extractedId));
+      } else {
+        // Try to match by location
+        property = properties.find(p => 
+          p.location.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim() === 
+          location.toLowerCase()
+        );
+      }
+    }
+  } else if (addressSlug) {
+    // Handle address slug routing
+    const { location, propertyId: extractedId } = parseAddressSlug(addressSlug);
+    
+    if (extractedId) {
+      property = properties.find(p => p.id.startsWith(extractedId));
+    } else {
+      property = properties.find(p => 
+        p.location.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim() === 
+        location.toLowerCase()
+      );
+    }
   }
 
   if (!property) {
