@@ -46,7 +46,8 @@ const PropertyShowcase = () => {
         {properties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {properties.map((property) => {
-              const addressSlug = generateAddressSlug(property.location, property.id);
+              // Generate clean address slug without property ID
+              const addressSlug = generateAddressSlug(property.location);
               
               return (
                 <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">

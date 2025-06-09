@@ -1,5 +1,5 @@
 
-export const generateAddressSlug = (location: string, propertyId?: string): string => {
+export const generateAddressSlug = (location: string, includePropertyId?: string): string => {
   // Convert location to URL-friendly slug
   const baseSlug = location
     .toLowerCase()
@@ -9,8 +9,8 @@ export const generateAddressSlug = (location: string, propertyId?: string): stri
     .trim()
     .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
 
-  // Add property ID suffix for uniqueness if provided
-  return propertyId ? `${baseSlug}-${propertyId.slice(0, 8)}` : baseSlug;
+  // Only add property ID suffix if explicitly requested (for backward compatibility)
+  return includePropertyId ? `${baseSlug}-${includePropertyId.slice(0, 8)}` : baseSlug;
 };
 
 export const parseAddressSlug = (slug: string): { location: string; propertyId?: string } => {
@@ -19,12 +19,12 @@ export const parseAddressSlug = (slug: string): { location: string; propertyId?:
   const lastPart = parts[parts.length - 1];
   
   if (lastPart && lastPart.length === 8 && /^[a-f0-9]{8}$/.test(lastPart)) {
-    // Has property ID suffix
+    // Has property ID suffix - backward compatibility
     const location = parts.slice(0, -1).join('-').replace(/-/g, ' ');
     return { location, propertyId: lastPart };
   }
   
-  // No property ID suffix
+  // No property ID suffix - clean address slug
   const location = slug.replace(/-/g, ' ');
   return { location };
 };

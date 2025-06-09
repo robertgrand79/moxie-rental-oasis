@@ -28,20 +28,23 @@ const PropertyPage = () => {
   let property = null;
   
   if (propertyId) {
-    // Try to find by property ID first (handles both UUID and legacy routing)
-    property = properties.find(p => p.id === propertyId);
+    // Parse the propertyId parameter which could be either an ID or address slug
+    const { location, propertyId: extractedId } = parseAddressSlug(propertyId);
     
-    // If not found by ID, try to parse as address slug with ID suffix
-    if (!property) {
-      const { location, propertyId: extractedId } = parseAddressSlug(propertyId);
-      if (extractedId) {
-        property = properties.find(p => p.id.startsWith(extractedId));
-      } else {
-        // Try to match by location
-        property = properties.find(p => 
-          p.location.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim() === 
-          location.toLowerCase()
-        );
+    if (extractedId) {
+      // Has property ID suffix - use ID for lookup (backward compatibility)
+      property = properties.find(p => p.id.startsWith(extractedId));
+    } else {
+      // Clean address slug - find by location first
+      const normalizedLocation = location.toLowerCase().trim();
+      property = properties.find(p => 
+        p.location.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim() === 
+        normalizedLocation
+      );
+      
+      // Fallback: try to find by exact ID match if location lookup fails
+      if (!property) {
+        property = properties.find(p => p.id === propertyId);
       }
     }
   } else if (addressSlug) {
@@ -49,11 +52,14 @@ const PropertyPage = () => {
     const { location, propertyId: extractedId } = parseAddressSlug(addressSlug);
     
     if (extractedId) {
+      // Has property ID suffix - use ID for lookup (backward compatibility)
       property = properties.find(p => p.id.startsWith(extractedId));
     } else {
+      // Clean address slug - find by location
+      const normalizedLocation = location.toLowerCase().trim();
       property = properties.find(p => 
         p.location.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim() === 
-        location.toLowerCase()
+        normalizedLocation
       );
     }
   }

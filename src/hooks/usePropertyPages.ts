@@ -12,8 +12,8 @@ export const usePropertyPages = () => {
   const createPropertyPage = async (property: Property) => {
     if (!user) return;
 
-    // Generate SEO-friendly slug using the new address slug function
-    const slug = generateAddressSlug(property.location, property.id);
+    // Generate clean SEO-friendly slug without property ID
+    const slug = generateAddressSlug(property.location);
 
     // Create SEO-optimized content
     const pageTitle = `${property.title} - ${property.location}`;
@@ -77,8 +77,8 @@ Ready to experience this amazing property? Book now through our secure booking s
     if (!user) return;
 
     try {
-      // Generate the same slug that was used during creation
-      const pageSlug = generateAddressSlug(property.location, property.id);
+      // Generate the same clean slug that was used during creation
+      const pageSlug = generateAddressSlug(property.location);
 
       console.log('Attempting to delete page with slug:', pageSlug);
 

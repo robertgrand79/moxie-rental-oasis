@@ -38,7 +38,8 @@ const CompactPropertyShowcase = () => {
               {/* Properties Grid - Limit to 4 for cleaner layout */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
                 {properties.slice(0, 4).map((property) => {
-                  const addressSlug = generateAddressSlug(property.location, property.id);
+                  // Generate clean address slug without property ID
+                  const addressSlug = generateAddressSlug(property.location);
                   
                   return (
                     <Card key={property.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-md">
