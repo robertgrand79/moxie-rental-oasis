@@ -1,8 +1,11 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, Calendar, Star } from 'lucide-react';
 import { Property } from '@/types/property';
 import { useIsMobile } from '@/hooks/use-mobile';
+import PropertyDescription from './PropertyDescription';
+import PropertyHighlights from './PropertyHighlights';
+import PropertyLocationInfo from './PropertyLocationInfo';
 
 interface AboutPropertySectionProps {
   property: Property;
@@ -12,42 +15,23 @@ const AboutPropertySection = ({ property }: AboutPropertySectionProps) => {
   const isMobile = useIsMobile();
 
   if (isMobile) {
-    // Mobile version - simpler, more compact
     return (
       <div className="py-8 bg-white">
         <div className="px-4">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Property</h2>
-            <div className="prose prose-gray max-w-none">
-              <p className="text-gray-700 leading-relaxed">
-                {property.description}
-              </p>
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">About This Property</h2>
+              <PropertyLocationInfo property={property} isMobile={isMobile} />
+              <PropertyDescription description={property.description} isMobile={isMobile} />
             </div>
-          </div>
-          
-          {/* Mobile highlights */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-xl font-bold text-primary">{property.bedrooms}</div>
-                <div className="text-sm text-gray-600">Bedrooms</div>
-              </div>
-              <div>
-                <div className="text-xl font-bold text-primary">{property.bathrooms}</div>
-                <div className="text-sm text-gray-600">Bathrooms</div>
-              </div>
-              <div>
-                <div className="text-xl font-bold text-primary">{property.max_guests}</div>
-                <div className="text-sm text-gray-600">Guests</div>
-              </div>
-            </div>
+            
+            <PropertyHighlights property={property} isMobile={isMobile} />
           </div>
         </div>
       </div>
     );
   }
 
-  // Desktop version - keep existing design
   return (
     <div className="py-16 bg-gradient-to-br from-slate-50 to-white">
       <div className="container mx-auto px-4">
@@ -59,58 +43,11 @@ const AboutPropertySection = ({ property }: AboutPropertySectionProps) => {
           
           <Card className="overflow-hidden shadow-xl border-0 bg-white/80 backdrop-blur-sm">
             <CardContent className="p-0">
-              {/* Header with location and quick stats */}
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-8 border-b border-gray-100">
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <div className="flex items-center text-gray-700">
-                    <MapPin className="h-5 w-5 mr-2 text-primary" />
-                    <span className="font-medium">{property.location}</span>
-                  </div>
-                  <div className="flex items-center space-x-6 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 mr-1 text-amber-500 fill-current" />
-                      <span>Premium Property</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1 text-primary" />
-                      <span>Available Year-Round</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <PropertyLocationInfo property={property} isMobile={isMobile} />
               
-              {/* Main description */}
               <div className="p-8">
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-gray-700 leading-relaxed text-lg">
-                    {property.description}
-                  </p>
-                </div>
-                
-                {/* Quick highlights grid */}
-                <div className="grid grid-cols-3 gap-6 mt-8 pt-8 border-t border-gray-100">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-2xl font-bold text-primary">{property.bedrooms}</span>
-                    </div>
-                    <h4 className="font-semibold text-gray-900">Bedrooms</h4>
-                    <p className="text-sm text-gray-600">Comfortable sleeping</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-2xl font-bold text-primary">{property.bathrooms}</span>
-                    </div>
-                    <h4 className="font-semibold text-gray-900">Bathrooms</h4>
-                    <p className="text-sm text-gray-600">Modern fixtures</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-2xl font-bold text-primary">{property.max_guests}</span>
-                    </div>
-                    <h4 className="font-semibold text-gray-900">Guests</h4>
-                    <p className="text-sm text-gray-600">Maximum capacity</p>
-                  </div>
-                </div>
+                <PropertyDescription description={property.description} isMobile={isMobile} />
+                <PropertyHighlights property={property} isMobile={isMobile} />
               </div>
             </CardContent>
           </Card>
