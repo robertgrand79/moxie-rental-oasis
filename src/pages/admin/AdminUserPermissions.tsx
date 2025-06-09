@@ -9,7 +9,7 @@ import UserPermissionsTable from '@/components/admin/users/UserPermissionsTable'
 import UserPermissionsModal from '@/components/admin/users/UserPermissionsModal';
 
 const AdminUserPermissions = () => {
-  const { users, loading, updateUserPermissions, updateUserRole } = useUserPermissions();
+  const { users, loading, updateUserPermissions, updateSinglePermission, updateUserRole } = useUserPermissions();
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -132,7 +132,7 @@ const AdminUserPermissions = () => {
               users={users}
               onEditPermissions={handleEditPermissions}
               onUpdateRole={updateUserRole}
-              onQuickPermissionToggle={updateUserPermissions}
+              onQuickPermissionToggle={updateSinglePermission}
             />
           </CardContent>
         </Card>

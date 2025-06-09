@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { AuthProvider } from '@/components/auth/AuthProvider';
-import { PublicLayout } from '@/components/layout/PublicLayout';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { AdminLayoutWrapper } from '@/components/admin/AdminLayoutWrapper';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { PublicLayout } from '@/components/layouts/PublicLayout';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { AdminLayoutWrapper } from '@/components/layouts/AdminLayoutWrapper';
 
 // Public Pages
 import Index from '@/pages/Index';
@@ -27,8 +28,8 @@ import NotFound from '@/pages/NotFound';
 import Auth from '@/pages/Auth';
 
 // Admin Pages
-import Admin from '@/pages/admin/Admin';
-import AdminProfile from '@/pages/admin/AdminProfile';
+import Admin from '@/pages/Admin';
+import AdminProfile from '@/pages/AdminProfile';
 import AdminSiteSettingsRedesigned from '@/pages/admin/AdminSiteSettingsRedesigned';
 import AdminProperties from '@/pages/admin/AdminProperties';
 import AdminNewsletter from '@/pages/admin/AdminNewsletter';

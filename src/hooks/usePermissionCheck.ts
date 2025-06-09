@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { UserPermissions } from './useUserPermissions';
+import { UserPermissions, defaultPermissions } from './useUserPermissions';
 
 export const usePermissionCheck = () => {
   const [userPermissions, setUserPermissions] = useState<UserPermissions | null>(null);
@@ -22,7 +22,10 @@ export const usePermissionCheck = () => {
 
           if (profile) {
             setUserRole(profile.role);
-            setUserPermissions(profile.permissions || {});
+            // Safely handle the permissions object
+            const permissions = profile.permissions as Record<string, any> || {};
+            const mergedPermissions = { ...defaultPermissions, ...permissions };
+            setUserPermissions(mergedPermissions as UserPermissions);
           }
         }
       } catch (error) {
