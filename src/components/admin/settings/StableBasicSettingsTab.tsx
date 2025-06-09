@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
 import { Button } from '@/components/ui/button';
@@ -26,13 +27,17 @@ const StableBasicSettingsTab = () => {
     updateSettingOptimistic({ [field]: value } as any);
   };
 
-  const handleImageChange = (imageUrl: string | null) => {
+  const handleImageChange = async (imageUrl: string | null) => {
     const newImageUrl = imageUrl || '';
     setLocalSettings(prev => ({
       ...prev,
       heroBackgroundImage: newImageUrl
     }));
-    updateSettingOptimistic({ heroBackgroundImage: newImageUrl });
+    
+    // Save immediately when image is uploaded/changed
+    await saveSettings({
+      heroBackgroundImage: newImageUrl
+    });
   };
 
   const handleSocialMediaChange = (platform: string, value: string) => {
@@ -60,7 +65,6 @@ const StableBasicSettingsTab = () => {
       heroTitle: localSettings.heroTitle,
       heroSubtitle: localSettings.heroSubtitle,
       heroDescription: localSettings.heroDescription,
-      heroBackgroundImage: localSettings.heroBackgroundImage,
       heroLocationText: localSettings.heroLocationText,
       heroRating: localSettings.heroRating,
       heroCTAText: localSettings.heroCTAText
