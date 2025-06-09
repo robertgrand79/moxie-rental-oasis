@@ -123,6 +123,7 @@ const PaginatedPhotoGrid = ({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={handlePrevPage}
@@ -137,6 +138,7 @@ const PaginatedPhotoGrid = ({
           </span>
           
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={handleNextPage}
