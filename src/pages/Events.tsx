@@ -9,6 +9,12 @@ import { useEugeneEvents } from '@/hooks/useEugeneEvents';
 const Events = () => {
   const { events, isLoading } = useEugeneEvents();
 
+  const handleClearFilters = () => {
+    // Since this is the main events page without filters, 
+    // we can just reload the page or do nothing
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background">
       <div className="container mx-auto px-6 lg:px-8 py-16">
@@ -17,7 +23,7 @@ const Events = () => {
         {isLoading ? (
           <EventsLoadingState />
         ) : events.length === 0 ? (
-          <EventsEmptyState />
+          <EventsEmptyState onClearFilters={handleClearFilters} />
         ) : (
           <EventsGrid events={events} />
         )}
