@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { contractorService } from '@/services/contractorService';
+import { workOrderService } from '@/services/workOrderService';
 
 export interface Contractor {
   id: string;
@@ -57,14 +59,8 @@ export const useWorkOrderManagement = () => {
 
   const fetchContractors = async () => {
     try {
-      const { data, error } = await supabase
-        .from('contractors')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      setContractors(data || []);
+      const data = await contractorService.fetchAll();
+      setContractors(data);
     } catch (error) {
       console.error('Error fetching contractors:', error);
       toast({
@@ -77,18 +73,8 @@ export const useWorkOrderManagement = () => {
 
   const fetchWorkOrders = async () => {
     try {
-      const { data, error } = await supabase
-        .from('work_orders')
-        .select(`
-          *,
-          contractor:contractors(*),
-          property:properties(*),
-          task:tasks(*)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setWorkOrders(data || []);
+      const data = await workOrderService.fetchAll();
+      setWorkOrders(data);
     } catch (error) {
       console.error('Error fetching work orders:', error);
       toast({
@@ -101,23 +87,12 @@ export const useWorkOrderManagement = () => {
 
   const createContractor = async (contractorData: Omit<Contractor, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('contractors')
-        .insert([{ ...contractorData, created_by: user.id }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
+      const data = await contractorService.create(contractorData);
       setContractors(prev => [data, ...prev]);
       toast({
         title: 'Success',
         description: 'Contractor created successfully',
       });
-      
       return data;
     } catch (error) {
       console.error('Error creating contractor:', error);
@@ -132,32 +107,12 @@ export const useWorkOrderManagement = () => {
 
   const createWorkOrder = async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'contractor' | 'property' | 'task'>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('work_orders')
-        .insert([{ 
-          ...workOrderData, 
-          created_by: user.id,
-          work_order_number: '' // This will trigger auto-generation via database trigger
-        }])
-        .select(`
-          *,
-          contractor:contractors(*),
-          property:properties(*),
-          task:tasks(*)
-        `)
-        .single();
-
-      if (error) throw error;
-      
+      const data = await workOrderService.create(workOrderData);
       setWorkOrders(prev => [data, ...prev]);
       toast({
         title: 'Success',
         description: 'Work order created successfully',
       });
-      
       return data;
     } catch (error) {
       console.error('Error creating work order:', error);
@@ -172,24 +127,10 @@ export const useWorkOrderManagement = () => {
 
   const updateWorkOrder = async (workOrderId: string, updates: Partial<WorkOrder>) => {
     try {
-      const { data, error } = await supabase
-        .from('work_orders')
-        .update(updates)
-        .eq('id', workOrderId)
-        .select(`
-          *,
-          contractor:contractors(*),
-          property:properties(*),
-          task:tasks(*)
-        `)
-        .single();
-
-      if (error) throw error;
-      
+      const data = await workOrderService.update(workOrderId, updates);
       setWorkOrders(prev => prev.map(wo => 
         wo.id === workOrderId ? data : wo
       ));
-      
       return data;
     } catch (error) {
       console.error('Error updating work order:', error);
@@ -204,13 +145,7 @@ export const useWorkOrderManagement = () => {
 
   const deleteWorkOrder = async (workOrderId: string) => {
     try {
-      const { error } = await supabase
-        .from('work_orders')
-        .delete()
-        .eq('id', workOrderId);
-
-      if (error) throw error;
-      
+      await workOrderService.delete(workOrderId);
       setWorkOrders(prev => prev.filter(wo => wo.id !== workOrderId));
       toast({
         title: 'Success',
@@ -229,24 +164,14 @@ export const useWorkOrderManagement = () => {
 
   const updateContractor = async (contractorId: string, updates: Partial<Contractor>) => {
     try {
-      const { data, error } = await supabase
-        .from('contractors')
-        .update(updates)
-        .eq('id', contractorId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
+      const data = await contractorService.update(contractorId, updates);
       setContractors(prev => prev.map(contractor => 
         contractor.id === contractorId ? data : contractor
       ));
-
       toast({
         title: 'Success',
         description: 'Contractor updated successfully',
       });
-      
       return data;
     } catch (error) {
       console.error('Error updating contractor:', error);
@@ -261,13 +186,7 @@ export const useWorkOrderManagement = () => {
 
   const deleteContractor = async (contractorId: string) => {
     try {
-      const { error } = await supabase
-        .from('contractors')
-        .delete()
-        .eq('id', contractorId);
-
-      if (error) throw error;
-      
+      await contractorService.delete(contractorId);
       setContractors(prev => prev.filter(contractor => contractor.id !== contractorId));
       toast({
         title: 'Success',
