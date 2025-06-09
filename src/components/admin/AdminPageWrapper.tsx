@@ -15,26 +15,26 @@ const AdminPageWrapper = ({
   actions 
 }: AdminPageWrapperProps) => {
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-white/20">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+    <div className="space-y-8">
+      {/* Cleaner Page Header */}
+      <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-100">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
             {description && (
-              <p className="text-gray-600 mt-1">{description}</p>
+              <p className="text-gray-600 text-lg">{description}</p>
             )}
           </div>
           {actions && (
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 ml-6">
               {actions}
             </div>
           )}
         </div>
       </div>
 
-      {/* Page Content */}
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20">
+      {/* Page Content with better spacing */}
+      <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
         {children}
       </div>
     </div>

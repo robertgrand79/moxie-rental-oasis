@@ -10,7 +10,6 @@ import { Property } from '@/types/property';
 import PhotoUploadSection from './PropertyForm/PhotoUploadSection';
 import PropertyDetailsForm from './PropertyForm/PropertyDetailsForm';
 import BookingIntegrationSection from './PropertyForm/BookingIntegrationSection';
-import PropertyAIGenerator from './PropertyAIGenerator';
 import { PropertyFormData } from './PropertyForm/types';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 import { Loader2 } from 'lucide-react';
@@ -57,88 +56,80 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
   });
 
   const handleSubmit = (data: PropertyFormData) => {
-    if (isSubmitting) return; // Prevent multiple submissions
+    if (isSubmitting) return;
+    console.log('Cover photo selected at index:', selectedCoverIndex);
     onSubmit({ ...data, photos, selectedCoverIndex, featuredPhotos });
   };
 
-  const handleAIContentGenerated = (field: 'title' | 'description' | 'amenities', content: string) => {
-    form.setValue(field, content);
-  };
-
-  const currentFormValues = form.watch();
   const isProcessing = isSubmitting || uploading;
 
   return (
-    <div className="space-y-6">
-      <PropertyAIGenerator
-        onContentGenerated={handleAIContentGenerated}
-        propertyData={currentFormValues}
-      />
+    <Card className="w-full max-w-5xl mx-auto">
+      <CardHeader className="text-center pb-6">
+        <CardTitle className="text-2xl font-bold text-gray-900">
+          {isEditing ? 'Edit Property' : 'Add New Property'}
+        </CardTitle>
+        <CardDescription className="text-gray-600">
+          {isEditing ? 'Update your vacation rental listing details' : 'Create a new vacation rental listing with photos and booking integration'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-8">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+            <PhotoUploadSection
+              photos={photos}
+              onPhotosChange={setPhotos}
+              isEditing={isEditing}
+              existingImages={initialData?.images || []}
+              selectedCoverIndex={selectedCoverIndex}
+              onCoverSelect={setSelectedCoverIndex}
+              featuredPhotos={featuredPhotos}
+              onFeaturedPhotosChange={setFeaturedPhotos}
+              disabled={isProcessing}
+            />
 
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle>{isEditing ? 'Edit Property' : 'Add New Property'}</CardTitle>
-          <CardDescription>
-            {isEditing ? 'Update your vacation rental listing details' : 'Create a new vacation rental listing with photos and booking integration'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-              <PhotoUploadSection
-                photos={photos}
-                onPhotosChange={setPhotos}
-                isEditing={isEditing}
-                existingImages={initialData?.images || []}
-                selectedCoverIndex={selectedCoverIndex}
-                onCoverSelect={setSelectedCoverIndex}
-                featuredPhotos={featuredPhotos}
-                onFeaturedPhotosChange={setFeaturedPhotos}
-                disabled={isProcessing}
-              />
+            <PropertyDetailsForm form={form} disabled={isProcessing} />
 
-              <PropertyDetailsForm form={form} disabled={isProcessing} />
+            <BookingIntegrationSection form={form} disabled={isProcessing} />
 
-              <BookingIntegrationSection form={form} disabled={isProcessing} />
-
-              {isProcessing && (
-                <div className="flex items-center justify-center p-4 bg-muted rounded-lg">
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  <span className="text-sm text-muted-foreground">
-                    {uploading ? 'Uploading photos...' : 'Saving property...'}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex gap-4 pt-6">
-                <Button 
-                  type="submit" 
-                  className="flex-1"
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      {uploading ? 'Uploading...' : 'Saving...'}
-                    </>
-                  ) : (
-                    isEditing ? 'Update Property' : 'Save Property'
-                  )}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={onCancel}
-                  disabled={isProcessing}
-                >
-                  Cancel
-                </Button>
+            {isProcessing && (
+              <div className="flex items-center justify-center p-6 bg-gray-50 rounded-lg border">
+                <Loader2 className="h-5 w-5 animate-spin mr-3 text-primary" />
+                <span className="text-gray-700 font-medium">
+                  {uploading ? 'Uploading photos...' : 'Saving property...'}
+                </span>
               </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+            )}
+
+            <div className="flex gap-4 pt-6 border-t">
+              <Button 
+                type="submit" 
+                className="flex-1 h-12 text-lg font-semibold"
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    {uploading ? 'Uploading...' : 'Saving...'}
+                  </>
+                ) : (
+                  isEditing ? 'Update Property' : 'Save Property'
+                )}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onCancel}
+                disabled={isProcessing}
+                className="px-8 h-12 text-lg font-semibold"
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 };
 

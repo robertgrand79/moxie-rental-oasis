@@ -18,7 +18,7 @@ const PropertyFormContainer = ({
   onFormCancel
 }: PropertyFormContainerProps) => {
   return (
-    <div className="mb-8 animate-scale-in">
+    <div className="animate-fade-in">
       <PropertyForm 
         initialData={editingProperty || undefined}
         isEditing={!!editingProperty}

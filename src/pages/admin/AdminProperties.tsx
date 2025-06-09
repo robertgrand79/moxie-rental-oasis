@@ -33,6 +33,7 @@ const AdminProperties = () => {
       variant="gradient"
       icon={<Plus className="h-4 w-4" />}
       disabled={isSubmitting}
+      className="px-6 py-3"
     >
       Add Property
     </EnhancedButton>
@@ -44,14 +45,16 @@ const AdminProperties = () => {
       description={`Manage your rental properties and listings (${properties.length} properties)`}
       actions={pageActions}
     >
-      <div className="p-8">
+      <div className="p-6">
         {showAddForm && (
-          <PropertyFormContainer
-            editingProperty={editingProperty}
-            isSubmitting={isSubmitting}
-            onFormSubmit={handleFormSubmit}
-            onFormCancel={handleFormCancel}
-          />
+          <div className="mb-6">
+            <PropertyFormContainer
+              editingProperty={editingProperty}
+              isSubmitting={isSubmitting}
+              onFormSubmit={handleFormSubmit}
+              onFormCancel={handleFormCancel}
+            />
+          </div>
         )}
 
         {!showAddForm && (

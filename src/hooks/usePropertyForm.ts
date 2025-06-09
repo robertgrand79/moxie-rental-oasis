@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Property } from '@/types/property';
@@ -42,7 +41,7 @@ export const usePropertyForm = () => {
   };
 
   const handleFormSubmit = async (data: PropertyFormData & { photos: File[]; selectedCoverIndex?: number; featuredPhotos?: string[] }) => {
-    if (isSubmitting) return; // Prevent multiple submissions
+    if (isSubmitting) return;
     
     setIsSubmitting(true);
     console.log('Form submitted with data:', data);
@@ -59,19 +58,17 @@ export const usePropertyForm = () => {
         price_per_night: data.pricePerNight,
         hospitable_booking_url: data.hospitableBookingUrl,
         amenities: data.amenities,
-        image_url: undefined, // Will be set after photo upload
-        cover_image_url: undefined, // Will be set based on selectedCoverIndex
-        images: editingProperty?.images || [], // Keep existing images for edits
-        featured_photos: data.featuredPhotos || [], // Include featured photos
+        image_url: undefined,
+        cover_image_url: undefined,
+        images: editingProperty?.images || [],
+        featured_photos: data.featuredPhotos || [],
       };
 
       let savedProperty;
       
       if (editingProperty) {
-        // For editing, update the property first
         savedProperty = await editProperty(editingProperty.id, propertyData);
       } else {
-        // For new properties, create the property first to get the real ID
         savedProperty = await addProperty(propertyData);
       }
 
@@ -80,65 +77,50 @@ export const usePropertyForm = () => {
         return;
       }
 
-      // Upload new photos if any, using the actual property ID
+      // Upload new photos if any
       let uploadedImageUrls: string[] = [];
       if (data.photos && data.photos.length > 0) {
         console.log('Uploading photos for property ID:', savedProperty.id);
         uploadedImageUrls = await uploadPhotos(data.photos, savedProperty.id);
       }
 
-      // If we have new uploaded images, update the property with the complete image list
-      if (uploadedImageUrls.length > 0) {
+      // Update property with complete image information
+      if (uploadedImageUrls.length > 0 || data.selectedCoverIndex !== undefined || (data.featuredPhotos && data.featuredPhotos.length > 0)) {
         const allImages = [...(savedProperty.images || []), ...uploadedImageUrls];
         
         // Determine cover image based on selectedCoverIndex
         let coverImageUrl: string | undefined;
         let regularImageUrl: string | undefined;
         
+        // Fix the cover image selection logic
         if (data.selectedCoverIndex !== undefined && allImages[data.selectedCoverIndex]) {
           coverImageUrl = allImages[data.selectedCoverIndex];
+          console.log('Selected cover image:', coverImageUrl, 'at index:', data.selectedCoverIndex);
+        }
+        
+        if (allImages.length > 0) {
           regularImageUrl = allImages[0]; // Keep first image as backup
-        } else if (allImages.length > 0) {
-          coverImageUrl = allImages[0];
-          regularImageUrl = allImages[0];
         }
 
         // Update featured photos to use actual uploaded URLs if they were just uploaded
         let updatedFeaturedPhotos = data.featuredPhotos || [];
-        if (data.featuredPhotos && data.featuredPhotos.length > 0) {
-          // Map any temporary URLs to actual uploaded URLs
+        if (data.featuredPhotos && data.featuredPhotos.length > 0 && uploadedImageUrls.length > 0) {
           updatedFeaturedPhotos = data.featuredPhotos.map(url => {
-            const tempIndex = (savedProperty.images || []).length; // Find where new images start
             const uploadIndex = uploadedImageUrls.findIndex(uploadedUrl => uploadedUrl.includes(url.split('/').pop() || ''));
             return uploadIndex >= 0 ? uploadedImageUrls[uploadIndex] : url;
           });
         }
 
-        // Update the property with the new images, cover image, and featured photos
+        // Update the property with the new images and cover image
         const updatedPropertyData = {
           ...propertyData,
           images: allImages,
           image_url: regularImageUrl,
-          cover_image_url: coverImageUrl, // Save the selected cover image
+          cover_image_url: coverImageUrl, // This should now properly save
           featured_photos: updatedFeaturedPhotos,
         };
 
-        savedProperty = await editProperty(savedProperty.id, updatedPropertyData);
-      } else if (data.selectedCoverIndex !== undefined || (data.featuredPhotos && data.featuredPhotos.length > 0)) {
-        // If no new photos but cover selection or featured photos were updated
-        const existingImages = savedProperty.images || [];
-        let coverImageUrl: string | undefined;
-        
-        if (data.selectedCoverIndex !== undefined && existingImages[data.selectedCoverIndex]) {
-          coverImageUrl = existingImages[data.selectedCoverIndex];
-        }
-        
-        const updatedPropertyData = {
-          ...propertyData,
-          cover_image_url: coverImageUrl,
-          featured_photos: data.featuredPhotos || [],
-        };
-        
+        console.log('Updating property with cover image:', coverImageUrl);
         savedProperty = await editProperty(savedProperty.id, updatedPropertyData);
       }
 
@@ -157,7 +139,7 @@ export const usePropertyForm = () => {
   };
 
   const handleFormCancel = () => {
-    if (isSubmitting) return; // Prevent canceling during submission
+    if (isSubmitting) return;
     setShowAddForm(false);
     setEditingProperty(null);
   };
