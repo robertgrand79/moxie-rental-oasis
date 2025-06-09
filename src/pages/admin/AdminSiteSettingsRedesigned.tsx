@@ -6,11 +6,62 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import GeneralInformationSettings from '@/components/admin/settings/GeneralInformationSettings';
+import HeroSectionSettings from '@/components/admin/settings/HeroSectionSettings';
+import ContactInformationSettings from '@/components/admin/settings/ContactInformationSettings';
+import DesignBrandingTab from '@/components/admin/settings/DesignBrandingTab';
+import SEOSettingsTab from '@/components/admin/settings/SEOSettingsTab';
+import AnalyticsSettingsTab from '@/components/admin/settings/AnalyticsSettingsTab';
+import MapsSettingsTab from '@/components/admin/settings/MapsSettingsTab';
+import AdvancedSettingsTab from '@/components/admin/settings/AdvancedSettingsTab';
+import { useSettingsData } from '@/hooks/useSettingsData';
 
 const AdminSiteSettingsRedesigned = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('general');
+  const [selectedSetting, setSelectedSetting] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  
+  const {
+    siteData,
+    setSiteData,
+    seoData,
+    setSeoData,
+    analyticsData,
+    setAnalyticsData,
+    mapboxToken,
+    setMapboxToken,
+    updateSetting,
+    loading,
+    error
+  } = useSettingsData();
+
+  const handleInputChange = (field: string, value: string) => {
+    setSiteData((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSocialMediaChange = (platform: string, value: string) => {
+    setSiteData((prev: any) => ({
+      ...prev,
+      socialMedia: {
+        ...prev.socialMedia,
+        [platform]: value
+      }
+    }));
+  };
+
+  const handleSaveSettings = async () => {
+    await updateSetting('siteName', siteData.siteName);
+    await updateSetting('tagline', siteData.tagline);
+    await updateSetting('description', siteData.description);
+    await updateSetting('contactEmail', siteData.contactEmail);
+    await updateSetting('phone', siteData.phone);
+    await updateSetting('address', siteData.address);
+    await updateSetting('socialMedia', siteData.socialMedia);
+    setDialogOpen(false);
+  };
 
   const settingsCategories = [
     {
@@ -20,10 +71,24 @@ const AdminSiteSettingsRedesigned = () => {
       icon: Settings,
       color: 'bg-blue-100 text-blue-700',
       settings: [
-        { name: 'Site Name', description: 'Your website title', status: 'configured' },
-        { name: 'Site Description', description: 'Brief description of your site', status: 'configured' },
-        { name: 'Contact Information', description: 'Phone, email, address', status: 'configured' },
-        { name: 'Time Zone', description: 'Default timezone for your site', status: 'needs-setup' }
+        { 
+          name: 'Site Information', 
+          description: 'Site name, tagline, and description', 
+          status: siteData.siteName ? 'configured' : 'needs-setup',
+          key: 'site-info'
+        },
+        { 
+          name: 'Hero Section', 
+          description: 'Homepage hero content and images', 
+          status: siteData.heroTitle ? 'configured' : 'needs-setup',
+          key: 'hero-section'
+        },
+        { 
+          name: 'Contact Information', 
+          description: 'Phone, email, address, and social media', 
+          status: siteData.contactEmail ? 'configured' : 'needs-setup',
+          key: 'contact-info'
+        }
       ]
     },
     {
@@ -33,10 +98,12 @@ const AdminSiteSettingsRedesigned = () => {
       icon: Palette,
       color: 'bg-purple-100 text-purple-700',
       settings: [
-        { name: 'Logo & Favicon', description: 'Upload your brand assets', status: 'configured' },
-        { name: 'Color Scheme', description: 'Primary and secondary colors', status: 'configured' },
-        { name: 'Typography', description: 'Font choices and sizing', status: 'needs-setup' },
-        { name: 'Hero Section', description: 'Homepage hero content and images', status: 'configured' }
+        { 
+          name: 'Design & Branding', 
+          description: 'Colors, fonts, and visual elements', 
+          status: 'configured',
+          key: 'design-branding'
+        }
       ]
     },
     {
@@ -46,10 +113,18 @@ const AdminSiteSettingsRedesigned = () => {
       icon: Globe,
       color: 'bg-green-100 text-green-700',
       settings: [
-        { name: 'Meta Tags', description: 'Default SEO meta descriptions', status: 'configured' },
-        { name: 'Google Analytics', description: 'Website traffic tracking', status: 'needs-setup' },
-        { name: 'Google Search Console', description: 'Search performance monitoring', status: 'needs-setup' },
-        { name: 'Social Media Cards', description: 'Open Graph and Twitter cards', status: 'configured' }
+        { 
+          name: 'SEO Settings', 
+          description: 'Meta tags and search optimization', 
+          status: seoData.siteTitle ? 'configured' : 'needs-setup',
+          key: 'seo-settings'
+        },
+        { 
+          name: 'Analytics', 
+          description: 'Google Analytics and tracking codes', 
+          status: analyticsData.googleAnalyticsId ? 'configured' : 'needs-setup',
+          key: 'analytics-settings'
+        }
       ]
     },
     {
@@ -59,36 +134,18 @@ const AdminSiteSettingsRedesigned = () => {
       icon: Code,
       color: 'bg-orange-100 text-orange-700',
       settings: [
-        { name: 'Hospitable Integration', description: 'Property management sync', status: 'configured' },
-        { name: 'Email Service', description: 'Newsletter and transactional emails', status: 'configured' },
-        { name: 'Maps Integration', description: 'Mapbox for location features', status: 'needs-setup' },
-        { name: 'AI Tools', description: 'OpenAI API configuration', status: 'configured' }
-      ]
-    },
-    {
-      id: 'security',
-      title: 'Security & Privacy',
-      description: 'User access and data protection',
-      icon: Shield,
-      color: 'bg-red-100 text-red-700',
-      settings: [
-        { name: 'User Permissions', description: 'Role-based access control', status: 'configured' },
-        { name: 'Privacy Policy', description: 'Data handling disclosure', status: 'needs-setup' },
-        { name: 'Cookie Consent', description: 'GDPR compliance settings', status: 'needs-setup' },
-        { name: 'Backup Settings', description: 'Data backup configuration', status: 'configured' }
-      ]
-    },
-    {
-      id: 'notifications',
-      title: 'Notifications & Alerts',
-      description: 'Email alerts and system notifications',
-      icon: Mail,
-      color: 'bg-teal-100 text-teal-700',
-      settings: [
-        { name: 'Admin Notifications', description: 'System alerts and updates', status: 'configured' },
-        { name: 'Newsletter Settings', description: 'Subscriber management', status: 'configured' },
-        { name: 'Booking Alerts', description: 'Property reservation notifications', status: 'needs-setup' },
-        { name: 'Error Monitoring', description: 'System error alerts', status: 'needs-setup' }
+        { 
+          name: 'Maps Integration', 
+          description: 'Mapbox for location features', 
+          status: mapboxToken ? 'configured' : 'needs-setup',
+          key: 'maps-settings'
+        },
+        { 
+          name: 'Advanced Settings', 
+          description: 'Custom CSS and JavaScript', 
+          status: 'configured',
+          key: 'advanced-settings'
+        }
       ]
     }
   ];
@@ -114,6 +171,99 @@ const AdminSiteSettingsRedesigned = () => {
         return <Badge variant="secondary">Unknown</Badge>;
     }
   };
+
+  const handleSettingClick = (settingKey: string) => {
+    setSelectedSetting(settingKey);
+    setDialogOpen(true);
+  };
+
+  const renderSettingContent = () => {
+    switch (selectedSetting) {
+      case 'site-info':
+        return (
+          <GeneralInformationSettings
+            siteData={siteData}
+            onInputChange={handleInputChange}
+            onSave={handleSaveSettings}
+          />
+        );
+      case 'hero-section':
+        return (
+          <HeroSectionSettings
+            siteData={siteData}
+            onInputChange={handleInputChange}
+            onSave={handleSaveSettings}
+          />
+        );
+      case 'contact-info':
+        return (
+          <ContactInformationSettings
+            siteData={siteData}
+            onInputChange={handleInputChange}
+            onSocialMediaChange={handleSocialMediaChange}
+          />
+        );
+      case 'design-branding':
+        return <DesignBrandingTab />;
+      case 'seo-settings':
+        return (
+          <SEOSettingsTab
+            seoData={seoData}
+            setSeoData={setSeoData}
+            onSave={async () => {
+              await updateSetting('siteTitle', seoData.siteTitle);
+              await updateSetting('metaDescription', seoData.metaDescription);
+              setDialogOpen(false);
+            }}
+          />
+        );
+      case 'analytics-settings':
+        return (
+          <AnalyticsSettingsTab
+            analyticsData={analyticsData}
+            setAnalyticsData={setAnalyticsData}
+            onSave={async () => {
+              await updateSetting('googleAnalyticsId', analyticsData.googleAnalyticsId);
+              setDialogOpen(false);
+            }}
+          />
+        );
+      case 'maps-settings':
+        return (
+          <MapsSettingsTab
+            mapboxToken={mapboxToken}
+            setMapboxToken={setMapboxToken}
+            onSave={async () => {
+              await updateSetting('mapboxToken', mapboxToken);
+              setDialogOpen(false);
+            }}
+          />
+        );
+      case 'advanced-settings':
+        return (
+          <AdvancedSettingsTab
+            analyticsData={analyticsData}
+            setAnalyticsData={setAnalyticsData}
+            updateSetting={updateSetting}
+          />
+        );
+      default:
+        return <div>Select a setting to configure</div>;
+    }
+  };
+
+  if (loading) {
+    return (
+      <AdminPageWrapper
+        title="Site Settings"
+        description="Configure and customize your website settings"
+      >
+        <div className="p-8 text-center">
+          <p>Loading settings...</p>
+        </div>
+      </AdminPageWrapper>
+    );
+  }
 
   return (
     <AdminPageWrapper
@@ -201,6 +351,7 @@ const AdminSiteSettingsRedesigned = () => {
                         <Button 
                           variant={setting.status === 'needs-setup' ? 'default' : 'outline'}
                           size="sm"
+                          onClick={() => handleSettingClick(setting.key)}
                         >
                           {setting.status === 'needs-setup' ? 'Set Up' : 'Configure'}
                         </Button>
@@ -220,6 +371,20 @@ const AdminSiteSettingsRedesigned = () => {
             )}
           </div>
         </div>
+
+        {/* Settings Modal */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedSetting && activeSettings.find(s => s.key === selectedSetting)?.name}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="mt-4">
+              {renderSettingContent()}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminPageWrapper>
   );
