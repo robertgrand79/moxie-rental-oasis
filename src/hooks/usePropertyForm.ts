@@ -98,14 +98,33 @@ export const usePropertyForm = () => {
           coverImageUrl = allImages[0];
         }
 
-        // Update the property with the new images
+        // Update featured photos to use actual uploaded URLs if they were just uploaded
+        let updatedFeaturedPhotos = data.featuredPhotos || [];
+        if (data.featuredPhotos && data.featuredPhotos.length > 0) {
+          // Map any temporary URLs to actual uploaded URLs
+          updatedFeaturedPhotos = data.featuredPhotos.map(url => {
+            const tempIndex = (savedProperty.images || []).length; // Find where new images start
+            const uploadIndex = uploadedImageUrls.findIndex(uploadedUrl => uploadedUrl.includes(url.split('/').pop() || ''));
+            return uploadIndex >= 0 ? uploadedImageUrls[uploadIndex] : url;
+          });
+        }
+
+        // Update the property with the new images and featured photos
         const updatedPropertyData = {
           ...propertyData,
           images: allImages,
           image_url: coverImageUrl,
-          featured_photos: data.featuredPhotos || [], // Ensure featured photos are preserved
+          featured_photos: updatedFeaturedPhotos,
         };
 
+        savedProperty = await editProperty(savedProperty.id, updatedPropertyData);
+      } else if (data.featuredPhotos && data.featuredPhotos.length > 0) {
+        // If no new photos but featured photos were selected from existing images
+        const updatedPropertyData = {
+          ...propertyData,
+          featured_photos: data.featuredPhotos,
+        };
+        
         savedProperty = await editProperty(savedProperty.id, updatedPropertyData);
       }
 

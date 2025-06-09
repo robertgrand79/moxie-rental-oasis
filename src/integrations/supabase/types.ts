@@ -604,6 +604,7 @@ export type Database = {
           created_at: string
           created_by: string
           description: string
+          featured_photos: string[] | null
           hospitable_booking_url: string | null
           id: string
           image_url: string | null
@@ -621,6 +622,7 @@ export type Database = {
           created_at?: string
           created_by: string
           description: string
+          featured_photos?: string[] | null
           hospitable_booking_url?: string | null
           id?: string
           image_url?: string | null
@@ -638,6 +640,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string
+          featured_photos?: string[] | null
           hospitable_booking_url?: string | null
           id?: string
           image_url?: string | null

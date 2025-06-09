@@ -2,111 +2,102 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
-import { parseAddressSlug } from '@/utils/addressSlug';
-import PropertyPageHero from './property/PropertyPageHero';
-import PropertyInfoSection from './property/PropertyInfoSection';
-import MasonryPhotoGallery from './property/MasonryPhotoGallery';
-import EnhancedPropertyDetails from './property/EnhancedPropertyDetails';
-import FloatingBookingCard from './property/FloatingBookingCard';
 import LoadingState from '@/components/ui/loading-state';
+import PropertyPageHero from '@/components/property/PropertyPageHero';
+import PropertyPhotoCollage from '@/components/property/PropertyPhotoCollage';
+import AboutPropertySection from '@/components/property/AboutPropertySection';
+import AmenitiesSection from '@/components/property/AmenitiesSection';
+import MasonryPhotoGallery from '@/components/property/MasonryPhotoGallery';
+import BookingCard from '@/components/property/BookingCard';
+import FloatingBookingCard from '@/components/property/FloatingBookingCard';
+import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 
 const PropertyPage = () => {
-  const { propertyId, addressSlug } = useParams<{ propertyId?: string; addressSlug?: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const { properties, loading } = useProperties();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <LoadingState variant="page" message="Loading property details..." />
-      </div>
+      <BackgroundWrapper>
+        <div className="container mx-auto px-4 py-16">
+          <LoadingState variant="page" message="Loading property details..." />
+        </div>
+      </BackgroundWrapper>
     );
   }
 
-  // Find property by ID or by address slug
-  let property = null;
-  
-  if (propertyId) {
-    // Parse the propertyId parameter which could be either an ID or address slug
-    const { location, propertyId: extractedId } = parseAddressSlug(propertyId);
-    
-    if (extractedId) {
-      // Has property ID suffix - use ID for lookup (backward compatibility)
-      property = properties.find(p => p.id.startsWith(extractedId));
-    } else {
-      // Clean address slug - find by location first
-      const normalizedLocation = location.toLowerCase().trim();
-      property = properties.find(p => 
-        p.location.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim() === 
-        normalizedLocation
-      );
-      
-      // Fallback: try to find by exact ID match if location lookup fails
-      if (!property) {
-        property = properties.find(p => p.id === propertyId);
-      }
-    }
-  } else if (addressSlug) {
-    // Handle address slug routing
-    const { location, propertyId: extractedId } = parseAddressSlug(addressSlug);
-    
-    if (extractedId) {
-      // Has property ID suffix - use ID for lookup (backward compatibility)
-      property = properties.find(p => p.id.startsWith(extractedId));
-    } else {
-      // Clean address slug - find by location
-      const normalizedLocation = location.toLowerCase().trim();
-      property = properties.find(p => 
-        p.location.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim() === 
-        normalizedLocation
-      );
-    }
-  }
+  // Find property by extracting address from slug
+  const property = properties.find(p => {
+    if (!p.location) return false;
+    const addressSlug = p.location
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+    return slug === addressSlug;
+  });
 
   if (!property) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-foreground mb-4">Property Not Found</h1>
-          <p className="text-xl text-muted-foreground">The property you're looking for doesn't exist or may have been removed.</p>
+      <BackgroundWrapper>
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Property Not Found</h1>
+            <p className="text-xl text-gray-600">The property you're looking for doesn't exist or has been removed.</p>
+          </div>
         </div>
-      </div>
+      </BackgroundWrapper>
     );
   }
 
-  // Prepare images array - use images array if available, fallback to single image_url
-  const propertyImages = property.images && property.images.length > 0 
-    ? property.images 
-    : property.image_url 
-      ? [property.image_url] 
-      : [];
-
-  const coverImage = propertyImages[0] || '/placeholder.svg';
+  // Determine cover image - use first featured photo, first image, or image_url
+  const coverImage = property.featured_photos?.[0] || property.images?.[0] || property.image_url;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <PropertyPageHero property={property} coverImage={coverImage} />
+      {coverImage && (
+        <PropertyPageHero 
+          property={property} 
+          coverImage={coverImage} 
+        />
+      )}
+
+      {/* Photo Collage - only if no featured photos */}
+      {(!property.featured_photos || property.featured_photos.length === 0) && property.images && property.images.length > 0 && (
+        <div className="container mx-auto px-4 py-8">
+          <PropertyPhotoCollage
+            images={property.images}
+            title={property.title}
+          />
+        </div>
+      )}
+
+      {/* About This Property Section */}
+      <AboutPropertySection property={property} />
+
+      {/* Amenities Section */}
+      <AmenitiesSection amenities={property.amenities} />
+
+      {/* Featured Photo Gallery */}
+      <MasonryPhotoGallery
+        images={property.images || []}
+        featuredPhotos={property.featured_photos}
+        title={property.title}
+      />
+
+      {/* Booking Section */}
+      <div className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            <BookingCard property={property} />
+          </div>
+        </div>
+      </div>
 
       {/* Floating Booking Card */}
       <FloatingBookingCard property={property} />
-
-      {/* Property Information Section */}
-      <PropertyInfoSection property={property} />
-
-      {/* Photo Gallery */}
-      <MasonryPhotoGallery 
-        images={propertyImages} 
-        featuredPhotos={property.featured_photos}
-        title={property.title} 
-      />
-
-      {/* Enhanced Property Details */}
-      <EnhancedPropertyDetails property={property} />
-
-      {/* Mobile Booking Card */}
-      <div className="lg:hidden sticky bottom-0 z-40 bg-background border-t border-border p-4">
-        <FloatingBookingCard property={property} />
-      </div>
     </div>
   );
 };
