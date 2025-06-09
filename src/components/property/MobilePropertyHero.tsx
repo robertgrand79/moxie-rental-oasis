@@ -4,6 +4,7 @@ import { ArrowLeft, Share, Heart, MapPin, Star, Bed, Bath, Users } from 'lucide-
 import { Property } from '@/types/property';
 import { Button } from '@/components/ui/button';
 import OptimizedImage from '@/components/ui/optimized-image';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 interface MobilePropertyHeroProps {
   property: Property;
@@ -22,18 +23,23 @@ const MobilePropertyHero = ({
 }: MobilePropertyHeroProps) => {
   return (
     <div className="relative">
-      {/* Mobile Image Container */}
-      <div className="relative h-[50vh] min-h-[300px] overflow-hidden">
-        <OptimizedImage
-          src={coverImage}
-          alt={property.title}
-          className="w-full h-full object-cover"
-          priority={true}
-        />
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
-        
+      {/* Mobile Image Container with Aspect Ratio */}
+      <AspectRatio ratio={4/3} className="w-full">
+        <div className="relative w-full h-full overflow-hidden">
+          <OptimizedImage
+            src={coverImage}
+            alt={property.title}
+            className="w-full h-full object-cover"
+            priority={true}
+          />
+          
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/40" />
+        </div>
+      </AspectRatio>
+      
+      {/* Content Overlay */}
+      <div className="absolute inset-0">
         {/* Top Navigation Bar */}
         <div className="absolute top-0 left-0 right-0 z-10 p-4">
           <div className="flex items-center justify-between">
@@ -70,7 +76,7 @@ const MobilePropertyHero = ({
         {/* Bottom Content */}
         <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
           <div className="mb-2">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2 leading-tight">
+            <h1 className="text-xl md:text-2xl font-bold mb-2 leading-tight">
               {property.title}
             </h1>
             
@@ -81,30 +87,30 @@ const MobilePropertyHero = ({
           </div>
           
           {/* Quick Stats */}
-          <div className="flex items-center space-x-4 mb-2">
+          <div className="flex items-center space-x-3 mb-2">
             <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-              <Bed className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">{property.bedrooms}</span>
+              <Bed className="h-3 w-3 mr-1" />
+              <span className="text-xs font-medium">{property.bedrooms}</span>
             </div>
             <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-              <Bath className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">{property.bathrooms}</span>
+              <Bath className="h-3 w-3 mr-1" />
+              <span className="text-xs font-medium">{property.bathrooms}</span>
             </div>
             <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-              <Users className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">{property.max_guests}</span>
+              <Users className="h-3 w-3 mr-1" />
+              <span className="text-xs font-medium">{property.max_guests}</span>
             </div>
           </div>
           
           {/* Price */}
           <div className="flex items-center justify-between">
-            <div className="text-xl font-bold">
+            <div className="text-lg font-bold">
               ${property.price_per_night}
-              <span className="text-base font-normal text-white/80">/night</span>
+              <span className="text-sm font-normal text-white/80">/night</span>
             </div>
             <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-              <Star className="h-4 w-4 mr-1 text-yellow-400 fill-current" />
-              <span className="text-sm font-medium">4.8</span>
+              <Star className="h-3 w-3 mr-1 text-yellow-400 fill-current" />
+              <span className="text-xs font-medium">4.8</span>
             </div>
           </div>
         </div>
