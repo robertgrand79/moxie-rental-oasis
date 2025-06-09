@@ -27,7 +27,7 @@ const DesktopNavigation = () => {
               isActive ? 'text-primary bg-primary/10' : 'text-gray-700'
             }`}
           >
-            <IconComponent className="h-4 w-4" />
+            <IconComponent className="h-5 w-5" />
             <span>{item.title}</span>
           </Link>
         );
