@@ -42,14 +42,14 @@ const SettingsCategoryGrid = ({
               key={category.id}
               variant={activeCategory === category.id ? "default" : "outline"}
               className={cn(
-                "h-auto p-6 text-center justify-center group transition-all duration-200 relative",
+                "h-auto p-4 text-center justify-center group transition-all duration-200 relative min-h-[100px]",
                 activeCategory === category.id 
                   ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2" 
                   : "hover:border-primary/50 hover:bg-primary/5"
               )}
               onClick={() => setActiveCategory(category.id)}
             >
-              <div className="w-full flex flex-col items-center space-y-3">
+              <div className="w-full flex flex-col items-center space-y-2">
                 {/* Badge positioned absolutely in top-right corner */}
                 {needsSetupCount > 0 && (
                   <Badge 
@@ -62,14 +62,14 @@ const SettingsCategoryGrid = ({
                 
                 {/* Centered Icon */}
                 <div className={cn(
-                  "p-3 rounded-lg transition-colors",
+                  "p-2 rounded-lg transition-colors",
                   activeCategory === category.id ? "bg-primary-foreground/20" : category.color
                 )}>
-                  <IconComponent className="h-6 w-6" />
+                  <IconComponent className="h-5 w-5" />
                 </div>
                 
-                {/* Centered Title */}
-                <h4 className="font-semibold text-sm leading-tight text-center">
+                {/* Centered Title - responsive text sizing and overflow handling */}
+                <h4 className="font-medium text-xs sm:text-sm leading-tight text-center px-1 break-words hyphens-auto">
                   {category.title}
                 </h4>
               </div>
