@@ -107,10 +107,7 @@ const PropertyPage = () => {
       {/* Quick Info Section - Mobile Only */}
       {isMobile && <QuickInfoSection property={property} />}
 
-      {/* About This Property Section */}
-      <AboutPropertySection property={property} />
-
-      {/* Photo Spotlight - Property Highlights - Now above Amenities */}
+      {/* Photo Spotlight - Property Highlights - Now above About */}
       {property.images && property.images.length > 0 && (
         <PhotoSpotlight
           images={property.images}
@@ -119,7 +116,10 @@ const PropertyPage = () => {
         />
       )}
 
-      {/* Amenities Section - Enhanced with new colors */}
+      {/* About This Property Section */}
+      <AboutPropertySection property={property} />
+
+      {/* Amenities Section - Enhanced with new colors and 12-item layout */}
       <AmenitiesSection amenities={property.amenities} />
 
       {/* Booking Section - Desktop */}
