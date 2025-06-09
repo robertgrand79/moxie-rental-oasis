@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Images } from 'lucide-react';
 import PropertyPhotoModal from './PropertyPhotoModal';
+import OptimizedImage from '@/components/ui/optimized-image';
 
 interface PropertyPhotoCollageProps {
   images: string[];
@@ -38,9 +39,10 @@ const PropertyPhotoCollage = ({ images, title }: PropertyPhotoCollageProps) => {
         {displayImages.length === 1 ? (
           // Single image layout
           <div className="w-full h-full relative group cursor-pointer" onClick={() => openModal(0)}>
-            <img 
-              src={displayImages[0]} 
+            <OptimizedImage
+              src={displayImages[0]}
               alt={title}
+              priority={true}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
@@ -50,9 +52,10 @@ const PropertyPhotoCollage = ({ images, title }: PropertyPhotoCollageProps) => {
           <div className="grid grid-cols-4 grid-rows-2 gap-2 h-full">
             {/* Main large image */}
             <div className="col-span-2 row-span-2 relative group cursor-pointer" onClick={() => openModal(0)}>
-              <img 
-                src={displayImages[0]} 
+              <OptimizedImage
+                src={displayImages[0]}
                 alt={title}
+                priority={true}
                 className="w-full h-full object-cover rounded-l-lg transition-transform duration-300 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 rounded-l-lg" />
@@ -65,8 +68,8 @@ const PropertyPhotoCollage = ({ images, title }: PropertyPhotoCollageProps) => {
                 className="relative group cursor-pointer"
                 onClick={() => openModal(index + 1)}
               >
-                <img 
-                  src={image} 
+                <OptimizedImage
+                  src={image}
                   alt={`${title} - Photo ${index + 2}`}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
@@ -80,8 +83,8 @@ const PropertyPhotoCollage = ({ images, title }: PropertyPhotoCollageProps) => {
                 className="relative group cursor-pointer"
                 onClick={() => openModal(5)}
               >
-                <img 
-                  src={displayImages[5]} 
+                <OptimizedImage
+                  src={displayImages[5]}
                   alt={`${title} - Photo 6`}
                   className="w-full h-full object-cover rounded-r-lg transition-transform duration-300 group-hover:scale-105"
                 />
