@@ -2,21 +2,21 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PropertyData } from '@/types/propertyData';
+import { Property } from '@/types/property';
 
 interface BookingCardProps {
-  property: PropertyData;
+  property: Property;
 }
 
 const BookingCard = ({ property }: BookingCardProps) => {
-  const hasBookingUrl = property.hospitableBookingUrl && property.hospitableBookingUrl.trim() !== '';
+  const hasBookingUrl = property.hospitable_booking_url && property.hospitable_booking_url.trim() !== '';
 
   return (
     <div className="lg:col-span-1">
       <Card className="sticky top-8">
         <CardHeader>
           <CardTitle className="text-2xl">
-            ${property.pricePerNight}
+            ${property.price_per_night}
             <span className="text-lg font-normal text-gray-600">/night</span>
           </CardTitle>
         </CardHeader>
@@ -26,7 +26,7 @@ const BookingCard = ({ property }: BookingCardProps) => {
               <Button 
                 className="w-full mb-4 bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90"
                 onClick={() => {
-                  window.open(property.hospitableBookingUrl, '_blank');
+                  window.open(property.hospitable_booking_url, '_blank');
                 }}
               >
                 Book Now
