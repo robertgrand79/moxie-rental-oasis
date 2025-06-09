@@ -51,7 +51,7 @@ const DraggablePhotoItem = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: photo.id });
+  } = useSortable({ id: photo.id, disabled: true }); // Disable manual dragging since we auto-move
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -64,16 +64,14 @@ const DraggablePhotoItem = ({
       style={style}
       className={`relative group border-2 rounded-lg overflow-hidden transition-all ${
         isDragging ? 'opacity-50 scale-105 shadow-lg' : 'hover:shadow-md'
-      } ${isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-border'}`}
+      } ${isSelected ? 'border-primary ring-2 ring-primary/20 ring-offset-2' : 'border-border'}`}
     >
-      {/* Drag Handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-2 left-2 bg-black/70 text-white p-1 rounded cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity z-10"
-      >
-        <GripVertical className="h-4 w-4" />
-      </div>
+      {/* Cover Photo Badge */}
+      {index === 0 && (
+        <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-md font-medium z-10">
+          Cover Photo
+        </div>
+      )}
 
       {/* Photo */}
       <div className="cursor-pointer">
@@ -105,16 +103,21 @@ const DraggablePhotoItem = ({
         onFeaturedToggle={onFeaturedToggle}
       />
 
-      {/* Controls */}
-      <PhotoControls
-        photo={photo}
-        index={index}
-        totalPhotos={totalPhotos}
-        disabled={disabled}
-        onMoveUp={onMoveUp}
-        onMoveDown={onMoveDown}
-        onRemove={onRemove}
-      />
+      {/* Controls - Hide move buttons since we auto-move */}
+      <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {!photo.isExisting && !disabled && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(index);
+            }}
+            className="bg-destructive text-destructive-foreground p-1 rounded text-xs hover:bg-destructive/90"
+          >
+            Remove
+          </button>
+        )}
+      </div>
 
       {/* Overlays */}
       <PhotoOverlays

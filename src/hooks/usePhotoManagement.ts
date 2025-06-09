@@ -43,10 +43,45 @@ export const usePhotoManagement = (
     }
   }, [existingImages.length, photos, onPhotosChange]);
 
-  const movePhoto = useCallback((fromIndex: number, toIndex: number) => {
-    // For now, just handle cover selection updates
-    // This can be expanded if needed for actual reordering
-  }, []);
+  const movePhotoToFirst = useCallback((fromIndex: number) => {
+    // Get all photo URLs in the correct order
+    const allPhotoUrls = [...existingImages, ...previewUrls];
+    
+    if (fromIndex >= 0 && fromIndex < allPhotoUrls.length) {
+      // Create new ordered arrays
+      const photoToMove = allPhotoUrls[fromIndex];
+      const reorderedUrls = [photoToMove, ...allPhotoUrls.filter((_, i) => i !== fromIndex)];
+      
+      // Split back into existing and new photos
+      const newExistingImages: string[] = [];
+      const newPreviewUrls: string[] = [];
+      const newPhotos: File[] = [];
+      
+      reorderedUrls.forEach((url, index) => {
+        const originalIndex = allPhotoUrls.indexOf(url);
+        const wasExisting = originalIndex < existingImages.length;
+        
+        if (wasExisting) {
+          newExistingImages.push(url);
+        } else {
+          const photoIndex = originalIndex - existingImages.length;
+          if (photos[photoIndex]) {
+            newPhotos.push(photos[photoIndex]);
+            newPreviewUrls.push(url);
+          }
+        }
+      });
+      
+      // Update the states
+      onPhotosChange(newPhotos);
+      setPreviewUrls(newPreviewUrls);
+      
+      // Return the new existing images order for parent component to handle
+      return newExistingImages;
+    }
+    
+    return existingImages;
+  }, [existingImages, previewUrls, photos, onPhotosChange]);
 
   // Combine existing images and new photos for display
   const allPhotos: Photo[] = [
@@ -66,6 +101,6 @@ export const usePhotoManagement = (
     allPhotos,
     addPhotos,
     removePhoto,
-    movePhoto
+    movePhotoToFirst
   };
 };

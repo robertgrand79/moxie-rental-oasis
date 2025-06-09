@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Property } from '@/types/property';
@@ -40,14 +41,17 @@ export const usePropertyForm = () => {
     setShowAddForm(true);
   };
 
-  const handleFormSubmit = async (data: PropertyFormData & { photos: File[]; selectedCoverIndex?: number; featuredPhotos?: string[] }) => {
+  const handleFormSubmit = async (data: PropertyFormData & { photos: File[]; reorderedExistingImages?: string[]; featuredPhotos?: string[] }) => {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
     console.log('Form submitted with data:', data);
     
     try {
-      // Convert PropertyFormData to Property format first
+      // Use reordered existing images if provided, otherwise use original
+      const finalImages = data.reorderedExistingImages || editingProperty?.images || [];
+      
+      // Convert PropertyFormData to Property format
       const propertyData: Omit<Property, 'id'> = {
         title: data.title,
         description: data.description,
@@ -60,7 +64,7 @@ export const usePropertyForm = () => {
         amenities: data.amenities,
         image_url: undefined,
         cover_image_url: undefined,
-        images: editingProperty?.images || [],
+        images: finalImages,
         featured_photos: data.featuredPhotos || [],
       };
 
@@ -85,42 +89,25 @@ export const usePropertyForm = () => {
       }
 
       // Update property with complete image information
-      if (uploadedImageUrls.length > 0 || data.selectedCoverIndex !== undefined || (data.featuredPhotos && data.featuredPhotos.length > 0)) {
-        const allImages = [...(savedProperty.images || []), ...uploadedImageUrls];
+      if (uploadedImageUrls.length > 0 || finalImages.length > 0) {
+        const allImages = [...finalImages, ...uploadedImageUrls];
         
-        // Determine cover image based on selectedCoverIndex
-        let coverImageUrl: string | undefined;
-        let regularImageUrl: string | undefined;
-        
-        // Fix the cover image selection logic
-        if (data.selectedCoverIndex !== undefined && allImages[data.selectedCoverIndex]) {
-          coverImageUrl = allImages[data.selectedCoverIndex];
-          console.log('Selected cover image:', coverImageUrl, 'at index:', data.selectedCoverIndex);
-        }
-        
-        if (allImages.length > 0) {
-          regularImageUrl = allImages[0]; // Keep first image as backup
-        }
+        // First image is always the cover photo (simplified logic)
+        const coverImageUrl = allImages.length > 0 ? allImages[0] : undefined;
+        const regularImageUrl = allImages.length > 0 ? allImages[0] : undefined;
 
-        // Update featured photos to use actual uploaded URLs if they were just uploaded
-        let updatedFeaturedPhotos = data.featuredPhotos || [];
-        if (data.featuredPhotos && data.featuredPhotos.length > 0 && uploadedImageUrls.length > 0) {
-          updatedFeaturedPhotos = data.featuredPhotos.map(url => {
-            const uploadIndex = uploadedImageUrls.findIndex(uploadedUrl => uploadedUrl.includes(url.split('/').pop() || ''));
-            return uploadIndex >= 0 ? uploadedImageUrls[uploadIndex] : url;
-          });
-        }
+        console.log('Setting cover image (first photo):', coverImageUrl);
 
         // Update the property with the new images and cover image
         const updatedPropertyData = {
           ...propertyData,
           images: allImages,
           image_url: regularImageUrl,
-          cover_image_url: coverImageUrl, // This should now properly save
-          featured_photos: updatedFeaturedPhotos,
+          cover_image_url: coverImageUrl, // Always use first image as cover
+          featured_photos: data.featuredPhotos || [],
         };
 
-        console.log('Updating property with cover image:', coverImageUrl);
+        console.log('Updating property with final data:', updatedPropertyData);
         savedProperty = await editProperty(savedProperty.id, updatedPropertyData);
       }
 

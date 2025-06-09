@@ -27,7 +27,7 @@ const propertySchema = z.object({
 });
 
 interface PropertyFormProps {
-  onSubmit: (data: PropertyFormData & { photos: File[]; selectedCoverIndex?: number; featuredPhotos?: string[] }) => void;
+  onSubmit: (data: PropertyFormData & { photos: File[]; reorderedExistingImages?: string[]; featuredPhotos?: string[] }) => void;
   onCancel: () => void;
   initialData?: Partial<Property>;
   isEditing?: boolean;
@@ -36,7 +36,7 @@ interface PropertyFormProps {
 
 const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSubmitting = false }: PropertyFormProps) => {
   const [photos, setPhotos] = useState<File[]>([]);
-  const [selectedCoverIndex, setSelectedCoverIndex] = useState<number>(0);
+  const [existingImages, setExistingImages] = useState<string[]>(initialData?.images || []);
   const [featuredPhotos, setFeaturedPhotos] = useState<string[]>(initialData?.featured_photos || []);
   const { uploading } = usePhotoUpload();
 
@@ -57,8 +57,18 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
 
   const handleSubmit = (data: PropertyFormData) => {
     if (isSubmitting) return;
-    console.log('Cover photo selected at index:', selectedCoverIndex);
-    onSubmit({ ...data, photos, selectedCoverIndex, featuredPhotos });
+    console.log('Form submitted with reordered existing images:', existingImages);
+    onSubmit({ 
+      ...data, 
+      photos, 
+      reorderedExistingImages: existingImages,
+      featuredPhotos 
+    });
+  };
+
+  const handleExistingImagesReorder = (newOrder: string[]) => {
+    console.log('Reordering existing images:', newOrder);
+    setExistingImages(newOrder);
   };
 
   const isProcessing = isSubmitting || uploading;
@@ -80,9 +90,8 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
               photos={photos}
               onPhotosChange={setPhotos}
               isEditing={isEditing}
-              existingImages={initialData?.images || []}
-              selectedCoverIndex={selectedCoverIndex}
-              onCoverSelect={setSelectedCoverIndex}
+              existingImages={existingImages}
+              onExistingImagesReorder={handleExistingImagesReorder}
               featuredPhotos={featuredPhotos}
               onFeaturedPhotosChange={setFeaturedPhotos}
               disabled={isProcessing}
