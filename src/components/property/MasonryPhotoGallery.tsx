@@ -7,17 +7,21 @@ import PropertyPhotoModal from './PropertyPhotoModal';
 
 interface MasonryPhotoGalleryProps {
   images: string[];
+  featuredPhotos?: string[];
   title: string;
 }
 
-const MasonryPhotoGallery = ({ images, title }: MasonryPhotoGalleryProps) => {
+const MasonryPhotoGallery = ({ images, featuredPhotos, title }: MasonryPhotoGalleryProps) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  if (!images || images.length <= 1) return null;
+  // Use featured photos if available, otherwise use all images
+  const displayImages = featuredPhotos && featuredPhotos.length > 0 ? featuredPhotos : images;
+  
+  if (!displayImages || displayImages.length <= 1) return null;
 
   // Skip the first image since it's used as hero
-  const galleryImages = images.slice(1);
+  const galleryImages = displayImages.slice(1);
 
   const openModal = (index: number) => {
     setSelectedImageIndex(index + 1); // +1 because we skipped the first image
@@ -69,14 +73,14 @@ const MasonryPhotoGallery = ({ images, title }: MasonryPhotoGalleryProps) => {
               className="bg-primary hover:bg-primary/90"
             >
               <Images className="h-5 w-5 mr-2" />
-              View All Photos ({images.length})
+              View All Photos ({displayImages.length})
             </Button>
           </div>
         </div>
       </div>
 
       <PropertyPhotoModal
-        images={images}
+        images={displayImages}
         title={title}
         isOpen={showModal}
         onClose={() => setShowModal(false)}

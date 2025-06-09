@@ -47,7 +47,7 @@ const AdminProperties = () => {
     setShowAddForm(true);
   };
 
-  const handleFormSubmit = async (data: PropertyFormData & { photos: File[]; selectedCoverIndex?: number }) => {
+  const handleFormSubmit = async (data: PropertyFormData & { photos: File[]; selectedCoverIndex?: number; featuredPhotos?: string[] }) => {
     if (isSubmitting) return; // Prevent multiple submissions
     
     setIsSubmitting(true);
@@ -67,6 +67,7 @@ const AdminProperties = () => {
         amenities: data.amenities,
         image_url: undefined, // Will be set after photo upload
         images: editingProperty?.images || [], // Keep existing images for edits
+        featured_photos: data.featuredPhotos || [], // Include featured photos
       };
 
       let savedProperty;
@@ -108,6 +109,7 @@ const AdminProperties = () => {
           ...propertyData,
           images: allImages,
           image_url: coverImageUrl,
+          featured_photos: data.featuredPhotos || [], // Ensure featured photos are preserved
         };
 
         savedProperty = await editProperty(savedProperty.id, updatedPropertyData);

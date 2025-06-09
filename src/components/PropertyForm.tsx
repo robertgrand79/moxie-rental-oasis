@@ -28,7 +28,7 @@ const propertySchema = z.object({
 });
 
 interface PropertyFormProps {
-  onSubmit: (data: PropertyFormData & { photos: File[]; selectedCoverIndex?: number }) => void;
+  onSubmit: (data: PropertyFormData & { photos: File[]; selectedCoverIndex?: number; featuredPhotos?: string[] }) => void;
   onCancel: () => void;
   initialData?: Partial<Property>;
   isEditing?: boolean;
@@ -38,6 +38,7 @@ interface PropertyFormProps {
 const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSubmitting = false }: PropertyFormProps) => {
   const [photos, setPhotos] = useState<File[]>([]);
   const [selectedCoverIndex, setSelectedCoverIndex] = useState<number>(0);
+  const [featuredPhotos, setFeaturedPhotos] = useState<string[]>(initialData?.featured_photos || []);
   const { uploading } = usePhotoUpload();
 
   const form = useForm<PropertyFormData>({
@@ -57,7 +58,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
 
   const handleSubmit = (data: PropertyFormData) => {
     if (isSubmitting) return; // Prevent multiple submissions
-    onSubmit({ ...data, photos, selectedCoverIndex });
+    onSubmit({ ...data, photos, selectedCoverIndex, featuredPhotos });
   };
 
   const handleAIContentGenerated = (field: 'title' | 'description' | 'amenities', content: string) => {
@@ -91,6 +92,8 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
                 existingImages={initialData?.images || []}
                 selectedCoverIndex={selectedCoverIndex}
                 onCoverSelect={setSelectedCoverIndex}
+                featuredPhotos={featuredPhotos}
+                onFeaturedPhotosChange={setFeaturedPhotos}
                 disabled={isProcessing}
               />
 

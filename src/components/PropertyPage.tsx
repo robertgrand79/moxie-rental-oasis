@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
 import { parseAddressSlug } from '@/utils/addressSlug';
 import PropertyPageHero from './property/PropertyPageHero';
+import PropertyInfoSection from './property/PropertyInfoSection';
 import MasonryPhotoGallery from './property/MasonryPhotoGallery';
 import EnhancedPropertyDetails from './property/EnhancedPropertyDetails';
 import FloatingBookingCard from './property/FloatingBookingCard';
@@ -87,14 +88,19 @@ const PropertyPage = () => {
       <PropertyPageHero property={property} coverImage={coverImage} />
 
       {/* Floating Booking Card */}
-      <div className="fixed top-8 right-8 z-40 hidden lg:block">
-        <FloatingBookingCard property={property} />
-      </div>
+      <FloatingBookingCard property={property} />
+
+      {/* Property Information Section */}
+      <PropertyInfoSection property={property} />
 
       {/* Photo Gallery */}
-      <MasonryPhotoGallery images={propertyImages} title={property.title} />
+      <MasonryPhotoGallery 
+        images={propertyImages} 
+        featuredPhotos={property.featured_photos}
+        title={property.title} 
+      />
 
-      {/* Property Details */}
+      {/* Enhanced Property Details */}
       <EnhancedPropertyDetails property={property} />
 
       {/* Mobile Booking Card */}

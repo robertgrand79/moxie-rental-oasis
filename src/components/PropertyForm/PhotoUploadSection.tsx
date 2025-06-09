@@ -1,10 +1,10 @@
-
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormLabel } from '@/components/ui/form';
 import { Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import PaginatedPhotoGrid from './PaginatedPhotoGrid';
+import FeaturedPhotoSelection from './FeaturedPhotoSelection';
 
 interface PhotoUploadSectionProps {
   photos: File[];
@@ -13,6 +13,8 @@ interface PhotoUploadSectionProps {
   existingImages?: string[];
   selectedCoverIndex?: number;
   onCoverSelect?: (index: number) => void;
+  featuredPhotos?: string[];
+  onFeaturedPhotosChange?: (photos: string[]) => void;
   disabled?: boolean;
 }
 
@@ -23,6 +25,8 @@ const PhotoUploadSection = ({
   existingImages = [], 
   selectedCoverIndex,
   onCoverSelect,
+  featuredPhotos = [],
+  onFeaturedPhotosChange,
   disabled = false
 }: PhotoUploadSectionProps) => {
   const [dragActive, setDragActive] = useState(false);
@@ -123,8 +127,11 @@ const PhotoUploadSection = ({
     }
   };
 
+  // All available images for featured photo selection
+  const allImageUrls = [...existingImages, ...previewUrls];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <FormLabel className="text-lg font-semibold">Property Photos</FormLabel>
       
       {/* Photo Gallery */}
@@ -150,6 +157,16 @@ const PhotoUploadSection = ({
             The starred image will be used as the cover photo for your property listing.
           </p>
         </div>
+      )}
+
+      {/* Featured Photos Selection */}
+      {allImageUrls.length > 0 && onFeaturedPhotosChange && (
+        <FeaturedPhotoSelection
+          allImages={allImageUrls}
+          featuredPhotos={featuredPhotos}
+          onFeaturedPhotosChange={onFeaturedPhotosChange}
+          disabled={disabled}
+        />
       )}
 
       {/* Photo Upload Area */}

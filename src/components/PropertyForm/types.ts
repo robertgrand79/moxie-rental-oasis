@@ -11,5 +11,6 @@ export interface PropertyFormData {
   amenities?: string;
   photos?: File[];
   images?: string[]; // Existing uploaded images
+  featuredPhotos?: string[]; // Selected featured photos for display
   selectedCoverIndex?: number; // Index of selected cover image
 }

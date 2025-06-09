@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,29 +9,35 @@ interface FloatingBookingCardProps {
 }
 
 const FloatingBookingCard = ({ property }: FloatingBookingCardProps) => {
-  const [isSticky, setIsSticky] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      setIsSticky(scrollTop > 400); // Start floating after hero section
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+      
+      // Show the card from the very beginning and keep it visible
+      setIsVisible(true);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const hasBookingUrl = property.hospitable_booking_url && property.hospitable_booking_url.trim() !== '';
 
+  // Calculate transform for smooth following behavior
+  const transform = `translateY(${Math.min(scrollY * 0.1, 100)}px)`;
+
   return (
     <div 
-      className={`transition-all duration-300 ${
-        isSticky 
-          ? 'fixed top-8 right-8 z-50 shadow-2xl' 
-          : 'relative shadow-lg'
-      }`}
+      className={`fixed top-8 right-8 z-50 transition-all duration-500 ease-out ${
+        isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
+      } hidden lg:block`}
+      style={{ transform }}
     >
-      <Card className="w-80 backdrop-blur-xl bg-white/95 border-border">
+      <Card className="w-80 backdrop-blur-xl bg-white/95 border-border shadow-2xl">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-3xl font-bold">
