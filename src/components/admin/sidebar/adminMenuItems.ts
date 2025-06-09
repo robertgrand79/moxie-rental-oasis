@@ -1,148 +1,74 @@
-
-import { 
-  Home, 
-  LayoutDashboard, 
-  Settings, 
-  Users, 
-  Wand2, 
-  FileText, 
-  Mail, 
-  Star, 
-  Sparkles,
-  Plus,
-  Shield,
-  GitFork,
+import {
   BarChart3,
-  TrendingUp,
-  Wrench,
-  CheckSquare,
-  Calendar
+  Building,
+  Calendar,
+  Camera,
+  File,
+  FileText,
+  Gauge,
+  Key,
+  LayoutDashboard,
+  ListChecks,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Settings,
+  User,
+  Users,
+  Wand2,
+  Bot,
 } from 'lucide-react';
 
 export const adminMenuItems = [
   {
-    title: "Dashboard",
+    title: 'General',
     items: [
-      {
-        title: "Overview",
-        icon: LayoutDashboard,
-        href: "/admin"
-      },
-      {
-        title: "Analytics",
-        icon: BarChart3,
-        href: "/admin/analytics"
-      },
-      {
-        title: "Site Metrics", 
-        icon: TrendingUp,
-        href: "/admin/site-metrics"
-      }
+      { title: 'Dashboard', href: '/admin', icon: 'LayoutDashboard' },
+      { title: 'Settings', href: '/admin/settings', icon: 'Settings' }
     ]
   },
   {
-    title: "Properties",
+    title: 'Property Management',
     items: [
-      {
-        title: "All Properties",
-        icon: Home,
-        href: "/admin/properties"
-      },
-      {
-        title: "Add New Property",
-        icon: Plus,
-        href: "/admin/properties/new?action=add"
-      }
+      { title: 'Properties', href: '/admin/properties', icon: 'Building' },
+      { title: 'Bookings', href: '/admin/bookings', icon: 'Calendar' },
+      { title: 'Reviews', href: '/admin/reviews', icon: 'MessageSquare' }
     ]
   },
   {
-    title: "Operations & Management",
+    title: 'User Management',
     items: [
-      {
-        title: "Task Management",
-        icon: CheckSquare,
-        href: "/admin/tasks"
-      },
-      {
-        title: "Work Orders",
-        icon: Wrench,
-        href: "/admin/work-orders"
-      }
+      { title: 'Users', href: '/admin/users', icon: 'Users' },
+      { title: 'Roles & Permissions', href: '/admin/roles', icon: 'Key' }
     ]
   },
   {
-    title: "Content Management",
+    title: 'Analytics & Reporting',
     items: [
-      {
-        title: "Testimonials",
-        icon: Star,
-        href: "/admin/testimonials"
-      },
-      {
-        title: "Lifestyle Gallery",
-        icon: Home,
-        href: "/admin/lifestyle"
-      },
-      {
-        title: "Events",
-        icon: Calendar,
-        href: "/admin/events"
-      },
-      {
-        title: "Points of Interest",
-        icon: Star,
-        href: "/admin/poi"
-      }
+      { title: 'Dashboard', href: '/admin/analytics', icon: 'BarChart3' },
+      { title: 'Performance', href: '/admin/performance', icon: 'Gauge' },
+      { title: 'Reports', href: '/admin/reports', icon: 'ListChecks' }
     ]
   },
   {
-    title: "AI & Content Tools",
+    title: 'Content Management',
     items: [
-      {
-        title: "AI Content Generator",
-        icon: Wand2,
-        href: "/admin/ai-tools"
-      },
-      {
-        title: "Content Workflows",
-        icon: Sparkles,
-        href: "/admin/content-workflows"
-      }
+      { title: 'AI Assistant', href: '/admin/ai-chat', icon: 'Wand2' },
+      { title: 'AI Tools (Legacy)', href: '/admin/ai-tools', icon: 'Bot' },
+      { title: 'Blog Posts', href: '/admin/blog', icon: 'FileText' },
+      { title: 'Pages', href: '/admin/pages', icon: 'File' },
+      { title: 'Newsletter', href: '/admin/newsletter', icon: 'Mail' },
+      { title: 'Events', href: '/admin/events', icon: 'Calendar' },
+      { title: 'Points of Interest', href: '/admin/poi', icon: 'MapPin' },
+      { title: 'Lifestyle Gallery', href: '/admin/lifestyle', icon: 'Camera' },
+      { title: 'Testimonials', href: '/admin/testimonials', icon: 'MessageSquare' }
     ]
   },
   {
-    title: "Marketing",
+    title: 'Account',
     items: [
-      {
-        title: "Newsletter Management",
-        icon: Mail,
-        href: "/admin/newsletter-management"
-      },
-      {
-        title: "Blog Management",
-        icon: FileText,
-        href: "/admin/blog"
-      }
-    ]
-  },
-  {
-    title: "Settings & Admin",
-    items: [
-      {
-        title: "Users",
-        icon: Users,
-        href: "/admin/users"
-      },
-      {
-        title: "Roles & Permissions",
-        icon: Shield,
-        href: "/admin/roles"
-      },
-      {
-        title: "Site Settings",
-        icon: Settings,
-        href: "/admin/settings"
-      }
+      { title: 'Profile', href: '/admin/profile', icon: 'User' },
+      { title: 'Settings', href: '/admin/account-settings', icon: 'Settings' }
     ]
   }
 ];
