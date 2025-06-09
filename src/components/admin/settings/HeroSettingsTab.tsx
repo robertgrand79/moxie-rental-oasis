@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Save } from 'lucide-react';
+import HeroImageUploader from '@/components/HeroImageUploader';
 
 interface HeroSettingsTabProps {
   siteData: {
@@ -22,6 +23,10 @@ interface HeroSettingsTabProps {
 }
 
 const HeroSettingsTab = ({ siteData, onInputChange, onSave }: HeroSettingsTabProps) => {
+  const handleImageChange = (imageUrl: string | null) => {
+    onInputChange('heroBackgroundImage', imageUrl || '');
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -63,18 +68,10 @@ const HeroSettingsTab = ({ siteData, onInputChange, onSave }: HeroSettingsTabPro
           />
         </div>
 
-        <div>
-          <Label htmlFor="heroBackgroundImage">Background Image URL</Label>
-          <Input
-            id="heroBackgroundImage"
-            value={siteData.heroBackgroundImage}
-            onChange={(e) => onInputChange('heroBackgroundImage', e.target.value)}
-            placeholder="https://example.com/image.jpg"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Use a high-quality landscape image for best results
-          </p>
-        </div>
+        <HeroImageUploader
+          currentImageUrl={siteData.heroBackgroundImage || null}
+          onImageChange={handleImageChange}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
