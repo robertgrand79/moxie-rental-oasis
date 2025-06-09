@@ -110,10 +110,7 @@ const PropertyPage = () => {
       {/* About This Property Section */}
       <AboutPropertySection property={property} />
 
-      {/* Amenities Section */}
-      <AmenitiesSection amenities={property.amenities} />
-
-      {/* Photo Spotlight - Compact featured photos section */}
+      {/* Photo Spotlight - Property Highlights - Now above Amenities */}
       {property.images && property.images.length > 0 && (
         <PhotoSpotlight
           images={property.images}
@@ -121,6 +118,9 @@ const PropertyPage = () => {
           title={property.title}
         />
       )}
+
+      {/* Amenities Section - Enhanced with new colors */}
+      <AmenitiesSection amenities={property.amenities} />
 
       {/* Booking Section - Desktop */}
       {!isMobile && (
