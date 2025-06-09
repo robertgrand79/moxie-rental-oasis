@@ -110,7 +110,7 @@ export const useUserPermissions = () => {
 
       const formattedUsers = data.map(user => ({
         ...user,
-        permissions: { ...defaultPermissions, ...(user.permissions as Record<string, any> || {}) }
+        permissions: { ...defaultPermissions, ...user.permissions }
       }));
 
       setUsers(formattedUsers);
@@ -158,10 +158,6 @@ export const useUserPermissions = () => {
     }
   };
 
-  const updateSinglePermission = async (userId: string, permission: keyof UserPermissions, value: boolean) => {
-    return updateUserPermissions(userId, { [permission]: value });
-  };
-
   const updateUserRole = async (userId: string, role: string) => {
     try {
       const { error } = await supabase
@@ -201,7 +197,6 @@ export const useUserPermissions = () => {
     loading,
     fetchUsers,
     updateUserPermissions,
-    updateSinglePermission,
     updateUserRole,
   };
 };
