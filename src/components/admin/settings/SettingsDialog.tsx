@@ -50,6 +50,10 @@ const SettingsDialog = ({
   setMapboxToken,
   updateSetting
 }: SettingsDialogProps) => {
+  const handleImageChange = async (imageUrl: string | null) => {
+    onInputChange('heroBackgroundImage', imageUrl || '');
+  };
+
   const renderSettingContent = () => {
     switch (selectedSetting) {
       case 'site-info':
@@ -58,6 +62,7 @@ const SettingsDialog = ({
             siteData={siteData}
             onInputChange={onInputChange}
             onSave={onSaveSettings}
+            saving={false}
           />
         );
       case 'hero-section':
@@ -65,7 +70,9 @@ const SettingsDialog = ({
           <HeroSectionSettings
             siteData={siteData}
             onInputChange={onInputChange}
+            onImageChange={handleImageChange}
             onSave={onSaveSettings}
+            saving={false}
           />
         );
       case 'contact-info':
@@ -74,6 +81,8 @@ const SettingsDialog = ({
             siteData={siteData}
             onInputChange={onInputChange}
             onSocialMediaChange={onSocialMediaChange}
+            onSave={onSaveSettings}
+            saving={false}
           />
         );
       case 'design-branding':
