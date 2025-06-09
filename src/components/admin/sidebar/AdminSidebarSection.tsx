@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { LucideIcon } from 'lucide-react';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -13,9 +14,8 @@ import {
 
 type MenuItem = {
   title: string;
-  url: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
+  href: string;
+  icon: LucideIcon;
 };
 
 interface AdminSidebarSectionProps {
@@ -35,13 +35,13 @@ const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
         <SidebarMenu>
           {items.map((item) => {
             const IconComponent = item.icon;
-            const isActive = location.pathname === item.url;
+            const isActive = location.pathname === item.href;
             
             return (
-              <SidebarMenuItem key={item.url}>
+              <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton asChild isActive={isActive}>
-                  <Link to={item.url} className="flex items-center space-x-3">
-                    <IconComponent className={cn("h-5 w-5", item.color)} />
+                  <Link to={item.href} className="flex items-center space-x-3">
+                    <IconComponent className="h-5 w-5 text-gray-600" />
                     <span className="font-medium">{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
