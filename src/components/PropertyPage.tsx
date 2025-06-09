@@ -63,8 +63,8 @@ const PropertyPage = () => {
     );
   }
 
-  // Determine cover image - use first featured photo, first image, or image_url
-  const coverImage = property.featured_photos?.[0] || property.images?.[0] || property.image_url;
+  // Determine cover image - prioritize cover_image_url, then first featured photo, first image, or image_url
+  const coverImage = property.cover_image_url || property.featured_photos?.[0] || property.images?.[0] || property.image_url;
 
   const handleBackClick = () => {
     window.history.back();

@@ -36,24 +36,24 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
 
   return (
     <>
-      <div className="py-12 bg-white">
+      <div className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Property Highlights</h2>
-              <p className="text-gray-600">Explore the beautiful spaces of this property</p>
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Property Highlights</h2>
+              <p className="text-xl text-gray-600">Explore the beautiful spaces of this property</p>
             </div>
             
-            {/* Photo Thumbnails Grid */}
-            <div className={`grid gap-3 mb-8 ${
+            {/* Enhanced Photo Thumbnails Grid - Larger and more responsive */}
+            <div className={`grid gap-4 mb-12 ${
               isMobile 
-                ? 'grid-cols-3' 
-                : 'grid-cols-5 lg:grid-cols-6 xl:grid-cols-8'
+                ? 'grid-cols-2' 
+                : 'grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10'
             }`}>
               {spotlightPhotos.map((image, index) => (
                 <div
                   key={index}
-                  className="relative aspect-square cursor-pointer group overflow-hidden rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
+                  className="relative aspect-square cursor-pointer group overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   onClick={() => openModal(index)}
                 >
                   <OptimizedImage
@@ -61,20 +61,24 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
                     alt={`${title} - Photo ${index + 1}`}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <Images className="h-5 w-5 text-gray-700" />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
             
-            {/* Centered View All Button */}
+            {/* Enhanced View All Button */}
             <div className="text-center">
               <Button 
                 onClick={openAllPhotosModal}
                 variant="outline"
                 size="lg"
-                className="bg-white hover:bg-gray-50 border-gray-300 text-gray-700 px-8 py-3"
+                className="bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-primary text-gray-700 hover:text-primary px-12 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                <Images className="h-5 w-5 mr-2" />
+                <Images className="h-6 w-6 mr-3" />
                 View All {images.length} Photos
               </Button>
             </div>

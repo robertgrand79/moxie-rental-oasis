@@ -9,6 +9,7 @@ export interface Property {
   max_guests: number;
   price_per_night: number;
   image_url?: string;
+  cover_image_url?: string; // New field for selected cover photo
   images?: string[];
   featured_photos?: string[]; // Array of up to 10 selected photos for display
   hospitable_booking_url?: string;

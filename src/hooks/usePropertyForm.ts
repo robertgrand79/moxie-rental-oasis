@@ -60,6 +60,7 @@ export const usePropertyForm = () => {
         hospitable_booking_url: data.hospitableBookingUrl,
         amenities: data.amenities,
         image_url: undefined, // Will be set after photo upload
+        cover_image_url: undefined, // Will be set based on selectedCoverIndex
         images: editingProperty?.images || [], // Keep existing images for edits
         featured_photos: data.featuredPhotos || [], // Include featured photos
       };
@@ -90,12 +91,16 @@ export const usePropertyForm = () => {
       if (uploadedImageUrls.length > 0) {
         const allImages = [...(savedProperty.images || []), ...uploadedImageUrls];
         
-        // Determine cover image
+        // Determine cover image based on selectedCoverIndex
         let coverImageUrl: string | undefined;
+        let regularImageUrl: string | undefined;
+        
         if (data.selectedCoverIndex !== undefined && allImages[data.selectedCoverIndex]) {
           coverImageUrl = allImages[data.selectedCoverIndex];
+          regularImageUrl = allImages[0]; // Keep first image as backup
         } else if (allImages.length > 0) {
           coverImageUrl = allImages[0];
+          regularImageUrl = allImages[0];
         }
 
         // Update featured photos to use actual uploaded URLs if they were just uploaded
@@ -109,20 +114,29 @@ export const usePropertyForm = () => {
           });
         }
 
-        // Update the property with the new images and featured photos
+        // Update the property with the new images, cover image, and featured photos
         const updatedPropertyData = {
           ...propertyData,
           images: allImages,
-          image_url: coverImageUrl,
+          image_url: regularImageUrl,
+          cover_image_url: coverImageUrl, // Save the selected cover image
           featured_photos: updatedFeaturedPhotos,
         };
 
         savedProperty = await editProperty(savedProperty.id, updatedPropertyData);
-      } else if (data.featuredPhotos && data.featuredPhotos.length > 0) {
-        // If no new photos but featured photos were selected from existing images
+      } else if (data.selectedCoverIndex !== undefined || (data.featuredPhotos && data.featuredPhotos.length > 0)) {
+        // If no new photos but cover selection or featured photos were updated
+        const existingImages = savedProperty.images || [];
+        let coverImageUrl: string | undefined;
+        
+        if (data.selectedCoverIndex !== undefined && existingImages[data.selectedCoverIndex]) {
+          coverImageUrl = existingImages[data.selectedCoverIndex];
+        }
+        
         const updatedPropertyData = {
           ...propertyData,
-          featured_photos: data.featuredPhotos,
+          cover_image_url: coverImageUrl,
+          featured_photos: data.featuredPhotos || [],
         };
         
         savedProperty = await editProperty(savedProperty.id, updatedPropertyData);
