@@ -4,18 +4,24 @@ import { useParams } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
 import LoadingState from '@/components/ui/loading-state';
 import PropertyPageHero from '@/components/property/PropertyPageHero';
+import MobilePropertyHero from '@/components/property/MobilePropertyHero';
 import PropertyPhotoCollage from '@/components/property/PropertyPhotoCollage';
 import AboutPropertySection from '@/components/property/AboutPropertySection';
 import AmenitiesSection from '@/components/property/AmenitiesSection';
 import MasonryPhotoGallery from '@/components/property/MasonryPhotoGallery';
+import ModernPhotoGallery from '@/components/property/ModernPhotoGallery';
 import BookingCard from '@/components/property/BookingCard';
 import FloatingBookingCard from '@/components/property/FloatingBookingCard';
+import MobileBookingBar from '@/components/property/MobileBookingBar';
+import QuickInfoSection from '@/components/property/QuickInfoSection';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import { generateAddressSlug } from '@/utils/addressSlug';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const PropertyPage = () => {
   const { slug, addressSlug } = useParams<{ slug?: string; addressSlug?: string }>();
   const { properties, loading } = useProperties();
+  const isMobile = useIsMobile();
 
   // Use addressSlug if available (from /property/:addressSlug route), otherwise use slug
   const currentSlug = addressSlug || slug;
@@ -62,18 +68,49 @@ const PropertyPage = () => {
   // Determine cover image - use first featured photo, first image, or image_url
   const coverImage = property.featured_photos?.[0] || property.images?.[0] || property.image_url;
 
+  const handleBackClick = () => {
+    window.history.back();
+  };
+
+  const handleShareClick = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: property.title,
+        text: property.description,
+        url: window.location.href,
+      });
+    } else {
+      // Fallback to copying URL to clipboard
+      navigator.clipboard.writeText(window.location.href);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
+      {/* Hero Section - Mobile vs Desktop */}
       {coverImage && (
-        <PropertyPageHero 
-          property={property} 
-          coverImage={coverImage} 
-        />
+        <>
+          {isMobile ? (
+            <MobilePropertyHero 
+              property={property} 
+              coverImage={coverImage}
+              onBackClick={handleBackClick}
+              onShareClick={handleShareClick}
+            />
+          ) : (
+            <PropertyPageHero 
+              property={property} 
+              coverImage={coverImage} 
+            />
+          )}
+        </>
       )}
 
-      {/* Photo Collage - only if no featured photos */}
-      {(!property.featured_photos || property.featured_photos.length === 0) && property.images && property.images.length > 0 && (
+      {/* Quick Info Section - Mobile Only */}
+      {isMobile && <QuickInfoSection property={property} />}
+
+      {/* Photo Collage - Desktop only, only if no featured photos */}
+      {!isMobile && (!property.featured_photos || property.featured_photos.length === 0) && property.images && property.images.length > 0 && (
         <div className="container mx-auto px-4 py-8">
           <PropertyPhotoCollage
             images={property.images}
@@ -88,24 +125,32 @@ const PropertyPage = () => {
       {/* Amenities Section */}
       <AmenitiesSection amenities={property.amenities} />
 
-      {/* Featured Photo Gallery */}
-      <MasonryPhotoGallery
+      {/* Photo Gallery - Modern responsive version */}
+      <ModernPhotoGallery
         images={property.images || []}
         featuredPhotos={property.featured_photos}
         title={property.title}
       />
 
-      {/* Booking Section */}
-      <div className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto">
-            <BookingCard property={property} />
+      {/* Booking Section - Desktop */}
+      {!isMobile && (
+        <div className="py-16 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <div className="max-w-2xl mx-auto">
+              <BookingCard property={property} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Floating Booking Card */}
-      <FloatingBookingCard property={property} />
+      {/* Floating Booking Card - Desktop */}
+      {!isMobile && <FloatingBookingCard property={property} />}
+
+      {/* Mobile Booking Bar */}
+      {isMobile && <MobileBookingBar property={property} />}
+
+      {/* Mobile bottom padding to account for fixed booking bar */}
+      {isMobile && <div className="h-20" />}
     </div>
   );
 };

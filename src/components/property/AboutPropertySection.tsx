@@ -1,14 +1,53 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Calendar, Star } from 'lucide-react';
 import { Property } from '@/types/property';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AboutPropertySectionProps {
   property: Property;
 }
 
 const AboutPropertySection = ({ property }: AboutPropertySectionProps) => {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    // Mobile version - simpler, more compact
+    return (
+      <div className="py-8 bg-white">
+        <div className="px-4">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Property</h2>
+            <div className="prose prose-gray max-w-none">
+              <p className="text-gray-700 leading-relaxed">
+                {property.description}
+              </p>
+            </div>
+          </div>
+          
+          {/* Mobile highlights */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-xl font-bold text-primary">{property.bedrooms}</div>
+                <div className="text-sm text-gray-600">Bedrooms</div>
+              </div>
+              <div>
+                <div className="text-xl font-bold text-primary">{property.bathrooms}</div>
+                <div className="text-sm text-gray-600">Bathrooms</div>
+              </div>
+              <div>
+                <div className="text-xl font-bold text-primary">{property.max_guests}</div>
+                <div className="text-sm text-gray-600">Guests</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop version - keep existing design
   return (
     <div className="py-16 bg-gradient-to-br from-slate-50 to-white">
       <div className="container mx-auto px-4">
