@@ -34,10 +34,21 @@ export const useProjectOperations = (
         }
         
         const projectWithProperty: PropertyProject = {
-          ...data,
+          id: data.id,
+          property_id: data.property_id,
+          title: data.title,
+          description: data.description,
           type: data.type as PropertyProject['type'],
           status: data.status as PropertyProject['status'],
           priority: data.priority as PropertyProject['priority'],
+          start_date: data.start_date,
+          target_completion_date: data.target_completion_date,
+          actual_completion_date: data.actual_completion_date,
+          budget: data.budget,
+          actual_cost: data.actual_cost,
+          created_by: data.created_by,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
           property
         };
         

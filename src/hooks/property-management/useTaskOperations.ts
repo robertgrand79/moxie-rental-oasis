@@ -44,10 +44,26 @@ export const useTaskOperations = (
         const [propertyResult, projectResult] = await Promise.all(fetchPromises);
         
         const taskWithRelations: PropertyTask = {
-          ...data,
+          id: data.id,
+          property_id: data.property_id,
+          project_id: data.project_id,
+          title: data.title,
+          description: data.description,
           type: data.type as PropertyTask['type'],
           status: data.status as PropertyTask['status'],
           priority: data.priority as PropertyTask['priority'],
+          assigned_to: data.assigned_to,
+          due_date: data.due_date,
+          estimated_hours: data.estimated_hours,
+          actual_hours: data.actual_hours,
+          is_recurring: data.is_recurring,
+          recurrence_pattern: data.recurrence_pattern,
+          checklist_items: data.checklist_items,
+          photos: data.photos,
+          notes: data.notes,
+          created_by: data.created_by,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
           property: propertyResult.data,
           project: projectResult.data
         };
@@ -107,10 +123,26 @@ export const useTaskOperations = (
         const [propertyResult, projectResult] = await Promise.all(fetchPromises);
         
         const updatedTask: PropertyTask = {
-          ...data,
+          id: data.id,
+          property_id: data.property_id,
+          project_id: data.project_id,
+          title: data.title,
+          description: data.description,
           type: data.type as PropertyTask['type'],
           status: data.status as PropertyTask['status'],
           priority: data.priority as PropertyTask['priority'],
+          assigned_to: data.assigned_to,
+          due_date: data.due_date,
+          estimated_hours: data.estimated_hours,
+          actual_hours: data.actual_hours,
+          is_recurring: data.is_recurring,
+          recurrence_pattern: data.recurrence_pattern,
+          checklist_items: data.checklist_items,
+          photos: data.photos,
+          notes: data.notes,
+          created_by: data.created_by,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
           property: propertyResult.data,
           project: projectResult.data
         };

@@ -62,10 +62,21 @@ export const usePropertyData = () => {
         }
         
         const projectsWithProperties: PropertyProject[] = data.map(project => ({
-          ...project,
+          id: project.id,
+          property_id: project.property_id,
+          title: project.title,
+          description: project.description,
           type: project.type as PropertyProject['type'],
           status: project.status as PropertyProject['status'],
           priority: project.priority as PropertyProject['priority'],
+          start_date: project.start_date,
+          target_completion_date: project.target_completion_date,
+          actual_completion_date: project.actual_completion_date,
+          budget: project.budget,
+          actual_cost: project.actual_cost,
+          created_by: project.created_by,
+          created_at: project.created_at,
+          updated_at: project.updated_at,
           property: project.property_id ? propertiesMap.get(project.property_id) : undefined
         }));
         
@@ -130,10 +141,26 @@ export const usePropertyData = () => {
         );
         
         const tasksWithRelations: PropertyTask[] = data.map(task => ({
-          ...task,
+          id: task.id,
+          property_id: task.property_id,
+          project_id: task.project_id,
+          title: task.title,
+          description: task.description,
           type: task.type as PropertyTask['type'],
           status: task.status as PropertyTask['status'],
           priority: task.priority as PropertyTask['priority'],
+          assigned_to: task.assigned_to,
+          due_date: task.due_date,
+          estimated_hours: task.estimated_hours,
+          actual_hours: task.actual_hours,
+          is_recurring: task.is_recurring,
+          recurrence_pattern: task.recurrence_pattern,
+          checklist_items: task.checklist_items,
+          photos: task.photos,
+          notes: task.notes,
+          created_by: task.created_by,
+          created_at: task.created_at,
+          updated_at: task.updated_at,
           property: task.property_id ? propertiesMap.get(task.property_id) : undefined,
           project: task.project_id ? projectsMap.get(task.project_id) : undefined
         }));

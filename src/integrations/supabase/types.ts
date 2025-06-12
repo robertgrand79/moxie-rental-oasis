@@ -463,6 +463,60 @@ export type Database = {
         }
         Relationships: []
       }
+      office_spaces: {
+        Row: {
+          amenities: string[] | null
+          capacity: number
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          image_url: string | null
+          images: string[] | null
+          is_available: boolean
+          name: string
+          price_per_day: number | null
+          price_per_hour: number | null
+          price_per_month: number | null
+          size_sqft: number | null
+          updated_at: string
+        }
+        Insert: {
+          amenities?: string[] | null
+          capacity: number
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          images?: string[] | null
+          is_available?: boolean
+          name: string
+          price_per_day?: number | null
+          price_per_hour?: number | null
+          price_per_month?: number | null
+          size_sqft?: number | null
+          updated_at?: string
+        }
+        Update: {
+          amenities?: string[] | null
+          capacity?: number
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          images?: string[] | null
+          is_available?: boolean
+          name?: string
+          price_per_day?: number | null
+          price_per_hour?: number | null
+          price_per_month?: number | null
+          size_sqft?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pages: {
         Row: {
           content: string | null
