@@ -9,13 +9,33 @@ import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 const HeroSection = () => {
   const { settings, loading } = useStableSiteSettings();
 
-  // Use fallback values while loading or if settings are not available
+  // Show loading state while settings are being fetched
+  if (loading) {
+    return (
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+          <div className="space-y-8">
+            <div className="h-16 bg-white/20 rounded animate-pulse"></div>
+            <div className="h-8 bg-white/20 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Use settings values or fallbacks
   const heroTitle = settings.heroTitle || 'Discover Eugene\'s';
   const heroSubtitle = settings.heroSubtitle || 'Hidden Gems';
   const heroDescription = settings.heroDescription || 'Experience the Pacific Northwest\'s best-kept secret with our curated collection of luxury vacation rentals in the heart of Oregon\'s cultural capital.';
-  const heroBackgroundImage = settings.heroBackgroundImage || '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png';
   const heroLocationText = settings.heroLocationText || 'Prime Locations';
   const heroCTAText = settings.heroCTAText || 'View Properties';
+  
+  // Use the uploaded image if available, otherwise use the default fallback
+  const heroBackgroundImage = settings.heroBackgroundImage || '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png';
+
+  console.log('Hero Section - Current background image:', heroBackgroundImage);
+  console.log('Hero Section - All settings:', settings);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">

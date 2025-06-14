@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 import GeneralInformationSettings from './GeneralInformationSettings';
@@ -25,15 +24,29 @@ const StableBasicSettingsTab = () => {
 
   const handleImageChange = async (imageUrl: string | null) => {
     const newImageUrl = imageUrl || '';
+    
+    // Update local state immediately
     setLocalSettings(prev => ({
       ...prev,
       heroBackgroundImage: newImageUrl
     }));
     
-    // Save immediately when image is uploaded/changed
-    await saveSettings({
+    // Update optimistic state immediately
+    updateSettingOptimistic({ heroBackgroundImage: newImageUrl });
+    
+    // Save to database immediately
+    const success = await saveSettings({
       heroBackgroundImage: newImageUrl
     });
+    
+    if (!success) {
+      // Revert on failure
+      setLocalSettings(prev => ({
+        ...prev,
+        heroBackgroundImage: settings.heroBackgroundImage
+      }));
+      updateSettingOptimistic({ heroBackgroundImage: settings.heroBackgroundImage });
+    }
   };
 
   const handleSocialMediaChange = (platform: string, value: string) => {
