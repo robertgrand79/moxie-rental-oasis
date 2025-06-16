@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import LogoSection from './navbar/LogoSection';
 import DesktopNavigation from './navbar/DesktopNavigation';
@@ -13,6 +13,7 @@ const NavBar = () => {
   const { user } = useAuth();
   const staticSettings = useStaticSettings();
   const { settings, loading } = useStableSiteSettings();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Use static settings for non-authenticated users (published site)
   // Use dynamic settings for authenticated users (admin editing)
@@ -22,10 +23,13 @@ const NavBar = () => {
     <nav className="bg-white shadow-sm border-b sticky top-0 z-40">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <LogoSection siteName={currentSettings.siteName} />
+          <LogoSection />
           <DesktopNavigation />
           <AuthSection />
-          <MobileNavigation />
+          <MobileNavigation 
+            isMobileMenuOpen={isMobileMenuOpen}
+            setIsMobileMenuOpen={setIsMobileMenuOpen}
+          />
         </div>
       </div>
     </nav>
