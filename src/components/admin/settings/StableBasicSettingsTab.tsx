@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 import GeneralInformationSettings from './GeneralInformationSettings';
@@ -10,7 +11,11 @@ const StableBasicSettingsTab = () => {
 
   // Update local state when settings change
   React.useEffect(() => {
-    setLocalSettings(settings);
+    setLocalSettings(prev => ({
+      ...settings,
+      // Track original values for comparison
+      originalHeroBackgroundImage: settings.heroBackgroundImage
+    }));
   }, [settings]);
 
   const handleInputChange = (field: string, value: string) => {
@@ -22,31 +27,17 @@ const StableBasicSettingsTab = () => {
     updateSettingOptimistic({ [field]: value } as any);
   };
 
-  const handleImageChange = async (imageUrl: string | null) => {
+  const handleImageChange = (imageUrl: string | null) => {
     const newImageUrl = imageUrl || '';
     
-    // Update local state immediately
+    // Only update local state - NO automatic database save
     setLocalSettings(prev => ({
       ...prev,
       heroBackgroundImage: newImageUrl
     }));
     
-    // Update optimistic state immediately
+    // Update optimistic state for immediate UI feedback
     updateSettingOptimistic({ heroBackgroundImage: newImageUrl });
-    
-    // Save to database immediately
-    const success = await saveSettings({
-      heroBackgroundImage: newImageUrl
-    });
-    
-    if (!success) {
-      // Revert on failure
-      setLocalSettings(prev => ({
-        ...prev,
-        heroBackgroundImage: settings.heroBackgroundImage
-      }));
-      updateSettingOptimistic({ heroBackgroundImage: settings.heroBackgroundImage });
-    }
   };
 
   const handleSocialMediaChange = (platform: string, value: string) => {
@@ -70,14 +61,24 @@ const StableBasicSettingsTab = () => {
   };
 
   const handleSaveHeroSettings = async () => {
-    await saveSettings({
+    // Save ALL hero settings including the image
+    const success = await saveSettings({
       heroTitle: localSettings.heroTitle,
       heroSubtitle: localSettings.heroSubtitle,
       heroDescription: localSettings.heroDescription,
+      heroBackgroundImage: localSettings.heroBackgroundImage,
       heroLocationText: localSettings.heroLocationText,
       heroRating: localSettings.heroRating,
       heroCTAText: localSettings.heroCTAText
     });
+
+    // Update original values if save was successful
+    if (success) {
+      setLocalSettings(prev => ({
+        ...prev,
+        originalHeroBackgroundImage: localSettings.heroBackgroundImage
+      }));
+    }
   };
 
   const handleSaveContactInfo = async () => {
@@ -88,6 +89,27 @@ const StableBasicSettingsTab = () => {
       socialMedia: localSettings.socialMedia
     });
   };
+
+  // Check for unsaved changes
+  const hasUnsavedBasicChanges = 
+    localSettings.siteName !== settings.siteName ||
+    localSettings.tagline !== settings.tagline ||
+    localSettings.description !== settings.description;
+
+  const hasUnsavedHeroChanges = 
+    localSettings.heroTitle !== settings.heroTitle ||
+    localSettings.heroSubtitle !== settings.heroSubtitle ||
+    localSettings.heroDescription !== settings.heroDescription ||
+    localSettings.heroBackgroundImage !== settings.heroBackgroundImage ||
+    localSettings.heroLocationText !== settings.heroLocationText ||
+    localSettings.heroRating !== settings.heroRating ||
+    localSettings.heroCTAText !== settings.heroCTAText;
+
+  const hasUnsavedContactChanges = 
+    localSettings.contactEmail !== settings.contactEmail ||
+    localSettings.phone !== settings.phone ||
+    localSettings.address !== settings.address ||
+    JSON.stringify(localSettings.socialMedia) !== JSON.stringify(settings.socialMedia);
 
   const isBasicInfoSaving = saving.siteName || saving.tagline || saving.description;
   const isHeroSaving = Object.keys(saving).some(key => key.startsWith('hero') && saving[key]);
@@ -100,6 +122,7 @@ const StableBasicSettingsTab = () => {
         onInputChange={handleInputChange}
         onSave={handleSaveBasicInfo}
         saving={isBasicInfoSaving}
+        hasUnsavedChanges={hasUnsavedBasicChanges}
       />
 
       <HeroSectionSettings
@@ -108,6 +131,7 @@ const StableBasicSettingsTab = () => {
         onImageChange={handleImageChange}
         onSave={handleSaveHeroSettings}
         saving={isHeroSaving}
+        hasUnsavedChanges={hasUnsavedHeroChanges}
       />
 
       <ContactInformationSettings
@@ -116,6 +140,7 @@ const StableBasicSettingsTab = () => {
         onSocialMediaChange={handleSocialMediaChange}
         onSave={handleSaveContactInfo}
         saving={isContactSaving}
+        hasUnsavedChanges={hasUnsavedContactChanges}
       />
     </div>
   );

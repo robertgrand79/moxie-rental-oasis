@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Save, Home } from 'lucide-react';
+import { Save, Home, AlertCircle } from 'lucide-react';
 import HeroImageUploader from '@/components/HeroImageUploader';
 
 interface HeroSectionSettingsProps {
@@ -14,15 +14,33 @@ interface HeroSectionSettingsProps {
   onImageChange: (imageUrl: string | null) => void;
   onSave: () => Promise<void>;
   saving: boolean;
+  hasUnsavedChanges?: boolean;
 }
 
-const HeroSectionSettings = ({ siteData, onInputChange, onImageChange, onSave, saving }: HeroSectionSettingsProps) => {
+const HeroSectionSettings = ({ 
+  siteData, 
+  onInputChange, 
+  onImageChange, 
+  onSave, 
+  saving,
+  hasUnsavedChanges = false 
+}: HeroSectionSettingsProps) => {
+  
+  // Check if image has unsaved changes specifically
+  const imageHasUnsavedChanges = siteData.heroBackgroundImage !== siteData.originalHeroBackgroundImage;
+
   return (
     <EnhancedCard variant="glass">
       <EnhancedCardHeader>
         <EnhancedCardTitle className="flex items-center">
           <Home className="h-5 w-5 mr-2 text-purple-600" />
           Homepage Hero Section
+          {hasUnsavedChanges && (
+            <div className="flex items-center gap-1 ml-2 text-orange-600">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">Unsaved changes</span>
+            </div>
+          )}
         </EnhancedCardTitle>
         <EnhancedCardDescription>
           Customize the main hero section that visitors see first
@@ -65,8 +83,10 @@ const HeroSectionSettings = ({ siteData, onInputChange, onImageChange, onSave, s
         </div>
 
         <HeroImageUploader
-          currentImageUrl={siteData.heroBackgroundImage || null}
+          currentImageUrl={siteData.originalHeroBackgroundImage || null}
+          pendingImageUrl={siteData.heroBackgroundImage || null}
           onImageChange={onImageChange}
+          hasUnsavedChanges={imageHasUnsavedChanges}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -110,6 +130,17 @@ const HeroSectionSettings = ({ siteData, onInputChange, onImageChange, onSave, s
           <Save className="h-4 w-4 mr-2" />
           {saving ? 'Saving...' : 'Save Hero Settings'}
         </Button>
+
+        {hasUnsavedChanges && (
+          <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+            <div className="flex items-center gap-2 text-orange-700">
+              <AlertCircle className="h-4 w-4" />
+              <p className="text-sm font-medium">
+                You have unsaved changes. Click "Save Hero Settings" to apply them.
+              </p>
+            </div>
+          </div>
+        )}
       </EnhancedCardContent>
     </EnhancedCard>
   );

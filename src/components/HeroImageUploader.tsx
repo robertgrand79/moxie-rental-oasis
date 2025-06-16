@@ -2,19 +2,28 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, CheckCircle } from 'lucide-react';
+import { Upload, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useHeroImageUpload } from '@/hooks/useHeroImageUpload';
 import { toast } from '@/hooks/use-toast';
 
 interface HeroImageUploaderProps {
   currentImageUrl: string | null;
   onImageChange: (imageUrl: string | null) => void;
+  pendingImageUrl?: string | null;
+  hasUnsavedChanges?: boolean;
 }
 
-const HeroImageUploader = ({ currentImageUrl, onImageChange }: HeroImageUploaderProps) => {
+const HeroImageUploader = ({ 
+  currentImageUrl, 
+  onImageChange, 
+  pendingImageUrl,
+  hasUnsavedChanges = false 
+}: HeroImageUploaderProps) => {
   const [dragActive, setDragActive] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
   const { uploadHeroImage, deleteHeroImage, uploading } = useHeroImageUpload();
+
+  // Use pending image if available, otherwise use current
+  const displayImageUrl = pendingImageUrl || currentImageUrl;
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -36,12 +45,11 @@ const HeroImageUploader = ({ currentImageUrl, onImageChange }: HeroImageUploader
       if (file.type.startsWith('image/')) {
         const uploadedUrl = await uploadHeroImage(file);
         if (uploadedUrl) {
+          // Only update local state, don't save to database
           onImageChange(uploadedUrl);
-          setUploadSuccess(true);
-          setTimeout(() => setUploadSuccess(false), 2000);
           toast({
-            title: 'Success',
-            description: 'Hero image uploaded and saved successfully!',
+            title: 'Image Uploaded',
+            description: 'Image uploaded successfully! Click "Save Hero Settings" to apply changes.',
           });
         }
       }
@@ -54,40 +62,40 @@ const HeroImageUploader = ({ currentImageUrl, onImageChange }: HeroImageUploader
       if (file.type.startsWith('image/')) {
         const uploadedUrl = await uploadHeroImage(file);
         if (uploadedUrl) {
+          // Only update local state, don't save to database
           onImageChange(uploadedUrl);
-          setUploadSuccess(true);
-          setTimeout(() => setUploadSuccess(false), 2000);
           toast({
-            title: 'Success',
-            description: 'Hero image uploaded and saved successfully!',
+            title: 'Image Uploaded',
+            description: 'Image uploaded successfully! Click "Save Hero Settings" to apply changes.',
           });
         }
       }
     }
   };
 
-  const removeImage = async () => {
-    if (currentImageUrl) {
-      const success = await deleteHeroImage(currentImageUrl);
-      if (success) {
-        onImageChange(null);
-        toast({
-          title: 'Success',
-          description: 'Hero image removed successfully!',
-        });
-      }
-    } else {
-      onImageChange(null);
-    }
+  const removeImage = () => {
+    onImageChange(null);
+    toast({
+      title: 'Image Removed',
+      description: 'Click "Save Hero Settings" to apply changes.',
+    });
   };
 
   return (
     <div>
-      <Label>Hero Background Image</Label>
+      <Label className="flex items-center gap-2">
+        Hero Background Image
+        {hasUnsavedChanges && (
+          <div className="flex items-center gap-1 text-orange-600">
+            <AlertCircle className="h-3 w-3" />
+            <span className="text-xs">Unsaved changes</span>
+          </div>
+        )}
+      </Label>
       <div
         className={`mt-1 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-        } ${currentImageUrl ? 'border-green-500' : ''}`}
+        } ${displayImageUrl ? 'border-green-500' : ''} ${hasUnsavedChanges ? 'border-orange-500' : ''}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -96,17 +104,12 @@ const HeroImageUploader = ({ currentImageUrl, onImageChange }: HeroImageUploader
         {uploading ? (
           <div className="flex flex-col items-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-2" />
-            <p className="text-sm text-gray-600">Uploading and saving image...</p>
+            <p className="text-sm text-gray-600">Uploading image...</p>
           </div>
-        ) : uploadSuccess ? (
-          <div className="flex flex-col items-center">
-            <CheckCircle className="h-8 w-8 text-green-500 mb-2" />
-            <p className="text-sm text-green-600">Image saved successfully!</p>
-          </div>
-        ) : currentImageUrl ? (
+        ) : displayImageUrl ? (
           <div className="relative">
             <img
-              src={currentImageUrl}
+              src={displayImageUrl}
               alt="Hero background preview"
               className="w-full h-40 object-cover rounded-md"
             />
@@ -119,9 +122,17 @@ const HeroImageUploader = ({ currentImageUrl, onImageChange }: HeroImageUploader
             >
               <X className="h-4 w-4" />
             </Button>
-            <p className="text-xs text-gray-500 mt-2">
-              Click the X to remove, or drag a new image to replace
-            </p>
+            <div className="mt-2 text-xs text-gray-500">
+              {hasUnsavedChanges ? (
+                <p className="text-orange-600 font-medium">
+                  Changes pending - Click "Save Hero Settings" to apply
+                </p>
+              ) : (
+                <p>
+                  Click the X to remove, or drag a new image to replace
+                </p>
+              )}
+            </div>
           </div>
         ) : (
           <>
