@@ -6,12 +6,12 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-// Default fallback values
+// Updated default values to match the database defaults from useStableSiteSettings
 const DEFAULT_HERO_SETTINGS = {
-  heroTitle: 'Discover Eugene\'s',
-  heroSubtitle: 'Hidden Gems',
-  heroDescription: 'Experience the Pacific Northwest\'s best-kept secret with our curated collection of luxury vacation rentals in the heart of Oregon\'s cultural capital.',
-  heroLocationText: 'Prime Locations',
+  heroTitle: 'Your Home Away From Home',
+  heroSubtitle: 'in Eugene',
+  heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
+  heroLocationText: 'Eugene, Oregon',
   heroCTAText: 'View Properties'
 };
 
@@ -40,15 +40,18 @@ const HeroSection = () => {
 
       console.log('Raw hero settings from database:', data);
 
-      // Convert array to object
+      // Convert array to object and handle empty/null values properly
       const settingsMap = data?.reduce((acc, setting) => {
-        acc[setting.key] = setting.value;
+        // Only use database value if it's not null, undefined, or empty string
+        if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
+          acc[setting.key] = setting.value;
+        }
         return acc;
       }, {} as Record<string, any>) || {};
 
-      console.log('Processed hero settings:', settingsMap);
+      console.log('Processed hero settings (non-empty values only):', settingsMap);
 
-      // Merge with defaults
+      // Merge with defaults - database values override defaults only if they exist and are not empty
       const finalSettings = {
         ...DEFAULT_HERO_SETTINGS,
         ...settingsMap
@@ -57,10 +60,10 @@ const HeroSection = () => {
       console.log('Final hero settings with defaults:', finalSettings);
       return finalSettings;
     },
-    // Refetch every 30 seconds to pick up changes
-    refetchInterval: 30000,
-    // Show stale data while refetching
-    staleTime: 10000
+    // Reduced refetch interval to 10 seconds for faster updates
+    refetchInterval: 10000,
+    // Reduced stale time to 5 seconds
+    staleTime: 5000
   });
 
   // Show loading state
