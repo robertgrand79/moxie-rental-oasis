@@ -4,13 +4,21 @@ import { ArrowRight, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import OptimizedImage from '@/components/ui/optimized-image';
+import { useAuth } from '@/contexts/AuthContext';
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useStaticSettings } from '@/contexts/StaticSettingsContext';
 
 const HeroSection = () => {
+  const { user } = useAuth();
+  const staticSettings = useStaticSettings();
   const { settings, loading } = useStableSiteSettings();
 
-  // Show loading state while settings are being fetched
-  if (loading) {
+  // Use static settings for non-authenticated users (published site)
+  // Use dynamic settings for authenticated users (admin editing)
+  const currentSettings = user && !loading ? settings : staticSettings;
+
+  // Show loading state only for authenticated users
+  if (user && loading) {
     return (
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
@@ -25,17 +33,18 @@ const HeroSection = () => {
   }
 
   // Use settings values or fallbacks
-  const heroTitle = settings.heroTitle || 'Discover Eugene\'s';
-  const heroSubtitle = settings.heroSubtitle || 'Hidden Gems';
-  const heroDescription = settings.heroDescription || 'Experience the Pacific Northwest\'s best-kept secret with our curated collection of luxury vacation rentals in the heart of Oregon\'s cultural capital.';
-  const heroLocationText = settings.heroLocationText || 'Prime Locations';
-  const heroCTAText = settings.heroCTAText || 'View Properties';
+  const heroTitle = currentSettings.heroTitle || 'Discover Eugene\'s';
+  const heroSubtitle = currentSettings.heroSubtitle || 'Hidden Gems';
+  const heroDescription = currentSettings.heroDescription || 'Experience the Pacific Northwest\'s best-kept secret with our curated collection of luxury vacation rentals in the heart of Oregon\'s cultural capital.';
+  const heroLocationText = currentSettings.heroLocationText || 'Prime Locations';
+  const heroCTAText = currentSettings.heroCTAText || 'View Properties';
   
   // Use the uploaded image if available, otherwise use the default fallback
-  const heroBackgroundImage = settings.heroBackgroundImage || '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png';
+  const heroBackgroundImage = currentSettings.heroBackgroundImage || '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png';
 
   console.log('Hero Section - Current background image:', heroBackgroundImage);
-  console.log('Hero Section - All settings:', settings);
+  console.log('Hero Section - Using static settings:', !user);
+  console.log('Hero Section - All settings:', currentSettings);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">

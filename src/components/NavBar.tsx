@@ -1,52 +1,31 @@
 
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import LogoSection from './navbar/LogoSection';
 import DesktopNavigation from './navbar/DesktopNavigation';
-import AuthSection from './navbar/AuthSection';
 import MobileNavigation from './navbar/MobileNavigation';
+import AuthSection from './navbar/AuthSection';
+import { useAuth } from '@/contexts/AuthContext';
+import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useStaticSettings } from '@/contexts/StaticSettingsContext';
 
 const NavBar = () => {
-  const location = useLocation();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
+  const staticSettings = useStaticSettings();
+  const { settings, loading } = useStableSiteSettings();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Always use white background with shadow for consistency
-  const navClasses = 'bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50';
+  // Use static settings for non-authenticated users (published site)
+  // Use dynamic settings for authenticated users (admin editing)
+  const currentSettings = user && !loading ? settings : staticSettings;
 
   return (
-    <nav className={navClasses}>
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <LogoSection />
-          </div>
-          
-          <div className="hidden lg:flex items-center flex-1 justify-center">
-            <DesktopNavigation />
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="hidden lg:block">
-              <AuthSection />
-            </div>
-            
-            <div className="lg:hidden">
-              <MobileNavigation 
-                isMobileMenuOpen={isMobileMenuOpen}
-                setIsMobileMenuOpen={setIsMobileMenuOpen}
-              />
-            </div>
-          </div>
+    <nav className="bg-white shadow-sm border-b sticky top-0 z-40">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          <LogoSection siteName={currentSettings.siteName} />
+          <DesktopNavigation />
+          <AuthSection />
+          <MobileNavigation />
         </div>
       </div>
     </nav>

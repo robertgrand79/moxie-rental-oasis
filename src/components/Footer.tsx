@@ -1,235 +1,99 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, MapPinIcon } from 'lucide-react';
+import { MapPin, Phone, Mail, Facebook, Instagram, Twitter } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useStaticSettings } from '@/contexts/StaticSettingsContext';
 
 const Footer = () => {
-  const { settings } = useStableSiteSettings();
+  const { user } = useAuth();
+  const staticSettings = useStaticSettings();
+  const { settings, loading } = useStableSiteSettings();
 
-  // Fallback data in case settings are not loaded
-  const siteData = {
-    siteName: settings.siteName || 'Moxie Vacation Rentals',
-    description: settings.description || 'Your home base for living like a local in Eugene, Oregon. Thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
-    contactEmail: settings.contactEmail || 'gabby@moxievactionrental.com',
-    phone: settings.phone || '+1 541-255-1698',
-    address: settings.address || '2472 Willamette St Eugene OR 97405',
-    socialMedia: {
-      facebook: settings.socialMedia?.facebook || 'https://www.facebook.com/moxievacationrentals',
-      instagram: settings.socialMedia?.instagram || 'https://www.instagram.com/moxievacationrentals/',
-      twitter: settings.socialMedia?.twitter || '',
-      googlePlaces: settings.socialMedia?.googlePlaces || ''
-    }
-  };
+  // Use static settings for non-authenticated users (published site)
+  // Use dynamic settings for authenticated users (admin editing)
+  const currentSettings = user && !loading ? settings : staticSettings;
+
+  const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gradient-to-br from-gradient-from via-gradient-via to-gradient-to text-foreground relative">
-      {/* Subtle top border */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
-      
-      <div className="container mx-auto px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+    <footer className="bg-gray-900 text-white">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
-          <div className="lg:col-span-1">
-            <h3 className="text-xl font-bold mb-6 text-primary">{siteData.siteName}</h3>
-            <p className="mb-6 leading-relaxed text-muted-foreground">
-              {siteData.description}
-            </p>
-            <div className="flex justify-center space-x-4">
-              {siteData.socialMedia.facebook && (
-                <a 
-                  href={siteData.socialMedia.facebook} 
-                  className="group p-2 rounded-lg bg-background/50 hover:bg-background transition-all duration-300 hover:scale-110 hover:shadow-md" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="h-5 w-5 text-icon-blue group-hover:text-primary transition-colors duration-200" />
-                </a>
-              )}
-              {siteData.socialMedia.instagram && (
-                <a 
-                  href={siteData.socialMedia.instagram} 
-                  className="group p-2 rounded-lg bg-background/50 hover:bg-background transition-all duration-300 hover:scale-110 hover:shadow-md" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="h-5 w-5 text-icon-rose group-hover:text-primary transition-colors duration-200" />
-                </a>
-              )}
-              {siteData.socialMedia.twitter && (
-                <a 
-                  href={siteData.socialMedia.twitter} 
-                  className="group p-2 rounded-lg bg-background/50 hover:bg-background transition-all duration-300 hover:scale-110 hover:shadow-md" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="h-5 w-5 text-icon-blue group-hover:text-primary transition-colors duration-200" />
-                </a>
-              )}
-              {siteData.socialMedia.googlePlaces && (
-                <a 
-                  href={siteData.socialMedia.googlePlaces} 
-                  className="group p-2 rounded-lg bg-background/50 hover:bg-background transition-all duration-300 hover:scale-110 hover:shadow-md" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  aria-label="Google Places"
-                >
-                  <MapPinIcon className="h-5 w-5 text-icon-emerald group-hover:text-primary transition-colors duration-200" />
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Contact Information */}
           <div>
-            <h3 className="text-xl font-bold mb-6 text-primary">Contact Us</h3>
-            <div className="space-y-4">
-              <div className="flex items-center group">
-                <div className="p-2 mr-4 rounded-lg bg-background/30 group-hover:bg-background/50 transition-colors duration-200">
-                  <MapPin className="h-5 w-5 text-icon-blue" />
-                </div>
-                <span className="text-muted-foreground">{siteData.address}</span>
-              </div>
-              <div className="flex items-center group">
-                <div className="p-2 mr-4 rounded-lg bg-background/30 group-hover:bg-background/50 transition-colors duration-200">
-                  <Phone className="h-5 w-5 text-icon-emerald" />
-                </div>
-                <a 
-                  href={`tel:${siteData.phone}`}
-                  className="text-muted-foreground hover:text-primary transition-colors duration-200"
-                >
-                  {siteData.phone}
+            <h3 className="text-xl font-bold mb-4">{currentSettings.siteName}</h3>
+            <p className="text-gray-300 mb-4">
+              {currentSettings.description}
+            </p>
+            <div className="flex space-x-4">
+              {currentSettings.socialMedia?.facebook && (
+                <a href={currentSettings.socialMedia.facebook} className="text-gray-300 hover:text-white">
+                  <Facebook className="h-5 w-5" />
                 </a>
-              </div>
-              <div className="flex items-center group">
-                <div className="p-2 mr-4 rounded-lg bg-background/30 group-hover:bg-background/50 transition-colors duration-200">
-                  <Mail className="h-5 w-5 text-icon-amber" />
-                </div>
-                <a 
-                  href={`mailto:${siteData.contactEmail}`}
-                  className="text-muted-foreground hover:text-primary transition-colors duration-200"
-                >
-                  {siteData.contactEmail}
+              )}
+              {currentSettings.socialMedia?.instagram && (
+                <a href={currentSettings.socialMedia.instagram} className="text-gray-300 hover:text-white">
+                  <Instagram className="h-5 w-5" />
                 </a>
-              </div>
-              <div className="flex items-center group">
-                <div className="p-2 mr-4 rounded-lg bg-background/30 group-hover:bg-background/50 transition-colors duration-200">
-                  <Clock className="h-5 w-5 text-icon-purple" />
-                </div>
-                <span className="text-muted-foreground">24/7 Guest Support</span>
-              </div>
+              )}
+              {currentSettings.socialMedia?.twitter && (
+                <a href={currentSettings.socialMedia.twitter} className="text-gray-300 hover:text-white">
+                  <Twitter className="h-5 w-5" />
+                </a>
+              )}
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-xl font-bold mb-6 text-primary">Quick Links</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link 
-                  to="/listings" 
-                  className="text-muted-foreground hover:text-primary transition-colors duration-200 relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  View Properties
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/experiences" 
-                  className="text-muted-foreground hover:text-primary transition-colors duration-200 relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  Local Experiences
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/about" 
-                  className="text-muted-foreground hover:text-primary transition-colors duration-200 relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/blog" 
-                  className="text-muted-foreground hover:text-primary transition-colors duration-200 relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  Blog
-                </Link>
-              </li>
+            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+            <ul className="space-y-2">
+              <li><Link to="/" className="text-gray-300 hover:text-white">Home</Link></li>
+              <li><Link to="/properties" className="text-gray-300 hover:text-white">Properties</Link></li>
+              <li><Link to="/about" className="text-gray-300 hover:text-white">About</Link></li>
+              <li><Link to="/experiences" className="text-gray-300 hover:text-white">Experiences</Link></li>
+              <li><Link to="/events" className="text-gray-300 hover:text-white">Events</Link></li>
+              <li><Link to="/contact" className="text-gray-300 hover:text-white">Contact</Link></li>
             </ul>
           </div>
 
           {/* Resources */}
           <div>
-            <h3 className="text-xl font-bold mb-6 text-primary">Resources</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link 
-                  to="/privacy" 
-                  className="text-muted-foreground hover:text-primary transition-colors duration-200 relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/terms" 
-                  className="text-muted-foreground hover:text-primary transition-colors duration-200 relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/faq" 
-                  className="text-muted-foreground hover:text-primary transition-colors duration-200 relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  FAQ
-                </Link>
-              </li>
+            <h4 className="text-lg font-semibold mb-4">Resources</h4>
+            <ul className="space-y-2">
+              <li><Link to="/blog" className="text-gray-300 hover:text-white">Blog</Link></li>
+              <li><Link to="/faq" className="text-gray-300 hover:text-white">FAQ</Link></li>
+              <li><Link to="/privacy" className="text-gray-300 hover:text-white">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="text-gray-300 hover:text-white">Terms of Service</Link></li>
             </ul>
           </div>
-        </div>
 
-        {/* Visual Separator */}
-        <div className="my-12">
-          <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
-        </div>
-
-        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <p className="text-sm text-muted-foreground">
-            © 2024 {siteData.siteName}. All rights reserved.
-          </p>
-          <div className="flex flex-wrap gap-6 justify-center md:justify-end">
-            <Link 
-              to="/privacy" 
-              className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
-            >
-              Privacy Policy
-            </Link>
-            <Link 
-              to="/terms" 
-              className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
-            >
-              Terms of Service
-            </Link>
-            <Link 
-              to="/faq" 
-              className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
-            >
-              FAQ
-            </Link>
-            <a 
-              href="#" 
-              className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
-            >
-              Accessibility
-            </a>
+          {/* Contact Info */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                <span className="text-gray-300 text-sm">{currentSettings.address}</span>
+              </div>
+              <div className="flex items-center">
+                <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                <span className="text-gray-300 text-sm">{currentSettings.phone}</span>
+              </div>
+              <div className="flex items-center">
+                <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                <span className="text-gray-300 text-sm">{currentSettings.contactEmail}</span>
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
+          <p className="text-gray-400 text-sm">
+            © {currentYear} {currentSettings.siteName}. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
