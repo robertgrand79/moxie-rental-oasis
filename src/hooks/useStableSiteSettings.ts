@@ -118,6 +118,7 @@ export const useStableSiteSettings = () => {
 
     try {
       setError(null);
+      console.log('Fetching settings from database...');
       const { data, error } = await supabase
         .from('site_settings')
         .select('*');
@@ -146,17 +147,20 @@ export const useStableSiteSettings = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      console.log('Fetched settings:', settingsMap);
+      console.log('Fetched settings from database:', settingsMap);
 
       // Merge with defaults to ensure all properties exist
-      setSettings(prev => ({
+      const newSettings = {
         ...defaultSettings,
         ...settingsMap,
         socialMedia: {
           ...defaultSettings.socialMedia,
           ...(settingsMap.socialMedia || {})
         }
-      }));
+      };
+
+      console.log('Final merged settings:', newSettings);
+      setSettings(newSettings);
     } catch (error) {
       console.error('Error in fetchSettings:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -255,11 +259,11 @@ export const useStableSiteSettings = () => {
         return false;
       }
 
-      // Update local state on success
+      // Update local state on success - this is key for the unsaved changes fix
+      console.log(`Successfully saved setting ${key}, updating local state`);
       setSettings(prev => ({ ...prev, [key]: value }));
       setError(null);
       
-      console.log(`Successfully saved setting ${key}`);
       return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -295,6 +299,10 @@ export const useStableSiteSettings = () => {
         title: "Settings Saved",
         description: "Your site settings have been successfully updated.",
       });
+      
+      // After successful batch save, ensure local state is fully synced
+      console.log('Batch save successful, syncing local state');
+      setSettings(prev => ({ ...prev, ...updates }));
     }
 
     return allSuccessful;

@@ -6,11 +6,12 @@ import HeroSectionSettings from './HeroSectionSettings';
 import ContactInformationSettings from './ContactInformationSettings';
 
 const StableBasicSettingsTab = () => {
-  const { settings, saving, updateSettingOptimistic, saveSettings } = useStableSiteSettings();
+  const { settings, saving, updateSettingOptimistic, saveSettings, refetch } = useStableSiteSettings();
   const [localSettings, setLocalSettings] = useState(settings);
 
   // Update local state when settings change
   React.useEffect(() => {
+    console.log('Settings changed in hook:', settings);
     setLocalSettings(prev => ({
       ...settings,
       // Track original values for comparison
@@ -19,6 +20,7 @@ const StableBasicSettingsTab = () => {
   }, [settings]);
 
   const handleInputChange = (field: string, value: string) => {
+    console.log('Input changed:', field, value);
     setLocalSettings(prev => ({
       ...prev,
       [field]: value
@@ -53,11 +55,16 @@ const StableBasicSettingsTab = () => {
   };
 
   const handleSaveBasicInfo = async () => {
-    await saveSettings({
+    const success = await saveSettings({
       siteName: localSettings.siteName,
       tagline: localSettings.tagline,
       description: localSettings.description
     });
+
+    if (success) {
+      console.log('Basic info saved successfully, refreshing settings...');
+      await refetch();
+    }
   };
 
   const handleSaveHeroSettings = async () => {
@@ -95,25 +102,35 @@ const StableBasicSettingsTab = () => {
       heroCTAText: localSettings.heroCTAText
     });
 
-    // Update original values if save was successful
+    // Refresh settings and update local state if save was successful
     if (success) {
+      console.log('Hero settings saved successfully, refreshing settings...');
+      await refetch();
+      
+      // Update local state to reflect the saved value
       setLocalSettings(prev => ({
         ...prev,
+        heroBackgroundImage: imageUrlToSave,
         originalHeroBackgroundImage: imageUrlToSave
       }));
     }
   };
 
   const handleSaveContactInfo = async () => {
-    await saveSettings({
+    const success = await saveSettings({
       contactEmail: localSettings.contactEmail,
       phone: localSettings.phone,
       address: localSettings.address,
       socialMedia: localSettings.socialMedia
     });
+
+    if (success) {
+      console.log('Contact info saved successfully, refreshing settings...');
+      await refetch();
+    }
   };
 
-  // Check for unsaved changes
+  // Check for unsaved changes - use more precise comparison
   const hasUnsavedBasicChanges = 
     localSettings.siteName !== settings.siteName ||
     localSettings.tagline !== settings.tagline ||
@@ -137,6 +154,13 @@ const StableBasicSettingsTab = () => {
   const isBasicInfoSaving = saving.siteName || saving.tagline || saving.description;
   const isHeroSaving = Object.keys(saving).some(key => key.startsWith('hero') && saving[key]);
   const isContactSaving = saving.contactEmail || saving.phone || saving.address || saving.socialMedia;
+
+  console.log('Unsaved changes check:', {
+    hasUnsavedHeroChanges,
+    localHeroImage: localSettings.heroBackgroundImage,
+    settingsHeroImage: settings.heroBackgroundImage,
+    areEqual: localSettings.heroBackgroundImage === settings.heroBackgroundImage
+  });
 
   return (
     <div className="space-y-8">
