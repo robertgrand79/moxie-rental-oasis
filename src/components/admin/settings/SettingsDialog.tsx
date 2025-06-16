@@ -51,10 +51,6 @@ const SettingsDialog = ({
   setMapboxToken,
   updateSetting
 }: SettingsDialogProps) => {
-  const handleImageChange = async (imageUrl: string | null) => {
-    onInputChange('heroBackgroundImage', imageUrl || '');
-  };
-
   const renderSettingContent = () => {
     switch (selectedSetting) {
       case 'site-info':
@@ -71,7 +67,6 @@ const SettingsDialog = ({
           <HeroSectionSettings
             siteData={siteData}
             onInputChange={onInputChange}
-            onImageChange={handleImageChange}
             onSave={onSaveSettings}
             saving={false}
           />
