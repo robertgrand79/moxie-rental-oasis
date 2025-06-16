@@ -3,7 +3,6 @@ import React from 'react';
 import { ArrowRight, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import OptimizedImage from '@/components/ui/optimized-image';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -12,7 +11,6 @@ const DEFAULT_HERO_SETTINGS = {
   heroTitle: 'Discover Eugene\'s',
   heroSubtitle: 'Hidden Gems',
   heroDescription: 'Experience the Pacific Northwest\'s best-kept secret with our curated collection of luxury vacation rentals in the heart of Oregon\'s cultural capital.',
-  heroBackgroundImage: '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png',
   heroLocationText: 'Prime Locations',
   heroCTAText: 'View Properties'
 };
@@ -31,7 +29,6 @@ const HeroSection = () => {
           'heroTitle',
           'heroSubtitle', 
           'heroDescription',
-          'heroBackgroundImage',
           'heroLocationText',
           'heroCTAText'
         ]);
@@ -70,7 +67,7 @@ const HeroSection = () => {
   if (isLoading) {
     return (
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <div className="space-y-8">
             <div className="h-16 bg-white/20 rounded animate-pulse"></div>
@@ -85,28 +82,11 @@ const HeroSection = () => {
   const settings = heroSettings || DEFAULT_HERO_SETTINGS;
   
   console.log('Hero Section - Using settings:', settings);
-  console.log('Hero Section - Background image:', settings.heroBackgroundImage);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <OptimizedImage
-          src={settings.heroBackgroundImage || DEFAULT_HERO_SETTINGS.heroBackgroundImage}
-          alt="Eugene Oregon scenic background"
-          className="w-full h-full object-cover"
-          priority={true}
-          onError={(e) => {
-            console.error('Hero image failed to load:', settings.heroBackgroundImage);
-            // Fallback to default image
-            const target = e.target as HTMLImageElement;
-            if (target.src !== DEFAULT_HERO_SETTINGS.heroBackgroundImage) {
-              target.src = DEFAULT_HERO_SETTINGS.heroBackgroundImage;
-            }
-          }}
-        />
-        <div className="absolute inset-0 bg-black/30"></div>
-      </div>
+      {/* Gray Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
 
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">

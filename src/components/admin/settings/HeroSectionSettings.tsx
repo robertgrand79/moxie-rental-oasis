@@ -6,12 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Save, Home, AlertCircle } from 'lucide-react';
-import HeroImageUploader from '@/components/HeroImageUploader';
 
 interface HeroSectionSettingsProps {
   siteData: any;
   onInputChange: (field: string, value: string) => void;
-  onImageChange: (imageUrl: string | null) => void;
   onSave: () => Promise<void>;
   saving: boolean;
   hasUnsavedChanges?: boolean;
@@ -20,15 +18,11 @@ interface HeroSectionSettingsProps {
 const HeroSectionSettings = ({ 
   siteData, 
   onInputChange, 
-  onImageChange, 
   onSave, 
   saving,
   hasUnsavedChanges = false 
 }: HeroSectionSettingsProps) => {
   
-  // Check if image has unsaved changes specifically
-  const imageHasUnsavedChanges = siteData.heroBackgroundImage !== siteData.originalHeroBackgroundImage;
-
   return (
     <EnhancedCard variant="glass">
       <EnhancedCardHeader>
@@ -43,7 +37,7 @@ const HeroSectionSettings = ({
           )}
         </EnhancedCardTitle>
         <EnhancedCardDescription>
-          Customize the main hero section that visitors see first
+          Customize the main hero section that visitors see first (now with a clean gray background)
         </EnhancedCardDescription>
       </EnhancedCardHeader>
       <EnhancedCardContent className="space-y-6">
@@ -82,14 +76,17 @@ const HeroSectionSettings = ({
           />
         </div>
 
-        <HeroImageUploader
-          currentImageUrl={siteData.originalHeroBackgroundImage || null}
-          pendingImageUrl={siteData.heroBackgroundImage || null}
-          onImageChange={onImageChange}
-          hasUnsavedChanges={imageHasUnsavedChanges}
-        />
+        <div className="p-4 bg-gray-100 border border-gray-200 rounded-lg">
+          <div className="flex items-center gap-2 text-gray-600 mb-2">
+            <Home className="h-4 w-4" />
+            <span className="text-sm font-medium">Background</span>
+          </div>
+          <p className="text-sm text-gray-500">
+            The hero section now uses a clean gray gradient background for a modern, minimalist look.
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="heroLocationText">Location Text</Label>
             <Input
@@ -97,16 +94,6 @@ const HeroSectionSettings = ({
               value={siteData.heroLocationText}
               onChange={(e) => onInputChange('heroLocationText', e.target.value)}
               placeholder="Eugene, Oregon"
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="heroRating">Rating</Label>
-            <Input
-              id="heroRating"
-              value={siteData.heroRating}
-              onChange={(e) => onInputChange('heroRating', e.target.value)}
-              placeholder="4.9"
               className="mt-1"
             />
           </div>
