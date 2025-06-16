@@ -40,6 +40,7 @@ async function fetchSettingsFromDatabase() {
     }, {});
 
     console.log('✅ Settings fetched successfully');
+    console.log('📸 Current hero background image in database:', settingsMap.heroBackgroundImage);
     return settingsMap;
   } catch (error) {
     console.error('❌ Error in fetchSettingsFromDatabase:', error);
@@ -70,7 +71,7 @@ function generateStaticSettingsFile(settings) {
     }
   };
 
-  // Merge database settings with defaults
+  // Merge database settings with defaults - CRITICAL: Database values override defaults
   const mergedSettings = {
     ...defaultSettings,
     ...settings,
@@ -79,6 +80,9 @@ function generateStaticSettingsFile(settings) {
       ...(settings.socialMedia || {})
     }
   };
+
+  // Log the final hero image being used
+  console.log('🎯 Final hero background image for static file:', mergedSettings.heroBackgroundImage);
 
   // Generate the TypeScript file content
   const fileContent = `
@@ -107,6 +111,8 @@ interface StaticSettings {
 }
 
 // Static settings fetched from database - updated automatically
+// Last updated: ${new Date().toISOString()}
+// Hero image: ${mergedSettings.heroBackgroundImage}
 const staticSettings: StaticSettings = {
   siteName: ${JSON.stringify(mergedSettings.siteName)},
   tagline: ${JSON.stringify(mergedSettings.tagline)},
@@ -163,11 +169,21 @@ async function updateStaticSettingsFile() {
     const fileContent = generateStaticSettingsFile(settings);
     const filePath = path.join(__dirname, '..', 'src', 'contexts', 'StaticSettingsContext.tsx');
     
+    // Create backup of existing file
+    if (fs.existsSync(filePath)) {
+      const backupPath = filePath + '.backup-' + Date.now();
+      fs.copyFileSync(filePath, backupPath);
+      console.log('📝 Created backup at:', backupPath);
+    }
+    
     fs.writeFileSync(filePath, fileContent);
     
     console.log('✅ StaticSettingsContext.tsx updated successfully!');
-    console.log('📸 Hero background image:', settings.heroBackgroundImage || 'default');
-    console.log('🚀 Changes will be visible on the published site');
+    console.log('📸 Hero background image applied:', settings.heroBackgroundImage || 'default');
+    console.log('🚀 Changes will be visible after redeployment');
+    
+    // Also log file location for user reference
+    console.log('📁 Updated file:', filePath);
     
   } catch (error) {
     console.error('❌ Error updating static settings file:', error);
