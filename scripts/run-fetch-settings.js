@@ -16,6 +16,7 @@ try {
   
   console.log('✅ Static settings updated successfully!');
   console.log('📸 Hero section should now display your uploaded image');
+  console.log('🚀 Please redeploy your site to see the changes on the published version');
   
 } catch (error) {
   console.error('❌ Error running fetch-settings:', error.message);
