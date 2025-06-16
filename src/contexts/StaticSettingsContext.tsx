@@ -23,16 +23,16 @@ interface StaticSettings {
   };
 }
 
-// Static settings fetched from database - updated automatically
+// Static settings updated to match current database values
 const staticSettings: StaticSettings = {
   siteName: 'Moxie Vacation Rentals',
   tagline: 'Your Home Base for Living Like a Local in Eugene',
   description: 'Discover Eugene, Oregon through thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
-  heroTitle: 'Discover Eugene\'s',
-  heroSubtitle: 'Hidden Gems',
-  heroDescription: 'Experience the Pacific Northwest\'s best-kept secret with our curated collection of luxury vacation rentals in the heart of Oregon\'s cultural capital.',
+  heroTitle: 'Your Home Away From Home',
+  heroSubtitle: 'in Eugene',
+  heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
   heroBackgroundImage: '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png',
-  heroLocationText: 'Prime Locations',
+  heroLocationText: 'Eugene, Oregon',
   heroRating: '4.9',
   heroCTAText: 'View Properties',
   contactEmail: 'contact@moxievacationrentals.com',
