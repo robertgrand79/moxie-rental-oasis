@@ -3,8 +3,6 @@ import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Upload, X, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { useHeroImageUpload } from '@/hooks/useHeroImageUpload';
-import { toast } from '@/hooks/use-toast';
 
 interface HeroImageUploaderProps {
   currentImageUrl: string | null;
@@ -20,7 +18,9 @@ const HeroImageUploader = ({
   hasUnsavedChanges = false 
 }: HeroImageUploaderProps) => {
   const [dragActive, setDragActive] = useState(false);
-  const { uploadHeroImage, deleteHeroImage, uploading } = useHeroImageUpload();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Use pending image if available, otherwise use current
   const displayImageUrl = pendingImageUrl || currentImageUrl;
@@ -35,61 +35,39 @@ const HeroImageUploader = ({
     }
   }, []);
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
+  const handleFileSelect = (file: File) => {
+    setError(null);
+    
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file (JPEG, PNG, WebP, or GIF).');
+      return;
+    }
+
+    setSelectedFile(file);
+    
+    // Create preview URL
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    
+    // Set the preview as pending image
+    onImageChange(url);
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('image/')) {
-        console.log('Uploading dropped file:', file.name, 'Size:', file.size);
-        const uploadedUrl = await uploadHeroImage(file);
-        console.log('Upload result:', uploadedUrl);
-        
-        if (uploadedUrl) {
-          // Update local state immediately
-          onImageChange(uploadedUrl);
-          toast({
-            title: 'Image Uploaded Successfully',
-            description: 'Your hero image has been uploaded. Click "Save Hero Settings" to apply changes.',
-            variant: 'default'
-          });
-        }
-      } else {
-        toast({
-          title: 'Invalid File Type',
-          description: 'Please upload an image file (JPEG, PNG, WebP, or GIF).',
-          variant: 'destructive'
-        });
-      }
+      handleFileSelect(file);
     }
-  }, [uploadHeroImage, onImageChange]);
+  }, []);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.type.startsWith('image/')) {
-        console.log('Uploading selected file:', file.name, 'Size:', file.size);
-        const uploadedUrl = await uploadHeroImage(file);
-        console.log('Upload result:', uploadedUrl);
-        
-        if (uploadedUrl) {
-          // Update local state immediately
-          onImageChange(uploadedUrl);
-          toast({
-            title: 'Image Uploaded Successfully',
-            description: 'Your hero image has been uploaded. Click "Save Hero Settings" to apply changes.',
-            variant: 'default'
-          });
-        }
-      } else {
-        toast({
-          title: 'Invalid File Type',
-          description: 'Please upload an image file (JPEG, PNG, WebP, or GIF).',
-          variant: 'destructive'
-        });
-      }
+      handleFileSelect(file);
     }
     // Reset the input
     e.target.value = '';
@@ -97,12 +75,23 @@ const HeroImageUploader = ({
 
   const removeImage = () => {
     console.log('Removing hero image');
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setError(null);
     onImageChange(null);
-    toast({
-      title: 'Image Removed',
-      description: 'Click "Save Hero Settings" to apply changes.',
-    });
   };
+
+  const clearSelection = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setError(null);
+    // Restore to current saved image
+    onImageChange(currentImageUrl);
+  };
+
+  // Determine what to display
+  const shouldShowPreview = selectedFile && previewUrl;
+  const shouldShowCurrentImage = !shouldShowPreview && displayImageUrl && !displayImageUrl.startsWith('blob:');
 
   return (
     <div>
@@ -114,29 +103,61 @@ const HeroImageUploader = ({
             <span className="text-xs">Unsaved changes</span>
           </div>
         )}
-        {displayImageUrl && !hasUnsavedChanges && (
+        {shouldShowCurrentImage && !hasUnsavedChanges && (
           <div className="flex items-center gap-1 text-green-600">
             <CheckCircle className="h-3 w-3" />
             <span className="text-xs">Saved</span>
           </div>
         )}
       </Label>
+      
+      {error && (
+        <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+
       <div
         className={`mt-1 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-        } ${displayImageUrl ? 'border-green-500' : ''} ${hasUnsavedChanges ? 'border-orange-500' : ''}`}
+        } ${shouldShowCurrentImage ? 'border-green-500' : ''} ${hasUnsavedChanges ? 'border-orange-500' : ''}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        {uploading ? (
-          <div className="flex flex-col items-center">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-2" />
-            <p className="text-sm text-gray-600">Uploading image...</p>
-            <p className="text-xs text-gray-500 mt-1">This may take a moment</p>
+        {shouldShowPreview ? (
+          <div className="relative">
+            <img
+              src={previewUrl}
+              alt="Hero background preview"
+              className="w-full h-40 object-cover rounded-md"
+            />
+            <div className="absolute top-2 right-2 flex gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={clearSelection}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={removeImage}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="mt-2 text-xs text-blue-600">
+              <p className="font-medium">
+                New image selected - Click "Save Hero Settings" to upload
+              </p>
+            </div>
           </div>
-        ) : displayImageUrl ? (
+        ) : shouldShowCurrentImage ? (
           <div className="relative">
             <img
               src={displayImageUrl}
@@ -146,9 +167,6 @@ const HeroImageUploader = ({
                 console.error('Image failed to load:', displayImageUrl);
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
-              }}
-              onLoad={() => {
-                console.log('Image loaded successfully:', displayImageUrl);
               }}
             />
             <Button
@@ -185,7 +203,6 @@ const HeroImageUploader = ({
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileChange}
-                disabled={uploading}
               />
             </label>
             <p className="text-xs text-gray-500 mt-2">

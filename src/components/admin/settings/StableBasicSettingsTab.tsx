@@ -1,13 +1,17 @@
 
 import React, { useState } from 'react';
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useHeroImageUpload } from '@/hooks/useHeroImageUpload';
+import { toast } from '@/hooks/use-toast';
 import GeneralInformationSettings from './GeneralInformationSettings';
 import HeroSectionSettings from './HeroSectionSettings';
 import ContactInformationSettings from './ContactInformationSettings';
 
 const StableBasicSettingsTab = () => {
   const { settings, saving, updateSettingOptimistic, saveSettings, refetch } = useStableSiteSettings();
+  const { uploadHeroImage } = useHeroImageUpload();
   const [localSettings, setLocalSettings] = useState(settings);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   // Update local state when settings change
   React.useEffect(() => {
@@ -32,14 +36,23 @@ const StableBasicSettingsTab = () => {
   const handleImageChange = (imageUrl: string | null) => {
     console.log('Hero image changed:', imageUrl);
     
-    // Store the actual value (null or valid URL) - don't convert to empty string
-    setLocalSettings(prev => ({
-      ...prev,
-      heroBackgroundImage: imageUrl
-    }));
-    
-    // Update optimistic state for immediate UI feedback
-    updateSettingOptimistic({ heroBackgroundImage: imageUrl });
+    // Check if this is a blob URL (preview) and extract the file
+    if (imageUrl && imageUrl.startsWith('blob:')) {
+      // This is a preview URL, we'll handle the file on save
+      setLocalSettings(prev => ({
+        ...prev,
+        heroBackgroundImage: imageUrl
+      }));
+      updateSettingOptimistic({ heroBackgroundImage: imageUrl });
+    } else {
+      // This is either null or a real URL
+      setSelectedImageFile(null);
+      setLocalSettings(prev => ({
+        ...prev,
+        heroBackgroundImage: imageUrl
+      }));
+      updateSettingOptimistic({ heroBackgroundImage: imageUrl });
+    }
   };
 
   const handleSocialMediaChange = (platform: string, value: string) => {
@@ -70,15 +83,41 @@ const StableBasicSettingsTab = () => {
   const handleSaveHeroSettings = async () => {
     console.log('Saving hero settings with image URL:', localSettings.heroBackgroundImage);
     
-    // Validate the image URL before saving
     let imageUrlToSave = localSettings.heroBackgroundImage;
     
-    // If it's an empty string, convert to null
+    // If we have a selected file (blob URL), upload it first
+    if (localSettings.heroBackgroundImage && localSettings.heroBackgroundImage.startsWith('blob:')) {
+      if (selectedImageFile) {
+        console.log('Uploading selected image file...');
+        const uploadedUrl = await uploadHeroImage(selectedImageFile);
+        
+        if (uploadedUrl) {
+          imageUrlToSave = uploadedUrl;
+          setSelectedImageFile(null);
+          toast({
+            title: 'Image Uploaded Successfully',
+            description: 'Your hero image has been uploaded and saved.',
+          });
+        } else {
+          toast({
+            title: 'Upload Failed',
+            description: 'Failed to upload the image. Please try again.',
+            variant: 'destructive'
+          });
+          return;
+        }
+      } else {
+        // No file but blob URL - this shouldn't happen
+        imageUrlToSave = null;
+      }
+    }
+    
+    // Convert empty string to null
     if (imageUrlToSave === '') {
       imageUrlToSave = null;
     }
     
-    // If it's a non-empty string, validate it's a proper URL
+    // Validate URL if it's not null
     if (imageUrlToSave && typeof imageUrlToSave === 'string') {
       try {
         new URL(imageUrlToSave);
@@ -162,6 +201,14 @@ const StableBasicSettingsTab = () => {
     areEqual: localSettings.heroBackgroundImage === settings.heroBackgroundImage
   });
 
+  // Create a custom image change handler that stores the file
+  const handleImageChangeWithFile = (imageUrl: string | null, file?: File) => {
+    if (file) {
+      setSelectedImageFile(file);
+    }
+    handleImageChange(imageUrl);
+  };
+
   return (
     <div className="space-y-8">
       <GeneralInformationSettings
@@ -175,7 +222,7 @@ const StableBasicSettingsTab = () => {
       <HeroSectionSettings
         siteData={localSettings}
         onInputChange={handleInputChange}
-        onImageChange={handleImageChange}
+        onImageChange={handleImageChangeWithFile}
         onSave={handleSaveHeroSettings}
         saving={isHeroSaving}
         hasUnsavedChanges={hasUnsavedHeroChanges}

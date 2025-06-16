@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
 export const useHeroImageUpload = () => {
   const [uploading, setUploading] = useState(false);
@@ -40,26 +39,9 @@ export const useHeroImageUpload = () => {
 
       console.log('Generated public URL:', urlData.publicUrl);
 
-      // Test if the image is accessible
-      try {
-        const response = await fetch(urlData.publicUrl, { method: 'HEAD' });
-        if (!response.ok) {
-          throw new Error(`Image not accessible: ${response.status}`);
-        }
-        console.log('Image accessibility confirmed');
-      } catch (fetchError) {
-        console.error('Image accessibility test failed:', fetchError);
-        // Still return the URL as it might work anyway
-      }
-
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading hero image:', error);
-      toast({
-        title: 'Upload Error',
-        description: `Failed to upload hero image: ${error.message}`,
-        variant: 'destructive'
-      });
       return null;
     } finally {
       setUploading(false);
@@ -88,11 +70,6 @@ export const useHeroImageUpload = () => {
       return true;
     } catch (error) {
       console.error('Error deleting hero image:', error);
-      toast({
-        title: 'Delete Error',
-        description: `Failed to delete hero image: ${error.message}`,
-        variant: 'destructive'
-      });
       return false;
     }
   };
