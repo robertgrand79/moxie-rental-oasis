@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, X, Loader2, AlertCircle } from 'lucide-react';
 import { useHeroImageUpload } from '@/hooks/useHeroImageUpload';
 import { toast } from '@/hooks/use-toast';
 
@@ -43,7 +43,10 @@ const HeroImageUploader = ({
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       if (file.type.startsWith('image/')) {
+        console.log('Uploading dropped file:', file.name);
         const uploadedUrl = await uploadHeroImage(file);
+        console.log('Upload result:', uploadedUrl);
+        
         if (uploadedUrl) {
           // Only update local state, don't save to database
           onImageChange(uploadedUrl);
@@ -52,6 +55,12 @@ const HeroImageUploader = ({
             description: 'Image uploaded successfully! Click "Save Hero Settings" to apply changes.',
           });
         }
+      } else {
+        toast({
+          title: 'Invalid File Type',
+          description: 'Please upload an image file.',
+          variant: 'destructive'
+        });
       }
     }
   }, [uploadHeroImage, onImageChange]);
@@ -60,7 +69,10 @@ const HeroImageUploader = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.type.startsWith('image/')) {
+        console.log('Uploading selected file:', file.name);
         const uploadedUrl = await uploadHeroImage(file);
+        console.log('Upload result:', uploadedUrl);
+        
         if (uploadedUrl) {
           // Only update local state, don't save to database
           onImageChange(uploadedUrl);
@@ -69,11 +81,18 @@ const HeroImageUploader = ({
             description: 'Image uploaded successfully! Click "Save Hero Settings" to apply changes.',
           });
         }
+      } else {
+        toast({
+          title: 'Invalid File Type',
+          description: 'Please upload an image file.',
+          variant: 'destructive'
+        });
       }
     }
   };
 
   const removeImage = () => {
+    console.log('Removing hero image');
     onImageChange(null);
     toast({
       title: 'Image Removed',
@@ -112,6 +131,11 @@ const HeroImageUploader = ({
               src={displayImageUrl}
               alt="Hero background preview"
               className="w-full h-40 object-cover rounded-md"
+              onError={(e) => {
+                console.error('Image failed to load:', displayImageUrl);
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
             />
             <Button
               type="button"

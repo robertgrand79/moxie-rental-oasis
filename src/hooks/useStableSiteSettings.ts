@@ -183,21 +183,27 @@ export const useStableSiteSettings = () => {
       return false;
     }
 
-    if (!key || value === undefined || value === null) {
+    if (!key) {
       toast({
         title: 'Invalid Input',
-        description: 'Setting key and value are required.',
+        description: 'Setting key is required.',
         variant: 'destructive'
       });
+      return false;
+    }
+
+    // Handle null values properly - don't convert to empty string
+    if (value === undefined) {
+      console.warn(`Attempted to save undefined value for key: ${key}`);
       return false;
     }
 
     setSaving(prev => ({ ...prev, [key]: true }));
 
     try {
-      // Serialize complex objects to JSON
+      // Serialize complex objects to JSON, but handle null values properly
       let serializedValue = value;
-      if (typeof value === 'object' && value !== null) {
+      if (value !== null && typeof value === 'object') {
         serializedValue = JSON.stringify(value);
       }
 

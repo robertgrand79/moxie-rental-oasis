@@ -28,16 +28,16 @@ const StableBasicSettingsTab = () => {
   };
 
   const handleImageChange = (imageUrl: string | null) => {
-    const newImageUrl = imageUrl || '';
+    console.log('Hero image changed:', imageUrl);
     
-    // Only update local state - NO automatic database save
+    // Store the actual value (null or valid URL) - don't convert to empty string
     setLocalSettings(prev => ({
       ...prev,
-      heroBackgroundImage: newImageUrl
+      heroBackgroundImage: imageUrl
     }));
     
     // Update optimistic state for immediate UI feedback
-    updateSettingOptimistic({ heroBackgroundImage: newImageUrl });
+    updateSettingOptimistic({ heroBackgroundImage: imageUrl });
   };
 
   const handleSocialMediaChange = (platform: string, value: string) => {
@@ -61,12 +61,35 @@ const StableBasicSettingsTab = () => {
   };
 
   const handleSaveHeroSettings = async () => {
-    // Save ALL hero settings including the image
+    console.log('Saving hero settings with image URL:', localSettings.heroBackgroundImage);
+    
+    // Validate the image URL before saving
+    let imageUrlToSave = localSettings.heroBackgroundImage;
+    
+    // If it's an empty string, convert to null
+    if (imageUrlToSave === '') {
+      imageUrlToSave = null;
+    }
+    
+    // If it's a non-empty string, validate it's a proper URL
+    if (imageUrlToSave && typeof imageUrlToSave === 'string') {
+      try {
+        new URL(imageUrlToSave);
+        console.log('Valid URL detected:', imageUrlToSave);
+      } catch (error) {
+        console.error('Invalid URL detected:', imageUrlToSave, error);
+        imageUrlToSave = null;
+      }
+    }
+    
+    console.log('Final image URL to save:', imageUrlToSave);
+    
+    // Save ALL hero settings including the validated image
     const success = await saveSettings({
       heroTitle: localSettings.heroTitle,
       heroSubtitle: localSettings.heroSubtitle,
       heroDescription: localSettings.heroDescription,
-      heroBackgroundImage: localSettings.heroBackgroundImage,
+      heroBackgroundImage: imageUrlToSave,
       heroLocationText: localSettings.heroLocationText,
       heroRating: localSettings.heroRating,
       heroCTAText: localSettings.heroCTAText
@@ -76,7 +99,7 @@ const StableBasicSettingsTab = () => {
     if (success) {
       setLocalSettings(prev => ({
         ...prev,
-        originalHeroBackgroundImage: localSettings.heroBackgroundImage
+        originalHeroBackgroundImage: imageUrlToSave
       }));
     }
   };
