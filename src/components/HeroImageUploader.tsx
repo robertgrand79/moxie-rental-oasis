@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, X, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useHeroImageUpload } from '@/hooks/useHeroImageUpload';
 import { toast } from '@/hooks/use-toast';
 
@@ -43,22 +43,23 @@ const HeroImageUploader = ({
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       if (file.type.startsWith('image/')) {
-        console.log('Uploading dropped file:', file.name);
+        console.log('Uploading dropped file:', file.name, 'Size:', file.size);
         const uploadedUrl = await uploadHeroImage(file);
         console.log('Upload result:', uploadedUrl);
         
         if (uploadedUrl) {
-          // Only update local state, don't save to database
+          // Update local state immediately
           onImageChange(uploadedUrl);
           toast({
-            title: 'Image Uploaded',
-            description: 'Image uploaded successfully! Click "Save Hero Settings" to apply changes.',
+            title: 'Image Uploaded Successfully',
+            description: 'Your hero image has been uploaded. Click "Save Hero Settings" to apply changes.',
+            variant: 'default'
           });
         }
       } else {
         toast({
           title: 'Invalid File Type',
-          description: 'Please upload an image file.',
+          description: 'Please upload an image file (JPEG, PNG, WebP, or GIF).',
           variant: 'destructive'
         });
       }
@@ -69,26 +70,29 @@ const HeroImageUploader = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.type.startsWith('image/')) {
-        console.log('Uploading selected file:', file.name);
+        console.log('Uploading selected file:', file.name, 'Size:', file.size);
         const uploadedUrl = await uploadHeroImage(file);
         console.log('Upload result:', uploadedUrl);
         
         if (uploadedUrl) {
-          // Only update local state, don't save to database
+          // Update local state immediately
           onImageChange(uploadedUrl);
           toast({
-            title: 'Image Uploaded',
-            description: 'Image uploaded successfully! Click "Save Hero Settings" to apply changes.',
+            title: 'Image Uploaded Successfully',
+            description: 'Your hero image has been uploaded. Click "Save Hero Settings" to apply changes.',
+            variant: 'default'
           });
         }
       } else {
         toast({
           title: 'Invalid File Type',
-          description: 'Please upload an image file.',
+          description: 'Please upload an image file (JPEG, PNG, WebP, or GIF).',
           variant: 'destructive'
         });
       }
     }
+    // Reset the input
+    e.target.value = '';
   };
 
   const removeImage = () => {
@@ -110,6 +114,12 @@ const HeroImageUploader = ({
             <span className="text-xs">Unsaved changes</span>
           </div>
         )}
+        {displayImageUrl && !hasUnsavedChanges && (
+          <div className="flex items-center gap-1 text-green-600">
+            <CheckCircle className="h-3 w-3" />
+            <span className="text-xs">Saved</span>
+          </div>
+        )}
       </Label>
       <div
         className={`mt-1 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
@@ -124,6 +134,7 @@ const HeroImageUploader = ({
           <div className="flex flex-col items-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-2" />
             <p className="text-sm text-gray-600">Uploading image...</p>
+            <p className="text-xs text-gray-500 mt-1">This may take a moment</p>
           </div>
         ) : displayImageUrl ? (
           <div className="relative">
@@ -135,6 +146,9 @@ const HeroImageUploader = ({
                 console.error('Image failed to load:', displayImageUrl);
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
+              }}
+              onLoad={() => {
+                console.log('Image loaded successfully:', displayImageUrl);
               }}
             />
             <Button
@@ -175,7 +189,10 @@ const HeroImageUploader = ({
               />
             </label>
             <p className="text-xs text-gray-500 mt-2">
-              Recommended: 1920x1080 or larger for best quality
+              Recommended: 1920x1080 or larger. Max size: 50MB
+            </p>
+            <p className="text-xs text-gray-500">
+              Supported formats: JPEG, PNG, WebP, GIF
             </p>
           </>
         )}

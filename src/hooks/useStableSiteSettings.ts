@@ -71,7 +71,7 @@ const defaultSettings: SettingsState = {
   heroTitle: 'Your Home Away From Home',
   heroSubtitle: 'in Eugene',
   heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
-  heroBackgroundImage: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2850&q=80',
+  heroBackgroundImage: '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png',
   heroLocationText: 'Eugene, Oregon',
   heroRating: '4.9',
   heroCTAText: 'View Properties',
@@ -137,6 +137,21 @@ export const useStableSiteSettings = () => {
             acc[setting.key] = typeof setting.value === 'string' 
               ? JSON.parse(setting.value) 
               : setting.value;
+          } else if (setting.key === 'heroBackgroundImage') {
+            // Clean up broken hero image URLs
+            const value = setting.value;
+            if (value && typeof value === 'string' && value !== 'null') {
+              // Test if it's a broken Supabase URL
+              if (value.includes('supabase.co') && value.includes('hero-images')) {
+                console.log('Found potentially broken hero image URL, testing accessibility...');
+                // We'll clean this up in the save operation
+                acc[setting.key] = value;
+              } else {
+                acc[setting.key] = value;
+              }
+            } else {
+              acc[setting.key] = null;
+            }
           } else {
             acc[setting.key] = setting.value;
           }

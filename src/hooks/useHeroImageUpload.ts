@@ -11,31 +11,53 @@ export const useHeroImageUpload = () => {
 
     setUploading(true);
     try {
-      // Create a unique filename
+      // Create a unique filename with timestamp
       const fileExt = file.name.split('.').pop();
-      const fileName = `hero-${Date.now()}.${fileExt}`;
+      const fileName = `hero-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = fileName;
 
+      console.log('Uploading hero image:', fileName);
+
       // Upload the file to Supabase storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('hero-images')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
+        console.error('Upload error:', uploadError);
         throw uploadError;
       }
 
+      console.log('Upload successful:', uploadData);
+
       // Get the public URL
-      const { data } = supabase.storage
+      const { data: urlData } = supabase.storage
         .from('hero-images')
         .getPublicUrl(filePath);
 
-      return data.publicUrl;
+      console.log('Generated public URL:', urlData.publicUrl);
+
+      // Test if the image is accessible
+      try {
+        const response = await fetch(urlData.publicUrl, { method: 'HEAD' });
+        if (!response.ok) {
+          throw new Error(`Image not accessible: ${response.status}`);
+        }
+        console.log('Image accessibility confirmed');
+      } catch (fetchError) {
+        console.error('Image accessibility test failed:', fetchError);
+        // Still return the URL as it might work anyway
+      }
+
+      return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading hero image:', error);
       toast({
         title: 'Upload Error',
-        description: 'Failed to upload hero image. Please try again.',
+        description: `Failed to upload hero image: ${error.message}`,
         variant: 'destructive'
       });
       return null;
@@ -51,20 +73,24 @@ export const useHeroImageUpload = () => {
       const pathParts = url.pathname.split('/');
       const fileName = pathParts[pathParts.length - 1];
 
+      console.log('Deleting hero image:', fileName);
+
       const { error } = await supabase.storage
         .from('hero-images')
         .remove([fileName]);
 
       if (error) {
+        console.error('Delete error:', error);
         throw error;
       }
 
+      console.log('Image deleted successfully');
       return true;
     } catch (error) {
       console.error('Error deleting hero image:', error);
       toast({
         title: 'Delete Error',
-        description: 'Failed to delete hero image.',
+        description: `Failed to delete hero image: ${error.message}`,
         variant: 'destructive'
       });
       return false;
