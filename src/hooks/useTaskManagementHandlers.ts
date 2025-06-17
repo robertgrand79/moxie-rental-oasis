@@ -10,8 +10,8 @@ interface UseTaskManagementHandlersProps {
   setSelectedTaskForWorkOrder: (task: PropertyTask | null) => void;
   setIsWorkOrderModalOpen: (open: boolean) => void;
   setBulkMode: (mode: boolean) => void;
-  updateTask: (taskId: string, updates: any) => Promise<any>;
-  createTask: (taskData: any) => Promise<any>;
+  updateTask: (taskId: string, updates: any) => Promise<PropertyTask>;
+  createTask: (taskData: any) => Promise<PropertyTask>;
   createProject: (projectData: any) => Promise<any>;
   createWorkOrder: (workOrderData: any) => Promise<any>;
   deleteTask: (taskId: string) => Promise<void>;
