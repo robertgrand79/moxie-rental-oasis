@@ -6,25 +6,32 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-// Updated default values - no hardcoded image to prevent flash
+// Updated default values with proper fallback image
 const DEFAULT_HERO_SETTINGS = {
   heroTitle: 'Your Home Away From Home',
   heroSubtitle: 'in Eugene',
   heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
   heroLocationText: 'Eugene, Oregon',
   heroCTAText: 'View Properties',
-  heroBackgroundImage: null as string | null
+  heroBackgroundImage: '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png' // Use existing working image as fallback
 };
 
 const HeroSection = () => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [imageStatus, setImageStatus] = useState<{
+    loaded: boolean;
+    error: boolean;
+    tested: boolean;
+  }>({
+    loaded: false,
+    error: false,
+    tested: false
+  });
 
-  // Fetch hero settings directly from database
-  const { data: heroSettings, isLoading } = useQuery({
-    queryKey: ['hero-settings'],
+  // Fetch hero settings with better error handling
+  const { data: heroSettings, isLoading, error: queryError } = useQuery({
+    queryKey: ['hero-settings-v2'], // Changed key to bust cache
     queryFn: async () => {
-      console.log('Fetching hero settings from database...');
+      console.log('🔄 Fetching hero settings from database...');
       
       const { data, error } = await supabase
         .from('site_settings')
@@ -39,68 +46,78 @@ const HeroSection = () => {
         ]);
 
       if (error) {
-        console.error('Error fetching hero settings:', error);
-        return DEFAULT_HERO_SETTINGS;
+        console.error('❌ Error fetching hero settings:', error);
+        throw error;
       }
 
-      console.log('Raw hero settings from database:', data);
+      console.log('📄 Raw hero settings from database:', data);
 
-      // Convert array to object and handle empty/null values properly
+      // Convert array to object
       const settingsMap = data?.reduce((acc, setting) => {
-        // Only use database value if it's not null, undefined, or empty string
         if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
           acc[setting.key] = setting.value;
         }
         return acc;
       }, {} as Record<string, any>) || {};
 
-      console.log('Processed hero settings (non-empty values only):', settingsMap);
+      console.log('🔧 Processed hero settings:', settingsMap);
 
-      // Merge with defaults - database values override defaults only if they exist and are not empty
+      // Merge with defaults
       const finalSettings = {
         ...DEFAULT_HERO_SETTINGS,
         ...settingsMap
       };
 
-      console.log('Final hero settings with defaults:', finalSettings);
+      console.log('✅ Final hero settings:', finalSettings);
       return finalSettings;
     },
-    // Increased cache time to reduce flashing
-    refetchInterval: 30000,
-    staleTime: 30000
+    staleTime: 10000, // 10 seconds
+    refetchInterval: false, // Don't auto-refetch
+    retry: 3
   });
 
-  // Use fetched settings or fallback
+  // Use settings with fallback
   const settings = heroSettings || DEFAULT_HERO_SETTINGS;
 
-  // Preload background image if it exists
+  // Test image loading with comprehensive error handling
   useEffect(() => {
-    if (settings.heroBackgroundImage) {
-      console.log('Preloading hero background image:', settings.heroBackgroundImage);
-      const img = new Image();
-      img.onload = () => {
-        console.log('Hero background image loaded successfully');
-        setImageLoaded(true);
-        setImageError(false);
-      };
-      img.onerror = () => {
-        console.error('Failed to load hero background image:', settings.heroBackgroundImage);
-        setImageError(true);
-        setImageLoaded(false);
-      };
-      img.src = settings.heroBackgroundImage;
-    } else {
-      // No image to load, show gradient immediately
-      setImageLoaded(true);
-      setImageError(false);
+    if (!settings.heroBackgroundImage) {
+      console.log('⚠️ No hero background image set, using gradient');
+      setImageStatus({ loaded: true, error: false, tested: true });
+      return;
     }
+
+    console.log('🖼️ Testing hero image:', settings.heroBackgroundImage);
+    setImageStatus({ loaded: false, error: false, tested: false });
+
+    const img = new Image();
+    
+    const handleLoad = () => {
+      console.log('✅ Hero image loaded successfully:', settings.heroBackgroundImage);
+      setImageStatus({ loaded: true, error: false, tested: true });
+    };
+    
+    const handleError = () => {
+      console.error('❌ Failed to load hero image:', settings.heroBackgroundImage);
+      setImageStatus({ loaded: false, error: true, tested: true });
+    };
+
+    img.onload = handleLoad;
+    img.onerror = handleError;
+    img.src = settings.heroBackgroundImage;
+
+    // Cleanup
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
   }, [settings.heroBackgroundImage]);
 
-  // Show neutral loading state to prevent flash
-  if (isLoading) {
+  // Show loading state
+  if (isLoading || !imageStatus.tested) {
+    console.log('⏳ Hero section loading...');
     return (
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Neutral loading background - no image to prevent flash */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <div className="space-y-8">
@@ -112,11 +129,20 @@ const HeroSection = () => {
     );
   }
 
-  console.log('Hero Section - Using settings:', settings);
-  console.log('Image loaded:', imageLoaded, 'Image error:', imageError);
+  // Log current state for debugging
+  console.log('🎯 Hero Section Render State:', {
+    settings,
+    imageStatus,
+    queryError,
+    imageUrl: settings.heroBackgroundImage
+  });
 
-  // Determine background style - only show image background if image is loaded successfully
-  const backgroundStyle = settings.heroBackgroundImage && imageLoaded && !imageError
+  // Determine background - use image only if it loaded successfully
+  const shouldUseImage = settings.heroBackgroundImage && 
+                        imageStatus.loaded && 
+                        !imageStatus.error;
+
+  const backgroundStyle = shouldUseImage
     ? {
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('${settings.heroBackgroundImage}')`,
         backgroundSize: 'cover',
@@ -127,11 +153,13 @@ const HeroSection = () => {
         background: 'linear-gradient(135deg, #6B7280 0%, #374151 100%)'
       };
 
+  console.log('🎨 Using background style:', shouldUseImage ? 'Image' : 'Gradient');
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Dynamic Background - only shows when ready */}
+      {/* Dynamic Background */}
       <div 
-        className="absolute inset-0 transition-opacity duration-500"
+        className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
         style={backgroundStyle}
       ></div>
 
@@ -163,7 +191,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Single CTA Button */}
+          {/* CTA Button */}
           <div className="flex justify-center items-center pt-4">
             <Button 
               asChild
@@ -176,6 +204,15 @@ const HeroSection = () => {
               </Link>
             </Button>
           </div>
+
+          {/* Debug info (only in development) */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-8 p-4 bg-black/50 rounded text-xs text-left max-w-md mx-auto">
+              <div>Image URL: {settings.heroBackgroundImage || 'None'}</div>
+              <div>Image Status: {imageStatus.loaded ? 'Loaded' : imageStatus.error ? 'Error' : 'Loading'}</div>
+              <div>Using: {shouldUseImage ? 'Image' : 'Gradient'}</div>
+            </div>
+          )}
         </div>
       </div>
 
