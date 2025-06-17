@@ -1,22 +1,24 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-// Updated default values to match the database defaults from useStableSiteSettings
+// Updated default values - no hardcoded image to prevent flash
 const DEFAULT_HERO_SETTINGS = {
   heroTitle: 'Your Home Away From Home',
   heroSubtitle: 'in Eugene',
   heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
   heroLocationText: 'Eugene, Oregon',
-  heroCTAText: 'View Properties',
-  heroBackgroundImage: '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png'
+  heroCTAText: 'View Properties'
 };
 
 const HeroSection = () => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   // Fetch hero settings directly from database
   const { data: heroSettings, isLoading } = useQuery({
     queryKey: ['hero-settings'],
@@ -62,23 +64,43 @@ const HeroSection = () => {
       console.log('Final hero settings with defaults:', finalSettings);
       return finalSettings;
     },
-    // Reduced refetch interval to 10 seconds for faster updates
-    refetchInterval: 10000,
-    // Reduced stale time to 5 seconds
-    staleTime: 5000
+    // Increased cache time to reduce flashing
+    refetchInterval: 30000,
+    staleTime: 30000
   });
 
-  // Show loading state with proper background
+  // Use fetched settings or fallback
+  const settings = heroSettings || DEFAULT_HERO_SETTINGS;
+
+  // Preload background image if it exists
+  useEffect(() => {
+    if (settings.heroBackgroundImage) {
+      console.log('Preloading hero background image:', settings.heroBackgroundImage);
+      const img = new Image();
+      img.onload = () => {
+        console.log('Hero background image loaded successfully');
+        setImageLoaded(true);
+        setImageError(false);
+      };
+      img.onerror = () => {
+        console.error('Failed to load hero background image:', settings.heroBackgroundImage);
+        setImageError(true);
+        setImageLoaded(false);
+      };
+      img.src = settings.heroBackgroundImage;
+    } else {
+      // No image to load, show gradient immediately
+      setImageLoaded(true);
+      setImageError(false);
+    }
+  }, [settings.heroBackgroundImage]);
+
+  // Show neutral loading state to prevent flash
   if (isLoading) {
     return (
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Default background during loading */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('${DEFAULT_HERO_SETTINGS.heroBackgroundImage}')`
-          }}
-        ></div>
+        {/* Neutral loading background - no image to prevent flash */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <div className="space-y-8">
             <div className="h-16 bg-white/20 rounded animate-pulse"></div>
@@ -89,13 +111,11 @@ const HeroSection = () => {
     );
   }
 
-  // Use fetched settings or fallback
-  const settings = heroSettings || DEFAULT_HERO_SETTINGS;
-  
   console.log('Hero Section - Using settings:', settings);
+  console.log('Image loaded:', imageLoaded, 'Image error:', imageError);
 
-  // Determine background style
-  const backgroundStyle = settings.heroBackgroundImage 
+  // Determine background style - only show image background if image is loaded successfully
+  const backgroundStyle = settings.heroBackgroundImage && imageLoaded && !imageError
     ? {
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('${settings.heroBackgroundImage}')`,
         backgroundSize: 'cover',
@@ -108,9 +128,9 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Dynamic Background */}
+      {/* Dynamic Background - only shows when ready */}
       <div 
-        className="absolute inset-0"
+        className="absolute inset-0 transition-opacity duration-500"
         style={backgroundStyle}
       ></div>
 
