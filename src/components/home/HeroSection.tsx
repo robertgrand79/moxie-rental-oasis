@@ -12,7 +12,8 @@ const DEFAULT_HERO_SETTINGS = {
   heroSubtitle: 'in Eugene',
   heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
   heroLocationText: 'Eugene, Oregon',
-  heroCTAText: 'View Properties'
+  heroCTAText: 'View Properties',
+  heroBackgroundImage: null as string | null
 };
 
 const HeroSection = () => {
