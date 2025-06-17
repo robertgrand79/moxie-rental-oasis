@@ -1,40 +1,61 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Property } from '@/types/property';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PropertyDescription from './PropertyDescription';
 import PropertyHighlights from './PropertyHighlights';
 import PropertyLocationInfo from './PropertyLocationInfo';
+import IntegratedBookingSection from './IntegratedBookingSection';
 
 interface AboutPropertySectionProps {
   property: Property;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
-const AboutPropertySection = ({ property }: AboutPropertySectionProps) => {
+const AboutPropertySection = ({ property, activeTab = "about", onTabChange }: AboutPropertySectionProps) => {
   const isMobile = useIsMobile();
+
+  const handleTabChange = (value: string) => {
+    if (onTabChange) {
+      onTabChange(value);
+    }
+  };
 
   if (isMobile) {
     return (
-      <div className="py-8 bg-gradient-to-br from-white to-gray-50">
+      <div className="py-8 bg-gradient-to-br from-white to-gray-50" id="about-property">
         <div className="px-4">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">About This Property</h2>
-              <p className="text-gray-600 text-sm mb-4">Discover what makes this place special</p>
-              <PropertyLocationInfo property={property} isMobile={isMobile} />
-            </div>
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="about">About Property</TabsTrigger>
+              <TabsTrigger value="booking">Book This Property</TabsTrigger>
+            </TabsList>
             
-            <PropertyDescription description={property.description} isMobile={isMobile} />
-            <PropertyHighlights property={property} isMobile={isMobile} />
-          </div>
+            <TabsContent value="about" className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">About This Property</h2>
+                <p className="text-gray-600 text-sm mb-4">Discover what makes this place special</p>
+                <PropertyLocationInfo property={property} isMobile={isMobile} />
+              </div>
+              
+              <PropertyDescription description={property.description} isMobile={isMobile} />
+              <PropertyHighlights property={property} isMobile={isMobile} />
+            </TabsContent>
+            
+            <TabsContent value="booking" className="space-y-6">
+              <IntegratedBookingSection property={property} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="py-16 bg-gradient-to-br from-slate-50 via-white to-gray-50">
+    <div className="py-16 bg-gradient-to-br from-slate-50 via-white to-gray-50" id="about-property">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
@@ -47,15 +68,28 @@ const AboutPropertySection = ({ property }: AboutPropertySectionProps) => {
           
           <Card className="overflow-hidden shadow-xl border-0 bg-white/90 backdrop-blur-sm">
             <CardContent className="p-0">
-              <PropertyLocationInfo property={property} isMobile={isMobile} />
-              
-              <div className="p-8">
-                <PropertyDescription description={property.description} isMobile={isMobile} />
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 rounded-none border-b">
+                  <TabsTrigger value="about" className="text-lg py-4">About Property</TabsTrigger>
+                  <TabsTrigger value="booking" className="text-lg py-4">Book This Property</TabsTrigger>
+                </TabsList>
                 
-                <div className="mt-8 pt-8 border-t border-gray-100">
-                  <PropertyHighlights property={property} isMobile={isMobile} />
-                </div>
-              </div>
+                <TabsContent value="about" className="mt-0">
+                  <PropertyLocationInfo property={property} isMobile={isMobile} />
+                  
+                  <div className="p-8">
+                    <PropertyDescription description={property.description} isMobile={isMobile} />
+                    
+                    <div className="mt-8 pt-8 border-t border-gray-100">
+                      <PropertyHighlights property={property} isMobile={isMobile} />
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="booking" className="mt-0 p-8">
+                  <IntegratedBookingSection property={property} />
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </div>

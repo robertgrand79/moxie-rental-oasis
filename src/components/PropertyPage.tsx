@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
 import LoadingState from '@/components/ui/loading-state';
@@ -8,7 +8,6 @@ import MobilePropertyHero from '@/components/property/MobilePropertyHero';
 import AboutPropertySection from '@/components/property/AboutPropertySection';
 import AmenitiesSection from '@/components/property/AmenitiesSection';
 import PhotoSpotlight from '@/components/property/PhotoSpotlight';
-import BookingCard from '@/components/property/BookingCard';
 import FloatingBookingCard from '@/components/property/FloatingBookingCard';
 import MobileBookingBar from '@/components/property/MobileBookingBar';
 import QuickInfoSection from '@/components/property/QuickInfoSection';
@@ -20,6 +19,7 @@ const PropertyPage = () => {
   const { slug, addressSlug } = useParams<{ slug?: string; addressSlug?: string }>();
   const { properties, loading } = useProperties();
   const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState("about");
 
   // Use addressSlug if available (from /property/:addressSlug route), otherwise use slug
   const currentSlug = addressSlug || slug;
@@ -83,6 +83,20 @@ const PropertyPage = () => {
     }
   };
 
+  const handleBookingClick = () => {
+    // Switch to booking tab
+    setActiveTab("booking");
+    
+    // Smooth scroll to the about property section
+    const aboutSection = document.getElementById('about-property');
+    if (aboutSection) {
+      aboutSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section - Mobile vs Desktop */}
@@ -116,28 +130,21 @@ const PropertyPage = () => {
         />
       )}
 
-      {/* About This Property Section */}
-      <AboutPropertySection property={property} />
+      {/* About This Property Section with Booking Tab */}
+      <AboutPropertySection 
+        property={property} 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* Amenities Section - Enhanced with new colors and 12-item layout */}
       <AmenitiesSection amenities={property.amenities} />
 
-      {/* Booking Section - Desktop */}
-      {!isMobile && (
-        <div className="py-16 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <div className="max-w-2xl mx-auto">
-              <BookingCard property={property} />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Floating Booking Card - Desktop - Updated to use new booking flow */}
+      {!isMobile && <FloatingBookingCard property={property} onBookingClick={handleBookingClick} />}
 
-      {/* Floating Booking Card - Desktop */}
-      {!isMobile && <FloatingBookingCard property={property} />}
-
-      {/* Mobile Booking Bar */}
-      {isMobile && <MobileBookingBar property={property} />}
+      {/* Mobile Booking Bar - Updated to use new booking flow */}
+      {isMobile && <MobileBookingBar property={property} onBookingClick={handleBookingClick} />}
 
       {/* Mobile bottom padding to account for fixed booking bar */}
       {isMobile && <div className="h-20" />}
