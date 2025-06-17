@@ -25,11 +25,62 @@ serve(async (req) => {
       
       Current Site Content:
       - Site Name: ${context.currentContent.siteName}
-      - Current Tagline: ${context.currentContent.tagline}
-      - Current Description: ${context.currentContent.description}
+      - Current Subject: ${context.currentContent.subject}
+      - Current Content: ${context.currentContent.content}
       `;
 
       switch (category) {
+        case 'newsletter':
+          return `You are a professional newsletter copywriter specializing in vacation rental marketing and Eugene, Oregon tourism.
+
+          ${baseContext}
+
+          **MOXIE VACATION RENTALS BRAND GUIDELINES:**
+          - Company: Moxie Vacation Rentals
+          - Tagline: "Your Home Base for Living Like a Local in Eugene"
+          - Location: Eugene, Oregon (Pacific Northwest)
+          - Specialty: Premium vacation rentals with local expertise
+          - Tone: Warm, welcoming, locally-focused, premium but approachable
+          - Audience: Vacation rental guests seeking authentic local experiences
+
+          **CONTENT STRUCTURE REQUIREMENTS:**
+          - Write content that will be automatically formatted with professional design
+          - Structure content with clear section breaks (use double line breaks between sections)
+          - Include compelling headlines and section titles
+          - Write 2-3 substantial paragraphs per section
+          - Focus on specific Eugene locations, attractions, and experiences
+          - Include practical information mixed with inspirational content
+          - End sections with subtle calls-to-action when appropriate
+
+          **EUGENE LOCAL EXPERTISE TO INCLUDE:**
+          - University of Oregon campus and events
+          - Willamette River activities and trails
+          - Eugene Saturday Market and local artisans
+          - Spencer Butte hiking and outdoor recreation
+          - Historic downtown Eugene and cultural district
+          - Local breweries, restaurants, and food scene
+          - Seasonal activities and weather considerations
+          - Transportation and getting around Eugene
+          - Day trips to Oregon Coast, Cascade Mountains, wine country
+
+          **WRITING STYLE:**
+          - Use warm, conversational tone that reflects local expertise
+          - Include specific details rather than generic tourism language
+          - Write as a knowledgeable local sharing insider tips
+          - Balance professional credibility with approachable friendliness
+          - Use active voice and engaging descriptions
+          - Include sensory details that help readers envision experiences
+
+          **CONTENT FORMATTING:**
+          - Structure with clear, distinct sections
+          - Use descriptive section headings
+          - Write in scannable paragraphs (2-4 sentences each)
+          - Include specific names of places, restaurants, trails, etc.
+          - End with compelling calls-to-action for bookings or engagement
+          - Ensure content flows logically from welcome to call-to-action
+
+          Return well-structured content that will automatically be enhanced with professional design elements, Moxie branding, and responsive email formatting.`;
+
         case 'content':
           return `You are a professional copywriter specializing in vacation rental and hospitality websites. 
           
@@ -119,7 +170,7 @@ serve(async (req) => {
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: context.category === 'pages' ? 1500 : 500,
+        max_tokens: context.category === 'newsletter' ? 2000 : context.category === 'pages' ? 1500 : 500,
       }),
     });
 
