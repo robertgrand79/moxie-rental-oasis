@@ -8,7 +8,6 @@ import MobilePropertyHero from '@/components/property/MobilePropertyHero';
 import AboutPropertySection from '@/components/property/AboutPropertySection';
 import AmenitiesSection from '@/components/property/AmenitiesSection';
 import PhotoSpotlight from '@/components/property/PhotoSpotlight';
-import FloatingBookingCard from '@/components/property/FloatingBookingCard';
 import MobileBookingBar from '@/components/property/MobileBookingBar';
 import QuickInfoSection from '@/components/property/QuickInfoSection';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
@@ -139,9 +138,6 @@ const PropertyPage = () => {
 
       {/* Amenities Section - Enhanced with new colors and 12-item layout */}
       <AmenitiesSection amenities={property.amenities} />
-
-      {/* Floating Booking Card - Desktop - Updated to use new booking flow */}
-      {!isMobile && <FloatingBookingCard property={property} onBookingClick={handleBookingClick} />}
 
       {/* Mobile Booking Bar - Updated to use new booking flow */}
       {isMobile && <MobileBookingBar property={property} onBookingClick={handleBookingClick} />}
