@@ -26,26 +26,21 @@ const AboutPropertySection = ({ property, activeTab = "about", onTabChange }: Ab
 
   if (isMobile) {
     return (
-      <div className="py-8 bg-gradient-to-br from-white to-gray-50" id="about-property">
+      <div className="py-6 bg-white" id="about-property">
         <div className="px-4">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="about">About Property</TabsTrigger>
-              <TabsTrigger value="booking">Book This Property</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-50 rounded-lg p-1">
+              <TabsTrigger value="about" className="text-sm">About Property</TabsTrigger>
+              <TabsTrigger value="booking" className="text-sm">Book This Property</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="about" className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">About This Property</h2>
-                <p className="text-gray-600 text-sm mb-4">Discover what makes this place special</p>
-                <PropertyLocationInfo property={property} isMobile={isMobile} />
-              </div>
-              
+            <TabsContent value="about" className="space-y-6 mt-0">
+              <PropertyLocationInfo property={property} isMobile={isMobile} />
               <PropertyDescription description={property.description} isMobile={isMobile} />
               <PropertyHighlights property={property} isMobile={isMobile} />
             </TabsContent>
             
-            <TabsContent value="booking" className="space-y-6">
+            <TabsContent value="booking" className="mt-0">
               <IntegratedBookingSection property={property} />
             </TabsContent>
           </Tabs>
@@ -55,23 +50,15 @@ const AboutPropertySection = ({ property, activeTab = "about", onTabChange }: Ab
   }
 
   return (
-    <div className="py-16 bg-gradient-to-br from-slate-50 via-white to-gray-50" id="about-property">
+    <div className="py-12 bg-white" id="about-property">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">About This Property</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
-              Discover the unique features and charm that make this property your perfect getaway
-            </p>
-            <div className="w-24 h-1 bg-gradient-to-r from-primary to-primary/60 mx-auto rounded-full"></div>
-          </div>
-          
-          <Card className="overflow-hidden shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+          <Card className="shadow-sm border border-gray-200">
             <CardContent className="p-0">
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 rounded-none border-b">
-                  <TabsTrigger value="about" className="text-lg py-4">About Property</TabsTrigger>
-                  <TabsTrigger value="booking" className="text-lg py-4">Book This Property</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 bg-gray-50 rounded-none border-b border-gray-200 h-12">
+                  <TabsTrigger value="about" className="text-base font-medium">About Property</TabsTrigger>
+                  <TabsTrigger value="booking" className="text-base font-medium">Book This Property</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="about" className="mt-0">
@@ -86,7 +73,7 @@ const AboutPropertySection = ({ property, activeTab = "about", onTabChange }: Ab
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="booking" className="mt-0 p-8">
+                <TabsContent value="booking" className="mt-0">
                   <IntegratedBookingSection property={property} />
                 </TabsContent>
               </Tabs>

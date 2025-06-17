@@ -25,11 +25,11 @@ const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) =
 
   if (!hasBookingUrl) {
     return (
-      <div className="text-center py-16">
-        <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+      <div className="p-8 text-center">
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
           Booking Coming Soon
         </h3>
-        <p className="text-gray-600 mb-8">
+        <p className="text-gray-600 mb-6 text-sm">
           Booking information will be available soon. Please check back later or contact us directly.
         </p>
         <Button variant="outline" disabled>
@@ -40,14 +40,12 @@ const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) =
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-2xl font-semibold text-gray-900">Book Your Stay</h3>
-          <p className="text-gray-600">Complete your reservation through our secure booking system</p>
-        </div>
+        <h3 className="text-lg font-medium text-gray-900">Complete Your Reservation</h3>
         <Button
           variant="outline"
+          size="sm"
           onClick={handleExternalFallback}
           className="flex items-center gap-2"
         >
@@ -56,7 +54,7 @@ const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) =
         </Button>
       </div>
 
-      <div className="relative bg-white rounded-lg border overflow-hidden" style={{ height: '70vh', minHeight: '500px' }}>
+      <div className="relative bg-white border border-gray-200 rounded-lg overflow-hidden" style={{ height: '80vh', minHeight: '600px' }}>
         {/* Loading State */}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
@@ -73,13 +71,9 @@ const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) =
           className="w-full h-full border-0"
           title={`Book ${property.title}`}
           allow="payment; camera; microphone; geolocation"
-          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation allow-popups-to-escape-sandbox"
           onLoad={handleIframeLoad}
         />
-      </div>
-
-      <div className="text-center text-sm text-gray-600">
-        <p>Secure booking powered by our trusted reservation system</p>
       </div>
     </div>
   );

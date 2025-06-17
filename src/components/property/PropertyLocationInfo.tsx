@@ -19,7 +19,7 @@ const PropertyLocationInfo = ({ property, isMobile }: PropertyLocationInfoProps)
   }
 
   return (
-    <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 rounded-t-2xl border-b border-gray-100">
+    <div className="bg-gray-50 p-6 border-b border-gray-200">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center text-gray-700">
           <MapPin className="h-5 w-5 mr-2 text-primary" />
