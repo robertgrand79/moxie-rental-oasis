@@ -53,9 +53,9 @@ const AdminContentStatsGrid = ({
       count: blogPosts.length,
       icon: BookOpen,
       color: 'text-green-600',
-      href: '/admin/blog-management',
+      href: '/admin/blog',
       actionText: 'Write Post',
-      actionHref: '/admin/blog-management?action=add',
+      actionHref: '/admin/blog?action=add',
       additionalStats: [
         {
           label: 'Published',
@@ -113,9 +113,9 @@ const AdminContentStatsGrid = ({
       count: subscriberCount || 0,
       icon: Mail,
       color: 'text-indigo-600',
-      href: '/admin/newsletter',
+      href: '/admin/newsletter-management',
       actionText: 'Send Newsletter',
-      actionHref: '/admin/newsletter',
+      actionHref: '/admin/newsletter-management',
       additionalStats: [
         {
           label: 'Subscribers',
