@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FloatingInput } from '@/components/ui/floating-input';
-import { Label } from '@/components/ui/label';
+import { FloatingSelect, FloatingSelectItem } from '@/components/ui/floating-select';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Send } from 'lucide-react';
 
@@ -98,21 +98,17 @@ const ContactForm = () => {
             onChange={(e) => handleInputChange('phone', e.target.value)}
           />
           
-          <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
-            <Select onValueChange={(value) => handleInputChange('subject', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a subject" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="booking">Booking Inquiry</SelectItem>
-                <SelectItem value="general">General Question</SelectItem>
-                <SelectItem value="support">Guest Support</SelectItem>
-                <SelectItem value="partnership">Partnership</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <FloatingSelect
+            label="Subject"
+            value={formData.subject}
+            onValueChange={(value) => handleInputChange('subject', value)}
+          >
+            <FloatingSelectItem value="booking">Booking Inquiry</FloatingSelectItem>
+            <FloatingSelectItem value="general">General Question</FloatingSelectItem>
+            <FloatingSelectItem value="support">Guest Support</FloatingSelectItem>
+            <FloatingSelectItem value="partnership">Partnership</FloatingSelectItem>
+            <FloatingSelectItem value="other">Other</FloatingSelectItem>
+          </FloatingSelect>
         </div>
         
         <div className="space-y-2">
