@@ -1,14 +1,11 @@
 
-import React from 'react';
-import { Calendar, MapPin, Home, Star } from 'lucide-react';
-
 export interface NewsletterTemplate {
   id: string;
   title: string;
   description: string;
   prompt: string;
   category: 'weekly' | 'property' | 'events' | 'seasonal';
-  icon: React.ReactNode;
+  icon: string; // Changed from React.ReactNode to string
 }
 
 export const newsletterTemplates: NewsletterTemplate[] = [
@@ -17,7 +14,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
     title: 'Weekly Local Digest',
     description: 'Curated local events and attractions for guests',
     category: 'weekly',
-    icon: <Calendar className="h-4 w-4" />,
+    icon: 'calendar', // Changed to string identifier
     prompt: `Create a visually engaging weekly newsletter for Moxie Vacation Rentals guests featuring:
 
 **Structure the content with clear sections:**
@@ -62,7 +59,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
     title: 'Property Spotlight',
     description: 'Showcase a specific property with local context',
     category: 'property',
-    icon: <Home className="h-4 w-4" />,
+    icon: 'home',
     prompt: `Create a property spotlight newsletter for Moxie Vacation Rentals featuring:
 
 **Structure with clear sections:**
@@ -118,7 +115,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
     title: 'Seasonal Eugene Guide',
     description: 'Seasonal activities and experiences guide',
     category: 'seasonal',
-    icon: <MapPin className="h-4 w-4" />,
+    icon: 'map-pin',
     prompt: `Create a comprehensive seasonal guide newsletter for Moxie Vacation Rentals featuring:
 
 **Current Season Highlights:**
@@ -178,7 +175,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
     title: 'Guest Story & Reviews',
     description: 'Feature guest experiences and testimonials',
     category: 'weekly',
-    icon: <Star className="h-4 w-4" />,
+    icon: 'star',
     prompt: `Create an engaging guest story newsletter for Moxie Vacation Rentals featuring:
 
 **Featured Guest Experience:**
@@ -243,7 +240,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
     title: 'Eugene Events Roundup',
     description: 'Comprehensive local events and activities',
     category: 'events',
-    icon: <Calendar className="h-4 w-4" />,
+    icon: 'calendar',
     prompt: `Create a comprehensive events roundup newsletter for Moxie Vacation Rentals featuring:
 
 **This Month's Signature Events:**
