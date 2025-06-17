@@ -1,15 +1,15 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit3, Eye, Monitor } from 'lucide-react';
+import { Edit3, Eye, Monitor, Wand2 } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import TiptapEditor from './TiptapEditor';
 import ImageUploader from './ImageUploader';
 import BlogPostVisualPreview from './BlogPostVisualPreview';
+import BlogAIGenerator from './blog/ai-generator/BlogAIGenerator';
 
 interface BlogFormData {
   title: string;
@@ -40,7 +40,7 @@ const BlogEditorLayout = ({
   isEditing,
   onCancel
 }: BlogEditorLayoutProps) => {
-  const [viewMode, setViewMode] = useState<'split' | 'editor' | 'preview'>('split');
+  const [viewMode, setViewMode] = useState<'split' | 'editor' | 'preview' | 'ai'>('split');
 
   const watchedValues = form.watch();
   const tagsArray = watchedValues.tags ? 
@@ -52,6 +52,17 @@ const BlogEditorLayout = ({
     form.setValue('content', newContent);
   };
 
+  const handleAIContentGenerated = (field: 'title' | 'excerpt' | 'content', generatedContent: string) => {
+    if (field === 'title') {
+      form.setValue('title', generatedContent);
+    } else if (field === 'excerpt') {
+      form.setValue('excerpt', generatedContent);
+    } else if (field === 'content') {
+      setContent(generatedContent);
+      form.setValue('content', generatedContent);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -59,7 +70,7 @@ const BlogEditorLayout = ({
           <div>
             <CardTitle>Blog Post Editor</CardTitle>
             <CardDescription>
-              Create and preview your blog post with our visual editor
+              Create and preview your blog post with our visual editor and AI assistance
             </CardDescription>
           </div>
           <div className="flex gap-2">
@@ -70,6 +81,14 @@ const BlogEditorLayout = ({
             >
               <Edit3 className="h-4 w-4 mr-1" />
               Editor
+            </Button>
+            <Button
+              variant={viewMode === 'ai' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('ai')}
+            >
+              <Wand2 className="h-4 w-4 mr-1" />
+              AI Generator
             </Button>
             <Button
               variant={viewMode === 'split' ? 'default' : 'outline'}
@@ -195,6 +214,18 @@ const BlogEditorLayout = ({
                   </div>
                 </form>
               </Form>
+            </div>
+          )}
+
+          {/* AI Generator Panel */}
+          {viewMode === 'ai' && (
+            <div className="col-span-full">
+              <BlogAIGenerator
+                currentTitle={watchedValues.title || ''}
+                currentExcerpt={watchedValues.excerpt || ''}
+                currentContent={content}
+                onContentGenerated={handleAIContentGenerated}
+              />
             </div>
           )}
 
