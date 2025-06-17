@@ -40,7 +40,7 @@ const AboutPropertySection = ({ property, activeTab = "about", onTabChange }: Ab
               <PropertyHighlights property={property} isMobile={isMobile} />
             </TabsContent>
             
-            <TabsContent value="booking" className="mt-0">
+            <TabsContent value="booking" className="mt-0 -mx-4">
               <IntegratedBookingSection property={property} />
             </TabsContent>
           </Tabs>
@@ -53,7 +53,7 @@ const AboutPropertySection = ({ property, activeTab = "about", onTabChange }: Ab
     <div className="py-12 bg-white" id="about-property">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
-          <Card className="shadow-sm border border-gray-200">
+          <Card className="shadow-sm border border-gray-200 overflow-hidden">
             <CardContent className="p-0">
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-gray-50 rounded-none border-b border-gray-200 h-12">
