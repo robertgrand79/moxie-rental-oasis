@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -69,7 +70,7 @@ function App() {
                   <Route index element={<Index />} />
                   <Route path="about" element={<About />} />
                   <Route path="properties" element={<Properties />} />
-                  <Route path="property/:id" element={<PropertyPage />} />
+                  <Route path="property/:addressSlug" element={<PropertyPage />} />
                   <Route path="contact" element={<Contact />} />
                   <Route path="experiences" element={<Experiences />} />
                   <Route path="events" element={<Events />} />
