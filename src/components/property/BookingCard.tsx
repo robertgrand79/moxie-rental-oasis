@@ -1,15 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Property } from '@/types/property';
+import EmbeddedBookingModal from './EmbeddedBookingModal';
 
 interface BookingCardProps {
   property: Property;
 }
 
 const BookingCard = ({ property }: BookingCardProps) => {
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const hasBookingUrl = property.hospitable_booking_url && property.hospitable_booking_url.trim() !== '';
+
+  const handleBookNow = () => {
+    setIsBookingModalOpen(true);
+  };
 
   return (
     <div className="lg:col-span-1">
@@ -25,9 +31,7 @@ const BookingCard = ({ property }: BookingCardProps) => {
             <>
               <Button 
                 className="w-full mb-4 bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90"
-                onClick={() => {
-                  window.open(property.hospitable_booking_url, '_blank');
-                }}
+                onClick={handleBookNow}
               >
                 Book Now
               </Button>
@@ -51,6 +55,15 @@ const BookingCard = ({ property }: BookingCardProps) => {
           )}
         </CardContent>
       </Card>
+
+      {hasBookingUrl && (
+        <EmbeddedBookingModal
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+          bookingUrl={property.hospitable_booking_url!}
+          propertyTitle={property.title}
+        />
+      )}
     </div>
   );
 };
