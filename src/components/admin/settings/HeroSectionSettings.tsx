@@ -26,7 +26,7 @@ const HeroSectionSettings = ({
 }: HeroSectionSettingsProps) => {
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
-  const { uploadImage, deleteImage, uploading } = useHeroImageUpload();
+  const { uploadHeroImage, deleteHeroImage, uploading } = useHeroImageUpload();
 
   const handleImageChange = (imageUrl: string | null) => {
     if (imageUrl && imageUrl.startsWith('blob:')) {
@@ -53,7 +53,7 @@ const HeroSectionSettings = ({
         const blob = await response.blob();
         const file = new File([blob], 'hero-image.jpg', { type: blob.type });
         
-        const uploadedUrl = await uploadImage(file);
+        const uploadedUrl = await uploadHeroImage(file);
         if (uploadedUrl) {
           onInputChange('heroBackgroundImage', uploadedUrl);
         }

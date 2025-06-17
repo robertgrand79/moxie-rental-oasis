@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Shield, Users, Lock } from 'lucide-react';
+import { Plus, Shield, Users, Lock, Edit, Settings } from 'lucide-react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,53 +15,58 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useRolesPermissions } from '@/hooks/useRolesPermissions';
+import CreateRoleModal from '@/components/admin/roles/CreateRoleModal';
+import EditRoleModal from '@/components/admin/roles/EditRoleModal';
 
 const AdminRolesPermissions = () => {
-  const [roles] = useState([
-    {
-      id: 1,
-      name: 'Admin',
-      description: 'Full system access',
-      userCount: 1,
-      permissions: ['read', 'write', 'delete', 'manage_users']
-    },
-    {
-      id: 2,
-      name: 'Editor',
-      description: 'Can edit content',
-      userCount: 2,
-      permissions: ['read', 'write']
-    },
-    {
-      id: 3,
-      name: 'User',
-      description: 'Basic user access',
-      userCount: 5,
-      permissions: ['read']
-    }
-  ]);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<any>(null);
+  
+  const {
+    roles,
+    permissions,
+    loading,
+    updating,
+    createRole,
+    updateRole,
+    deleteRole,
+    togglePermission,
+  } = useRolesPermissions();
 
-  const [permissions] = useState([
-    { id: 'read', name: 'Read', description: 'View content and data' },
-    { id: 'write', name: 'Write', description: 'Create and edit content' },
-    { id: 'delete', name: 'Delete', description: 'Remove content and data' },
-    { id: 'manage_users', name: 'Manage Users', description: 'Add, edit, and remove users' },
-    { id: 'manage_settings', name: 'Manage Settings', description: 'Configure system settings' }
-  ]);
+  const handleEditRole = (role: any) => {
+    setSelectedRole(role);
+    setEditModalOpen(true);
+  };
 
-  const handleCreateRole = () => {
-    console.log('Create role functionality would go here');
+  const handlePermissionToggle = async (permissionId: string) => {
+    await togglePermission(permissionId);
   };
 
   const pageActions = (
     <EnhancedButton 
-      onClick={handleCreateRole} 
+      onClick={() => setCreateModalOpen(true)} 
       variant="gradient"
       icon={<Plus className="h-4 w-4" />}
     >
       Create Role
     </EnhancedButton>
   );
+
+  if (loading) {
+    return (
+      <AdminPageWrapper
+        title="Roles & Permissions"
+        description="Manage user roles and system permissions"
+        actions={pageActions}
+      >
+        <div className="p-8 text-center">
+          <p>Loading roles and permissions...</p>
+        </div>
+      </AdminPageWrapper>
+    );
+  }
 
   return (
     <AdminPageWrapper
@@ -90,9 +95,9 @@ const AdminRolesPermissions = () => {
               <Lock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{permissions.length}</div>
+              <div className="text-2xl font-bold">{permissions.filter(p => p.enabled).length}</div>
               <p className="text-xs text-muted-foreground">
-                Available permissions
+                Active permissions
               </p>
             </CardContent>
           </Card>
@@ -128,6 +133,7 @@ const AdminRolesPermissions = () => {
                     <TableHead>Role</TableHead>
                     <TableHead>Users</TableHead>
                     <TableHead>Permissions</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -146,12 +152,27 @@ const AdminRolesPermissions = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {role.permissions.map((permission) => (
+                          {role.permissions.slice(0, 2).map((permission) => (
                             <Badge key={permission} variant="secondary" className="text-xs">
                               {permission}
                             </Badge>
                           ))}
+                          {role.permissions.length > 2 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{role.permissions.length - 2} more
+                            </Badge>
+                          )}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <EnhancedButton
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditRole(role)}
+                          icon={<Edit className="h-3 w-3" />}
+                        >
+                          Edit
+                        </EnhancedButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -176,12 +197,34 @@ const AdminRolesPermissions = () => {
                       {permission.description}
                     </div>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={permission.enabled}
+                    onCheckedChange={() => handlePermissionToggle(permission.id)}
+                    disabled={updating}
+                  />
                 </div>
               ))}
             </CardContent>
           </Card>
         </div>
+
+        <CreateRoleModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          permissions={permissions}
+          onCreateRole={createRole}
+          loading={updating}
+        />
+
+        <EditRoleModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          role={selectedRole}
+          permissions={permissions}
+          onUpdateRole={updateRole}
+          onDeleteRole={deleteRole}
+          loading={updating}
+        />
       </div>
     </AdminPageWrapper>
   );

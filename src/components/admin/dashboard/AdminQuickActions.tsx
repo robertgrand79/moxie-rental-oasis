@@ -1,62 +1,85 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { TrendingUp, Building2, BookOpen, Calendar, Settings, BarChart3, Mail, FileText } from 'lucide-react';
+import { Plus, Users, Settings, FileText, Calendar, Camera, MapPin } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
+import { useNavigate } from 'react-router-dom';
 
 const AdminQuickActions = () => {
+  const navigate = useNavigate();
+
+  const quickActions = [
+    {
+      title: 'Add Property',
+      description: 'Create a new vacation rental listing',
+      icon: <Plus className="h-4 w-4" />,
+      action: () => navigate('/admin/properties?action=create'),
+      variant: 'gradient' as const,
+    },
+    {
+      title: 'Manage Users',
+      description: 'View and manage user accounts',
+      icon: <Users className="h-4 w-4" />,
+      action: () => navigate('/admin/users'),
+      variant: 'default' as const,
+    },
+    {
+      title: 'Site Settings',
+      description: 'Configure website settings',
+      icon: <Settings className="h-4 w-4" />,
+      action: () => navigate('/admin/settings'),
+      variant: 'secondary' as const,
+    },
+    {
+      title: 'Add Blog Post',
+      description: 'Create new blog content',
+      icon: <FileText className="h-4 w-4" />,
+      action: () => navigate('/admin/blog?action=create'),
+      variant: 'outline' as const,
+    },
+    {
+      title: 'Add Event',
+      description: 'Create a new Eugene event',
+      icon: <Calendar className="h-4 w-4" />,
+      action: () => navigate('/admin/events?action=create'),
+      variant: 'default' as const,
+    },
+    {
+      title: 'Add Gallery Item',
+      description: 'Upload to lifestyle gallery',
+      icon: <Camera className="h-4 w-4" />,
+      action: () => navigate('/admin/lifestyle?action=create'),
+      variant: 'secondary' as const,
+    },
+  ];
+
   return (
-    <Card className="bg-white/95 backdrop-blur-xl border border-white/20">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center">
-          <TrendingUp className="h-5 w-5 mr-2" />
-          Quick Actions
-        </CardTitle>
+        <CardTitle>Quick Actions</CardTitle>
+        <CardDescription>
+          Common administrative tasks and shortcuts
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/properties?action=add">
-            <Building2 className="h-4 w-4 mr-2" />
-            Add New Property
-          </Link>
-        </Button>
-        <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/blog?action=add">
-            <BookOpen className="h-4 w-4 mr-2" />
-            Write Blog Post
-          </Link>
-        </Button>
-        <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/pages?action=add">
-            <FileText className="h-4 w-4 mr-2" />
-            Create Page
-          </Link>
-        </Button>
-        <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/events?action=add">
-            <Calendar className="h-4 w-4 mr-2" />
-            Create Event
-          </Link>
-        </Button>
-        <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/newsletter-management">
-            <Mail className="h-4 w-4 mr-2" />
-            Send Newsletter
-          </Link>
-        </Button>
-        <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/settings">
-            <Settings className="h-4 w-4 mr-2" />
-            Update Site Settings
-          </Link>
-        </Button>
-        <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/analytics">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            View Analytics
-          </Link>
-        </Button>
+      <CardContent>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {quickActions.map((action, index) => (
+            <EnhancedButton
+              key={index}
+              onClick={action.action}
+              variant={action.variant}
+              className="h-auto p-4 flex flex-col items-center text-center space-y-2"
+            >
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20">
+                {action.icon}
+              </div>
+              <div>
+                <div className="font-medium text-sm">{action.title}</div>
+                <div className="text-xs opacity-80">{action.description}</div>
+              </div>
+            </EnhancedButton>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

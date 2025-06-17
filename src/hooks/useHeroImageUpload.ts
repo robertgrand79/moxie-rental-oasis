@@ -137,9 +137,13 @@ export const useHeroImageUpload = () => {
     }
   };
 
+  // Export functions with consistent naming
   return {
     uploadHeroImage,
     deleteHeroImage,
-    uploading
+    uploading,
+    // Also provide the old names for backward compatibility
+    uploadImage: uploadHeroImage,
+    deleteImage: deleteHeroImage
   };
 };
