@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 const LocalExperienceCallToAction = () => {
   return (
-    <div className="text-center">
+    <div className="text-center mb-16">
       <h2 className="text-3xl font-bold text-gray-900 mb-6">
         Ready to Explore Eugene?
       </h2>
