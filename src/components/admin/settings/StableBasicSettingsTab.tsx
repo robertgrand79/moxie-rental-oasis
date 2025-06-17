@@ -53,11 +53,12 @@ const StableBasicSettingsTab = () => {
   const handleSaveHeroSettings = async () => {
     console.log('Saving hero settings...');
     
-    // Save hero settings (no image handling needed)
+    // Save hero settings including background image
     const success = await saveSettings({
       heroTitle: localSettings.heroTitle,
       heroSubtitle: localSettings.heroSubtitle,
       heroDescription: localSettings.heroDescription,
+      heroBackgroundImage: localSettings.heroBackgroundImage,
       heroLocationText: localSettings.heroLocationText,
       heroRating: localSettings.heroRating,
       heroCTAText: localSettings.heroCTAText
@@ -93,6 +94,7 @@ const StableBasicSettingsTab = () => {
     localSettings.heroTitle !== settings.heroTitle ||
     localSettings.heroSubtitle !== settings.heroSubtitle ||
     localSettings.heroDescription !== settings.heroDescription ||
+    localSettings.heroBackgroundImage !== settings.heroBackgroundImage ||
     localSettings.heroLocationText !== settings.heroLocationText ||
     localSettings.heroRating !== settings.heroRating ||
     localSettings.heroCTAText !== settings.heroCTAText;

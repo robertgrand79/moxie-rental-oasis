@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -18,10 +19,11 @@ interface SettingsState {
   tagline: string;
   description: string;
   
-  // Hero section (no image)
+  // Hero section with image support
   heroTitle: string;
   heroSubtitle: string;
   heroDescription: string;
+  heroBackgroundImage: string;
   heroLocationText: string;
   heroRating: string;
   heroCTAText: string;
@@ -69,6 +71,7 @@ const defaultSettings: SettingsState = {
   heroTitle: 'Your Home Away From Home',
   heroSubtitle: 'in Eugene',
   heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
+  heroBackgroundImage: '',
   heroLocationText: 'Eugene, Oregon',
   heroRating: '4.9',
   heroCTAText: 'View Properties',
@@ -294,7 +297,7 @@ export const useStableSiteSettings = () => {
     if (allSuccessful) {
       toast({
         title: "Settings Saved",
-        description: "Your site settings have been successfully updated.",
+        description: "Your hero section settings have been successfully updated.",
       });
       
       // After successful batch save, ensure local state is fully synced
