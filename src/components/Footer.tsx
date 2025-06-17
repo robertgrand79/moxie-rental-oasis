@@ -2,19 +2,92 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Facebook, Instagram, Twitter } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
-import { useStaticSettings } from '@/contexts/StaticSettingsContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+// Default values to use as fallback
+const DEFAULT_SETTINGS = {
+  siteName: 'Moxie Vacation Rentals',
+  description: 'Discover Eugene, Oregon through thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
+  contactEmail: 'contact@moxievacationrentals.com',
+  phone: '+1 (555) 123-4567',
+  address: '123 Vacation St, Eugene, OR 97401',
+  socialMedia: {
+    facebook: '',
+    instagram: '',
+    twitter: '',
+    googlePlaces: ''
+  }
+};
 
 const Footer = () => {
-  const { user } = useAuth();
-  const staticSettings = useStaticSettings();
-  const { settings, loading } = useStableSiteSettings();
+  // Always fetch settings from database
+  const { data: settings } = useQuery({
+    queryKey: ['footer-settings'],
+    queryFn: async () => {
+      console.log('Fetching footer settings from database...');
+      
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', [
+          'siteName',
+          'description',
+          'contactEmail',
+          'phone',
+          'address',
+          'socialMedia'
+        ]);
 
-  // Use static settings for non-authenticated users (published site)
-  // Use dynamic settings for authenticated users (admin editing)
-  const currentSettings = user && !loading ? settings : staticSettings;
+      if (error) {
+        console.error('Error fetching footer settings:', error);
+        return DEFAULT_SETTINGS;
+      }
 
+      console.log('Raw footer settings from database:', data);
+
+      // Convert array to object and handle empty/null values properly
+      const settingsMap = data?.reduce((acc, setting) => {
+        // Only use database value if it's not null, undefined, or empty string
+        if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
+          if (setting.key === 'socialMedia') {
+            // Handle JSON parsing for socialMedia
+            try {
+              acc[setting.key] = typeof setting.value === 'string' 
+                ? JSON.parse(setting.value) 
+                : setting.value;
+            } catch (parseError) {
+              console.warn(`Failed to parse socialMedia:`, parseError);
+              acc[setting.key] = setting.value;
+            }
+          } else {
+            acc[setting.key] = setting.value;
+          }
+        }
+        return acc;
+      }, {} as Record<string, any>) || {};
+
+      console.log('Processed footer settings (non-empty values only):', settingsMap);
+
+      // Merge with defaults - database values override defaults only if they exist and are not empty
+      const finalSettings = {
+        ...DEFAULT_SETTINGS,
+        ...settingsMap,
+        socialMedia: {
+          ...DEFAULT_SETTINGS.socialMedia,
+          ...(settingsMap.socialMedia || {})
+        }
+      };
+
+      console.log('Final footer settings with defaults:', finalSettings);
+      return finalSettings;
+    },
+    // Cache for 30 seconds to reduce database calls
+    staleTime: 30000
+  });
+
+  // Use fetched settings or fallback to defaults
+  const currentSettings = settings || DEFAULT_SETTINGS;
   const currentYear = new Date().getFullYear();
 
   return (
