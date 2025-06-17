@@ -286,6 +286,45 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_task_types: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       eugene_events: {
         Row: {
           category: string | null
@@ -986,8 +1025,12 @@ export type Database = {
           priority: string
           project_id: string | null
           property_id: string | null
+          recurrence_end_date: string | null
+          recurrence_frequency: string | null
+          recurrence_interval: number | null
           recurrence_pattern: string | null
           status: string
+          task_type_id: string | null
           title: string
           type: string
           updated_at: string
@@ -1008,8 +1051,12 @@ export type Database = {
           priority?: string
           project_id?: string | null
           property_id?: string | null
+          recurrence_end_date?: string | null
+          recurrence_frequency?: string | null
+          recurrence_interval?: number | null
           recurrence_pattern?: string | null
           status?: string
+          task_type_id?: string | null
           title: string
           type?: string
           updated_at?: string
@@ -1030,8 +1077,12 @@ export type Database = {
           priority?: string
           project_id?: string | null
           property_id?: string | null
+          recurrence_end_date?: string | null
+          recurrence_frequency?: string | null
+          recurrence_interval?: number | null
           recurrence_pattern?: string | null
           status?: string
+          task_type_id?: string | null
           title?: string
           type?: string
           updated_at?: string
@@ -1049,6 +1100,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_tasks_task_type_id_fkey"
+            columns: ["task_type_id"]
+            isOneToOne: false
+            referencedRelation: "custom_task_types"
             referencedColumns: ["id"]
           },
         ]
@@ -1115,6 +1173,38 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      task_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by: string
+          id?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_assignments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "property_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       task_comments: {
         Row: {

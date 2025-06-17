@@ -8,7 +8,7 @@ export const useTaskOperations = (
 ) => {
   const { toast } = useToast();
 
-  const createTask = async (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project'>) => {
+  const createTask = async (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project' | 'task_type' | 'assignments'>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -40,8 +40,31 @@ export const useTaskOperations = (
         } else {
           fetchPromises.push(Promise.resolve({ data: null }));
         }
+
+        if (data.task_type_id) {
+          fetchPromises.push(
+            supabase.from('custom_task_types').select('*').eq('id', data.task_type_id).single()
+          );
+        } else {
+          fetchPromises.push(Promise.resolve({ data: null }));
+        }
+
+        // Fetch task assignments
+        fetchPromises.push(
+          supabase
+            .from('task_assignments')
+            .select(`
+              id,
+              task_id,
+              user_id,
+              assigned_at,
+              assigned_by,
+              user:profiles!task_assignments_user_id_fkey(id, email, full_name)
+            `)
+            .eq('task_id', data.id)
+        );
         
-        const [propertyResult, projectResult] = await Promise.all(fetchPromises);
+        const [propertyResult, projectResult, taskTypeResult, assignmentsResult] = await Promise.all(fetchPromises);
         
         const taskWithRelations: PropertyTask = {
           id: data.id,
@@ -58,6 +81,10 @@ export const useTaskOperations = (
           actual_hours: data.actual_hours,
           is_recurring: data.is_recurring,
           recurrence_pattern: data.recurrence_pattern,
+          recurrence_frequency: data.recurrence_frequency as PropertyTask['recurrence_frequency'],
+          recurrence_interval: data.recurrence_interval,
+          recurrence_end_date: data.recurrence_end_date,
+          task_type_id: data.task_type_id,
           checklist_items: data.checklist_items,
           photos: data.photos,
           notes: data.notes,
@@ -65,7 +92,9 @@ export const useTaskOperations = (
           created_at: data.created_at,
           updated_at: data.updated_at,
           property: propertyResult.data,
-          project: projectResult.data
+          project: projectResult.data,
+          task_type: taskTypeResult.data,
+          assignments: assignmentsResult.data || []
         };
         
         setTasks(prev => [taskWithRelations, ...prev]);
@@ -119,8 +148,31 @@ export const useTaskOperations = (
         } else {
           fetchPromises.push(Promise.resolve({ data: null }));
         }
+
+        if (data.task_type_id) {
+          fetchPromises.push(
+            supabase.from('custom_task_types').select('*').eq('id', data.task_type_id).single()
+          );
+        } else {
+          fetchPromises.push(Promise.resolve({ data: null }));
+        }
+
+        // Fetch task assignments
+        fetchPromises.push(
+          supabase
+            .from('task_assignments')
+            .select(`
+              id,
+              task_id,
+              user_id,
+              assigned_at,
+              assigned_by,
+              user:profiles!task_assignments_user_id_fkey(id, email, full_name)
+            `)
+            .eq('task_id', data.id)
+        );
         
-        const [propertyResult, projectResult] = await Promise.all(fetchPromises);
+        const [propertyResult, projectResult, taskTypeResult, assignmentsResult] = await Promise.all(fetchPromises);
         
         const updatedTask: PropertyTask = {
           id: data.id,
@@ -137,6 +189,10 @@ export const useTaskOperations = (
           actual_hours: data.actual_hours,
           is_recurring: data.is_recurring,
           recurrence_pattern: data.recurrence_pattern,
+          recurrence_frequency: data.recurrence_frequency as PropertyTask['recurrence_frequency'],
+          recurrence_interval: data.recurrence_interval,
+          recurrence_end_date: data.recurrence_end_date,
+          task_type_id: data.task_type_id,
           checklist_items: data.checklist_items,
           photos: data.photos,
           notes: data.notes,
@@ -144,7 +200,9 @@ export const useTaskOperations = (
           created_at: data.created_at,
           updated_at: data.updated_at,
           property: propertyResult.data,
-          project: projectResult.data
+          project: projectResult.data,
+          task_type: taskTypeResult.data,
+          assignments: assignmentsResult.data || []
         };
         
         setTasks(prev => prev.map(task => 
@@ -189,9 +247,51 @@ export const useTaskOperations = (
     }
   };
 
+  const assignUsersToTask = async (taskId: string, userIds: string[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // First, remove existing assignments
+      await supabase
+        .from('task_assignments')
+        .delete()
+        .eq('task_id', taskId);
+
+      // Then create new assignments
+      if (userIds.length > 0) {
+        const assignments = userIds.map(userId => ({
+          task_id: taskId,
+          user_id: userId,
+          assigned_by: user.id
+        }));
+
+        const { error } = await supabase
+          .from('task_assignments')
+          .insert(assignments);
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Task assignments updated successfully',
+      });
+    } catch (error) {
+      console.error('Error updating task assignments:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update task assignments',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   return {
     createTask,
     updateTask,
     deleteTask,
+    assignUsersToTask,
   };
 };

@@ -2,12 +2,17 @@
 import React, { useState } from 'react';
 import { usePropertyManagement, PropertyTask } from '@/hooks/usePropertyManagement';
 import { useWorkOrderManagement } from '@/hooks/useWorkOrderManagement';
+import { useBulkTaskOperations } from '@/hooks/useBulkTaskOperations';
+import { useCustomTaskTypes } from '@/hooks/useCustomTaskTypes';
 import PropertyTaskManagementHeader from '@/components/admin/tasks/PropertyTaskManagementHeader';
 import PropertyTaskKanbanBoard from '@/components/admin/tasks/PropertyTaskKanbanBoard';
+import BulkTaskActions from '@/components/admin/tasks/BulkTaskActions';
 import CreatePropertyTaskModal from '@/components/admin/tasks/CreatePropertyTaskModal';
 import CreatePropertyProjectModal from '@/components/admin/tasks/CreatePropertyProjectModal';
 import CreateWorkOrderModal from '@/components/admin/workorders/CreateWorkOrderModal';
 import LoadingState from '@/components/ui/loading-state';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 
 const AdminTaskManagement = () => {
   const {
@@ -19,6 +24,7 @@ const AdminTaskManagement = () => {
     createTask,
     updateTask,
     deleteTask,
+    refreshData,
   } = usePropertyManagement();
 
   const {
@@ -26,12 +32,23 @@ const AdminTaskManagement = () => {
     createWorkOrder,
   } = useWorkOrderManagement();
 
+  const {
+    selectedTaskIds,
+    toggleTaskSelection,
+    selectAllTasks,
+    clearSelection,
+  } = useBulkTaskOperations();
+
+  const { taskTypes } = useCustomTaskTypes();
+
   const [view, setView] = useState<'kanban' | 'table' | 'calendar'>('kanban');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isWorkOrderModalOpen, setIsWorkOrderModalOpen] = useState(false);
+  const [isTaskTypeModalOpen, setIsTaskTypeModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<PropertyTask | null>(null);
   const [selectedTaskForWorkOrder, setSelectedTaskForWorkOrder] = useState<PropertyTask | null>(null);
+  const [bulkMode, setBulkMode] = useState(false);
 
   const completedTasks = tasks.filter(task => task.status === 'completed').length;
   const pendingTasks = tasks.filter(task => task.status === 'pending').length;
@@ -40,8 +57,12 @@ const AdminTaskManagement = () => {
   ).length;
 
   const handleTaskClick = (task: PropertyTask) => {
-    setEditingTask(task);
-    setIsTaskModalOpen(true);
+    if (bulkMode) {
+      toggleTaskSelection(task.id);
+    } else {
+      setEditingTask(task);
+      setIsTaskModalOpen(true);
+    }
   };
 
   const handleCreateWorkOrder = (task: PropertyTask) => {
@@ -53,14 +74,13 @@ const AdminTaskManagement = () => {
     try {
       await updateTask(taskId, { 
         status: status as any, 
-        // completed_at: status === 'completed' ? new Date().toISOString() : null 
       });
     } catch (error) {
       console.error('Error updating task status:', error);
     }
   };
 
-  const handleCreateTask = async (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project'>) => {
+  const handleCreateTask = async (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project' | 'task_type' | 'assignments'>) => {
     if (editingTask) {
       await updateTask(editingTask.id, taskData);
       setEditingTask(null);
@@ -95,6 +115,18 @@ const AdminTaskManagement = () => {
     }
   };
 
+  const handleToggleBulkMode = () => {
+    setBulkMode(!bulkMode);
+    if (bulkMode) {
+      clearSelection();
+    }
+  };
+
+  const handleSelectAllTasks = () => {
+    const allTaskIds = tasks.map(task => task.id);
+    selectAllTasks(allTaskIds);
+  };
+
   if (loading) {
     return <LoadingState />;
   }
@@ -115,6 +147,45 @@ const AdminTaskManagement = () => {
         onViewChange={setView}
       />
 
+      {/* Enhanced Action Bar */}
+      <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+        <div className="flex items-center gap-3">
+          <Button
+            variant={bulkMode ? "default" : "outline"}
+            onClick={handleToggleBulkMode}
+          >
+            {bulkMode ? "Exit Bulk Mode" : "Bulk Select"}
+          </Button>
+          
+          {bulkMode && (
+            <Button
+              variant="outline"
+              onClick={handleSelectAllTasks}
+              disabled={tasks.length === 0}
+            >
+              Select All ({tasks.length})
+            </Button>
+          )}
+        </div>
+
+        <Button
+          variant="outline"
+          onClick={() => setIsTaskTypeModalOpen(true)}
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          Manage Task Types
+        </Button>
+      </div>
+
+      {/* Bulk Actions */}
+      {bulkMode && (
+        <BulkTaskActions
+          selectedCount={selectedTaskIds.length}
+          onClearSelection={clearSelection}
+          onRefresh={refreshData}
+        />
+      )}
+
       {view === 'kanban' && (
         <PropertyTaskKanbanBoard
           tasks={tasks}
@@ -122,18 +193,21 @@ const AdminTaskManagement = () => {
           onStatusChange={handleStatusChange}
           onDeleteTask={handleDeleteTask}
           onCreateWorkOrder={handleCreateWorkOrder}
+          selectedTaskIds={selectedTaskIds}
+          onToggleTaskSelection={toggleTaskSelection}
+          bulkMode={bulkMode}
         />
       )}
 
       {view === 'table' && (
         <div className="bg-white rounded-lg p-6 border">
-          <p className="text-gray-500">Table view coming soon...</p>
+          <p className="text-gray-500">Enhanced table view with bulk operations coming soon...</p>
         </div>
       )}
 
       {view === 'calendar' && (
         <div className="bg-white rounded-lg p-6 border">
-          <p className="text-gray-500">Calendar view coming soon...</p>
+          <p className="text-gray-500">Calendar view with recurring task management coming soon...</p>
         </div>
       )}
 
@@ -146,6 +220,7 @@ const AdminTaskManagement = () => {
         onCreateTask={handleCreateTask}
         properties={properties}
         projects={projects}
+        taskTypes={taskTypes}
         editingTask={editingTask}
       />
 

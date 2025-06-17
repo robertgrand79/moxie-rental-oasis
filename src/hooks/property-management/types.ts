@@ -20,6 +20,32 @@ export interface PropertyProject {
   property?: Property;
 }
 
+export interface CustomTaskType {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  icon: string;
+  is_active: boolean;
+  is_system: boolean;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskAssignment {
+  id: string;
+  task_id: string;
+  user_id: string;
+  assigned_at: string;
+  assigned_by: string;
+  user?: {
+    id: string;
+    email: string;
+    full_name?: string;
+  };
+}
+
 export interface PropertyTask {
   id: string;
   property_id?: string;
@@ -29,12 +55,16 @@ export interface PropertyTask {
   type: 'cleaning' | 'maintenance' | 'inspection' | 'repair' | 'supply_order' | 'guest_service' | 'admin';
   status: 'pending' | 'in_progress' | 'completed' | 'blocked' | 'cancelled';
   priority: 'low' | 'medium' | 'high' | 'critical';
-  assigned_to?: string;
+  assigned_to?: string; // Legacy field - will be deprecated
   due_date?: string;
   estimated_hours?: number;
   actual_hours?: number;
   is_recurring: boolean;
-  recurrence_pattern?: string;
+  recurrence_pattern?: string; // Legacy field
+  recurrence_frequency?: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  recurrence_interval?: number;
+  recurrence_end_date?: string;
+  task_type_id?: string;
   checklist_items?: string[];
   photos?: string[];
   notes?: string;
@@ -43,6 +73,8 @@ export interface PropertyTask {
   updated_at: string;
   property?: Property;
   project?: PropertyProject;
+  task_type?: CustomTaskType;
+  assignments?: TaskAssignment[];
 }
 
 export interface MaintenanceSchedule {
@@ -55,4 +87,14 @@ export interface MaintenanceSchedule {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface BulkTaskOperation {
+  type: 'delete' | 'status_change' | 'assign' | 'priority_change';
+  taskIds: string[];
+  data?: {
+    status?: PropertyTask['status'];
+    priority?: PropertyTask['priority'];
+    userIds?: string[];
+  };
 }
