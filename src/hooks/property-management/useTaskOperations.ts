@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PropertyTask } from './types';
@@ -8,7 +7,7 @@ export const useTaskOperations = (
 ) => {
   const { toast } = useToast();
 
-  const createTask = async (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project' | 'task_type' | 'assignments'>) => {
+  const createTask = async (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project' | 'task_type' | 'assignments'>): Promise<PropertyTask> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -106,7 +105,7 @@ export const useTaskOperations = (
         return taskWithRelations;
       }
       
-      return data;
+      throw new Error('No data returned from task creation');
     } catch (error) {
       console.error('Error creating task:', error);
       toast({
@@ -118,7 +117,7 @@ export const useTaskOperations = (
     }
   };
 
-  const updateTask = async (taskId: string, updates: Partial<PropertyTask>) => {
+  const updateTask = async (taskId: string, updates: Partial<PropertyTask>): Promise<PropertyTask> => {
     try {
       const { data, error } = await supabase
         .from('property_tasks')
@@ -211,6 +210,8 @@ export const useTaskOperations = (
         
         return updatedTask;
       }
+      
+      throw new Error('No data returned from task update');
     } catch (error) {
       console.error('Error updating task:', error);
       toast({
