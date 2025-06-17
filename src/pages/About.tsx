@@ -1,7 +1,6 @@
 
 import React from 'react';
 import AboutHero from '@/components/about/AboutHero';
-import GabbyIntroduction from '@/components/about/GabbyIntroduction';
 import FamilyPhotoSection from '@/components/about/FamilyPhotoSection';
 import FamilyDescription from '@/components/about/FamilyDescription';
 import MissionSection from '@/components/about/MissionSection';
@@ -13,9 +12,14 @@ const About = () => {
   return (
     <div className="min-h-screen">
       <AboutHero />
-      <GabbyIntroduction />
-      <FamilyPhotoSection />
-      <FamilyDescription />
+      <div className="py-32 bg-gradient-to-br from-gray-50 to-white">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <FamilyPhotoSection />
+            <FamilyDescription />
+          </div>
+        </div>
+      </div>
       <MissionSection />
       <ValuesSection />
       <ExcellenceAuthenticitySection />
