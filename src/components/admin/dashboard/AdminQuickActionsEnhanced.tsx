@@ -25,13 +25,13 @@ const AdminQuickActionsEnhanced = () => {
       key: 'write-post',
       icon: BookOpen,
       label: 'Write Blog Post',
-      path: '/admin/blog-management?action=add'
+      path: '/admin/blog?action=add'
     },
     {
       key: 'create-page',
       icon: FileText,
       label: 'Create Page',
-      path: '/admin/page-management?action=add'
+      path: '/admin/pages?action=add'
     },
     {
       key: 'create-event',
@@ -43,7 +43,7 @@ const AdminQuickActionsEnhanced = () => {
       key: 'newsletter',
       icon: Mail,
       label: 'Send Newsletter',
-      path: '/admin/newsletter'
+      path: '/admin/newsletter-management'
     },
     {
       key: 'settings',

@@ -22,13 +22,13 @@ const AdminQuickActions = () => {
           </Link>
         </Button>
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/blog-management?action=add">
+          <Link to="/admin/blog?action=add">
             <BookOpen className="h-4 w-4 mr-2" />
             Write Blog Post
           </Link>
         </Button>
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/page-management?action=add">
+          <Link to="/admin/pages?action=add">
             <FileText className="h-4 w-4 mr-2" />
             Create Page
           </Link>
@@ -40,7 +40,7 @@ const AdminQuickActions = () => {
           </Link>
         </Button>
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link to="/admin/newsletter">
+          <Link to="/admin/newsletter-management">
             <Mail className="h-4 w-4 mr-2" />
             Send Newsletter
           </Link>

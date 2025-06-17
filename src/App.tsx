@@ -1,9 +1,8 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { StaticSettingsProvider } from "@/contexts/StaticSettingsContext";
 import PublicLayout from "@/components/layouts/PublicLayout";
@@ -48,6 +47,7 @@ import AdminLifestyle from "./pages/admin/AdminLifestyle";
 import AdminPOI from "./pages/admin/AdminPOI";
 import AdminEvents from "./pages/admin/AdminEvents";
 
+// Legacy page imports for compatibility
 import PageManagement from "./pages/PageManagement";
 import BlogManagement from "./pages/BlogManagement";
 import Listings from "./pages/Listings";
@@ -96,24 +96,28 @@ function App() {
                   <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
                   <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="site-metrics" element={<AdminSiteMetrics />} />
-                  <Route path="users" element={<AdminUserManagement />} />
-                  <Route path="roles" element={<AdminRolesPermissions />} />
-                  <Route path="newsletters" element={<AdminNewsletterManagement />} />
+                  <Route path="user-management" element={<AdminUserManagement />} />
+                  <Route path="roles-permissions" element={<AdminRolesPermissions />} />
+                  <Route path="newsletter-management" element={<AdminNewsletterManagement />} />
+                  <Route path="blog" element={<BlogManagement />} />
                   <Route path="pages" element={<AdminPageManagement />} />
                   <Route path="ai-chat" element={<AdminAIChat />} />
-                  <Route path="ai-content" element={<AdminAIContentReview />} />
+                  <Route path="ai-content-review" element={<AdminAIContentReview />} />
                   <Route path="testimonials" element={<AdminTestimonials />} />
                   <Route path="lifestyle" element={<AdminLifestyle />} />
                   <Route path="poi" element={<AdminPOI />} />
                   <Route path="events" element={<AdminEvents />} />
                 </Route>
 
-                {/* Legacy routes - keeping for backwards compatibility */}
-                <Route path="/site-settings" element={<SiteSettings />} />
-                <Route path="/page-management" element={<PageManagement />} />
-                <Route path="/blog-management" element={<BlogManagement />} />
-                <Route path="/listings" element={<Listings />} />
-                <Route path="/sample-data" element={<SampleDataManagement />} />
+                {/* Legacy routes - redirect to new admin routes for compatibility */}
+                <Route path="/blog-management" element={<Navigate to="/admin/blog" replace />} />
+                <Route path="/page-management" element={<Navigate to="/admin/pages" replace />} />
+                <Route path="/site-settings" element={<Navigate to="/admin/settings" replace />} />
+                <Route path="/listings" element={<Navigate to="/admin/properties" replace />} />
+                <Route path="/sample-data" element={<Navigate to="/admin/settings" replace />} />
+
+                {/* Keep legacy routes working for backward compatibility (but redirect) */}
+                <Route path="/sample-data-management" element={<Navigate to="/admin/settings" replace />} />
 
                 {/* Catch all route */}
                 <Route path="*" element={<NotFound />} />
