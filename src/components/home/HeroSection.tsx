@@ -12,7 +12,8 @@ const DEFAULT_HERO_SETTINGS = {
   heroSubtitle: 'in Eugene',
   heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
   heroLocationText: 'Eugene, Oregon',
-  heroCTAText: 'View Properties'
+  heroCTAText: 'View Properties',
+  heroBackgroundImage: '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png'
 };
 
 const HeroSection = () => {
@@ -30,7 +31,8 @@ const HeroSection = () => {
           'heroSubtitle', 
           'heroDescription',
           'heroLocationText',
-          'heroCTAText'
+          'heroCTAText',
+          'heroBackgroundImage'
         ]);
 
       if (error) {
@@ -66,11 +68,17 @@ const HeroSection = () => {
     staleTime: 5000
   });
 
-  // Show loading state
+  // Show loading state with proper background
   if (isLoading) {
     return (
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
+        {/* Default background during loading */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('${DEFAULT_HERO_SETTINGS.heroBackgroundImage}')`
+          }}
+        ></div>
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <div className="space-y-8">
             <div className="h-16 bg-white/20 rounded animate-pulse"></div>
@@ -86,10 +94,25 @@ const HeroSection = () => {
   
   console.log('Hero Section - Using settings:', settings);
 
+  // Determine background style
+  const backgroundStyle = settings.heroBackgroundImage 
+    ? {
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('${settings.heroBackgroundImage}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }
+    : {
+        background: 'linear-gradient(135deg, #6B7280 0%, #374151 100%)'
+      };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Gray Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
+      {/* Dynamic Background */}
+      <div 
+        className="absolute inset-0"
+        style={backgroundStyle}
+      ></div>
 
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
