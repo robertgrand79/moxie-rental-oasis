@@ -13,7 +13,7 @@ const DEFAULT_HERO_SETTINGS = {
   heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
   heroLocationText: 'Eugene, Oregon',
   heroCTAText: 'View Properties',
-  heroBackgroundImage: '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png' // Use existing working image as fallback
+  heroBackgroundImage: 'https://joiovubyokikqjytxtuv.supabase.co/storage/v1/object/public/hero-images/hero-1750167903500.jpg'
 };
 
 const HeroSection = () => {
@@ -29,7 +29,7 @@ const HeroSection = () => {
 
   // Fetch hero settings with better error handling
   const { data: heroSettings, isLoading, error: queryError } = useQuery({
-    queryKey: ['hero-settings-v2'], // Changed key to bust cache
+    queryKey: ['hero-settings-v3'], // Changed key to bust cache
     queryFn: async () => {
       console.log('🔄 Fetching hero settings from database...');
       
@@ -204,15 +204,6 @@ const HeroSection = () => {
               </Link>
             </Button>
           </div>
-
-          {/* Debug info (only in development) */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-8 p-4 bg-black/50 rounded text-xs text-left max-w-md mx-auto">
-              <div>Image URL: {settings.heroBackgroundImage || 'None'}</div>
-              <div>Image Status: {imageStatus.loaded ? 'Loaded' : imageStatus.error ? 'Error' : 'Loading'}</div>
-              <div>Using: {shouldUseImage ? 'Image' : 'Gradient'}</div>
-            </div>
-          )}
         </div>
       </div>
 
