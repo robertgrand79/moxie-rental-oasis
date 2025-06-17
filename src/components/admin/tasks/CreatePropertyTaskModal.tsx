@@ -7,15 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { PropertyTask, PropertyProject } from '@/hooks/usePropertyManagement';
+import { PropertyTask, PropertyProject, CustomTaskType } from '@/hooks/property-management/types';
 import { Property } from '@/types/property';
 
 interface CreatePropertyTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateTask: (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project'>) => Promise<void>;
+  onCreateTask: (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project' | 'task_type' | 'assignments'>) => Promise<void>;
   properties: Property[];
   projects: PropertyProject[];
+  taskTypes: CustomTaskType[];
   editingTask?: PropertyTask | null;
 }
 
@@ -25,6 +26,7 @@ const CreatePropertyTaskModal = ({
   onCreateTask,
   properties,
   projects,
+  taskTypes,
   editingTask,
 }: CreatePropertyTaskModalProps) => {
   const [formData, setFormData] = useState({
@@ -38,7 +40,10 @@ const CreatePropertyTaskModal = ({
     due_date: editingTask?.due_date || '',
     estimated_hours: editingTask?.estimated_hours || 0,
     is_recurring: editingTask?.is_recurring || false,
-    recurrence_pattern: editingTask?.recurrence_pattern || '',
+    recurrence_frequency: editingTask?.recurrence_frequency || undefined,
+    recurrence_interval: editingTask?.recurrence_interval || 1,
+    recurrence_end_date: editingTask?.recurrence_end_date || '',
+    task_type_id: editingTask?.task_type_id || '',
     notes: editingTask?.notes || '',
   });
 
@@ -50,13 +55,17 @@ const CreatePropertyTaskModal = ({
         ...formData,
         property_id: formData.property_id || undefined,
         project_id: formData.project_id || undefined,
+        task_type_id: formData.task_type_id || undefined,
         estimated_hours: formData.estimated_hours || undefined,
         due_date: formData.due_date || undefined,
-        recurrence_pattern: formData.is_recurring ? formData.recurrence_pattern : undefined,
+        recurrence_frequency: formData.is_recurring ? formData.recurrence_frequency : undefined,
+        recurrence_interval: formData.is_recurring ? formData.recurrence_interval : undefined,
+        recurrence_end_date: formData.is_recurring && formData.recurrence_end_date ? formData.recurrence_end_date : undefined,
         checklist_items: undefined,
         photos: undefined,
         assigned_to: undefined,
         actual_hours: undefined,
+        recurrence_pattern: undefined,
       });
       onClose();
     } catch (error) {
@@ -64,7 +73,7 @@ const CreatePropertyTaskModal = ({
     }
   };
 
-  const taskTypes = [
+  const defaultTaskTypes = [
     { value: 'cleaning', label: 'Cleaning' },
     { value: 'maintenance', label: 'Maintenance' },
     { value: 'inspection', label: 'Inspection' },
@@ -87,6 +96,13 @@ const CreatePropertyTaskModal = ({
     { value: 'completed', label: 'Completed' },
     { value: 'blocked', label: 'Blocked' },
     { value: 'cancelled', label: 'Cancelled' },
+  ];
+
+  const recurrenceFrequencies = [
+    { value: 'daily', label: 'Daily' },
+    { value: 'weekly', label: 'Weekly' },
+    { value: 'monthly', label: 'Monthly' },
+    { value: 'yearly', label: 'Yearly' },
   ];
 
   return (
@@ -121,12 +137,13 @@ const CreatePropertyTaskModal = ({
             </div>
 
             <div>
-              <Label htmlFor="property">Property</Label>
+              <Label htmlFor="property">Property (Optional)</Label>
               <Select value={formData.property_id} onValueChange={(value) => setFormData({ ...formData, property_id: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select property" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">No Property</SelectItem>
                   {properties.map((property) => (
                     <SelectItem key={property.id} value={property.id}>
                       {property.title}
@@ -143,6 +160,7 @@ const CreatePropertyTaskModal = ({
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">No Project</SelectItem>
                   {projects
                     .filter(project => !formData.property_id || project.property_id === formData.property_id)
                     .map((project) => (
@@ -155,13 +173,40 @@ const CreatePropertyTaskModal = ({
             </div>
 
             <div>
-              <Label htmlFor="type">Task Type</Label>
-              <Select value={formData.type} onValueChange={(value: any) => setFormData({ ...formData, type: value })}>
+              <Label htmlFor="task_type">Task Type</Label>
+              <Select 
+                value={formData.task_type_id || formData.type} 
+                onValueChange={(value) => {
+                  const customType = taskTypes.find(t => t.id === value);
+                  if (customType) {
+                    setFormData({ ...formData, task_type_id: value, type: 'admin' });
+                  } else {
+                    setFormData({ ...formData, task_type_id: '', type: value as any });
+                  }
+                }}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder="Select task type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {taskTypes.map((type) => (
+                  {taskTypes.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase">Custom Types</div>
+                      {taskTypes.map((taskType) => (
+                        <SelectItem key={taskType.id} value={taskType.id}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: taskType.color }}
+                            />
+                            {taskType.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                      <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase">Default Types</div>
+                    </>
+                  )}
+                  {defaultTaskTypes.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
                     </SelectItem>
@@ -234,15 +279,48 @@ const CreatePropertyTaskModal = ({
             </div>
 
             {formData.is_recurring && (
-              <div className="col-span-2">
-                <Label htmlFor="recurrence_pattern">Recurrence Pattern</Label>
-                <Input
-                  id="recurrence_pattern"
-                  value={formData.recurrence_pattern}
-                  onChange={(e) => setFormData({ ...formData, recurrence_pattern: e.target.value })}
-                  placeholder="e.g., weekly, monthly, every 2 weeks"
-                />
-              </div>
+              <>
+                <div>
+                  <Label htmlFor="recurrence_frequency">Frequency</Label>
+                  <Select 
+                    value={formData.recurrence_frequency || ''} 
+                    onValueChange={(value: any) => setFormData({ ...formData, recurrence_frequency: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {recurrenceFrequencies.map((freq) => (
+                        <SelectItem key={freq.value} value={freq.value}>
+                          {freq.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="recurrence_interval">Interval</Label>
+                  <Input
+                    id="recurrence_interval"
+                    type="number"
+                    min="1"
+                    value={formData.recurrence_interval}
+                    onChange={(e) => setFormData({ ...formData, recurrence_interval: parseInt(e.target.value) || 1 })}
+                    placeholder="e.g., 2 for every 2 weeks"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Label htmlFor="recurrence_end_date">End Date (Optional)</Label>
+                  <Input
+                    id="recurrence_end_date"
+                    type="date"
+                    value={formData.recurrence_end_date}
+                    onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value })}
+                  />
+                </div>
+              </>
             )}
 
             <div className="col-span-2">
