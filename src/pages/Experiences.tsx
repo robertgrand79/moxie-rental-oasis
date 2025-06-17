@@ -1,23 +1,23 @@
 
 import React from 'react';
-import ExperienceHero from '@/components/experiences/ExperienceHero';
-import ExperienceCategories from '@/components/experiences/ExperienceCategories';
-import FeaturedExperiences from '@/components/experiences/FeaturedExperiences';
-import LocalFavorites from '@/components/experiences/LocalFavorites';
-import HowItWorks from '@/components/experiences/HowItWorks';
-import ExperienceCallToAction from '@/components/experiences/ExperienceCallToAction';
+import LocalExperienceHero from '@/components/experiences/LocalExperienceHero';
+import EugeneExperienceCategories from '@/components/experiences/EugeneExperienceCategories';
+import LocalHighlights from '@/components/experiences/LocalHighlights';
 import PointsOfInterestDisplay from '@/components/experiences/PointsOfInterestDisplay';
+import LocalFavorites from '@/components/experiences/LocalFavorites';
+import LocalExploreGuide from '@/components/experiences/LocalExploreGuide';
+import LocalExperienceCallToAction from '@/components/experiences/LocalExperienceCallToAction';
 
 const Experiences = () => {
   return (
     <div className="min-h-screen">
-      <ExperienceHero />
-      <ExperienceCategories />
-      <FeaturedExperiences />
+      <LocalExperienceHero />
+      <EugeneExperienceCategories />
+      <LocalHighlights />
       <PointsOfInterestDisplay />
       <LocalFavorites />
-      <HowItWorks />
-      <ExperienceCallToAction />
+      <LocalExploreGuide />
+      <LocalExperienceCallToAction />
     </div>
   );
 };
