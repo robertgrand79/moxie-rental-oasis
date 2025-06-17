@@ -2,6 +2,8 @@
 import React from 'react';
 import { PropertyTask } from '@/hooks/property-management/types';
 import PropertyTaskKanbanBoard from './PropertyTaskKanbanBoard';
+import TaskTableView from './TaskTableView';
+import TaskCalendarView from './TaskCalendarView';
 
 interface TaskManagementViewsProps {
   view: 'kanban' | 'table' | 'calendar';
@@ -43,17 +45,40 @@ const TaskManagementViews = ({
 
   if (view === 'table') {
     return (
-      <div className="bg-white rounded-lg p-6 border">
-        <p className="text-gray-500">Enhanced table view with bulk operations coming soon...</p>
-      </div>
+      <TaskTableView
+        tasks={tasks}
+        selectedTaskIds={selectedTaskIds}
+        bulkMode={bulkMode}
+        onTaskClick={onTaskClick}
+        onToggleTaskSelection={onToggleTaskSelection}
+        onStatusChange={onStatusChange}
+        onDeleteTask={onDeleteTask}
+        onCreateWorkOrder={onCreateWorkOrder}
+      />
     );
   }
 
   if (view === 'calendar') {
     return (
-      <div className="bg-white rounded-lg p-6 border">
-        <p className="text-gray-500">Calendar view with recurring task management coming soon...</p>
-      </div>
+      <TaskCalendarView
+        tasks={tasks}
+        onTaskClick={onTaskClick}
+        onCreateTask={() => {
+          // This will be handled by the parent component
+          const dummyTask = {
+            id: 'new',
+            title: '',
+            type: 'admin' as const,
+            status: 'pending' as const,
+            priority: 'medium' as const,
+            is_recurring: false,
+            created_by: '',
+            created_at: '',
+            updated_at: ''
+          };
+          onTaskClick(dummyTask as PropertyTask);
+        }}
+      />
     );
   }
 
