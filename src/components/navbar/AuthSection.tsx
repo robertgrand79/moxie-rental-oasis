@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { LogOut, User, Settings, Shield } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
 
 const AuthSection = () => {
   const { user, signOut } = useAuth();
