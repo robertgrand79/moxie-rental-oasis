@@ -1,18 +1,18 @@
 
-import React, { useState } from 'react';
-import { usePropertyManagement, PropertyTask } from '@/hooks/usePropertyManagement';
+import React from 'react';
+import { usePropertyManagement } from '@/hooks/usePropertyManagement';
 import { useWorkOrderManagement } from '@/hooks/useWorkOrderManagement';
 import { useBulkTaskOperations } from '@/hooks/useBulkTaskOperations';
 import { useCustomTaskTypes } from '@/hooks/useCustomTaskTypes';
+import { useTaskManagementState } from '@/hooks/useTaskManagementState';
+import { useTaskManagementHandlers } from '@/hooks/useTaskManagementHandlers';
+import { useTaskStats } from '@/components/admin/tasks/TaskManagementStats';
 import PropertyTaskManagementHeader from '@/components/admin/tasks/PropertyTaskManagementHeader';
-import PropertyTaskKanbanBoard from '@/components/admin/tasks/PropertyTaskKanbanBoard';
+import TaskManagementActions from '@/components/admin/tasks/TaskManagementActions';
+import TaskManagementViews from '@/components/admin/tasks/TaskManagementViews';
+import TaskManagementModals from '@/components/admin/tasks/TaskManagementModals';
 import BulkTaskActions from '@/components/admin/tasks/BulkTaskActions';
-import CreatePropertyTaskModal from '@/components/admin/tasks/CreatePropertyTaskModal';
-import CreatePropertyProjectModal from '@/components/admin/tasks/CreatePropertyProjectModal';
-import CreateWorkOrderModal from '@/components/admin/workorders/CreateWorkOrderModal';
 import LoadingState from '@/components/ui/loading-state';
-import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
 
 const AdminTaskManagement = () => {
   const {
@@ -27,11 +27,9 @@ const AdminTaskManagement = () => {
     refreshData,
   } = usePropertyManagement();
 
-  const {
-    contractors,
-    createWorkOrder,
-  } = useWorkOrderManagement();
-
+  const { contractors, createWorkOrder } = useWorkOrderManagement();
+  const { taskTypes } = useCustomTaskTypes();
+  
   const {
     selectedTaskIds,
     toggleTaskSelection,
@@ -39,93 +37,55 @@ const AdminTaskManagement = () => {
     clearSelection,
   } = useBulkTaskOperations();
 
-  const { taskTypes } = useCustomTaskTypes();
+  const {
+    view,
+    setView,
+    isTaskModalOpen,
+    setIsTaskModalOpen,
+    isProjectModalOpen,
+    setIsProjectModalOpen,
+    isWorkOrderModalOpen,
+    setIsWorkOrderModalOpen,
+    isTaskTypeModalOpen,
+    setIsTaskTypeModalOpen,
+    editingTask,
+    setEditingTask,
+    selectedTaskForWorkOrder,
+    setSelectedTaskForWorkOrder,
+    bulkMode,
+    setBulkMode,
+  } = useTaskManagementState();
 
-  const [view, setView] = useState<'kanban' | 'table' | 'calendar'>('kanban');
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
-  const [isWorkOrderModalOpen, setIsWorkOrderModalOpen] = useState(false);
-  const [isTaskTypeModalOpen, setIsTaskTypeModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<PropertyTask | null>(null);
-  const [selectedTaskForWorkOrder, setSelectedTaskForWorkOrder] = useState<PropertyTask | null>(null);
-  const [bulkMode, setBulkMode] = useState(false);
+  const {
+    handleTaskClick,
+    handleCreateWorkOrder,
+    handleStatusChange,
+    handleCreateTask,
+    handleCreateProject,
+    handleCreateWorkOrderFromTask,
+    handleDeleteTask,
+    handleToggleBulkMode,
+    handleSelectAllTasks,
+  } = useTaskManagementHandlers({
+    bulkMode,
+    editingTask,
+    selectedTaskForWorkOrder,
+    setEditingTask,
+    setIsTaskModalOpen,
+    setSelectedTaskForWorkOrder,
+    setIsWorkOrderModalOpen,
+    setBulkMode,
+    updateTask,
+    createTask,
+    createProject,
+    createWorkOrder,
+    deleteTask,
+    toggleTaskSelection,
+    selectAllTasks,
+    clearSelection,
+  });
 
-  const completedTasks = tasks.filter(task => task.status === 'completed').length;
-  const pendingTasks = tasks.filter(task => task.status === 'pending').length;
-  const overdueTasks = tasks.filter(task => 
-    task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
-  ).length;
-
-  const handleTaskClick = (task: PropertyTask) => {
-    if (bulkMode) {
-      toggleTaskSelection(task.id);
-    } else {
-      setEditingTask(task);
-      setIsTaskModalOpen(true);
-    }
-  };
-
-  const handleCreateWorkOrder = (task: PropertyTask) => {
-    setSelectedTaskForWorkOrder(task);
-    setIsWorkOrderModalOpen(true);
-  };
-
-  const handleStatusChange = async (taskId: string, status: string) => {
-    try {
-      await updateTask(taskId, { 
-        status: status as any, 
-      });
-    } catch (error) {
-      console.error('Error updating task status:', error);
-    }
-  };
-
-  const handleCreateTask = async (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project' | 'task_type' | 'assignments'>) => {
-    if (editingTask) {
-      await updateTask(editingTask.id, taskData);
-      setEditingTask(null);
-    } else {
-      await createTask(taskData);
-    }
-  };
-
-  const handleCreateProject = async (projectData: any) => {
-    try {
-      await createProject(projectData);
-    } catch (error) {
-      console.error('Error creating project:', error);
-    }
-  };
-
-  const handleCreateWorkOrderFromTask = async (workOrderData: any) => {
-    if (selectedTaskForWorkOrder) {
-      await createWorkOrder({
-        ...workOrderData,
-        task_id: selectedTaskForWorkOrder.id,
-        title: workOrderData.title || selectedTaskForWorkOrder.title,
-        description: workOrderData.description || selectedTaskForWorkOrder.description,
-      });
-      setSelectedTaskForWorkOrder(null);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    if (confirm('Are you sure you want to delete this task?')) {
-      await deleteTask(taskId);
-    }
-  };
-
-  const handleToggleBulkMode = () => {
-    setBulkMode(!bulkMode);
-    if (bulkMode) {
-      clearSelection();
-    }
-  };
-
-  const handleSelectAllTasks = () => {
-    const allTaskIds = tasks.map(task => task.id);
-    selectAllTasks(allTaskIds);
-  };
+  const { totalTasks, completedTasks, pendingTasks, overdueTasks } = useTaskStats(tasks);
 
   if (loading) {
     return <LoadingState />;
@@ -134,7 +94,7 @@ const AdminTaskManagement = () => {
   return (
     <div className="space-y-6">
       <PropertyTaskManagementHeader
-        totalTasks={tasks.length}
+        totalTasks={totalTasks}
         completedTasks={completedTasks}
         pendingTasks={pendingTasks}
         overdueTasks={overdueTasks}
@@ -147,37 +107,14 @@ const AdminTaskManagement = () => {
         onViewChange={setView}
       />
 
-      {/* Enhanced Action Bar */}
-      <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
-        <div className="flex items-center gap-3">
-          <Button
-            variant={bulkMode ? "default" : "outline"}
-            onClick={handleToggleBulkMode}
-          >
-            {bulkMode ? "Exit Bulk Mode" : "Bulk Select"}
-          </Button>
-          
-          {bulkMode && (
-            <Button
-              variant="outline"
-              onClick={handleSelectAllTasks}
-              disabled={tasks.length === 0}
-            >
-              Select All ({tasks.length})
-            </Button>
-          )}
-        </div>
+      <TaskManagementActions
+        bulkMode={bulkMode}
+        onToggleBulkMode={handleToggleBulkMode}
+        onSelectAllTasks={() => handleSelectAllTasks(tasks)}
+        onOpenTaskTypeModal={() => setIsTaskTypeModalOpen(true)}
+        tasksCount={tasks.length}
+      />
 
-        <Button
-          variant="outline"
-          onClick={() => setIsTaskTypeModalOpen(true)}
-        >
-          <Settings className="h-4 w-4 mr-2" />
-          Manage Task Types
-        </Button>
-      </div>
-
-      {/* Bulk Actions */}
       {bulkMode && (
         <BulkTaskActions
           selectedCount={selectedTaskIds.length}
@@ -186,60 +123,40 @@ const AdminTaskManagement = () => {
         />
       )}
 
-      {view === 'kanban' && (
-        <PropertyTaskKanbanBoard
-          tasks={tasks}
-          onTaskClick={handleTaskClick}
-          onStatusChange={handleStatusChange}
-          onDeleteTask={handleDeleteTask}
-          onCreateWorkOrder={handleCreateWorkOrder}
-          selectedTaskIds={selectedTaskIds}
-          onToggleTaskSelection={toggleTaskSelection}
-          bulkMode={bulkMode}
-        />
-      )}
+      <TaskManagementViews
+        view={view}
+        tasks={tasks}
+        selectedTaskIds={selectedTaskIds}
+        bulkMode={bulkMode}
+        onTaskClick={handleTaskClick}
+        onStatusChange={handleStatusChange}
+        onDeleteTask={handleDeleteTask}
+        onCreateWorkOrder={handleCreateWorkOrder}
+        onToggleTaskSelection={toggleTaskSelection}
+      />
 
-      {view === 'table' && (
-        <div className="bg-white rounded-lg p-6 border">
-          <p className="text-gray-500">Enhanced table view with bulk operations coming soon...</p>
-        </div>
-      )}
-
-      {view === 'calendar' && (
-        <div className="bg-white rounded-lg p-6 border">
-          <p className="text-gray-500">Calendar view with recurring task management coming soon...</p>
-        </div>
-      )}
-
-      <CreatePropertyTaskModal
-        isOpen={isTaskModalOpen}
-        onClose={() => {
-          setIsTaskModalOpen(false);
-          setEditingTask(null);
-        }}
-        onCreateTask={handleCreateTask}
+      <TaskManagementModals
+        isTaskModalOpen={isTaskModalOpen}
+        isProjectModalOpen={isProjectModalOpen}
+        isWorkOrderModalOpen={isWorkOrderModalOpen}
+        editingTask={editingTask}
+        selectedTaskForWorkOrder={selectedTaskForWorkOrder}
         properties={properties}
         projects={projects}
         taskTypes={taskTypes}
-        editingTask={editingTask}
-      />
-
-      <CreatePropertyProjectModal
-        isOpen={isProjectModalOpen}
-        onClose={() => setIsProjectModalOpen(false)}
-        onCreateProject={handleCreateProject}
-        properties={properties}
-      />
-
-      <CreateWorkOrderModal
-        isOpen={isWorkOrderModalOpen}
-        onClose={() => {
+        contractors={contractors}
+        onCloseTaskModal={() => {
+          setIsTaskModalOpen(false);
+          setEditingTask(null);
+        }}
+        onCloseProjectModal={() => setIsProjectModalOpen(false)}
+        onCloseWorkOrderModal={() => {
           setIsWorkOrderModalOpen(false);
           setSelectedTaskForWorkOrder(null);
         }}
+        onCreateTask={handleCreateTask}
+        onCreateProject={handleCreateProject}
         onCreateWorkOrder={handleCreateWorkOrderFromTask}
-        contractors={contractors}
-        editingWorkOrder={null}
       />
     </div>
   );
