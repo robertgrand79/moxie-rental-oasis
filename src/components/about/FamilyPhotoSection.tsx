@@ -35,6 +35,39 @@ const FamilyPhotoSection = () => {
         </div>
       </div>
       
+      {/* Additional Photos Grid */}
+      <div className="grid md:grid-cols-2 gap-6 mt-8">
+        {/* Garden/Casual Photo */}
+        <div className="relative group">
+          <div className="absolute -inset-2 bg-gradient-to-r from-icon-emerald/30 to-icon-teal/30 rounded-2xl blur opacity-70 group-hover:opacity-100 transition-all duration-500"></div>
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/11aea8e1-1241-453f-bc09-d4c8c7394c8c.png"
+              alt="Robert and Shelly enjoying time together outdoors"
+              className="rounded-xl shadow-lg w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-400"
+            />
+            <div className="absolute bottom-3 left-3 right-3 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-lg p-3 text-gray-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <p className="text-sm font-medium">Living the Oregon lifestyle</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Mountain Adventure Photo */}
+        <div className="relative group">
+          <div className="absolute -inset-2 bg-gradient-to-r from-icon-blue/30 to-icon-indigo/30 rounded-2xl blur opacity-70 group-hover:opacity-100 transition-all duration-500"></div>
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/90efc726-fda8-495c-ae0f-81c79b3f087f.png"
+              alt="Robert and Shelly on a mountain adventure"
+              className="rounded-xl shadow-lg w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-400"
+            />
+            <div className="absolute bottom-3 left-3 right-3 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-lg p-3 text-gray-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <p className="text-sm font-medium">Exploring Oregon's wilderness</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       {/* Photo Caption/Description */}
       <div className="mt-8 text-center lg:text-left">
         <p className="text-gray-600 italic leading-relaxed">
