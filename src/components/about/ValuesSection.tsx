@@ -8,33 +8,33 @@ const ValuesSection = () => {
       icon: CheckCircle,
       title: "Integrity First",
       description: "We prioritize unwavering honesty, transparency, and ethical practices in all aspects of our business.",
-      bgColor: "bg-blue-50",
-      borderColor: "border-blue-200",
-      iconBg: "bg-blue-500"
+      bgColor: "bg-gradient-to-br from-gradient-from to-gradient-to",
+      borderColor: "border-gray-200",
+      iconBg: "bg-gray-600"
     },
     {
       icon: Zap,
       title: "Fast Action Experience",
       description: "We provide swift and efficient solutions while ensuring a seamless and enjoyable experience for our guests.",
-      bgColor: "bg-orange-50",
-      borderColor: "border-orange-200",
-      iconBg: "bg-orange-500"
+      bgColor: "bg-muted",
+      borderColor: "border-gray-200",
+      iconBg: "bg-gray-500"
     },
     {
       icon: Star,
       title: "Undisputable Value",
       description: "We provide unparalleled experiences that are unmatched in the industry, ensuring exceptional value.",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-200",
-      iconBg: "bg-green-500"
+      bgColor: "bg-accent",
+      borderColor: "border-gray-200",
+      iconBg: "bg-gray-700"
     },
     {
       icon: HandHeart,
       title: "People Over Profits",
       description: "We prioritize the well-being, satisfaction, and success of our guests and communities above all financial considerations.",
-      bgColor: "bg-teal-50",
-      borderColor: "border-teal-200",
-      iconBg: "bg-teal-500"
+      bgColor: "bg-gradient-to-br from-gradient-accent-from to-gradient-accent-to",
+      borderColor: "border-gray-200",
+      iconBg: "bg-gray-600"
     }
   ];
 

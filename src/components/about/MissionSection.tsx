@@ -9,7 +9,7 @@ const MissionSection = () => {
         {/* Mission content - centered */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
               <Target className="h-6 w-6 text-white" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900">Our Mission</h3>
@@ -30,8 +30,8 @@ const MissionSection = () => {
 
         {/* Feature boxes below mission */}
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-            <div className="w-16 h-16 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+          <div className="bg-accent border border-gray-200 rounded-lg p-6 text-center">
+            <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Mountain className="h-8 w-8 text-white" />
             </div>
             <h4 className="text-xl font-semibold text-gray-900 mb-3">Outdoor Adventures</h4>
@@ -41,8 +41,8 @@ const MissionSection = () => {
             </p>
           </div>
           
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 text-center">
-            <div className="w-16 h-16 bg-orange-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+          <div className="bg-muted border border-gray-200 rounded-lg p-6 text-center">
+            <div className="w-16 h-16 bg-gray-500 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Coffee className="h-8 w-8 text-white" />
             </div>
             <h4 className="text-xl font-semibold text-gray-900 mb-3">Culinary Delights</h4>

@@ -9,8 +9,8 @@ const ExcellenceAuthenticitySection = () => {
         <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">What Sets Us Apart</h3>
         
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
-            <div className="w-16 h-16 bg-blue-500 rounded-lg flex items-center justify-center mx-auto mb-6">
+          <div className="bg-gradient-to-br from-gradient-from to-gradient-to border border-gray-200 rounded-lg p-8 text-center">
+            <div className="w-16 h-16 bg-gray-600 rounded-lg flex items-center justify-center mx-auto mb-6">
               <Award className="h-8 w-8 text-white" />
             </div>
             <h4 className="text-xl font-semibold text-gray-900 mb-4">Excellence</h4>
@@ -21,8 +21,8 @@ const ExcellenceAuthenticitySection = () => {
             </p>
           </div>
           
-          <div className="bg-pink-50 border border-pink-200 rounded-lg p-8 text-center">
-            <div className="w-16 h-16 bg-pink-500 rounded-lg flex items-center justify-center mx-auto mb-6">
+          <div className="bg-gradient-to-br from-gradient-accent-from to-gradient-accent-to border border-gray-200 rounded-lg p-8 text-center">
+            <div className="w-16 h-16 bg-gray-500 rounded-lg flex items-center justify-center mx-auto mb-6">
               <Heart className="h-8 w-8 text-white" />
             </div>
             <h4 className="text-xl font-semibold text-gray-900 mb-4">Authenticity</h4>

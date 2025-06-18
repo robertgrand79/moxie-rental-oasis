@@ -29,34 +29,34 @@ const RobertShellyIntroduction = () => {
             </div>
           </div>
 
-          {/* Feature boxes with colored backgrounds */}
+          {/* Feature boxes with muted backgrounds */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-              <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <div className="bg-gradient-to-br from-gradient-from to-gradient-to border border-gray-200 rounded-lg p-4 text-center">
+              <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center mx-auto mb-3">
                 <Home className="h-5 w-5 text-white" />
               </div>
               <h4 className="font-semibold text-gray-900 text-sm mb-2">Local Expertise</h4>
               <p className="text-xs text-gray-600">Deep roots in Oregon with knowledge of every hidden gem</p>
             </div>
             
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
-              <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <div className="bg-muted border border-gray-200 rounded-lg p-4 text-center">
+              <div className="w-10 h-10 bg-gray-500 rounded-lg flex items-center justify-center mx-auto mb-3">
                 <Award className="h-5 w-5 text-white" />
               </div>
               <h4 className="font-semibold text-gray-900 text-sm mb-2">Quality Focus</h4>
               <p className="text-xs text-gray-600">Every property carefully curated and maintained</p>
             </div>
             
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-              <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <div className="bg-accent border border-gray-200 rounded-lg p-4 text-center">
+              <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-3">
                 <Heart className="h-5 w-5 text-white" />
               </div>
               <h4 className="font-semibold text-gray-900 text-sm mb-2">Passionate Hosts</h4>
               <p className="text-xs text-gray-600">Genuine love for Oregon and exceptional service</p>
             </div>
             
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
-              <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <div className="bg-gradient-to-br from-gradient-accent-from to-gradient-accent-to border border-gray-200 rounded-lg p-4 text-center">
+              <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center mx-auto mb-3">
                 <Star className="h-5 w-5 text-white" />
               </div>
               <h4 className="font-semibold text-gray-900 text-sm mb-2">Family Values</h4>
@@ -65,7 +65,7 @@ const RobertShellyIntroduction = () => {
           </div>
 
           {/* Quote section */}
-          <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-blue-500">
+          <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-gray-400">
             <blockquote className="text-lg text-gray-700 italic mb-4">
               "We believe in creating spaces where families can come together, where memories are made, 
               and where the beauty of Oregon becomes part of your story."
@@ -77,10 +77,10 @@ const RobertShellyIntroduction = () => {
           <div className="text-center">
             <p className="text-gray-600 mb-4">Your local ambassadors to the heart of Oregon</p>
             <div className="flex flex-wrap justify-center gap-2">
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">Oregon</span>
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Local</span>
-              <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">Quality</span>
-              <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">Family</span>
+              <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">Oregon</span>
+              <span className="bg-gray-150 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">Local</span>
+              <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">Quality</span>
+              <span className="bg-gray-150 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">Family</span>
             </div>
           </div>
         </div>
