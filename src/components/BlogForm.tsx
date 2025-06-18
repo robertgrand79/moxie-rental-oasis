@@ -38,7 +38,8 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       excerpt: watchedValues.excerpt,
       content: content,
       tags: watchedValues.tags,
-      author: watchedValues.author
+      author: watchedValues.author,
+      image_url: uploadedImage || undefined
     },
     postId: autoSavedPost?.id,
     onAutoSave: (savedPost) => {
@@ -57,21 +58,28 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
 
   const onFormSubmit = (data: any) => {
     console.log('📨 Blog form submitted:', data);
+    
+    // Ensure we have a valid author - use the actual value from the form
+    const finalAuthor = data.author && data.author.trim() ? data.author.trim() : 'Admin';
+    
     const formData = {
       ...data,
       content,
       image_url: uploadedImage,
-      tags: data.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag),
-      author: data.author === 'custom' ? data.customAuthor || 'Admin' : data.author,
+      tags: data.tags ? data.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag) : [],
+      author: finalAuthor,
       published_at: data.published_at ? data.published_at.toISOString() : null,
-      slug: data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      slug: data.title ? data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : 'untitled'
     };
 
     // If we have an auto-saved post, update it instead of creating new
     if (autoSavedPost && !post) {
       formData.id = autoSavedPost.id;
+    } else if (post) {
+      formData.id = post.id;
     }
 
+    console.log('📨 Final form data being submitted:', formData);
     onSubmit(formData);
   };
 

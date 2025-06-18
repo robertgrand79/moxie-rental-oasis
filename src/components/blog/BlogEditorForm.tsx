@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -48,6 +47,14 @@ const BlogEditorForm = ({
   const { register, handleSubmit, formState: { errors }, setValue, watch } = form;
   const watchedAuthor = watch('author');
   const watchedPublishedAt = watch('published_at');
+  
+  // Separate state for custom author input to avoid conflicts
+  const [customAuthorValue, setCustomAuthorValue] = useState('');
+  const [selectedAuthorType, setSelectedAuthorType] = useState(() => {
+    const currentAuthor = watchedAuthor || 'Admin';
+    const predefinedAuthors = ['Admin', 'Robert', 'Shelly', 'Robert & Shelly'];
+    return predefinedAuthors.includes(currentAuthor) ? currentAuthor : 'custom';
+  });
 
   const predefinedAuthors = [
     { value: 'Admin', label: 'Admin' },
@@ -74,6 +81,20 @@ const BlogEditorForm = ({
   };
 
   const handleAuthorChange = (value: string) => {
+    setSelectedAuthorType(value);
+    if (value !== 'custom') {
+      setValue('author', value);
+      setCustomAuthorValue('');
+    } else {
+      // Keep existing custom value if switching back to custom
+      const currentCustom = customAuthorValue || watchedAuthor;
+      setValue('author', currentCustom);
+    }
+  };
+
+  const handleCustomAuthorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCustomAuthorValue(value);
     setValue('author', value);
   };
 
@@ -99,7 +120,7 @@ const BlogEditorForm = ({
 
         <div>
           <Label htmlFor="author">Author</Label>
-          <Select value={watchedAuthor} onValueChange={handleAuthorChange}>
+          <Select value={selectedAuthorType} onValueChange={handleAuthorChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select author" />
             </SelectTrigger>
@@ -111,11 +132,12 @@ const BlogEditorForm = ({
               ))}
             </SelectContent>
           </Select>
-          {watchedAuthor === 'custom' && (
+          {selectedAuthorType === 'custom' && (
             <Input
               className="mt-2"
               placeholder="Enter custom author name"
-              {...register('author', { required: 'Author is required' })}
+              value={customAuthorValue}
+              onChange={handleCustomAuthorChange}
             />
           )}
           {errors.author && (

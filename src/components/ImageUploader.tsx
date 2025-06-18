@@ -2,7 +2,8 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
+import { useBlogImageUpload } from '@/hooks/useBlogImageUpload';
 
 interface ImageUploaderProps {
   uploadedImage: string | null;
@@ -11,6 +12,7 @@ interface ImageUploaderProps {
 
 const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => {
   const [dragActive, setDragActive] = useState(false);
+  const { uploadBlogImage, deleteBlogImage, uploading } = useBlogImageUpload();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -22,7 +24,7 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
@@ -30,29 +32,33 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          onImageChange(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
+        const uploadedUrl = await uploadBlogImage(file);
+        if (uploadedUrl) {
+          onImageChange(uploadedUrl);
+        }
       }
     }
-  }, [onImageChange]);
+  }, [uploadBlogImage, onImageChange]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          onImageChange(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
+        const uploadedUrl = await uploadBlogImage(file);
+        if (uploadedUrl) {
+          onImageChange(uploadedUrl);
+        }
       }
     }
   };
 
-  const removeImage = () => {
+  const removeImage = async () => {
+    if (uploadedImage) {
+      // Only try to delete if it's a Supabase URL
+      if (uploadedImage.includes('supabase')) {
+        await deleteBlogImage(uploadedImage);
+      }
+    }
     onImageChange(null);
   };
 
@@ -60,15 +66,22 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
     <div>
       <Label>Featured Image</Label>
       <div
-        className={`mt-1 border-2 border-dashed rounded-lg p-6 text-center ${
+        className={`mt-1 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-        } ${uploadedImage ? 'border-green-500' : ''}`}
+        } ${uploadedImage ? 'border-green-500' : ''} ${
+          uploading ? 'opacity-50 pointer-events-none' : ''
+        }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        {uploadedImage ? (
+        {uploading ? (
+          <div className="flex flex-col items-center">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <p className="mt-2 text-sm text-gray-600">Uploading image...</p>
+          </div>
+        ) : uploadedImage ? (
           <div className="relative">
             <img
               src={uploadedImage}
@@ -81,6 +94,7 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
               size="sm"
               className="absolute top-2 right-2"
               onClick={removeImage}
+              disabled={uploading}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -98,6 +112,7 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileChange}
+                disabled={uploading}
               />
             </label>
           </>

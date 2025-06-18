@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { blogPostService } from '@/services/blogPostService';
@@ -10,6 +11,7 @@ interface AutoSaveData {
   content: string;
   tags: string;
   author: string;
+  image_url?: string;
 }
 
 interface UseAutoSaveOptions {
@@ -38,9 +40,10 @@ export const useAutoSave = ({
         title: data.title || 'Untitled Draft',
         excerpt: data.excerpt,
         content: data.content,
+        image_url: data.image_url || null,
         tags: data.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
         status: 'draft' as const,
-        author: 'Admin',
+        author: data.author || 'Admin',
         published_at: null,
         slug: (data.title || 'untitled-draft').toLowerCase()
           .replace(/\s+/g, '-')
