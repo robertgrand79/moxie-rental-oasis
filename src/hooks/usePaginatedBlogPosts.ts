@@ -74,12 +74,32 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
 
       console.log('✅ usePaginatedBlogPosts - Fetched posts:', data?.length || 0, 'Total count:', count);
       
-      // Map data with proper typing but don't fetch full content for listing
-      setPosts((data || []).map(post => ({
-        ...post,
-        status: post.status as 'published' | 'draft',
-        content: '' // Don't load full content for listing performance
-      })));
+      // Map data with proper typing and validation
+      const mappedPosts: BlogPost[] = (data || []).map(post => {
+        // Ensure we have a valid post object before mapping
+        if (!post || typeof post !== 'object') {
+          console.warn('⚠️ Invalid post data:', post);
+          return null;
+        }
+
+        return {
+          id: post.id || '',
+          title: post.title || '',
+          excerpt: post.excerpt || '',
+          content: '', // Don't load full content for listing performance
+          author: post.author || '',
+          image_url: post.image_url || undefined,
+          slug: post.slug || '',
+          status: (post.status === 'published' ? 'published' : 'draft') as 'published' | 'draft',
+          published_at: post.published_at || null,
+          created_at: post.created_at || '',
+          updated_at: post.updated_at || '',
+          created_by: post.created_by || '',
+          tags: [] // Initialize empty tags array for listing
+        };
+      }).filter(Boolean) as BlogPost[]; // Remove any null entries
+
+      setPosts(mappedPosts);
       setTotalCount(count || 0);
     } catch (err) {
       console.error('❌ Error in fetchPosts:', err);
