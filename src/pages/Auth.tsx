@@ -13,14 +13,19 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate('/admin');
+    if (!loading && user && userProfile) {
+      // Redirect based on user role
+      if (userProfile.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/profile');
+      }
     }
-  }, [user, navigate]);
+  }, [user, userProfile, loading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +45,6 @@ const Auth = () => {
           title: 'Welcome back!',
           description: 'You have successfully logged in.',
         });
-        navigate('/admin');
       }
     } catch (error) {
       toast({
@@ -79,7 +83,6 @@ const Auth = () => {
           title: 'Account Created!',
           description: 'Welcome to Moxie Vacation Rentals!',
         });
-        navigate('/admin');
       }
     } catch (error) {
       toast({
@@ -91,6 +94,15 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking authentication status
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   BrowserRouter as Router,
   Route,
@@ -9,6 +9,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import PublicLayout from '@/components/layouts/PublicLayout';
 import AdminLayoutWrapper from '@/components/layouts/AdminLayoutWrapper';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Public Pages
 import Index from '@/pages/Index';
@@ -31,40 +32,8 @@ import AdminAnalytics from '@/pages/admin/AdminAnalytics';
 import AdminContractors from '@/pages/admin/AdminContractors';
 import EnhancedAdminUserManagement from '@/pages/admin/EnhancedAdminUserManagement';
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  requiredRole?: string;
-}
-
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  requiredRole,
-}) => {
-  const { user, loading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    if (user && user.role === 'admin') {
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
-  }, [user]);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/auth" />;
-  }
-
-  if (requiredRole === 'admin' && !isAdmin) {
-    return <Navigate to="/profile" />;
-  }
-
-  return <>{children}</>;
-};
+// User Pages
+import UserDashboard from '@/pages/UserDashboard';
 
 const App: React.FC = () => {
   return (
@@ -141,10 +110,10 @@ const App: React.FC = () => {
           } />
         </Route>
 
-        {/* User Profile (non-admin) */}
+        {/* User Profile - shows dashboard for regular users, profile form for all users */}
         <Route path="/profile" element={
           <ProtectedRoute>
-            <AdminProfile />
+            <UserDashboard />
           </ProtectedRoute>
         } />
       </Routes>
