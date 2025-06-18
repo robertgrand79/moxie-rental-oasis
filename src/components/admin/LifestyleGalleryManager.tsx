@@ -1,9 +1,9 @@
 
 import React from 'react';
-import LifestyleGalleryManager from './lifestyle/LifestyleGalleryManager';
+import LifestyleManager from './lifestyle/LifestyleManager';
 
 const LifestyleGalleryManagerWrapper = () => {
-  return <LifestyleGalleryManager />;
+  return <LifestyleManager />;
 };
 
 export default LifestyleGalleryManagerWrapper;

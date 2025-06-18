@@ -1,9 +1,9 @@
 
 import React from 'react';
-import LifestyleGalleryManager from '@/components/admin/lifestyle/LifestyleGalleryManager';
+import LifestyleManager from '@/components/admin/lifestyle/LifestyleManager';
 
 const AdminLifestyle = () => {
-  return <LifestyleGalleryManager />;
+  return <LifestyleManager />;
 };
 
 export default AdminLifestyle;
