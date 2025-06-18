@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -61,9 +62,18 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
     onUpdate: ({ editor }) => {
       const htmlContent = editor.getHTML();
       const sanitizedContent = sanitizeRichTextContent(htmlContent);
+      console.log('📝 TiptapEditor onUpdate:', { htmlContent, sanitizedContent });
       onChange(sanitizedContent);
     },
   });
+
+  // Sync content prop changes with editor
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      console.log('🔄 Syncing content prop with editor:', content);
+      editor.commands.setContent(content, false);
+    }
+  }, [content, editor]);
 
   const addImage = () => {
     const url = window.prompt('Enter image URL:');
@@ -107,6 +117,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={editor.isActive('bold') ? 'bg-gray-200' : ''}
         >
@@ -116,6 +127,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleItalic().run()}
           className={editor.isActive('italic') ? 'bg-gray-200' : ''}
         >
@@ -125,6 +137,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleStrike().run()}
           className={editor.isActive('strike') ? 'bg-gray-200' : ''}
         >
@@ -134,6 +147,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleCode().run()}
           className={editor.isActive('code') ? 'bg-gray-200' : ''}
         >
@@ -145,6 +159,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           className={editor.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}
         >
@@ -154,6 +169,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           className={editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}
         >
@@ -163,6 +179,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           className={editor.isActive('heading', { level: 3 }) ? 'bg-gray-200' : ''}
         >
@@ -174,6 +191,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={editor.isActive('bulletList') ? 'bg-gray-200' : ''}
         >
@@ -183,6 +201,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className={editor.isActive('orderedList') ? 'bg-gray-200' : ''}
         >
@@ -192,6 +211,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           className={editor.isActive('blockquote') ? 'bg-gray-200' : ''}
         >
@@ -203,6 +223,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
           className={editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}
         >
@@ -212,6 +233,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
           className={editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}
         >
@@ -221,6 +243,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
           className={editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}
         >
@@ -232,6 +255,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={addLink}
         >
           <LinkIcon className="h-4 w-4" />
@@ -240,6 +264,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={addImage}
         >
           <ImageIcon className="h-4 w-4" />
@@ -250,6 +275,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
         >
@@ -259,6 +285,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
         <Button
           variant="ghost"
           size="sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
         >
