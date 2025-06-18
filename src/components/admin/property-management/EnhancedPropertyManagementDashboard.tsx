@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useOptimizedPropertyData } from '@/hooks/useOptimizedPropertyData';
@@ -187,7 +188,9 @@ const EnhancedPropertyManagementDashboard = () => {
   const handleGenerateTurnoverTasks = async (propertyId: string) => {
     try {
       console.log('Generating turnover tasks for property:', propertyId);
-      await generateTurnoverTasks(propertyId);
+      // Add a default checkout date (today) as the second argument
+      const checkoutDate = new Date().toISOString().split('T')[0];
+      await generateTurnoverTasks(propertyId, checkoutDate);
       await refreshData();
     } catch (error) {
       console.error('Failed to generate turnover tasks:', error);
