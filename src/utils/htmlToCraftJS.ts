@@ -1,4 +1,3 @@
-
 export const convertHTMLToCraftJS = (html: string): string | undefined => {
   if (!html || html.trim() === '') {
     return undefined;
@@ -35,7 +34,7 @@ export const convertHTMLToCraftJS = (html: string): string | undefined => {
   const rootNodes: string[] = [];
 
   // Function to process each child element
-  const processElement = (element: Element | Text): string | null => {
+  const processElement = (element: Node): string | null => {
     if (element.nodeType === Node.TEXT_NODE) {
       const textContent = element.textContent?.trim();
       if (!textContent) return null;
@@ -61,8 +60,9 @@ export const convertHTMLToCraftJS = (html: string): string | undefined => {
     }
 
     if (element.nodeType === Node.ELEMENT_NODE) {
-      const tagName = (element as Element).tagName.toLowerCase();
-      const textContent = element.textContent?.trim() || '';
+      const htmlElement = element as HTMLElement;
+      const tagName = htmlElement.tagName.toLowerCase();
+      const textContent = htmlElement.textContent?.trim() || '';
       
       if (!textContent) return null;
 
@@ -133,13 +133,13 @@ export const convertHTMLToCraftJS = (html: string): string | undefined => {
 
         case 'div':
           // Check if it looks like a card (has multiple child elements)
-          const childElements = Array.from(element.children);
+          const childElements = Array.from(htmlElement.children);
           if (childElements.length > 1) {
             const titleElement = childElements.find(child => 
               ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(child.tagName.toLowerCase())
-            );
+            ) as HTMLElement | undefined;
             const title = titleElement?.textContent?.trim() || 'Card Title';
-            const content = Array.from(element.childNodes)
+            const content = Array.from(htmlElement.childNodes)
               .filter(node => node !== titleElement)
               .map(node => node.textContent?.trim())
               .filter(Boolean)
