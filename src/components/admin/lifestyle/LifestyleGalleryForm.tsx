@@ -34,7 +34,8 @@ const LifestyleGalleryForm = ({
     display_order: editingItem?.display_order || 0,
     is_featured: editingItem?.is_featured || false,
     is_active: editingItem?.is_active !== false,
-    status: editingItem?.status || 'draft'
+    status: editingItem?.status || 'draft',
+    created_by: editingItem?.created_by || user?.id || ''
   });
 
   React.useEffect(() => {
@@ -49,7 +50,8 @@ const LifestyleGalleryForm = ({
         display_order: editingItem.display_order || 0,
         is_featured: editingItem.is_featured,
         is_active: editingItem.is_active,
-        status: editingItem.status || 'draft'
+        status: editingItem.status || 'draft',
+        created_by: editingItem.created_by
       });
     } else {
       setFormData({
@@ -62,10 +64,11 @@ const LifestyleGalleryForm = ({
         display_order: 0,
         is_featured: false,
         is_active: true,
-        status: 'draft'
+        status: 'draft',
+        created_by: user?.id || ''
       });
     }
-  }, [editingItem]);
+  }, [editingItem, user?.id]);
 
   const handleSubmit = async () => {
     await onSubmit({
