@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Send } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import { BlogPost } from '@/hooks/useBlogPosts';
-import TiptapEditor from './TiptapEditor';
+import ReactQuillEditor from './ReactQuillEditor';
 
 interface NewsletterFormData {
   subject: string;
@@ -66,7 +65,7 @@ const NewsletterForm = ({
             <div>
               <Label>Newsletter Content</Label>
               <div className="mt-2">
-                <TiptapEditor
+                <ReactQuillEditor
                   content={content}
                   onChange={setContent}
                   placeholder="Write your newsletter content here..."

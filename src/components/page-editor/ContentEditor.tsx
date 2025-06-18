@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileText, Layout, Code, Eye, AlertTriangle } from 'lucide-react';
-import TiptapEditor from '@/components/TiptapEditor';
+import ReactQuillEditor from '@/components/ReactQuillEditor';
 import { PageBuilder } from '@/components/page-builder/PageBuilder';
 import { detectContentType, shouldUseRichTextEditor, shouldUseVisualBuilder, ContentType } from '@/utils/contentTypeDetection';
 import { convertHTMLToCraftJS, convertCraftJSToHTML } from '@/utils/htmlToCraftJS';
@@ -142,7 +142,7 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
         </TabsList>
         
         <TabsContent value="rich-text" className="mt-4">
-          <TiptapEditor
+          <ReactQuillEditor
             content={contentType === 'craftjs' ? convertCraftJSToHTML(content) : content}
             onChange={handleContentChange}
             placeholder="Start writing your page content..."

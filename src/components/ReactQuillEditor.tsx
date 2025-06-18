@@ -50,7 +50,8 @@ const ReactQuillEditor = ({ content, onChange, placeholder = "Start writing...",
 
   return (
     <div className={`react-quill-container ${className}`}>
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .react-quill-container .ql-editor {
           min-height: 300px;
           font-size: 16px;
@@ -95,7 +96,7 @@ const ReactQuillEditor = ({ content, onChange, placeholder = "Start writing...",
           padding-left: 1rem;
           font-style: italic;
         }
-      `}</style>
+      `}} />
       <ReactQuill
         ref={quillRef}
         theme="snow"
