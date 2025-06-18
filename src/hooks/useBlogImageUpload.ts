@@ -2,9 +2,11 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useImageOptimization } from './useImageOptimization';
 
 export const useBlogImageUpload = () => {
   const [uploading, setUploading] = useState(false);
+  const { optimizeImage, optimizing } = useImageOptimization();
 
   const uploadBlogImage = async (file: File): Promise<string | null> => {
     if (!file) return null;
@@ -22,26 +24,56 @@ export const useBlogImageUpload = () => {
         return null;
       }
 
-      // Validate file size (10MB max for blog images)
-      if (file.size > 10 * 1024 * 1024) {
+      // Check original file size (before optimization)
+      if (file.size > 50 * 1024 * 1024) { // 50MB limit for original
         toast({
           title: 'File too large',
-          description: 'Please upload an image smaller than 10MB.',
+          description: 'Please upload an image smaller than 50MB.',
+          variant: 'destructive'
+        });
+        return null;
+      }
+
+      console.log('🖼️ Starting image optimization...');
+      
+      // Optimize the image
+      const optimizationResult = await optimizeImage(file, {
+        maxWidth: 1200,
+        quality: 0.85,
+        generateSizes: false // For now, just optimize the main image
+      });
+
+      if (!optimizationResult) {
+        // Fallback to original file if optimization fails
+        console.log('⚠️ Using original file due to optimization failure');
+      }
+
+      const fileToUpload = optimizationResult?.optimizedFile || file;
+
+      // Final size check after optimization
+      if (fileToUpload.size > 10 * 1024 * 1024) {
+        toast({
+          title: 'Optimized file still too large',
+          description: 'The optimized image is still larger than 10MB. Please try a smaller image.',
           variant: 'destructive'
         });
         return null;
       }
 
       // Create a unique filename
-      const fileExt = file.name.split('.').pop();
+      const fileExt = fileToUpload.name.split('.').pop();
       const fileName = `blog-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-      console.log('📤 Uploading blog image:', fileName);
+      console.log('📤 Uploading optimized blog image:', {
+        fileName,
+        originalSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+        optimizedSize: `${(fileToUpload.size / 1024 / 1024).toFixed(2)}MB`
+      });
 
       // Upload to the hero-images bucket (reusing existing bucket)
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('hero-images')
-        .upload(fileName, file, {
+        .upload(fileName, fileToUpload, {
           cacheControl: '3600',
           upsert: false
         });
@@ -65,6 +97,15 @@ export const useBlogImageUpload = () => {
 
       const publicUrl = urlData.publicUrl;
       console.log('🔗 Generated public URL:', publicUrl);
+
+      // Show success message with optimization stats
+      if (optimizationResult) {
+        const compressionPercent = (((file.size - fileToUpload.size) / file.size) * 100).toFixed(1);
+        toast({
+          title: 'Image uploaded successfully',
+          description: `Image optimized and compressed by ${compressionPercent}%`
+        });
+      }
 
       return publicUrl;
 
@@ -110,6 +151,6 @@ export const useBlogImageUpload = () => {
   return {
     uploadBlogImage,
     deleteBlogImage,
-    uploading
+    uploading: uploading || optimizing
   };
 };

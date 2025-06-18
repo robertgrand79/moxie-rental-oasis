@@ -1,4 +1,3 @@
-
 // Performance monitoring utilities
 export const measurePerformance = () => {
   if (typeof window === 'undefined') return;
@@ -60,6 +59,107 @@ export const loadNonCriticalResources = () => {
     loadMapbox,
     loadCharts
   };
+};
+
+// Enhanced image compression utility specifically for blog images
+export const compressBlogImage = async (
+  file: File, 
+  options: {
+    maxWidth?: number;
+    maxHeight?: number;
+    quality?: number;
+    format?: 'jpeg' | 'webp' | 'original';
+  } = {}
+): Promise<File> => {
+  const {
+    maxWidth = 1200,
+    maxHeight = 800,
+    quality = 0.85,
+    format = 'jpeg'
+  } = options;
+
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+
+    img.onload = () => {
+      try {
+        // Calculate new dimensions maintaining aspect ratio
+        let { width, height } = img;
+        
+        if (width > maxWidth || height > maxHeight) {
+          const widthRatio = maxWidth / width;
+          const heightRatio = maxHeight / height;
+          const ratio = Math.min(widthRatio, heightRatio);
+          
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Use better image rendering
+        if (ctx) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+        }
+        
+        // Determine output format
+        let outputType = file.type;
+        if (format === 'jpeg' || (format === 'original' && file.type === 'image/png' && !hasTransparency(canvas))) {
+          outputType = 'image/jpeg';
+        } else if (format === 'webp') {
+          outputType = 'image/webp';
+        }
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const compressedFile = new File([blob], file.name, {
+              type: outputType,
+              lastModified: Date.now()
+            });
+            
+            console.log('🗜️ Image compression complete:', {
+              originalSize: `${(file.size / 1024).toFixed(1)}KB`,
+              compressedSize: `${(compressedFile.size / 1024).toFixed(1)}KB`,
+              dimensions: `${width}x${height}`,
+              format: outputType,
+              savings: `${(((file.size - compressedFile.size) / file.size) * 100).toFixed(1)}%`
+            });
+            
+            resolve(compressedFile);
+          } else {
+            reject(new Error('Failed to compress image'));
+          }
+        }, outputType, quality);
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+// Helper function to detect transparency in PNG images
+const hasTransparency = (canvas: HTMLCanvasElement): boolean => {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return false;
+  
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  
+  // Check alpha channel
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] < 255) {
+      return true;
+    }
+  }
+  return false;
 };
 
 // Image compression utility

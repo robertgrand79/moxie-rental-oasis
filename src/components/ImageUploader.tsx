@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { useBlogImageUpload } from '@/hooks/useBlogImageUpload';
 
 interface ImageUploaderProps {
@@ -12,6 +12,7 @@ interface ImageUploaderProps {
 
 const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => {
   const [dragActive, setDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { uploadBlogImage, deleteBlogImage, uploading } = useBlogImageUpload();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -24,31 +25,39 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
     }
   }, []);
 
+  const processFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      return;
+    }
+
+    console.log('📁 Selected file:', {
+      name: file.name,
+      size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+      type: file.type
+    });
+
+    setSelectedFile(file);
+    
+    const uploadedUrl = await uploadBlogImage(file);
+    if (uploadedUrl) {
+      onImageChange(uploadedUrl);
+      setSelectedFile(null);
+    }
+  };
+
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('image/')) {
-        const uploadedUrl = await uploadBlogImage(file);
-        if (uploadedUrl) {
-          onImageChange(uploadedUrl);
-        }
-      }
+      await processFile(e.dataTransfer.files[0]);
     }
-  }, [uploadBlogImage, onImageChange]);
+  }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.type.startsWith('image/')) {
-        const uploadedUrl = await uploadBlogImage(file);
-        if (uploadedUrl) {
-          onImageChange(uploadedUrl);
-        }
-      }
+      await processFile(e.target.files[0]);
     }
   };
 
@@ -60,6 +69,15 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
       }
     }
     onImageChange(null);
+    setSelectedFile(null);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
@@ -79,7 +97,19 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
         {uploading ? (
           <div className="flex flex-col items-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <p className="mt-2 text-sm text-gray-600">Uploading image...</p>
+            <p className="mt-2 text-sm text-gray-600">
+              {selectedFile ? 'Optimizing and uploading...' : 'Uploading image...'}
+            </p>
+            {selectedFile && (
+              <div className="mt-2 text-xs text-gray-500 space-y-1">
+                <div className="flex items-center justify-center gap-2">
+                  <ImageIcon className="h-3 w-3" />
+                  <span>{selectedFile.name}</span>
+                </div>
+                <div>Original size: {formatFileSize(selectedFile.size)}</div>
+                <div className="text-blue-600">Compressing for faster loading...</div>
+              </div>
+            )}
           </div>
         ) : uploadedImage ? (
           <div className="relative">
@@ -98,6 +128,9 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
             >
               <X className="h-4 w-4" />
             </Button>
+            <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+              Optimized for web
+            </div>
           </div>
         ) : (
           <>
@@ -115,6 +148,9 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
                 disabled={uploading}
               />
             </label>
+            <p className="mt-2 text-xs text-gray-500">
+              Images will be automatically optimized for faster loading
+            </p>
           </>
         )}
       </div>
