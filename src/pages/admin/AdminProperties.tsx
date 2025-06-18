@@ -2,17 +2,31 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { usePropertyForm } from '@/hooks/usePropertyForm';
+import { usePaginatedProperties } from '@/hooks/usePaginatedProperties';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import LoadingState from '@/components/ui/loading-state';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import PropertyFormContainer from '@/components/admin/properties/PropertyFormContainer';
 import PropertyListContainer from '@/components/admin/properties/PropertyListContainer';
+import PaginationControls from '@/components/ui/pagination-controls';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminProperties = () => {
   const {
     properties,
     loading,
+    currentPage,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+    goToPage,
+    nextPage,
+    previousPage,
+    refetch,
+  } = usePaginatedProperties();
+
+  const {
     deletingProperties,
     showAddForm,
     editingProperty,
@@ -22,11 +36,11 @@ const AdminProperties = () => {
     handleFormSubmit,
     handleFormCancel,
     deleteProperty
-  } = usePropertyForm();
+  } = usePropertyForm(properties, refetch);
   
   const isMobile = useIsMobile();
 
-  if (loading) {
+  if (loading && currentPage === 1) {
     return <LoadingState variant="page" message="Loading your properties..." />;
   }
 
@@ -45,7 +59,7 @@ const AdminProperties = () => {
   return (
     <AdminPageWrapper
       title="Property Management"
-      description={`Manage your rental properties and listings (${properties.length} properties)`}
+      description={`Manage your rental properties and listings (${totalCount} properties)`}
       actions={pageActions}
     >
       <div className={isMobile ? 'p-4' : 'p-6'}>
@@ -61,13 +75,30 @@ const AdminProperties = () => {
         )}
 
         {!showAddForm && (
-          <PropertyListContainer
-            properties={properties}
-            deletingProperties={deletingProperties}
-            onEdit={handleEditProperty}
-            onDelete={deleteProperty}
-            onAddProperty={handleAddProperty}
-          />
+          <div className="space-y-6">
+            <PropertyListContainer
+              properties={properties}
+              deletingProperties={deletingProperties}
+              onEdit={handleEditProperty}
+              onDelete={deleteProperty}
+              onAddProperty={handleAddProperty}
+              loading={loading}
+            />
+
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              itemsPerPage={20}
+              onPageChange={goToPage}
+              onNextPage={nextPage}
+              onPreviousPage={previousPage}
+              hasNextPage={hasNextPage}
+              hasPreviousPage={hasPreviousPage}
+              loading={loading}
+              itemName="properties"
+            />
+          </div>
         )}
       </div>
     </AdminPageWrapper>

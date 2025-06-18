@@ -1,133 +1,98 @@
 
-import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useBlogPosts } from '@/hooks/useBlogPosts';
+import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { usePaginatedBlogPosts } from '@/hooks/usePaginatedBlogPosts';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
-import BlogManagementTabs from '@/components/admin/blog/BlogManagementTabs';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, AlertTriangle, Wifi, WifiOff } from 'lucide-react';
+import BlogForm from '@/components/BlogForm';
+import BlogPostList from '@/components/BlogPostList';
+import PaginationControls from '@/components/ui/pagination-controls';
+import LoadingState from '@/components/ui/loading-state';
 
 const BlogManagement = () => {
-  const { loading, error, retryCount, refetch } = useBlogPosts();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [autoOpenAdd, setAutoOpenAdd] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingPost, setEditingPost] = useState<any>(null);
 
-  // Check for action parameter
-  useEffect(() => {
-    const action = searchParams.get('action');
-    if (action === 'add') {
-      setAutoOpenAdd(true);
-      // Clear the parameter from URL
-      setSearchParams(prev => {
-        prev.delete('action');
-        return prev;
-      });
-    }
-  }, [searchParams, setSearchParams]);
+  const {
+    posts,
+    loading,
+    currentPage,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+    goToPage,
+    nextPage,
+    previousPage,
+    refetch,
+  } = usePaginatedBlogPosts(false);
 
-  // Monitor online/offline status
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+  const handleAddPost = () => {
+    setEditingPost(null);
+    setShowAddForm(true);
+  };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+  const handleEditPost = (post: any) => {
+    setEditingPost(post);
+    setShowAddForm(true);
+  };
 
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+  const handleFormClose = () => {
+    setShowAddForm(false);
+    setEditingPost(null);
+    refetch();
+  };
 
-  // Auto-retry when connection is restored
-  useEffect(() => {
-    if (isOnline && error && error.includes('Network')) {
-      console.log('📶 Connection restored, retrying blog posts fetch...');
-      setTimeout(() => refetch(), 1000);
-    }
-  }, [isOnline, error, refetch]);
+  const pageActions = !showAddForm ? (
+    <EnhancedButton 
+      onClick={handleAddPost} 
+      variant="gradient"
+      icon={<Plus className="h-4 w-4" />}
+    >
+      Add Blog Post
+    </EnhancedButton>
+  ) : null;
 
-  if (loading) {
-    return (
-      <AdminPageWrapper
-        title="Blog Management"
-        description="Create and manage your blog posts and newsletters"
-      >
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            Loading blog posts...
-            {retryCount > 0 && ` (Retry ${retryCount}/3)`}
-          </p>
-        </div>
-      </AdminPageWrapper>
-    );
-  }
-
-  if (error) {
-    const isNetworkError = error.includes('Network') || error.includes('Failed to fetch');
-    
-    return (
-      <AdminPageWrapper
-        title="Blog Management"
-        description="Create and manage your blog posts and newsletters"
-      >
-        <div className="text-center py-8">
-          <div className="mb-4">
-            {isNetworkError ? (
-              <div className="flex items-center justify-center mb-4">
-                {isOnline ? (
-                  <WifiOff className="h-12 w-12 text-red-500" />
-                ) : (
-                  <Wifi className="h-12 w-12 text-yellow-500" />
-                )}
-              </div>
-            ) : (
-              <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            )}
-          </div>
-          
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {isNetworkError ? 'Connection Problem' : 'Error Loading Blog Posts'}
-          </h3>
-          
-          <p className="text-gray-600 mb-6 max-w-md mx-auto">
-            {isNetworkError 
-              ? 'Unable to connect to the server. Please check your internet connection and try again.'
-              : `Error: ${error}`
-            }
-          </p>
-          
-          <div className="flex items-center justify-center gap-4">
-            <Button 
-              onClick={refetch}
-              disabled={loading}
-              variant="outline"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Try Again
-            </Button>
-            
-            {!isOnline && (
-              <div className="flex items-center text-sm text-orange-600">
-                <WifiOff className="h-4 w-4 mr-1" />
-                You're offline
-              </div>
-            )}
-          </div>
-        </div>
-      </AdminPageWrapper>
-    );
+  if (loading && currentPage === 1) {
+    return <LoadingState variant="page" message="Loading blog posts..." />;
   }
 
   return (
     <AdminPageWrapper
       title="Blog Management"
-      description="Create and manage your blog posts and newsletters"
+      description={`Manage your blog posts and content (${totalCount} posts)`}
+      actions={pageActions}
     >
       <div className="p-6">
-        <BlogManagementTabs autoOpenAdd={autoOpenAdd} />
+        {showAddForm ? (
+          <BlogForm
+            initialData={editingPost}
+            isEditing={!!editingPost}
+            onClose={handleFormClose}
+          />
+        ) : (
+          <div className="space-y-6">
+            <BlogPostList
+              posts={posts}
+              onEdit={handleEditPost}
+              loading={loading}
+            />
+            
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              itemsPerPage={20}
+              onPageChange={goToPage}
+              onNextPage={nextPage}
+              onPreviousPage={previousPage}
+              hasNextPage={hasNextPage}
+              hasPreviousPage={hasPreviousPage}
+              loading={loading}
+              itemName="posts"
+            />
+          </div>
+        )}
       </div>
     </AdminPageWrapper>
   );

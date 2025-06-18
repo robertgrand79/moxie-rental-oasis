@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { usePropertyManagement } from '@/hooks/usePropertyManagement';
+import { useOptimizedPropertyData } from '@/hooks/useOptimizedPropertyData';
 import { useWorkOrderManagement } from '@/hooks/useWorkOrderManagement';
 import { useBulkTaskOperations } from '@/hooks/useBulkTaskOperations';
 import { useCustomTaskTypes } from '@/hooks/useCustomTaskTypes';
@@ -17,11 +17,18 @@ import PropertyManagementAlerts from './PropertyManagementAlerts';
 import PropertyManagementTabs from './PropertyManagementTabs';
 
 const EnhancedPropertyManagementDashboard = () => {
+  // Use optimized data fetching
   const {
     properties,
     projects,
     tasks,
     loading,
+    loadData,
+    refreshData,
+  } = useOptimizedPropertyData();
+
+  // Keep existing functionality for operations
+  const { 
     createProject,
     updateProject,
     deleteProject,
@@ -29,7 +36,6 @@ const EnhancedPropertyManagementDashboard = () => {
     updateTask,
     deleteTask,
     generateTurnoverTasks,
-    refreshData,
   } = usePropertyManagement();
 
   const { contractors, createWorkOrder } = useWorkOrderManagement();
@@ -65,7 +71,11 @@ const EnhancedPropertyManagementDashboard = () => {
   const [editingProject, setEditingProject] = useState<any>(null);
   const [error, setError] = useState<Error | null>(null);
 
-  // Enhanced handlers with loading states
+  // Load data on mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const {
     handleTaskClick,
     handleCreateWorkOrder,
@@ -152,15 +162,6 @@ const EnhancedPropertyManagementDashboard = () => {
     }
   };
 
-  const retryLoadData = async () => {
-    try {
-      setError(null);
-      await refreshData();
-    } catch (err) {
-      setError(err as Error);
-    }
-  };
-
   const { totalTasks, completedTasks, pendingTasks, overdueTasks } = useTaskStats(tasks);
   const [selectedProperty, setSelectedProperty] = useState<string>('all');
   const [searchParams] = useSearchParams();
@@ -199,6 +200,15 @@ const EnhancedPropertyManagementDashboard = () => {
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'low': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const retryLoadData = async () => {
+    try {
+      setError(null);
+      await loadData();
+    } catch (err) {
+      setError(err as Error);
     }
   };
 
@@ -249,13 +259,13 @@ const EnhancedPropertyManagementDashboard = () => {
           setIsProjectModalOpen={setIsProjectModalOpen}
           setIsWorkOrderModalOpen={setIsWorkOrderModalOpen}
           generateTurnoverTasks={generateTurnoverTasks}
-          onToggleBulkMode={handleToggleBulkMode}
-          onSelectAllTasks={handleSelectAllTasks}
-          onTaskClick={handleTaskClick}
-          onStatusChange={handleStatusChange}
-          onDeleteTask={handleDeleteTask}
-          onDeleteProject={handleDeleteProject}
-          onCreateWorkOrder={handleCreateWorkOrder}
+          onToggleBulkMode={() => setBulkMode(!bulkMode)}
+          onSelectAllTasks={() => selectAllTasks(filteredTasks.map(t => t.id))}
+          onTaskClick={(task) => setEditingTask(task)}
+          onStatusChange={(taskId, status) => updateTask(taskId, { status })}
+          onDeleteTask={deleteTask}
+          onDeleteProject={deleteProject}
+          onCreateWorkOrder={() => setIsWorkOrderModalOpen(true)}
           onToggleTaskSelection={toggleTaskSelection}
           clearSelection={clearSelection}
           refreshData={refreshData}
@@ -286,10 +296,10 @@ const EnhancedPropertyManagementDashboard = () => {
             setIsWorkOrderModalOpen(false);
             setSelectedTaskForWorkOrder(null);
           }}
-          onCreateTask={handleCreateTask}
-          onCreateProject={handleCreateProject}
-          onUpdateProject={handleUpdateProject}
-          onCreateWorkOrder={handleCreateWorkOrderFromTask}
+          onCreateTask={createTask}
+          onCreateProject={createProject}
+          onUpdateProject={updateProject}
+          onCreateWorkOrder={createWorkOrder}
         />
       </div>
     </SmartLoadingWrapper>
