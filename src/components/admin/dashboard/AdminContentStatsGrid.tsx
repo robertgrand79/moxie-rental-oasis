@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,9 +55,9 @@ const AdminContentStatsGrid = ({
       count: blogPosts.length,
       icon: BookOpen,
       color: 'text-green-600',
-      href: '/admin/blog',
+      href: '/admin/blog-posts',
       actionText: 'Write Post',
-      actionHref: '/admin/blog?action=add',
+      actionHref: '/admin/blog-posts?action=add',
       additionalStats: [
         {
           label: 'Published',
@@ -71,9 +70,9 @@ const AdminContentStatsGrid = ({
       count: pointsOfInterest.length,
       icon: MapPin,
       color: 'text-purple-600',
-      href: '/admin/poi',
+      href: '/admin/points-of-interest',
       actionText: 'Add POI',
-      actionHref: '/admin/poi?action=add',
+      actionHref: '/admin/points-of-interest?action=add',
       additionalStats: [
         {
           label: 'Featured',
@@ -86,9 +85,9 @@ const AdminContentStatsGrid = ({
       count: galleryItems.length,
       icon: Camera,
       color: 'text-orange-600',
-      href: '/admin/lifestyle',
+      href: '/admin/lifestyle-gallery',
       actionText: 'Add Photo',
-      actionHref: '/admin/lifestyle?action=add',
+      actionHref: '/admin/lifestyle-gallery?action=add',
       additionalStats: [
         {
           label: 'Featured',
@@ -116,9 +115,9 @@ const AdminContentStatsGrid = ({
       count: subscriberCount || 0,
       icon: Mail,
       color: 'text-indigo-600',
-      href: '/admin/newsletter-management',
+      href: '/admin/newsletter',
       actionText: 'Send Newsletter',
-      actionHref: '/admin/newsletter-management',
+      actionHref: '/admin/newsletter',
       additionalStats: [
         {
           label: 'Subscribers',

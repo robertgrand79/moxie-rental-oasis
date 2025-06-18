@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ const AdminQuickActionsEnhanced = () => {
       key: 'write-post',
       icon: BookOpen,
       label: 'Write Blog Post',
-      path: '/admin/blog?action=add'
+      path: '/admin/blog-posts?action=add'
     },
     {
       key: 'create-page',
@@ -37,13 +36,13 @@ const AdminQuickActionsEnhanced = () => {
       key: 'create-event',
       icon: Calendar,
       label: 'Create Event',
-      path: '/admin/events?action=add'
+      path: '/admin/eugene-events?action=add'
     },
     {
       key: 'newsletter',
       icon: Mail,
       label: 'Send Newsletter',
-      path: '/admin/newsletter-management'
+      path: '/admin/newsletter'
     },
     {
       key: 'settings',

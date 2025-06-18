@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Plus, Users, Settings, FileText, Calendar, Camera, MapPin } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,21 +33,21 @@ const AdminQuickActions = () => {
       title: 'Add Blog Post',
       description: 'Create new blog content',
       icon: <FileText className="h-4 w-4" />,
-      action: () => navigate('/admin/blog?action=create'),
+      action: () => navigate('/admin/blog-posts?action=create'),
       variant: 'outline' as const,
     },
     {
       title: 'Add Event',
       description: 'Create a new Eugene event',
       icon: <Calendar className="h-4 w-4" />,
-      action: () => navigate('/admin/events?action=create'),
+      action: () => navigate('/admin/eugene-events?action=create'),
       variant: 'default' as const,
     },
     {
       title: 'Add Gallery Item',
       description: 'Upload to lifestyle gallery',
       icon: <Camera className="h-4 w-4" />,
-      action: () => navigate('/admin/lifestyle?action=create'),
+      action: () => navigate('/admin/lifestyle-gallery?action=create'),
       variant: 'secondary' as const,
     },
   ];
