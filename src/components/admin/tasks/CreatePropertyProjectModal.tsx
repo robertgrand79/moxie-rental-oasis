@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ interface CreatePropertyProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateProject: (projectData: Omit<PropertyProject, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property'>) => Promise<void>;
+  onUpdateProject?: (projectId: string, projectData: Omit<PropertyProject, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property'>) => Promise<void>;
   properties: Property[];
   editingProject?: PropertyProject | null;
 }
@@ -21,36 +22,71 @@ const CreatePropertyProjectModal = ({
   isOpen,
   onClose,
   onCreateProject,
+  onUpdateProject,
   properties,
   editingProject,
 }: CreatePropertyProjectModalProps) => {
   const [formData, setFormData] = useState({
-    title: editingProject?.title || '',
-    description: editingProject?.description || '',
-    property_id: editingProject?.property_id || '',
-    type: editingProject?.type || 'maintenance' as const,
-    status: editingProject?.status || 'planning' as const,
-    priority: editingProject?.priority || 'medium' as const,
-    start_date: editingProject?.start_date || '',
-    target_completion_date: editingProject?.target_completion_date || '',
-    budget: editingProject?.budget || 0,
+    title: '',
+    description: '',
+    property_id: '',
+    type: 'maintenance' as const,
+    status: 'planning' as const,
+    priority: 'medium' as const,
+    start_date: '',
+    target_completion_date: '',
+    budget: 0,
   });
+
+  useEffect(() => {
+    if (editingProject) {
+      setFormData({
+        title: editingProject.title,
+        description: editingProject.description || '',
+        property_id: editingProject.property_id,
+        type: editingProject.type,
+        status: editingProject.status,
+        priority: editingProject.priority,
+        start_date: editingProject.start_date || '',
+        target_completion_date: editingProject.target_completion_date || '',
+        budget: editingProject.budget || 0,
+      });
+    } else {
+      setFormData({
+        title: '',
+        description: '',
+        property_id: '',
+        type: 'maintenance' as const,
+        status: 'planning' as const,
+        priority: 'medium' as const,
+        start_date: '',
+        target_completion_date: '',
+        budget: 0,
+      });
+    }
+  }, [editingProject, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      await onCreateProject({
+      const projectData = {
         ...formData,
         start_date: formData.start_date || undefined,
         target_completion_date: formData.target_completion_date || undefined,
         budget: formData.budget || undefined,
         actual_completion_date: undefined,
         actual_cost: undefined,
-      });
+      };
+
+      if (editingProject && onUpdateProject) {
+        await onUpdateProject(editingProject.id, projectData);
+      } else {
+        await onCreateProject(projectData);
+      }
       onClose();
     } catch (error) {
-      console.error('Error creating project:', error);
+      console.error('Error saving project:', error);
     }
   };
 

@@ -22,6 +22,8 @@ const EnhancedPropertyManagementDashboard = () => {
     tasks,
     loading,
     createProject,
+    updateProject,
+    deleteProject,
     createTask,
     updateTask,
     deleteTask,
@@ -57,6 +59,9 @@ const EnhancedPropertyManagementDashboard = () => {
     bulkMode,
     setBulkMode,
   } = useTaskManagementState();
+
+  // Add editingProject state
+  const [editingProject, setEditingProject] = useState<any>(null);
 
   const {
     handleTaskClick,
@@ -130,6 +135,15 @@ const EnhancedPropertyManagementDashboard = () => {
     }
   };
 
+  const handleUpdateProject = async (projectId: string, projectData: any) => {
+    await updateProject(projectId, projectData);
+    setEditingProject(null);
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    await deleteProject(projectId);
+  };
+
   if (loading) {
     return <LoadingState />;
   }
@@ -169,6 +183,7 @@ const EnhancedPropertyManagementDashboard = () => {
         bulkMode={bulkMode}
         contractors={contractors}
         setEditingTask={setEditingTask}
+        setEditingProject={setEditingProject}
         setIsTaskModalOpen={setIsTaskModalOpen}
         setIsProjectModalOpen={setIsProjectModalOpen}
         setIsWorkOrderModalOpen={setIsWorkOrderModalOpen}
@@ -178,6 +193,7 @@ const EnhancedPropertyManagementDashboard = () => {
         onTaskClick={handleTaskClick}
         onStatusChange={handleStatusChange}
         onDeleteTask={handleDeleteTask}
+        onDeleteProject={handleDeleteProject}
         onCreateWorkOrder={handleCreateWorkOrder}
         onToggleTaskSelection={toggleTaskSelection}
         clearSelection={clearSelection}
@@ -191,6 +207,7 @@ const EnhancedPropertyManagementDashboard = () => {
         isProjectModalOpen={isProjectModalOpen}
         isWorkOrderModalOpen={isWorkOrderModalOpen}
         editingTask={editingTask}
+        editingProject={editingProject}
         selectedTaskForWorkOrder={selectedTaskForWorkOrder}
         properties={properties}
         projects={projects}
@@ -200,13 +217,17 @@ const EnhancedPropertyManagementDashboard = () => {
           setIsTaskModalOpen(false);
           setEditingTask(null);
         }}
-        onCloseProjectModal={() => setIsProjectModalOpen(false)}
+        onCloseProjectModal={() => {
+          setIsProjectModalOpen(false);
+          setEditingProject(null);
+        }}
         onCloseWorkOrderModal={() => {
           setIsWorkOrderModalOpen(false);
           setSelectedTaskForWorkOrder(null);
         }}
         onCreateTask={handleCreateTask}
         onCreateProject={handleCreateProject}
+        onUpdateProject={handleUpdateProject}
         onCreateWorkOrder={handleCreateWorkOrderFromTask}
       />
     </div>

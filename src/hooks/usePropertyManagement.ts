@@ -21,7 +21,7 @@ export const usePropertyManagement = () => {
     refreshData,
   } = usePropertyData();
 
-  const { createProject } = useProjectOperations(setProjects);
+  const { createProject, updateProject, deleteProject } = useProjectOperations(setProjects);
   const { createTask, updateTask, deleteTask } = useTaskOperations(setTasks);
   const { generateTurnoverTasks } = useTurnoverTasks(setTasks);
 
@@ -39,6 +39,8 @@ export const usePropertyManagement = () => {
     schedules,
     loading,
     createProject,
+    updateProject,
+    deleteProject,
     createTask,
     updateTask,
     deleteTask,

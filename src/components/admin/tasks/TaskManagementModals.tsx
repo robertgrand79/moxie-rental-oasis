@@ -1,17 +1,18 @@
 
 import React from 'react';
-import { PropertyTask, PropertyProject, CustomTaskType } from '@/hooks/property-management/types';
-import { Property } from '@/types/property';
 import CreatePropertyTaskModal from './CreatePropertyTaskModal';
 import CreatePropertyProjectModal from './CreatePropertyProjectModal';
 import CreateWorkOrderModal from '../workorders/CreateWorkOrderModal';
+import { PropertyTask, PropertyProject, CustomTaskType } from '@/hooks/property-management/types';
+import { Property } from '@/types/property';
 
 interface TaskManagementModalsProps {
   isTaskModalOpen: boolean;
   isProjectModalOpen: boolean;
   isWorkOrderModalOpen: boolean;
-  editingTask: PropertyTask | null;
-  selectedTaskForWorkOrder: PropertyTask | null;
+  editingTask?: PropertyTask | null;
+  editingProject?: PropertyProject | null;
+  selectedTaskForWorkOrder?: PropertyTask | null;
   properties: Property[];
   projects: PropertyProject[];
   taskTypes: CustomTaskType[];
@@ -19,8 +20,9 @@ interface TaskManagementModalsProps {
   onCloseTaskModal: () => void;
   onCloseProjectModal: () => void;
   onCloseWorkOrderModal: () => void;
-  onCreateTask: (taskData: Omit<PropertyTask, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'project' | 'task_type' | 'assignments'>) => Promise<void>;
+  onCreateTask: (taskData: any) => Promise<void>;
   onCreateProject: (projectData: any) => Promise<void>;
+  onUpdateProject?: (projectId: string, projectData: any) => Promise<void>;
   onCreateWorkOrder: (workOrderData: any) => Promise<void>;
 }
 
@@ -29,6 +31,7 @@ const TaskManagementModals = ({
   isProjectModalOpen,
   isWorkOrderModalOpen,
   editingTask,
+  editingProject,
   selectedTaskForWorkOrder,
   properties,
   projects,
@@ -39,6 +42,7 @@ const TaskManagementModals = ({
   onCloseWorkOrderModal,
   onCreateTask,
   onCreateProject,
+  onUpdateProject,
   onCreateWorkOrder,
 }: TaskManagementModalsProps) => {
   return (
@@ -57,15 +61,19 @@ const TaskManagementModals = ({
         isOpen={isProjectModalOpen}
         onClose={onCloseProjectModal}
         onCreateProject={onCreateProject}
+        onUpdateProject={onUpdateProject}
         properties={properties}
+        editingProject={editingProject}
       />
 
       <CreateWorkOrderModal
         isOpen={isWorkOrderModalOpen}
         onClose={onCloseWorkOrderModal}
         onCreateWorkOrder={onCreateWorkOrder}
+        properties={properties}
+        projects={projects}
         contractors={contractors}
-        editingWorkOrder={null}
+        selectedTask={selectedTaskForWorkOrder}
       />
     </>
   );

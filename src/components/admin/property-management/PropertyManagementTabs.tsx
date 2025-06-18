@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,7 +8,9 @@ import {
   Calendar, 
   Wrench,
   Kanban,
-  Table as TableIcon
+  Table as TableIcon,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { Property } from '@/types/property';
 import { PropertyProject, PropertyTask, CustomTaskType } from '@/hooks/property-management/types';
@@ -17,6 +18,17 @@ import TaskManagementActions from '../tasks/TaskManagementActions';
 import TaskManagementViews from '../tasks/TaskManagementViews';
 import BulkTaskActions from '../tasks/BulkTaskActions';
 import GoogleCalendarIntegration from '../tasks/GoogleCalendarIntegration';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface PropertyManagementTabsProps {
   activeTab: string;
@@ -31,6 +43,7 @@ interface PropertyManagementTabsProps {
   bulkMode: boolean;
   contractors: any[];
   setEditingTask: (task: PropertyTask | null) => void;
+  setEditingProject: (project: PropertyProject | null) => void;
   setIsTaskModalOpen: (open: boolean) => void;
   setIsProjectModalOpen: (open: boolean) => void;
   setIsWorkOrderModalOpen: (open: boolean) => void;
@@ -40,6 +53,7 @@ interface PropertyManagementTabsProps {
   onTaskClick: (task: PropertyTask) => void;
   onStatusChange: (taskId: string, status: string) => void;
   onDeleteTask: (taskId: string) => void;
+  onDeleteProject: (projectId: string) => void;
   onCreateWorkOrder: (task: PropertyTask) => void;
   onToggleTaskSelection: (taskId: string) => void;
   clearSelection: () => void;
@@ -61,6 +75,7 @@ const PropertyManagementTabs = ({
   bulkMode,
   contractors,
   setEditingTask,
+  setEditingProject,
   setIsTaskModalOpen,
   setIsProjectModalOpen,
   setIsWorkOrderModalOpen,
@@ -70,6 +85,7 @@ const PropertyManagementTabs = ({
   onTaskClick,
   onStatusChange,
   onDeleteTask,
+  onDeleteProject,
   onCreateWorkOrder,
   onToggleTaskSelection,
   clearSelection,
@@ -77,6 +93,12 @@ const PropertyManagementTabs = ({
   getStatusBadgeColor,
   getPriorityBadgeColor,
 }: PropertyManagementTabsProps) => {
+  
+  const handleEditProject = (project: PropertyProject) => {
+    setEditingProject(project);
+    setIsProjectModalOpen(true);
+  };
+
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
       <TabsList className="grid w-full grid-cols-6">
@@ -160,7 +182,10 @@ const PropertyManagementTabs = ({
       <TabsContent value="projects" className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Projects</h3>
-          <Button onClick={() => setIsProjectModalOpen(true)}>
+          <Button onClick={() => {
+            setEditingProject(null);
+            setIsProjectModalOpen(true);
+          }}>
             <Plus className="h-4 w-4 mr-2" />
             Add Project
           </Button>
@@ -197,6 +222,39 @@ const PropertyManagementTabs = ({
                       <Badge className={getStatusBadgeColor(project.status)}>
                         {project.status}
                       </Badge>
+                      <div className="flex items-center gap-1 ml-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditProject(project)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{project.title}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => onDeleteProject(project.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -206,6 +264,7 @@ const PropertyManagementTabs = ({
         </div>
       </TabsContent>
 
+      
       <TabsContent value="properties" className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Properties</h3>

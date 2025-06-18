@@ -74,7 +74,101 @@ export const useProjectOperations = (
     }
   };
 
+  const updateProject = async (projectId: string, projectData: Omit<PropertyProject, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'property'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('property_projects')
+        .update(projectData)
+        .eq('id', projectId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        // Fetch the property data if property_id exists
+        let property = null;
+        if (data.property_id) {
+          const { data: propertyData } = await supabase
+            .from('properties')
+            .select('*')
+            .eq('id', data.property_id)
+            .single();
+          property = propertyData;
+        }
+
+        const updatedProjectWithProperty: PropertyProject = {
+          id: data.id,
+          property_id: data.property_id,
+          title: data.title,
+          description: data.description,
+          type: data.type as PropertyProject['type'],
+          status: data.status as PropertyProject['status'],
+          priority: data.priority as PropertyProject['priority'],
+          start_date: data.start_date,
+          target_completion_date: data.target_completion_date,
+          actual_completion_date: data.actual_completion_date,
+          budget: data.budget,
+          actual_cost: data.actual_cost,
+          created_by: data.created_by,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+          property
+        };
+
+        setProjects(prev => prev.map(project => 
+          project.id === projectId ? updatedProjectWithProperty : project
+        ));
+
+        toast({
+          title: 'Success',
+          description: 'Project updated successfully',
+        });
+
+        return updatedProjectWithProperty;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update project',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const deleteProject = async (projectId: string) => {
+    try {
+      const { error } = await supabase
+        .from('property_projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      setProjects(prev => prev.filter(project => project.id !== projectId));
+
+      toast({
+        title: 'Success',
+        description: 'Project deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete project',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   return {
     createProject,
+    updateProject,
+    deleteProject,
   };
 };
