@@ -1,7 +1,7 @@
 
 import React from 'react';
 import AboutHero from '@/components/about/AboutHero';
-import GabbyIntroduction from '@/components/about/GabbyIntroduction';
+import RobertShellyIntroduction from '@/components/about/RobertShellyIntroduction';
 import FamilyDescription from '@/components/about/FamilyDescription';
 import FamilyPhotoSection from '@/components/about/FamilyPhotoSection';
 import MissionSection from '@/components/about/MissionSection';
@@ -13,7 +13,7 @@ const About = () => {
   return (
     <div className="min-h-screen">
       <AboutHero />
-      <GabbyIntroduction />
+      <RobertShellyIntroduction />
       <FamilyDescription />
       <FamilyPhotoSection />
       <MissionSection />
