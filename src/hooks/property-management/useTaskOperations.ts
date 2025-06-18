@@ -1,6 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { PropertyTask } from './types';
+import { PropertyTask, PropertyProject } from './types';
 
 export const useTaskOperations = (
   setTasks: React.Dispatch<React.SetStateAction<PropertyTask[]>>
@@ -340,7 +341,8 @@ export const useTaskOperations = (
           property: taskData.property,
           project: taskData.project ? {
             ...taskData.project,
-            type: taskData.project.type as PropertyProject['type']
+            type: taskData.project.type as PropertyProject['type'],
+            status: taskData.project.status as PropertyProject['status']
           } : null,
           task_type: taskData.task_type,
           assignments: taskData.assignments ? taskData.assignments.map(assignment => ({
