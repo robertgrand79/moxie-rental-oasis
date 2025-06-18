@@ -7,40 +7,43 @@ const RobertShellyIntroduction = () => {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Left side - Clean Modern Photo Collage */}
+          {/* Left side - Dynamic Photo Collage */}
           <div className="flex justify-center">
             <div className="w-full max-w-lg">
-              {/* Top row - two photos */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+              {/* Create a dynamic grid with varied photo sizes */}
+              <div className="grid grid-cols-4 grid-rows-4 gap-3 h-96">
+                {/* Large photo spanning 2x2 in top-left */}
+                <div className="col-span-2 row-span-2 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <img 
-                    src="/lovable-uploads/2600a527-3948-441b-a42f-582e1f8934f2.png"
-                    alt="Robert and Shelly at mountain lake"
+                    src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
+                    alt="Robert and Shelly - Main photo"
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
-                <div className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                
+                {/* Tall photo on right side spanning 2 rows */}
+                <div className="col-span-2 row-span-2 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <img 
-                    src="/lovable-uploads/4e137420-dc2e-41d2-b27d-19630692ffff.png"
-                    alt="Robert and Shelly at sporting event"
+                    src="/lovable-uploads/d1f71962-f44a-4556-b875-d05f2a8a537a.png"
+                    alt="Robert and Shelly outdoors"
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
-              </div>
-              
-              {/* Bottom row - two photos */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                
+                {/* Bottom left photo */}
+                <div className="col-span-2 row-span-1 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <img 
-                    src="/lovable-uploads/4ac8bb55-fe2f-4e35-8def-f735c5440591.png"
-                    alt="Robert and Shelly in garden setting"
+                    src="/lovable-uploads/11aea8e1-1241-453f-bc09-d4c8c7394c8c.png"
+                    alt="Robert and Shelly lifestyle"
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
-                <div className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                
+                {/* Bottom right photo */}
+                <div className="col-span-2 row-span-1 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <img 
-                    src="/lovable-uploads/559a12e3-50e5-4cee-86e9-154fd60cd0fe.png"
-                    alt="Robert and Shelly at cultural site"
+                    src="/lovable-uploads/ca979f86-d583-4e11-a233-176ed76d2d7b.png"
+                    alt="Robert and Shelly community"
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
