@@ -12,6 +12,7 @@ import PropertyPage from './components/PropertyPage';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
 import Events from './pages/Events';
 import Experiences from './pages/Experiences';
 import FAQ from './pages/FAQ';
@@ -57,6 +58,7 @@ function App() {
                 <Route path="about" element={<About />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="blog" element={<Blog />} />
+                <Route path="blog/:slug" element={<BlogPost />} />
                 <Route path="events" element={<Events />} />
                 <Route path="experiences" element={<Experiences />} />
                 <Route path="faq" element={<FAQ />} />
