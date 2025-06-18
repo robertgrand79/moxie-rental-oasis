@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -40,6 +39,7 @@ const EventForm = ({ isOpen, onOpenChange, editingEvent, onSubmit, categories }:
     is_active: editingEvent?.is_active !== false,
     is_recurring: editingEvent?.is_recurring || false,
     recurrence_pattern: editingEvent?.recurrence_pattern || '',
+    status: editingEvent?.status || 'draft',
     created_by: editingEvent?.created_by || user?.id || ''
   });
 
@@ -62,6 +62,7 @@ const EventForm = ({ isOpen, onOpenChange, editingEvent, onSubmit, categories }:
         is_active: editingEvent.is_active !== false,
         is_recurring: editingEvent.is_recurring || false,
         recurrence_pattern: editingEvent.recurrence_pattern || '',
+        status: editingEvent.status || 'draft',
         created_by: editingEvent.created_by
       });
     } else {
@@ -82,6 +83,7 @@ const EventForm = ({ isOpen, onOpenChange, editingEvent, onSubmit, categories }:
         is_active: true,
         is_recurring: false,
         recurrence_pattern: '',
+        status: 'draft',
         created_by: user?.id || ''
       });
     }
