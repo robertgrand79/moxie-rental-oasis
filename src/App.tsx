@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { AuthProvider } from './contexts/AuthContext';
+import PublicLayout from './components/layouts/PublicLayout';
 import Index from './pages/Index';
 import Properties from './pages/Properties';
 import About from './pages/About';
@@ -41,13 +42,16 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/properties" element={<Properties />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/events" element={<Events />} />
-              <Route path="/experiences" element={<Experiences />} />
+              {/* Public Routes with PublicLayout */}
+              <Route path="/" element={<PublicLayout />}>
+                <Route index element={<Index />} />
+                <Route path="properties" element={<Properties />} />
+                <Route path="about" element={<About />} />
+                <Route path="contact" element={<Contact />} />
+                <Route path="blog" element={<Blog />} />
+                <Route path="events" element={<Events />} />
+                <Route path="experiences" element={<Experiences />} />
+              </Route>
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminLayoutWrapper />}>
