@@ -30,6 +30,64 @@ serve(async (req) => {
       `;
 
       switch (category) {
+        case 'blog':
+          return `You are a professional blog content writer specializing in vacation rental marketing and Eugene, Oregon tourism.
+
+          ${baseContext}
+
+          **CRITICAL FORMATTING RULES - NO MARKDOWN ALLOWED:**
+          - Write in clean, flowing prose without any markdown syntax
+          - NEVER use ### or ## for headings - write descriptive section titles as regular text
+          - NEVER use *** or ** for bold text - write naturally and let the editor handle formatting
+          - NEVER use * for italic text - write naturally
+          - NEVER use - or * for bullet points - write in paragraph form with natural flow
+          - NEVER use markdown formatting of any kind
+          - Write content as if you're writing directly in a word processor
+          - Use natural paragraph breaks and flowing sentences
+          - Focus on storytelling and engaging narrative rather than formatted structure
+
+          **MOXIE VACATION RENTALS BRAND GUIDELINES:**
+          - Company: Moxie Vacation Rentals
+          - Tagline: "Your Home Base for Living Like a Local in Eugene"
+          - Location: Eugene, Oregon (Pacific Northwest)
+          - Specialty: Premium vacation rentals with local expertise
+          - Tone: Warm, welcoming, locally-focused, premium but approachable
+          - Audience: Vacation rental guests seeking authentic local experiences
+
+          **CONTENT STYLE REQUIREMENTS:**
+          - Write engaging, conversational blog content without any formatting syntax
+          - Create natural section breaks with descriptive introductory sentences
+          - Write 2-3 substantial paragraphs per topic area
+          - Include specific Eugene locations, attractions, and experiences
+          - Mix practical information with inspirational storytelling
+          - End with compelling calls-to-action for bookings
+          - Write as a knowledgeable local sharing insider tips
+          - Use warm, conversational tone that reflects local expertise
+          - Include sensory details that help readers envision experiences
+          - Structure content to flow naturally from topic to topic
+
+          **EUGENE LOCAL EXPERTISE TO INCLUDE:**
+          - University of Oregon campus and events
+          - Willamette River activities and trails
+          - Eugene Saturday Market and local artisans
+          - Spencer Butte hiking and outdoor recreation
+          - Historic downtown Eugene and cultural district
+          - Local breweries, restaurants, and food scene
+          - Seasonal activities and weather considerations
+          - Transportation and getting around Eugene
+          - Day trips to Oregon Coast, Cascade Mountains, wine country
+
+          **CONTENT STRUCTURE (WITHOUT MARKDOWN):**
+          - Start with an engaging opening that draws readers in
+          - Flow naturally between topics with transitional sentences
+          - Include specific details rather than generic tourism language
+          - Write in scannable paragraphs with natural breaks
+          - Include specific names of places, restaurants, trails, etc.
+          - End with strong call-to-action for bookings or engagement
+          - Ensure content flows logically and tells a cohesive story
+
+          Return clean prose content that will work perfectly with rich text editors - no formatting syntax allowed.`;
+
         case 'newsletter':
           return `You are a professional newsletter copywriter specializing in vacation rental marketing and Eugene, Oregon tourism.
 
@@ -170,12 +228,17 @@ serve(async (req) => {
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: context.category === 'newsletter' ? 2000 : context.category === 'pages' ? 1500 : 500,
+        max_tokens: context.category === 'newsletter' ? 2000 : context.category === 'pages' ? 1500 : context.category === 'blog' ? 2000 : 500,
       }),
     });
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    let content = data.choices[0].message.content;
+
+    // Post-process content to remove any markdown artifacts
+    if (context.category === 'blog') {
+      content = cleanMarkdownArtifacts(content);
+    }
 
     return new Response(JSON.stringify({ content }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -188,3 +251,23 @@ serve(async (req) => {
     });
   }
 });
+
+// Helper function to clean up any markdown artifacts
+function cleanMarkdownArtifacts(content: string): string {
+  return content
+    // Remove markdown headers
+    .replace(/^#{1,6}\s+/gm, '')
+    // Remove bold markdown
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    // Remove italic markdown
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    // Remove bullet points
+    .replace(/^\s*[-*+]\s+/gm, '')
+    // Remove numbered lists
+    .replace(/^\s*\d+\.\s+/gm, '')
+    // Clean up extra whitespace
+    .replace(/\n\s*\n\s*\n/g, '\n\n')
+    .trim();
+}

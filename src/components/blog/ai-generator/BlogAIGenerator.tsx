@@ -50,13 +50,23 @@ const BlogAIGenerator = ({
       const enhancedPrompt = selectedField === 'content' 
         ? `${promptToUse}
 
-**IMPORTANT BLOG FORMATTING INSTRUCTIONS:**
-- Create well-structured blog post content with clear headings and subheadings
-- Use engaging, conversational tone appropriate for travel blog readers
+**CRITICAL: NO MARKDOWN FORMATTING ALLOWED**
+- Write in clean, flowing prose without any markdown syntax
+- NEVER use ### or ## for headings - write descriptive section titles as regular text
+- NEVER use *** or ** for bold text - write naturally
+- NEVER use * for italic text - write naturally  
+- NEVER use - or * for bullet points - write in paragraph form
+- Focus on storytelling and engaging narrative
+- Write as if you're writing directly in a word processor
+- Use natural paragraph breaks and flowing sentences
+
+**MOXIE BLOG CONTENT REQUIREMENTS:**
+- Create engaging blog post content with natural flow between topics
+- Use conversational tone appropriate for travel blog readers
 - Include specific Eugene, Oregon details and local expertise
 - Write in paragraph format with clear section breaks
 - Include actionable tips and practical information
-- Make content scannable with bullet points where appropriate
+- Make content naturally scannable with good paragraph structure
 - End with a compelling call-to-action encouraging bookings
 - Ensure content is SEO-friendly and engaging for vacation rental guests
 
@@ -65,7 +75,9 @@ const BlogAIGenerator = ({
 - Our mission: "Your Home Base for Living Like a Local in Eugene"
 - We provide authentic local experiences and insider knowledge
 - Our guests value quality accommodations and authentic local experiences
-- We specialize in helping visitors experience Eugene like locals do`
+- We specialize in helping visitors experience Eugene like locals do
+
+Write clean prose that will work perfectly with rich text editors - absolutely no formatting syntax allowed.`
         : selectedField === 'title'
         ? `Create an engaging, SEO-friendly blog post title for: ${promptToUse}
 
@@ -107,7 +119,7 @@ const BlogAIGenerator = ({
       
       toast({
         title: "Content Generated!",
-        description: "AI has created professional blog content with Moxie's branding and local expertise.",
+        description: "AI has created clean, editor-friendly blog content with Moxie's branding and local expertise.",
       });
     } catch (error: any) {
       console.error('Blog content generation error:', error);
@@ -123,51 +135,42 @@ const BlogAIGenerator = ({
 
   const generateCompleteBlogPost = async () => {
     setSelectedField('content');
-    const completePrompt = `Create a complete, professionally written blog post for Moxie Vacation Rentals featuring:
+    const completePrompt = `Create a complete, professionally written blog post for Moxie Vacation Rentals with clean, flowing prose:
 
-**Blog Post Requirements:**
+**CRITICAL FORMATTING REQUIREMENTS:**
+- Write in clean, natural prose without any markdown syntax
+- NEVER use ### or ## for headings - write descriptive introductory sentences
+- NEVER use *** or ** for bold - write naturally and let the editor handle emphasis
+- NEVER use * for italic - write naturally
+- NEVER use - or * for bullet points - write in flowing paragraph form
+- Focus on storytelling and engaging narrative flow
+- Write as if you're writing directly in a word processor
 
-**Engaging Title & Introduction:**
-- Compelling headline that captures reader attention
-- Opening paragraphs that hook readers and set expectations
-- Clear value proposition for Eugene visitors
+**Blog Post Content Structure:**
+Create a comprehensive blog post with natural flow between topics, including:
 
-**Well-Structured Content:**
-- 5-7 main sections with descriptive subheadings
-- Each section should be 2-3 paragraphs with substantial content
-- Mix of practical information and inspirational storytelling
-- Include specific Eugene locations, attractions, and local details
+Engaging opening that captures reader attention and introduces the topic with clear value for Eugene visitors.
 
-**Local Expertise Elements:**
-- Insider tips and local secrets only residents would know
-- Specific restaurant, attraction, and activity recommendations
-- Seasonal considerations and best times to visit
-- Local culture and community insights
+Main content sections that flow naturally from one topic to the next, each containing 2-3 substantial paragraphs with specific Eugene details, local insights, and practical information.
 
-**Practical Travel Information:**
-- Transportation and logistics advice
-- Budget considerations and value options
-- Packing and preparation recommendations
-- Safety and local etiquette tips
+Include authentic local expertise covering Eugene attractions, dining, activities, and cultural experiences that vacation rental guests would appreciate.
 
-**Visual Content Suggestions:**
-- Describe photo opportunities and Instagram-worthy spots
-- Mention scenic locations and best photography times
-- Include references to experiences that create lasting memories
+Practical travel information woven naturally into the narrative, including tips for getting around, seasonal considerations, and insider knowledge.
 
-**Call-to-Action & Booking Incentive:**
-- Compelling reasons to choose Moxie Vacation Rentals
-- Specific benefits of vacation rentals over hotels
-- Encourage property exploration and booking
-- Mention available properties and local expertise
+Personal touches and storytelling elements that make the content engaging and memorable.
 
-**Content Style Guidelines:**
-- Engaging, conversational tone suitable for travel blog
-- Balance inspirational content with actionable advice
-- Include personal touches and storytelling elements
-- Make content easily scannable with clear formatting
+Strong closing with compelling reasons to choose Moxie Vacation Rentals and encouragement to explore available properties.
+
+**Content Guidelines:**
 - Target 1,500-2,000 words for comprehensive coverage
-- Optimize for SEO while maintaining readability`;
+- Use engaging, conversational tone suitable for travel blog
+- Balance inspirational content with actionable advice
+- Include specific Eugene locations, restaurants, and attractions
+- Make content naturally scannable through good paragraph structure
+- Optimize for SEO while maintaining excellent readability
+- Write from the perspective of local Eugene experts sharing insider knowledge
+
+Write clean, flowing prose that will work perfectly in rich text editors without any formatting syntax.`;
 
     await generateContent(completePrompt);
   };
