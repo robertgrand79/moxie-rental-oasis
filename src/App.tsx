@@ -13,7 +13,12 @@ import Events from "@/pages/Events";
 import Contact from "@/pages/Contact";
 import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
+import About from "@/pages/About";
+import FAQ from "@/pages/FAQ";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
 import Auth from "@/pages/Auth";
+import NotFound from "@/pages/NotFound";
 import AdminLayoutWrapper from "@/components/layouts/AdminLayoutWrapper";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminProperties from "@/pages/admin/AdminProperties";
@@ -49,11 +54,16 @@ function App() {
                 <Route index element={<Index />} />
                 <Route path="properties" element={<Properties />} />
                 <Route path="properties/:id" element={<Properties />} />
+                <Route path="about" element={<About />} />
                 <Route path="eugene-life" element={<Experiences />} />
+                <Route path="experiences" element={<Experiences />} />
                 <Route path="events" element={<Events />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="blog" element={<Blog />} />
                 <Route path="blog/:slug" element={<BlogPost />} />
+                <Route path="faq" element={<FAQ />} />
+                <Route path="privacy" element={<Privacy />} />
+                <Route path="terms" element={<Terms />} />
                 <Route path="auth" element={<Auth />} />
               </Route>
 
@@ -80,6 +90,9 @@ function App() {
                 <Route path="site-metrics" element={<AdminSiteMetrics />} />
                 <Route path="roles-permissions" element={<AdminRolesPermissions />} />
               </Route>
+
+              {/* 404 route */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </AuthProvider>

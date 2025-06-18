@@ -29,7 +29,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin 
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
           <p className="text-gray-600 mb-6">You don't have permission to access this area.</p>
-          <Navigate to="/" replace />
+          <button 
+            onClick={() => window.history.back()}
+            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
+          >
+            Go Back
+          </button>
         </div>
       </div>
     );
