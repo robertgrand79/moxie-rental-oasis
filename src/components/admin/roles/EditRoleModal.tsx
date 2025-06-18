@@ -5,8 +5,9 @@ import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, Save, Trash2 } from 'lucide-react';
+import PermissionGroup from './PermissionGroup';
 
 interface Role {
   id: string;
@@ -47,6 +48,24 @@ const EditRoleModal = ({
     description: '',
     permissions: [] as string[]
   });
+
+  // Group permissions by category (extract from permission key)
+  const groupedPermissions = React.useMemo(() => {
+    const groups: Record<string, Permission[]> = {};
+    
+    permissions.filter(p => p.enabled).forEach(permission => {
+      // Extract category from permission key (e.g., 'users.create' -> 'Users')
+      const category = permission.id.split('.')[0];
+      const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
+      
+      if (!groups[categoryName]) {
+        groups[categoryName] = [];
+      }
+      groups[categoryName].push(permission);
+    });
+    
+    return groups;
+  }, [permissions]);
 
   useEffect(() => {
     if (role) {
@@ -91,13 +110,23 @@ const EditRoleModal = ({
     }));
   };
 
+  const handleSelectAllInCategory = (permissionIds: string[], checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: checked
+        ? [...new Set([...prev.permissions, ...permissionIds])]
+        : prev.permissions.filter(id => !permissionIds.includes(id))
+    }));
+  };
+
   if (!role) return null;
 
   const canDelete = role.userCount === 0 && role.name !== 'Admin';
+  const isSystemRole = role.name === 'Admin';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Edit Role: {role.name}</DialogTitle>
           <DialogDescription>
@@ -105,7 +134,7 @@ const EditRoleModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 space-y-4">
           <div>
             <Label htmlFor="roleName">Role Name *</Label>
             <Input
@@ -115,7 +144,7 @@ const EditRoleModal = ({
               placeholder="Enter role name"
               className="mt-1"
               required
-              disabled={role.name === 'Admin'}
+              disabled={isSystemRole}
             />
           </div>
 
@@ -131,33 +160,27 @@ const EditRoleModal = ({
             />
           </div>
 
-          <div>
-            <Label>Permissions</Label>
-            <div className="mt-2 space-y-3">
-              {permissions.filter(p => p.enabled).map((permission) => (
-                <div key={permission.id} className="flex items-start space-x-3">
-                  <Checkbox
-                    id={permission.id}
-                    checked={formData.permissions.includes(permission.id)}
-                    onCheckedChange={(checked) => 
-                      handlePermissionChange(permission.id, checked as boolean)
-                    }
-                    disabled={role.name === 'Admin'}
+          <div className="flex-1 flex flex-col">
+            <Label className="mb-3">
+              Permissions ({formData.permissions.length} selected)
+            </Label>
+            <ScrollArea className="flex-1 max-h-96 pr-4">
+              <div className="space-y-3">
+                {Object.entries(groupedPermissions).map(([category, categoryPermissions]) => (
+                  <PermissionGroup
+                    key={category}
+                    category={category}
+                    permissions={categoryPermissions}
+                    selectedPermissions={formData.permissions}
+                    onPermissionChange={isSystemRole ? () => {} : handlePermissionChange}
+                    onSelectAll={isSystemRole ? () => {} : handleSelectAllInCategory}
                   />
-                  <div className="space-y-1">
-                    <Label htmlFor={permission.id} className="text-sm font-medium">
-                      {permission.name}
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      {permission.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 border-t">
             <EnhancedButton
               type="button"
               variant="outline"
