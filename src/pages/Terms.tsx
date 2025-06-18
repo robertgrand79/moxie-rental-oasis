@@ -95,7 +95,7 @@ const Terms = () => {
               <div>
                 <p><strong>Moxie Vacation Rentals</strong></p>
                 <p>2472 Willamette St, Eugene, OR 97405</p>
-                <p>Phone: 541-214-2163</p>
+                <p>Phone: +1 541-255-1698</p>
               </div>
             </section>
 
