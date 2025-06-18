@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface ContentItem {
   id: string;
   title: string;
-  type: 'blog_post' | 'property_description' | 'page_content' | 'ai_response';
+  type: 'blog_post' | 'property_description' | 'page_content' | 'ai_response' | 'poi' | 'events' | 'lifestyle' | 'site-content';
   content: string;
   status: 'pending' | 'approved' | 'rejected' | 'needs_revision';
   created_by: string;
@@ -46,8 +46,8 @@ export const useContentApproval = () => {
         // Type assertion to ensure proper typing
         const typedItems = (data || []).map(item => ({
           ...item,
-          type: item.type as 'blog_post' | 'property_description' | 'page_content' | 'ai_response',
-          status: item.status as 'pending' | 'approved' | 'rejected' | 'needs_revision'
+          type: item.type as ContentItem['type'],
+          status: item.status as ContentItem['status']
         }));
         setContentItems(typedItems);
       }
@@ -151,8 +151,8 @@ export const useContentApproval = () => {
       // Type assertion for the returned item
       const typedItem = {
         ...data,
-        type: data.type as 'blog_post' | 'property_description' | 'page_content' | 'ai_response',
-        status: data.status as 'pending' | 'approved' | 'rejected' | 'needs_revision'
+        type: data.type as ContentItem['type'],
+        status: data.status as ContentItem['status']
       };
 
       setContentItems(prev => [typedItem, ...prev]);

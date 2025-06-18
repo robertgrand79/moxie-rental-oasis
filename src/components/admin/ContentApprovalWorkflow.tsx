@@ -47,6 +47,7 @@ const ContentApprovalWorkflow = () => {
       case 'poi': return 'Point of Interest';
       case 'events': return 'Events';
       case 'lifestyle': return 'Lifestyle Content';
+      case 'site-content': return 'Site Content';
       default: return type;
     }
   };
@@ -126,9 +127,9 @@ const ContentApprovalWorkflow = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-gray-900">Content Approval Workflow</h2>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Content Approval Workflow</h2>
         <p className="text-gray-600 mt-1">Review and approve AI-generated content before publication</p>
       </div>
 
