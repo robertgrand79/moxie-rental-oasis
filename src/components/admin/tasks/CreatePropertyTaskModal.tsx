@@ -54,9 +54,9 @@ const CreatePropertyTaskModal = ({
     try {
       await onCreateTask({
         ...formData,
-        property_id: formData.property_id && formData.property_id !== "" && formData.property_id !== "none" ? formData.property_id : undefined,
-        project_id: formData.project_id && formData.project_id !== "" && formData.project_id !== "none" ? formData.project_id : undefined,
-        task_type_id: formData.task_type_id && formData.task_type_id !== "" && formData.task_type_id !== "none" ? formData.task_type_id : undefined,
+        property_id: formData.property_id && formData.property_id !== "" && formData.property_id !== "none" && formData.property_id !== "null" ? formData.property_id : undefined,
+        project_id: formData.project_id && formData.project_id !== "" && formData.project_id !== "none" && formData.project_id !== "null" ? formData.project_id : undefined,
+        task_type_id: formData.task_type_id && formData.task_type_id !== "" && formData.task_type_id !== "none" && formData.task_type_id !== "null" ? formData.task_type_id : undefined,
         estimated_hours: formData.estimated_hours || undefined,
         due_date: formData.due_date || undefined,
         recurrence_frequency: formData.is_recurring ? formData.recurrence_frequency : undefined,
