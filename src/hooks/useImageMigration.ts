@@ -40,11 +40,11 @@ export const useImageMigration = () => {
       // Collect all unique image URLs
       const imageUrls = new Set<string>();
       
-      blogPosts.forEach(post => {
+      blogPosts?.forEach(post => {
         if (post.image_url) imageUrls.add(post.image_url);
       });
 
-      properties.forEach(property => {
+      properties?.forEach(property => {
         if (property.image_url) imageUrls.add(property.image_url);
         if (property.images) {
           property.images.forEach((img: string) => imageUrls.add(img));
@@ -108,7 +108,10 @@ export const useImageMigration = () => {
             if (transformations.length > 0) {
               const { error: insertError } = await supabase
                 .from('image_transformations')
-                .insert(transformations);
+                .insert(transformations.map(t => ({
+                  ...t,
+                  transformation_params: t.transformation_params as any
+                })));
 
               if (insertError) {
                 console.error('Error inserting transformation:', insertError);
@@ -143,26 +146,6 @@ export const useImageMigration = () => {
     } finally {
       setMigrating(false);
       setProgress(prev => ({ ...prev, current: undefined }));
-    }
-  };
-
-  const migrateImageSizes = async (imageUrl: string, updatedSources: any) => {
-    try {
-      // Update blog posts that use this image
-      const { data: blogPosts } = await supabase
-        .from('blog_posts')
-        .select('id')
-        .eq('image_url', imageUrl);
-
-      if (blogPosts) {
-        // Could update blog posts to reference optimized versions
-        // This would be a more advanced feature for phase 4
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error migrating image sizes:', error);
-      return false;
     }
   };
 
@@ -250,7 +233,6 @@ export const useImageMigration = () => {
     migrating,
     progress,
     migrateExistingImages,
-    migrateImageSizes,
     cleanupUnusedOptimizations
   };
 };

@@ -15,16 +15,13 @@ import {
   PieChart, 
   Pie, 
   Cell,
-  ResponsiveContainer,
-  LineChart,
-  Line
+  ResponsiveContainer
 } from 'recharts';
 import { 
   Image, 
   Zap, 
   TrendingDown, 
   Clock, 
-  HardDrive, 
   Eye, 
   Settings,
   AlertTriangle,
@@ -48,7 +45,7 @@ const ImageOptimizationDashboard = () => {
 
   useEffect(() => {
     loadAnalytics();
-  }, []);
+  }, [loadAnalytics]);
 
   const handleAuditImages = async () => {
     setAuditing(true);
@@ -398,7 +395,7 @@ const ImageOptimizationDashboard = () => {
                       <Badge variant="secondary">
                         {typeof value === 'number' && key.includes('kb') ? `${value}KB` :
                          typeof value === 'number' && key.includes('mb') ? `${value}MB` :
-                         value}
+                         String(value)}
                       </Badge>
                     </div>
                   ))}

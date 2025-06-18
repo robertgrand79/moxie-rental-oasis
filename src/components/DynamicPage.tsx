@@ -11,7 +11,11 @@ interface PageData {
   title: string;
   content: string;
   slug: string;
-  status: string;
+  is_published: boolean;
+  meta_description?: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
 }
 
 const DynamicPage = () => {
@@ -32,7 +36,7 @@ const DynamicPage = () => {
           .from('pages')
           .select('*')
           .eq('slug', slug)
-          .eq('status', 'published')
+          .eq('is_published', true)
           .single();
 
         if (fetchError) {
@@ -94,7 +98,7 @@ const DynamicPage = () => {
           </h1>
           <div 
             className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground prose-code:text-foreground"
-            dangerouslySetInnerHTML={{ __html: page.content }}
+            dangerouslySetInnerHTML={{ __html: page.content || '' }}
           />
         </div>
       </div>
