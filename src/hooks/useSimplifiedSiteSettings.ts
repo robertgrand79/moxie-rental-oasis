@@ -60,7 +60,7 @@ export const useSimplifiedSiteSettings = () => {
     }
   }, [user]);
 
-  // Save a single setting
+  // Save a single setting with immediate feedback
   const saveSetting = useCallback(async (key: string, value: any): Promise<boolean> => {
     if (!user) {
       toast({
@@ -114,9 +114,19 @@ export const useSimplifiedSiteSettings = () => {
         return false;
       }
 
-      // Update local state
+      // Update local state immediately
       setSettings(prev => ({ ...prev, [key]: value }));
       console.log(`[Settings] Successfully saved ${key}`);
+      
+      // Force a refetch for hero background image to update cache
+      if (key === 'heroBackgroundImage') {
+        console.log('[Settings] Hero image updated, triggering cache refresh');
+        // Small delay to allow database to settle
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('heroImageUpdated'));
+        }, 500);
+      }
+      
       return true;
 
     } catch (error) {

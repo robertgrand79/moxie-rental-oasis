@@ -27,9 +27,9 @@ const HeroSection = () => {
     tested: false
   });
 
-  // Fetch hero settings with better error handling
+  // Fetch hero settings with cache busting for images
   const { data: heroSettings, isLoading, error: queryError } = useQuery({
-    queryKey: ['hero-settings-v3'], // Changed key to bust cache
+    queryKey: ['hero-settings-v4'], // Incremented version for cache busting
     queryFn: async () => {
       console.log('🔄 Fetching hero settings from database...');
       
@@ -71,15 +71,15 @@ const HeroSection = () => {
       console.log('✅ Final hero settings:', finalSettings);
       return finalSettings;
     },
-    staleTime: 10000, // 10 seconds
-    refetchInterval: false, // Don't auto-refetch
+    staleTime: 1000, // 1 second - much shorter for faster updates
+    refetchInterval: false,
     retry: 3
   });
 
   // Use settings with fallback
   const settings = heroSettings || DEFAULT_HERO_SETTINGS;
 
-  // Test image loading with comprehensive error handling
+  // Test image loading with comprehensive error handling and cache busting
   useEffect(() => {
     if (!settings.heroBackgroundImage) {
       console.log('⚠️ No hero background image set, using gradient');
@@ -87,7 +87,9 @@ const HeroSection = () => {
       return;
     }
 
-    console.log('🖼️ Testing hero image:', settings.heroBackgroundImage);
+    // Add cache busting parameter to force refresh
+    const imageUrlWithCacheBuster = `${settings.heroBackgroundImage}?t=${Date.now()}`;
+    console.log('🖼️ Testing hero image with cache buster:', imageUrlWithCacheBuster);
     setImageStatus({ loaded: false, error: false, tested: false });
 
     const img = new Image();
@@ -104,7 +106,7 @@ const HeroSection = () => {
 
     img.onload = handleLoad;
     img.onerror = handleError;
-    img.src = settings.heroBackgroundImage;
+    img.src = imageUrlWithCacheBuster;
 
     // Cleanup
     return () => {

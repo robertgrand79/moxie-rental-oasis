@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Save, Home, AlertCircle } from 'lucide-react';
 import HeroImageUploader from '@/components/HeroImageUploader';
-import { useHeroImageUpload } from '@/hooks/useHeroImageUpload';
 
 interface HeroSectionSettingsProps {
   siteData: any;
@@ -24,54 +23,14 @@ const HeroSectionSettings = ({
   saving,
   hasUnsavedChanges = false 
 }: HeroSectionSettingsProps) => {
-  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
-  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
-  const { uploadHeroImage, deleteHeroImage, uploading } = useHeroImageUpload();
 
-  const handleImageChange = (imageUrl: string | null) => {
-    if (imageUrl && imageUrl.startsWith('blob:')) {
-      // This is a preview URL from a file selection
-      setPendingImageUrl(imageUrl);
-      // Extract the file from the blob URL if needed - for now we'll handle this in save
-    } else {
-      // This is either null (remove) or a permanent URL
-      setPendingImageUrl(imageUrl);
-      onInputChange('heroBackgroundImage', imageUrl || '');
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      // If there's a pending image file (blob URL), upload it first
-      if (pendingImageUrl && pendingImageUrl.startsWith('blob:')) {
-        // We need to get the file from the HeroImageUploader component
-        // For now, let's handle the image upload in the save process
-        console.log('Uploading new hero image...');
-        
-        // Convert blob URL to file and upload
-        const response = await fetch(pendingImageUrl);
-        const blob = await response.blob();
-        const file = new File([blob], 'hero-image.jpg', { type: blob.type });
-        
-        const uploadedUrl = await uploadHeroImage(file);
-        if (uploadedUrl) {
-          onInputChange('heroBackgroundImage', uploadedUrl);
-        }
-      }
-      
-      // Save all hero settings
-      await onSave();
-      
-      // Clear pending states on successful save
-      setPendingImageFile(null);
-      setPendingImageUrl(null);
-    } catch (error) {
-      console.error('Error saving hero settings:', error);
-    }
+  const handleImageChange = async (imageUrl: string | null) => {
+    console.log('[Hero Settings] Image changed to:', imageUrl);
+    // Immediately update the field - this will trigger optimistic update and save
+    onInputChange('heroBackgroundImage', imageUrl || '');
   };
 
   const currentImageUrl = siteData.heroBackgroundImage || null;
-  const displayImageUrl = pendingImageUrl || currentImageUrl;
   
   return (
     <EnhancedCard variant="glass">
@@ -130,8 +89,7 @@ const HeroSectionSettings = ({
           <HeroImageUploader
             currentImageUrl={currentImageUrl}
             onImageChange={handleImageChange}
-            pendingImageUrl={pendingImageUrl}
-            hasUnsavedChanges={!!pendingImageUrl || hasUnsavedChanges}
+            hasUnsavedChanges={hasUnsavedChanges}
           />
         </div>
 
@@ -159,15 +117,15 @@ const HeroSectionSettings = ({
         </div>
 
         <Button 
-          onClick={handleSave}
-          disabled={saving || uploading}
+          onClick={onSave}
+          disabled={saving}
           className="w-full"
         >
           <Save className="h-4 w-4 mr-2" />
-          {saving || uploading ? 'Saving...' : 'Save Hero Settings'}
+          {saving ? 'Saving...' : 'Save Hero Settings'}
         </Button>
 
-        {(hasUnsavedChanges || pendingImageUrl) && (
+        {hasUnsavedChanges && (
           <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
             <div className="flex items-center gap-2 text-orange-700">
               <AlertCircle className="h-4 w-4" />

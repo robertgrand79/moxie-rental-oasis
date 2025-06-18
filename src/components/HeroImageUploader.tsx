@@ -2,28 +2,26 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, X, Loader2, AlertCircle, CheckCircle, Image } from 'lucide-react';
+import { useHeroImageUpload } from '@/hooks/useHeroImageUpload';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
+import { toast } from '@/hooks/use-toast';
 
 interface HeroImageUploaderProps {
   currentImageUrl: string | null;
   onImageChange: (imageUrl: string | null) => void;
-  pendingImageUrl?: string | null;
   hasUnsavedChanges?: boolean;
 }
 
 const HeroImageUploader = ({ 
   currentImageUrl, 
   onImageChange, 
-  pendingImageUrl,
   hasUnsavedChanges = false 
 }: HeroImageUploaderProps) => {
   const [dragActive, setDragActive] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  // Use pending image if available, otherwise use current
-  const displayImageUrl = pendingImageUrl || currentImageUrl;
+  const [isUploading, setIsUploading] = useState(false);
+  const { uploadHeroImage, deleteHeroImage } = useHeroImageUpload();
+  const { saveSetting } = useSimplifiedSiteSettings();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -35,22 +33,59 @@ const HeroImageUploader = ({
     }
   }, []);
 
-  const handleFileSelect = (file: File) => {
-    setError(null);
-    
+  const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      setError('Please select an image file (JPEG, PNG, WebP, or GIF).');
+      toast({
+        title: 'Invalid file type',
+        description: 'Please select an image file (JPEG, PNG, WebP, or GIF).',
+        variant: 'destructive'
+      });
       return;
     }
 
-    setSelectedFile(file);
-    
-    // Create preview URL
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    
-    // Set the preview as pending image
-    onImageChange(url);
+    setIsUploading(true);
+    console.log('[Hero Image] Starting upload process for:', file.name);
+
+    try {
+      // Upload the image to storage
+      const uploadedUrl = await uploadHeroImage(file);
+      
+      if (uploadedUrl) {
+        console.log('[Hero Image] Upload successful, saving to database:', uploadedUrl);
+        
+        // Save the URL to the database immediately
+        const saveSuccess = await saveSetting('heroBackgroundImage', uploadedUrl);
+        
+        if (saveSuccess) {
+          console.log('[Hero Image] Database save successful');
+          // Notify parent component of the change
+          onImageChange(uploadedUrl);
+          
+          toast({
+            title: 'Hero image updated',
+            description: 'Your hero background image has been successfully updated.',
+          });
+        } else {
+          console.error('[Hero Image] Database save failed');
+          toast({
+            title: 'Save error',
+            description: 'Image uploaded but failed to save to database. Please try again.',
+            variant: 'destructive'
+          });
+        }
+      } else {
+        console.error('[Hero Image] Upload failed');
+      }
+    } catch (error) {
+      console.error('[Hero Image] Upload process failed:', error);
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload hero image. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -73,98 +108,81 @@ const HeroImageUploader = ({
     e.target.value = '';
   };
 
-  const removeImage = () => {
-    console.log('Removing hero image');
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setError(null);
-    onImageChange(null);
+  const removeImage = async () => {
+    console.log('[Hero Image] Removing hero image');
+    setIsUploading(true);
+    
+    try {
+      // If there's a current image, try to delete it from storage
+      if (currentImageUrl) {
+        await deleteHeroImage(currentImageUrl);
+      }
+      
+      // Save empty string to database
+      const saveSuccess = await saveSetting('heroBackgroundImage', '');
+      
+      if (saveSuccess) {
+        console.log('[Hero Image] Image removal successful');
+        onImageChange(null);
+        
+        toast({
+          title: 'Hero image removed',
+          description: 'Your hero background image has been removed.',
+        });
+      } else {
+        toast({
+          title: 'Remove error',
+          description: 'Failed to remove hero image. Please try again.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('[Hero Image] Remove process failed:', error);
+      toast({
+        title: 'Remove failed',
+        description: 'Failed to remove hero image. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
-
-  const clearSelection = () => {
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setError(null);
-    // Restore to current saved image
-    onImageChange(currentImageUrl);
-  };
-
-  // Determine what to display
-  const shouldShowPreview = selectedFile && previewUrl;
-  const shouldShowCurrentImage = !shouldShowPreview && displayImageUrl && !displayImageUrl.startsWith('blob:');
 
   return (
     <div>
       <Label className="flex items-center gap-2">
         Hero Background Image
-        {hasUnsavedChanges && (
-          <div className="flex items-center gap-1 text-orange-600">
-            <AlertCircle className="h-3 w-3" />
-            <span className="text-xs">Unsaved changes</span>
+        {isUploading && (
+          <div className="flex items-center gap-1 text-blue-600">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            <span className="text-xs">Uploading...</span>
           </div>
         )}
-        {shouldShowCurrentImage && !hasUnsavedChanges && (
+        {currentImageUrl && !isUploading && (
           <div className="flex items-center gap-1 text-green-600">
             <CheckCircle className="h-3 w-3" />
             <span className="text-xs">Saved</span>
           </div>
         )}
       </Label>
-      
-      {error && (
-        <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-sm text-red-600">{error}</p>
-        </div>
-      )}
 
       <div
         className={`mt-1 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-        } ${shouldShowCurrentImage ? 'border-green-500' : ''} ${hasUnsavedChanges ? 'border-orange-500' : ''}`}
+        } ${currentImageUrl ? 'border-green-500' : ''} ${isUploading ? 'opacity-75' : ''}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        {shouldShowPreview ? (
+        {currentImageUrl && !isUploading ? (
           <div className="relative">
             <img
-              src={previewUrl}
-              alt="Hero background preview"
-              className="w-full h-40 object-cover rounded-md"
-            />
-            <div className="absolute top-2 right-2 flex gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={clearSelection}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                onClick={removeImage}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="mt-2 text-xs text-blue-600">
-              <p className="font-medium">
-                New image selected - Click "Save Hero Settings" to upload
-              </p>
-            </div>
-          </div>
-        ) : shouldShowCurrentImage ? (
-          <div className="relative">
-            <img
-              src={displayImageUrl}
+              src={currentImageUrl}
               alt="Hero background preview"
               className="w-full h-40 object-cover rounded-md"
               onError={(e) => {
-                console.error('Image failed to load:', displayImageUrl);
+                console.error('Image failed to load:', currentImageUrl);
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
               }}
@@ -175,20 +193,22 @@ const HeroImageUploader = ({
               size="sm"
               className="absolute top-2 right-2"
               onClick={removeImage}
+              disabled={isUploading}
             >
               <X className="h-4 w-4" />
             </Button>
             <div className="mt-2 text-xs text-gray-500">
-              {hasUnsavedChanges ? (
-                <p className="text-orange-600 font-medium">
-                  Changes pending - Click "Save Hero Settings" to apply
-                </p>
-              ) : (
-                <p>
-                  Click the X to remove, or drag a new image to replace
-                </p>
-              )}
+              <p>
+                Click the X to remove, or drag a new image to replace
+              </p>
             </div>
+          </div>
+        ) : isUploading ? (
+          <div className="flex flex-col items-center">
+            <Loader2 className="h-12 w-12 text-blue-500 animate-spin mb-2" />
+            <p className="text-sm text-blue-600 font-medium">
+              Uploading and saving your hero image...
+            </p>
           </div>
         ) : (
           <>
@@ -203,6 +223,7 @@ const HeroImageUploader = ({
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileChange}
+                disabled={isUploading}
               />
             </label>
             <p className="text-xs text-gray-500 mt-2">
