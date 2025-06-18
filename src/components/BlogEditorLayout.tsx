@@ -13,6 +13,8 @@ interface BlogFormData {
   content: string;
   tags: string;
   status: 'draft' | 'published';
+  author: string;
+  published_at: Date | null;
 }
 
 interface BlogEditorLayoutProps {

@@ -23,7 +23,9 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       excerpt: post?.excerpt || '',
       content: post?.content || '',
       tags: post?.tags?.join(', ') || '',
-      status: post?.status || 'draft'
+      status: post?.status || 'draft',
+      author: post?.author || 'Admin',
+      published_at: post?.published_at ? new Date(post.published_at) : null
     }
   });
 
@@ -35,7 +37,8 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       title: watchedValues.title,
       excerpt: watchedValues.excerpt,
       content: content,
-      tags: watchedValues.tags
+      tags: watchedValues.tags,
+      author: watchedValues.author
     },
     postId: autoSavedPost?.id,
     onAutoSave: (savedPost) => {
@@ -59,7 +62,8 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       content,
       image_url: uploadedImage,
       tags: data.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag),
-      author: 'Admin',
+      author: data.author === 'custom' ? data.customAuthor || 'Admin' : data.author,
+      published_at: data.published_at ? data.published_at.toISOString() : null,
       slug: data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     };
 

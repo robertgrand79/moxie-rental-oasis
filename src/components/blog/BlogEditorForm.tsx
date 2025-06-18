@@ -4,6 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { UseFormReturn } from 'react-hook-form';
 import ReactQuillEditor from '@/components/ReactQuillEditor';
 import ImageUploader from '@/components/ImageUploader';
@@ -14,6 +20,8 @@ interface BlogFormData {
   content: string;
   tags: string;
   status: 'draft' | 'published';
+  author: string;
+  published_at: Date | null;
 }
 
 interface BlogEditorFormProps {
@@ -37,7 +45,17 @@ const BlogEditorForm = ({
   isEditing,
   onCancel
 }: BlogEditorFormProps) => {
-  const { register, handleSubmit, formState: { errors }, setValue } = form;
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = form;
+  const watchedAuthor = watch('author');
+  const watchedPublishedAt = watch('published_at');
+
+  const predefinedAuthors = [
+    { value: 'Admin', label: 'Admin' },
+    { value: 'Robert', label: 'Robert' },
+    { value: 'Shelly', label: 'Shelly' },
+    { value: 'Robert & Shelly', label: 'Robert & Shelly' },
+    { value: 'custom', label: 'Custom Author...' }
+  ];
 
   const handleEditorChange = (newContent: string) => {
     console.log('📝 ReactQuill content changed:', newContent.substring(0, 100));
@@ -53,6 +71,14 @@ const BlogEditorForm = ({
   const handlePublish = () => {
     setValue('status', 'published');
     handleSubmit(onSubmit)();
+  };
+
+  const handleAuthorChange = (value: string) => {
+    setValue('author', value);
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setValue('published_at', date || null);
   };
 
   return (
@@ -71,6 +97,65 @@ const BlogEditorForm = ({
           )}
         </div>
 
+        <div>
+          <Label htmlFor="author">Author</Label>
+          <Select value={watchedAuthor} onValueChange={handleAuthorChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select author" />
+            </SelectTrigger>
+            <SelectContent>
+              {predefinedAuthors.map((author) => (
+                <SelectItem key={author.value} value={author.value}>
+                  {author.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {watchedAuthor === 'custom' && (
+            <Input
+              className="mt-2"
+              placeholder="Enter custom author name"
+              {...register('author', { required: 'Author is required' })}
+            />
+          )}
+          {errors.author && (
+            <p className="text-sm text-red-600 mt-1">{errors.author.message}</p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="published_at">Publication Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !watchedPublishedAt && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {watchedPublishedAt ? (
+                  format(watchedPublishedAt, "PPP")
+                ) : (
+                  <span>Pick a date (optional)</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={watchedPublishedAt || undefined}
+                onSelect={handleDateSelect}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <Label htmlFor="excerpt">Excerpt</Label>
           <Textarea
