@@ -4,7 +4,7 @@ import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCar
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Mail, ExternalLink, CheckCircle, AlertCircle, Send, Shield, Globe } from 'lucide-react';
+import { Save, Mail, ExternalLink, CheckCircle, AlertCircle, Send, Shield, Globe, Loader2, Clock } from 'lucide-react';
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +18,7 @@ const EmailServicesTab = () => {
   });
   const [testEmail, setTestEmail] = useState('');
   const [testing, setTesting] = useState(false);
+  const [lastTestResult, setLastTestResult] = useState<any>(null);
 
   // Update local state when settings change
   React.useEffect(() => {
@@ -55,38 +56,77 @@ const EmailServicesTab = () => {
     }
 
     setTesting(true);
+    setLastTestResult(null);
+    
     try {
+      console.log('Sending test email request...');
+      
       const { data, error } = await supabase.functions.invoke('send-newsletter-preview', {
         body: {
           email: testEmail,
-          subject: 'SendGrid Configuration Test - Moxie Vacation Rentals',
+          subject: 'SendGrid Domain Verification Test',
           content: `
-            <h2>SendGrid Test Email</h2>
-            <p>Congratulations! Your SendGrid configuration is working correctly with your moxievacationrentals.com domain.</p>
-            <p>This test email was sent from your newsletter system using the following configuration:</p>
+            <h2>✅ SendGrid Integration Test Successful!</h2>
+            <p>Congratulations! Your SendGrid configuration is working correctly with your <strong>moxievacationrentals.com</strong> domain.</p>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+              <h3>What this test confirms:</h3>
+              <ul>
+                <li>✅ SendGrid API key is properly configured</li>
+                <li>✅ Domain authentication is working</li>
+                <li>✅ Email delivery is functional</li>
+                <li>✅ Sender settings are correctly applied</li>
+              </ul>
+            </div>
+            
+            <p><strong>Configuration used for this test:</strong></p>
             <ul>
               <li><strong>From:</strong> ${localSettings.emailFromName} &lt;${localSettings.emailFromAddress}&gt;</li>
               <li><strong>Reply-To:</strong> ${localSettings.emailReplyTo}</li>
-              <li><strong>Sent at:</strong> ${new Date().toLocaleString()}</li>
+              <li><strong>Domain:</strong> ${localSettings.emailFromAddress.split('@')[1]}</li>
             </ul>
-            <p>Your domain verification and email configuration are working properly!</p>
+            
+            <p>Your newsletter system is ready to send emails to your subscribers!</p>
           `
         }
       });
 
+      console.log('Test email response:', { data, error });
+
       if (error) {
+        console.error('Supabase function error:', error);
         throw error;
       }
 
-      toast({
-        title: 'Test Email Sent!',
-        description: `A test email has been sent to ${testEmail} from ${localSettings.emailFromAddress}. Check your inbox.`,
-      });
-    } catch (error) {
+      if (data?.success) {
+        setLastTestResult(data);
+        toast({
+          title: '✅ Test Email Sent Successfully!',
+          description: `Test email delivered to ${testEmail} from ${data.details?.from || localSettings.emailFromAddress}. Check your inbox!`,
+        });
+      } else {
+        throw new Error(data?.error || 'Unknown error occurred');
+      }
+
+    } catch (error: any) {
       console.error('Test email error:', error);
+      setLastTestResult({ success: false, error: error.message });
+      
+      let errorMessage = 'Failed to send test email. ';
+      
+      if (error.message?.includes('Admin access required')) {
+        errorMessage += 'Please ensure you have admin privileges.';
+      } else if (error.message?.includes('SendGrid API key')) {
+        errorMessage += 'Please check your SendGrid API key configuration.';
+      } else if (error.message?.includes('domain')) {
+        errorMessage += 'Please verify your domain in SendGrid.';
+      } else {
+        errorMessage += error.message || 'Please check your configuration and try again.';
+      }
+      
       toast({
         title: 'Test Email Failed',
-        description: error.message || 'Failed to send test email. Please check your SendGrid configuration and domain verification.',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -252,9 +292,57 @@ const EmailServicesTab = () => {
             className="w-full"
             variant="outline"
           >
-            <Send className="h-4 w-4 mr-2" />
-            {testing ? 'Sending Test Email...' : 'Send Test Email'}
+            {testing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Sending Test Email...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Send Test Email
+              </>
+            )}
           </Button>
+
+          {/* Test Result Display */}
+          {lastTestResult && (
+            <div className={`p-4 rounded-lg border ${
+              lastTestResult.success 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <div className="flex items-start">
+                {lastTestResult.success ? (
+                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 mr-2" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 mr-2" />
+                )}
+                <div className="text-sm">
+                  <h4 className={`font-medium mb-2 ${
+                    lastTestResult.success ? 'text-green-900' : 'text-red-900'
+                  }`}>
+                    {lastTestResult.success ? '✅ Test Email Sent Successfully!' : '❌ Test Email Failed'}
+                  </h4>
+                  {lastTestResult.success && lastTestResult.details && (
+                    <div className="space-y-1 text-green-700">
+                      <p><strong>To:</strong> {lastTestResult.details.to}</p>
+                      <p><strong>From:</strong> {lastTestResult.details.fromName} &lt;{lastTestResult.details.from}&gt;</p>
+                      <p><strong>Reply-To:</strong> {lastTestResult.details.replyTo}</p>
+                      <p><strong>Domain:</strong> {lastTestResult.details.domain}</p>
+                      <div className="flex items-center mt-2">
+                        <Clock className="h-4 w-4 mr-1" />
+                        <span className="text-xs">Sent at {new Date(lastTestResult.details.timestamp).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  )}
+                  {!lastTestResult.success && (
+                    <p className="text-red-700">{lastTestResult.error}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <h4 className="font-medium text-gray-900 mb-2">Configuration Checklist:</h4>
@@ -268,11 +356,19 @@ const EmailServicesTab = () => {
                 API key generated and added to secrets
               </li>
               <li className="flex items-center">
-                <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
+                {lastTestResult?.success ? (
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
+                )}
                 Domain moxievacationrentals.com verified in SendGrid
               </li>
               <li className="flex items-center">
-                <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
+                {lastTestResult?.success ? (
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
+                )}
                 Test email sent successfully from verified domain
               </li>
             </ul>
