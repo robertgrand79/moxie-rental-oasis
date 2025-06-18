@@ -59,7 +59,7 @@ export const useTaskOperations = (
               user_id,
               assigned_at,
               assigned_by,
-              profiles:user_id(id, email, full_name)
+              profiles(id, email, full_name)
             `)
             .eq('task_id', data.id)
         );
@@ -174,7 +174,7 @@ export const useTaskOperations = (
               user_id,
               assigned_at,
               assigned_by,
-              profiles:user_id(id, email, full_name)
+              profiles(id, email, full_name)
             `)
             .eq('task_id', data.id)
         );
@@ -303,7 +303,7 @@ export const useTaskOperations = (
             user_id,
             assigned_at,
             assigned_by,
-            profiles:user_id(id, email, full_name)
+            profiles(id, email, full_name)
           )
         `)
         .eq('id', taskId)
