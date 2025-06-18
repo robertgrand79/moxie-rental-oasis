@@ -7,21 +7,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
+import ProjectBasicInfoForm from './forms/ProjectBasicInfoForm';
+import ProjectTypeSelectionForm from './forms/ProjectTypeSelectionForm';
+import ProjectDateSelectionForm from './forms/ProjectDateSelectionForm';
 
 interface CreateProjectFromWorkOrderModalProps {
   isOpen: boolean;
@@ -29,14 +19,6 @@ interface CreateProjectFromWorkOrderModalProps {
   onCreateProject: (projectData: any) => Promise<void>;
   workOrder: WorkOrder;
 }
-
-const projectTypes = [
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'turnover', label: 'Turnover' },
-  { value: 'inspection', label: 'Inspection' },
-  { value: 'repair', label: 'Repair' },
-  { value: 'improvement', label: 'Improvement' },
-];
 
 const CreateProjectFromWorkOrderModal = ({
   isOpen,
@@ -58,6 +40,10 @@ const CreateProjectFromWorkOrderModal = ({
     workOrder.estimated_completion_date ? new Date(workOrder.estimated_completion_date) : undefined
   );
   const [loading, setLoading] = useState(false);
+
+  const handleFormChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,112 +74,22 @@ const CreateProjectFromWorkOrderModal = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="title">Project Title</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
-            />
-          </div>
+          <ProjectBasicInfoForm 
+            formData={formData}
+            onFormChange={handleFormChange}
+          />
 
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={4}
-            />
-          </div>
+          <ProjectTypeSelectionForm
+            formData={formData}
+            onFormChange={handleFormChange}
+          />
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Project Type</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => setFormData({ ...formData, type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {projectTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Priority</Label>
-              <Select
-                value={formData.priority}
-                onValueChange={(value) => setFormData({ ...formData, priority: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Start Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, 'PPP') : 'Pick start date'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div>
-              <Label>Target Completion</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {targetDate ? format(targetDate, 'PPP') : 'Pick target date'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={targetDate}
-                    onSelect={setTargetDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
+          <ProjectDateSelectionForm
+            startDate={startDate}
+            targetDate={targetDate}
+            onStartDateChange={setStartDate}
+            onTargetDateChange={setTargetDate}
+          />
 
           <div className="flex gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
