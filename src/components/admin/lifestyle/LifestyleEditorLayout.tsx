@@ -10,13 +10,14 @@ import LifestylePreview from './LifestylePreview';
 import LifestyleAllFieldsGenerator from './LifestyleAllFieldsGenerator';
 import LifestyleGalleryGrid from './LifestyleGalleryGrid';
 import LifestyleStatusFilter from './LifestyleStatusFilter';
+import { LifestyleGalleryFormData } from './LifestyleGalleryFormFields';
 
 interface LifestyleEditorLayoutProps {
   galleryItems: LifestyleGalleryItem[];
   categories: Array<{ value: string; label: string }>;
   activityTypes: Array<{ value: string; label: string }>;
   isLoading: boolean;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: LifestyleGalleryFormData) => Promise<void>;
   onEdit: (item: LifestyleGalleryItem) => void;
   onDelete: (id: string) => void;
   onEnhance: (item: LifestyleGalleryItem) => void;
@@ -41,7 +42,7 @@ const LifestyleEditorLayout = ({
   const [activeTab, setActiveTab] = useState('list');
   const [editingItem, setEditingItem] = useState<LifestyleGalleryItem | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LifestyleGalleryFormData>({
     title: '',
     description: '',
     image_url: '',
@@ -104,7 +105,7 @@ const LifestyleEditorLayout = ({
     setActiveTab('editor');
   };
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: LifestyleGalleryFormData) => {
     await onSubmit(data);
     setActiveTab('list');
   };

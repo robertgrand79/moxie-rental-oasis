@@ -17,6 +17,7 @@ export interface LifestyleGalleryFormData {
   is_featured: boolean;
   is_active: boolean;
   status: string;
+  created_by: string;
 }
 
 interface LifestyleGalleryFormFieldsProps {

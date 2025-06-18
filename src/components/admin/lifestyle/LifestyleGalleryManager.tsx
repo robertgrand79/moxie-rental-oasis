@@ -33,6 +33,13 @@ const LifestyleGalleryManager = () => {
     return galleryItems.filter(item => item.status === selectedStatus);
   }, [galleryItems, selectedStatus]);
 
+  // Calculate item counts for filter badges
+  const itemCounts = useMemo(() => ({
+    all: galleryItems.length,
+    draft: galleryItems.filter(item => item.status === 'draft').length,
+    published: galleryItems.filter(item => item.status === 'published').length,
+  }), [galleryItems]);
+
   if (isLoading) {
     return (
       <Card>
@@ -64,6 +71,7 @@ const LifestyleGalleryManager = () => {
             <LifestyleStatusFilter
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
+              itemCounts={itemCounts}
             />
             <Button onClick={handleAddNew}>
               <Plus className="h-4 w-4 mr-2" />
