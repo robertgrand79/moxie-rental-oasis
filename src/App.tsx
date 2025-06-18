@@ -32,6 +32,7 @@ import AdminPOI from './pages/admin/AdminPOI';
 import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminEvents from './pages/admin/AdminEvents';
 import AdminWorkOrders from './pages/admin/AdminWorkOrders';
+import AdminContractors from './pages/admin/AdminContractors';
 import AdminPropertyManagement from './pages/admin/AdminPropertyManagement';
 import AdminTaskManagementRedirect from '@/pages/admin/AdminTaskManagementRedirect';
 
@@ -78,6 +79,7 @@ function App() {
                 <Route path="testimonials" element={<AdminTestimonials />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="work-orders" element={<AdminWorkOrders />} />
+                <Route path="contractors" element={<AdminContractors />} />
                 <Route path="property-management" element={<AdminPropertyManagement />} />
                 
                 {/* Redirect old task management to property management */}

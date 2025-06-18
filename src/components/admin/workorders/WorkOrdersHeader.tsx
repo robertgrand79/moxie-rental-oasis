@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Users, FileText } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -15,7 +14,6 @@ interface WorkOrdersHeaderProps {
   totalWorkOrders: number;
   pendingWorkOrders: number;
   onCreateWorkOrder: () => void;
-  onCreateContractor: () => void;
   statusFilter: string;
   onStatusFilterChange: (status: string) => void;
   priorityFilter: string;
@@ -26,7 +24,6 @@ const WorkOrdersHeader = ({
   totalWorkOrders,
   pendingWorkOrders,
   onCreateWorkOrder,
-  onCreateContractor,
   statusFilter,
   onStatusFilterChange,
   priorityFilter,
@@ -36,40 +33,23 @@ const WorkOrdersHeader = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Work Orders</h1>
-          <p className="text-gray-600">Manage property repairs and maintenance requests</p>
+          <h1 className="text-2xl font-bold text-gray-900">Work Orders</h1>
+          <p className="text-gray-600">
+            {totalWorkOrders} total work orders, {pendingWorkOrders} pending
+          </p>
         </div>
-        
-        <div className="flex gap-2">
-          <Button onClick={onCreateContractor} variant="outline">
-            <Users className="h-4 w-4 mr-2" />
-            New Contractor
-          </Button>
-          <Button onClick={onCreateWorkOrder}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Work Order
-          </Button>
-        </div>
+        <Button onClick={onCreateWorkOrder}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Work Order
+        </Button>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Total Work Orders:</span>
-            <Badge variant="outline">{totalWorkOrders}</Badge>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Pending:</span>
-            <Badge variant="outline" className="bg-orange-50 text-orange-700">
-              {pendingWorkOrders}
-            </Badge>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">Status:</label>
           <Select value={statusFilter} onValueChange={onStatusFilterChange}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
@@ -80,12 +60,16 @@ const WorkOrdersHeader = ({
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="invoiced">Invoiced</SelectItem>
               <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
+        </div>
 
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">Priority:</label>
           <Select value={priorityFilter} onValueChange={onPriorityFilterChange}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter by priority" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Priorities</SelectItem>

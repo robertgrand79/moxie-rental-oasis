@@ -1,4 +1,3 @@
-
 import { 
   BarChart3, 
   FileText, 
@@ -16,7 +15,8 @@ import {
   UserCheck,
   Shield,
   Wrench,
-  Building2
+  Building2,
+  HardHat
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -92,6 +92,12 @@ export const adminMenuItems: MenuSection[] = [
         icon: Wrench,
         href: '/admin/work-orders',
         description: 'Contractor work orders'
+      },
+      {
+        title: 'Contractors',
+        icon: HardHat,
+        href: '/admin/contractors',
+        description: 'Manage contractors and vendor relationships'
       }
     ]
   },

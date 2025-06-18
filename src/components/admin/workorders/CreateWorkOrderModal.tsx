@@ -23,7 +23,6 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Contractor, WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { useProperties } from '@/hooks/useProperties';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface CreateWorkOrderModalProps {
   isOpen: boolean;
@@ -68,9 +67,6 @@ const CreateWorkOrderModal = ({
     priority: editingWorkOrder?.priority || 'medium',
     contractor_id: editingWorkOrder?.contractor_id || 'none',
     property_id: editingWorkOrder?.property_id || 'none',
-    estimated_cost: editingWorkOrder?.estimated_cost?.toString() || '',
-    actual_cost: editingWorkOrder?.actual_cost?.toString() || '',
-    requires_permits: editingWorkOrder?.requires_permits || false,
     special_instructions: editingWorkOrder?.special_instructions || '',
   });
   
@@ -89,8 +85,6 @@ const CreateWorkOrderModal = ({
         ...formData,
         contractor_id: formData.contractor_id === 'none' ? undefined : formData.contractor_id,
         property_id: formData.property_id === 'none' ? undefined : formData.property_id,
-        estimated_cost: formData.estimated_cost ? parseFloat(formData.estimated_cost) : undefined,
-        actual_cost: formData.actual_cost ? parseFloat(formData.actual_cost) : undefined,
         estimated_completion_date: estimatedCompletionDate ? format(estimatedCompletionDate, 'yyyy-MM-dd') : undefined,
       });
       
@@ -102,9 +96,6 @@ const CreateWorkOrderModal = ({
         priority: 'medium',
         contractor_id: 'none',
         property_id: 'none',
-        estimated_cost: '',
-        actual_cost: '',
-        requires_permits: false,
         special_instructions: '',
       });
       setEstimatedCompletionDate(undefined);
@@ -240,32 +231,6 @@ const CreateWorkOrderModal = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="estimated_cost">Estimated Cost ($)</Label>
-              <Input
-                id="estimated_cost"
-                type="number"
-                step="0.01"
-                value={formData.estimated_cost}
-                onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="actual_cost">Actual Cost ($)</Label>
-              <Input
-                id="actual_cost"
-                type="number"
-                step="0.01"
-                value={formData.actual_cost}
-                onChange={(e) => setFormData({ ...formData, actual_cost: e.target.value })}
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-
           <div>
             <Label>Estimated Completion Date</Label>
             <Popover>
@@ -287,15 +252,6 @@ const CreateWorkOrderModal = ({
                 />
               </PopoverContent>
             </Popover>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="requires_permits"
-              checked={formData.requires_permits}
-              onCheckedChange={(checked) => setFormData({ ...formData, requires_permits: checked as boolean })}
-            />
-            <Label htmlFor="requires_permits">Requires permits</Label>
           </div>
 
           <div>

@@ -22,10 +22,13 @@ export const workOrderService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
+    // Remove pricing and permit fields from the data being sent
+    const { estimated_cost, actual_cost, requires_permits, ...cleanData } = workOrderData as any;
+
     const { data, error } = await supabase
       .from('work_orders')
       .insert([{ 
-        ...workOrderData, 
+        ...cleanData, 
         created_by: user.id,
         work_order_number: '' // This will trigger auto-generation via database trigger
       }])
@@ -42,9 +45,12 @@ export const workOrderService = {
   },
 
   async update(workOrderId: string, updates: Partial<WorkOrder>) {
+    // Remove pricing and permit fields from updates
+    const { estimated_cost, actual_cost, requires_permits, ...cleanUpdates } = updates as any;
+
     const { data, error } = await supabase
       .from('work_orders')
-      .update(updates)
+      .update(cleanUpdates)
       .eq('id', workOrderId)
       .select(`
         *,
