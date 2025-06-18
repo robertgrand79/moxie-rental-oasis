@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import EventBasicInfoFields from './fields/EventBasicInfoFields';
+import EventDateTimeFields from './fields/EventDateTimeFields';
+import EventLocationCategoryFields from './fields/EventLocationCategoryFields';
+import EventUrlFields from './fields/EventUrlFields';
+import EventOptionsFields from './fields/EventOptionsFields';
 
 export interface EventFormData {
   title: string;
@@ -44,195 +44,55 @@ const EventFormFields = ({
 }: EventFormFieldsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="md:col-span-2">
-        <Label htmlFor="title">Event Title *</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          required
-        />
-      </div>
+      <EventBasicInfoFields
+        title={formData.title}
+        description={formData.description}
+        onTitleChange={(title) => setFormData({ ...formData, title })}
+        onDescriptionChange={(description) => setFormData({ ...formData, description })}
+      />
 
-      <div className="md:col-span-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          rows={3}
-        />
-      </div>
+      <EventDateTimeFields
+        eventDate={formData.event_date}
+        endDate={formData.end_date}
+        timeStart={formData.time_start}
+        timeEnd={formData.time_end}
+        onEventDateChange={(event_date) => setFormData({ ...formData, event_date })}
+        onEndDateChange={(end_date) => setFormData({ ...formData, end_date })}
+        onTimeStartChange={(time_start) => setFormData({ ...formData, time_start })}
+        onTimeEndChange={(time_end) => setFormData({ ...formData, time_end })}
+      />
 
-      <div>
-        <Label htmlFor="event_date">Start Date *</Label>
-        <Input
-          id="event_date"
-          type="date"
-          value={formData.event_date}
-          onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
-          required
-        />
-      </div>
+      <EventLocationCategoryFields
+        location={formData.location}
+        category={formData.category}
+        priceRange={formData.price_range}
+        status={formData.status}
+        categories={categories}
+        onLocationChange={onLocationChange}
+        onCategoryChange={onCategoryChange}
+        onPriceRangeChange={(price_range) => setFormData({ ...formData, price_range })}
+        onStatusChange={(status) => setFormData({ ...formData, status })}
+      />
 
-      <div>
-        <Label htmlFor="end_date">End Date</Label>
-        <Input
-          id="end_date"
-          type="date"
-          value={formData.end_date}
-          onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-        />
-      </div>
+      <EventUrlFields
+        imageUrl={formData.image_url}
+        websiteUrl={formData.website_url}
+        ticketUrl={formData.ticket_url}
+        onImageUrlChange={(image_url) => setFormData({ ...formData, image_url })}
+        onWebsiteUrlChange={(website_url) => setFormData({ ...formData, website_url })}
+        onTicketUrlChange={(ticket_url) => setFormData({ ...formData, ticket_url })}
+      />
 
-      <div>
-        <Label htmlFor="time_start">Start Time</Label>
-        <Input
-          id="time_start"
-          placeholder="e.g., 7:00 PM"
-          value={formData.time_start}
-          onChange={(e) => setFormData({ ...formData, time_start: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="time_end">End Time</Label>
-        <Input
-          id="time_end"
-          placeholder="e.g., 10:00 PM"
-          value={formData.time_end}
-          onChange={(e) => setFormData({ ...formData, time_end: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="location">Location</Label>
-        <Input
-          id="location"
-          placeholder="Venue name or address"
-          value={formData.location}
-          onChange={(e) => onLocationChange(e.target.value)}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="category">Category</Label>
-        <Select
-          value={formData.category}
-          onValueChange={onCategoryChange}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category.value} value={category.value}>
-                {category.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label htmlFor="price_range">Price Range</Label>
-        <Input
-          id="price_range"
-          placeholder="e.g., Free, $20-50, $100+"
-          value={formData.price_range}
-          onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="status">Status</Label>
-        <Select
-          value={formData.status}
-          onValueChange={(value) => setFormData({ ...formData, status: value })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="published">Published</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="md:col-span-2">
-        <Label htmlFor="image_url">Image URL</Label>
-        <Input
-          id="image_url"
-          type="url"
-          placeholder="https://..."
-          value={formData.image_url}
-          onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="website_url">Website URL</Label>
-        <Input
-          id="website_url"
-          type="url"
-          placeholder="https://..."
-          value={formData.website_url}
-          onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="ticket_url">Ticket URL</Label>
-        <Input
-          id="ticket_url"
-          type="url"
-          placeholder="https://..."
-          value={formData.ticket_url}
-          onChange={(e) => setFormData({ ...formData, ticket_url: e.target.value })}
-        />
-      </div>
-
-      <div className="md:col-span-2 flex flex-wrap gap-4">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="is_featured"
-            checked={formData.is_featured}
-            onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
-          />
-          <Label htmlFor="is_featured">Featured Event</Label>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="is_active"
-            checked={formData.is_active}
-            onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-          />
-          <Label htmlFor="is_active">Active</Label>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="is_recurring"
-            checked={formData.is_recurring}
-            onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked })}
-          />
-          <Label htmlFor="is_recurring">Recurring Event</Label>
-        </div>
-      </div>
-
-      {formData.is_recurring && (
-        <div className="md:col-span-2">
-          <Label htmlFor="recurrence_pattern">Recurrence Pattern</Label>
-          <Input
-            id="recurrence_pattern"
-            placeholder="e.g., Every Saturday, Monthly, etc."
-            value={formData.recurrence_pattern}
-            onChange={(e) => setFormData({ ...formData, recurrence_pattern: e.target.value })}
-          />
-        </div>
-      )}
+      <EventOptionsFields
+        isFeatured={formData.is_featured}
+        isActive={formData.is_active}
+        isRecurring={formData.is_recurring}
+        recurrencePattern={formData.recurrence_pattern}
+        onFeaturedChange={(is_featured) => setFormData({ ...formData, is_featured })}
+        onActiveChange={(is_active) => setFormData({ ...formData, is_active })}
+        onRecurringChange={(is_recurring) => setFormData({ ...formData, is_recurring })}
+        onRecurrencePatternChange={(recurrence_pattern) => setFormData({ ...formData, recurrence_pattern })}
+      />
     </div>
   );
 };
