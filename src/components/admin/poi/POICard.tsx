@@ -36,8 +36,11 @@ const POICard = ({
                 {poi.is_featured && (
                   <Badge className="bg-blue-600 text-white">Featured</Badge>
                 )}
+                <Badge variant={poi.status === 'published' ? 'default' : 'secondary'}>
+                  {poi.status}
+                </Badge>
                 {!poi.is_active && (
-                  <Badge variant="secondary">Inactive</Badge>
+                  <Badge variant="outline">Inactive</Badge>
                 )}
               </div>
             </div>

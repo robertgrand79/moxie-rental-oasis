@@ -22,6 +22,7 @@ export interface PointOfInterest {
   is_featured: boolean;
   is_active: boolean;
   display_order: number;
+  status: string;
   created_by: string;
   created_at: string;
   updated_at: string;

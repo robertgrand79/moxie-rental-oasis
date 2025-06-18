@@ -891,6 +891,7 @@ export type Database = {
           phone: string | null
           price_level: number | null
           rating: number | null
+          status: string
           updated_at: string
           walking_time: number | null
           website_url: string | null
@@ -914,6 +915,7 @@ export type Database = {
           phone?: string | null
           price_level?: number | null
           rating?: number | null
+          status?: string
           updated_at?: string
           walking_time?: number | null
           website_url?: string | null
@@ -937,6 +939,7 @@ export type Database = {
           phone?: string | null
           price_level?: number | null
           rating?: number | null
+          status?: string
           updated_at?: string
           walking_time?: number | null
           website_url?: string | null
