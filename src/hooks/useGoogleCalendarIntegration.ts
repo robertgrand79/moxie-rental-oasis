@@ -54,7 +54,7 @@ export const useGoogleCalendarIntegration = () => {
   };
 
   const initiateGoogleAuth = () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const clientId = 'YOUR_GOOGLE_CLIENT_ID'; // This should be set in environment variables
     const redirectUri = `${window.location.origin}/admin/task-management`;
     const scope = 'https://www.googleapis.com/auth/calendar';
     
@@ -232,7 +232,14 @@ export const useGoogleCalendarIntegration = () => {
         .select('*');
 
       if (error) throw error;
-      setSyncSettings(data || []);
+      
+      // Cast the sync_direction to ensure type safety
+      const typedData = (data || []).map(item => ({
+        ...item,
+        sync_direction: item.sync_direction as 'import' | 'export' | 'both'
+      }));
+      
+      setSyncSettings(typedData);
     } catch (error) {
       console.error('Load sync settings error:', error);
     }
@@ -240,9 +247,15 @@ export const useGoogleCalendarIntegration = () => {
 
   const updateSyncSettings = async (settings: Partial<SyncSettings> & { google_calendar_id: string }) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { error } = await supabase
         .from('google_calendar_sync_settings')
-        .upsert(settings, { onConflict: 'user_id,google_calendar_id' });
+        .upsert({
+          ...settings,
+          user_id: user.id
+        }, { onConflict: 'user_id,google_calendar_id' });
 
       if (error) throw error;
       
