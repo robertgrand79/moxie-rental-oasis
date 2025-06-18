@@ -9,6 +9,7 @@ import {
   Settings,
   UserCog,
   Users,
+  Wrench,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -25,6 +26,12 @@ export const adminMenuItems = [
     permissions: ['properties.read'],
   },
   {
+    title: 'Property Management',
+    icon: Building2,
+    href: '/admin/property-management',
+    permissions: ['properties.read'],
+  },
+  {
     title: 'Tasks',
     icon: ListChecks,
     href: '/admin/tasks',
@@ -37,10 +44,10 @@ export const adminMenuItems = [
     permissions: ['workorders.read'],
   },
   {
-    title: 'Calendar',
-    icon: Calendar,
-    href: '/admin/calendar',
-    permissions: ['calendar.read'],
+    title: 'Contractors',
+    icon: Wrench,
+    href: '/admin/contractors',
+    permissions: ['contractors.read'],
   },
   {
     title: 'Analytics',
@@ -54,12 +61,6 @@ export const adminMenuItems = [
     href: '/admin/user-management-enhanced',
     permissions: ['users.read', 'users.update'],
     badge: 'NEW'
-  },
-  {
-    title: 'Settings',
-    icon: Settings,
-    href: '/admin/settings',
-    permissions: ['admin.manage_settings'],
   },
   {
     title: 'Admin Profile',
