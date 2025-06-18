@@ -16,7 +16,7 @@ export const useOptimizedPropertyData = () => {
     try {
       const { data, error } = await supabase
         .from('properties')
-        .select('id, title, location, bedrooms, bathrooms, max_guests, created_at')
+        .select('*')
         .order('title')
         .limit(50); // Limit for performance
 
@@ -38,7 +38,7 @@ export const useOptimizedPropertyData = () => {
         .from('property_projects')
         .select(`
           *,
-          property:properties(id, title, location)
+          property:properties(*)
         `)
         .order('created_at', { ascending: false })
         .limit(100); // Limit for performance
@@ -81,7 +81,7 @@ export const useOptimizedPropertyData = () => {
         .from('property_tasks')
         .select(`
           *,
-          property:properties(id, title, location),
+          property:properties(*),
           project:property_projects(id, title)
         `)
         .order('created_at', { ascending: false })

@@ -82,7 +82,6 @@ const AdminProperties = () => {
               onEdit={handleEditProperty}
               onDelete={deleteProperty}
               onAddProperty={handleAddProperty}
-              loading={loading}
             />
 
             <PaginationControls

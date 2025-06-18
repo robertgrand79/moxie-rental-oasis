@@ -39,10 +39,10 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
 
       const offset = (page - 1) * POSTS_PER_PAGE;
 
-      // Build query with pagination
+      // Build query with pagination - fetch all fields for BlogPost
       let query = supabase
         .from('blog_posts')
-        .select('id, title, excerpt, author, image_url, tags, slug, status, published_at, created_at', { count: 'exact' })
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(offset, offset + POSTS_PER_PAGE - 1);
 

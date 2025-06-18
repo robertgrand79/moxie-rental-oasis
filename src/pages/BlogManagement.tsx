@@ -5,7 +5,7 @@ import { usePaginatedBlogPosts } from '@/hooks/usePaginatedBlogPosts';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import BlogForm from '@/components/BlogForm';
-import BlogPostList from '@/components/BlogPostList';
+import BlogPostsList from '@/components/admin/blog/BlogPostsList';
 import PaginationControls from '@/components/ui/pagination-controls';
 import LoadingState from '@/components/ui/loading-state';
 
@@ -43,6 +43,12 @@ const BlogManagement = () => {
     refetch();
   };
 
+  const handleDeletePost = async (postId: string) => {
+    // TODO: Implement delete functionality
+    console.log('Delete post:', postId);
+    refetch();
+  };
+
   const pageActions = !showAddForm ? (
     <EnhancedButton 
       onClick={handleAddPost} 
@@ -66,16 +72,17 @@ const BlogManagement = () => {
       <div className="p-6">
         {showAddForm ? (
           <BlogForm
-            initialData={editingPost}
-            isEditing={!!editingPost}
-            onClose={handleFormClose}
+            post={editingPost}
+            onSubmit={handleFormClose}
+            onCancel={handleFormClose}
           />
         ) : (
           <div className="space-y-6">
-            <BlogPostList
+            <BlogPostsList
               posts={posts}
               onEdit={handleEditPost}
-              loading={loading}
+              onDelete={handleDeletePost}
+              onAddPost={handleAddPost}
             />
             
             <PaginationControls

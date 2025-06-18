@@ -76,92 +76,6 @@ const EnhancedPropertyManagementDashboard = () => {
     loadData();
   }, []);
 
-  const {
-    handleTaskClick,
-    handleCreateWorkOrder,
-    handleStatusChange,
-    handleCreateTask: originalHandleCreateTask,
-    handleCreateProject: originalHandleCreateProject,
-    handleCreateWorkOrderFromTask,
-    handleDeleteTask: originalHandleDeleteTask,
-    handleToggleBulkMode,
-    handleSelectAllTasks,
-  } = useTaskManagementHandlers({
-    bulkMode,
-    editingTask,
-    selectedTaskForWorkOrder,
-    setEditingTask,
-    setIsTaskModalOpen,
-    setSelectedTaskForWorkOrder,
-    setIsWorkOrderModalOpen,
-    setBulkMode,
-    updateTask,
-    createTask,
-    createProject,
-    createWorkOrder,
-    deleteTask,
-    toggleTaskSelection,
-    selectAllTasks,
-    clearSelection,
-  });
-
-  // Enhanced handlers with loading state management
-  const handleCreateTask = async (taskData: any) => {
-    try {
-      setLoading('creating', true);
-      await originalHandleCreateTask(taskData);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading('creating', false);
-    }
-  };
-
-  const handleCreateProject = async (projectData: any) => {
-    try {
-      setLoading('creating', true);
-      await originalHandleCreateProject(projectData);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading('creating', false);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    try {
-      setLoading('deleting', true);
-      await originalHandleDeleteTask(taskId);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading('deleting', false);
-    }
-  };
-
-  const handleUpdateProject = async (projectId: string, projectData: any) => {
-    try {
-      setLoading('updating', true);
-      await updateProject(projectId, projectData);
-      setEditingProject(null);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading('updating', false);
-    }
-  };
-
-  const handleDeleteProject = async (projectId: string) => {
-    try {
-      setLoading('deleting', true);
-      await deleteProject(projectId);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading('deleting', false);
-    }
-  };
-
   const { totalTasks, completedTasks, pendingTasks, overdueTasks } = useTaskStats(tasks);
   const [selectedProperty, setSelectedProperty] = useState<string>('all');
   const [searchParams] = useSearchParams();
@@ -209,6 +123,35 @@ const EnhancedPropertyManagementDashboard = () => {
       await loadData();
     } catch (err) {
       setError(err as Error);
+    }
+  };
+
+  // Create wrapper functions to handle the void returns expected by the component
+  const handleCreateTask = async (taskData: any) => {
+    await createTask(taskData);
+    await refreshData();
+  };
+
+  const handleCreateProject = async (projectData: any) => {
+    await createProject(projectData);
+    await refreshData();
+  };
+
+  const handleUpdateProject = async (projectId: string, projectData: any) => {
+    await updateProject(projectId, projectData);
+    await refreshData();
+  };
+
+  const handleCreateWorkOrder = async (workOrderData: any) => {
+    await createWorkOrder(workOrderData);
+    await refreshData();
+  };
+
+  const handleStatusChange = async (taskId: string, status: string) => {
+    const validStatuses = ['pending', 'in_progress', 'completed', 'blocked', 'cancelled'];
+    if (validStatuses.includes(status)) {
+      await updateTask(taskId, { status: status as any });
+      await refreshData();
     }
   };
 
@@ -262,7 +205,7 @@ const EnhancedPropertyManagementDashboard = () => {
           onToggleBulkMode={() => setBulkMode(!bulkMode)}
           onSelectAllTasks={() => selectAllTasks(filteredTasks.map(t => t.id))}
           onTaskClick={(task) => setEditingTask(task)}
-          onStatusChange={(taskId, status) => updateTask(taskId, { status })}
+          onStatusChange={handleStatusChange}
           onDeleteTask={deleteTask}
           onDeleteProject={deleteProject}
           onCreateWorkOrder={() => setIsWorkOrderModalOpen(true)}
@@ -296,10 +239,10 @@ const EnhancedPropertyManagementDashboard = () => {
             setIsWorkOrderModalOpen(false);
             setSelectedTaskForWorkOrder(null);
           }}
-          onCreateTask={createTask}
-          onCreateProject={createProject}
-          onUpdateProject={updateProject}
-          onCreateWorkOrder={createWorkOrder}
+          onCreateTask={handleCreateTask}
+          onCreateProject={handleCreateProject}
+          onUpdateProject={handleUpdateProject}
+          onCreateWorkOrder={handleCreateWorkOrder}
         />
       </div>
     </SmartLoadingWrapper>
