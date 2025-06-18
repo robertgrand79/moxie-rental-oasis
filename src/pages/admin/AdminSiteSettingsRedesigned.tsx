@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Palette, Type, Image, Share, MapPin, Calendar, Camera, Star } from 'lucide-react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
@@ -54,8 +53,8 @@ const AdminSiteSettingsRedesigned = () => {
     setDialogOpen(false);
   };
 
-  // Get email setup status from siteData (this comes from useSettingsData which loads from database)
-  const emailSetupVerified = siteData.emailSetupVerified === 'true' || siteData.emailSetupVerified === true;
+  // Get email setup status from siteData (already converted to boolean in useSettingsData)
+  const emailSetupVerified = siteData.emailSetupVerified;
 
   const settingsCategories = createSettingsCategories(siteData, seoData, analyticsData, mapboxToken, emailSetupVerified);
 

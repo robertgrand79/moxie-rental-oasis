@@ -70,7 +70,7 @@ export const useSettingsData = () => {
           twitter: '',
           googlePlaces: ''
         },
-        emailSetupVerified: settings.emailSetupVerified || false
+        emailSetupVerified: settings.emailSetupVerified === 'true' || settings.emailSetupVerified === true
       });
       
       setMapboxToken(settings.mapboxToken || '');
