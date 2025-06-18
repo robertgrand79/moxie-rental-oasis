@@ -1,22 +1,77 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { AnalyticsData } from './types';
 
 export class GoogleAnalyticsService {
   private gaInitialized = false;
+  private gaId: string | null = null;
 
   async initializeGA(): Promise<boolean> {
-    const { data: settings } = await supabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', 'googleAnalyticsId')
-      .single();
+    try {
+      // Get GA ID from settings if not cached
+      if (!this.gaId) {
+        const { data: settings } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'googleAnalyticsId')
+          .single();
+        
+        this.gaId = settings?.value || null;
+      }
 
-    const gaId = settings?.value;
-    if (gaId && typeof window !== 'undefined' && 'gtag' in window) {
-      this.gaInitialized = true;
-      return true;
+      if (!this.gaId) {
+        console.log('📊 No Google Analytics ID configured');
+        return false;
+      }
+
+      // Check if we're in browser environment
+      if (typeof window === 'undefined') {
+        return false;
+      }
+
+      // Use retry mechanism to wait for gtag to load
+      const isGtagAvailable = await this.waitForGtag();
+      
+      if (isGtagAvailable) {
+        this.gaInitialized = true;
+        console.log('✅ Google Analytics initialized successfully');
+        return true;
+      }
+
+      console.log('⚠️ Google Analytics script not loaded yet');
+      return false;
+    } catch (error) {
+      console.error('❌ Error initializing Google Analytics:', error);
+      return false;
     }
+  }
+
+  private async waitForGtag(maxRetries = 10, delay = 500): Promise<boolean> {
+    for (let i = 0; i < maxRetries; i++) {
+      // Check for gtag function
+      if (typeof window !== 'undefined' && 'gtag' in window) {
+        return true;
+      }
+
+      // Also check for GA script element as backup
+      const gaScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${this.gaId}"]`);
+      if (gaScript) {
+        // Script exists, wait a bit more for gtag to be available
+        await this.sleep(delay);
+        if ('gtag' in window) {
+          return true;
+        }
+      }
+
+      // Wait before next retry
+      await this.sleep(delay);
+    }
+    
     return false;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   async getRealAnalyticsData(): Promise<AnalyticsData> {

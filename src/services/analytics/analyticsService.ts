@@ -8,6 +8,7 @@ class AnalyticsService {
   private googleAnalytics: GoogleAnalyticsService;
   private performanceMonitor: PerformanceMonitorService;
   private systemMonitor: SystemMonitorService;
+  private gaInitializationPromise: Promise<boolean> | null = null;
 
   constructor() {
     this.googleAnalytics = new GoogleAnalyticsService();
@@ -15,27 +16,37 @@ class AnalyticsService {
     this.systemMonitor = new SystemMonitorService();
   }
 
-  // Initialize Google Analytics if configured
+  // Initialize Google Analytics if configured with better error handling
   async initializeGA(): Promise<boolean> {
-    return this.googleAnalytics.initializeGA();
+    // Reuse existing initialization promise to avoid multiple concurrent calls
+    if (this.gaInitializationPromise) {
+      return this.gaInitializationPromise;
+    }
+
+    this.gaInitializationPromise = this.googleAnalytics.initializeGA();
+    return this.gaInitializationPromise;
   }
 
   // Get real visitor data from Google Analytics (requires GA4 setup)
   async getAnalyticsData(): Promise<AnalyticsData> {
     try {
+      console.log('📊 Fetching analytics data...');
+      
       // Check if we have GA configured and can access real data
       const hasRealGA = await this.initializeGA();
       
       if (hasRealGA) {
+        console.log('✅ Using real analytics data');
         // In a real implementation, this would use Google Analytics Reporting API
         // For now, we'll provide a mix of real browser data and reasonable estimates
         return this.googleAnalytics.getRealAnalyticsData();
       } else {
+        console.log('⚠️ Using demo analytics data (GA not initialized)');
         // Return demo data with clear indication it's simulated
         return this.googleAnalytics.getDemoAnalyticsData();
       }
     } catch (error) {
-      console.error('Error fetching analytics data:', error);
+      console.error('❌ Error fetching analytics data:', error);
       return this.googleAnalytics.getDemoAnalyticsData();
     }
   }
@@ -62,6 +73,12 @@ class AnalyticsService {
     const hour = new Date().getHours();
     const baseVisitors = hour >= 9 && hour <= 17 ? 15 : 5; // More visitors during business hours
     return Math.floor(Math.random() * 10 + baseVisitors);
+  }
+
+  // Force refresh of GA initialization (useful for manual refresh)
+  async refreshGA(): Promise<boolean> {
+    this.gaInitializationPromise = null;
+    return this.initializeGA();
   }
 }
 

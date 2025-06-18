@@ -10,10 +10,12 @@ export const useRealAnalytics = () => {
   const [realTimeVisitors, setRealTimeVisitors] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(true);
+  const [gaInitializing, setGaInitializing] = useState(false);
 
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Fetching analytics data...');
       
       const [analytics, performance, health, visitors] = await Promise.all([
         analyticsService.getAnalyticsData(),
@@ -28,10 +30,15 @@ export const useRealAnalytics = () => {
       setRealTimeVisitors(visitors);
       
       // Check if we have real Google Analytics configured
+      setGaInitializing(true);
       const hasRealGA = await analyticsService.initializeGA();
       setIsDemo(!hasRealGA);
+      setGaInitializing(false);
+      
+      console.log(`📊 Analytics mode: ${hasRealGA ? 'Real Data' : 'Demo Mode'}`);
     } catch (error) {
-      console.error('Error fetching analytics data:', error);
+      console.error('❌ Error fetching analytics data:', error);
+      setGaInitializing(false);
     } finally {
       setLoading(false);
     }
@@ -59,8 +66,11 @@ export const useRealAnalytics = () => {
     analyticsService.trackEvent(eventName, parameters);
   };
 
-  const refreshData = () => {
-    fetchAnalyticsData();
+  const refreshData = async () => {
+    console.log('🔄 Manual refresh triggered');
+    // Force refresh GA initialization
+    await analyticsService.refreshGA();
+    await fetchAnalyticsData();
   };
 
   return {
@@ -70,6 +80,7 @@ export const useRealAnalytics = () => {
     realTimeVisitors,
     loading,
     isDemo,
+    gaInitializing,
     trackEvent,
     refreshData
   };

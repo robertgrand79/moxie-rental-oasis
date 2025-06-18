@@ -12,7 +12,8 @@ import {
   BarChart3,
   Users,
   AlertTriangle,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react';
 import ErrorDetailsModal from '@/components/admin/ErrorDetailsModal';
 import { useErrorTracking } from '@/hooks/useErrorTracking';
@@ -32,6 +33,7 @@ const SiteMetricsDashboard = () => {
     realTimeVisitors,
     loading, 
     isDemo, 
+    gaInitializing,
     refreshData 
   } = useRealAnalytics();
 
@@ -67,17 +69,23 @@ const SiteMetricsDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Site Performance Metrics</h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 flex items-center gap-2">
             {isDemo ? 'Demo analytics data' : 'Real-time monitoring'} of your website's health and performance
+            {gaInitializing && (
+              <span className="flex items-center gap-1 text-sm text-blue-600">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Initializing GA...
+              </span>
+            )}
           </p>
         </div>
         <Button 
           onClick={refreshData} 
-          disabled={loading}
+          disabled={loading || gaInitializing}
           variant="outline"
           size="sm"
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 mr-2 ${(loading || gaInitializing) ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
@@ -86,10 +94,20 @@ const SiteMetricsDashboard = () => {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            These are demo metrics. To see real analytics data, configure Google Analytics in your site settings.
-            <Button variant="link" className="p-0 h-auto ml-2" asChild>
-              <a href="/admin/settings">Configure Analytics</a>
-            </Button>
+            These are demo metrics. Google Analytics is configured but may still be loading.
+            {gaInitializing ? (
+              <span className="block mt-1 text-sm text-blue-600">
+                <Loader2 className="h-3 w-3 animate-spin inline mr-1" />
+                Waiting for Google Analytics to initialize...
+              </span>
+            ) : (
+              <>
+                Try refreshing the page or clicking the refresh button above.
+                <Button variant="link" className="p-0 h-auto ml-2" asChild>
+                  <a href="/admin/settings">Check Analytics Settings</a>
+                </Button>
+              </>
+            )}
           </AlertDescription>
         </Alert>
       )}
@@ -160,9 +178,10 @@ const SiteMetricsDashboard = () => {
             </div>
             <div className="flex items-center gap-4">
               <span>Auto-refresh: Every 30s</span>
-              <Badge variant="outline">
+              <Badge variant="outline" className={isDemo ? 'border-orange-200 text-orange-700' : 'border-green-200 text-green-700'}>
                 <BarChart3 className="h-3 w-3 mr-1" />
                 {isDemo ? 'Demo Mode' : 'Live Data'}
+                {gaInitializing && <Loader2 className="h-3 w-3 ml-1 animate-spin" />}
               </Badge>
             </div>
           </div>
