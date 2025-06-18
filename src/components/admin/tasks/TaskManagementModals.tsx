@@ -71,7 +71,6 @@ const TaskManagementModals = ({
         onClose={onCloseWorkOrderModal}
         onCreateWorkOrder={onCreateWorkOrder}
         contractors={contractors}
-        selectedTask={selectedTaskForWorkOrder}
       />
     </>
   );
