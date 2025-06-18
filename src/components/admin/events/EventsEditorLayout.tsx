@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import EventsEditorForm from './EventsEditorForm';
 import EventsPreview from './EventsPreview';
 import EventsAllFieldsGenerator from './EventsAllFieldsGenerator';
 import EventsList from './EventsList';
+import EventsStatusFilter from './EventsStatusFilter';
 
 interface EventsEditorLayoutProps {
   events: EugeneEvent[];
@@ -37,6 +38,7 @@ const EventsEditorLayout = ({
 }: EventsEditorLayoutProps) => {
   const [activeTab, setActiveTab] = useState('list');
   const [editingEvent, setEditingEvent] = useState<EugeneEvent | null>(null);
+  const [statusFilter, setStatusFilter] = useState('all');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -54,8 +56,22 @@ const EventsEditorLayout = ({
     is_active: true,
     is_recurring: false,
     recurrence_pattern: '',
+    status: 'draft',
     created_by: ''
   });
+
+  // Filter events based on status
+  const filteredEvents = useMemo(() => {
+    if (statusFilter === 'all') return events;
+    return events.filter(event => event.status === statusFilter);
+  }, [events, statusFilter]);
+
+  // Calculate event counts for filter badges
+  const eventCounts = useMemo(() => ({
+    all: events.length,
+    draft: events.filter(event => event.status === 'draft').length,
+    published: events.filter(event => event.status === 'published').length,
+  }), [events]);
 
   const handleEdit = (event: EugeneEvent) => {
     setEditingEvent(event);
@@ -76,6 +92,7 @@ const EventsEditorLayout = ({
       is_active: event.is_active !== false,
       is_recurring: event.is_recurring || false,
       recurrence_pattern: event.recurrence_pattern || '',
+      status: event.status || 'draft',
       created_by: event.created_by
     });
     setActiveTab('editor');
@@ -100,6 +117,7 @@ const EventsEditorLayout = ({
       is_active: true,
       is_recurring: false,
       recurrence_pattern: '',
+      status: 'draft',
       created_by: ''
     });
     setActiveTab('editor');
@@ -113,7 +131,10 @@ const EventsEditorLayout = ({
   const handleAIGenerated = (generatedEvents: any[]) => {
     // Handle multiple generated events
     generatedEvents.forEach(event => {
-      onSubmit(event);
+      onSubmit({
+        ...event,
+        status: 'draft' // AI generated events start as drafts
+      });
     });
   };
 
@@ -153,8 +174,15 @@ const EventsEditorLayout = ({
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsContent value="list">
+            <div className="mb-4">
+              <EventsStatusFilter
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                eventCounts={eventCounts}
+              />
+            </div>
             <EventsList
-              events={events}
+              events={filteredEvents}
               categories={categories}
               onEdit={handleEdit}
               onDelete={onDelete}
@@ -172,14 +200,25 @@ const EventsEditorLayout = ({
           </TabsContent>
 
           <TabsContent value="editor">
-            <EventsEditorForm
-              formData={formData}
-              setFormData={setFormData}
-              categories={categories}
-              editingEvent={editingEvent}
-              onSubmit={handleSubmit}
-              onCancel={() => setActiveTab('list')}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <EventsEditorForm
+                  formData={formData}
+                  setFormData={setFormData}
+                  categories={categories}
+                  editingEvent={editingEvent}
+                  onSubmit={handleSubmit}
+                  onCancel={() => setActiveTab('list')}
+                />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Preview</h3>
+                <EventsPreview
+                  formData={formData}
+                  categories={categories}
+                />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="ai">

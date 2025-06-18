@@ -51,6 +51,14 @@ const EventCard = ({
             <div className="flex items-center gap-2 mb-2">
               <h4 className="font-semibold text-lg">{event.title}</h4>
               <div className="flex gap-1">
+                {event.status === 'draft' && (
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                    Draft
+                  </Badge>
+                )}
+                {event.status === 'published' && (
+                  <Badge className="bg-green-600 text-white">Published</Badge>
+                )}
                 {event.is_featured && (
                   <Badge className="bg-blue-600 text-white">Featured</Badge>
                 )}

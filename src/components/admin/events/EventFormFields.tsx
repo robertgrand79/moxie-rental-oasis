@@ -23,6 +23,7 @@ export interface EventFormData {
   is_active: boolean;
   is_recurring: boolean;
   recurrence_pattern: string;
+  status: string;
   created_by: string;
 }
 
@@ -141,6 +142,22 @@ const EventFormFields = ({
           value={formData.price_range}
           onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
         />
+      </div>
+
+      <div>
+        <Label htmlFor="status">Status</Label>
+        <Select
+          value={formData.status}
+          onValueChange={(value) => setFormData({ ...formData, status: value })}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="md:col-span-2">

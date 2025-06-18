@@ -341,6 +341,7 @@ export type Database = {
           location: string | null
           price_range: string | null
           recurrence_pattern: string | null
+          status: string
           ticket_url: string | null
           time_end: string | null
           time_start: string | null
@@ -363,6 +364,7 @@ export type Database = {
           location?: string | null
           price_range?: string | null
           recurrence_pattern?: string | null
+          status?: string
           ticket_url?: string | null
           time_end?: string | null
           time_start?: string | null
@@ -385,6 +387,7 @@ export type Database = {
           location?: string | null
           price_range?: string | null
           recurrence_pattern?: string | null
+          status?: string
           ticket_url?: string | null
           time_end?: string | null
           time_start?: string | null

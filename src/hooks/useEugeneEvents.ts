@@ -21,6 +21,7 @@ export interface EugeneEvent {
   is_active: boolean;
   is_recurring: boolean;
   recurrence_pattern: string;
+  status: string;
   created_by: string;
   created_at: string;
   updated_at: string;

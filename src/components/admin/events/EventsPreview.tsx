@@ -42,6 +42,14 @@ const EventsPreview = ({ formData, categories }: EventsPreviewProps) => {
             <div className="flex items-center gap-2 mb-2">
               <h4 className="font-semibold text-xl">{formData.title}</h4>
               <div className="flex gap-1">
+                {formData.status === 'draft' && (
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                    Draft
+                  </Badge>
+                )}
+                {formData.status === 'published' && (
+                  <Badge className="bg-green-600 text-white">Published</Badge>
+                )}
                 {formData.is_featured && (
                   <Badge className="bg-blue-600 text-white">Featured</Badge>
                 )}

@@ -62,6 +62,7 @@ const EventsAllFieldsGenerator = ({ onEventsGenerated, existingEvents }: EventsA
           
           Make sure events are diverse, realistic for Eugene, and include local venues when possible.`,
           type: 'events',
+          location: 'Eugene, Oregon',
           context: {
             existingEventsCount: existingEvents.length,
             recentEvents: existingEvents.slice(0, 5).map(e => ({ title: e.title, category: e.category }))
@@ -71,8 +72,13 @@ const EventsAllFieldsGenerator = ({ onEventsGenerated, existingEvents }: EventsA
 
       if (error) throw error;
 
+      // Fix: Check for both data.content and data.generatedContent
+      let events = data.content || data.generatedContent;
+      
       // Ensure we have a valid array and filter out any undefined/null items
-      let events = Array.isArray(data.generatedContent) ? data.generatedContent : [data.generatedContent];
+      if (!Array.isArray(events)) {
+        events = [events];
+      }
       events = events.filter(event => event && typeof event === 'object' && event.title);
       
       if (events.length === 0) {
