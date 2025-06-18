@@ -30,9 +30,9 @@ const CreatePropertyProjectModal = ({
     title: '',
     description: '',
     property_id: '',
-    type: 'maintenance' as const,
-    status: 'planning' as const,
-    priority: 'medium' as const,
+    type: 'maintenance' as PropertyProject['type'],
+    status: 'planning' as PropertyProject['status'],
+    priority: 'medium' as PropertyProject['priority'],
     start_date: '',
     target_completion_date: '',
     budget: 0,
@@ -56,9 +56,9 @@ const CreatePropertyProjectModal = ({
         title: '',
         description: '',
         property_id: '',
-        type: 'maintenance' as const,
-        status: 'planning' as const,
-        priority: 'medium' as const,
+        type: 'maintenance' as PropertyProject['type'],
+        status: 'planning' as PropertyProject['status'],
+        priority: 'medium' as PropertyProject['priority'],
         start_date: '',
         target_completion_date: '',
         budget: 0,
@@ -161,7 +161,7 @@ const CreatePropertyProjectModal = ({
 
             <div>
               <Label htmlFor="type">Project Type</Label>
-              <Select value={formData.type} onValueChange={(value: any) => setFormData({ ...formData, type: value })}>
+              <Select value={formData.type} onValueChange={(value: PropertyProject['type']) => setFormData({ ...formData, type: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
@@ -177,7 +177,7 @@ const CreatePropertyProjectModal = ({
 
             <div>
               <Label htmlFor="priority">Priority</Label>
-              <Select value={formData.priority} onValueChange={(value: any) => setFormData({ ...formData, priority: value })}>
+              <Select value={formData.priority} onValueChange={(value: PropertyProject['priority']) => setFormData({ ...formData, priority: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
@@ -193,7 +193,7 @@ const CreatePropertyProjectModal = ({
 
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+              <Select value={formData.status} onValueChange={(value: PropertyProject['status']) => setFormData({ ...formData, status: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
