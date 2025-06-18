@@ -1,34 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { analyticsService } from '@/services/analyticsService';
-
-interface AnalyticsData {
-  visitors: number;
-  pageViews: number;
-  sessions: number;
-  bounceRate: number;
-  avgSessionDuration: number;
-  topPages: Array<{ page: string; views: number }>;
-  deviceTypes: { desktop: number; mobile: number; tablet: number };
-  trafficSources: { organic: number; direct: number; referral: number; social: number };
-}
-
-interface PerformanceMetrics {
-  loadTime: number;
-  firstContentfulPaint: number;
-  largestContentfulPaint: number;
-  firstInputDelay: number;
-  cumulativeLayoutShift: number;
-  timeToInteractive: number;
-}
-
-interface SystemHealth {
-  uptime: number;
-  responseTime: number;
-  errorRate: number;
-  databaseHealth: 'healthy' | 'degraded' | 'down';
-  storageHealth: 'healthy' | 'degraded' | 'down';
-}
+import { analyticsService } from '@/services/analytics/analyticsService';
+import { AnalyticsData, PerformanceMetrics, SystemHealth } from '@/services/analytics/types';
 
 export const useRealAnalytics = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
