@@ -7,7 +7,7 @@ import { BlogPost as BlogPostType } from '@/types/blogPost';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import AdvancedOptimizedImage from '@/components/ui/advanced-optimized-image';
+import SimpleOptimizedImage from '@/components/ui/simple-optimized-image';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -131,21 +131,16 @@ const BlogPost = () => {
           )}
         </header>
 
-        {/* Featured Image with Advanced Optimization */}
+        {/* Featured Image with Simple Optimization */}
         {post.image_url && (
           <div className="mb-8 overflow-hidden rounded-lg shadow-lg">
-            <AdvancedOptimizedImage
+            <SimpleOptimizedImage
               src={post.image_url}
               alt={post.title}
               className="w-full h-auto"
               aspectRatio="16:9"
               priority={true}
-              enableAnalytics={true}
-              transformParams={{
-                quality: 90,
-                format: 'webp',
-                sharp: true
-              }}
+              showProgressiveLoading={true}
             />
           </div>
         )}

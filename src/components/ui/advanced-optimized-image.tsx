@@ -41,6 +41,7 @@ const AdvancedOptimizedImage = ({
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(priority);
   const [loadStartTime, setLoadStartTime] = useState<number>(0);
+  const [currentSrc, setCurrentSrc] = useState<string>(src);
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   
@@ -52,23 +53,50 @@ const AdvancedOptimizedImage = ({
     recordPerformanceMetric 
   } = useAdvancedImageOptimization();
 
-  // Generate responsive sources automatically
-  const responsiveSources = generateResponsiveSources(src, transformParams.format);
-  const optimalFormat = getOptimalFormat();
-  const smartPlaceholder = generateSmartPlaceholder(src);
+  // Generate optimized source URL with fallback to original
+  const optimizedSrc = React.useMemo(() => {
+    try {
+      if (!src) return src;
+      
+      const optimized = getTransformedImageUrl(src, {
+        width,
+        height,
+        format: transformParams.format || getOptimalFormat() as any,
+        quality: transformParams.quality || 85,
+        blur: transformParams.blur,
+        grayscale: transformParams.grayscale,
+        brightness: transformParams.brightness,
+        contrast: transformParams.contrast,
+        sharp: transformParams.sharp
+      });
+      
+      // If optimization fails or returns the same URL, use original
+      return optimized || src;
+    } catch (error) {
+      console.error('Error generating optimized image URL:', error);
+      return src;
+    }
+  }, [src, width, height, transformParams, getTransformedImageUrl, getOptimalFormat]);
 
-  // Generate optimized source URL
-  const optimizedSrc = getTransformedImageUrl(src, {
-    width,
-    height,
-    format: transformParams.format || optimalFormat as any,
-    quality: transformParams.quality,
-    blur: transformParams.blur,
-    grayscale: transformParams.grayscale,
-    brightness: transformParams.brightness,
-    contrast: transformParams.contrast,
-    sharp: transformParams.sharp
-  });
+  // Generate responsive sources with fallback
+  const responsiveSources = React.useMemo(() => {
+    try {
+      return generateResponsiveSources(src, transformParams.format);
+    } catch (error) {
+      console.error('Error generating responsive sources:', error);
+      return null;
+    }
+  }, [src, transformParams.format, generateResponsiveSources]);
+
+  // Generate smart placeholder with fallback
+  const smartPlaceholder = React.useMemo(() => {
+    try {
+      return generateSmartPlaceholder(src);
+    } catch (error) {
+      console.error('Error generating smart placeholder:', error);
+      return '';
+    }
+  }, [src, generateSmartPlaceholder]);
 
   // Intersection Observer for lazy loading
   useEffect(() => {
@@ -123,6 +151,7 @@ const AdvancedOptimizedImage = ({
 
   const handleLoad = () => {
     setIsLoaded(true);
+    setHasError(false);
     
     // Record performance metrics
     if (enableAnalytics && loadStartTime) {
@@ -132,9 +161,19 @@ const AdvancedOptimizedImage = ({
   };
 
   const handleError = () => {
-    setHasError(true);
-    if (fallback) {
-      setIsLoaded(true);
+    if (currentSrc !== src && !hasError) {
+      // Try fallback to original source if optimized version failed
+      console.log('Optimized image failed, falling back to original:', src);
+      setCurrentSrc(src);
+      setHasError(false);
+    } else if (fallback && currentSrc !== fallback) {
+      // Try explicit fallback if provided
+      console.log('Original image failed, trying fallback:', fallback);
+      setCurrentSrc(fallback);
+      setHasError(false);
+    } else {
+      // All options exhausted
+      setHasError(true);
     }
   };
 
@@ -151,8 +190,8 @@ const AdvancedOptimizedImage = ({
       )}
       style={{ width, height }}
     >
-      {/* Smart blur placeholder */}
-      {smartPlaceholder && !isLoaded && (
+      {/* Smart blur placeholder - only show if available */}
+      {smartPlaceholder && !isLoaded && !hasError && (
         <div 
           className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
           style={{ 
@@ -174,28 +213,21 @@ const AdvancedOptimizedImage = ({
       {/* Main image */}
       {isInView && (
         <picture className="block w-full h-full">
-          {/* AVIF source */}
-          {srcSet && optimalFormat === 'avif' && (
-            <source 
-              srcSet={srcSet.replace(/\.(jpg|jpeg|png|webp)/g, '.avif')} 
-              sizes={sizesAttr}
-              type="image/avif" 
-            />
-          )}
-          
-          {/* WebP source */}
-          {srcSet && ['webp', 'avif'].includes(optimalFormat) && (
-            <source 
-              srcSet={srcSet.replace(/\.(jpg|jpeg|png)/g, '.webp')} 
-              sizes={sizesAttr}
-              type="image/webp" 
-            />
+          {/* Only add optimized sources if we have them and they're different from original */}
+          {srcSet && currentSrc !== src && (
+            <>
+              <source 
+                srcSet={srcSet.replace(/\.(jpg|jpeg|png)/g, '.webp')} 
+                sizes={sizesAttr}
+                type="image/webp" 
+              />
+            </>
           )}
           
           <img
-            src={hasError && fallback ? fallback : optimizedSrc}
-            srcSet={srcSet}
-            sizes={sizesAttr}
+            src={currentSrc}
+            srcSet={currentSrc === src ? undefined : srcSet}
+            sizes={currentSrc === src ? undefined : sizesAttr}
             alt={alt}
             width={width}
             height={height}
@@ -213,7 +245,7 @@ const AdvancedOptimizedImage = ({
       )}
 
       {/* Error state */}
-      {hasError && !fallback && (
+      {hasError && (
         <div 
           className="absolute inset-0 bg-gray-100 flex items-center justify-center text-gray-400 text-sm"
           style={{ width, height }}
@@ -229,16 +261,6 @@ const AdvancedOptimizedImage = ({
       {!isLoaded && !hasError && isInView && priority && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/10">
           <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-        </div>
-      )}
-
-      {/* Optimization badge (visible on hover in development) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="bg-green-600/90 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-            <span>⚡</span>
-            <span>Optimized</span>
-          </div>
         </div>
       )}
     </div>

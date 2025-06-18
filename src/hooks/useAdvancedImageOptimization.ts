@@ -51,6 +51,11 @@ export const useAdvancedImageOptimization = () => {
     transformations: ImageTransformation = {}
   ) => {
     try {
+      // If it's already a Supabase URL or the edge function is not available, return original
+      if (!originalUrl || originalUrl.includes('image-transform')) {
+        return originalUrl;
+      }
+
       const supabaseUrl = 'https://joiovubyokikqjytxtuv.supabase.co';
       const functionUrl = `${supabaseUrl}/functions/v1/image-transform`;
       
@@ -75,11 +80,16 @@ export const useAdvancedImageOptimization = () => {
     
     sizes.forEach((size, index) => {
       const sizeNames = ['thumbnail', 'medium', 'large', 'xlarge'];
-      sources[sizeNames[index]] = generateOptimizedUrl(originalUrl, {
-        width: size,
-        format: format as any || 'webp',
-        quality: 85
-      });
+      try {
+        sources[sizeNames[index]] = generateOptimizedUrl(originalUrl, {
+          width: size,
+          format: format as any || 'webp',
+          quality: 85
+        });
+      } catch (error) {
+        console.error('Error generating responsive source:', error);
+        sources[sizeNames[index]] = originalUrl;
+      }
     });
     
     return sources;
@@ -89,31 +99,41 @@ export const useAdvancedImageOptimization = () => {
   const getOptimalFormat = useCallback(() => {
     if (typeof window === 'undefined') return 'jpeg';
     
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    
-    // Check for AVIF support
-    if (canvas.toDataURL('image/avif').startsWith('data:image/avif')) {
-      return 'avif';
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      
+      // Check for AVIF support
+      if (canvas.toDataURL('image/avif').startsWith('data:image/avif')) {
+        return 'avif';
+      }
+      
+      // Check for WebP support
+      if (canvas.toDataURL('image/webp').startsWith('data:image/webp')) {
+        return 'webp';
+      }
+      
+      return 'jpeg';
+    } catch (error) {
+      console.error('Error detecting optimal format:', error);
+      return 'jpeg';
     }
-    
-    // Check for WebP support
-    if (canvas.toDataURL('image/webp').startsWith('data:image/webp')) {
-      return 'webp';
-    }
-    
-    return 'jpeg';
   }, []);
 
   // Generate smart placeholder
   const generateSmartPlaceholder = useCallback((originalUrl: string) => {
-    return generateOptimizedUrl(originalUrl, {
-      width: 20,
-      height: 20,
-      quality: 20,
-      blur: 10
-    });
+    try {
+      return generateOptimizedUrl(originalUrl, {
+        width: 20,
+        height: 20,
+        quality: 20,
+        blur: 10
+      });
+    } catch (error) {
+      console.error('Error generating smart placeholder:', error);
+      return '';
+    }
   }, [generateOptimizedUrl]);
 
   // Get transformed image URL (alias for generateOptimizedUrl)
@@ -157,88 +177,6 @@ export const useAdvancedImageOptimization = () => {
       }
     } catch (error) {
       console.error('Error saving image analytics:', error);
-    }
-  }, []);
-
-  // Get cached transformation or create new one
-  const getCachedTransformation = useCallback(async (
-    originalUrl: string,
-    transformParams: ImageTransformation
-  ) => {
-    try {
-      const { data, error } = await supabase
-        .from('image_transformations')
-        .select('*')
-        .eq('original_url', originalUrl)
-        .eq('transformation_params', JSON.stringify(transformParams))
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching cached transformation:', error);
-        return null;
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error checking cache:', error);
-      return null;
-    }
-  }, []);
-
-  // Save transformation to cache
-  const saveTransformation = useCallback(async (
-    originalUrl: string,
-    transformParams: ImageTransformation,
-    optimizedUrl: string,
-    metadata?: {
-      originalSize?: number;
-      optimizedSize?: number;
-      originalFormat?: string;
-      optimizedFormat?: string;
-    }
-  ) => {
-    try {
-      const compressionRatio = metadata?.originalSize && metadata?.optimizedSize
-        ? ((metadata.originalSize - metadata.optimizedSize) / metadata.originalSize) * 100
-        : null;
-
-      const { error } = await supabase
-        .from('image_transformations')
-        .insert({
-          original_url: originalUrl,
-          transformation_params: transformParams as any,
-          optimized_url: optimizedUrl,
-          file_size_original: metadata?.originalSize,
-          file_size_optimized: metadata?.optimizedSize,
-          compression_ratio: compressionRatio,
-          format_original: metadata?.originalFormat,
-          format_optimized: metadata?.optimizedFormat
-        });
-
-      if (error) {
-        console.error('Error saving transformation:', error);
-      }
-    } catch (error) {
-      console.error('Error caching transformation:', error);
-    }
-  }, []);
-
-  // Update access count for cached transformation
-  const updateAccessCount = useCallback(async (transformationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('image_transformations')
-        .update({
-          accessed_count: 1, // Increment by 1, will need RPC for proper increment
-          last_accessed_at: new Date().toISOString()
-        })
-        .eq('id', transformationId);
-
-      if (error) {
-        console.error('Error updating access count:', error);
-      }
-    } catch (error) {
-      console.error('Error tracking access:', error);
     }
   }, []);
 
@@ -348,9 +286,6 @@ export const useAdvancedImageOptimization = () => {
     getTransformedImageUrl,
     recordPerformanceMetric,
     trackImageLoad,
-    getCachedTransformation,
-    saveTransformation,
-    updateAccessCount,
     loadAnalytics,
     auditImages,
     updateSettings,
