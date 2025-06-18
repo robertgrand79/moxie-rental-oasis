@@ -1,17 +1,37 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
-import { Calendar, DollarSign, MapPin, Trash2, User, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { 
+  MoreHorizontal, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Mail,
+  CheckCircle,
+  Clock,
+  AlertCircle
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface WorkOrdersListProps {
   workOrders: WorkOrder[];
@@ -21,21 +41,21 @@ interface WorkOrdersListProps {
 }
 
 const statusColors = {
-  draft: 'bg-gray-100 text-gray-700',
-  sent: 'bg-blue-100 text-blue-700',
-  acknowledged: 'bg-purple-100 text-purple-700',
-  in_progress: 'bg-yellow-100 text-yellow-700',
-  completed: 'bg-green-100 text-green-700',
-  invoiced: 'bg-indigo-100 text-indigo-700',
-  paid: 'bg-emerald-100 text-emerald-700',
-  cancelled: 'bg-red-100 text-red-700',
+  draft: 'bg-gray-100 text-gray-800',
+  sent: 'bg-blue-100 text-blue-800',
+  acknowledged: 'bg-yellow-100 text-yellow-800',
+  in_progress: 'bg-purple-100 text-purple-800',
+  completed: 'bg-green-100 text-green-800',
+  invoiced: 'bg-indigo-100 text-indigo-800',
+  paid: 'bg-emerald-100 text-emerald-800',
+  cancelled: 'bg-red-100 text-red-800',
 };
 
 const priorityColors = {
-  low: 'bg-green-100 text-green-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  high: 'bg-orange-100 text-orange-700',
-  critical: 'bg-red-100 text-red-700',
+  low: 'bg-green-100 text-green-800',
+  medium: 'bg-yellow-100 text-yellow-800',
+  high: 'bg-orange-100 text-orange-800',
+  critical: 'bg-red-100 text-red-800',
 };
 
 const WorkOrdersList = ({
@@ -44,107 +64,177 @@ const WorkOrdersList = ({
   onStatusChange,
   onDeleteWorkOrder,
 }: WorkOrdersListProps) => {
+  const [emailingWorkOrders, setEmailingWorkOrders] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
+
+  const handleEmailWorkOrder = async (workOrder: WorkOrder) => {
+    if (!workOrder.contractor?.email) {
+      toast({
+        title: 'Error',
+        description: 'This work order has no contractor email assigned',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setEmailingWorkOrders(prev => new Set(prev).add(workOrder.id));
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-work-order-pdf', {
+        body: { workOrderId: workOrder.id }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Work order PDF sent to ${workOrder.contractor.email}`,
+      });
+
+      // If status was draft, it will be updated to sent by the edge function
+      if (workOrder.status === 'draft') {
+        onStatusChange(workOrder.id, 'sent');
+      }
+    } catch (error) {
+      console.error('Error sending work order PDF:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send work order PDF',
+        variant: 'destructive',
+      });
+    } finally {
+      setEmailingWorkOrders(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(workOrder.id);
+        return newSet;
+      });
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'in_progress':
+        return <Clock className="h-4 w-4" />;
+      case 'cancelled':
+        return <AlertCircle className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
+
   if (workOrders.length === 0) {
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <AlertTriangle className="h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No work orders found</h3>
-          <p className="text-gray-500 text-center">
-            Create your first work order to get started with property maintenance management.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="text-center py-12">
+        <p className="text-gray-500">No work orders found</p>
+      </div>
     );
   }
 
   return (
-    <div className="grid gap-4">
-      {workOrders.map((workOrder) => (
-        <Card key={workOrder.id} className="hover:shadow-md transition-shadow">
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 
-                    className="font-semibold text-lg cursor-pointer hover:text-blue-600"
-                    onClick={() => onWorkOrderClick(workOrder)}
-                  >
-                    {workOrder.title}
-                  </h3>
-                  <Badge variant="outline" className="text-xs">
-                    {workOrder.work_order_number}
-                  </Badge>
-                </div>
-                <p className="text-gray-600 text-sm mb-3">{workOrder.description}</p>
-                
-                <div className="flex items-center gap-4 text-sm text-gray-500">
-                  {workOrder.contractor && (
-                    <div className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
-                      <span>{workOrder.contractor.name}</span>
-                    </div>
-                  )}
-                  {workOrder.property && (
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{workOrder.property.title}</span>
-                    </div>
-                  )}
-                  {workOrder.estimated_cost && (
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="h-4 w-4" />
-                      <span>${workOrder.estimated_cost}</span>
-                    </div>
-                  )}
-                  {workOrder.estimated_completion_date && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>{new Date(workOrder.estimated_completion_date).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Work Order #</TableHead>
+            <TableHead>Title</TableHead>
+            <TableHead>Property</TableHead>
+            <TableHead>Contractor</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Priority</TableHead>
+            <TableHead>Due Date</TableHead>
+            <TableHead>Created</TableHead>
+            <TableHead className="w-[100px]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {workOrders.map((workOrder) => (
+            <TableRow 
+              key={workOrder.id}
+              className="cursor-pointer hover:bg-gray-50"
+              onClick={() => onWorkOrderClick(workOrder)}
+            >
+              <TableCell className="font-medium">
+                {workOrder.work_order_number}
+              </TableCell>
+              <TableCell className="max-w-[200px] truncate">
+                {workOrder.title}
+              </TableCell>
+              <TableCell>
+                {workOrder.property?.title || 'No property'}
+              </TableCell>
+              <TableCell>
+                {workOrder.contractor ? (
+                  <div>
+                    <div className="font-medium">{workOrder.contractor.name}</div>
+                    <div className="text-sm text-gray-500">{workOrder.contractor.company_name}</div>
+                  </div>
+                ) : (
+                  'Unassigned'
+                )}
+              </TableCell>
+              <TableCell>
+                <Badge className={`${statusColors[workOrder.status as keyof typeof statusColors]} flex items-center gap-1 w-fit`}>
+                  {getStatusIcon(workOrder.status)}
+                  {workOrder.status.replace('_', ' ')}
+                </Badge>
+              </TableCell>
+              <TableCell>
                 <Badge className={priorityColors[workOrder.priority as keyof typeof priorityColors]}>
                   {workOrder.priority}
                 </Badge>
-                <Select
-                  value={workOrder.status}
-                  onValueChange={(status) => onStatusChange(workOrder.id, status)}
-                >
-                  <SelectTrigger className="w-36">
-                    <SelectValue>
-                      <Badge className={statusColors[workOrder.status as keyof typeof statusColors]}>
-                        {workOrder.status.replace('_', ' ')}
-                      </Badge>
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="sent">Sent</SelectItem>
-                    <SelectItem value="acknowledged">Acknowledged</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="invoiced">Invoiced</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onDeleteWorkOrder(workOrder.id)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-      ))}
+              </TableCell>
+              <TableCell>
+                {workOrder.estimated_completion_date 
+                  ? format(new Date(workOrder.estimated_completion_date), 'MMM dd, yyyy')
+                  : 'Not set'
+                }
+              </TableCell>
+              <TableCell>
+                {format(new Date(workOrder.created_at), 'MMM dd, yyyy')}
+              </TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Open menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => onWorkOrderClick(workOrder)}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onWorkOrderClick(workOrder)}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => handleEmailWorkOrder(workOrder)}
+                      disabled={!workOrder.contractor?.email || emailingWorkOrders.has(workOrder.id)}
+                    >
+                      <Mail className="mr-2 h-4 w-4" />
+                      {emailingWorkOrders.has(workOrder.id) ? 'Sending...' : 'Email PDF'}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => onDeleteWorkOrder(workOrder.id)}
+                      className="text-red-600"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };
