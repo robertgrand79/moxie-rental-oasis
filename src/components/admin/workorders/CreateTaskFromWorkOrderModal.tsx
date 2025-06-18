@@ -18,7 +18,7 @@ interface CreateTaskFromWorkOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateTask: (taskData: any) => Promise<void>;
-  workOrder: WorkOrder;
+  workOrder: WorkOrder | null;
   projects: PropertyProject[];
 }
 
@@ -30,17 +30,17 @@ const CreateTaskFromWorkOrderModal = ({
   projects,
 }: CreateTaskFromWorkOrderModalProps) => {
   const [formData, setFormData] = useState({
-    title: `Follow-up: ${workOrder.title}`,
-    description: `Task created from work order: ${workOrder.work_order_number}\n\nOriginal description: ${workOrder.description}`,
+    title: workOrder ? `Follow-up: ${workOrder.title}` : '',
+    description: workOrder ? `Task created from work order: ${workOrder.work_order_number}\n\nOriginal description: ${workOrder.description}` : '',
     type: 'maintenance',
     status: 'pending',
-    priority: workOrder.priority,
-    property_id: workOrder.property_id || '',
-    project_id: workOrder.project_id || 'none',
+    priority: workOrder?.priority || 'medium',
+    property_id: workOrder?.property_id || '',
+    project_id: workOrder?.project_id || 'none',
   });
 
   const [dueDate, setDueDate] = useState<Date | undefined>(
-    workOrder.estimated_completion_date ? new Date(workOrder.estimated_completion_date) : undefined
+    workOrder?.estimated_completion_date ? new Date(workOrder.estimated_completion_date) : undefined
   );
   const [loading, setLoading] = useState(false);
 
@@ -50,6 +50,8 @@ const CreateTaskFromWorkOrderModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!workOrder) return;
+    
     setLoading(true);
 
     try {
@@ -58,7 +60,7 @@ const CreateTaskFromWorkOrderModal = ({
         property_id: formData.property_id || undefined,
         project_id: formData.project_id === 'none' ? undefined : formData.project_id,
         due_date: dueDate ? format(dueDate, 'yyyy-MM-dd') : undefined,
-        work_order_id: workOrder.id, // Pass this to link them
+        work_order_id: workOrder.id,
       });
 
       onClose();
@@ -68,6 +70,10 @@ const CreateTaskFromWorkOrderModal = ({
       setLoading(false);
     }
   };
+
+  if (!workOrder) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

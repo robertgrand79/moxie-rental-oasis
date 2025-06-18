@@ -17,7 +17,7 @@ interface CreateProjectFromWorkOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateProject: (projectData: any) => Promise<void>;
-  workOrder: WorkOrder;
+  workOrder: WorkOrder | null;
 }
 
 const CreateProjectFromWorkOrderModal = ({
@@ -27,17 +27,17 @@ const CreateProjectFromWorkOrderModal = ({
   workOrder,
 }: CreateProjectFromWorkOrderModalProps) => {
   const [formData, setFormData] = useState({
-    title: `Project: ${workOrder.title}`,
-    description: `Project created from work order: ${workOrder.work_order_number}\n\n${workOrder.description}`,
+    title: workOrder ? `Project: ${workOrder.title}` : '',
+    description: workOrder ? `Project created from work order: ${workOrder.work_order_number}\n\n${workOrder.description}` : '',
     type: 'maintenance',
     status: 'planning',
-    priority: workOrder.priority,
-    property_id: workOrder.property_id || '',
+    priority: workOrder?.priority || 'medium',
+    property_id: workOrder?.property_id || '',
   });
 
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [targetDate, setTargetDate] = useState<Date | undefined>(
-    workOrder.estimated_completion_date ? new Date(workOrder.estimated_completion_date) : undefined
+    workOrder?.estimated_completion_date ? new Date(workOrder.estimated_completion_date) : undefined
   );
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +47,8 @@ const CreateProjectFromWorkOrderModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!workOrder) return;
+    
     setLoading(true);
 
     try {
@@ -55,7 +57,7 @@ const CreateProjectFromWorkOrderModal = ({
         property_id: formData.property_id || undefined,
         start_date: startDate ? format(startDate, 'yyyy-MM-dd') : undefined,
         target_completion_date: targetDate ? format(targetDate, 'yyyy-MM-dd') : undefined,
-        work_order_id: workOrder.id, // Pass this to link them
+        work_order_id: workOrder.id,
       });
 
       onClose();
@@ -65,6 +67,10 @@ const CreateProjectFromWorkOrderModal = ({
       setLoading(false);
     }
   };
+
+  if (!workOrder) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
