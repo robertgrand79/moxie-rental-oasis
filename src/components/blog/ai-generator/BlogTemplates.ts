@@ -1,9 +1,32 @@
-export const blogTemplates = [
+
+export interface BlogTemplate {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  icon: string;
+  estimatedReadTime: string;
+  prompt: string;
+}
+
+export const blogTemplates: BlogTemplate[] = [
   {
+    id: 'eugene-local-guide',
     title: "Eugene Local Experience Guide",
     description: "In-depth guide to experiencing Eugene like a local",
     category: "Local Guide",
-    prompt: `Write a comprehensive blog post about experiencing Eugene, Oregon like a local resident. Focus on creating engaging, flowing content without any formatting syntax.
+    icon: "map-pin",
+    estimatedReadTime: "8-10 min read",
+    prompt: `Write a comprehensive blog post about experiencing Eugene, Oregon like a local resident. Focus on creating engaging, flowing content that works perfectly with rich text editors.
+
+    CRITICAL FORMATTING REQUIREMENTS:
+    - Write in clean, natural prose without any markdown syntax
+    - NEVER use ### or ## for headings - write descriptive section titles as regular text
+    - NEVER use *** or ** for bold text - write naturally and let the editor handle emphasis
+    - NEVER use * for italic text - write naturally  
+    - NEVER use - or * for bullet points - write in flowing paragraph form
+    - Focus on storytelling and engaging narrative flow
+    - Write as if you're writing directly in a word processor
 
     Content should flow naturally and include:
     
@@ -26,10 +49,22 @@ export const blogTemplates = [
     Write in a warm, conversational tone as if you're a Eugene resident sharing favorite spots and insider knowledge with a friend who's visiting.`
   },
   {
+    id: 'eugene-seasonal-guide',
     title: "Eugene Seasonal Activities Guide",
     description: "Showcase the best seasonal experiences in Eugene",
     category: "Seasonal",
-    prompt: `Create an engaging blog post about seasonal activities and experiences in Eugene, Oregon. Write in flowing, natural prose without any formatting syntax.
+    icon: "calendar",
+    estimatedReadTime: "7-9 min read",
+    prompt: `Create an engaging blog post about seasonal activities and experiences in Eugene, Oregon. Write in flowing, natural prose that works perfectly with rich text editors.
+
+    CRITICAL FORMATTING REQUIREMENTS:
+    - Write in clean, natural prose without any markdown syntax
+    - NEVER use ### or ## for headings - write descriptive section titles as regular text
+    - NEVER use *** or ** for bold text - write naturally and let the editor handle emphasis
+    - NEVER use * for italic text - write naturally  
+    - NEVER use - or * for bullet points - write in flowing paragraph form
+    - Focus on storytelling and engaging narrative flow
+    - Write as if you're writing directly in a word processor
 
     Content should naturally progress through:
     
@@ -52,10 +87,22 @@ export const blogTemplates = [
     Write as a local expert who understands how to make the most of Eugene's offerings throughout the year.`
   },
   {
+    id: 'university-oregon-guide',
     title: "University of Oregon Visitor Guide",
     description: "Guide for visitors connecting with UO campus and culture",
     category: "University",
-    prompt: `Write a comprehensive blog post for visitors interested in University of Oregon campus and the student culture that shapes Eugene. Use natural, flowing prose without formatting syntax.
+    icon: "home",
+    estimatedReadTime: "6-8 min read",
+    prompt: `Write a comprehensive blog post for visitors interested in University of Oregon campus and the student culture that shapes Eugene. Use natural, flowing prose that works perfectly with rich text editors.
+
+    CRITICAL FORMATTING REQUIREMENTS:
+    - Write in clean, natural prose without any markdown syntax
+    - NEVER use ### or ## for headings - write descriptive section titles as regular text
+    - NEVER use *** or ** for bold text - write naturally and let the editor handle emphasis
+    - NEVER use * for italic text - write naturally  
+    - NEVER use - or * for bullet points - write in flowing paragraph form
+    - Focus on storytelling and engaging narrative flow
+    - Write as if you're writing directly in a word processor
 
     Content should seamlessly cover:
     
@@ -80,10 +127,22 @@ export const blogTemplates = [
     Write with enthusiasm for both the university's contributions to Eugene and the unique opportunities this creates for vacation rental guests.`
   },
   {
+    id: 'eugene-food-drink',
     title: "Eugene Food and Drink Scene",
     description: "Explore Eugene's culinary landscape and local beverages",
     category: "Food & Drink",
-    prompt: `Create an enticing blog post about Eugene's food and drink scene that will make readers excited to explore local culinary offerings. Write in engaging, descriptive prose without any formatting syntax.
+    icon: "star",
+    estimatedReadTime: "7-9 min read",
+    prompt: `Create an enticing blog post about Eugene's food and drink scene that will make readers excited to explore local culinary offerings. Write in engaging, descriptive prose that works perfectly with rich text editors.
+
+    CRITICAL FORMATTING REQUIREMENTS:
+    - Write in clean, natural prose without any markdown syntax
+    - NEVER use ### or ## for headings - write descriptive section titles as regular text
+    - NEVER use *** or ** for bold text - write naturally and let the editor handle emphasis
+    - NEVER use * for italic text - write naturally  
+    - NEVER use - or * for bullet points - write in flowing paragraph form
+    - Focus on storytelling and engaging narrative flow
+    - Write as if you're writing directly in a word processor
 
     Content should flow naturally through:
     
@@ -110,10 +169,22 @@ export const blogTemplates = [
     Write with the passion of a local food enthusiast who wants visitors to discover Eugene's best culinary secrets and authentic dining experiences.`
   },
   {
+    id: 'eugene-outdoor-recreation',
     title: "Eugene Outdoor Recreation Guide",
     description: "Complete guide to outdoor activities and adventures",
     category: "Outdoor Recreation",
-    prompt: `Write an inspiring blog post about Eugene's incredible outdoor recreation opportunities. Use engaging, descriptive language without any formatting syntax.
+    icon: "calendar",
+    estimatedReadTime: "8-10 min read",
+    prompt: `Write an inspiring blog post about Eugene's incredible outdoor recreation opportunities. Use engaging, descriptive language that works perfectly with rich text editors.
+
+    CRITICAL FORMATTING REQUIREMENTS:
+    - Write in clean, natural prose without any markdown syntax
+    - NEVER use ### or ## for headings - write descriptive section titles as regular text
+    - NEVER use *** or ** for bold text - write naturally and let the editor handle emphasis
+    - NEVER use * for italic text - write naturally  
+    - NEVER use - or * for bullet points - write in flowing paragraph form
+    - Focus on storytelling and engaging narrative flow
+    - Write as if you're writing directly in a word processor
 
     Content should naturally flow through:
     
