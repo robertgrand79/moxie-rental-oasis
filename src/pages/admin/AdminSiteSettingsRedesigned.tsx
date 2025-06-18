@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import SettingsSearch from '@/components/admin/settings/SettingsSearch';
@@ -46,7 +45,8 @@ const AdminSiteSettingsRedesigned = () => {
         twitter: '',
         googlePlaces: ''
       },
-      emailSetupVerified: settings.emailSetupVerified || false
+      // Fix: Convert emailSetupVerified to boolean properly
+      emailSetupVerified: Boolean(settings.emailSetupVerified === true || settings.emailSetupVerified === 'true')
     },
     seoData: {
       siteTitle: settings.siteTitle || '',
@@ -92,7 +92,8 @@ const AdminSiteSettingsRedesigned = () => {
             twitter: '',
             googlePlaces: ''
           },
-          emailSetupVerified: settings.emailSetupVerified || false
+          // Fix: Convert emailSetupVerified to boolean properly
+          emailSetupVerified: Boolean(settings.emailSetupVerified === true || settings.emailSetupVerified === 'true')
         },
         seoData: {
           siteTitle: settings.siteTitle || '',
