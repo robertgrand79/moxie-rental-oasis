@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Bot, Send, User, Sparkles, CheckCircle, X, RefreshCw } from 'lucide-react';
+import { Bot, Send, User, Sparkles, CheckCircle, X, RefreshCw, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -36,6 +35,7 @@ const UnifiedAIChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [appliedContentIds, setAppliedContentIds] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const quickActions: QuickAction[] = [
@@ -83,7 +83,7 @@ const UnifiedAIChat = () => {
       const welcomeMessage: Message = {
         id: 'welcome',
         role: 'assistant',
-        content: 'Hello! I\'m your AI content assistant. I can help you generate, enhance, and manage all types of content for your vacation rental website. What would you like to work on today?',
+        content: 'Hello! I\'m your AI content assistant. I can help you generate, enhance, and manage all types of content for your vacation rental website. Generated content can be sent for approval or applied directly. What would you like to work on today?',
         timestamp: new Date(),
         suggestions: [
           'Generate new points of interest',
@@ -156,23 +156,57 @@ const UnifiedAIChat = () => {
     sendMessage(action.prompt);
   };
 
-  const handleApplyContent = async (messageId: string) => {
+  const handleSendForApproval = async (messageId: string) => {
     const message = messages.find(m => m.id === messageId);
     if (!message?.generatedContent) return;
 
     try {
-      const { error } = await supabase.functions.invoke('apply-generated-content', {
+      const { data, error } = await supabase.functions.invoke('apply-generated-content', {
         body: {
           type: message.generatedContent.type,
-          data: message.generatedContent.data
+          data: message.generatedContent.data,
+          sendForApproval: true
         }
       });
 
       if (error) throw error;
 
+      setAppliedContentIds(prev => new Set([...prev, messageId]));
+
+      toast({
+        title: "Content Sent for Approval",
+        description: `${data.itemsCount} item(s) sent to the approval workflow`,
+      });
+    } catch (error) {
+      console.error('Error sending content for approval:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send content for approval. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleApplyDirectly = async (messageId: string) => {
+    const message = messages.find(m => m.id === messageId);
+    if (!message?.generatedContent) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('apply-generated-content', {
+        body: {
+          type: message.generatedContent.type,
+          data: message.generatedContent.data,
+          sendForApproval: false
+        }
+      });
+
+      if (error) throw error;
+
+      setAppliedContentIds(prev => new Set([...prev, messageId]));
+
       toast({
         title: "Content Applied",
-        description: "Generated content has been saved to your database",
+        description: `${data.itemsCount} item(s) applied to your database`,
       });
     } catch (error) {
       console.error('Error applying content:', error);
@@ -254,20 +288,36 @@ const UnifiedAIChat = () => {
                         <Badge variant="secondary">
                           Generated {message.generatedContent.type}
                         </Badge>
-                        <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleApplyContent(message.id)}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
+                        {appliedContentIds.has(message.id) ? (
+                          <Badge className="bg-green-100 text-green-800">
                             <CheckCircle className="h-3 w-3 mr-1" />
-                            Apply
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <X className="h-3 w-3 mr-1" />
-                            Discard
-                          </Button>
-                        </div>
+                            Applied/Sent for Approval
+                          </Badge>
+                        ) : (
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleSendForApproval(message.id)}
+                              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                            >
+                              <Clock className="h-3 w-3 mr-1" />
+                              Send for Approval
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleApplyDirectly(message.id)}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Apply Directly
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <X className="h-3 w-3 mr-1" />
+                              Discard
+                            </Button>
+                          </div>
+                        )}
                       </div>
                       {message.generatedContent.preview && (
                         <div className="text-sm bg-gray-50 p-3 rounded border max-h-32 overflow-y-auto">
@@ -277,7 +327,6 @@ const UnifiedAIChat = () => {
                     </div>
                   )}
 
-                  {/* Suggestions */}
                   {message.suggestions && message.suggestions.length > 0 && (
                     <div className="ml-11 flex flex-wrap gap-2">
                       {message.suggestions.map((suggestion, index) => (

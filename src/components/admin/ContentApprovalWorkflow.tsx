@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,13 +7,16 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle, XCircle, Clock, Eye, Edit, MessageSquare } from 'lucide-react';
 import { useContentApproval, ContentItem } from '@/hooks/useContentApproval';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const ContentApprovalWorkflow = () => {
-  const { contentItems, loading, updateContentStatus } = useContentApproval();
+  const { contentItems, loading, updateContentStatus, refetch } = useContentApproval();
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [feedback, setFeedback] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
   const [updating, setUpdating] = useState(false);
+  const { toast } = useToast();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -42,6 +44,9 @@ const ContentApprovalWorkflow = () => {
       case 'property_description': return 'Property';
       case 'page_content': return 'Page Content';
       case 'ai_response': return 'AI Response';
+      case 'poi': return 'Point of Interest';
+      case 'events': return 'Events';
+      case 'lifestyle': return 'Lifestyle Content';
       default: return type;
     }
   };
@@ -55,11 +60,46 @@ const ContentApprovalWorkflow = () => {
       if (success) {
         setSelectedItem(null);
         setFeedback('');
+        
+        // If approved, also apply the content
+        if (status === 'approved') {
+          await applyApprovedContent(selectedItem);
+        }
       }
     } catch (error) {
       console.error('Error updating status:', error);
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const applyApprovedContent = async (item: ContentItem) => {
+    try {
+      // Parse the content JSON
+      const contentData = JSON.parse(item.content);
+      const dataArray = Array.isArray(contentData) ? contentData : [contentData];
+
+      const { error } = await supabase.functions.invoke('apply-generated-content', {
+        body: {
+          type: item.type,
+          data: dataArray,
+          sendForApproval: false
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Content Applied",
+        description: `Approved ${item.type} content has been applied to your database`,
+      });
+    } catch (error) {
+      console.error('Error applying approved content:', error);
+      toast({
+        title: "Error",
+        description: "Content was approved but failed to apply. Please try applying manually.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -196,7 +236,9 @@ const ContentApprovalWorkflow = () => {
                   <div>
                     <h4 className="font-medium mb-2">Generated Content</h4>
                     <div className="p-4 border rounded-lg max-h-60 overflow-y-auto">
-                      <p className="text-sm whitespace-pre-wrap">{selectedItem.content}</p>
+                      <pre className="text-sm whitespace-pre-wrap font-mono">
+                        {JSON.stringify(JSON.parse(selectedItem.content), null, 2)}
+                      </pre>
                     </div>
                   </div>
 
@@ -229,7 +271,7 @@ const ContentApprovalWorkflow = () => {
                           disabled={updating}
                         >
                           <CheckCircle className="h-4 w-4 mr-2" />
-                          Approve
+                          Approve & Apply
                         </Button>
                         <Button 
                           onClick={() => handleStatusUpdate('needs_revision')} 
