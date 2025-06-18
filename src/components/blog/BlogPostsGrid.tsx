@@ -9,7 +9,7 @@ import OptimizedImage from '@/components/ui/optimized-image';
 import { BlogPostSummary } from '@/services/optimizedBlogService';
 import { getTagColor } from '@/utils/blogPostUtils';
 
-interface BlogPosts GridProps {
+interface BlogPostsGridProps {
   posts: BlogPostSummary[];
   selectedCategory: string;
   categories: Array<{ id: string; name: string }>;
