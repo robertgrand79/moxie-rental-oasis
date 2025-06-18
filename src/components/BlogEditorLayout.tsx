@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { UseFormReturn } from 'react-hook-form';
 import BlogEditorHeader from './blog/BlogEditorHeader';
 import BlogEditorContent from './blog/BlogEditorContent';
+import { ensureHTMLParagraphs } from '@/utils/contentFormatting';
 
 interface BlogFormData {
   title: string;
@@ -42,8 +42,10 @@ const BlogEditorLayout = ({
     } else if (field === 'excerpt') {
       form.setValue('excerpt', generatedContent);
     } else if (field === 'content') {
-      setContent(generatedContent);
-      form.setValue('content', generatedContent);
+      // Convert plain text with line breaks to proper HTML paragraphs
+      const formattedContent = ensureHTMLParagraphs(generatedContent);
+      setContent(formattedContent);
+      form.setValue('content', formattedContent);
     }
   };
 

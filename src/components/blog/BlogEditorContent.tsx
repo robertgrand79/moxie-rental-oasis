@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import BlogEditorForm from './BlogEditorForm';
 import BlogPostVisualPreview from '../BlogPostVisualPreview';
 import BlogAIGenerator from '../blog/ai-generator/BlogAIGenerator';
+import { ensureHTMLParagraphs } from '@/utils/contentFormatting';
 
 interface BlogFormData {
   title: string;
@@ -48,6 +48,18 @@ const BlogEditorContent = ({
     form.setValue('content', newContent);
   };
 
+  const handleAIContentGenerated = (field: 'title' | 'excerpt' | 'content', generatedContent: string) => {
+    if (field === 'content') {
+      // Convert plain text with line breaks to proper HTML paragraphs
+      const formattedContent = ensureHTMLParagraphs(generatedContent);
+      setContent(formattedContent);
+      form.setValue('content', formattedContent);
+    } else {
+      // For title and excerpt, pass through as-is
+      onAIContentGenerated(field, generatedContent);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Editor Panel */}
@@ -86,7 +98,7 @@ const BlogEditorContent = ({
             currentTitle={watchedValues.title || ''}
             currentExcerpt={watchedValues.excerpt || ''}
             currentContent={content}
-            onContentGenerated={onAIContentGenerated}
+            onContentGenerated={handleAIContentGenerated}
           />
         </div>
       )}
