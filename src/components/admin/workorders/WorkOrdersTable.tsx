@@ -47,7 +47,6 @@ const WorkOrdersTable = ({
             <TableHead>Work Order #</TableHead>
             <TableHead>Title</TableHead>
             <TableHead>Property</TableHead>
-            <TableHead>Project</TableHead>
             <TableHead>Contractor</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Priority</TableHead>

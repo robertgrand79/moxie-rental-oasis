@@ -46,9 +46,6 @@ const WorkOrderRow = ({
         {workOrder.property?.title || 'No property'}
       </TableCell>
       <TableCell>
-        {workOrder.project?.title || 'No project'}
-      </TableCell>
-      <TableCell>
         {workOrder.contractor ? (
           <div>
             <div className="font-medium">{workOrder.contractor.name}</div>
