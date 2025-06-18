@@ -31,7 +31,9 @@ const NewsletterPreview = ({ subject, content }: NewsletterPreviewProps) => {
     setIsSendingPreview(true);
 
     try {
-      const { error } = await supabase.functions.invoke('send-newsletter-preview', {
+      console.log('Sending newsletter preview to:', previewEmail);
+      
+      const { data, error } = await supabase.functions.invoke('send-newsletter-preview-actual', {
         body: {
           email: previewEmail,
           subject: subject,
@@ -39,19 +41,35 @@ const NewsletterPreview = ({ subject, content }: NewsletterPreviewProps) => {
         }
       });
 
+      console.log('Newsletter preview response:', { data, error });
+
       if (error) {
         throw error;
       }
 
-      toast({
-        title: "Preview Sent!",
-        description: `Preview newsletter sent to ${previewEmail}`,
-      });
+      if (data?.success) {
+        toast({
+          title: "Preview Sent!",
+          description: `Newsletter preview sent to ${previewEmail} with Moxie branding and design.`,
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to send preview');
+      }
     } catch (error: any) {
       console.error('Preview send error:', error);
+      
+      let errorMessage = "Failed to send preview. ";
+      if (error.message?.includes('Authentication')) {
+        errorMessage += "Please make sure you're logged in.";
+      } else if (error.message?.includes('Email service')) {
+        errorMessage += "Email service is not configured.";
+      } else {
+        errorMessage += error.message || "Please try again later.";
+      }
+      
       toast({
         title: "Preview Send Failed",
-        description: error.message || "Please try again later.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -67,7 +85,7 @@ const NewsletterPreview = ({ subject, content }: NewsletterPreviewProps) => {
           Preview Newsletter
         </CardTitle>
         <CardDescription>
-          Send a test copy to any email address before sending to all subscribers
+          Send a test copy with Moxie's professional design and branding to any email address
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -80,6 +98,9 @@ const NewsletterPreview = ({ subject, content }: NewsletterPreviewProps) => {
               onChange={(e) => setPreviewEmail(e.target.value)}
               type="email"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              The preview will include Moxie's branding, responsive design, and professional styling
+            </p>
           </div>
           <Button 
             onClick={sendPreview}
@@ -88,7 +109,7 @@ const NewsletterPreview = ({ subject, content }: NewsletterPreviewProps) => {
             className="w-full"
           >
             <Eye className="h-4 w-4 mr-2" />
-            {isSendingPreview ? "Sending Preview..." : "Send Preview"}
+            {isSendingPreview ? "Sending Preview..." : "Send Newsletter Preview"}
           </Button>
         </div>
       </CardContent>

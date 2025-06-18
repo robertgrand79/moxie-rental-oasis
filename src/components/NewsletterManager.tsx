@@ -9,6 +9,7 @@ import NewsletterOverview from './NewsletterOverview';
 import NewsletterAIGenerator from './NewsletterAIGenerator';
 import NewsletterEditorLayout from './NewsletterEditorLayout';
 import NewsletterPreview from './NewsletterPreview';
+import EnhancedNewsletterPreview from './newsletter/EnhancedNewsletterPreview';
 import NewsletterQuickActions from './NewsletterQuickActions';
 
 interface NewsletterFormData {
@@ -116,10 +117,18 @@ const NewsletterManager = () => {
         blogPostsLoading={blogPostsLoading}
       />
 
-      <NewsletterPreview
-        subject={form.getValues('subject')}
-        content={content}
-      />
+      {/* Newsletter Preview Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <NewsletterPreview
+          subject={form.getValues('subject')}
+          content={content}
+        />
+        
+        <EnhancedNewsletterPreview
+          subject={form.getValues('subject')}
+          content={content}
+        />
+      </div>
 
       <NewsletterQuickActions
         onGenerateBlogNewsletter={generateBlogNewsletter}
