@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Shield, Users, Lock } from 'lucide-react';
+import { Plus, Shield, Users, Lock, Settings } from 'lucide-react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import { useRoleSystem } from '@/hooks/useRoleSystem';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
@@ -8,14 +8,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 
 const AdminRolesPermissions = () => {
-  const { userRole, permissions, loading, isAdmin } = useRoleSystem();
+  const { userRole, permissions, loading, isAdmin, hasPermission } = useRoleSystem();
+  
+  // Debug logging
+  console.log('AdminRolesPermissions Debug:', {
+    userRole,
+    permissions: permissions.length,
+    isAdmin: isAdmin(),
+    hasManageRoles: hasPermission('admin.manage_roles'),
+    hasAccessPanel: hasPermission('admin.access_panel'),
+    loading
+  });
+
+  const canManageRoles = isAdmin() || hasPermission('admin.manage_roles') || hasPermission('users.manage_roles');
 
   const pageActions = (
     <EnhancedButton 
-      onClick={() => {}} 
+      onClick={() => console.log('Manage Roles clicked')} 
       variant="gradient"
       icon={<Plus className="h-4 w-4" />}
-      disabled={!isAdmin}
+      disabled={!canManageRoles}
+      title={!canManageRoles ? 'You need admin or role management permissions to manage roles' : 'Manage system roles and permissions'}
     >
       Manage Roles
     </EnhancedButton>
@@ -42,6 +55,23 @@ const AdminRolesPermissions = () => {
       actions={pageActions}
     >
       <div className="p-8 space-y-6">
+        {/* Debug info for troubleshooting */}
+        {process.env.NODE_ENV === 'development' && (
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="text-sm text-yellow-800">Debug Information</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xs text-yellow-700">
+              <p>User Role: {userRole?.name || 'None'}</p>
+              <p>Is Admin: {isAdmin() ? 'Yes' : 'No'}</p>
+              <p>Can Manage Roles: {canManageRoles ? 'Yes' : 'No'}</p>
+              <p>Permissions Count: {permissions.length}</p>
+              <p>Has admin.manage_roles: {hasPermission('admin.manage_roles') ? 'Yes' : 'No'}</p>
+              <p>Has users.manage_roles: {hasPermission('users.manage_roles') ? 'Yes' : 'No'}</p>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -75,7 +105,7 @@ const AdminRolesPermissions = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isAdmin ? 'Admin' : 'User'}</div>
+              <div className="text-2xl font-bold">{isAdmin() ? 'Admin' : 'User'}</div>
               <p className="text-xs text-muted-foreground">
                 Current access level
               </p>
@@ -104,12 +134,30 @@ const AdminRolesPermissions = () => {
           </CardContent>
         </Card>
 
-        {!isAdmin && (
+        {!canManageRoles && (
           <Card>
             <CardHeader>
-              <CardTitle>Need More Access?</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Need More Access?
+              </CardTitle>
               <CardDescription>
                 Contact an administrator to request additional permissions or role changes.
+                You need admin privileges or role management permissions to access role management features.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+
+        {canManageRoles && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Role Management Available
+              </CardTitle>
+              <CardDescription>
+                You have permission to manage system roles and permissions. Use the "Manage Roles" button above to access role management features.
               </CardDescription>
             </CardHeader>
           </Card>

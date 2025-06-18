@@ -44,6 +44,8 @@ export const useRoleSystem = () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       
+      console.log('Fetching role and permissions for user:', user.id);
+      
       // First check legacy admin system
       const { data: profile } = await supabase
         .from('profiles')
@@ -51,8 +53,11 @@ export const useRoleSystem = () => {
         .eq('id', user.id)
         .single();
 
+      console.log('Profile data:', profile);
+
       // If user is admin in legacy system, give them admin access
       if (profile?.role === 'admin') {
+        console.log('User is admin in legacy system');
         setState({
           userRole: {
             id: 'admin',
@@ -63,6 +68,7 @@ export const useRoleSystem = () => {
           permissions: [
             { key: 'admin.access_panel', name: 'Access Admin Panel', description: 'Access admin interface', category: 'Administration' },
             { key: 'users.manage_roles', name: 'Manage Users', description: 'Manage user accounts', category: 'User Management' },
+            { key: 'admin.manage_roles', name: 'Manage Roles', description: 'Manage system roles', category: 'Administration' },
             { key: 'content.create', name: 'Create Content', description: 'Create content', category: 'Content Management' },
             { key: 'properties.create', name: 'Create Properties', description: 'Create properties', category: 'Property Management' }
           ],
@@ -76,7 +82,7 @@ export const useRoleSystem = () => {
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select(`
-          role:role_id(
+          role:role_id!user_roles_role_id_fkey(
             id,
             name,
             description,
@@ -86,6 +92,8 @@ export const useRoleSystem = () => {
         .eq('user_id', user.id)
         .eq('is_active', true)
         .limit(1);
+
+      console.log('User roles query result:', { userRoles, rolesError });
 
       if (rolesError) {
         console.warn('New role system not available, falling back to default user role');
@@ -108,12 +116,13 @@ export const useRoleSystem = () => {
 
       if (userRoles && userRoles.length > 0 && userRoles[0].role) {
         const role = userRoles[0].role as any;
+        console.log('Found role in new system:', role);
         
         // Fetch permissions for this role with explicit column hints
         const { data: rolePermissions } = await supabase
           .from('role_permissions')
           .select(`
-            permission:permission_id(
+            permission:permission_id!role_permissions_permission_id_fkey(
               key,
               name,
               description,
@@ -121,6 +130,8 @@ export const useRoleSystem = () => {
             )
           `)
           .eq('role_id', role.id);
+
+        console.log('Role permissions:', rolePermissions);
 
         const permissions = rolePermissions?.map(rp => (rp.permission as any)).filter(Boolean) || [];
 
@@ -131,6 +142,7 @@ export const useRoleSystem = () => {
           error: null
         });
       } else {
+        console.log('No roles found, defaulting to user');
         // Default to user role
         setState({
           userRole: {
@@ -162,7 +174,9 @@ export const useRoleSystem = () => {
   }, [fetchUserRoleAndPermissions]);
 
   const hasPermission = useCallback((permission: string): boolean => {
-    return state.permissions.some(p => p.key === permission);
+    const result = state.permissions.some(p => p.key === permission);
+    console.log(`Checking permission ${permission}:`, result);
+    return result;
   }, [state.permissions]);
 
   const hasAnyPermission = useCallback((permissionList: string[]): boolean => {
@@ -174,7 +188,11 @@ export const useRoleSystem = () => {
   }, [hasPermission]);
 
   const isAdmin = useCallback((): boolean => {
-    return state.userRole?.name === 'Admin' || hasPermission('admin.access_panel');
+    const adminByRole = state.userRole?.name === 'Admin';
+    const adminByPermission = hasPermission('admin.access_panel');
+    const result = adminByRole || adminByPermission;
+    console.log('isAdmin check:', { adminByRole, adminByPermission, result, userRole: state.userRole?.name });
+    return result;
   }, [state.userRole, hasPermission]);
 
   return {
