@@ -1533,6 +1533,7 @@ export type Database = {
           id: string
           invoice_attachments: string[] | null
           priority: string
+          project_id: string | null
           property_id: string | null
           requires_permits: boolean | null
           scope_of_work: string | null
@@ -1560,6 +1561,7 @@ export type Database = {
           id?: string
           invoice_attachments?: string[] | null
           priority?: string
+          project_id?: string | null
           property_id?: string | null
           requires_permits?: boolean | null
           scope_of_work?: string | null
@@ -1587,6 +1589,7 @@ export type Database = {
           id?: string
           invoice_attachments?: string[] | null
           priority?: string
+          project_id?: string | null
           property_id?: string | null
           requires_permits?: boolean | null
           scope_of_work?: string | null
@@ -1604,6 +1607,13 @@ export type Database = {
             columns: ["contractor_id"]
             isOneToOne: false
             referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "property_projects"
             referencedColumns: ["id"]
           },
           {

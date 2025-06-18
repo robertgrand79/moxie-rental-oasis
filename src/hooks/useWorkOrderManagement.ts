@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { contractorService } from '@/services/contractorService';
@@ -24,6 +23,7 @@ export interface WorkOrder {
   id: string;
   task_id?: string;
   property_id?: string;
+  project_id?: string; // Add project_id field
   contractor_id?: string;
   work_order_number: string;
   title: string;
@@ -49,6 +49,7 @@ export interface WorkOrder {
   contractor?: Contractor;
   property?: any;
   task?: any;
+  project?: any; // Add project relationship
 }
 
 export const useWorkOrderManagement = () => {
@@ -105,7 +106,7 @@ export const useWorkOrderManagement = () => {
     }
   };
 
-  const createWorkOrder = async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'contractor' | 'property' | 'task'>) => {
+  const createWorkOrder = async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'contractor' | 'property' | 'task' | 'project'>) => {
     try {
       const data = await workOrderService.create(workOrderData);
       setWorkOrders(prev => [data, ...prev]);

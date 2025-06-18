@@ -10,7 +10,8 @@ export const workOrderService = {
         *,
         contractor:contractors(*),
         property:properties(*),
-        task:tasks(*)
+        task:tasks(*),
+        project:property_projects(*)
       `)
       .order('created_at', { ascending: false });
 
@@ -18,7 +19,7 @@ export const workOrderService = {
     return data || [];
   },
 
-  async create(workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'contractor' | 'property' | 'task'>) {
+  async create(workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'contractor' | 'property' | 'task' | 'project'>) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
@@ -36,7 +37,8 @@ export const workOrderService = {
         *,
         contractor:contractors(*),
         property:properties(*),
-        task:tasks(*)
+        task:tasks(*),
+        project:property_projects(*)
       `)
       .single();
 
@@ -56,7 +58,8 @@ export const workOrderService = {
         *,
         contractor:contractors(*),
         property:properties(*),
-        task:tasks(*)
+        task:tasks(*),
+        project:property_projects(*)
       `)
       .single();
 

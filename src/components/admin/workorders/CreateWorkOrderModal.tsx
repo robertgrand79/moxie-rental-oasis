@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -67,6 +66,7 @@ const CreateWorkOrderModal = ({
     priority: editingWorkOrder?.priority || 'medium',
     contractor_id: editingWorkOrder?.contractor_id || 'none',
     property_id: editingWorkOrder?.property_id || 'none',
+    project_id: editingWorkOrder?.project_id || 'none', // Add project_id
     special_instructions: editingWorkOrder?.special_instructions || '',
   });
   
@@ -85,6 +85,7 @@ const CreateWorkOrderModal = ({
         ...formData,
         contractor_id: formData.contractor_id === 'none' ? undefined : formData.contractor_id,
         property_id: formData.property_id === 'none' ? undefined : formData.property_id,
+        project_id: formData.project_id === 'none' ? undefined : formData.project_id, // Add project_id handling
         estimated_completion_date: estimatedCompletionDate ? format(estimatedCompletionDate, 'yyyy-MM-dd') : undefined,
       });
       
@@ -96,6 +97,7 @@ const CreateWorkOrderModal = ({
         priority: 'medium',
         contractor_id: 'none',
         property_id: 'none',
+        project_id: 'none', // Reset project_id
         special_instructions: '',
       });
       setEstimatedCompletionDate(undefined);

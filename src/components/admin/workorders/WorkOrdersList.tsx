@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { Button } from '@/components/ui/button';
@@ -140,6 +139,7 @@ const WorkOrdersList = ({
             <TableHead>Work Order #</TableHead>
             <TableHead>Title</TableHead>
             <TableHead>Property</TableHead>
+            <TableHead>Project</TableHead>
             <TableHead>Contractor</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Priority</TableHead>
@@ -163,6 +163,9 @@ const WorkOrdersList = ({
               </TableCell>
               <TableCell>
                 {workOrder.property?.title || 'No property'}
+              </TableCell>
+              <TableCell>
+                {workOrder.project?.title || 'No project'}
               </TableCell>
               <TableCell>
                 {workOrder.contractor ? (
