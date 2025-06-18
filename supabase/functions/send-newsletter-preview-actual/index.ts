@@ -15,19 +15,57 @@ interface NewsletterPreviewRequest {
 
 const handler = async (req: Request): Promise<Response> => {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] 🚀 Newsletter preview request received: ${req.method}`);
+  console.log(`[${timestamp}] 🚀 Newsletter preview function called: ${req.method}`);
   
   if (req.method === "OPTIONS") {
-    console.log("Handling CORS preflight request");
+    console.log("✅ Handling CORS preflight request");
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Verify environment variables
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const sendGridApiKey = Deno.env.get("SENDGRID_API_KEY");
+
+    console.log("🔧 Environment check:", {
+      supabaseUrl: !!supabaseUrl,
+      supabaseServiceKey: !!supabaseServiceKey,
+      sendGridApiKey: !!sendGridApiKey
+    });
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("❌ Missing Supabase configuration");
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "Service configuration error - Supabase not properly configured",
+          timestamp
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    if (!sendGridApiKey) {
+      console.error("❌ SendGrid API key not found");
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "Email service not configured. Please contact administrator.",
+          timestamp
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     console.log("📧 Creating Supabase client...");
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
 
     const authHeader = req.headers.get("Authorization");
     console.log("🔐 Authorization header present:", !!authHeader);
@@ -47,12 +85,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Extract the JWT token from Bearer header
+    // Extract and verify JWT token
     const token = authHeader.replace("Bearer ", "");
     console.log("🎫 Token extracted, length:", token.length);
 
-    // Verify the token and get user
-    console.log("👤 Verifying user authentication...");
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
@@ -103,7 +139,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log("⚙️ Fetching email settings from database...");
-    // Fetch email settings from site_settings
+    // Fetch email settings with error handling
     const { data: emailSettings, error: settingsError } = await supabaseClient
       .from("site_settings")
       .select("key, value")
@@ -113,13 +149,13 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("⚠️ Error fetching email settings:", settingsError);
     }
 
-    // Convert settings array to object
+    // Convert settings array to object with defaults
     const settings = emailSettings?.reduce((acc, setting) => {
       acc[setting.key] = setting.value;
       return acc;
     }, {} as Record<string, string>) || {};
 
-    console.log("📧 Email settings:", settings);
+    console.log("📧 Email settings loaded:", settings);
 
     // Use configured settings with fallbacks
     const fromEmail = settings.emailFromAddress || "newsletter@moxievacationrentals.com";
@@ -128,7 +164,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("📧 Email configuration:", { fromEmail, fromName, replyTo });
 
-    // Create enhanced newsletter template with the actual content
+    // Create enhanced newsletter template
     const emailHtml = `
       <!DOCTYPE html>
       <html lang="en">
@@ -137,41 +173,16 @@ const handler = async (req: Request): Promise<Response> => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${subject}</title>
           <style>
-              /* Reset styles */
               * { margin: 0; padding: 0; box-sizing: border-box; }
               body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; }
-              
-              /* Moxie Brand Colors */
               .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-              .text-primary { color: #1f2937; }
-              .text-secondary { color: #6b7280; }
-              .text-white { color: #ffffff; }
-              .bg-white { background-color: #ffffff; }
-              
-              /* Layout */
               .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
               .section { padding: 32px 24px; }
               .hero-section { padding: 48px 24px; text-align: center; }
               .footer-section { padding: 32px 24px; background: #f9fafb; }
-              
-              /* Typography */
-              .hero-title { font-size: 32px; font-weight: bold; margin-bottom: 16px; line-height: 1.2; }
-              .hero-subtitle { font-size: 18px; opacity: 0.9; margin-bottom: 24px; }
+              .hero-title { font-size: 32px; font-weight: bold; margin-bottom: 16px; line-height: 1.2; color: #ffffff; }
+              .hero-subtitle { font-size: 18px; opacity: 0.9; margin-bottom: 24px; color: #ffffff; }
               .content-text { font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 16px; }
-              
-              /* Components */
-              .button { 
-                  display: inline-block; 
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                  color: white; 
-                  padding: 14px 28px; 
-                  text-decoration: none; 
-                  border-radius: 8px; 
-                  font-weight: 600;
-                  margin: 16px 0;
-              }
-              
-              /* Mobile responsive */
               @media (max-width: 600px) {
                   .hero-title { font-size: 28px; }
                   .section { padding: 24px 16px; }
@@ -181,29 +192,20 @@ const handler = async (req: Request): Promise<Response> => {
       </head>
       <body>
           <div class="container">
-              <!-- Newsletter Preview Header -->
               <div style="background: #f3f4f6; padding: 12px 24px; text-align: center; border-bottom: 1px solid #e5e7eb;">
                   <p style="margin: 0; font-size: 14px; color: #6b7280;">📧 Newsletter Preview - This is how your email will look</p>
               </div>
               
-              <!-- Moxie Header -->
               <div class="gradient-bg hero-section">
-                  <div class="text-white">
-                      <h1 class="hero-title">${fromName}</h1>
-                      <p class="hero-subtitle">Your Home Base for Living Like a Local in Eugene</p>
-                  </div>
+                  <h1 class="hero-title">${fromName}</h1>
+                  <p class="hero-subtitle">Your Home Base for Living Like a Local in Eugene</p>
               </div>
               
-              <!-- Main Content -->
               <div class="section">
                   <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 16px; color: #1f2937;">${subject}</h2>
-                  
-                  <div class="content-text">
-                      ${content}
-                  </div>
+                  <div class="content-text">${content}</div>
               </div>
               
-              <!-- Footer -->
               <div class="footer-section">
                   <div style="text-align: center; color: #6b7280; font-size: 14px;">
                       <p style="margin-bottom: 16px;"><strong>${fromName}</strong></p>
@@ -223,25 +225,6 @@ const handler = async (req: Request): Promise<Response> => {
       </body>
       </html>`;
 
-    // Send email using SendGrid
-    const sendGridApiKey = Deno.env.get("SENDGRID_API_KEY");
-    console.log("📧 SendGrid API key present:", !!sendGridApiKey);
-    
-    if (!sendGridApiKey) {
-      console.error("❌ SendGrid API key not found in environment");
-      return new Response(
-        JSON.stringify({ 
-          success: false,
-          error: "Email service not configured. Please contact administrator.",
-          timestamp
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
-
     console.log("📤 Preparing to send newsletter preview via SendGrid...");
     const sendGridPayload = {
       personalizations: [
@@ -260,7 +243,7 @@ const handler = async (req: Request): Promise<Response> => {
       ],
     };
 
-    console.log("📧 SendGrid payload prepared for newsletter preview");
+    console.log("📧 Sending email via SendGrid...");
 
     const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
       method: "POST",

@@ -8,7 +8,6 @@ import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 import NewsletterOverview from './NewsletterOverview';
 import NewsletterAIGenerator from './NewsletterAIGenerator';
 import NewsletterEditorLayout from './NewsletterEditorLayout';
-import NewsletterPreview from './NewsletterPreview';
 import EnhancedNewsletterPreview from './newsletter/EnhancedNewsletterPreview';
 import NewsletterQuickActions from './NewsletterQuickActions';
 
@@ -121,18 +120,11 @@ const NewsletterManager = () => {
         blogPostsLoading={blogPostsLoading}
       />
 
-      {/* Newsletter Preview Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <NewsletterPreview
-          subject={currentSubject}
-          content={content}
-        />
-        
-        <EnhancedNewsletterPreview
-          subject={currentSubject}
-          content={content}
-        />
-      </div>
+      {/* Single Enhanced Newsletter Preview with Send Functionality */}
+      <EnhancedNewsletterPreview
+        subject={currentSubject}
+        content={content}
+      />
 
       <NewsletterQuickActions
         onGenerateBlogNewsletter={generateBlogNewsletter}
