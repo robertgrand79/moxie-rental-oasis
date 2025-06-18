@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit3, Eye, Monitor, Wand2 } from 'lucide-react';
+import { Edit3, Eye, Wand2 } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import TiptapEditor from './TiptapEditor';
 import ImageUploader from './ImageUploader';
@@ -40,7 +41,7 @@ const BlogEditorLayout = ({
   isEditing,
   onCancel
 }: BlogEditorLayoutProps) => {
-  const [viewMode, setViewMode] = useState<'split' | 'editor' | 'preview' | 'ai'>('split');
+  const [viewMode, setViewMode] = useState<'editor' | 'preview' | 'ai'>('editor');
 
   const watchedValues = form.watch();
   const tagsArray = watchedValues.tags ? 
@@ -91,14 +92,6 @@ const BlogEditorLayout = ({
               AI Generator
             </Button>
             <Button
-              variant={viewMode === 'split' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('split')}
-            >
-              <Monitor className="h-4 w-4 mr-1" />
-              Split
-            </Button>
-            <Button
               variant={viewMode === 'preview' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('preview')}
@@ -110,9 +103,9 @@ const BlogEditorLayout = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className={`grid gap-6 ${viewMode === 'split' ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+        <div className="space-y-6">
           {/* Editor Panel */}
-          {(viewMode === 'editor' || viewMode === 'split') && (
+          {viewMode === 'editor' && (
             <div className="space-y-6">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -214,12 +207,25 @@ const BlogEditorLayout = ({
                   </div>
                 </form>
               </Form>
+              
+              {/* Preview below editor when in editor mode */}
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-4">Live Preview</h3>
+                <BlogPostVisualPreview
+                  title={watchedValues.title || ''}
+                  excerpt={watchedValues.excerpt || ''}
+                  content={content}
+                  author="Admin"
+                  tags={tagsArray}
+                  imageUrl={uploadedImage || undefined}
+                />
+              </div>
             </div>
           )}
 
           {/* AI Generator Panel */}
           {viewMode === 'ai' && (
-            <div className="col-span-full">
+            <div>
               <BlogAIGenerator
                 currentTitle={watchedValues.title || ''}
                 currentExcerpt={watchedValues.excerpt || ''}
@@ -230,8 +236,8 @@ const BlogEditorLayout = ({
           )}
 
           {/* Preview Panel */}
-          {(viewMode === 'preview' || viewMode === 'split') && (
-            <div className="min-h-[600px]">
+          {viewMode === 'preview' && (
+            <div>
               <BlogPostVisualPreview
                 title={watchedValues.title || ''}
                 excerpt={watchedValues.excerpt || ''}
