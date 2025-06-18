@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { blogPostService } from '@/services/blogPostService';
@@ -10,6 +9,7 @@ interface AutoSaveData {
   excerpt: string;
   content: string;
   tags: string;
+  author: string;
 }
 
 interface UseAutoSaveOptions {
