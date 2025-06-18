@@ -72,40 +72,97 @@ export const useEnhancedUserManagement = () => {
         return;
       }
 
-      // Fetch users with their roles from the new system
-      const { data: usersData, error: usersError } = await supabase
+      // Fetch all users from profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          user_roles!inner(
-            role:system_roles(
-              id,
-              name,
-              description
-            )
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (usersError) {
-        console.error('Error fetching users:', usersError);
-        setError(usersError.message);
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        setError(profilesError.message);
         return;
       }
 
-      // Transform the data to match our interface
-      const transformedUsers = (usersData || []).map((userProfile: any) => ({
-        id: userProfile.id,
-        email: userProfile.email,
-        full_name: userProfile.full_name,
-        status: userProfile.status,
-        last_login_at: userProfile.last_login_at,
-        created_at: userProfile.created_at,
-        updated_at: userProfile.updated_at,
-        roles: userProfile.user_roles?.map((ur: any) => ur.role).filter(Boolean) || []
-      }));
+      // For each user, fetch their roles from the new system
+      const usersWithRoles = await Promise.all(
+        (profilesData || []).map(async (profile) => {
+          try {
+            // Fetch roles from new system
+            const { data: userRolesData, error: rolesError } = await supabase
+              .from('user_roles')
+              .select(`
+                role:system_roles(
+                  id,
+                  name,
+                  description
+                )
+              `)
+              .eq('user_id', profile.id)
+              .eq('is_active', true);
 
-      setUsers(transformedUsers);
+            let roles = [];
+
+            if (rolesError) {
+              console.warn(`Error fetching roles for user ${profile.id}:`, rolesError);
+            } else if (userRolesData && userRolesData.length > 0) {
+              // Use new role system
+              roles = userRolesData
+                .map(ur => ur.role)
+                .filter(role => role !== null);
+            }
+
+            // Fallback to old role system if no roles found in new system
+            if (roles.length === 0 && profile.role) {
+              // Create a mock role object based on the old system
+              roles = [{
+                id: `legacy-${profile.role}`,
+                name: profile.role.charAt(0).toUpperCase() + profile.role.slice(1),
+                description: `Legacy ${profile.role} role`
+              }];
+            }
+
+            // If still no roles, assign default User role
+            if (roles.length === 0) {
+              roles = [{
+                id: 'default-user',
+                name: 'User',
+                description: 'Default user role'
+              }];
+            }
+
+            return {
+              id: profile.id,
+              email: profile.email,
+              full_name: profile.full_name,
+              status: profile.status,
+              last_login_at: profile.last_login_at,
+              created_at: profile.created_at,
+              updated_at: profile.updated_at,
+              roles: roles
+            };
+          } catch (err) {
+            console.error(`Error processing user ${profile.id}:`, err);
+            // Return user with default role on error
+            return {
+              id: profile.id,
+              email: profile.email,
+              full_name: profile.full_name,
+              status: profile.status,
+              last_login_at: profile.last_login_at,
+              created_at: profile.created_at,
+              updated_at: profile.updated_at,
+              roles: [{
+                id: 'error-default',
+                name: 'User',
+                description: 'Default role (error fallback)'
+              }]
+            };
+          }
+        })
+      );
+
+      setUsers(usersWithRoles);
     } catch (err) {
       console.error('Unexpected error fetching users:', err);
       setError('Failed to fetch users');
@@ -149,6 +206,16 @@ export const useEnhancedUserManagement = () => {
     try {
       setLoading(true);
 
+      // Check if it's a legacy role ID
+      if (roleId.startsWith('legacy-') || roleId.startsWith('default-') || roleId.startsWith('error-')) {
+        toast({
+          title: 'Error',
+          description: 'Cannot assign legacy or system-generated roles',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
       const { error } = await supabase
         .from('user_roles')
         .insert({
@@ -182,6 +249,16 @@ export const useEnhancedUserManagement = () => {
   const removeRoleFromUser = async (userId: string, roleId: string) => {
     try {
       setLoading(true);
+
+      // Check if it's a legacy role ID
+      if (roleId.startsWith('legacy-') || roleId.startsWith('default-') || roleId.startsWith('error-')) {
+        toast({
+          title: 'Error',
+          description: 'Cannot remove legacy or system-generated roles',
+          variant: 'destructive',
+        });
+        return false;
+      }
 
       const { error } = await supabase
         .from('user_roles')
