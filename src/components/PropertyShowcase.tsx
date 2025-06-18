@@ -70,7 +70,7 @@ const PropertyShowcase = () => {
                       {property.description}
                     </p>
                     
-                    <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground mb-6">
                       <div className="flex items-center">
                         <Bed className="h-4 w-4 mr-1" />
                         {property.bedrooms}
@@ -85,16 +85,22 @@ const PropertyShowcase = () => {
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                      <div className="font-semibold text-lg">
-                        ${property.price_per_night}
-                        <span className="text-sm font-normal text-muted-foreground">/night</span>
-                      </div>
-                      <Link to={`/property/${addressSlug}`}>
-                        <Button size="sm" className="w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Link to={`/property/${addressSlug}`} className="flex-1">
+                        <Button size="sm" className="w-full">
                           View Details
                         </Button>
                       </Link>
+                      {property.hospitable_booking_url && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => window.open(property.hospitable_booking_url, '_blank')}
+                        >
+                          Book Now
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

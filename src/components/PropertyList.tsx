@@ -110,18 +110,11 @@ const PropertyList = ({
               </div>
 
               {property.amenities && (
-                <div className="mb-4">
+                <div className="mb-6">
                   <p className="text-xs text-gray-500 font-medium mb-2">Amenities:</p>
                   <p className="text-sm text-gray-700 line-clamp-2">{property.amenities}</p>
                 </div>
               )}
-              
-              <div className="flex items-center justify-between mb-4">
-                <div className="font-bold text-lg text-gray-900">
-                  ${property.price_per_night || 0}
-                  <span className="text-sm font-normal text-gray-500">/night</span>
-                </div>
-              </div>
 
               <div className="flex gap-2">
                 {!showActions && (

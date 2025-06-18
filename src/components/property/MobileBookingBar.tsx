@@ -31,11 +31,10 @@ const MobileBookingBar = ({ property, onBookingClick }: MobileBookingBarProps) =
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <div className="text-lg font-bold text-gray-900">
-            ${property.price_per_night}
-            <span className="text-sm font-normal text-gray-600">/night</span>
+            {property.title}
           </div>
           <div className="text-xs text-gray-500">
-            Free cancellation
+            Available for booking
           </div>
         </div>
         

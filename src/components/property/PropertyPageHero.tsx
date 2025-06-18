@@ -44,25 +44,24 @@ const PropertyPageHero = ({ property, coverImage }: PropertyPageHeroProps) => {
           
           {/* Property Stats */}
           <div className="flex items-center justify-center space-x-4 md:space-x-6 lg:space-x-8 mb-6 animate-fade-in" style={{ animationDelay: '400ms' }}>
-            <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 py-2">
-              <Bed className="h-4 w-4 mr-2" />
-              <span className="font-semibold text-sm md:text-base">{property.bedrooms}</span>
+            <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-3">
+              <Bed className="h-5 w-5 mr-2" />
+              <span className="font-semibold text-base md:text-lg">{property.bedrooms} Bedroom{property.bedrooms !== 1 ? 's' : ''}</span>
             </div>
-            <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 py-2">
-              <Bath className="h-4 w-4 mr-2" />
-              <span className="font-semibold text-sm md:text-base">{property.bathrooms}</span>
+            <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-3">
+              <Bath className="h-5 w-5 mr-2" />
+              <span className="font-semibold text-base md:text-lg">{property.bathrooms} Bathroom{property.bathrooms !== 1 ? 's' : ''}</span>
             </div>
-            <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-3 py-2">
-              <Users className="h-4 w-4 mr-2" />
-              <span className="font-semibold text-sm md:text-base">{property.max_guests}</span>
+            <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-3">
+              <Users className="h-5 w-5 mr-2" />
+              <span className="font-semibold text-base md:text-lg">Up to {property.max_guests} Guests</span>
             </div>
           </div>
           
-          {/* Price */}
+          {/* Call to Action */}
           <div className="animate-fade-in" style={{ animationDelay: '600ms' }}>
-            <div className="text-2xl md:text-3xl lg:text-4xl font-bold">
-              ${property.price_per_night}
-              <span className="text-lg md:text-xl lg:text-2xl font-normal text-white/80">/night</span>
+            <div className="text-lg md:text-xl lg:text-2xl font-medium text-white/90">
+              Experience Eugene's finest vacation rental
             </div>
           </div>
         </div>

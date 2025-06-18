@@ -47,9 +47,8 @@ const FloatingBookingCard = ({ property, onBookingClick }: FloatingBookingCardPr
       <Card className="w-80 backdrop-blur-xl bg-white/95 border-border shadow-2xl">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-3xl font-bold">
-              ${property.price_per_night}
-              <span className="text-lg font-normal text-muted-foreground">/night</span>
+            <CardTitle className="text-2xl font-bold">
+              Book Your Stay
             </CardTitle>
             <div className="flex items-center bg-muted rounded-full px-3 py-1">
               <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
@@ -84,10 +83,10 @@ const FloatingBookingCard = ({ property, onBookingClick }: FloatingBookingCardPr
                 className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90 shadow-lg"
                 onClick={handleBookNow}
               >
-                Book Now
+                Check Availability
               </Button>
               <p className="text-sm text-muted-foreground text-center">
-                You won't be charged yet
+                Secure booking with instant confirmation
               </p>
               
               {/* Booking Benefits */}

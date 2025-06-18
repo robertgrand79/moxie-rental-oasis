@@ -22,8 +22,7 @@ const BookingCard = ({ property }: BookingCardProps) => {
       <Card className="sticky top-8">
         <CardHeader>
           <CardTitle className="text-2xl">
-            ${property.price_per_night}
-            <span className="text-lg font-normal text-gray-600">/night</span>
+            Book Your Stay
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -33,11 +32,25 @@ const BookingCard = ({ property }: BookingCardProps) => {
                 className="w-full mb-4 bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90"
                 onClick={handleBookNow}
               >
-                Book Now
+                Check Availability & Book
               </Button>
-              <p className="text-sm text-gray-600 text-center">
-                You won't be charged yet
+              <p className="text-sm text-gray-600 text-center mb-4">
+                Secure booking with instant confirmation
               </p>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                  Free cancellation available
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                  Best price guarantee
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                  24/7 support
+                </div>
+              </div>
             </>
           ) : (
             <div className="text-center">
