@@ -1,6 +1,6 @@
-
 import React, { useState, useMemo } from 'react';
 import { PropertyTask } from '@/hooks/property-management/types';
+import { useGoogleCalendarIntegration } from '@/hooks/useGoogleCalendarIntegration';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Plus, Filter, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Filter, Calendar as CalendarIcon, Clock, ExternalLink } from 'lucide-react';
 import { 
   format, 
   isSameDay, 
@@ -32,6 +32,7 @@ import {
   isToday,
   parseISO
 } from 'date-fns';
+import GoogleCalendarIntegration from './GoogleCalendarIntegration';
 
 interface GoogleCalendarViewProps {
   tasks: PropertyTask[];
@@ -52,6 +53,9 @@ const GoogleCalendarView = ({
   const [propertyFilter, setPropertyFilter] = useState('all');
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [selectedDayTasks, setSelectedDayTasks] = useState<PropertyTask[]>([]);
+  const [showIntegrationDialog, setShowIntegrationDialog] = useState(false);
+
+  const { events: googleEvents, exportTask, calendars } = useGoogleCalendarIntegration();
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
@@ -60,9 +64,34 @@ const GoogleCalendarView = ({
     });
   }, [tasks, propertyFilter]);
 
-  const getTasksForDate = (date: Date) => {
-    return filteredTasks.filter(task => 
-      task.due_date && isSameDay(new Date(task.due_date), date)
+  // Combine tasks and Google Calendar events for display
+  const combinedEvents = useMemo(() => {
+    const taskEvents = filteredTasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      date: task.due_date,
+      type: 'task' as const,
+      priority: task.priority,
+      status: task.status,
+      data: task,
+    }));
+
+    const calendarEvents = googleEvents.map(event => ({
+      id: event.id,
+      title: event.title,
+      date: event.start_time,
+      type: 'google_event' as const,
+      priority: 'medium' as const,
+      status: 'completed' as const,
+      data: event,
+    }));
+
+    return [...taskEvents, ...calendarEvents];
+  }, [filteredTasks, googleEvents]);
+
+  const getEventsForDate = (date: Date) => {
+    return combinedEvents.filter(event => 
+      event.date && isSameDay(new Date(event.date), date)
     );
   };
 
@@ -136,7 +165,9 @@ const GoogleCalendarView = ({
   };
 
   const handleDayClick = (date: Date) => {
-    const dayTasks = getTasksForDate(date);
+    const dayEvents = getEventsForDate(date);
+    const dayTasks = dayEvents.filter(e => e.type === 'task').map(e => e.data as PropertyTask);
+    
     if (dayTasks.length > 0) {
       setSelectedDayTasks(dayTasks);
       setShowTaskDialog(true);
@@ -144,23 +175,35 @@ const GoogleCalendarView = ({
     setSelectedDate(date);
   };
 
-  const renderTaskBar = (task: PropertyTask, index: number) => {
-    const taskTime = task.due_date ? format(new Date(task.due_date), 'HH:mm') : '';
+  const renderEventBar = (event: any, index: number) => {
+    const eventTime = event.date ? format(new Date(event.date), 'HH:mm') : '';
+    const isGoogleEvent = event.type === 'google_event';
     
     return (
       <div
-        key={task.id}
-        className={`text-xs p-1 mb-1 rounded border-l-4 cursor-pointer hover:shadow-sm transition-shadow ${getPriorityColor(task.priority)} ${getStatusColor(task.status)} ${
-          isOverdue(task) ? 'ring-1 ring-red-400' : ''
+        key={event.id}
+        className={`text-xs p-1 mb-1 rounded border-l-4 cursor-pointer hover:shadow-sm transition-shadow ${
+          isGoogleEvent 
+            ? 'bg-blue-100 text-blue-800 border-blue-500' 
+            : `${getPriorityColor(event.priority)} ${getStatusColor(event.status)}`
+        } ${
+          event.type === 'task' && isOverdue(event.data) ? 'ring-1 ring-red-400' : ''
         }`}
-        onClick={() => onTaskClick(task)}
+        onClick={() => {
+          if (event.type === 'task') {
+            onTaskClick(event.data);
+          }
+        }}
         style={{ zIndex: 10 - index }}
       >
-        <div className="font-medium truncate">{task.title}</div>
-        {taskTime && (
+        <div className="font-medium truncate flex items-center gap-1">
+          {isGoogleEvent && <ExternalLink className="h-3 w-3" />}
+          {event.title}
+        </div>
+        {eventTime && (
           <div className="text-xs text-gray-600 flex items-center">
             <Clock className="h-3 w-3 mr-1" />
-            {taskTime}
+            {eventTime}
           </div>
         )}
       </div>
@@ -186,7 +229,7 @@ const GoogleCalendarView = ({
           {weeks.map((week, weekIndex) => (
             <div key={weekIndex} className="grid grid-cols-7 border-b last:border-b-0">
               {week.map((date) => {
-                const dayTasks = getTasksForDate(date);
+                const dayEvents = getEventsForDate(date);
                 const isCurrentMonth = isSameMonth(date, viewDate);
                 const isTodayDate = isToday(date);
                 const isSelected = isSameDay(date, selectedDate);
@@ -203,10 +246,10 @@ const GoogleCalendarView = ({
                       {format(date, 'd')}
                     </div>
                     <div className="space-y-1">
-                      {dayTasks.slice(0, 3).map((task, index) => renderTaskBar(task, index))}
-                      {dayTasks.length > 3 && (
+                      {dayEvents.slice(0, 3).map((event, index) => renderEventBar(event, index))}
+                      {dayEvents.length > 3 && (
                         <div className="text-xs text-gray-500 px-1 py-0.5 bg-gray-100 rounded">
-                          +{dayTasks.length - 3} more
+                          +{dayEvents.length - 3} more
                         </div>
                       )}
                     </div>
@@ -241,7 +284,7 @@ const GoogleCalendarView = ({
         {/* Week grid */}
         <div className="flex-1 grid grid-cols-7">
           {weekDays.map((day) => {
-            const dayTasks = getTasksForDate(day);
+            const dayEvents = getEventsForDate(day);
             const isTodayDate = isToday(day);
             
             return (
@@ -250,7 +293,7 @@ const GoogleCalendarView = ({
                 className={`border-r last:border-r-0 p-3 ${isTodayDate ? 'bg-blue-50' : 'bg-white'}`}
               >
                 <div className="space-y-1 h-full">
-                  {dayTasks.map((task, index) => renderTaskBar(task, index))}
+                  {dayEvents.map((event, index) => renderEventBar(event, index))}
                 </div>
               </div>
             );
@@ -261,7 +304,7 @@ const GoogleCalendarView = ({
   };
 
   const renderDayView = () => {
-    const dayTasks = getTasksForDate(viewDate);
+    const dayEvents = getEventsForDate(viewDate);
     const hours = Array.from({ length: 24 }, (_, i) => i);
     
     return (
@@ -276,12 +319,12 @@ const GoogleCalendarView = ({
           </div>
         </div>
         
-        {/* All-day tasks */}
-        {dayTasks.length > 0 && (
+        {/* All-day events */}
+        {dayEvents.length > 0 && (
           <div className="border-b p-4 bg-gray-50">
             <div className="text-sm font-medium text-gray-700 mb-2">All Day</div>
             <div className="space-y-1">
-              {dayTasks.map((task, index) => renderTaskBar(task, index))}
+              {dayEvents.map((event, index) => renderEventBar(event, index))}
             </div>
           </div>
         )}
@@ -294,7 +337,7 @@ const GoogleCalendarView = ({
                 {format(new Date().setHours(hour, 0), 'HH:mm')}
               </div>
               <div className="flex-1 p-2 min-h-[60px]">
-                {/* Time-based tasks would go here */}
+                {/* Time-based events would go here */}
               </div>
             </div>
           ))}
@@ -355,6 +398,15 @@ const GoogleCalendarView = ({
                   ))}
                 </SelectContent>
               </Select>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowIntegrationDialog(true)}
+              >
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Google Calendar
+              </Button>
 
               <Button onClick={onCreateTask} size="sm">
                 <Plus className="h-4 w-4 mr-2" />
@@ -424,6 +476,16 @@ const GoogleCalendarView = ({
               </div>
             ))}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Google Calendar Integration Dialog */}
+      <Dialog open={showIntegrationDialog} onOpenChange={setShowIntegrationDialog}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Google Calendar Integration</DialogTitle>
+          </DialogHeader>
+          <GoogleCalendarIntegration />
         </DialogContent>
       </Dialog>
     </div>
