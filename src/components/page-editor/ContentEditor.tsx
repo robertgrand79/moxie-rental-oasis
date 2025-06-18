@@ -6,7 +6,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileText, Layout, Code, Eye, AlertTriangle } from 'lucide-react';
 import TiptapEditor from '@/components/TiptapEditor';
 import { PageBuilder } from '@/components/page-builder/PageBuilder';
-import FAQEditor from './FAQEditor';
 import { detectContentType, shouldUseRichTextEditor, shouldUseVisualBuilder, ContentType } from '@/utils/contentTypeDetection';
 
 interface ContentEditorProps {
@@ -32,8 +31,6 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
       setActiveTab('visual');
     }
   }, [content]);
-
-  const isFAQPage = pageSlug === 'faq' || pageTitle?.toLowerCase().includes('faq');
 
   const handleTabChange = (newTab: string) => {
     // Show warning when switching between incompatible formats
@@ -75,12 +72,13 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
           <span>/{pageSlug || 'page-slug'}</span>
         </div>
       </div>
-      <div 
-        className="prose max-w-none"
-        dangerouslySetInnerHTML={{ 
-          __html: content || '<p>Your page content will appear here...</p>' 
-        }}
-      />
+      <div className="prose max-w-none">
+        {content ? (
+          <div dangerouslySetInnerHTML={{ __html: content }} />
+        ) : (
+          <p className="text-gray-500 italic">Your page content will appear here...</p>
+        )}
+      </div>
     </div>
   );
 
@@ -96,17 +94,11 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
       )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="rich-text" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Rich Text
           </TabsTrigger>
-          {isFAQPage && (
-            <TabsTrigger value="faq-editor" className="flex items-center gap-2">
-              <Layout className="h-4 w-4" />
-              FAQ Editor
-            </TabsTrigger>
-          )}
           <TabsTrigger value="html" className="flex items-center gap-2">
             <Code className="h-4 w-4" />
             HTML
@@ -129,15 +121,6 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
             className="min-h-96"
           />
         </TabsContent>
-
-        {isFAQPage && (
-          <TabsContent value="faq-editor" className="mt-4">
-            <FAQEditor
-              content={content}
-              onChange={handleContentChange}
-            />
-          </TabsContent>
-        )}
 
         <TabsContent value="html" className="mt-4">
           <textarea
