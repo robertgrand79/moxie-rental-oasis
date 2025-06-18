@@ -14,22 +14,6 @@ interface User {
   updated_at: string;
 }
 
-interface UserProfile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  role: string;
-  status: string;
-  last_login_at: string | null;
-  created_at: string;
-  updated_at: string;
-  user_roles?: Array<{
-    role: {
-      name: string;
-    };
-  }>;
-}
-
 export const useUserFetch = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,8 +48,8 @@ export const useUserFetch = () => {
         .from('profiles')
         .select(`
           *,
-          user_roles(
-            role:system_roles(name)
+          user_roles!inner(
+            role:system_roles!inner(name)
           )
         `)
         .order('created_at', { ascending: false });
@@ -77,8 +61,8 @@ export const useUserFetch = () => {
       }
 
       // Format users data to include role information from new system
-      const formattedUsers = (data || []).map((userProfile: UserProfile) => {
-        // Get the primary role (first active role) - access the name property correctly
+      const formattedUsers = (data || []).map((userProfile: any) => {
+        // Get the primary role (first active role)
         const userRoleData = userProfile.user_roles?.[0]?.role;
         const primaryRole = userRoleData?.name || userProfile.role || 'user';
         
