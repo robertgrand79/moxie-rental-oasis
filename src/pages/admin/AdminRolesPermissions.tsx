@@ -6,13 +6,13 @@ import { useRoleSystem } from '@/hooks/useRoleSystem';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import RoleManagementModal from '@/components/admin/roles/RoleManagementModal';
 
 const AdminRolesPermissions = () => {
   const { userRole, permissions, loading, isAdmin, hasPermission } = useRoleSystem();
   const [roleManagementModalOpen, setRoleManagementModalOpen] = useState(false);
   
-  // Debug logging
   console.log('AdminRolesPermissions Debug:', {
     userRole,
     permissions: permissions.length,
@@ -55,6 +55,9 @@ const AdminRolesPermissions = () => {
     );
   }
 
+  // Show debug info only when there are actual errors or in development mode
+  const showDebugInfo = process.env.NODE_ENV === 'development' && (!userRole || permissions.length === 0);
+
   return (
     <>
       <AdminPageWrapper
@@ -63,21 +66,22 @@ const AdminRolesPermissions = () => {
         actions={pageActions}
       >
         <div className="p-8 space-y-6">
-          {/* Debug info for troubleshooting */}
-          {process.env.NODE_ENV === 'development' && (
-            <Card className="border-yellow-200 bg-yellow-50">
-              <CardHeader>
-                <CardTitle className="text-sm text-yellow-800">Debug Information</CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs text-yellow-700">
-                <p>User Role: {userRole?.name || 'None'}</p>
-                <p>Is Admin: {isAdmin() ? 'Yes' : 'No'}</p>
-                <p>Can Manage Roles: {canManageRoles ? 'Yes' : 'No'}</p>
-                <p>Permissions Count: {permissions.length}</p>
-                <p>Has admin.manage_roles: {hasPermission('admin.manage_roles') ? 'Yes' : 'No'}</p>
-                <p>Has users.manage_roles: {hasPermission('users.manage_roles') ? 'Yes' : 'No'}</p>
-              </CardContent>
-            </Card>
+          {/* Debug info only when there are issues */}
+          {showDebugInfo && (
+            <Alert variant="destructive">
+              <Shield className="h-4 w-4" />
+              <AlertTitle>Debug Information</AlertTitle>
+              <AlertDescription>
+                <div className="text-xs space-y-1 mt-2">
+                  <p>User Role: {userRole?.name || 'None'}</p>
+                  <p>Is Admin: {isAdmin() ? 'Yes' : 'No'}</p>
+                  <p>Can Manage Roles: {canManageRoles ? 'Yes' : 'No'}</p>
+                  <p>Permissions Count: {permissions.length}</p>
+                  <p>Has admin.manage_roles: {hasPermission('admin.manage_roles') ? 'Yes' : 'No'}</p>
+                  <p>Has users.manage_roles: {hasPermission('users.manage_roles') ? 'Yes' : 'No'}</p>
+                </div>
+              </AlertDescription>
+            </Alert>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,8 +18,8 @@ export const useEnhancedRolesPermissions = () => {
         .from('system_roles')
         .select(`
           *,
-          role_permissions(
-            permission:permission_id(*)
+          role_permissions!role_permissions_role_id_fkey(
+            permission:system_permissions!role_permissions_permission_id_fkey(*)
           )
         `)
         .eq('is_active', true)
@@ -28,7 +29,7 @@ export const useEnhancedRolesPermissions = () => {
 
       const rolesWithPermissions = data?.map(role => ({
         ...role,
-        permissions: role.role_permissions?.map(rp => (rp.permission as any)).filter(Boolean) || [],
+        permissions: role.role_permissions?.map(rp => rp.permission).filter(Boolean) || [],
         user_count: 0 // We'll calculate this separately if needed
       })) || [];
 
@@ -67,6 +68,8 @@ export const useEnhancedRolesPermissions = () => {
     setLoading(true);
     try {
       await Promise.all([fetchRoles(), fetchPermissions()]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -340,7 +343,7 @@ export const useEnhancedRolesPermissions = () => {
         .from('user_roles')
         .select(`
           *,
-          role:role_id(*)
+          role:system_roles!user_roles_role_id_fkey(*)
         `)
         .eq('user_id', userId)
         .eq('is_active', true);
