@@ -8,6 +8,7 @@ import PublicLayout from './components/layouts/PublicLayout';
 import Auth from './pages/Auth';
 import Index from './pages/Index';
 import Properties from './pages/Properties';
+import PropertyPage from './components/PropertyPage';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Blog from './pages/Blog';
@@ -52,6 +53,7 @@ function App() {
               <Route path="/" element={<PublicLayout />}>
                 <Route index element={<Index />} />
                 <Route path="properties" element={<Properties />} />
+                <Route path="property/:addressSlug" element={<PropertyPage />} />
                 <Route path="about" element={<About />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="blog" element={<Blog />} />

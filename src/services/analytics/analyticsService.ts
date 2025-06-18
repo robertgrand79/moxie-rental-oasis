@@ -60,7 +60,6 @@ class AnalyticsService {
       // Return fallback performance data
       return {
         loadTime: 1500,
-        fcp: 1200,
         lcp: 2100,
         fid: 45,
         cls: 0.08,
@@ -79,8 +78,7 @@ class AnalyticsService {
       return {
         uptime: 99.8,
         responseTime: 245,
-        errorRate: 0.2,
-        activeUsers: 12
+        errorRate: 0.2
       };
     }
   }
