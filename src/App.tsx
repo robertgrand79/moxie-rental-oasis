@@ -27,8 +27,6 @@ import AdminRolesPermissions from './pages/admin/AdminRolesPermissions';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminSiteMetrics from './pages/admin/AdminSiteMetrics';
 import AdminNewsletterManagement from './pages/admin/AdminNewsletterManagement';
-import AdminAIContentReview from './pages/admin/AdminAIContentReview';
-import AdminAIChat from './pages/admin/AdminAIChat';
 import AdminLifestyle from './pages/admin/AdminLifestyle';
 import AdminPOI from './pages/admin/AdminPOI';
 import AdminTestimonials from './pages/admin/AdminTestimonials';
@@ -76,8 +74,6 @@ function App() {
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="site-metrics" element={<AdminSiteMetrics />} />
                 <Route path="newsletter-management" element={<AdminNewsletterManagement />} />
-                <Route path="ai-content-review" element={<AdminAIContentReview />} />
-                <Route path="ai-chat" element={<AdminAIChat />} />
                 <Route path="lifestyle" element={<AdminLifestyle />} />
                 <Route path="poi" element={<AdminPOI />} />
                 <Route path="testimonials" element={<AdminTestimonials />} />

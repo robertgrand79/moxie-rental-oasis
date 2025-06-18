@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
-import UnifiedAIChat from '@/components/admin/UnifiedAIChat';
 
 interface AIToolsTabProps {
   siteData: any;
@@ -12,13 +11,16 @@ const AIToolsTab = ({ siteData, setSiteData }: AIToolsTabProps) => {
   return (
     <EnhancedCard variant="glass">
       <EnhancedCardHeader>
-        <EnhancedCardTitle>AI Assistant</EnhancedCardTitle>
+        <EnhancedCardTitle>AI Tools</EnhancedCardTitle>
         <EnhancedCardDescription>
-          Chat with AI to generate and manage all your content naturally
+          AI tools have been temporarily disabled. Blog AI features are still available in the Blog Management section.
         </EnhancedCardDescription>
       </EnhancedCardHeader>
       <EnhancedCardContent>
-        <UnifiedAIChat />
+        <div className="text-center py-8 text-gray-500">
+          <p>AI tools are currently not available in this section.</p>
+          <p className="mt-2">Visit the Blog Management page to access AI-powered blog content generation.</p>
+        </div>
       </EnhancedCardContent>
     </EnhancedCard>
   );

@@ -1,18 +1,16 @@
+
 import { 
   BarChart3, 
   FileText, 
   Users, 
   Settings, 
   Home,
-  MessageSquare,
   Calendar,
   MapPin,
   Camera,
   Star,
   Mail,
   TrendingUp,
-  Wand2,
-  UserCheck,
   Shield,
   Wrench,
   Building2,
@@ -127,23 +125,6 @@ export const adminMenuItems: MenuSection[] = [
         icon: Star,
         href: '/admin/testimonials',
         description: 'Guest reviews and feedback'
-      }
-    ]
-  },
-  {
-    title: 'AI & Automation',
-    items: [
-      {
-        title: 'AI Chat',
-        icon: MessageSquare,
-        href: '/admin/ai-chat',
-        description: 'AI assistant and chat tools'
-      },
-      {
-        title: 'Content Review',
-        icon: Wand2,
-        href: '/admin/ai-content-review',
-        description: 'AI-generated content approval'
       }
     ]
   },
