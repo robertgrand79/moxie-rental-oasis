@@ -7,6 +7,7 @@ import { FileText, Layout, Code, Eye, AlertTriangle } from 'lucide-react';
 import TiptapEditor from '@/components/TiptapEditor';
 import { PageBuilder } from '@/components/page-builder/PageBuilder';
 import { detectContentType, shouldUseRichTextEditor, shouldUseVisualBuilder, ContentType } from '@/utils/contentTypeDetection';
+import { convertHTMLToCraftJS, convertCraftJSToHTML } from '@/utils/htmlToCraftJS';
 
 interface ContentEditorProps {
   content: string;
@@ -48,6 +49,13 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
     onChange(newContent);
   };
 
+  const handleVisualBuilderChange = (newContent: string) => {
+    // Visual builder always outputs CraftJS format
+    setContentType('craftjs');
+    setShowFormatWarning(false);
+    onChange(newContent);
+  };
+
   const getContentTypeBadge = () => {
     const variants: Record<ContentType, string> = {
       html: 'default',
@@ -63,6 +71,30 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
     );
   };
 
+  const getVisualBuilderContent = () => {
+    if (contentType === 'craftjs') {
+      return content;
+    } else if (content && content.trim()) {
+      // Convert HTML to CraftJS for the visual builder
+      return convertHTMLToCraftJS(content);
+    }
+    return undefined;
+  };
+
+  const getPreviewContent = () => {
+    if (!content || content.trim() === '') {
+      return '<p class="text-gray-500 italic">Your page content will appear here...</p>';
+    }
+
+    if (contentType === 'craftjs') {
+      // Convert CraftJS to HTML for preview
+      return convertCraftJSToHTML(content);
+    } else {
+      // Already HTML, return as-is
+      return content;
+    }
+  };
+
   const PagePreview = () => (
     <div className="bg-white rounded-lg border min-h-96 p-6">
       <div className="mb-4">
@@ -73,11 +105,7 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
         </div>
       </div>
       <div className="prose max-w-none">
-        {content ? (
-          <div dangerouslySetInnerHTML={{ __html: content }} />
-        ) : (
-          <p className="text-gray-500 italic">Your page content will appear here...</p>
-        )}
+        <div dangerouslySetInnerHTML={{ __html: getPreviewContent() }} />
       </div>
     </div>
   );
@@ -115,7 +143,7 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
         
         <TabsContent value="rich-text" className="mt-4">
           <TiptapEditor
-            content={content}
+            content={contentType === 'craftjs' ? convertCraftJSToHTML(content) : content}
             onChange={handleContentChange}
             placeholder="Start writing your page content..."
             className="min-h-96"
@@ -124,7 +152,7 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
 
         <TabsContent value="html" className="mt-4">
           <textarea
-            value={content}
+            value={contentType === 'craftjs' ? convertCraftJSToHTML(content) : content}
             onChange={(e) => handleContentChange(e.target.value)}
             placeholder="Enter HTML content directly..."
             rows={20}
@@ -135,8 +163,8 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
         <TabsContent value="visual" className="mt-4">
           <div className="border rounded-lg h-96">
             <PageBuilder
-              initialContent={contentType === 'craftjs' ? content : undefined}
-              onContentChange={handleContentChange}
+              initialContent={getVisualBuilderContent()}
+              onContentChange={handleVisualBuilderChange}
             />
           </div>
         </TabsContent>

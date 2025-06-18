@@ -60,12 +60,16 @@ export const PageBuilder = ({ initialContent, onContentChange }: PageBuilderProp
         <div className="flex-1 bg-gray-50 p-4 overflow-auto">
           <div className="bg-white min-h-96 rounded-lg shadow-sm p-4">
             <Frame data={craftJSData}>
-              <Element is={Container} canvas background="#ffffff" padding={20}>
-                <Element is={Heading} text="Welcome to Your Page" level={1} color="#000000" textAlign="center" />
-                <Element is={Text} text="Start building your page by dragging components from the left panel. You can edit text by clicking on it, and customize components using the settings panel on the right." fontSize={16} textAlign="left" color="#666666" />
-                <Element is={Divider} color="#e2e8f0" thickness={1} margin={20} />
-                <Element is={Card} title="Sample Card" content="This is a sample card component. You can customize its appearance and content." backgroundColor="#f8fafc" padding={20} />
-              </Element>
+              {craftJSData ? (
+                <Element is={Container} canvas background="#ffffff" padding={20} />
+              ) : (
+                <Element is={Container} canvas background="#ffffff" padding={20}>
+                  <Element is={Heading} text="Welcome to Your Page" level={1} color="#000000" textAlign="center" />
+                  <Element is={Text} text="Start building your page by dragging components from the left panel. You can edit text by clicking on it, and customize components using the settings panel on the right." fontSize={16} textAlign="left" color="#666666" />
+                  <Element is={Divider} color="#e2e8f0" thickness={1} margin={20} />
+                  <Element is={Card} title="Sample Card" content="This is a sample card component. You can customize its appearance and content." backgroundColor="#f8fafc" padding={20} />
+                </Element>
+              )}
             </Frame>
           </div>
         </div>
