@@ -49,7 +49,7 @@ export const useTaskOperations = (
           fetchPromises.push(Promise.resolve({ data: null }));
         }
 
-        // Fetch task assignments
+        // Fetch task assignments with proper join syntax
         fetchPromises.push(
           supabase
             .from('task_assignments')
@@ -59,7 +59,7 @@ export const useTaskOperations = (
               user_id,
               assigned_at,
               assigned_by,
-              user:profiles!task_assignments_user_id_fkey(id, email, full_name)
+              profiles!inner(id, email, full_name)
             `)
             .eq('task_id', data.id)
         );
@@ -100,7 +100,7 @@ export const useTaskOperations = (
             user_id: assignment.user_id,
             assigned_at: assignment.assigned_at,
             assigned_by: assignment.assigned_by,
-            user: assignment.user
+            user: assignment.profiles
           })) : []
         };
         
@@ -164,7 +164,7 @@ export const useTaskOperations = (
           fetchPromises.push(Promise.resolve({ data: null }));
         }
 
-        // Fetch task assignments
+        // Fetch task assignments with proper join syntax
         fetchPromises.push(
           supabase
             .from('task_assignments')
@@ -174,7 +174,7 @@ export const useTaskOperations = (
               user_id,
               assigned_at,
               assigned_by,
-              user:profiles!task_assignments_user_id_fkey(id, email, full_name)
+              profiles!inner(id, email, full_name)
             `)
             .eq('task_id', data.id)
         );
@@ -215,7 +215,7 @@ export const useTaskOperations = (
             user_id: assignment.user_id,
             assigned_at: assignment.assigned_at,
             assigned_by: assignment.assigned_by,
-            user: assignment.user
+            user: assignment.profiles
           })) : []
         };
         
@@ -303,7 +303,7 @@ export const useTaskOperations = (
             user_id,
             assigned_at,
             assigned_by,
-            user:profiles!task_assignments_user_id_fkey(id, email, full_name)
+            profiles!inner(id, email, full_name)
           )
         `)
         .eq('id', taskId)
@@ -321,7 +321,7 @@ export const useTaskOperations = (
             user_id: assignment.user_id,
             assigned_at: assignment.assigned_at,
             assigned_by: assignment.assigned_by,
-            user: assignment.user
+            user: assignment.profiles
           })) : []
         };
 
