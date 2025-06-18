@@ -7,6 +7,7 @@ import { BlogPost as BlogPostType } from '@/types/blogPost';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import OptimizedImage from '@/components/ui/optimized-image';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -130,14 +131,16 @@ const BlogPost = () => {
           )}
         </header>
 
-        {/* Featured Image */}
+        {/* Featured Image with Progressive Loading */}
         {post.image_url && (
           <div className="mb-8 overflow-hidden rounded-lg shadow-lg">
-            <img
+            <OptimizedImage
               src={post.image_url}
               alt={post.title}
-              className="w-full h-auto object-cover"
-              loading="eager"
+              className="w-full h-auto"
+              aspectRatio="16:9"
+              priority={true}
+              showProgressiveLoading={true}
             />
           </div>
         )}

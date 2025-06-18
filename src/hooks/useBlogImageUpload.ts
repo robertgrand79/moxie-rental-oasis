@@ -4,11 +4,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useImageOptimization } from './useImageOptimization';
 
+interface UploadedImageSizes {
+  thumbnail?: string;
+  medium?: string;
+  large?: string;
+  original: string;
+}
+
 export const useBlogImageUpload = () => {
   const [uploading, setUploading] = useState(false);
   const { optimizeImage, optimizing } = useImageOptimization();
 
-  const uploadBlogImage = async (file: File): Promise<string | null> => {
+  const uploadBlogImage = async (file: File): Promise<UploadedImageSizes | null> => {
     if (!file) return null;
 
     setUploading(true);
@@ -34,91 +41,121 @@ export const useBlogImageUpload = () => {
         return null;
       }
 
-      console.log('🖼️ Starting image optimization...');
+      console.log('🖼️ Starting image optimization with multiple sizes...');
       
-      // Optimize the image
+      // Optimize the image and generate multiple sizes
       const optimizationResult = await optimizeImage(file, {
         maxWidth: 1200,
         quality: 0.85,
-        generateSizes: false // For now, just optimize the main image
+        generateSizes: true
       });
 
       if (!optimizationResult) {
-        // Fallback to original file if optimization fails
         console.log('⚠️ Using original file due to optimization failure');
+        const originalUrl = await uploadSingleImage(file, 'original');
+        return originalUrl ? { original: originalUrl } : null;
       }
 
-      const fileToUpload = optimizationResult?.optimizedFile || file;
+      const { optimizedFile, sizes, compressionStats } = optimizationResult;
 
-      // Final size check after optimization
-      if (fileToUpload.size > 10 * 1024 * 1024) {
+      // Upload all sizes
+      const uploadPromises: Promise<{ size: string; url: string | null }>[] = [];
+      
+      // Upload main optimized image
+      uploadPromises.push(
+        uploadSingleImage(optimizedFile, 'large').then(url => ({ size: 'large', url }))
+      );
+
+      // Upload other sizes if available
+      if (sizes) {
+        if (sizes.thumbnail) {
+          uploadPromises.push(
+            uploadSingleImage(sizes.thumbnail, 'thumbnail').then(url => ({ size: 'thumbnail', url }))
+          );
+        }
+        if (sizes.medium) {
+          uploadPromises.push(
+            uploadSingleImage(sizes.medium, 'medium').then(url => ({ size: 'medium', url }))
+          );
+        }
+      }
+
+      const uploadResults = await Promise.all(uploadPromises);
+      
+      // Build result object
+      const result: UploadedImageSizes = { original: '' };
+      
+      for (const { size, url } of uploadResults) {
+        if (url) {
+          result[size as keyof UploadedImageSizes] = url;
+          if (size === 'large') {
+            result.original = url; // Use large as the main image
+          }
+        }
+      }
+
+      if (!result.original) {
+        throw new Error('Failed to upload main image');
+      }
+
+      // Show success message with optimization stats
+      if (compressionStats) {
         toast({
-          title: 'Optimized file still too large',
-          description: 'The optimized image is still larger than 10MB. Please try a smaller image.',
-          variant: 'destructive'
+          title: 'Images uploaded successfully',
+          description: `Optimized and compressed by ${compressionStats.compressionRatio.toFixed(1)}%. Generated ${uploadResults.filter(r => r.url).length} sizes.`
         });
-        return null;
       }
 
-      // Create a unique filename
-      const fileExt = fileToUpload.name.split('.').pop();
-      const fileName = `blog-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      console.log('✅ Multi-size upload complete:', result);
+      return result;
 
-      console.log('📤 Uploading optimized blog image:', {
+    } catch (error) {
+      console.error('❌ Error uploading blog images:', error);
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload blog images. Please try again.',
+        variant: 'destructive'
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const uploadSingleImage = async (file: File, sizeLabel: string): Promise<string | null> => {
+    try {
+      // Create a unique filename with size label
+      const fileExt = file.name.split('.').pop();
+      const fileName = `blog-${sizeLabel}-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+      console.log(`📤 Uploading ${sizeLabel} image:`, {
         fileName,
-        originalSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-        optimizedSize: `${(fileToUpload.size / 1024 / 1024).toFixed(2)}MB`
+        size: `${(file.size / 1024 / 1024).toFixed(2)}MB`
       });
 
-      // Upload to the hero-images bucket (reusing existing bucket)
+      // Upload to the hero-images bucket
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('hero-images')
-        .upload(fileName, fileToUpload, {
+        .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
         });
 
       if (uploadError) {
-        console.error('❌ Upload error:', uploadError);
-        toast({
-          title: 'Upload failed',
-          description: uploadError.message,
-          variant: 'destructive'
-        });
+        console.error(`❌ Upload error for ${sizeLabel}:`, uploadError);
         throw uploadError;
       }
-
-      console.log('✅ Upload successful:', uploadData);
 
       // Get the public URL
       const { data: urlData } = supabase.storage
         .from('hero-images')
         .getPublicUrl(fileName);
 
-      const publicUrl = urlData.publicUrl;
-      console.log('🔗 Generated public URL:', publicUrl);
-
-      // Show success message with optimization stats
-      if (optimizationResult) {
-        const compressionPercent = (((file.size - fileToUpload.size) / file.size) * 100).toFixed(1);
-        toast({
-          title: 'Image uploaded successfully',
-          description: `Image optimized and compressed by ${compressionPercent}%`
-        });
-      }
-
-      return publicUrl;
+      return urlData.publicUrl;
 
     } catch (error) {
-      console.error('❌ Error uploading blog image:', error);
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to upload blog image. Please try again.',
-        variant: 'destructive'
-      });
+      console.error(`❌ Error uploading ${sizeLabel} image:`, error);
       return null;
-    } finally {
-      setUploading(false);
     }
   };
 
