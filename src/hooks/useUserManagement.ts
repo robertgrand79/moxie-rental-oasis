@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,10 +49,15 @@ export const useUserManagement = () => {
         return;
       }
 
-      // Fetch all users (RLS will handle access control)
+      // Fetch all users with their roles from the new system
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          user_roles(
+            role:system_roles(name)
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -62,7 +66,18 @@ export const useUserManagement = () => {
         return;
       }
 
-      setUsers(data || []);
+      // Format users data to include role information from new system
+      const formattedUsers = (data || []).map(userProfile => {
+        // Get the primary role (first active role)
+        const primaryRole = userProfile.user_roles?.[0]?.role?.name || userProfile.role || 'user';
+        
+        return {
+          ...userProfile,
+          role: primaryRole
+        };
+      });
+
+      setUsers(formattedUsers);
     } catch (err) {
       console.error('Unexpected error fetching users:', err);
       setError('Failed to fetch users');
@@ -73,19 +88,30 @@ export const useUserManagement = () => {
 
   const updateUserProfile = async (userId: string, updates: Partial<User>) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', userId);
+      // Update basic profile information
+      const profileUpdates = { ...updates };
+      delete profileUpdates.role; // Remove role from profile updates
 
-      if (error) {
-        console.error('Error updating user profile:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to update user profile',
-          variant: 'destructive',
-        });
-        return false;
+      if (Object.keys(profileUpdates).length > 0) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update(profileUpdates)
+          .eq('id', userId);
+
+        if (profileError) {
+          console.error('Error updating user profile:', profileError);
+          toast({
+            title: 'Error',
+            description: 'Failed to update user profile',
+            variant: 'destructive',
+          });
+          return false;
+        }
+      }
+
+      // Handle role updates through the new system
+      if (updates.role) {
+        await updateUserRole(userId, updates.role);
       }
 
       toast({
@@ -107,7 +133,82 @@ export const useUserManagement = () => {
   };
 
   const updateUserRole = async (userId: string, newRole: string) => {
-    return await updateUserProfile(userId, { role: newRole });
+    try {
+      // Get the role ID from the system_roles table
+      const { data: roleData, error: roleError } = await supabase
+        .from('system_roles')
+        .select('id')
+        .eq('name', newRole)
+        .single();
+
+      if (roleError || !roleData) {
+        console.error('Error finding role:', roleError);
+        toast({
+          title: 'Error',
+          description: 'Role not found',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      // Remove existing roles for this user
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
+      // Assign the new role
+      const { error: assignError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role_id: roleData.id,
+          assigned_by: user?.id
+        });
+
+      if (assignError) {
+        console.error('Error assigning role:', assignError);
+        toast({
+          title: 'Error',
+          description: 'Failed to assign role',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      // Also update the legacy role field in profiles for backward compatibility
+      await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', userId);
+
+      // Log the action
+      await supabase
+        .from('permission_audit_logs')
+        .insert({
+          action: 'user_role_changed',
+          target_type: 'user',
+          target_id: userId,
+          performed_by: user?.id,
+          details: { new_role: newRole }
+        });
+
+      toast({
+        title: 'Success',
+        description: 'User role updated successfully',
+      });
+      
+      await fetchUsers(); // Refresh the list
+      return true;
+    } catch (err) {
+      console.error('Unexpected error updating user role:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to update user role',
+        variant: 'destructive',
+      });
+      return false;
+    }
   };
 
   const deleteUser = async (userId: string) => {
@@ -192,28 +293,28 @@ export const useUserManagement = () => {
 
   const bulkUpdateUserRoles = async (userIds: string[], newRole: string) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .in('id', userIds);
+      // Update each user's role
+      const results = await Promise.all(
+        userIds.map(userId => updateUserRole(userId, newRole))
+      );
 
-      if (error) {
-        console.error('Error bulk updating user roles:', error);
+      const successCount = results.filter(Boolean).length;
+      
+      if (successCount === userIds.length) {
         toast({
-          title: 'Error',
-          description: 'Failed to update user roles',
+          title: 'Success',
+          description: `Updated ${successCount} users to ${newRole} role`,
+        });
+      } else {
+        toast({
+          title: 'Partial Success',
+          description: `Updated ${successCount} of ${userIds.length} users`,
           variant: 'destructive',
         });
-        return false;
       }
-
-      toast({
-        title: 'Success',
-        description: `Updated ${userIds.length} users to ${newRole} role`,
-      });
       
       await fetchUsers(); // Refresh the list
-      return true;
+      return successCount === userIds.length;
     } catch (err) {
       console.error('Unexpected error bulk updating user roles:', err);
       toast({
