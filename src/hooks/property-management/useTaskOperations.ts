@@ -312,9 +312,35 @@ export const useTaskOperations = (
       if (taskError) throw taskError;
 
       if (taskData) {
-        // Transform the data to match PropertyTask type
+        // Transform the data to match PropertyTask type with proper type casting
         const transformedTask: PropertyTask = {
-          ...taskData,
+          id: taskData.id,
+          property_id: taskData.property_id,
+          project_id: taskData.project_id,
+          title: taskData.title,
+          description: taskData.description,
+          type: taskData.type as PropertyTask['type'],
+          status: taskData.status as PropertyTask['status'],
+          priority: taskData.priority as PropertyTask['priority'],
+          assigned_to: taskData.assigned_to,
+          due_date: taskData.due_date,
+          estimated_hours: taskData.estimated_hours,
+          actual_hours: taskData.actual_hours,
+          is_recurring: taskData.is_recurring,
+          recurrence_pattern: taskData.recurrence_pattern,
+          recurrence_frequency: taskData.recurrence_frequency as PropertyTask['recurrence_frequency'],
+          recurrence_interval: taskData.recurrence_interval,
+          recurrence_end_date: taskData.recurrence_end_date,
+          task_type_id: taskData.task_type_id,
+          checklist_items: taskData.checklist_items,
+          photos: taskData.photos,
+          notes: taskData.notes,
+          created_by: taskData.created_by,
+          created_at: taskData.created_at,
+          updated_at: taskData.updated_at,
+          property: taskData.property,
+          project: taskData.project,
+          task_type: taskData.task_type,
           assignments: taskData.assignments ? taskData.assignments.map(assignment => ({
             id: assignment.id,
             task_id: assignment.task_id,
