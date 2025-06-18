@@ -15,10 +15,8 @@ import {
   Wand2,
   UserCheck,
   Shield,
-  CheckSquare2,
   Wrench,
-  Building2,
-  ClipboardList
+  Building2
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -87,13 +85,7 @@ export const adminMenuItems: MenuSection[] = [
         title: 'Property Management',
         icon: Building2,
         href: '/admin/property-management',
-        description: 'Comprehensive property operations'
-      },
-      {
-        title: 'Task Management',
-        icon: CheckSquare2,
-        href: '/admin/task-management',
-        description: 'Project and task tracking'
+        description: 'Complete property operations, tasks, projects & calendar management'
       },
       {
         title: 'Work Orders',
