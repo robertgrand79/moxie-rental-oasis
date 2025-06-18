@@ -37,6 +37,7 @@ const NewsletterManager = () => {
     setIsLoading(true);
 
     try {
+      console.log('📧 Sending newsletter to all subscribers');
       const { data: result, error } = await supabase.functions.invoke('send-newsletter', {
         body: {
           subject: data.subject,
@@ -96,12 +97,15 @@ const NewsletterManager = () => {
   // Filter to only show published blog posts
   const publishedBlogPosts = blogPosts.filter(post => post.status === 'published');
 
+  // Get current form values for preview
+  const currentSubject = form.watch('subject');
+
   return (
     <div className="space-y-6">
       <NewsletterOverview subscriberCount={subscriberCount} />
 
       <NewsletterAIGenerator
-        currentSubject={form.getValues('subject')}
+        currentSubject={currentSubject}
         currentContent={content}
         onContentGenerated={handleContentGenerated}
       />
@@ -120,12 +124,12 @@ const NewsletterManager = () => {
       {/* Newsletter Preview Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <NewsletterPreview
-          subject={form.getValues('subject')}
+          subject={currentSubject}
           content={content}
         />
         
         <EnhancedNewsletterPreview
-          subject={form.getValues('subject')}
+          subject={currentSubject}
           content={content}
         />
       </div>

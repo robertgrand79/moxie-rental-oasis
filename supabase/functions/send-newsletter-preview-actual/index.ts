@@ -14,7 +14,8 @@ interface NewsletterPreviewRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log(`[${new Date().toISOString()}] Newsletter preview request received: ${req.method}`);
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] 🚀 Newsletter preview request received: ${req.method}`);
   
   if (req.method === "OPTIONS") {
     console.log("Handling CORS preflight request");
@@ -22,22 +23,22 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log("Creating Supabase client...");
+    console.log("📧 Creating Supabase client...");
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     const authHeader = req.headers.get("Authorization");
-    console.log("Authorization header present:", !!authHeader);
+    console.log("🔐 Authorization header present:", !!authHeader);
     
     if (!authHeader) {
-      console.error("No authorization header provided");
+      console.error("❌ No authorization header provided");
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: "Authentication required",
-          timestamp: new Date().toISOString()
+          error: "Authentication required - please log in to send newsletter previews",
+          timestamp
         }),
         {
           status: 401,
@@ -48,19 +49,19 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Extract the JWT token from Bearer header
     const token = authHeader.replace("Bearer ", "");
-    console.log("Token extracted, length:", token.length);
+    console.log("🎫 Token extracted, length:", token.length);
 
-    // Verify the token and get user (any authenticated user can send previews)
-    console.log("Verifying user authentication...");
+    // Verify the token and get user
+    console.log("👤 Verifying user authentication...");
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
-      console.error("Auth error:", authError);
+      console.error("❌ Auth error:", authError);
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: "Authentication failed",
-          timestamp: new Date().toISOString()
+          error: "Authentication failed - please log in again",
+          timestamp
         }),
         {
           status: 401,
@@ -69,22 +70,30 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log("User authenticated successfully:", user.id, user.email);
+    console.log("✅ User authenticated successfully:", user.id, user.email);
 
     // Parse request body
-    console.log("Parsing request body...");
+    console.log("📝 Parsing request body...");
     const requestBody = await req.json();
-    console.log("Request body received:", { email: requestBody.email, subject: requestBody.subject });
+    console.log("📧 Request body received:", { 
+      email: requestBody.email, 
+      subject: requestBody.subject,
+      contentLength: requestBody.content?.length || 0
+    });
     
     const { email, subject, content }: NewsletterPreviewRequest = requestBody;
 
     if (!email || !subject || !content) {
-      console.error("Missing required fields:", { email: !!email, subject: !!subject, content: !!content });
+      console.error("❌ Missing required fields:", { 
+        email: !!email, 
+        subject: !!subject, 
+        content: !!content 
+      });
       return new Response(
         JSON.stringify({ 
           success: false,
           error: "Email, subject, and content are required",
-          timestamp: new Date().toISOString()
+          timestamp
         }),
         {
           status: 400,
@@ -93,7 +102,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log("Fetching email settings from database...");
+    console.log("⚙️ Fetching email settings from database...");
     // Fetch email settings from site_settings
     const { data: emailSettings, error: settingsError } = await supabaseClient
       .from("site_settings")
@@ -101,7 +110,7 @@ const handler = async (req: Request): Promise<Response> => {
       .in("key", ["emailFromAddress", "emailFromName", "emailReplyTo", "siteName"]);
 
     if (settingsError) {
-      console.error("Error fetching email settings:", settingsError);
+      console.error("⚠️ Error fetching email settings:", settingsError);
     }
 
     // Convert settings array to object
@@ -110,14 +119,14 @@ const handler = async (req: Request): Promise<Response> => {
       return acc;
     }, {} as Record<string, string>) || {};
 
-    console.log("Email settings:", settings);
+    console.log("📧 Email settings:", settings);
 
     // Use configured settings with fallbacks
     const fromEmail = settings.emailFromAddress || "newsletter@moxievacationrentals.com";
     const fromName = settings.emailFromName || settings.siteName || "Moxie Vacation Rentals";
     const replyTo = settings.emailReplyTo || fromEmail;
 
-    console.log("Email configuration:", { fromEmail, fromName, replyTo });
+    console.log("📧 Email configuration:", { fromEmail, fromName, replyTo });
 
     // Create enhanced newsletter template with the actual content
     const emailHtml = `
@@ -216,15 +225,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email using SendGrid
     const sendGridApiKey = Deno.env.get("SENDGRID_API_KEY");
-    console.log("SendGrid API key present:", !!sendGridApiKey);
+    console.log("📧 SendGrid API key present:", !!sendGridApiKey);
     
     if (!sendGridApiKey) {
-      console.error("SendGrid API key not found in environment");
+      console.error("❌ SendGrid API key not found in environment");
       return new Response(
         JSON.stringify({ 
           success: false,
           error: "Email service not configured. Please contact administrator.",
-          timestamp: new Date().toISOString()
+          timestamp
         }),
         {
           status: 500,
@@ -233,7 +242,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log("Preparing to send newsletter preview via SendGrid...");
+    console.log("📤 Preparing to send newsletter preview via SendGrid...");
     const sendGridPayload = {
       personalizations: [
         {
@@ -251,7 +260,7 @@ const handler = async (req: Request): Promise<Response> => {
       ],
     };
 
-    console.log("SendGrid payload prepared for newsletter preview");
+    console.log("📧 SendGrid payload prepared for newsletter preview");
 
     const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
       method: "POST",
@@ -262,11 +271,11 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify(sendGridPayload),
     });
 
-    console.log("SendGrid response status:", response.status);
+    console.log("📬 SendGrid response status:", response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`SendGrid API error (${response.status}):`, errorText);
+      console.error(`❌ SendGrid API error (${response.status}):`, errorText);
       
       let errorMessage = `Email delivery failed: ${response.status}`;
       try {
@@ -282,7 +291,7 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ 
           success: false,
           error: errorMessage,
-          timestamp: new Date().toISOString()
+          timestamp
         }),
         {
           status: 500,
@@ -302,7 +311,7 @@ const handler = async (req: Request): Promise<Response> => {
           from: fromEmail,
           fromName: fromName,
           subject: `[PREVIEW] ${subject}`,
-          timestamp: new Date().toISOString()
+          timestamp
         }
       }),
       {
@@ -313,12 +322,12 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error("❌ Error in send-newsletter-preview-actual function:", error);
-    console.error("Error stack:", error.stack);
+    console.error("❌ Error stack:", error.stack);
     
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message,
+        error: error.message || "An unexpected error occurred",
         timestamp: new Date().toISOString()
       }),
       {
