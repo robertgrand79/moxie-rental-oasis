@@ -13,6 +13,7 @@ import Contact from './pages/Contact';
 import Blog from './pages/Blog';
 import Events from './pages/Events';
 import Experiences from './pages/Experiences';
+import FAQ from './pages/FAQ';
 import AdminLayoutWrapper from './components/layouts/AdminLayoutWrapper';
 import Admin from './pages/Admin';
 import AdminProperties from './pages/admin/AdminProperties';
@@ -55,6 +56,7 @@ function App() {
                 <Route path="blog" element={<Blog />} />
                 <Route path="events" element={<Events />} />
                 <Route path="experiences" element={<Experiences />} />
+                <Route path="faq" element={<FAQ />} />
               </Route>
 
               {/* Admin Routes */}
