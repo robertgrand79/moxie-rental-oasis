@@ -11,15 +11,17 @@ import ClosingStatement from '@/components/about/ClosingStatement';
 
 const About = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       <AboutHero />
-      <RobertShellyIntroduction />
-      <FamilyDescription />
-      <FamilyPhotoSection />
-      <MissionSection />
-      <ValuesSection />
-      <ExcellenceAuthenticitySection />
-      <ClosingStatement />
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <RobertShellyIntroduction />
+        <FamilyDescription />
+        <FamilyPhotoSection />
+        <MissionSection />
+        <ValuesSection />
+        <ExcellenceAuthenticitySection />
+        <ClosingStatement />
+      </div>
     </div>
   );
 };
