@@ -54,6 +54,10 @@ export interface PaginatedBlogResponse {
   hasMore: boolean;
 }
 
+// Simple cache for blog posts
+const blogCache = new Map<string, { data: PaginatedBlogResponse; timestamp: number }>();
+const CACHE_DURATION = 60000; // 1 minute cache
+
 export const optimizedBlogService = {
   // Fetch blog post summaries for listings (without full content)
   async fetchBlogPostSummaries(
@@ -65,10 +69,20 @@ export const optimizedBlogService = {
   ): Promise<PaginatedBlogResponse> {
     console.log('🔍 Fetching blog post summaries, page:', page, 'limit:', limit, 'publishedOnly:', publishedOnly);
     
+    // Create cache key
+    const cacheKey = `${publishedOnly}-${page}-${limit}-${searchQuery || ''}-${category || ''}`;
+    const cached = blogCache.get(cacheKey);
+    
+    // Return cached data if still valid
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log('📦 Returning cached blog posts');
+      return cached.data;
+    }
+    
     try {
       const offset = (page - 1) * limit;
 
-      // Build optimized query - only select fields needed for listing
+      // Build optimized query with better performance hints
       let query = supabase
         .from('blog_posts')
         .select(`
@@ -85,10 +99,9 @@ export const optimizedBlogService = {
           updated_at,
           created_by
         `, { count: 'exact' })
-        .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      // Server-side filtering
+      // Apply filters first for better query optimization
       if (publishedOnly) {
         query = query.eq('status', 'published');
       }
@@ -105,6 +118,9 @@ export const optimizedBlogService = {
         }
       }
 
+      // Always order by created_at last for better index usage
+      query = query.order('created_at', { ascending: false });
+
       const startTime = Date.now();
       const { data, error, count } = await query;
       const endTime = Date.now();
@@ -112,6 +128,7 @@ export const optimizedBlogService = {
       console.log(`⚡ Blog summaries query completed in ${endTime - startTime}ms`);
 
       if (error) {
+        console.error('Database error:', error);
         handleServiceError('Blog post summaries fetch', error, false);
         return { posts: [], totalCount: 0, hasMore: false };
       }
@@ -124,15 +141,26 @@ export const optimizedBlogService = {
 
       console.log('✅ Fetched blog post summaries:', mappedPosts.length, 'Total count:', count);
       
-      return {
+      const result = {
         posts: mappedPosts,
         totalCount: count || 0,
         hasMore: (count || 0) > offset + limit
       };
+
+      // Cache the result
+      blogCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      
+      return result;
     } catch (error) {
+      console.error('Service error:', error);
       handleServiceError('Blog post summaries fetch', error, false);
       return { posts: [], totalCount: 0, hasMore: false };
     }
+  },
+
+  // Clear cache when needed
+  clearCache() {
+    blogCache.clear();
   },
 
   // Fetch full blog post by slug (only when needed)

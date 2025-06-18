@@ -6,11 +6,11 @@ import { useOptimizedBlogPosts } from '@/hooks/useOptimizedBlogPosts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import { getTagColor } from '@/utils/blogPostUtils';
 import { useDebounce } from '@/hooks/useDebounce';
+import LoadingState from '@/components/ui/loading-state';
 
 const Blog = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,7 +25,8 @@ const Blog = () => {
     hasMore, 
     totalCount,
     loadMore,
-    isLoadingMore 
+    isLoadingMore,
+    error
   } = useOptimizedBlogPosts({ 
     publishedOnly: true,
     searchQuery: debouncedSearchQuery,
@@ -62,37 +63,21 @@ const Blog = () => {
     { id: 'destinations', name: 'Destinations', icon: MapPin }
   ];
 
+  // Show loading state only for initial load
   if (loading && blogPosts.length === 0) {
+    return <LoadingState variant="page" message="Loading travel stories..." />;
+  }
+
+  // Show error state
+  if (error && blogPosts.length === 0) {
     return (
-      <div className="min-h-screen bg-background py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Skeleton className="h-16 w-96 mx-auto mb-4" />
-            <Skeleton className="h-6 w-128 mx-auto" />
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="space-y-6">
-                {[1, 2, 3, 4].map((i) => (
-                  <Card key={i} className="overflow-hidden">
-                    <div className="md:flex">
-                      <Skeleton className="md:w-1/3 h-48 md:h-full" />
-                      <div className="md:w-2/3 p-6">
-                        <Skeleton className="h-6 w-full mb-2" />
-                        <Skeleton className="h-4 w-3/4 mb-4" />
-                        <Skeleton className="h-4 w-full mb-2" />
-                        <Skeleton className="h-4 w-2/3" />
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-            <div className="lg:col-span-1">
-              <Skeleton className="h-96 w-full" />
-            </div>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl font-bold text-foreground mb-4">Something went wrong</h1>
+          <p className="text-xl text-muted-foreground mb-8">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
         </div>
       </div>
     );
@@ -126,6 +111,7 @@ const Blog = () => {
                       ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
                       : 'bg-card hover:bg-accent'
                   }`}
+                  disabled={loading}
                 >
                   <IconComponent className="h-4 w-4" />
                   {category.name}
@@ -144,6 +130,7 @@ const Blog = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-background focus:bg-background"
+                disabled={loading}
               />
             </div>
           </div>
@@ -214,6 +201,7 @@ const Blog = () => {
                 <Button 
                   onClick={() => setSelectedCategory('robert-shelly')}
                   className="bg-primary hover:bg-primary/90"
+                  disabled={loading}
                 >
                   View All Travel Adventures
                   <ArrowRight className="h-4 w-4 ml-2" />

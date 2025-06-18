@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { optimizedBlogService, BlogPostSummary, PaginatedBlogResponse } from '@/services/optimizedBlogService';
 import { toast } from '@/hooks/use-toast';
 
@@ -39,13 +39,32 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
   const [hasMore, setHasMore] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [retryCount, setRetryCount] = useState(0);
+
+  // Use refs to prevent unnecessary re-renders
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialLoadRef = useRef(true);
 
   const fetchPosts = useCallback(async (page: number, append: boolean = false, attempt = 0) => {
     console.log(`🔄 useOptimizedBlogPosts - fetching page ${page}, append: ${append}, attempt: ${attempt + 1}`);
     
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // Clear any existing timeout
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
+    
     if (!append && attempt === 0) {
-      setLoading(true);
+      if (!isInitialLoadRef.current) {
+        setLoading(true);
+      }
       setError(null);
     } else if (append && attempt === 0) {
       setIsLoadingMore(true);
@@ -60,6 +79,11 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
         category !== 'all' ? category : undefined
       );
 
+      // Check if request was aborted
+      if (abortControllerRef.current?.signal.aborted) {
+        return;
+      }
+
       console.log('📊 useOptimizedBlogPosts - received response:', response.posts.length, 'posts, hasMore:', response.hasMore);
 
       if (append) {
@@ -70,9 +94,14 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
       
       setHasMore(response.hasMore);
       setTotalCount(response.totalCount);
-      setRetryCount(0);
       setError(null);
+      isInitialLoadRef.current = false;
     } catch (error) {
+      // Ignore aborted requests
+      if (abortControllerRef.current?.signal.aborted) {
+        return;
+      }
+
       console.error('❌ Error in useOptimizedBlogPosts fetchPosts:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -80,9 +109,8 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
       // Check if we should retry
       if (attempt < MAX_RETRIES && errorMessage.includes('Failed to fetch')) {
         console.log(`🔄 Retrying blog posts fetch in ${RETRY_DELAY}ms (attempt ${attempt + 1}/${MAX_RETRIES})`);
-        setRetryCount(attempt + 1);
         
-        setTimeout(() => {
+        fetchTimeoutRef.current = setTimeout(() => {
           fetchPosts(page, append, attempt + 1);
         }, RETRY_DELAY * (attempt + 1));
         
@@ -111,24 +139,50 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
   }, [publishedOnly, pageSize, searchQuery, category]);
 
   const loadMore = useCallback(() => {
-    if (!isLoadingMore && hasMore) {
+    if (!isLoadingMore && hasMore && !loading) {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
       fetchPosts(nextPage, true);
     }
-  }, [currentPage, hasMore, isLoadingMore, fetchPosts]);
+  }, [currentPage, hasMore, isLoadingMore, loading, fetchPosts]);
 
   const refetch = useCallback(() => {
     console.log('🔄 useOptimizedBlogPosts - refetching from start');
+    optimizedBlogService.clearCache(); // Clear cache on manual refetch
     setCurrentPage(1);
+    isInitialLoadRef.current = true;
     fetchPosts(1, false);
   }, [fetchPosts]);
 
   // Reset to page 1 when search/category changes
   useEffect(() => {
+    console.log('🔄 useOptimizedBlogPosts - search/category changed, resetting');
     setCurrentPage(1);
+    isInitialLoadRef.current = true;
     fetchPosts(1, false);
+
+    // Cleanup function
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
   }, [fetchPosts]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     posts,
