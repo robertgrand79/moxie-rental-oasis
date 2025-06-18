@@ -8,11 +8,10 @@ export interface WorkOrder {
   work_order_number: string;
   title: string;
   description: string;
-  status: 'draft' | 'sent' | 'acknowledged' | 'in_progress' | 'completed' | 'cancelled';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: string;
+  priority: string;
   property_id?: string;
   contractor_id?: string;
-  task_id?: string;
   estimated_cost?: number;
   actual_cost?: number;
   estimated_completion_date?: string;
@@ -77,7 +76,7 @@ export const useWorkOrderManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setWorkOrders(data || []);
+      setWorkOrders(data as WorkOrder[] || []);
     } catch (error) {
       console.error('Error fetching work orders:', error);
       toast({
@@ -115,7 +114,10 @@ export const useWorkOrderManagement = () => {
 
       const { data, error } = await supabase
         .from('work_orders')
-        .insert([{ ...workOrderData, created_by: user.id }])
+        .insert({
+          ...workOrderData,
+          created_by: user.id
+        })
         .select(`
           *,
           property:properties(*),
@@ -125,7 +127,7 @@ export const useWorkOrderManagement = () => {
 
       if (error) throw error;
       
-      setWorkOrders(prev => [data, ...prev]);
+      setWorkOrders(prev => [data as WorkOrder, ...prev]);
       toast({
         title: 'Success',
         description: 'Work order created successfully',
@@ -158,7 +160,7 @@ export const useWorkOrderManagement = () => {
 
       if (error) throw error;
       
-      setWorkOrders(prev => prev.map(wo => wo.id === id ? data : wo));
+      setWorkOrders(prev => prev.map(wo => wo.id === id ? data as WorkOrder : wo));
       toast({
         title: 'Success',
         description: 'Work order updated successfully',

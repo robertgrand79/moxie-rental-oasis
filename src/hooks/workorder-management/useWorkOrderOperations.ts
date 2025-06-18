@@ -5,9 +5,7 @@ import { workOrderService } from '@/services/workOrderService';
 
 export interface WorkOrder {
   id: string;
-  task_id?: string;
   property_id?: string;
-  project_id?: string;
   contractor_id?: string;
   work_order_number: string;
   title: string;
@@ -32,8 +30,6 @@ export interface WorkOrder {
   updated_at: string;
   contractor?: any;
   property?: any;
-  task?: any;
-  project?: any;
 }
 
 export const useWorkOrderOperations = () => {
@@ -54,7 +50,7 @@ export const useWorkOrderOperations = () => {
     }
   };
 
-  const createWorkOrder = async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'contractor' | 'property' | 'task' | 'project'>) => {
+  const createWorkOrder = async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'contractor' | 'property'>) => {
     try {
       const data = await workOrderService.create(workOrderData);
       setWorkOrders(prev => [data, ...prev]);

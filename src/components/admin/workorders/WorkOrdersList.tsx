@@ -75,7 +75,7 @@ const WorkOrdersList = ({
     }
   };
 
-  const handlePriorityChange = async (workOrderId: string, priority: 'low' | 'medium' | 'high' | 'critical') => {
+  const handlePriorityChange = async (workOrderId: string, priority: string) => {
     console.log('Handling priority change:', { workOrderId, priority });
     
     if (updatingWorkOrders.has(workOrderId)) {
