@@ -6,6 +6,7 @@ import { toast } from '@/hooks/use-toast';
 interface UseOptimizedBlogPostsOptions {
   publishedOnly?: boolean;
   pageSize?: number;
+  loadMoreSize?: number;
   searchQuery?: string;
   category?: string;
 }
@@ -27,7 +28,8 @@ const RETRY_DELAY = 1000;
 export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}): UseOptimizedBlogPostsResult => {
   const {
     publishedOnly = true,
-    pageSize = 12,
+    pageSize = 4,
+    loadMoreSize = 4,
     searchQuery = '',
     category = 'all'
   } = options;
@@ -71,10 +73,13 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
     }
 
     try {
+      // Use different page sizes for initial load vs load more
+      const currentPageSize = page === 1 ? pageSize : loadMoreSize;
+      
       const response: PaginatedBlogResponse = await optimizedBlogService.fetchBlogPostSummaries(
         publishedOnly,
         page,
-        pageSize,
+        currentPageSize,
         searchQuery.trim() || undefined,
         category !== 'all' ? category : undefined
       );
@@ -136,7 +141,7 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
         setIsLoadingMore(false);
       }
     }
-  }, [publishedOnly, pageSize, searchQuery, category]);
+  }, [publishedOnly, pageSize, loadMoreSize, searchQuery, category]);
 
   const loadMore = useCallback(() => {
     if (!isLoadingMore && hasMore && !loading) {

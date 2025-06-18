@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Calendar, User, ArrowRight, Loader2, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,18 @@ interface BlogPostsGridProps {
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
+  showViewAllHint?: boolean;
 }
 
-const BlogPostsGrid = ({ posts, selectedCategory, categories, hasMore, isLoadingMore, onLoadMore }: BlogPostsGridProps) => {
+const BlogPostsGrid = ({ 
+  posts, 
+  selectedCategory, 
+  categories, 
+  hasMore, 
+  isLoadingMore, 
+  onLoadMore,
+  showViewAllHint = false
+}: BlogPostsGridProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -30,9 +39,20 @@ const BlogPostsGrid = ({ posts, selectedCategory, categories, hasMore, isLoading
   return (
     <div className="space-y-8">
       {selectedCategory !== 'robert-shelly' && (
-        <h2 className="text-2xl font-bold text-foreground">
-          {selectedCategory === 'all' ? 'Latest Posts' : `${categories.find(c => c.id === selectedCategory)?.name} Posts`}
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-foreground">
+            {selectedCategory === 'all' ? 'Latest Posts' : `${categories.find(c => c.id === selectedCategory)?.name} Posts`}
+          </h2>
+          {showViewAllHint && (
+            <Link 
+              to="/blog?view=all"
+              className="text-sm text-primary hover:text-primary/80 font-medium inline-flex items-center"
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              View All Posts
+            </Link>
+          )}
+        </div>
       )}
       
       {/* Blog posts grid */}

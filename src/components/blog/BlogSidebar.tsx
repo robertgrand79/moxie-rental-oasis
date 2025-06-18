@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BlogPostSummary } from '@/services/optimizedBlogService';
 
@@ -48,9 +48,16 @@ const BlogSidebar = ({ featuredPost, showFeatured }: BlogSidebarProps) => {
       {/* Quick Links */}
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-lg">Explore Eugene</CardTitle>
+          <CardTitle className="text-lg">Blog Navigation</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          <Link 
+            to="/blog?view=all" 
+            className="block text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center"
+          >
+            <BookOpen className="h-4 w-4 mr-2" />
+            View All Blog Posts →
+          </Link>
           <Link to="/experiences" className="block text-primary hover:text-primary/80 text-sm">
             Local Experiences →
           </Link>
