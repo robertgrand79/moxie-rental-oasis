@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Home, Award, Heart, Star } from 'lucide-react';
 
@@ -6,43 +7,44 @@ const RobertShellyIntroduction = () => {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Left side - Dynamic Photo Grid */}
-          <div>
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {/* Large hero photo spanning 2 columns and 2 rows */}
-              <img 
-                src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
-                alt="Robert and Shelly - Founders"
-                className="rounded-lg shadow-sm col-span-2 row-span-2 w-full h-64 object-cover"
-              />
+          {/* Left side - Clean Modern Photo Collage */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-lg">
+              {/* Top row - two photos */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <img 
+                    src="/lovable-uploads/2600a527-3948-441b-a42f-582e1f8934f2.png"
+                    alt="Robert and Shelly at mountain lake"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <img 
+                    src="/lovable-uploads/4e137420-dc2e-41d2-b27d-19630692ffff.png"
+                    alt="Robert and Shelly at sporting event"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              </div>
               
-              {/* Small top right photo */}
-              <img 
-                src="/lovable-uploads/d1f71962-f44a-4556-b875-d05f2a8a537a.png"
-                alt="Community involvement"
-                className="rounded-lg shadow-sm w-full h-32 object-cover"
-              />
-              
-              {/* Small bottom right photo */}
-              <img 
-                src="/lovable-uploads/11aea8e1-1241-453f-bc09-d4c8c7394c8c.png"
-                alt="Oregon lifestyle"
-                className="rounded-lg shadow-sm w-full h-28 object-cover"
-              />
-            </div>
-            
-            {/* Bottom row - two medium photos */}
-            <div className="grid grid-cols-2 gap-3">
-              <img 
-                src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
-                alt="Family moments"
-                className="rounded-lg shadow-sm w-full h-40 object-cover"
-              />
-              <img 
-                src="/lovable-uploads/d1f71962-f44a-4556-b875-d05f2a8a537a.png"
-                alt="Local community"
-                className="rounded-lg shadow-sm w-full h-36 object-cover"
-              />
+              {/* Bottom row - two photos */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <img 
+                    src="/lovable-uploads/4ac8bb55-fe2f-4e35-8def-f735c5440591.png"
+                    alt="Robert and Shelly in garden setting"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <img 
+                    src="/lovable-uploads/559a12e3-50e5-4cee-86e9-154fd60cd0fe.png"
+                    alt="Robert and Shelly at cultural site"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
