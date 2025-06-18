@@ -484,6 +484,105 @@ export type Database = {
         }
         Relationships: []
       }
+      image_optimization_settings: {
+        Row: {
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      image_performance_metrics: {
+        Row: {
+          bandwidth_saved_bytes: number | null
+          connection_type: string | null
+          created_at: string | null
+          id: string
+          image_url: string
+          load_time_ms: number | null
+          page_url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          bandwidth_saved_bytes?: number | null
+          connection_type?: string | null
+          created_at?: string | null
+          id?: string
+          image_url: string
+          load_time_ms?: number | null
+          page_url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          bandwidth_saved_bytes?: number | null
+          connection_type?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          load_time_ms?: number | null
+          page_url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      image_transformations: {
+        Row: {
+          accessed_count: number | null
+          compression_ratio: number | null
+          created_at: string | null
+          file_size_optimized: number | null
+          file_size_original: number | null
+          format_optimized: string | null
+          format_original: string | null
+          id: string
+          last_accessed_at: string | null
+          optimized_url: string
+          original_url: string
+          transformation_params: Json
+        }
+        Insert: {
+          accessed_count?: number | null
+          compression_ratio?: number | null
+          created_at?: string | null
+          file_size_optimized?: number | null
+          file_size_original?: number | null
+          format_optimized?: string | null
+          format_original?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          optimized_url: string
+          original_url: string
+          transformation_params: Json
+        }
+        Update: {
+          accessed_count?: number | null
+          compression_ratio?: number | null
+          created_at?: string | null
+          file_size_optimized?: number | null
+          file_size_original?: number | null
+          format_optimized?: string | null
+          format_original?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          optimized_url?: string
+          original_url?: string
+          transformation_params?: Json
+        }
+        Relationships: []
+      }
       lifestyle_gallery: {
         Row: {
           activity_type: string | null

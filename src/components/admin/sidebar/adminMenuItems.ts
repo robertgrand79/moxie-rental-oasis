@@ -1,54 +1,39 @@
-
-import { 
-  BarChart3, 
-  FileText, 
-  Users, 
-  Settings, 
+import {
+  BarChart3,
+  TrendingUp,
+  BookOpen,
+  FileText,
+  Mail,
   Home,
+  Wrench,
+  HardHat,
   Calendar,
   MapPin,
   Camera,
   Star,
-  Mail,
-  TrendingUp,
+  Image,
+  BarChart,
+  Users,
   Shield,
-  Wrench,
-  HardHat
+  Settings,
+  Database,
 } from 'lucide-react';
 
-export interface MenuItem {
-  title: string;
-  icon: any;
-  href: string;
-  description?: string;
-}
-
-export interface MenuSection {
-  title: string;
-  items: MenuItem[];
-}
-
-export const adminMenuItems: MenuSection[] = [
+export const adminMenuItems = [
   {
     title: 'Overview',
     items: [
       {
         title: 'Dashboard',
-        icon: BarChart3,
         href: '/admin',
-        description: 'Overview and analytics'
-      },
-      {
-        title: 'Analytics',
-        icon: TrendingUp,
-        href: '/admin/analytics',
-        description: 'Detailed performance metrics'
+        icon: BarChart3,
+        description: 'Main admin dashboard with analytics'
       },
       {
         title: 'Site Metrics',
-        icon: BarChart3,
-        href: '/admin/site-metrics',
-        description: 'Website performance data'
+        href: '/admin/metrics',
+        icon: TrendingUp,
+        description: 'Performance metrics and Core Web Vitals'
       }
     ]
   },
@@ -56,39 +41,45 @@ export const adminMenuItems: MenuSection[] = [
     title: 'Content Management',
     items: [
       {
-        title: 'Properties',
-        icon: Home,
-        href: '/admin/properties',
-        description: 'Manage rental listings'
+        title: 'Blog Management',
+        href: '/admin/blog',
+        icon: BookOpen,
+        description: 'Create and manage blog posts'
       },
       {
-        title: 'Blog Posts',
-        icon: FileText,
-        href: '/admin/blog-posts',
-        description: 'Create and edit blog content'
-      },
-      {
-        title: 'Pages',
-        icon: FileText,
+        title: 'Page Management',
         href: '/admin/pages',
+        icon: FileText,
         description: 'Manage website pages'
+      },
+      {
+        title: 'Newsletter',
+        href: '/admin/newsletter',
+        icon: Mail,
+        description: 'Newsletter campaigns and subscribers'
       }
     ]
   },
   {
-    title: 'Operations',
+    title: 'Property & Booking',
     items: [
       {
+        title: 'Properties',
+        href: '/admin/properties',
+        icon: Home,
+        description: 'Manage rental properties'
+      },
+      {
         title: 'Work Orders',
+        href: '/admin/work-orders',
         icon: Wrench,
-        href: '/admin/workorders',
-        description: 'Contractor work orders'
+        description: 'Property maintenance and work orders'
       },
       {
         title: 'Contractors',
-        icon: HardHat,
         href: '/admin/contractors',
-        description: 'Manage contractors and vendor relationships'
+        icon: HardHat,
+        description: 'Manage contractors and service providers'
       }
     ]
   },
@@ -97,66 +88,73 @@ export const adminMenuItems: MenuSection[] = [
     items: [
       {
         title: 'Eugene Events',
+        href: '/admin/events',
         icon: Calendar,
-        href: '/admin/eugene-events',
-        description: 'Eugene events calendar'
-      },
-      {
-        title: 'Lifestyle Gallery',
-        icon: Camera,
-        href: '/admin/lifestyle-gallery',
-        description: 'Local lifestyle photos'
+        description: 'Manage local Eugene events'
       },
       {
         title: 'Points of Interest',
+        href: '/admin/poi',
         icon: MapPin,
-        href: '/admin/points-of-interest',
-        description: 'Local attractions and venues'
+        description: 'Manage local attractions and places'
+      },
+      {
+        title: 'Lifestyle Gallery',
+        href: '/admin/lifestyle',
+        icon: Camera,
+        description: 'Manage lifestyle and activity images'
       },
       {
         title: 'Testimonials',
-        icon: Star,
         href: '/admin/testimonials',
-        description: 'Guest reviews and feedback'
+        icon: Star,
+        description: 'Guest reviews and testimonials'
       }
     ]
   },
   {
-    title: 'Marketing',
+    title: 'Advanced Features',
     items: [
       {
-        title: 'Newsletter',
-        icon: Mail,
-        href: '/admin/newsletter',
-        description: 'Email newsletter management'
-      }
-    ]
-  },
-  {
-    title: 'User Management',
-    items: [
+        title: 'Image Optimization',
+        href: '/admin/image-optimization',
+        icon: Image,
+        description: 'Advanced image optimization analytics and tools'
+      },
       {
-        title: 'Users',
-        icon: Users,
+        title: 'Analytics',
+        href: '/admin/analytics',
+        icon: BarChart,
+        description: 'Advanced analytics and insights'
+      },
+      {
+        title: 'User Management',
         href: '/admin/users',
-        description: 'Manage user accounts'
+        icon: Users,
+        description: 'Manage users and permissions'
       },
       {
         title: 'Roles & Permissions',
+        href: '/admin/roles',
         icon: Shield,
-        href: '/admin/roles-permissions',
-        description: 'User access control'
+        description: 'Role-based access control'
       }
     ]
   },
   {
-    title: 'Configuration',
+    title: 'System',
     items: [
       {
-        title: 'Settings',
-        icon: Settings,
+        title: 'Site Settings',
         href: '/admin/settings',
-        description: 'Website configuration'
+        icon: Settings,
+        description: 'Configure site settings and preferences'
+      },
+      {
+        title: 'Sample Data',
+        href: '/admin/sample-data',
+        icon: Database,
+        description: 'Manage sample data for development'
       }
     ]
   }

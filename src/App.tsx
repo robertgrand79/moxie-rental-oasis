@@ -1,105 +1,113 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import PublicLayout from "@/components/layouts/PublicLayout";
-import Index from "@/pages/Index";
-import Properties from "@/pages/Properties";
-import Experiences from "@/pages/Experiences";
-import Events from "@/pages/Events";
-import Contact from "@/pages/Contact";
-import Blog from "@/pages/Blog";
-import BlogPost from "@/pages/BlogPost";
-import About from "@/pages/About";
-import FAQ from "@/pages/FAQ";
-import Privacy from "@/pages/Privacy";
-import Terms from "@/pages/Terms";
-import Auth from "@/pages/Auth";
-import NotFound from "@/pages/NotFound";
-import PropertyPage from "@/components/PropertyPage";
-import AdminLayoutWrapper from "@/components/layouts/AdminLayoutWrapper";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminProperties from "@/pages/admin/AdminProperties";
-import AdminWorkOrders from "@/pages/admin/AdminWorkOrders";
-import AdminContractors from "@/pages/admin/AdminContractors";
-import AdminUserManagement from "@/pages/admin/AdminUserManagement";
-import AdminEvents from "@/pages/admin/AdminEvents";
-import AdminLifestyle from "@/pages/admin/AdminLifestyle";
-import AdminPOI from "@/pages/admin/AdminPOI";
-import AdminTestimonials from "@/pages/admin/AdminTestimonials";
-import AdminPageManagement from "@/pages/admin/AdminPageManagement";
-import AdminNewsletterManagement from "@/pages/admin/AdminNewsletterManagement";
-import BlogManagement from "@/pages/BlogManagement";
-import AdminSiteSettingsRedesigned from "@/pages/admin/AdminSiteSettingsRedesigned";
-import AdminAnalytics from "@/pages/admin/AdminAnalytics";
-import AdminSiteMetrics from "@/pages/admin/AdminSiteMetrics";
-import AdminRolesPermissions from "@/pages/admin/AdminRolesPermissions";
-import ProtectedRoute from "@/components/ProtectedRoute";
-
-const queryClient = new QueryClient();
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient } from 'react-query';
+import { AuthProvider } from './contexts/AuthContext';
+import { StaticSettingsProvider } from './contexts/StaticSettingsContext';
+import { useTheme } from './hooks/useTheme';
+import Index from './pages/Index';
+import Properties from './pages/Properties';
+import PropertyPage from './pages/PropertyPage';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Experiences from './pages/Experiences';
+import Events from './pages/Events';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
+import SearchResults from './pages/SearchResults';
+import Auth from './pages/Auth';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import FAQ from './pages/FAQ';
+import Listings from './pages/Listings';
+import DynamicPage from './pages/DynamicPage';
+import NotFound from './pages/NotFound';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminLayoutWrapper from './components/admin/AdminLayoutWrapper';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import BlogManagement from './pages/BlogManagement';
+import AdminProperties from './pages/admin/AdminProperties';
+import AdminPageManagement from './pages/admin/AdminPageManagement';
+import AdminSiteSettingsRedesigned from './pages/admin/AdminSiteSettingsRedesigned';
+import AdminUserManagement from './pages/admin/AdminUserManagement';
+import AdminRolesPermissions from './pages/admin/AdminRolesPermissions';
+import AdminNewsletterManagement from './pages/admin/AdminNewsletterManagement';
+import AdminEvents from './pages/admin/AdminEvents';
+import AdminPOI from './pages/admin/AdminPOI';
+import AdminLifestyle from './pages/admin/AdminLifestyle';
+import AdminTestimonials from './pages/admin/AdminTestimonials';
+import AdminWorkOrders from './pages/admin/AdminWorkOrders';
+import AdminContractors from './pages/admin/AdminContractors';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
+import AdminSiteMetrics from './pages/admin/AdminSiteMetrics';
+import SampleDataManagement from './pages/admin/SampleDataManagement';
+import AdminProfile from './pages/admin/AdminProfile';
+import PublicLayout from './components/PublicLayout';
+import AdminImageOptimization from './pages/admin/AdminImageOptimization';
 
 function App() {
+  const { isDarkMode } = useTheme();
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+    <div className={isDarkMode ? 'dark' : ''}>
+      <div className="min-h-screen bg-background text-foreground">
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<PublicLayout />}>
-                <Route index element={<Index />} />
-                <Route path="properties" element={<Properties />} />
-                <Route path="properties/:id" element={<Properties />} />
-                <Route path="property/:slug" element={<PropertyPage />} />
-                <Route path="about" element={<About />} />
-                <Route path="eugene-life" element={<Experiences />} />
-                <Route path="experiences" element={<Experiences />} />
-                <Route path="events" element={<Events />} />
-                <Route path="contact" element={<Contact />} />
-                <Route path="blog" element={<Blog />} />
-                <Route path="blog/:slug" element={<BlogPost />} />
-                <Route path="faq" element={<FAQ />} />
-                <Route path="privacy" element={<Privacy />} />
-                <Route path="terms" element={<Terms />} />
-                <Route path="auth" element={<Auth />} />
-              </Route>
+          <StaticSettingsProvider>
+            <QueryClient>
+              <Router>
+                <Routes>
+                  <Route path="/" element={<PublicLayout />}>
+                    <Route index element={<Index />} />
+                    <Route path="/properties" element={<Properties />} />
+                    <Route path="/property/:id" element={<PropertyPage />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/experiences" element={<Experiences />} />
+                    <Route path="/events" element={<Events />} />
+                    <Route path="/blog" element={<Blog />} />
+                    <Route path="/blog/:slug" element={<BlogPost />} />
+                    <Route path="/search" element={<SearchResults />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/terms-of-service" element={<TermsOfService />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/listings" element={<Listings />} />
+                    <Route path="/:slug" element={<DynamicPage />} />
+                  </Route>
 
-              {/* Admin routes */}
-              <Route path="/admin" element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayoutWrapper />
-                </ProtectedRoute>
-              }>
-                <Route index element={<AdminDashboard />} />
-                <Route path="properties" element={<AdminProperties />} />
-                <Route path="workorders" element={<AdminWorkOrders />} />
-                <Route path="contractors" element={<AdminContractors />} />
-                <Route path="users" element={<AdminUserManagement />} />
-                <Route path="eugene-events" element={<AdminEvents />} />
-                <Route path="lifestyle-gallery" element={<AdminLifestyle />} />
-                <Route path="points-of-interest" element={<AdminPOI />} />
-                <Route path="testimonials" element={<AdminTestimonials />} />
-                <Route path="pages" element={<AdminPageManagement />} />
-                <Route path="newsletter" element={<AdminNewsletterManagement />} />
-                <Route path="blog-posts" element={<BlogManagement />} />
-                <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
-                <Route path="analytics" element={<AdminAnalytics />} />
-                <Route path="site-metrics" element={<AdminSiteMetrics />} />
-                <Route path="roles-permissions" element={<AdminRolesPermissions />} />
-              </Route>
+                  <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="blog" element={<BlogManagement />} />
+                    <Route path="properties" element={<AdminProperties />} />
+                    <Route path="pages" element={<AdminPageManagement />} />
+                    <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
+                    <Route path="users" element={<AdminUserManagement />} />
+                    <Route path="roles" element={<AdminRolesPermissions />} />
+                    <Route path="newsletter" element={<AdminNewsletterManagement />} />
+                    <Route path="events" element={<AdminEvents />} />
+                    <Route path="poi" element={<AdminPOI />} />
+                    <Route path="lifestyle" element={<AdminLifestyle />} />
+                    <Route path="testimonials" element={<AdminTestimonials />} />
+                    <Route path="work-orders" element={<AdminWorkOrders />} />
+                    <Route path="contractors" element={<AdminContractors />} />
+                    <Route path="analytics" element={<AdminAnalytics />} />
+                    <Route path="metrics" element={<AdminSiteMetrics />} />
+                    <Route path="sample-data" element={<SampleDataManagement />} />
+                    <Route path="image-optimization" element={<AdminImageOptimization />} />
+                    <Route path="profile" element={<AdminProfile />} />
+                  </Route>
 
-              {/* 404 route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Router>
+            </QueryClient>
+          </StaticSettingsProvider>
         </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+      </div>
+    </div>
   );
 }
 

@@ -5,9 +5,11 @@ import { Calendar, User, ArrowRight, Loader2, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import OptimizedImage from '@/components/ui/optimized-image';
+import AdvancedOptimizedImage from '@/components/ui/advanced-optimized-image';
 import { BlogPostSummary } from '@/services/optimizedBlogService';
-import { getTagColor } from '@/utils/blogPostUtils';
+import {
+
+ getTagColor } from '@/utils/blogPostUtils';
 
 interface BlogPostsGridProps {
   posts: BlogPostSummary[];
@@ -63,12 +65,17 @@ const BlogPostsGrid = ({
             <div className="md:flex">
               {post.image_url && (
                 <div className="md:w-1/3 overflow-hidden">
-                  <OptimizedImage
+                  <AdvancedOptimizedImage
                     src={post.image_url}
                     alt={post.title}
                     className="w-full h-48 md:h-full group-hover:scale-105 transition-transform duration-300"
                     aspectRatio="16:9"
-                    showProgressiveLoading={true}
+                    enableAnalytics={true}
+                    transformParams={{
+                      quality: 85,
+                      format: 'webp',
+                      sharp: true
+                    }}
                   />
                 </div>
               )}
