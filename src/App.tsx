@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { PublicLayout } from "@/components/layouts/PublicLayout";
+import PublicLayout from "@/components/layouts/PublicLayout";
 import Index from "@/pages/Index";
 import Properties from "@/pages/Properties";
 import Experiences from "@/pages/Experiences";
@@ -28,7 +28,6 @@ import AdminNewsletterManagement from "@/pages/admin/AdminNewsletterManagement";
 import BlogManagement from "@/pages/BlogManagement";
 import AdminSiteSettingsRedesigned from "@/pages/admin/AdminSiteSettingsRedesigned";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import DynamicPage from "@/pages/DynamicPage";
 
 const queryClient = new QueryClient();
 
@@ -52,7 +51,6 @@ function App() {
                 <Route path="blog" element={<Blog />} />
                 <Route path="blog/:slug" element={<BlogPost />} />
                 <Route path="auth" element={<Auth />} />
-                <Route path="pages/:slug" element={<DynamicPage />} />
               </Route>
 
               {/* Admin routes */}

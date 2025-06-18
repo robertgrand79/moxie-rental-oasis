@@ -41,11 +41,6 @@ export interface WorkOrder {
     email: string;
     phone?: string;
   };
-  task?: {
-    id: string;
-    title: string;
-    description?: string;
-  };
 }
 
 export interface Contractor {
@@ -113,7 +108,7 @@ export const useWorkOrderManagement = () => {
     }
   };
 
-  const createWorkOrder = async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'contractor' | 'task'>) => {
+  const createWorkOrder = async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'contractor'>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
