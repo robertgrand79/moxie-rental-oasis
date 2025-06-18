@@ -245,17 +245,27 @@ export const useGoogleCalendarIntegration = () => {
     }
   };
 
-  const updateSyncSettings = async (settings: Partial<SyncSettings> & { google_calendar_id: string }) => {
+  const updateSyncSettings = async (settings: Partial<SyncSettings> & { 
+    google_calendar_id: string;
+    calendar_name: string;
+  }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Ensure all required fields are present
+      const syncData = {
+        user_id: user.id,
+        google_calendar_id: settings.google_calendar_id,
+        calendar_name: settings.calendar_name,
+        is_enabled: settings.is_enabled ?? true,
+        sync_direction: settings.sync_direction ?? 'both' as const,
+        sync_task_types: settings.sync_task_types ?? [],
+      };
+
       const { error } = await supabase
         .from('google_calendar_sync_settings')
-        .upsert({
-          ...settings,
-          user_id: user.id
-        }, { onConflict: 'user_id,google_calendar_id' });
+        .upsert(syncData, { onConflict: 'user_id,google_calendar_id' });
 
       if (error) throw error;
       
