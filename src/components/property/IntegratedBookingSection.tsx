@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Loader2, Shield, Phone, MessageCircle, CheckCircle } from 'lucide-react';
 import { Property } from '@/types/property';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
 interface IntegratedBookingSectionProps {
   property: Property;
@@ -11,8 +12,13 @@ interface IntegratedBookingSectionProps {
 const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [popupBlocked, setPopupBlocked] = useState(false);
+  const { settings, loading: settingsLoading } = useSimplifiedSiteSettings();
   
   const hasBookingUrl = property.hospitable_booking_url && property.hospitable_booking_url.trim() !== '';
+  
+  // Get phone number from settings, fallback to default
+  const phoneNumber = settings.phone || '(555) 123-4567';
+  const displayPhoneNumber = settingsLoading ? '(555) 123-4567' : phoneNumber;
 
   const handleExternalFallback = () => {
     if (hasBookingUrl) {
@@ -25,6 +31,18 @@ const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) =
 
   const handleIframeLoad = () => {
     setIsLoading(false);
+  };
+
+  const handlePhoneCall = () => {
+    // Clean phone number for tel: protocol (remove formatting)
+    const cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
+    window.location.href = `tel:${cleanPhone}`;
+  };
+
+  const handleSmsSupport = () => {
+    // Clean phone number for sms: protocol
+    const cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
+    window.location.href = `sms:${cleanPhone}`;
   };
 
   if (!hasBookingUrl) {
@@ -93,13 +111,23 @@ const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) =
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-2 cursor-pointer hover:bg-gray-100"
+              onClick={handlePhoneCall}
+            >
               <Phone className="h-4 w-4" />
-              <span className="hidden sm:inline">(555) 123-4567</span>
+              <span className="hidden sm:inline">{displayPhoneNumber}</span>
             </Button>
-            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-2 cursor-pointer hover:bg-gray-100"
+              onClick={handleSmsSupport}
+            >
               <MessageCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Chat Support</span>
+              <span className="hidden sm:inline">Text Support</span>
             </Button>
           </div>
         </div>
@@ -158,7 +186,11 @@ const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) =
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Need help with your booking? 
-            <Button variant="link" className="p-0 ml-1 h-auto text-sm">
+            <Button 
+              variant="link" 
+              className="p-0 ml-1 h-auto text-sm cursor-pointer"
+              onClick={handlePhoneCall}
+            >
               Contact our support team
             </Button>
           </p>
