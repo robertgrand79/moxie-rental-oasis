@@ -16,7 +16,8 @@ export class GoogleAnalyticsService {
           .eq('key', 'googleAnalyticsId')
           .single();
         
-        this.gaId = settings?.value || null;
+        // Properly handle the Supabase type - convert to string
+        this.gaId = settings?.value ? String(settings.value) : null;
       }
 
       if (!this.gaId) {
