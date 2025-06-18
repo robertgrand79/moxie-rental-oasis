@@ -1,21 +1,21 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { AuthProvider } from './contexts/AuthContext';
-import LandingPage from './pages/LandingPage';
-import PropertiesPage from './pages/PropertiesPage';
-import AboutPage from './pages/AboutPage';
-import ContactPage from './pages/ContactPage';
-import BlogPage from './pages/BlogPage';
-import EventsPage from './pages/EventsPage';
-import ExperiencesPage from './pages/ExperiencesPage';
+import Index from './pages/Index';
+import Properties from './pages/Properties';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Blog from './pages/Blog';
+import Events from './pages/Events';
+import Experiences from './pages/Experiences';
 import AdminLayoutWrapper from './components/layouts/AdminLayoutWrapper';
-import AdminDashboard from './pages/admin/AdminDashboard';
+import Admin from './pages/Admin';
 import AdminProperties from './pages/admin/AdminProperties';
-import AdminBlog from './pages/admin/AdminBlog';
-import AdminPages from './pages/admin/AdminPages';
-import AdminSettings from './pages/admin/AdminSettings';
+import PageManagement from './pages/PageManagement';
+import AdminSiteSettingsRedesigned from './pages/admin/AdminSiteSettingsRedesigned';
 import AdminUserManagement from './pages/admin/AdminUserManagement';
 import AdminRolesPermissions from './pages/admin/AdminRolesPermissions';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
@@ -40,21 +40,21 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/properties" element={<PropertiesPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/blog" element={<BlogPage />} />
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/experiences" element={<ExperiencesPage />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/properties" element={<Properties />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/experiences" element={<Experiences />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminLayoutWrapper />}>
-                <Route index element={<AdminDashboard />} />
+                <Route index element={<Admin />} />
                 <Route path="properties" element={<AdminProperties />} />
-                <Route path="blog" element={<AdminBlog />} />
-                <Route path="pages" element={<AdminPages />} />
-                <Route path="settings" element={<AdminSettings />} />
+                <Route path="blog" element={<AdminNewsletterManagement />} />
+                <Route path="pages" element={<PageManagement />} />
+                <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
                 <Route path="user-management" element={<AdminUserManagement />} />
                 <Route path="roles-permissions" element={<AdminRolesPermissions />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
