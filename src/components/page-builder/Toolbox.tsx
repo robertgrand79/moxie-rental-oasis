@@ -2,7 +2,7 @@
 import React from 'react';
 import { useEditor, Element } from '@craftjs/core';
 import { Button } from '@/components/ui/button';
-import { Type, Square, Button as ButtonIcon, Minus, Heading1 } from 'lucide-react';
+import { Type, Square, Minus, Heading1 } from 'lucide-react';
 
 export const Toolbox = () => {
   const { connectors } = useEditor();
@@ -67,7 +67,7 @@ export const Toolbox = () => {
           variant="outline"
           className="w-full justify-start"
         >
-          <ButtonIcon className="h-4 w-4 mr-2" />
+          <Square className="h-4 w-4 mr-2" />
           Button
         </Button>
         

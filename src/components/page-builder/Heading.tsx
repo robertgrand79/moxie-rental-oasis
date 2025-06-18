@@ -12,15 +12,6 @@ interface HeadingProps {
 export const Heading = ({ text, level, color, textAlign }: HeadingProps) => {
   const { connectors: { connect, drag } } = useNode();
   
-  const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
-  
-  const styles = {
-    color,
-    textAlign,
-    margin: '10px 0',
-    cursor: 'pointer'
-  };
-
   const sizeClasses = {
     1: 'text-4xl font-bold',
     2: 'text-3xl font-bold',
@@ -29,16 +20,35 @@ export const Heading = ({ text, level, color, textAlign }: HeadingProps) => {
     5: 'text-lg font-medium',
     6: 'text-base font-medium'
   };
+
+  const commonProps = {
+    ref: (ref: HTMLElement | null) => connect(drag(ref)),
+    style: {
+      color,
+      textAlign,
+      margin: '10px 0',
+      cursor: 'pointer'
+    },
+    className: sizeClasses[level]
+  };
   
-  return (
-    <HeadingTag
-      ref={(ref) => connect(drag(ref))}
-      style={styles}
-      className={sizeClasses[level]}
-    >
-      {text}
-    </HeadingTag>
-  );
+  // Render the appropriate heading level
+  switch (level) {
+    case 1:
+      return <h1 {...commonProps}>{text}</h1>;
+    case 2:
+      return <h2 {...commonProps}>{text}</h2>;
+    case 3:
+      return <h3 {...commonProps}>{text}</h3>;
+    case 4:
+      return <h4 {...commonProps}>{text}</h4>;
+    case 5:
+      return <h5 {...commonProps}>{text}</h5>;
+    case 6:
+      return <h6 {...commonProps}>{text}</h6>;
+    default:
+      return <h2 {...commonProps}>{text}</h2>;
+  }
 };
 
 Heading.craft = {
