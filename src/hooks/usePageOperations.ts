@@ -89,15 +89,23 @@ export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) 
         
         if (!existingPage) {
           // Create new page if it doesn't exist
+          console.log(`Creating new page: ${pageData.slug}`);
           await pageService.createPage(pageData);
-        } else if (existingPage.content && existingPage.content.length < 500) {
-          // Update existing page if it has minimal content (less than 500 characters)
-          console.log(`Updating page ${pageData.slug} with rich content`);
-          await pageService.updatePage(existingPage.id, {
-            content: pageData.content,
-            meta_description: pageData.meta_description,
-            is_published: pageData.is_published
-          });
+        } else {
+          // Always update existing pages with default content to ensure they have the latest version
+          // This is especially important for pages like FAQ that have comprehensive content
+          const shouldUpdate = !existingPage.content || 
+                              existingPage.content.length < 1000 || 
+                              pageData.slug === 'faq'; // Always update FAQ to ensure comprehensive content
+          
+          if (shouldUpdate) {
+            console.log(`Updating page ${pageData.slug} with comprehensive content`);
+            await pageService.updatePage(existingPage.id, {
+              content: pageData.content,
+              meta_description: pageData.meta_description,
+              is_published: pageData.is_published
+            });
+          }
         }
       }
 
@@ -126,14 +134,22 @@ export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) 
         const existingPage = existingPages.find(page => page.slug === pageData.slug);
         
         if (!existingPage) {
+          console.log(`Creating new page: ${pageData.slug}`);
           await pageService.createPage(pageData);
-        } else if (existingPage.content && existingPage.content.length < 500) {
-          // Update pages with minimal content
-          await pageService.updatePage(existingPage.id, {
-            content: pageData.content,
-            meta_description: pageData.meta_description,
-            is_published: pageData.is_published
-          });
+        } else {
+          // Always update with comprehensive content, especially for FAQ
+          const shouldUpdate = !existingPage.content || 
+                              existingPage.content.length < 1000 || 
+                              pageData.slug === 'faq';
+          
+          if (shouldUpdate) {
+            console.log(`Updating page ${pageData.slug} with comprehensive default content`);
+            await pageService.updatePage(existingPage.id, {
+              content: pageData.content,
+              meta_description: pageData.meta_description,
+              is_published: pageData.is_published
+            });
+          }
         }
       }
 
@@ -141,7 +157,7 @@ export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) 
       
       toast({
         title: 'Success',
-        description: 'Site pages have been added and updated successfully!'
+        description: 'Site pages have been added and updated with comprehensive content!'
       });
     } catch (error) {
       console.error('Error adding site pages:', error);
