@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
-  sizes?: {
+  responsiveSizes?: {
     thumbnail?: string;
     medium?: string;
     large?: string;
@@ -23,7 +23,7 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
 const OptimizedImage = ({ 
   src, 
   alt, 
-  sizes,
+  responsiveSizes,
   width, 
   height, 
   priority = false, 
@@ -90,12 +90,12 @@ const OptimizedImage = ({
 
   // Generate responsive sources
   const generateSrcSet = () => {
-    if (!sizes) return undefined;
+    if (!responsiveSizes) return undefined;
 
     const sources = [];
-    if (sizes.thumbnail) sources.push(`${sizes.thumbnail} 300w`);
-    if (sizes.medium) sources.push(`${sizes.medium} 768w`);
-    if (sizes.large) sources.push(`${sizes.large} 1200w`);
+    if (responsiveSizes.thumbnail) sources.push(`${responsiveSizes.thumbnail} 300w`);
+    if (responsiveSizes.medium) sources.push(`${responsiveSizes.medium} 768w`);
+    if (responsiveSizes.large) sources.push(`${responsiveSizes.large} 1200w`);
     
     return sources.length > 0 ? sources.join(', ') : undefined;
   };
@@ -170,7 +170,7 @@ const OptimizedImage = ({
           )}
           
           <img
-            src={hasError && fallback ? fallback : (sizes?.large || src)}
+            src={hasError && fallback ? fallback : (responsiveSizes?.large || src)}
             srcSet={srcSet}
             sizes={sizesAttr}
             alt={alt}
