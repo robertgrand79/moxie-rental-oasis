@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -61,8 +62,9 @@ export const useUserFetch = () => {
 
       // Format users data to include role information from new system
       const formattedUsers = (data || []).map(userProfile => {
-        // Get the primary role (first active role) - fix the property access
-        const primaryRole = userProfile.user_roles?.[0]?.role?.name || userProfile.role || 'user';
+        // Get the primary role (first active role) - access the name property correctly
+        const userRoleData = userProfile.user_roles?.[0]?.role as any;
+        const primaryRole = userRoleData?.name || userProfile.role || 'user';
         
         return {
           ...userProfile,
