@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Image } from 'lucide-react';
 import { useLifestyleGalleryManager } from '@/hooks/useLifestyleGalleryManager';
 import LifestyleGalleryCard from './LifestyleGalleryCard';
-import LifestyleForm from './LifestyleForm';
+import LifestyleGalleryForm from './LifestyleGalleryForm';
 import LifestyleStatusFilter from './LifestyleStatusFilter';
 
 const LifestyleGalleryManager = () => {
@@ -102,7 +102,7 @@ const LifestyleGalleryManager = () => {
         </div>
       </CardContent>
 
-      <LifestyleForm
+      <LifestyleGalleryForm
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         editingItem={editingItem}

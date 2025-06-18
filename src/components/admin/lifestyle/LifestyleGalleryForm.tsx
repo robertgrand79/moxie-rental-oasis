@@ -11,8 +11,8 @@ interface LifestyleGalleryFormProps {
   onOpenChange: (open: boolean) => void;
   editingItem: LifestyleGalleryItem | null;
   onSubmit: (formData: LifestyleGalleryFormData & { created_by: string }) => Promise<void>;
-  categories: string[];
-  activityTypes: string[];
+  categories: Array<{ value: string; label: string }>;
+  activityTypes: Array<{ value: string; label: string }>;
 }
 
 const LifestyleGalleryForm = ({ 
@@ -33,7 +33,8 @@ const LifestyleGalleryForm = ({
     activity_type: editingItem?.activity_type || '',
     display_order: editingItem?.display_order || 0,
     is_featured: editingItem?.is_featured || false,
-    is_active: editingItem?.is_active !== false
+    is_active: editingItem?.is_active !== false,
+    status: editingItem?.status || 'draft'
   });
 
   React.useEffect(() => {
@@ -47,7 +48,8 @@ const LifestyleGalleryForm = ({
         activity_type: editingItem.activity_type || '',
         display_order: editingItem.display_order || 0,
         is_featured: editingItem.is_featured,
-        is_active: editingItem.is_active
+        is_active: editingItem.is_active,
+        status: editingItem.status || 'draft'
       });
     } else {
       setFormData({
@@ -59,7 +61,8 @@ const LifestyleGalleryForm = ({
         activity_type: '',
         display_order: 0,
         is_featured: false,
-        is_active: true
+        is_active: true,
+        status: 'draft'
       });
     }
   }, [editingItem]);
@@ -69,6 +72,16 @@ const LifestyleGalleryForm = ({
       ...formData,
       created_by: user?.id || ''
     });
+  };
+
+  const handleLocationChange = (location: string) => {
+    // Handle location change for suggestions
+    console.log('Location changed:', location);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    // Handle category change for suggestions
+    console.log('Category changed:', category);
   };
 
   return (
@@ -88,6 +101,8 @@ const LifestyleGalleryForm = ({
           setFormData={setFormData}
           categories={categories}
           activityTypes={activityTypes}
+          onLocationChange={handleLocationChange}
+          onCategoryChange={handleCategoryChange}
         />
 
         <DialogFooter>
