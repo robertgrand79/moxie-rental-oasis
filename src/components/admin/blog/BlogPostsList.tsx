@@ -12,9 +12,10 @@ interface BlogPostsListProps {
   onEdit: (post: BlogPost) => void;
   onDelete: (id: string) => void;
   onAddPost: () => void;
+  onPublish?: (post: BlogPost) => void;
 }
 
-const BlogPostsList = ({ posts, onEdit, onDelete, onAddPost }: BlogPostsListProps) => {
+const BlogPostsList = ({ posts, onEdit, onDelete, onAddPost, onPublish }: BlogPostsListProps) => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
 
   const filteredPosts = posts.filter(post => {
@@ -64,6 +65,7 @@ const BlogPostsList = ({ posts, onEdit, onDelete, onAddPost }: BlogPostsListProp
               post={post}
               onEdit={onEdit}
               onDelete={onDelete}
+              onPublish={onPublish}
             />
           ))}
         </div>

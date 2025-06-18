@@ -2,16 +2,20 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { usePaginatedBlogPosts } from '@/hooks/usePaginatedBlogPosts';
+import { blogPostService } from '@/services/blogPostService';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import BlogForm from '@/components/BlogForm';
 import BlogPostsList from '@/components/admin/blog/BlogPostsList';
 import PaginationControls from '@/components/ui/pagination-controls';
 import LoadingState from '@/components/ui/loading-state';
+import { BlogPost } from '@/types/blogPost';
+import { toast } from '@/hooks/use-toast';
 
 const BlogManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Use more efficient pagination for admin - smaller page size for faster loading
   const {
@@ -45,9 +49,41 @@ const BlogManagement = () => {
   };
 
   const handleDeletePost = async (postId: string) => {
-    // TODO: Implement delete functionality
-    console.log('Delete post:', postId);
-    refetch();
+    const success = await blogPostService.deleteBlogPost(postId);
+    if (success) {
+      refetch();
+    }
+  };
+
+  const handlePublishPost = async (post: BlogPost) => {
+    if (isPublishing) return;
+    
+    setIsPublishing(true);
+    try {
+      console.log('📤 Publishing blog post:', post.id);
+      
+      const updatedPost = await blogPostService.updateBlogPost(post.id, {
+        status: 'published',
+        published_at: new Date().toISOString()
+      });
+
+      if (updatedPost) {
+        toast({
+          title: 'Success',
+          description: `"${post.title}" has been published successfully!`
+        });
+        refetch(); // Refresh the list to show the updated status
+      }
+    } catch (error) {
+      console.error('❌ Error publishing post:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to publish the post. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const pageActions = !showAddForm ? (
@@ -84,6 +120,7 @@ const BlogManagement = () => {
               onEdit={handleEditPost}
               onDelete={handleDeletePost}
               onAddPost={handleAddPost}
+              onPublish={handlePublishPost}
             />
             
             <PaginationControls

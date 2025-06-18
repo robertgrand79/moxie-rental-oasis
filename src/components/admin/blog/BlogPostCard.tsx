@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Eye, EyeOff, Edit3 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, User, Tag } from 'lucide-react';
 import { BlogPost } from '@/types/blogPost';
 import BlogPostActions from './BlogPostActions';
 
@@ -9,83 +10,85 @@ interface BlogPostCardProps {
   post: BlogPost;
   onEdit: (post: BlogPost) => void;
   onDelete: (id: string) => void;
+  onPublish?: (post: BlogPost) => void;
 }
 
-const BlogPostCard = ({ post, onEdit, onDelete }: BlogPostCardProps) => {
-  const getStatusBadge = (status: string) => {
-    if (status === 'published') {
-      return (
-        <div className="flex items-center gap-1 px-3 py-1 text-xs rounded-full bg-green-100 text-green-800 border border-green-200">
-          <Eye className="h-3 w-3" />
-          Published
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex items-center gap-1 px-3 py-1 text-xs rounded-full bg-orange-100 text-orange-800 border border-orange-200">
-          <Edit3 className="h-3 w-3" />
-          Draft
-        </div>
-      );
-    }
+const BlogPostCard = ({ post, onEdit, onDelete, onPublish }: BlogPostCardProps) => {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
-  const getDateDisplay = () => {
-    if (post.status === 'published' && post.published_at) {
-      return (
-        <div className="flex items-center text-sm text-gray-600">
-          <Calendar className="h-3 w-3 mr-1" />
-          Published {new Date(post.published_at).toLocaleDateString()}
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex items-center text-sm text-gray-500">
-          <Calendar className="h-3 w-3 mr-1" />
-          Created {new Date(post.created_at).toLocaleDateString()}
-        </div>
-      );
-    }
+  const getStatusColor = (status: string) => {
+    return status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
   };
 
   return (
-    <Card className={`overflow-hidden transition-all duration-200 hover:shadow-md ${
-      post.status === 'draft' ? 'border-orange-200 bg-orange-50/30' : 'border-green-200 bg-green-50/30'
-    }`}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <CardTitle className="text-lg">{post.title}</CardTitle>
-              {getStatusBadge(post.status)}
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <div className="flex">
+        {post.image_url && (
+          <div className="w-48 h-32 flex-shrink-0">
+            <img
+              src={post.image_url}
+              alt={post.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+        <div className="flex-1">
+          <CardHeader className="pb-2">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge className={getStatusColor(post.status)}>
+                    {post.status}
+                  </Badge>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {formatDate(post.created_at)}
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <User className="h-4 w-4 mr-1" />
+                    {post.author}
+                  </div>
+                </div>
+                <CardTitle className="line-clamp-2 text-lg">{post.title}</CardTitle>
+              </div>
+              <BlogPostActions
+                post={post}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onPublish={onPublish}
+              />
             </div>
-            {getDateDisplay()}
-            <CardDescription className="mt-2">
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="line-clamp-2 mb-3">
               {post.excerpt}
             </CardDescription>
-          </div>
-          <BlogPostActions 
-            post={post}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-muted-foreground" />
+                <div className="flex flex-wrap gap-1">
+                  {post.tags.slice(0, 3).map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                  {post.tags.length > 3 && (
+                    <Badge variant="secondary" className="text-xs">
+                      +{post.tags.length - 3} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-2">
-          {post.tags?.map((tag) => (
-            <span 
-              key={tag}
-              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200"
-            >
-              {tag}
-            </span>
-          ))}
-          {(!post.tags || post.tags.length === 0) && (
-            <span className="text-xs text-gray-400 italic">No tags</span>
-          )}
-        </div>
-      </CardContent>
+      </div>
     </Card>
   );
 };
