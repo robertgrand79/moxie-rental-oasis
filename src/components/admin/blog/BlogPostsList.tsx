@@ -1,9 +1,11 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BlogPost } from '@/types/blogPost';
 import BlogPostCard from './BlogPostCard';
+import BlogStatusFilter from './BlogStatusFilter';
 
 interface BlogPostsListProps {
   posts: BlogPost[];
@@ -13,6 +15,13 @@ interface BlogPostsListProps {
 }
 
 const BlogPostsList = ({ posts, onEdit, onDelete, onAddPost }: BlogPostsListProps) => {
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
+
+  const filteredPosts = posts.filter(post => {
+    if (statusFilter === 'all') return true;
+    return post.status === statusFilter;
+  });
+
   if (posts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -26,15 +35,39 @@ const BlogPostsList = ({ posts, onEdit, onDelete, onAddPost }: BlogPostsListProp
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6">
-      {posts.map((post) => (
-        <BlogPostCard 
-          key={post.id}
-          post={post}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      ))}
+    <div className="space-y-6">
+      <BlogStatusFilter 
+        posts={posts}
+        activeFilter={statusFilter}
+        onFilterChange={setStatusFilter}
+      />
+      
+      {filteredPosts.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500 text-lg mb-4">
+            No {statusFilter === 'all' ? '' : statusFilter} posts found
+          </p>
+          {statusFilter !== 'all' && (
+            <Button 
+              variant="outline" 
+              onClick={() => setStatusFilter('all')}
+            >
+              Show All Posts
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6">
+          {filteredPosts.map((post) => (
+            <BlogPostCard 
+              key={post.id}
+              post={post}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
