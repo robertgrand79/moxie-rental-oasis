@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blogPost';
@@ -75,14 +74,9 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
       console.log('✅ usePaginatedBlogPosts - Fetched posts:', data?.length || 0, 'Total count:', count);
       
       // Map data with proper typing and validation
-      const mappedPosts: BlogPost[] = (data || []).map(post => {
-        // Ensure we have a valid post object before mapping
-        if (!post || typeof post !== 'object') {
-          console.warn('⚠️ Invalid post data:', post);
-          return null;
-        }
-
-        return {
+      const mappedPosts: BlogPost[] = (data || [])
+        .filter((post): post is NonNullable<typeof post> => post !== null && typeof post === 'object')
+        .map(post => ({
           id: post.id || '',
           title: post.title || '',
           excerpt: post.excerpt || '',
@@ -96,8 +90,7 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
           updated_at: post.updated_at || '',
           created_by: post.created_by || '',
           tags: [] // Initialize empty tags array for listing
-        };
-      }).filter(Boolean) as BlogPost[]; // Remove any null entries
+        }));
 
       setPosts(mappedPosts);
       setTotalCount(count || 0);
