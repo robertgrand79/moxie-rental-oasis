@@ -1,0 +1,169 @@
+
+import React, { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FileText, Layout, Code, Eye, AlertTriangle } from 'lucide-react';
+import TiptapEditor from '@/components/TiptapEditor';
+import { PageBuilder } from '@/components/page-builder/PageBuilder';
+import FAQEditor from './FAQEditor';
+import { detectContentType, shouldUseRichTextEditor, shouldUseVisualBuilder, ContentType } from '@/utils/contentTypeDetection';
+
+interface ContentEditorProps {
+  content: string;
+  onChange: (content: string) => void;
+  pageSlug?: string;
+  pageTitle?: string;
+}
+
+const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditorProps) => {
+  const [contentType, setContentType] = useState<ContentType>('html');
+  const [activeTab, setActiveTab] = useState('rich-text');
+  const [showFormatWarning, setShowFormatWarning] = useState(false);
+
+  useEffect(() => {
+    const detectedType = detectContentType(content);
+    setContentType(detectedType);
+    
+    // Auto-select appropriate editor based on content type
+    if (shouldUseRichTextEditor(detectedType)) {
+      setActiveTab('rich-text');
+    } else if (shouldUseVisualBuilder(detectedType)) {
+      setActiveTab('visual');
+    }
+  }, [content]);
+
+  const isFAQPage = pageSlug === 'faq' || pageTitle?.toLowerCase().includes('faq');
+
+  const handleTabChange = (newTab: string) => {
+    // Show warning when switching between incompatible formats
+    if ((activeTab === 'visual' && newTab !== 'visual' && contentType === 'craftjs') ||
+        (activeTab !== 'visual' && newTab === 'visual' && contentType === 'html')) {
+      setShowFormatWarning(true);
+    }
+    setActiveTab(newTab);
+  };
+
+  const handleContentChange = (newContent: string) => {
+    const newContentType = detectContentType(newContent);
+    setContentType(newContentType);
+    setShowFormatWarning(false);
+    onChange(newContent);
+  };
+
+  const getContentTypeBadge = () => {
+    const variants: Record<ContentType, string> = {
+      html: 'default',
+      craftjs: 'secondary',
+      markdown: 'outline',
+      empty: 'destructive'
+    };
+    
+    return (
+      <Badge variant={variants[contentType] as any} className="ml-2">
+        {contentType.toUpperCase()}
+      </Badge>
+    );
+  };
+
+  const PagePreview = () => (
+    <div className="bg-white rounded-lg border min-h-96 p-6">
+      <div className="mb-4">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{pageTitle || 'Page Title'}</h1>
+        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+          {getContentTypeBadge()}
+          <span>/{pageSlug || 'page-slug'}</span>
+        </div>
+      </div>
+      <div 
+        className="prose max-w-none"
+        dangerouslySetInnerHTML={{ 
+          __html: content || '<p>Your page content will appear here...</p>' 
+        }}
+      />
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      {showFormatWarning && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Switching between editors may change the content format. Visual Builder uses a different format than Rich Text Editor.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="rich-text" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Rich Text
+          </TabsTrigger>
+          {isFAQPage && (
+            <TabsTrigger value="faq-editor" className="flex items-center gap-2">
+              <Layout className="h-4 w-4" />
+              FAQ Editor
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="html" className="flex items-center gap-2">
+            <Code className="h-4 w-4" />
+            HTML
+          </TabsTrigger>
+          <TabsTrigger value="visual" className="flex items-center gap-2">
+            <Layout className="h-4 w-4" />
+            Visual Builder
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            Preview
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="rich-text" className="mt-4">
+          <TiptapEditor
+            content={content}
+            onChange={handleContentChange}
+            placeholder="Start writing your page content..."
+            className="min-h-96"
+          />
+        </TabsContent>
+
+        {isFAQPage && (
+          <TabsContent value="faq-editor" className="mt-4">
+            <FAQEditor
+              content={content}
+              onChange={handleContentChange}
+            />
+          </TabsContent>
+        )}
+
+        <TabsContent value="html" className="mt-4">
+          <textarea
+            value={content}
+            onChange={(e) => handleContentChange(e.target.value)}
+            placeholder="Enter HTML content directly..."
+            rows={20}
+            className="w-full p-3 border rounded-lg font-mono text-sm"
+          />
+        </TabsContent>
+        
+        <TabsContent value="visual" className="mt-4">
+          <div className="border rounded-lg h-96">
+            <PageBuilder
+              initialContent={contentType === 'craftjs' ? content : undefined}
+              onContentChange={handleContentChange}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="preview" className="mt-4">
+          <PagePreview />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default ContentEditor;
