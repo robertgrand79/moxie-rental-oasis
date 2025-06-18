@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
+import { Plus, AlertTriangle } from 'lucide-react';
 import PageForm from '@/components/PageForm';
 import PageList from '@/components/PageList';
 import EmptyPageState from '@/components/EmptyPageState';
@@ -7,6 +8,8 @@ import { usePages } from '@/hooks/usePages';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import LoadingState from '@/components/ui/loading-state';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 
 const PageManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -14,6 +17,29 @@ const PageManagement = () => {
   const { pages, loading, addPage, editPage, deletePage } = usePages();
 
   console.log('PageManagement render - pages:', pages, 'loading:', loading, 'pages length:', pages.length);
+
+  // Check for duplicate Home pages and auto-remove the one with 'home' slug
+  useEffect(() => {
+    if (pages.length > 0) {
+      const homePages = pages.filter(page => 
+        page.title.toLowerCase() === 'home' || 
+        page.slug === 'home' || 
+        page.slug === ''
+      );
+      
+      if (homePages.length > 1) {
+        const duplicateHomePage = homePages.find(page => page.slug === 'home');
+        if (duplicateHomePage) {
+          console.log('Found duplicate Home page with slug "home", removing...', duplicateHomePage);
+          deletePage(duplicateHomePage.id);
+          toast({
+            title: 'Duplicate Removed',
+            description: 'Removed duplicate Home page with "home" slug to avoid confusion.',
+          });
+        }
+      }
+    }
+  }, [pages, deletePage]);
 
   const handleAddPage = () => {
     setShowAddForm(true);
