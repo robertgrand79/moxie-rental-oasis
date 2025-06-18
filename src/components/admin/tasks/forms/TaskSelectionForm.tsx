@@ -25,7 +25,7 @@ const TaskSelectionForm = ({ formData, properties, projects, onFormDataChange }:
             <SelectValue placeholder="Select property" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">No Property</SelectItem>
+            <SelectItem value="">No Property</SelectItem>
             {properties.map((property) => (
               <SelectItem key={property.id} value={property.id}>
                 {property.title}
@@ -42,9 +42,9 @@ const TaskSelectionForm = ({ formData, properties, projects, onFormDataChange }:
             <SelectValue placeholder="Select project" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">No Project</SelectItem>
+            <SelectItem value="">No Project</SelectItem>
             {projects
-              .filter(project => !formData.property_id || formData.property_id === "none" || project.property_id === formData.property_id)
+              .filter(project => !formData.property_id || formData.property_id === "" || project.property_id === formData.property_id)
               .map((project) => (
                 <SelectItem key={project.id} value={project.id}>
                   {project.title}
