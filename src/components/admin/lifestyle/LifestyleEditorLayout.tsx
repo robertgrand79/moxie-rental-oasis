@@ -1,10 +1,11 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, Eye, Sparkles } from 'lucide-react';
 import { LifestyleGalleryItem } from '@/hooks/useLifestyleGallery';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 import LifestyleEditorForm from './LifestyleEditorForm';
 import LifestylePreview from './LifestylePreview';
 import LifestyleAllFieldsGenerator from './LifestyleAllFieldsGenerator';
@@ -39,6 +40,7 @@ const LifestyleEditorLayout = ({
   enhancingId,
   getSuggestions
 }: LifestyleEditorLayoutProps) => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('list');
   const [editingItem, setEditingItem] = useState<LifestyleGalleryItem | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -110,14 +112,56 @@ const LifestyleEditorLayout = ({
     setActiveTab('list');
   };
 
-  const handleAIGenerated = (generatedItems: any[]) => {
-    // Handle multiple generated items
-    generatedItems.forEach(item => {
-      onSubmit({
-        ...item,
-        status: 'draft' // AI generated items start as drafts
+  const handleAIGenerated = async (generatedItems: any[]) => {
+    console.log('Processing AI generated items:', generatedItems);
+    
+    if (!user?.id) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to create lifestyle items',
+        variant: 'destructive'
       });
-    });
+      return;
+    }
+
+    try {
+      // Process each generated item individually for better error handling
+      for (const item of generatedItems) {
+        console.log('Processing item:', item);
+        
+        // Map AI generated item to form data structure
+        const formattedItem: LifestyleGalleryFormData = {
+          title: item.title || '',
+          description: item.description || '',
+          image_url: item.image_url || '',
+          category: item.category || 'outdoor',
+          location: item.location || '',
+          activity_type: item.activity_type || 'sightseeing',
+          display_order: item.display_order || 0,
+          is_featured: item.is_featured || false,
+          is_active: item.is_active !== false,
+          status: 'draft', // AI generated items start as drafts
+          created_by: user.id // Set the current user as creator
+        };
+
+        console.log('Formatted item for submission:', formattedItem);
+        
+        // Submit the item
+        await onSubmit(formattedItem);
+      }
+
+      toast({
+        title: 'Success',
+        description: `Added ${generatedItems.length} lifestyle items to your gallery!`
+      });
+    } catch (error) {
+      console.error('Error processing AI generated items:', error);
+      toast({
+        title: 'Error',
+        description: `Failed to add lifestyle items: ${error.message}`,
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
