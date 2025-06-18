@@ -10,7 +10,7 @@ interface WorkOrdersListProps {
   onWorkOrderClick: (workOrder: WorkOrder) => void;
   onStatusChange: (workOrderId: string, status: string) => void;
   onDeleteWorkOrder: (workOrderId: string) => void;
-  onUpdateWorkOrder: (workOrderId: string, updates: Partial<WorkOrder>) => Promise<void>;
+  onUpdateWorkOrder: (workOrderId: string, updates: Partial<WorkOrder>) => Promise<WorkOrder>;
 }
 
 const WorkOrdersList = ({
