@@ -986,6 +986,7 @@ export type Database = {
           created_at: string
           created_by: string
           description: string
+          display_order: number | null
           featured_photos: string[] | null
           hospitable_booking_url: string | null
           id: string
@@ -1005,6 +1006,7 @@ export type Database = {
           created_at?: string
           created_by: string
           description: string
+          display_order?: number | null
           featured_photos?: string[] | null
           hospitable_booking_url?: string | null
           id?: string
@@ -1024,6 +1026,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string
+          display_order?: number | null
           featured_photos?: string[] | null
           hospitable_booking_url?: string | null
           id?: string

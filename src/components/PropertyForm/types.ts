@@ -9,6 +9,7 @@ export interface PropertyFormData {
   pricePerNight: number;
   hospitableBookingUrl?: string;
   amenities?: string;
+  displayOrder?: number; // New field for custom ordering
   photos?: File[];
   images?: string[]; // Existing uploaded images
   featuredPhotos?: string[]; // Selected featured photos for display (up to 10)

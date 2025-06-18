@@ -1,5 +1,4 @@
 
-
 export interface Property {
   id: string;
   title: string;
@@ -15,8 +14,8 @@ export interface Property {
   featured_photos?: string[]; // Array of up to 10 selected photos for display
   hospitable_booking_url?: string;
   amenities?: string;
+  display_order?: number; // New field for custom ordering
   created_at?: string;
   updated_at?: string;
   created_by?: string;
 }
-
