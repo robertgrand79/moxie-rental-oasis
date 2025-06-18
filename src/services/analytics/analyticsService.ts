@@ -1,4 +1,3 @@
-
 import { GoogleAnalyticsService } from './googleAnalytics';
 import { PerformanceMonitorService } from './performanceMonitor';
 import { SystemMonitorService } from './systemMonitor';
@@ -57,13 +56,14 @@ class AnalyticsService {
       return this.performanceMonitor.getPerformanceMetrics();
     } catch (error) {
       console.error('❌ Analytics Service: Error fetching performance metrics:', error);
-      // Return fallback performance data
+      // Return fallback performance data that matches PerformanceMetrics interface
       return {
         loadTime: 1500,
-        lcp: 2100,
-        fid: 45,
-        cls: 0.08,
-        ttfb: 350
+        firstContentfulPaint: 1200,
+        largestContentfulPaint: 2100,
+        firstInputDelay: 45,
+        cumulativeLayoutShift: 0.08,
+        timeToInteractive: 1800
       };
     }
   }
@@ -74,11 +74,13 @@ class AnalyticsService {
       return this.systemMonitor.getSystemHealth();
     } catch (error) {
       console.error('❌ Analytics Service: Error fetching system health:', error);
-      // Return fallback system health data
+      // Return fallback system health data that matches SystemHealth interface
       return {
         uptime: 99.8,
         responseTime: 245,
-        errorRate: 0.2
+        errorRate: 0.2,
+        databaseHealth: 'healthy',
+        storageHealth: 'healthy'
       };
     }
   }
