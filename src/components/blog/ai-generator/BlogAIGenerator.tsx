@@ -1,9 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wand2, Zap, PenTool } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Wand2, Zap, PenTool, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { blogTemplates, blogQuickPrompts } from './BlogTemplates';
@@ -30,6 +31,9 @@ const BlogAIGenerator = ({
   const [selectedField, setSelectedField] = useState<'title' | 'excerpt' | 'content'>('content');
   const [generatedContent, setGeneratedContent] = useState('');
   const [activeTab, setActiveTab] = useState('templates');
+  const [topicPrompt, setTopicPrompt] = useState('');
+  const [isGeneratingAll, setIsGeneratingAll] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState('');
   const { toast } = useToast();
 
   const generateContent = async (customPrompt?: string) => {
@@ -133,6 +137,164 @@ Write clean prose that will work perfectly with rich text editors - absolutely n
     }
   };
 
+  const generateAllFields = async () => {
+    if (!topicPrompt.trim()) {
+      toast({
+        title: "Topic Required",
+        description: "Please enter a topic to generate all blog fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingAll(true);
+
+    try {
+      // Step 1: Generate title
+      setGenerationProgress('Generating title...');
+      const titlePrompt = `Create an engaging, SEO-friendly blog post title for: ${topicPrompt}
+
+**Title Guidelines:**
+- Keep under 60 characters for SEO optimization
+- Include "Eugene" or local references when relevant
+- Make it compelling and click-worthy
+- Appeal to vacation rental guests and travelers
+- Reflect Moxie's local expertise and premium positioning`;
+
+      const { data: titleData, error: titleError } = await supabase.functions.invoke('generate-site-content', {
+        body: {
+          prompt: titlePrompt,
+          context: {
+            businessType: 'vacation rental blog',
+            currentContent: {
+              siteName: 'Moxie Vacation Rentals',
+              title: currentTitle,
+              excerpt: currentExcerpt,
+              content: currentContent
+            },
+            field: 'title',
+            category: 'blog'
+          }
+        }
+      });
+
+      if (titleError) throw titleError;
+      const generatedTitle = titleData.content;
+
+      // Step 2: Generate excerpt
+      setGenerationProgress('Generating excerpt...');
+      const excerptPrompt = `Create a compelling blog post excerpt (150-160 characters) for a blog post titled: "${generatedTitle}"
+
+Topic: ${topicPrompt}
+
+**Excerpt Guidelines:**
+- Engaging preview that entices readers to continue
+- Include key benefits or highlights
+- Appeal to vacation rental guests
+- Professional yet approachable tone
+- Include local Eugene context when relevant`;
+
+      const { data: excerptData, error: excerptError } = await supabase.functions.invoke('generate-site-content', {
+        body: {
+          prompt: excerptPrompt,
+          context: {
+            businessType: 'vacation rental blog',
+            currentContent: {
+              siteName: 'Moxie Vacation Rentals',
+              title: generatedTitle,
+              excerpt: currentExcerpt,
+              content: currentContent
+            },
+            field: 'excerpt',
+            category: 'blog'
+          }
+        }
+      });
+
+      if (excerptError) throw excerptError;
+      const generatedExcerpt = excerptData.content;
+
+      // Step 3: Generate content
+      setGenerationProgress('Generating content...');
+      const contentPrompt = `Create a comprehensive blog post about: ${topicPrompt}
+
+Title: ${generatedTitle}
+Excerpt: ${generatedExcerpt}
+
+**CRITICAL: NO MARKDOWN FORMATTING ALLOWED**
+- Write in clean, flowing prose without any markdown syntax
+- NEVER use ### or ## for headings - write descriptive section titles as regular text
+- NEVER use *** or ** for bold text - write naturally
+- NEVER use * for italic text - write naturally  
+- NEVER use - or * for bullet points - write in paragraph form
+- Focus on storytelling and engaging narrative
+- Write as if you're writing directly in a word processor
+- Use natural paragraph breaks and flowing sentences
+
+**MOXIE BLOG CONTENT REQUIREMENTS:**
+- Create engaging blog post content with natural flow between topics
+- Use conversational tone appropriate for travel blog readers
+- Include specific Eugene, Oregon details and local expertise
+- Write in paragraph format with clear section breaks
+- Include actionable tips and practical information
+- Make content naturally scannable with good paragraph structure
+- End with a compelling call-to-action encouraging bookings
+- Ensure content is SEO-friendly and engaging for vacation rental guests
+
+**MOXIE BRAND VOICE:**
+- We are Moxie Vacation Rentals, Eugene's premier local experts
+- Our mission: "Your Home Base for Living Like a Local in Eugene"
+- We provide authentic local experiences and insider knowledge
+- Our guests value quality accommodations and authentic local experiences
+- We specialize in helping visitors experience Eugene like locals do
+
+Write clean prose that will work perfectly with rich text editors - absolutely no formatting syntax allowed.`;
+
+      const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-site-content', {
+        body: {
+          prompt: contentPrompt,
+          context: {
+            businessType: 'vacation rental blog',
+            currentContent: {
+              siteName: 'Moxie Vacation Rentals',
+              title: generatedTitle,
+              excerpt: generatedExcerpt,
+              content: currentContent
+            },
+            field: 'content',
+            category: 'blog'
+          }
+        }
+      });
+
+      if (contentError) throw contentError;
+
+      // Apply all generated content
+      onContentGenerated('title', generatedTitle);
+      onContentGenerated('excerpt', generatedExcerpt);
+      onContentGenerated('content', contentData.content);
+
+      toast({
+        title: "All Fields Generated!",
+        description: "Successfully generated title, excerpt, and content for your blog post.",
+      });
+
+      // Clear the topic prompt after successful generation
+      setTopicPrompt('');
+      
+    } catch (error: any) {
+      console.error('All fields generation error:', error);
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingAll(false);
+      setGenerationProgress('');
+    }
+  };
+
   const generateCompleteBlogPost = async () => {
     setSelectedField('content');
     const completePrompt = `Create a complete, professionally written blog post for Moxie Vacation Rentals with clean, flowing prose:
@@ -212,15 +374,47 @@ Write clean, flowing prose that will work perfectly in rich text editors without
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Generate All Fields Section */}
+        <div className="space-y-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-blue-600" />
+            <h3 className="font-semibold text-gray-900">Generate Complete Blog Post</h3>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="topic-prompt">Blog Topic</Label>
+              <Input
+                id="topic-prompt"
+                value={topicPrompt}
+                onChange={(e) => setTopicPrompt(e.target.value)}
+                placeholder="e.g., Best coffee shops in Eugene, Eugene food scene, Hiking trails near Eugene"
+                disabled={isGeneratingAll}
+              />
+            </div>
+            
+            <Button 
+              onClick={generateAllFields}
+              disabled={isGeneratingAll || !topicPrompt.trim()}
+              className="w-full"
+              size="lg"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              {isGeneratingAll ? generationProgress || "Generating..." : "Generate All Fields (Title + Excerpt + Content)"}
+            </Button>
+          </div>
+        </div>
+
         <div className="flex gap-2">
           <Button 
             onClick={generateCompleteBlogPost}
             disabled={isGenerating}
             className="flex-1"
             size="lg"
+            variant="outline"
           >
             <Zap className="h-4 w-4 mr-2" />
-            {isGenerating ? "Generating..." : "Generate Complete Blog Post"}
+            {isGenerating ? "Generating..." : "Generate Content Only"}
           </Button>
         </div>
 
