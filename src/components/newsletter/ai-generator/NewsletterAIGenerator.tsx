@@ -11,6 +11,7 @@ import TemplateSelector from './TemplateSelector';
 import QuickPrompts from './QuickPrompts';
 import CustomPromptInput from './CustomPromptInput';
 import GeneratedContentDisplay from './GeneratedContentDisplay';
+import { marked } from 'marked';
 
 interface NewsletterAIGeneratorProps {
   currentSubject: string;
@@ -30,6 +31,27 @@ const NewsletterAIGenerator = ({
   const [activeTab, setActiveTab] = useState('templates');
   const { toast } = useToast();
 
+  // Convert markdown to HTML and clean it up
+  const convertMarkdownToHtml = (markdownText: string): string => {
+    // Configure marked to not add paragraph tags around single lines
+    marked.setOptions({
+      breaks: true,
+      gfm: true
+    });
+
+    let html = marked(markdownText) as string;
+    
+    // Clean up common markdown artifacts that might slip through
+    html = html
+      .replace(/\*\*/g, '') // Remove any remaining ** 
+      .replace(/##\s*/g, '') // Remove any remaining ##
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>') // Convert *text* to <em>
+      .replace(/`([^`]+)`/g, '<code>$1</code>') // Convert `code` to <code>
+      .trim();
+
+    return html;
+  };
+
   const generateContent = async (customPrompt?: string) => {
     const promptToUse = customPrompt || aiPrompt;
     
@@ -48,15 +70,20 @@ const NewsletterAIGenerator = ({
       const enhancedPrompt = selectedField === 'content' 
         ? `${promptToUse}
 
-**IMPORTANT FORMATTING INSTRUCTIONS:**
-- Structure the content with clear, distinct sections
-- Use line breaks between different topics/sections
+**IMPORTANT HTML FORMATTING INSTRUCTIONS:**
+- Generate content using clean HTML tags only (no markdown syntax)
+- Use proper HTML tags: <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>, <br>
+- Structure content with clear HTML sections using proper heading tags
 - Write in an engaging, professional tone suitable for vacation rental guests
 - Include specific Eugene, Oregon references and local knowledge
 - Focus on experiences that vacation rental guests would appreciate
-- Make the content scannable with clear paragraph breaks
-- Include calls-to-action that encourage engagement and bookings
+- Make content scannable with clear paragraph breaks using <p> tags
+- Include calls-to-action using <strong> tags for emphasis
+- Use <h2> and <h3> for section headings (NOT ## or ###)
+- Use <strong> for emphasis (NOT **)
+- Use <em> for italics (NOT *)
 - Ensure content is appropriate for email newsletter format
+- NO markdown syntax allowed - only clean HTML
 
 **MOXIE BRAND CONTEXT:**
 - We are Moxie Vacation Rentals, Eugene's premier vacation rental company
@@ -85,7 +112,12 @@ const NewsletterAIGenerator = ({
 
       if (error) throw error;
 
-      setGeneratedContent(data.content);
+      // Convert any markdown to HTML
+      const cleanContent = selectedField === 'content' 
+        ? convertMarkdownToHtml(data.content)
+        : data.content;
+
+      setGeneratedContent(cleanContent);
       
       toast({
         title: "Content Generated!",
@@ -105,45 +137,50 @@ const NewsletterAIGenerator = ({
 
   const generateCompleteNewsletter = async () => {
     setSelectedField('content');
-    const completePrompt = `Create a complete, professionally formatted newsletter for Moxie Vacation Rentals including:
+    const completePrompt = `Create a complete, professionally formatted newsletter for Moxie Vacation Rentals using clean HTML formatting:
 
-**Newsletter Structure:**
+**Newsletter Structure (use proper HTML tags):**
 
-**Welcome Section:**
-- Engaging opening that welcomes readers
-- Brief overview of what's included in this newsletter
+<h2>Welcome Section:</h2>
+<p>Engaging opening that welcomes readers with brief overview of newsletter content</p>
 
-**Featured Content (choose 2-3 main topics):**
-- Property highlight with compelling description
-- Local Eugene events and attractions
-- Seasonal activities and recommendations
-- Guest experience story or testimonial
+<h2>Featured Content (choose 2-3 main topics):</h2>
+<p>Property highlight with compelling description</p>
+<p>Local Eugene events and attractions</p>
+<p>Seasonal activities and recommendations</p>
+<p>Guest experience story or testimonial</p>
 
-**Local Expertise Section:**
-- Insider tips for experiencing Eugene like a local
-- Hidden gems or lesser-known attractions
-- Dining recommendations from local favorites
+<h2>Local Expertise Section:</h2>
+<p>Insider tips for experiencing Eugene like a local</p>
+<p>Hidden gems or lesser-known attractions</p>
+<p>Dining recommendations from local favorites</p>
 
-**Call-to-Action Section:**
-- Encourage bookings with specific benefits
-- Mention available properties and special offers
-- Invite engagement and social media follows
+<h2>Call-to-Action Section:</h2>
+<p>Encourage bookings with specific benefits</p>
+<p>Mention available properties and special offers</p>
+<p>Invite engagement and social media follows</p>
 
-**CONTENT REQUIREMENTS:**
+**HTML FORMATTING REQUIREMENTS:**
+- Use <h2> and <h3> for headings (NOT ## or ###)
+- Use <p> tags for paragraphs
+- Use <strong> for emphasis (NOT **)
+- Use <em> for italics (NOT *)
+- Use <ul> and <li> for lists
 - Make each section substantive with 2-3 paragraphs
 - Include specific Eugene locations and details
-- Use warm, welcoming tone that reflects our local expertise
-- Structure with clear section breaks for easy reading
+- Use warm, welcoming tone that reflects local expertise
+- Structure with clear HTML section breaks for easy reading
 - Focus on experiences that vacation rental guests value
 - Include practical information mixed with inspirational content
 - End with strong call-to-action for bookings
 
 **STYLE GUIDELINES:**
 - Professional yet friendly tone
-- Locally-focused content that showcases Eugene expertise
-- Scannable format with clear paragraph breaks
+- Locally-focused content showcasing Eugene expertise
+- Scannable HTML format with clear paragraph breaks
 - Engaging content that makes readers excited about Eugene
-- Include specific details rather than generic tourism information`;
+- Include specific details rather than generic tourism information
+- NO MARKDOWN SYNTAX - only clean HTML tags`;
 
     await generateContent(completePrompt);
   };
@@ -162,11 +199,12 @@ const NewsletterAIGenerator = ({
   const applyGeneratedContent = () => {
     if (!generatedContent) return;
 
+    // Apply the HTML content directly to the editor
     onContentGenerated(selectedField, generatedContent);
 
     toast({
       title: "Content Applied",
-      description: `Updated ${selectedField} with professionally designed content.`,
+      description: `Updated ${selectedField} with professionally designed content. You can now edit it in the editor.`,
     });
 
     setGeneratedContent('');
