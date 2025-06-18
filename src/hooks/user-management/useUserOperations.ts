@@ -130,7 +130,7 @@ export const useUserOperations = () => {
     }
   };
 
-  const inviteUser = async (email: string, role: string = 'user', fullName?: string) => {
+  const inviteUser = async (invitation: { email: string; role: string; full_name?: string }) => {
     try {
       setLoading(true);
 
@@ -138,9 +138,9 @@ export const useUserOperations = () => {
       const { error } = await supabase
         .from('user_invitations')
         .insert({
-          email,
-          role,
-          full_name: fullName,
+          email: invitation.email,
+          role: invitation.role,
+          full_name: invitation.full_name,
           invited_by: user?.id,
           invitation_token: crypto.randomUUID()
         });
@@ -149,7 +149,7 @@ export const useUserOperations = () => {
 
       toast({
         title: 'Success',
-        description: `Invitation sent to ${email}`,
+        description: `Invitation sent to ${invitation.email}`,
       });
 
       return true;
