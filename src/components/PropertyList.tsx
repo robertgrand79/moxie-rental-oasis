@@ -24,6 +24,18 @@ const PropertyList = ({
   showActions = true,
   deletingProperties = new Set()
 }: PropertyListProps) => {
+  // Defensive programming: handle undefined or null properties
+  const safeProperties = properties || [];
+  
+  // Early return for empty properties
+  if (!Array.isArray(safeProperties) || safeProperties.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">No properties found.</p>
+      </div>
+    );
+  }
+
   const handleDeleteClick = (id: string, title: string) => {
     if (deletingProperties.has(id)) {
       return; // Prevent multiple deletion attempts
@@ -36,9 +48,15 @@ const PropertyList = ({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {properties.map((property) => {
+      {safeProperties.map((property) => {
+        // Additional safety check for individual property
+        if (!property || !property.id) {
+          console.warn('PropertyList: Skipping invalid property', property);
+          return null;
+        }
+
         const isDeleting = deletingProperties.has(property.id);
-        const addressSlug = generateAddressSlug(property.location);
+        const addressSlug = generateAddressSlug(property.location || '');
         
         return (
           <Card 
@@ -51,7 +69,7 @@ const PropertyList = ({
               <div className="aspect-[4/3] relative overflow-hidden">
                 <img
                   src={property.image_url}
-                  alt={property.title}
+                  alt={property.title || 'Property image'}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -61,11 +79,11 @@ const PropertyList = ({
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <CardTitle className="font-bold text-lg mb-2 line-clamp-2 text-gray-900 min-h-[3.5rem]">
-                    {property.title}
+                    {property.title || 'Untitled Property'}
                   </CardTitle>
                   <div className="flex items-center text-sm text-gray-500 mb-4">
                     <MapPin className="h-4 w-4 mr-1 flex-shrink-0 text-icon-blue" />
-                    <span className="line-clamp-1">{property.location}</span>
+                    <span className="line-clamp-1">{property.location || 'Location not specified'}</span>
                   </div>
                 </div>
               </div>
@@ -73,21 +91,21 @@ const PropertyList = ({
             
             <CardContent className="p-6 pt-0">
               <p className="text-gray-700 text-sm line-clamp-3 mb-4">
-                {property.description}
+                {property.description || 'No description available'}
               </p>
               
               <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
                 <div className="flex items-center">
                   <Bed className="h-4 w-4 mr-1 text-icon-purple" />
-                  <span>{property.bedrooms}</span>
+                  <span>{property.bedrooms || 0}</span>
                 </div>
                 <div className="flex items-center">
                   <Bath className="h-4 w-4 mr-1 text-icon-teal" />
-                  <span>{property.bathrooms}</span>
+                  <span>{property.bathrooms || 0}</span>
                 </div>
                 <div className="flex items-center">
                   <Users className="h-4 w-4 mr-1 text-icon-emerald" />
-                  <span>{property.max_guests}</span>
+                  <span>{property.max_guests || 0}</span>
                 </div>
               </div>
 
@@ -100,7 +118,7 @@ const PropertyList = ({
               
               <div className="flex items-center justify-between mb-4">
                 <div className="font-bold text-lg text-gray-900">
-                  ${property.price_per_night}
+                  ${property.price_per_night || 0}
                   <span className="text-sm font-normal text-gray-500">/night</span>
                 </div>
               </div>
@@ -140,7 +158,7 @@ const PropertyList = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDeleteClick(property.id, property.title)}
+                      onClick={() => handleDeleteClick(property.id, property.title || 'Property')}
                       disabled={isDeleting}
                       className={isDeleting ? 'opacity-50' : ''}
                     >
@@ -156,7 +174,7 @@ const PropertyList = ({
             </CardContent>
           </Card>
         );
-      })}
+      }).filter(Boolean)}
     </div>
   );
 };

@@ -19,11 +19,14 @@ const PropertyListContainer = ({
   onDelete,
   onAddProperty
 }: PropertyListContainerProps) => {
+  // Ensure properties is always an array
+  const safeProperties = Array.isArray(properties) ? properties : [];
+  
   return (
     <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-      {properties.length > 0 ? (
+      {safeProperties.length > 0 ? (
         <PropertyList
-          properties={properties}
+          properties={safeProperties}
           onEdit={onEdit}
           onDelete={onDelete}
           showActions={true}
