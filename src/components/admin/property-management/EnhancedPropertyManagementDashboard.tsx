@@ -1,7 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { usePropertyManagement } from '@/hooks/usePropertyManagement';
 import { useOptimizedPropertyData } from '@/hooks/useOptimizedPropertyData';
+import { usePropertyOperations } from '@/hooks/usePropertyOperations';
+import { useProjectOperations } from '@/hooks/property-management/useProjectOperations';
+import { useTaskOperations } from '@/hooks/property-management/useTaskOperations';
+import { useTurnoverTasks } from '@/hooks/property-management/useTurnoverTasks';
 import { useWorkOrderManagement } from '@/hooks/useWorkOrderManagement';
 import { useBulkTaskOperations } from '@/hooks/useBulkTaskOperations';
 import { useCustomTaskTypes } from '@/hooks/useCustomTaskTypes';
@@ -17,7 +21,7 @@ import PropertyManagementAlerts from './PropertyManagementAlerts';
 import PropertyManagementTabs from './PropertyManagementTabs';
 
 const EnhancedPropertyManagementDashboard = () => {
-  // Use optimized data fetching
+  // Use optimized data fetching - single source of truth
   const {
     properties,
     projects,
@@ -25,19 +29,14 @@ const EnhancedPropertyManagementDashboard = () => {
     loading,
     loadData,
     refreshData,
+    setProjects,
+    setTasks,
   } = useOptimizedPropertyData();
 
-  // Keep existing functionality for operations
-  const { 
-    createProject,
-    updateProject,
-    deleteProject,
-    createTask,
-    updateTask,
-    deleteTask,
-    generateTurnoverTasks,
-  } = usePropertyManagement();
-
+  // Use individual operation hooks without data loading
+  const { createProject, updateProject, deleteProject } = useProjectOperations(setProjects);
+  const { createTask, updateTask, deleteTask } = useTaskOperations(setTasks);
+  const { generateTurnoverTasks } = useTurnoverTasks(setTasks);
   const { contractors, createWorkOrder } = useWorkOrderManagement();
   const { taskTypes } = useCustomTaskTypes();
   const { setLoading, loadingStates } = usePropertyManagementLoading();
@@ -73,7 +72,11 @@ const EnhancedPropertyManagementDashboard = () => {
 
   // Load data on mount
   useEffect(() => {
-    loadData();
+    console.log('Loading property management data...');
+    loadData().catch((err) => {
+      console.error('Failed to load data:', err);
+      setError(err);
+    });
   }, []);
 
   const { totalTasks, completedTasks, pendingTasks, overdueTasks } = useTaskStats(tasks);
@@ -120,40 +123,99 @@ const EnhancedPropertyManagementDashboard = () => {
   const retryLoadData = async () => {
     try {
       setError(null);
+      console.log('Retrying data load...');
       await loadData();
     } catch (err) {
+      console.error('Retry failed:', err);
       setError(err as Error);
     }
   };
 
   // Create wrapper functions to handle the void returns expected by the component
   const handleCreateTask = async (taskData: any) => {
-    await createTask(taskData);
-    await refreshData();
+    try {
+      console.log('Creating task:', taskData);
+      await createTask(taskData);
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to create task:', error);
+    }
   };
 
   const handleCreateProject = async (projectData: any) => {
-    await createProject(projectData);
-    await refreshData();
+    try {
+      console.log('Creating project:', projectData);
+      await createProject(projectData);
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    }
   };
 
   const handleUpdateProject = async (projectId: string, projectData: any) => {
-    await updateProject(projectId, projectData);
-    await refreshData();
+    try {
+      console.log('Updating project:', projectId, projectData);
+      await updateProject(projectId, projectData);
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to update project:', error);
+    }
   };
 
   const handleCreateWorkOrder = async (workOrderData: any) => {
-    await createWorkOrder(workOrderData);
-    await refreshData();
+    try {
+      console.log('Creating work order:', workOrderData);
+      await createWorkOrder(workOrderData);
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to create work order:', error);
+    }
   };
 
   const handleStatusChange = async (taskId: string, status: string) => {
     const validStatuses = ['pending', 'in_progress', 'completed', 'blocked', 'cancelled'];
     if (validStatuses.includes(status)) {
-      await updateTask(taskId, { status: status as any });
-      await refreshData();
+      try {
+        console.log('Updating task status:', taskId, status);
+        await updateTask(taskId, { status: status as any });
+        await refreshData();
+      } catch (error) {
+        console.error('Failed to update task status:', error);
+      }
     }
   };
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      console.log('Deleting task:', taskId);
+      await deleteTask(taskId);
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      console.log('Deleting project:', projectId);
+      await deleteProject(projectId);
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+    }
+  };
+
+  const handleGenerateTurnoverTasks = async (propertyId: string) => {
+    try {
+      console.log('Generating turnover tasks for property:', propertyId);
+      await generateTurnoverTasks(propertyId);
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to generate turnover tasks:', error);
+    }
+  };
+
+  console.log('Dashboard render - Loading:', loading, 'Properties:', properties.length, 'Tasks:', tasks.length, 'Projects:', projects.length);
 
   return (
     <SmartLoadingWrapper
@@ -201,13 +263,13 @@ const EnhancedPropertyManagementDashboard = () => {
           setIsTaskModalOpen={setIsTaskModalOpen}
           setIsProjectModalOpen={setIsProjectModalOpen}
           setIsWorkOrderModalOpen={setIsWorkOrderModalOpen}
-          generateTurnoverTasks={generateTurnoverTasks}
+          generateTurnoverTasks={handleGenerateTurnoverTasks}
           onToggleBulkMode={() => setBulkMode(!bulkMode)}
           onSelectAllTasks={() => selectAllTasks(filteredTasks.map(t => t.id))}
           onTaskClick={(task) => setEditingTask(task)}
           onStatusChange={handleStatusChange}
-          onDeleteTask={deleteTask}
-          onDeleteProject={deleteProject}
+          onDeleteTask={handleDeleteTask}
+          onDeleteProject={handleDeleteProject}
           onCreateWorkOrder={() => setIsWorkOrderModalOpen(true)}
           onToggleTaskSelection={toggleTaskSelection}
           clearSelection={clearSelection}

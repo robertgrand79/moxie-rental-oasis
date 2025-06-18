@@ -13,6 +13,7 @@ export const useOptimizedPropertyData = () => {
   const { toast } = useToast();
 
   const fetchProperties = async () => {
+    console.log('Fetching properties...');
     try {
       const { data, error } = await supabase
         .from('properties')
@@ -21,7 +22,9 @@ export const useOptimizedPropertyData = () => {
         .limit(50); // Limit for performance
 
       if (error) throw error;
+      console.log('Properties fetched:', data?.length || 0);
       setProperties(data || []);
+      return data || [];
     } catch (error) {
       console.error('Error fetching properties:', error);
       toast({
@@ -29,10 +32,12 @@ export const useOptimizedPropertyData = () => {
         description: 'Failed to fetch properties',
         variant: 'destructive',
       });
+      throw error;
     }
   };
 
   const fetchProjectsWithJoins = async () => {
+    console.log('Fetching projects...');
     try {
       const { data, error } = await supabase
         .from('property_projects')
@@ -44,6 +49,8 @@ export const useOptimizedPropertyData = () => {
         .limit(100); // Limit for performance
 
       if (error) throw error;
+      
+      console.log('Projects fetched:', data?.length || 0);
       
       const projectsWithProperties: PropertyProject[] = (data || []).map(project => ({
         id: project.id,
@@ -65,6 +72,7 @@ export const useOptimizedPropertyData = () => {
       }));
       
       setProjects(projectsWithProperties);
+      return projectsWithProperties;
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast({
@@ -72,10 +80,12 @@ export const useOptimizedPropertyData = () => {
         description: 'Failed to fetch projects',
         variant: 'destructive',
       });
+      throw error;
     }
   };
 
   const fetchTasksWithJoins = async () => {
+    console.log('Fetching tasks...');
     try {
       const { data, error } = await supabase
         .from('property_tasks')
@@ -88,6 +98,8 @@ export const useOptimizedPropertyData = () => {
         .limit(200); // Limit for performance
 
       if (error) throw error;
+      
+      console.log('Tasks fetched:', data?.length || 0);
       
       const tasksWithRelations: PropertyTask[] = (data || []).map(task => ({
         id: task.id,
@@ -104,6 +116,10 @@ export const useOptimizedPropertyData = () => {
         actual_hours: task.actual_hours,
         is_recurring: task.is_recurring,
         recurrence_pattern: task.recurrence_pattern,
+        recurrence_frequency: task.recurrence_frequency as PropertyTask['recurrence_frequency'],
+        recurrence_interval: task.recurrence_interval,
+        recurrence_end_date: task.recurrence_end_date,
+        task_type_id: task.task_type_id,
         checklist_items: task.checklist_items,
         photos: task.photos,
         notes: task.notes,
@@ -131,6 +147,7 @@ export const useOptimizedPropertyData = () => {
       }));
       
       setTasks(tasksWithRelations);
+      return tasksWithRelations;
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast({
@@ -138,16 +155,49 @@ export const useOptimizedPropertyData = () => {
         description: 'Failed to fetch tasks',
         variant: 'destructive',
       });
+      throw error;
     }
   };
 
   const loadData = async () => {
+    console.log('Starting data load...');
     setLoading(true);
-    await Promise.all([fetchProperties(), fetchProjectsWithJoins(), fetchTasksWithJoins()]);
-    setLoading(false);
+    try {
+      const results = await Promise.allSettled([
+        fetchProperties(),
+        fetchProjectsWithJoins(),
+        fetchTasksWithJoins()
+      ]);
+      
+      // Check if any promises were rejected
+      const rejectedResults = results.filter(result => result.status === 'rejected');
+      if (rejectedResults.length > 0) {
+        console.error('Some data fetches failed:', rejectedResults);
+        // Don't throw here - we want to show partial data if possible
+      }
+      
+      console.log('Data load completed successfully');
+    } catch (error) {
+      console.error('Critical error during data load:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const refreshData = () => Promise.all([fetchProperties(), fetchProjectsWithJoins(), fetchTasksWithJoins()]);
+  const refreshData = async () => {
+    console.log('Refreshing data...');
+    try {
+      await Promise.allSettled([
+        fetchProperties(),
+        fetchProjectsWithJoins(),
+        fetchTasksWithJoins()
+      ]);
+      console.log('Data refresh completed');
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    }
+  };
 
   return {
     properties,
