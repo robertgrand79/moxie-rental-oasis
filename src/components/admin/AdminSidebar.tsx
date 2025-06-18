@@ -23,13 +23,10 @@ const AdminSidebar = () => {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {adminMenuItems.map((section) => (
-          <AdminSidebarSection 
-            key={section.title}
-            title={section.title} 
-            items={section.items} 
-          />
-        ))}
+        <AdminSidebarSection 
+          title="Navigation" 
+          items={adminMenuItems} 
+        />
       </SidebarContent>
       <AdminSidebarFooter />
     </Sidebar>
