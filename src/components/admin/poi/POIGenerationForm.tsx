@@ -20,10 +20,12 @@ const POIGenerationForm = ({
 }: POIGenerationFormProps) => {
   const [prompt, setPrompt] = useState('');
   const [numberOfItems, setNumberOfItems] = useState(5);
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState('all');
 
   const handleGenerate = () => {
-    onGenerate(prompt, numberOfItems, category);
+    // Convert "all" back to empty string for the generation logic
+    const categoryValue = category === 'all' ? '' : category;
+    onGenerate(prompt, numberOfItems, categoryValue);
   };
 
   return (
@@ -47,7 +49,7 @@ const POIGenerationForm = ({
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {categories.map(cat => (
                 <SelectItem key={cat} value={cat}>
                   {cat.charAt(0).toUpperCase() + cat.slice(1)}
