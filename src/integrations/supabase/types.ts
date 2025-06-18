@@ -953,9 +953,11 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          last_login_at: string | null
           onboarding_completed: boolean
           permissions: Json | null
           role: string
+          status: string
           updated_at: string
         }
         Insert: {
@@ -964,9 +966,11 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          last_login_at?: string | null
           onboarding_completed?: boolean
           permissions?: Json | null
           role?: string
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -975,9 +979,11 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          last_login_at?: string | null
           onboarding_completed?: boolean
           permissions?: Json | null
           role?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -1500,6 +1506,75 @@ export type Database = {
           rating?: number
           review_text?: string
           stay_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          performed_by: string
+          target_user_email: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          performed_by: string
+          target_user_email?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          performed_by?: string
+          target_user_email?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          full_name: string | null
+          id: string
+          invitation_token: string
+          invited_by: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          full_name?: string | null
+          id?: string
+          invitation_token: string
+          invited_by: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          full_name?: string | null
+          id?: string
+          invitation_token?: string
+          invited_by?: string
+          role?: string
           updated_at?: string
         }
         Relationships: []

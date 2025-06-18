@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
-import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2 } from 'lucide-react';
+import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2, Search, Download } from 'lucide-react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,16 +23,34 @@ import {
 } from '@/components/ui/table';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import UserInviteModal from '@/components/admin/UserInviteModal';
+import UserProfileModal from '@/components/admin/UserProfileModal';
 import { useAuth } from '@/contexts/AuthContext';
 
 const AdminUserManagement = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const { users, loading, error, updateUserRole, deleteUser, inviteUser } = useUserManagement();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  
+  const { 
+    users, 
+    loading, 
+    error, 
+    updateUserProfile,
+    updateUserRole, 
+    deleteUser, 
+    inviteUser,
+    searchUsers,
+    bulkUpdateUserRoles
+  } = useUserManagement();
   const { user: currentUser } = useAuth();
 
-  const handleEditUser = (userId: string) => {
-    console.log('Edit user:', userId);
-    // TODO: Implement edit user functionality
+  const filteredUsers = searchUsers(searchQuery);
+
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setIsProfileModalOpen(true);
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -55,14 +74,71 @@ const AdminUserManagement = () => {
     await updateUserRole(userId, newRole);
   };
 
+  const handleBulkRoleUpdate = async (newRole: string) => {
+    if (selectedUsers.length === 0) return;
+    
+    if (selectedUsers.includes(currentUser?.id || '')) {
+      alert('Cannot change your own role in bulk operation');
+      return;
+    }
+    
+    await bulkUpdateUserRoles(selectedUsers, newRole);
+    setSelectedUsers([]);
+  };
+
+  const handleUserSelect = (userId: string) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedUsers.length === filteredUsers.length) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(filteredUsers.map(user => user.id));
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'inactive': return 'bg-gray-100 text-gray-800';
+      case 'suspended': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const pageActions = (
-    <EnhancedButton 
-      onClick={() => setIsInviteModalOpen(true)} 
-      variant="gradient"
-      icon={<UserPlus className="h-4 w-4" />}
-    >
-      Invite User
-    </EnhancedButton>
+    <div className="flex gap-2">
+      {selectedUsers.length > 0 && (
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => handleBulkRoleUpdate('admin')} 
+            variant="outline"
+            size="sm"
+          >
+            Make Admin ({selectedUsers.length})
+          </Button>
+          <Button 
+            onClick={() => handleBulkRoleUpdate('user')} 
+            variant="outline"
+            size="sm"
+          >
+            Make User ({selectedUsers.length})
+          </Button>
+        </div>
+      )}
+      <EnhancedButton 
+        onClick={() => setIsInviteModalOpen(true)} 
+        variant="gradient"
+        icon={<UserPlus className="h-4 w-4" />}
+      >
+        Invite User
+      </EnhancedButton>
+    </div>
   );
 
   if (loading) {
@@ -104,7 +180,7 @@ const AdminUserManagement = () => {
     );
   }
 
-  const activeUsers = users.filter(u => u.role !== 'inactive');
+  const activeUsers = users.filter(u => u.status === 'active');
   const adminUsers = users.filter(u => u.role === 'admin');
 
   return (
@@ -157,25 +233,58 @@ const AdminUserManagement = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>All Users</CardTitle>
-            <CardDescription>
-              View and manage all system users
-            </CardDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>All Users</CardTitle>
+                <CardDescription>
+                  View and manage all system users
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <div className="relative">
+                  <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Search users..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 w-64"
+                  />
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
+                      onChange={handleSelectAll}
+                      className="rounded"
+                    />
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Last Login</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.id)}
+                        onChange={() => handleUserSelect(user.id)}
+                        className="rounded"
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">
                       {user.full_name || 'No name set'}
                     </TableCell>
@@ -190,6 +299,20 @@ const AdminUserManagement = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
+                      <Badge 
+                        variant="outline"
+                        className={getStatusColor(user.status)}
+                      >
+                        {user.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {user.last_login_at 
+                        ? new Date(user.last_login_at).toLocaleDateString()
+                        : 'Never'
+                      }
+                    </TableCell>
+                    <TableCell>
                       {new Date(user.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
@@ -201,7 +324,7 @@ const AdminUserManagement = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditUser(user.id)}>
+                          <DropdownMenuItem onClick={() => handleEditUser(user)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit user
                           </DropdownMenuItem>
@@ -235,6 +358,13 @@ const AdminUserManagement = () => {
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
         onInvite={inviteUser}
+      />
+
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={selectedUser}
+        onUpdate={updateUserProfile}
       />
     </AdminPageWrapper>
   );

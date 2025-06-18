@@ -9,6 +9,8 @@ interface User {
   email: string;
   full_name: string | null;
   role: string;
+  status: string;
+  last_login_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -69,18 +71,18 @@ export const useUserManagement = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: string) => {
+  const updateUserProfile = async (userId: string, updates: Partial<User>) => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ role: newRole })
+        .update(updates)
         .eq('id', userId);
 
       if (error) {
-        console.error('Error updating user role:', error);
+        console.error('Error updating user profile:', error);
         toast({
           title: 'Error',
-          description: 'Failed to update user role',
+          description: 'Failed to update user profile',
           variant: 'destructive',
         });
         return false;
@@ -88,30 +90,31 @@ export const useUserManagement = () => {
 
       toast({
         title: 'Success',
-        description: 'User role updated successfully',
+        description: 'User profile updated successfully',
       });
       
       await fetchUsers(); // Refresh the list
       return true;
     } catch (err) {
-      console.error('Unexpected error updating user role:', err);
+      console.error('Unexpected error updating user profile:', err);
       toast({
         title: 'Error',
-        description: 'Failed to update user role',
+        description: 'Failed to update user profile',
         variant: 'destructive',
       });
       return false;
     }
   };
 
+  const updateUserRole = async (userId: string, newRole: string) => {
+    return await updateUserProfile(userId, { role: newRole });
+  };
+
   const deleteUser = async (userId: string) => {
     try {
-      // Note: This will delete the profile. The actual auth user deletion
-      // would need to be handled by an admin API or edge function
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
 
       if (error) {
         console.error('Error deleting user:', error);
@@ -143,10 +146,22 @@ export const useUserManagement = () => {
 
   const inviteUser = async (invitation: UserInvitation) => {
     try {
-      // For now, we'll just show a success message
-      // In a real implementation, you'd call an edge function to send an invitation email
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: invitation
+      });
+
+      if (error) {
+        console.error('Error inviting user:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to send invitation',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
       toast({
-        title: 'Invitation Sent',
+        title: 'Success',
         description: `Invitation sent to ${invitation.email}`,
       });
       
@@ -156,6 +171,54 @@ export const useUserManagement = () => {
       toast({
         title: 'Error',
         description: 'Failed to send invitation',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  const searchUsers = (query: string) => {
+    if (!query.trim()) {
+      return users;
+    }
+    
+    const lowercaseQuery = query.toLowerCase();
+    return users.filter(user => 
+      user.email.toLowerCase().includes(lowercaseQuery) ||
+      (user.full_name && user.full_name.toLowerCase().includes(lowercaseQuery)) ||
+      user.role.toLowerCase().includes(lowercaseQuery)
+    );
+  };
+
+  const bulkUpdateUserRoles = async (userIds: string[], newRole: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .in('id', userIds);
+
+      if (error) {
+        console.error('Error bulk updating user roles:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to update user roles',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      toast({
+        title: 'Success',
+        description: `Updated ${userIds.length} users to ${newRole} role`,
+      });
+      
+      await fetchUsers(); // Refresh the list
+      return true;
+    } catch (err) {
+      console.error('Unexpected error bulk updating user roles:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to update user roles',
         variant: 'destructive',
       });
       return false;
@@ -173,8 +236,11 @@ export const useUserManagement = () => {
     loading,
     error,
     fetchUsers,
+    updateUserProfile,
     updateUserRole,
     deleteUser,
     inviteUser,
+    searchUsers,
+    bulkUpdateUserRoles,
   };
 };
