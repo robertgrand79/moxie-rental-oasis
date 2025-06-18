@@ -94,7 +94,14 @@ export const useTaskOperations = (
           property: propertyResult.data,
           project: projectResult.data,
           task_type: taskTypeResult.data,
-          assignments: assignmentsResult.data || []
+          assignments: assignmentsResult.data ? assignmentsResult.data.map(assignment => ({
+            id: assignment.id,
+            task_id: assignment.task_id,
+            user_id: assignment.user_id,
+            assigned_at: assignment.assigned_at,
+            assigned_by: assignment.assigned_by,
+            user: assignment.user
+          })) : []
         };
         
         setTasks(prev => [taskWithRelations, ...prev]);
@@ -202,7 +209,14 @@ export const useTaskOperations = (
           property: propertyResult.data,
           project: projectResult.data,
           task_type: taskTypeResult.data,
-          assignments: assignmentsResult.data || []
+          assignments: assignmentsResult.data ? assignmentsResult.data.map(assignment => ({
+            id: assignment.id,
+            task_id: assignment.task_id,
+            user_id: assignment.user_id,
+            assigned_at: assignment.assigned_at,
+            assigned_by: assignment.assigned_by,
+            user: assignment.user
+          })) : []
         };
         
         setTasks(prev => prev.map(task => 
@@ -285,6 +299,7 @@ export const useTaskOperations = (
           task_type:custom_task_types(*),
           assignments:task_assignments(
             id,
+            task_id,
             user_id,
             assigned_at,
             assigned_by,
@@ -297,8 +312,21 @@ export const useTaskOperations = (
       if (taskError) throw taskError;
 
       if (taskData) {
+        // Transform the data to match PropertyTask type
+        const transformedTask: PropertyTask = {
+          ...taskData,
+          assignments: taskData.assignments ? taskData.assignments.map(assignment => ({
+            id: assignment.id,
+            task_id: assignment.task_id,
+            user_id: assignment.user_id,
+            assigned_at: assignment.assigned_at,
+            assigned_by: assignment.assigned_by,
+            user: assignment.user
+          })) : []
+        };
+
         setTasks(prev => prev.map(task => 
-          task.id === taskId ? taskData as PropertyTask : task
+          task.id === taskId ? transformedTask : task
         ));
       }
 

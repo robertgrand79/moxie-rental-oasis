@@ -347,10 +347,10 @@ const TaskCard = ({
       <div className="flex items-start justify-between mb-2">
         <h4 className="font-medium text-sm">{task.title}</h4>
         <div className="flex gap-1">
-          <Badge className={priorityColors[task.priority]} variant="outline" size="sm">
+          <Badge className={priorityColors[task.priority]} variant="outline">
             {task.priority}
           </Badge>
-          <Badge className={statusColors[task.status]} variant="outline" size="sm">
+          <Badge className={statusColors[task.status]} variant="outline">
             {task.status.replace('_', ' ')}
           </Badge>
         </div>
