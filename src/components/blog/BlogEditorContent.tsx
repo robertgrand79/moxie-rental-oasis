@@ -47,7 +47,6 @@ const BlogEditorContent = ({
   const handleContentChange = (newContent: string) => {
     console.log('📝 Content changed in BlogEditorContent:', newContent.substring(0, 100));
     setContent(newContent);
-    form.setValue('content', newContent);
   };
 
   const handleAIContentGenerated = (field: 'title' | 'excerpt' | 'content', generatedContent: string) => {

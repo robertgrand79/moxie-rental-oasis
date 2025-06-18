@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { UseFormReturn } from 'react-hook-form';
-import TiptapEditor from '@/components/TiptapEditor';
+import ReactQuillEditor from '@/components/ReactQuillEditor';
 import ImageUploader from '@/components/ImageUploader';
 
 interface BlogFormData {
@@ -40,7 +40,7 @@ const BlogEditorForm = ({
   const { register, handleSubmit, formState: { errors }, setValue } = form;
 
   const handleEditorChange = (newContent: string) => {
-    console.log('📝 TiptapEditor content changed:', newContent);
+    console.log('📝 ReactQuill content changed:', newContent.substring(0, 100));
     onContentChange(newContent);
     setValue('content', newContent);
   };
@@ -104,7 +104,7 @@ const BlogEditorForm = ({
         <div>
           <Label htmlFor="content">Content</Label>
           <div className="border rounded-lg overflow-hidden">
-            <TiptapEditor
+            <ReactQuillEditor
               content={content}
               onChange={handleEditorChange}
               placeholder="Start writing your blog post..."
