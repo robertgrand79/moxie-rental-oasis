@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Plus, Shield, Users, Lock, Edit, Settings } from 'lucide-react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
+import RoleManagementErrorBoundary from '@/components/admin/error-handling/RoleManagementErrorBoundary';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,8 +19,10 @@ import { useEnhancedRolesPermissions } from '@/hooks/useEnhancedRolesPermissions
 import CreateRoleModal from '@/components/admin/roles/CreateRoleModal';
 import EditRoleModal from '@/components/admin/roles/EditRoleModal';
 import { SystemRole, SystemPermission } from '@/types/roles';
+import { formatErrorForToast } from '@/utils/errorMessages';
+import { toast } from '@/hooks/use-toast';
 
-const AdminRolesPermissions = () => {
+const AdminRolesPermissionsContent = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<SystemRole | null>(null);
@@ -44,6 +46,66 @@ const AdminRolesPermissions = () => {
     // For now, we'll just show a toast that this feature is coming soon
     // since permission toggling should be done through proper admin controls
     console.log('Permission toggle for:', permissionKey);
+  };
+
+  const handleCreateRoleWithErrorHandling = async (roleData: { name: string; description: string; permissions: string[] }) => {
+    try {
+      const result = await createRole(roleData);
+      if (result) {
+        toast({
+          title: 'Success',
+          description: `Role "${roleData.name}" created successfully.`,
+        });
+      }
+      return result;
+    } catch (error) {
+      const errorToast = formatErrorForToast(error as Error, {
+        operation: 'create',
+        resource: 'role'
+      });
+      toast(errorToast);
+      return false;
+    }
+  };
+
+  const handleUpdateRoleWithErrorHandling = async (roleId: string, updates: any) => {
+    try {
+      const result = await updateRole(roleId, updates);
+      if (result) {
+        toast({
+          title: 'Success',
+          description: 'Role updated successfully.',
+        });
+      }
+      return result;
+    } catch (error) {
+      const errorToast = formatErrorForToast(error as Error, {
+        operation: 'update',
+        resource: 'role'
+      });
+      toast(errorToast);
+      return false;
+    }
+  };
+
+  const handleDeleteRoleWithErrorHandling = async (roleId: string) => {
+    try {
+      const result = await deleteRole(roleId);
+      if (result) {
+        toast({
+          title: 'Success',
+          description: 'Role deleted successfully.',
+        });
+      }
+      return result;
+    } catch (error) {
+      const errorToast = formatErrorForToast(error as Error, {
+        operation: 'delete',
+        resource: 'role'
+      });
+      toast(errorToast);
+      return false;
+    }
   };
 
   // Convert enhanced permissions to the format expected by the modals
@@ -231,7 +293,7 @@ const AdminRolesPermissions = () => {
           open={createModalOpen}
           onOpenChange={setCreateModalOpen}
           permissions={modalPermissions}
-          onCreateRole={createRole}
+          onCreateRole={handleCreateRoleWithErrorHandling}
           loading={updating}
         />
 
@@ -240,12 +302,20 @@ const AdminRolesPermissions = () => {
           onOpenChange={setEditModalOpen}
           role={selectedRole ? convertRoleForModal(selectedRole) : null}
           permissions={modalPermissions}
-          onUpdateRole={updateRole}
-          onDeleteRole={deleteRole}
+          onUpdateRole={handleUpdateRoleWithErrorHandling}
+          onDeleteRole={handleDeleteRoleWithErrorHandling}
           loading={updating}
         />
       </div>
     </AdminPageWrapper>
+  );
+};
+
+const AdminRolesPermissions = () => {
+  return (
+    <RoleManagementErrorBoundary>
+      <AdminRolesPermissionsContent />
+    </RoleManagementErrorBoundary>
   );
 };
 
