@@ -1,170 +1,69 @@
-
-import { 
-  BarChart3, 
-  FileText, 
-  Users, 
-  Settings, 
-  Home,
-  Calendar,
-  MapPin,
-  Camera,
-  Star,
-  Mail,
-  TrendingUp,
-  Shield,
-  Wrench,
+import {
+  BarChart3,
   Building2,
-  HardHat
+  Calendar,
+  CheckCircle2,
+  LayoutDashboard,
+  ListChecks,
+  Settings,
+  UserCog,
+  Users,
 } from 'lucide-react';
 
-export interface MenuItem {
-  title: string;
-  icon: any;
-  href: string;
-  description?: string;
-}
-
-export interface MenuSection {
-  title: string;
-  items: MenuItem[];
-}
-
-export const adminMenuItems: MenuSection[] = [
+export const adminMenuItems = [
   {
-    title: 'Overview',
-    items: [
-      {
-        title: 'Dashboard',
-        icon: BarChart3,
-        href: '/admin',
-        description: 'Overview and analytics'
-      },
-      {
-        title: 'Analytics',
-        icon: TrendingUp,
-        href: '/admin/analytics',
-        description: 'Detailed performance metrics'
-      },
-      {
-        title: 'Site Metrics',
-        icon: BarChart3,
-        href: '/admin/site-metrics',
-        description: 'Website performance data'
-      }
-    ]
+    title: 'Dashboard',
+    icon: LayoutDashboard,
+    href: '/admin',
+    permissions: ['admin.access_panel'],
   },
   {
-    title: 'Content Management',
-    items: [
-      {
-        title: 'Properties',
-        icon: Home,
-        href: '/admin/properties',
-        description: 'Manage rental listings'
-      },
-      {
-        title: 'Blog Posts',
-        icon: FileText,
-        href: '/admin/blog',
-        description: 'Create and edit blog content'
-      },
-      {
-        title: 'Pages',
-        icon: FileText,
-        href: '/admin/pages',
-        description: 'Manage website pages'
-      }
-    ]
+    title: 'Properties',
+    icon: Building2,
+    href: '/admin/properties',
+    permissions: ['properties.read'],
   },
   {
-    title: 'Operations',
-    items: [
-      {
-        title: 'Property Management',
-        icon: Building2,
-        href: '/admin/property-management',
-        description: 'Complete property operations, tasks, projects & calendar management'
-      },
-      {
-        title: 'Work Orders',
-        icon: Wrench,
-        href: '/admin/work-orders',
-        description: 'Contractor work orders'
-      },
-      {
-        title: 'Contractors',
-        icon: HardHat,
-        href: '/admin/contractors',
-        description: 'Manage contractors and vendor relationships'
-      }
-    ]
+    title: 'Tasks',
+    icon: ListChecks,
+    href: '/admin/tasks',
+    permissions: ['tasks.read'],
   },
   {
-    title: 'Local Content',
-    items: [
-      {
-        title: 'Events',
-        icon: Calendar,
-        href: '/admin/events',
-        description: 'Eugene events calendar'
-      },
-      {
-        title: 'Lifestyle Gallery',
-        icon: Camera,
-        href: '/admin/lifestyle',
-        description: 'Local lifestyle photos'
-      },
-      {
-        title: 'Points of Interest',
-        icon: MapPin,
-        href: '/admin/poi',
-        description: 'Local attractions and venues'
-      },
-      {
-        title: 'Testimonials',
-        icon: Star,
-        href: '/admin/testimonials',
-        description: 'Guest reviews and feedback'
-      }
-    ]
+    title: 'Work Orders',
+    icon: CheckCircle2,
+    href: '/admin/workorders',
+    permissions: ['workorders.read'],
   },
   {
-    title: 'Marketing',
-    items: [
-      {
-        title: 'Newsletter Management',
-        icon: Mail,
-        href: '/admin/newsletter-management',
-        description: 'Email newsletter management'
-      }
-    ]
+    title: 'Calendar',
+    icon: Calendar,
+    href: '/admin/calendar',
+    permissions: ['calendar.read'],
   },
   {
-    title: 'User Management',
-    items: [
-      {
-        title: 'Users',
-        icon: Users,
-        href: '/admin/user-management',
-        description: 'Manage user accounts'
-      },
-      {
-        title: 'Roles & Permissions',
-        icon: Shield,
-        href: '/admin/roles-permissions',
-        description: 'User access control'
-      }
-    ]
+    title: 'Analytics',
+    icon: BarChart3,
+    href: '/admin/analytics',
+    permissions: ['analytics.view'],
   },
   {
-    title: 'Configuration',
-    items: [
-      {
-        title: 'Site Settings',
-        icon: Settings,
-        href: '/admin/settings',
-        description: 'Website configuration'
-      }
-    ]
-  }
+    title: 'User Management (Enhanced)',
+    icon: Users,
+    href: '/admin/user-management-enhanced',
+    permissions: ['users.read', 'users.update'],
+    badge: 'NEW'
+  },
+  {
+    title: 'Settings',
+    icon: Settings,
+    href: '/admin/settings',
+    permissions: ['admin.manage_settings'],
+  },
+  {
+    title: 'Admin Profile',
+    icon: UserCog,
+    href: '/admin/profile',
+    permissions: ['admin.access_panel'],
+  },
 ];

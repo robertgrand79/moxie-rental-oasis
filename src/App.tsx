@@ -1,103 +1,117 @@
+import React, { useEffect, useState } from 'react';
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import LoginPage from '@/pages/LoginPage';
+import SignupPage from '@/pages/SignupPage';
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import UpdatePasswordPage from '@/pages/UpdatePasswordPage';
+import AdminDashboard from '@/pages/AdminDashboard';
+import AdminProfile from '@/pages/AdminProfile';
+import UserProfile from '@/pages/UserProfile';
+import PropertyManagementDashboard from '@/pages/admin/PropertyManagementDashboard';
+import TasksPage from '@/pages/TasksPage';
+import ProjectsPage from '@/pages/ProjectsPage';
+import PropertiesPage from '@/pages/PropertiesPage';
+import CalendarPage from '@/pages/CalendarPage';
+import WorkOrdersPage from '@/pages/WorkOrdersPage';
+import AdminUserManagement from '@/pages/admin/AdminUserManagement';
+import EnhancedAdminUserManagement from '@/pages/admin/EnhancedAdminUserManagement';
 
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import PublicLayout from './components/layouts/PublicLayout';
-import Auth from './pages/Auth';
-import Index from './pages/Index';
-import Properties from './pages/Properties';
-import PropertyPage from './components/PropertyPage';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
-import Events from './pages/Events';
-import Experiences from './pages/Experiences';
-import FAQ from './pages/FAQ';
-import AdminLayoutWrapper from './components/layouts/AdminLayoutWrapper';
-import Admin from './pages/Admin';
-import AdminProperties from './pages/admin/AdminProperties';
-import AdminPageManagement from './pages/admin/AdminPageManagement';
-import BlogManagement from './pages/BlogManagement';
-import AdminSiteSettingsRedesigned from './pages/admin/AdminSiteSettingsRedesigned';
-import AdminUserManagement from './pages/admin/AdminUserManagement';
-import AdminRolesPermissions from './pages/admin/AdminRolesPermissions';
-import AdminAnalytics from './pages/admin/AdminAnalytics';
-import AdminSiteMetrics from './pages/admin/AdminSiteMetrics';
-import AdminNewsletterManagement from './pages/admin/AdminNewsletterManagement';
-import AdminLifestyle from './pages/admin/AdminLifestyle';
-import AdminPOI from './pages/admin/AdminPOI';
-import AdminTestimonials from './pages/admin/AdminTestimonials';
-import AdminEvents from './pages/admin/AdminEvents';
-import AdminWorkOrders from './pages/admin/AdminWorkOrders';
-import AdminContractors from './pages/admin/AdminContractors';
-import AdminPropertyManagement from './pages/admin/AdminPropertyManagement';
-import AdminTaskManagementRedirect from '@/pages/admin/AdminTaskManagementRedirect';
-
-const queryClient = new QueryClient();
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              {/* Standalone Auth Route */}
-              <Route path="/auth" element={<Auth />} />
-
-              {/* Public Routes with PublicLayout */}
-              <Route path="/" element={<PublicLayout />}>
-                <Route index element={<Index />} />
-                <Route path="properties" element={<Properties />} />
-                <Route path="property/:addressSlug" element={<PropertyPage />} />
-                <Route path="about" element={<About />} />
-                <Route path="contact" element={<Contact />} />
-                <Route path="blog" element={<Blog />} />
-                <Route path="blog/:slug" element={<BlogPost />} />
-                <Route path="events" element={<Events />} />
-                <Route path="experiences" element={<Experiences />} />
-                <Route path="faq" element={<FAQ />} />
-              </Route>
-
-              {/* Protected Admin Routes */}
-              <Route path="/admin" element={
-                <ProtectedRoute>
-                  <AdminLayoutWrapper />
-                </ProtectedRoute>
-              }>
-                <Route index element={<Admin />} />
-                <Route path="properties" element={<AdminProperties />} />
-                <Route path="blog" element={<BlogManagement />} />
-                <Route path="pages" element={<AdminPageManagement />} />
-                <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
-                <Route path="user-management" element={<AdminUserManagement />} />
-                <Route path="roles-permissions" element={<AdminRolesPermissions />} />
-                <Route path="analytics" element={<AdminAnalytics />} />
-                <Route path="site-metrics" element={<AdminSiteMetrics />} />
-                <Route path="newsletter-management" element={<AdminNewsletterManagement />} />
-                <Route path="lifestyle" element={<AdminLifestyle />} />
-                <Route path="poi" element={<AdminPOI />} />
-                <Route path="testimonials" element={<AdminTestimonials />} />
-                <Route path="events" element={<AdminEvents />} />
-                <Route path="work-orders" element={<AdminWorkOrders />} />
-                <Route path="contractors" element={<AdminContractors />} />
-                <Route path="property-management" element={<AdminPropertyManagement />} />
-                
-                {/* Redirect old task management to property management */}
-                <Route path="task-management" element={<AdminTaskManagementRedirect />} />
-                
-              </Route>
-              
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requiredRole?: string;
 }
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requiredRole,
+}) => {
+  const { user, loading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, [user]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (requiredRole === 'admin' && !isAdmin) {
+    return <Navigate to="/profile" />;
+  }
+
+  return <>{children}</>;
+};
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/update-password" element={<UpdatePasswordPage />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/profile"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+
+        <Route path="/admin/property-management" element={
+          <ProtectedRoute requiredRole="admin">
+            <PropertyManagementDashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+        <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+        <Route path="/properties" element={<ProtectedRoute><PropertiesPage /></ProtectedRoute>} />
+        <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+        <Route path="/workorders" element={<ProtectedRoute><WorkOrdersPage /></ProtectedRoute>} />
+
+        <Route
+          path="/admin/user-management"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminUserManagement />
+            </ProtectedRoute>
+          }
+        />
+          <Route path="/admin/user-management-enhanced" element={
+            <ProtectedRoute requiredRole="admin">
+              <EnhancedAdminUserManagement />
+            </ProtectedRoute>
+          } />
+        <Route path="/" element={<Navigate to="/login" />} />
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;
