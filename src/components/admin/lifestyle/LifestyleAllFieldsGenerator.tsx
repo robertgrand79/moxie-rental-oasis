@@ -41,6 +41,14 @@ const LifestyleAllFieldsGenerator = ({
     }
 
     setIsGenerating(true);
+    console.log('Starting lifestyle generation with:', {
+      type: 'lifestyle',
+      prompt,
+      count: numberOfItems,
+      location: 'Eugene, Oregon',
+      category: focusArea || 'lifestyle'
+    });
+
     try {
       const { data, error } = await supabase.functions.invoke('generate-content-ai', {
         body: {
@@ -49,7 +57,7 @@ const LifestyleAllFieldsGenerator = ({
           
           Focus area: ${focusArea || 'General lifestyle activities'}
           
-          Please return a JSON array of lifestyle items with these fields:
+          Please return a JSON object with a "content" array of lifestyle items with these fields:
           - title: string (activity or experience name)
           - description: string (detailed description of the activity)
           - image_url: string (relevant Unsplash URL)
@@ -71,20 +79,46 @@ const LifestyleAllFieldsGenerator = ({
         }
       });
 
-      if (error) throw error;
+      console.log('Supabase function response:', { data, error });
 
-      // Handle the correct response structure from the edge function
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(`Function call failed: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('No data returned from function');
+      }
+
+      // Handle the response structure from the edge function
       const items = data.content || [];
+      console.log('Parsed items from response:', items);
       
+      if (!Array.isArray(items)) {
+        console.error('Invalid response format - content is not an array:', data);
+        throw new Error('Invalid response format from AI service');
+      }
+
       // Filter out any undefined or invalid items and ensure they have required properties
-      const validItems = items.filter((item: any) => 
-        item && 
-        typeof item === 'object' && 
-        item.title && 
-        typeof item.title === 'string' &&
-        item.description &&
-        typeof item.description === 'string'
-      );
+      const validItems = items.filter((item: any) => {
+        const isValid = item && 
+          typeof item === 'object' && 
+          item.title && 
+          typeof item.title === 'string' &&
+          item.description &&
+          typeof item.description === 'string';
+        
+        if (!isValid) {
+          console.warn('Filtered out invalid item:', item);
+        }
+        return isValid;
+      });
+
+      console.log('Valid items after filtering:', validItems);
+
+      if (validItems.length === 0) {
+        throw new Error('No valid lifestyle items were generated');
+      }
 
       setGeneratedItems(validItems);
       
@@ -96,7 +130,7 @@ const LifestyleAllFieldsGenerator = ({
       console.error('Error generating lifestyle items:', error);
       toast({
         title: 'Error',
-        description: 'Failed to generate lifestyle items. Please try again.',
+        description: `Failed to generate lifestyle items: ${error.message}`,
         variant: 'destructive'
       });
     } finally {
