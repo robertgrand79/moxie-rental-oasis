@@ -4,7 +4,9 @@ import { UseFormReturn } from 'react-hook-form';
 import BlogEditorForm from './BlogEditorForm';
 import BlogPostVisualPreview from '../BlogPostVisualPreview';
 import BlogAIGenerator from '../blog/ai-generator/BlogAIGenerator';
+import BlogAllFieldsGenerator from './ai-generator/BlogAllFieldsGenerator';
 import { ensureHTMLParagraphs } from '@/utils/contentFormatting';
+import { useBlogAIGeneration } from './ai-generator/useBlogAIGeneration';
 
 interface BlogFormData {
   title: string;
@@ -44,6 +46,18 @@ const BlogEditorContent = ({
     watchedValues.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : 
     [];
 
+  // AI Generation hook for the complete blog post generator
+  const {
+    isGeneratingAll,
+    generationProgress,
+    generateAllFields
+  } = useBlogAIGeneration({
+    currentTitle: watchedValues.title || '',
+    currentExcerpt: watchedValues.excerpt || '',
+    currentContent: content,
+    onContentGenerated: onAIContentGenerated
+  });
+
   const handleContentChange = (newContent: string) => {
     console.log('📝 Content changed in BlogEditorContent:', newContent.substring(0, 100));
     setContent(newContent);
@@ -51,7 +65,7 @@ const BlogEditorContent = ({
 
   const handleAIContentGenerated = (field: 'title' | 'excerpt' | 'content', generatedContent: string) => {
     if (field === 'content') {
-      // Convert plain text with line breaks to proper HTML paragraphs
+      // Convert plain text with line breaks to proper HTML paragraphs with double spacing
       const formattedContent = ensureHTMLParagraphs(generatedContent);
       console.log('🤖 AI generated content formatted:', formattedContent.substring(0, 100));
       setContent(formattedContent);
@@ -64,6 +78,15 @@ const BlogEditorContent = ({
 
   return (
     <div className="space-y-6">
+      {/* Complete Blog Post Generator - Always visible at top when in editor mode */}
+      {viewMode === 'editor' && (
+        <BlogAllFieldsGenerator
+          onGenerateAllFields={generateAllFields}
+          isGeneratingAll={isGeneratingAll}
+          generationProgress={generationProgress}
+        />
+      )}
+
       {/* Editor Panel */}
       {viewMode === 'editor' && (
         <div className="space-y-6">
@@ -91,7 +114,7 @@ const BlogEditorContent = ({
         </div>
       )}
 
-      {/* AI Generator Panel */}
+      {/* Content Assistant Panel */}
       {viewMode === 'ai' && (
         <div>
           <BlogAIGenerator

@@ -8,8 +8,6 @@ import BlogTemplateSelector from './BlogTemplateSelector';
 import BlogQuickPrompts from './BlogQuickPrompts';
 import BlogCustomPromptInput from './BlogCustomPromptInput';
 import BlogGeneratedContentDisplay from './BlogGeneratedContentDisplay';
-import BlogAllFieldsGenerator from './BlogAllFieldsGenerator';
-import BlogGenerationActions from './BlogGenerationActions';
 import { useBlogAIGeneration } from './useBlogAIGeneration';
 
 interface BlogAIGeneratorProps {
@@ -35,11 +33,7 @@ const BlogAIGenerator = ({
     setSelectedField,
     generatedContent,
     setGeneratedContent,
-    isGeneratingAll,
-    generationProgress,
     generateContent,
-    generateAllFields,
-    generateCompleteBlogPost,
     applyGeneratedContent
   } = useBlogAIGeneration({
     currentTitle,
@@ -64,35 +58,24 @@ const BlogAIGenerator = ({
       <CardHeader>
         <CardTitle className="flex items-center">
           <PenTool className="h-5 w-5 mr-2" />
-          AI Blog Generator
+          Content Assistant
         </CardTitle>
         <CardDescription>
-          Generate professional blog posts with Moxie's branding and Eugene local expertise
+          Get help with specific parts of your blog post using AI-powered templates and suggestions
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <BlogAllFieldsGenerator
-          onGenerateAllFields={generateAllFields}
-          isGeneratingAll={isGeneratingAll}
-          generationProgress={generationProgress}
-        />
-
-        <BlogGenerationActions
-          onGenerateCompleteBlogPost={generateCompleteBlogPost}
-          isGenerating={isGenerating}
-        />
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="templates">Blog Templates</TabsTrigger>
+            <TabsTrigger value="templates">Content Templates</TabsTrigger>
             <TabsTrigger value="custom">Custom Prompt</TabsTrigger>
           </TabsList>
 
           <TabsContent value="templates" className="space-y-4">
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-medium">Professional Blog Templates</p>
-                <p className="text-sm text-gray-600 mt-1">Choose from expert-crafted blog post templates with Moxie branding</p>
+                <p className="text-sm font-medium">Professional Content Templates</p>
+                <p className="text-sm text-gray-600 mt-1">Choose from expert-crafted content templates to enhance your blog post</p>
               </div>
               
               <BlogTemplateSelector

@@ -1,7 +1,6 @@
 
-
 /**
- * Converts plain text with \n\n paragraph breaks to proper HTML paragraphs
+ * Converts plain text with \n\n paragraph breaks to proper HTML paragraphs with double spacing
  */
 export function convertTextToHTMLParagraphs(text: string): string {
   if (!text || text.trim() === '') {
@@ -14,8 +13,8 @@ export function convertTextToHTMLParagraphs(text: string): string {
     .map(paragraph => paragraph.trim())
     .filter(paragraph => paragraph.length > 0);
 
-  // Wrap each paragraph in <p> tags
-  const htmlParagraphs = paragraphs.map(paragraph => `<p>${paragraph}</p>`);
+  // Wrap each paragraph in <p> tags with double spacing (margin-bottom)
+  const htmlParagraphs = paragraphs.map(paragraph => `<p style="margin-bottom: 2rem;">${paragraph}</p>`);
 
   return htmlParagraphs.join('\n');
 }
@@ -38,4 +37,3 @@ export function ensureHTMLParagraphs(content: string): string {
   
   return convertTextToHTMLParagraphs(content);
 }
-
