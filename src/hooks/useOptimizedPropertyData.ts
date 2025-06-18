@@ -82,7 +82,7 @@ export const useOptimizedPropertyData = () => {
         .select(`
           *,
           property:properties(*),
-          project:property_projects(id, title)
+          project:property_projects(*)
         `)
         .order('created_at', { ascending: false })
         .limit(200); // Limit for performance
@@ -111,7 +111,23 @@ export const useOptimizedPropertyData = () => {
         created_at: task.created_at,
         updated_at: task.updated_at,
         property: task.property,
-        project: task.project
+        project: task.project ? {
+          id: task.project.id,
+          property_id: task.project.property_id,
+          title: task.project.title,
+          description: task.project.description,
+          type: task.project.type as PropertyProject['type'],
+          status: task.project.status as PropertyProject['status'],
+          priority: task.project.priority as PropertyProject['priority'],
+          start_date: task.project.start_date,
+          target_completion_date: task.project.target_completion_date,
+          actual_completion_date: task.project.actual_completion_date,
+          budget: task.project.budget,
+          actual_cost: task.project.actual_cost,
+          created_by: task.project.created_by,
+          created_at: task.project.created_at,
+          updated_at: task.project.updated_at,
+        } : undefined
       }));
       
       setTasks(tasksWithRelations);
