@@ -127,7 +127,7 @@ export const useEnhancedRolesPermissions = () => {
           target_id: newRole.id,
           target_name: roleData.name,
           performed_by: user?.id,
-          details: { permissions: roleData.permissions }
+          details: { permissions: roleData.permissions } as any
         });
 
       toast({
@@ -198,7 +198,7 @@ export const useEnhancedRolesPermissions = () => {
         }
       }
 
-      // Log the action
+      // Log the action with proper JSON serialization
       await supabase
         .from('permission_audit_logs')
         .insert({
@@ -207,7 +207,7 @@ export const useEnhancedRolesPermissions = () => {
           target_id: roleId,
           target_name: updates.name,
           performed_by: user?.id,
-          details: updates
+          details: JSON.parse(JSON.stringify(updates)) as any
         });
 
       toast({
@@ -296,7 +296,7 @@ export const useEnhancedRolesPermissions = () => {
           target_type: 'user',
           target_id: userId,
           performed_by: user?.id,
-          details: { role_id: roleId, role_name: role?.name }
+          details: { role_id: roleId, role_name: role?.name } as any
         });
 
       return true;
@@ -326,7 +326,7 @@ export const useEnhancedRolesPermissions = () => {
           target_type: 'user',
           target_id: userId,
           performed_by: user?.id,
-          details: { role_id: roleId, role_name: role?.name }
+          details: { role_id: roleId, role_name: role?.name } as any
         });
 
       return true;

@@ -26,7 +26,7 @@ export const useUserManagement = () => {
     if (user) {
       fetchUsers();
     }
-  }, [user]);
+  }, [user, fetchUsers]);
 
   return {
     users,
