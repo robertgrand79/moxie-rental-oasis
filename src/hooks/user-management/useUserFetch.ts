@@ -25,7 +25,7 @@ export const useUserFetch = () => {
       setLoading(true);
       setError(null);
       
-      // Check if current user is admin first
+      // Check if current user is admin first using legacy system
       const { data: currentUserProfile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -43,32 +43,51 @@ export const useUserFetch = () => {
         return;
       }
 
-      // Fetch all users with their roles from the new system
-      const { data, error } = await supabase
+      // First try to fetch users with new role system
+      const { data: usersWithNewRoles, error: newRoleError } = await supabase
         .from('profiles')
         .select(`
           *,
-          user_roles!inner(
-            role:system_roles!inner(name)
+          user_roles(
+            role:system_roles(name)
           )
         `)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching users:', error);
-        setError(error.message);
+      if (newRoleError) {
+        console.warn('New role system query failed, falling back to legacy:', newRoleError);
+        
+        // Fallback to legacy role system
+        const { data: legacyUsers, error: legacyError } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (legacyError) {
+          console.error('Error fetching users with legacy system:', legacyError);
+          setError(legacyError.message);
+          return;
+        }
+
+        // Format legacy users
+        const formattedLegacyUsers = (legacyUsers || []).map((userProfile: any) => ({
+          ...userProfile,
+          role: userProfile.role || 'user'
+        }));
+
+        setUsers(formattedLegacyUsers);
         return;
       }
 
       // Format users data to include role information from new system
-      const formattedUsers = (data || []).map((userProfile: any) => {
-        // Get the primary role (first active role)
-        const userRoleData = userProfile.user_roles?.[0]?.role;
-        const primaryRole = userRoleData?.name || userProfile.role || 'user';
+      const formattedUsers = (usersWithNewRoles || []).map((userProfile: any) => {
+        // Try to get role from new system first, fallback to legacy
+        const newSystemRole = userProfile.user_roles?.[0]?.role?.name;
+        const finalRole = newSystemRole || userProfile.role || 'user';
         
         return {
           ...userProfile,
-          role: primaryRole
+          role: finalRole
         };
       });
 

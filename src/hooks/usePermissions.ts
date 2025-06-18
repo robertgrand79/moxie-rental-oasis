@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
 
 interface UserPermissions {
   [key: string]: boolean;
@@ -19,39 +18,86 @@ export const usePermissions = () => {
     try {
       setLoading(true);
       
-      // Fetch user permissions through the new role system
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select(`
-          role:system_roles(
-            role_permissions(
-              permission:system_permissions(*)
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .eq('is_active', true);
+      // First check if user is admin using legacy system
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
 
-      if (error) {
-        console.error('Error fetching user permissions:', error);
+      // If user is admin, give them all permissions
+      if (profile?.role === 'admin') {
+        setPermissions({
+          'users.create': true,
+          'users.read': true,
+          'users.update': true,
+          'users.delete': true,
+          'users.manage_roles': true,
+          'admin.access_panel': true,
+          'admin.manage_settings': true,
+          'admin.view_logs': true,
+          'admin.manage_roles': true,
+          'admin.manage_permissions': true,
+          'content.create': true,
+          'content.read': true,
+          'content.update': true,
+          'content.delete': true,
+          'content.publish': true,
+          'properties.create': true,
+          'properties.read': true,
+          'properties.update': true,
+          'properties.delete': true,
+          'properties.manage_bookings': true,
+          'reports.view': true,
+          'reports.export': true,
+          'analytics.view': true
+        });
         return;
       }
 
-      // Build permissions object
-      const userPermissions: UserPermissions = {};
-      
-      data?.forEach((userRole) => {
-        const rolePermissions = userRole.role?.role_permissions || [];
-        rolePermissions.forEach((rp) => {
-          if (rp.permission?.key) {
-            userPermissions[rp.permission.key] = true;
-          }
-        });
+      // Try to fetch permissions through the new role system
+      try {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select(`
+            role:system_roles(
+              role_permissions(
+                permission:system_permissions(*)
+              )
+            )
+          `)
+          .eq('user_id', user.id)
+          .eq('is_active', true);
+
+        if (!error && data?.length > 0) {
+          // Build permissions object from new system
+          const userPermissions: UserPermissions = {};
+          
+          data.forEach((userRole) => {
+            const rolePermissions = userRole.role?.role_permissions || [];
+            rolePermissions.forEach((rp) => {
+              if (rp.permission?.key) {
+                userPermissions[rp.permission.key] = true;
+              }
+            });
+          });
+
+          setPermissions(userPermissions);
+          return;
+        }
+      } catch (newSystemError) {
+        console.warn('New permission system not available:', newSystemError);
+      }
+
+      // Fallback: basic permissions for regular users
+      setPermissions({
+        'content.read': true,
+        'properties.read': true
       });
 
-      setPermissions(userPermissions);
     } catch (error) {
       console.error('Error fetching permissions:', error);
+      setPermissions({});
     } finally {
       setLoading(false);
     }

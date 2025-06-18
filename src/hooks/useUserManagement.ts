@@ -26,7 +26,7 @@ export const useUserManagement = () => {
     if (user) {
       fetchUsers();
     }
-  }, [user, fetchUsers]);
+  }, [user]); // Remove fetchUsers from dependency array
 
   return {
     users,
