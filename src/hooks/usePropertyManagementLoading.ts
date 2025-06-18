@@ -34,14 +34,14 @@ export const usePropertyManagementLoading = () => {
     fileOperations: false,
   });
 
-  const [operationLoading, setOperationLoading] = useState<OperationLoadingStates>({});
+  const [operationLoading, setOperationLoadingState] = useState<OperationLoadingStates>({});
 
   const setLoading = (key: keyof LoadingStates, value: boolean) => {
     setLoadingStates(prev => ({ ...prev, [key]: value }));
   };
 
   const setOperationLoading = (operationId: string, value: boolean) => {
-    setOperationLoading(prev => ({ ...prev, [operationId]: value }));
+    setOperationLoadingState(prev => ({ ...prev, [operationId]: value }));
   };
 
   const isAnyLoading = Object.values(loadingStates).some(Boolean) || Object.values(operationLoading).some(Boolean);
