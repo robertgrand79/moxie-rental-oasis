@@ -19,6 +19,7 @@ import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
+import PropertyPage from "@/components/PropertyPage";
 import AdminLayoutWrapper from "@/components/layouts/AdminLayoutWrapper";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminProperties from "@/pages/admin/AdminProperties";
@@ -54,6 +55,7 @@ function App() {
                 <Route index element={<Index />} />
                 <Route path="properties" element={<Properties />} />
                 <Route path="properties/:id" element={<Properties />} />
+                <Route path="property/:slug" element={<PropertyPage />} />
                 <Route path="about" element={<About />} />
                 <Route path="eugene-life" element={<Experiences />} />
                 <Route path="experiences" element={<Experiences />} />
