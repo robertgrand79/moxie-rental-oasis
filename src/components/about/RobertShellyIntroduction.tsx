@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Home, Award, Heart, Star } from 'lucide-react';
 
@@ -7,28 +6,42 @@ const RobertShellyIntroduction = () => {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Left side - Photo Grid */}
+          {/* Left side - Dynamic Photo Grid */}
           <div>
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              {/* Large hero photo spanning 2 columns and 2 rows */}
               <img 
                 src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
                 alt="Robert and Shelly - Founders"
-                className="rounded-lg shadow-sm w-full h-48 object-cover"
+                className="rounded-lg shadow-sm col-span-2 row-span-2 w-full h-64 object-cover"
               />
+              
+              {/* Small top right photo */}
               <img 
                 src="/lovable-uploads/d1f71962-f44a-4556-b875-d05f2a8a537a.png"
                 alt="Community involvement"
-                className="rounded-lg shadow-sm w-full h-48 object-cover"
+                className="rounded-lg shadow-sm w-full h-32 object-cover"
               />
+              
+              {/* Small bottom right photo */}
               <img 
                 src="/lovable-uploads/11aea8e1-1241-453f-bc09-d4c8c7394c8c.png"
                 alt="Oregon lifestyle"
-                className="rounded-lg shadow-sm w-full h-48 object-cover"
+                className="rounded-lg shadow-sm w-full h-28 object-cover"
               />
+            </div>
+            
+            {/* Bottom row - two medium photos */}
+            <div className="grid grid-cols-2 gap-3">
               <img 
                 src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
                 alt="Family moments"
-                className="rounded-lg shadow-sm w-full h-48 object-cover"
+                className="rounded-lg shadow-sm w-full h-40 object-cover"
+              />
+              <img 
+                src="/lovable-uploads/d1f71962-f44a-4556-b875-d05f2a8a537a.png"
+                alt="Local community"
+                className="rounded-lg shadow-sm w-full h-36 object-cover"
               />
             </div>
           </div>
