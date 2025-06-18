@@ -1,4 +1,3 @@
-
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 import { useEffect } from 'react';
 import { sanitizeHtml } from '@/utils/security';
@@ -74,21 +73,51 @@ const SiteHead = () => {
       ogImageMeta.setAttribute('content', ogImage);
     }
 
-    // Add Google Analytics (if valid GA ID format)
-    if (googleAnalyticsId && /^G-[A-Z0-9]+$/.test(googleAnalyticsId) && !document.querySelector(`script[src*="${googleAnalyticsId}"]`)) {
-      const gaScript = document.createElement('script');
-      gaScript.async = true;
-      gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`;
-      document.head.appendChild(gaScript);
+    // Enhanced Google Analytics setup with better error handling
+    if (googleAnalyticsId && /^G-[A-Z0-9]+$/.test(googleAnalyticsId)) {
+      const existingScript = document.querySelector(`script[src*="${googleAnalyticsId}"]`);
+      
+      if (!existingScript) {
+        console.log('📊 SiteHead: Loading Google Analytics script for:', googleAnalyticsId);
+        
+        // Create and load the GA script
+        const gaScript = document.createElement('script');
+        gaScript.async = true;
+        gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`;
+        
+        // Add load event listeners for better debugging
+        gaScript.onload = () => {
+          console.log('✅ SiteHead: Google Analytics script loaded successfully');
+        };
+        
+        gaScript.onerror = (error) => {
+          console.error('❌ SiteHead: Error loading Google Analytics script:', error);
+        };
+        
+        document.head.appendChild(gaScript);
 
-      const gaConfigScript = document.createElement('script');
-      gaConfigScript.innerHTML = `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', '${googleAnalyticsId}');
-      `;
-      document.head.appendChild(gaConfigScript);
+        // Create the GA configuration script
+        const gaConfigScript = document.createElement('script');
+        gaConfigScript.innerHTML = `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${googleAnalyticsId}');
+          console.log('📊 SiteHead: Google Analytics configured for ${googleAnalyticsId}');
+        `;
+        document.head.appendChild(gaConfigScript);
+        
+        // Dispatch event to notify analytics service
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('ga-script-loaded', { 
+            detail: { gaId: googleAnalyticsId } 
+          }));
+        }, 100);
+      } else {
+        console.log('📊 SiteHead: Google Analytics script already exists');
+      }
+    } else if (googleAnalyticsId) {
+      console.warn('⚠️ SiteHead: Invalid Google Analytics ID format:', googleAnalyticsId);
     }
 
     // Add Google Tag Manager (if valid GTM ID format)
