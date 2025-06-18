@@ -993,7 +993,7 @@ export type Database = {
           images: string[] | null
           location: string
           max_guests: number
-          price_per_night: number
+          price_per_night: number | null
           title: string
           updated_at: string
         }
@@ -1012,7 +1012,7 @@ export type Database = {
           images?: string[] | null
           location: string
           max_guests: number
-          price_per_night: number
+          price_per_night?: number | null
           title: string
           updated_at?: string
         }
@@ -1031,7 +1031,7 @@ export type Database = {
           images?: string[] | null
           location?: string
           max_guests?: number
-          price_per_night?: number
+          price_per_night?: number | null
           title?: string
           updated_at?: string
         }

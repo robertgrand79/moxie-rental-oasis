@@ -20,10 +20,10 @@ export const usePropertyOperations = () => {
     try {
       const { data, error } = await supabase
         .from('properties')
-        .insert([{
+        .insert({
           ...propertyData,
           created_by: user.id
-        }])
+        })
         .select()
         .single();
 
