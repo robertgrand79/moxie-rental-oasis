@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Home, Award, Heart, Star } from 'lucide-react';
+import OptimizedImage from '@/components/ui/optimized-image';
 
 const RobertShellyIntroduction = () => {
   return (
@@ -14,6 +15,18 @@ const RobertShellyIntroduction = () => {
               We're thrilled to welcome you to Moxie Vacation Rentals, where Oregon hospitality meets exceptional service.
               As lifelong Oregon residents, we've spent decades exploring every corner of this beautiful state.
             </p>
+          </div>
+
+          {/* Hero Photo Section */}
+          <div className="flex justify-center">
+            <div className="relative w-full max-w-2xl">
+              <OptimizedImage
+                src="/lovable-uploads/bd92da84-2272-4ac5-aa53-6b9afc089fa2.png"
+                alt="Robert and Shelly - Your Oregon vacation rental hosts"
+                className="w-full h-auto rounded-xl shadow-lg object-cover"
+                priority={true}
+              />
+            </div>
           </div>
 
           {/* Feature boxes with colored backgrounds */}
