@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { usePropertyManagement } from '@/hooks/usePropertyManagement';
@@ -421,7 +422,6 @@ const EnhancedPropertyManagementDashboard = () => {
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       <Button
-                        size="sm"
                         onClick={() => generateTurnoverTasks(property.id, new Date().toISOString().split('T')[0])}
                       >
                         Generate Turnover Tasks
