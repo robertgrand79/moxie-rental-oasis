@@ -342,7 +342,8 @@ export const useTaskOperations = (
           project: taskData.project ? {
             ...taskData.project,
             type: taskData.project.type as PropertyProject['type'],
-            status: taskData.project.status as PropertyProject['status']
+            status: taskData.project.status as PropertyProject['status'],
+            priority: taskData.project.priority as PropertyProject['priority']
           } : null,
           task_type: taskData.task_type,
           assignments: taskData.assignments ? taskData.assignments.map(assignment => ({
