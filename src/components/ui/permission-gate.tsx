@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useRoleSystem } from '@/hooks/useRoleSystem';
 
 interface PermissionGateProps {
   children: React.ReactNode;
@@ -17,7 +17,7 @@ export const PermissionGate: React.FC<PermissionGateProps> = ({
   requireAll = false,
   fallback = null
 }) => {
-  const { hasPermission, hasAnyPermission, hasAllPermissions, loading } = usePermissions();
+  const { hasPermission, hasAnyPermission, hasAllPermissions, loading } = useRoleSystem();
 
   if (loading) {
     return <>{fallback}</>;

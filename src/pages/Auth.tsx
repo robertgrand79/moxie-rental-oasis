@@ -13,14 +13,19 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate('/admin');
+    if (user && !loading) {
+      // Redirect based on user role
+      if (isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     }
-  }, [user, navigate]);
+  }, [user, isAdmin, loading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +45,7 @@ const Auth = () => {
           title: 'Welcome back!',
           description: 'You have successfully logged in.',
         });
-        navigate('/admin');
+        // Navigation will be handled by the useEffect above
       }
     } catch (error) {
       toast({
@@ -77,9 +82,9 @@ const Auth = () => {
       } else {
         toast({
           title: 'Account Created!',
-          description: 'Welcome to Moxie Vacation Rentals!',
+          description: 'Welcome! Please check your email to verify your account.',
         });
-        navigate('/admin');
+        // Navigation will be handled by the useEffect above
       }
     } catch (error) {
       toast({
@@ -96,8 +101,8 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-900">Admin Login</CardTitle>
-          <CardDescription>Access the admin portal</CardDescription>
+          <CardTitle className="text-2xl font-bold text-gray-900">Welcome</CardTitle>
+          <CardDescription>Sign in to access your account</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">

@@ -7,6 +7,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  userRole: string | null;
+  isAdmin: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
@@ -26,6 +28,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      // Check legacy system first
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (profile?.role === 'admin') {
+        setUserRole('admin');
+        setIsAdmin(true);
+        return;
+      }
+
+      // Try new role system
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select(`
+          role:system_roles(name)
+        `)
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .limit(1);
+
+      if (userRoles && userRoles.length > 0 && userRoles[0].role) {
+        const roleName = userRoles[0].role.name;
+        setUserRole(roleName);
+        setIsAdmin(roleName === 'Admin');
+      } else {
+        setUserRole('user');
+        setIsAdmin(false);
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      setUserRole('user');
+      setIsAdmin(false);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener
@@ -34,6 +78,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Defer role fetching to avoid blocking auth state change
+          setTimeout(() => {
+            fetchUserRole(session.user.id);
+          }, 0);
+        } else {
+          setUserRole(null);
+          setIsAdmin(false);
+        }
+        
         setLoading(false);
       }
     );
@@ -42,7 +97,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (!session) {
+      
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      } else {
         setLoading(false);
       }
     });
@@ -76,6 +134,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
+    setUserRole(null);
+    setIsAdmin(false);
     return { error };
   };
 
@@ -83,6 +143,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     session,
     loading,
+    userRole,
+    isAdmin,
     signUp,
     signIn,
     signOut

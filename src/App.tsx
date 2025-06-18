@@ -65,7 +65,7 @@ function App() {
 
               {/* Protected Admin Routes */}
               <Route path="/admin" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAdmin={true}>
                   <AdminLayoutWrapper />
                 </ProtectedRoute>
               }>
