@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PropertyTask } from './types';
@@ -339,7 +338,10 @@ export const useTaskOperations = (
           created_at: taskData.created_at,
           updated_at: taskData.updated_at,
           property: taskData.property,
-          project: taskData.project,
+          project: taskData.project ? {
+            ...taskData.project,
+            type: taskData.project.type as PropertyProject['type']
+          } : null,
           task_type: taskData.task_type,
           assignments: taskData.assignments ? taskData.assignments.map(assignment => ({
             id: assignment.id,
