@@ -1,4 +1,5 @@
 
+
 /**
  * Converts plain text with \n\n paragraph breaks to proper HTML paragraphs
  */
@@ -16,7 +17,7 @@ export function convertTextToHTMLParagraphs(text: string): string {
   // Wrap each paragraph in <p> tags
   const htmlParagraphs = paragraphs.map(paragraph => `<p>${paragraph}</p>`);
 
-  return htmlParagraphs.join('');
+  return htmlParagraphs.join('\n');
 }
 
 /**
@@ -37,3 +38,4 @@ export function ensureHTMLParagraphs(content: string): string {
   
   return convertTextToHTMLParagraphs(content);
 }
+
