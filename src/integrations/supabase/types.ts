@@ -1309,20 +1309,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_role_permissions_permission_id"
-            columns: ["permission_id"]
-            isOneToOne: false
-            referencedRelation: "system_permissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_role_permissions_role_id"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "system_roles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "role_permissions_permission_id_fkey"
             columns: ["permission_id"]
             isOneToOne: false
@@ -1760,20 +1746,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_user_roles_role_id"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "system_roles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_user_roles_user_id"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "user_roles_role_id_fkey"
             columns: ["role_id"]

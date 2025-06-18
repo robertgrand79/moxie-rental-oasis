@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,8 +41,8 @@ export const useRolesPermissions = () => {
         .from('system_roles')
         .select(`
           *,
-          role_permissions!role_permissions_role_id_fkey(
-            permission:system_permissions!role_permissions_permission_id_fkey(key)
+          role_permissions(
+            permission:system_permissions(key)
           )
         `)
         .eq('is_active', true);
