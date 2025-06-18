@@ -55,14 +55,14 @@ export const usePermissions = () => {
         return;
       }
 
-      // Try to fetch permissions through the new role system
+      // Try to fetch permissions through the new role system with explicit column hints
       try {
         const { data, error } = await supabase
           .from('user_roles')
           .select(`
-            role:system_roles(
+            role:role_id(
               role_permissions(
-                permission:system_permissions(*)
+                permission:permission_id(*)
               )
             )
           `)
@@ -74,8 +74,9 @@ export const usePermissions = () => {
           const userPermissions: UserPermissions = {};
           
           data.forEach((userRole) => {
-            const rolePermissions = userRole.role?.role_permissions || [];
-            rolePermissions.forEach((rp) => {
+            const role = userRole.role as any;
+            const rolePermissions = role?.role_permissions || [];
+            rolePermissions.forEach((rp: any) => {
               if (rp.permission?.key) {
                 userPermissions[rp.permission.key] = true;
               }

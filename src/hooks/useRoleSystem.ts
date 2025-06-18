@@ -72,11 +72,11 @@ export const useRoleSystem = () => {
         return;
       }
 
-      // Try new role system
+      // Try new role system with explicit column hints
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select(`
-          role:system_roles(
+          role:role_id(
             id,
             name,
             description,
@@ -107,13 +107,13 @@ export const useRoleSystem = () => {
       }
 
       if (userRoles && userRoles.length > 0 && userRoles[0].role) {
-        const role = userRoles[0].role;
+        const role = userRoles[0].role as any;
         
-        // Fetch permissions for this role
+        // Fetch permissions for this role with explicit column hints
         const { data: rolePermissions } = await supabase
           .from('role_permissions')
           .select(`
-            permission:system_permissions(
+            permission:permission_id(
               key,
               name,
               description,
@@ -122,7 +122,7 @@ export const useRoleSystem = () => {
           `)
           .eq('role_id', role.id);
 
-        const permissions = rolePermissions?.map(rp => rp.permission).filter(Boolean) || [];
+        const permissions = rolePermissions?.map(rp => (rp.permission as any)).filter(Boolean) || [];
 
         setState({
           userRole: role,

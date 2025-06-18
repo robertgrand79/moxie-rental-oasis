@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,13 +35,13 @@ export const useRolesPermissions = () => {
     try {
       setLoading(true);
       
-      // Fetch roles with their permissions and user counts
+      // Fetch roles with their permissions and user counts using explicit column hints
       const { data: rolesData, error: rolesError } = await supabase
         .from('system_roles')
         .select(`
           *,
           role_permissions(
-            permission:system_permissions(key)
+            permission:permission_id(key)
           )
         `)
         .eq('is_active', true);
@@ -63,7 +62,7 @@ export const useRolesPermissions = () => {
             name: role.name,
             description: role.description || '',
             userCount: count || 0,
-            permissions: role.role_permissions?.map(rp => rp.permission?.key).filter(Boolean) || []
+            permissions: role.role_permissions?.map(rp => (rp.permission as any)?.key).filter(Boolean) || []
           };
         })
       );

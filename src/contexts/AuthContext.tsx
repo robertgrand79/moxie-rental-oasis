@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,18 +45,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Try new role system
+      // Try new role system with explicit column hint
       const { data: userRoles } = await supabase
         .from('user_roles')
         .select(`
-          role:system_roles(name)
+          role:role_id(
+            name
+          )
         `)
         .eq('user_id', userId)
         .eq('is_active', true)
         .limit(1);
 
       if (userRoles && userRoles.length > 0 && userRoles[0].role) {
-        const roleName = userRoles[0].role.name;
+        const roleName = (userRoles[0].role as any).name;
         setUserRole(roleName);
         setIsAdmin(roleName === 'Admin');
       } else {
