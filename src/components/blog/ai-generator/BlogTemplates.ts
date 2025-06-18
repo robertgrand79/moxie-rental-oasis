@@ -1,4 +1,3 @@
-
 export interface BlogTemplate {
   id: string;
   title: string;
@@ -28,25 +27,34 @@ export const blogTemplates: BlogTemplate[] = [
     - Focus on storytelling and engaging narrative flow
     - Write as if you're writing directly in a word processor
 
-    Content should flow naturally and include:
+    PARAGRAPH STRUCTURE REQUIREMENTS:
+    - Create distinct, well-structured paragraphs for maximum readability
+    - Each paragraph should focus on ONE main topic or idea
+    - Use double line breaks between paragraphs to create clear separation
+    - Write 2-4 sentences per paragraph for optimal readability
+    - Create natural transitions between paragraphs
+    - Structure content with clear topic progression
+    - Make content easily scannable with proper paragraph spacing
+
+    Content should flow naturally in well-structured paragraphs and include:
     
-    Opening section introducing Eugene's unique character and what makes it special for visitors seeking authentic experiences.
+    Opening paragraph introducing Eugene's unique character and what makes it special for visitors seeking authentic experiences.
     
-    Local dining experiences that go beyond typical tourist recommendations, including hidden gems, local favorites, and seasonal specialties that showcase Eugene's food culture.
+    Separate paragraphs for local dining experiences that go beyond typical tourist recommendations, including hidden gems, local favorites, and seasonal specialties that showcase Eugene's food culture.
     
-    Outdoor adventures and recreation opportunities that locals enjoy, from lesser-known hiking trails to river activities and seasonal outdoor pursuits.
+    Individual paragraphs covering outdoor adventures and recreation opportunities that locals enjoy, from lesser-known hiking trails to river activities and seasonal outdoor pursuits.
     
-    Cultural attractions and community events that give visitors insight into Eugene's vibrant arts scene, university culture, and local traditions.
+    Distinct paragraphs about cultural attractions and community events that give visitors insight into Eugene's vibrant arts scene, university culture, and local traditions.
     
-    Neighborhood exploration guide highlighting different areas of Eugene, their unique characteristics, and what visitors can discover in each.
+    Well-structured paragraphs for neighborhood exploration guide highlighting different areas of Eugene, their unique characteristics, and what visitors can discover in each.
     
-    Practical local tips for transportation, shopping, and navigating Eugene like someone who lives here.
+    Separate paragraphs with practical local tips for transportation, shopping, and navigating Eugene like someone who lives here.
     
-    Seasonal considerations and the best times to experience different aspects of Eugene's local culture.
+    Individual paragraphs covering seasonal considerations and the best times to experience different aspects of Eugene's local culture.
     
-    Closing with compelling reasons to choose Moxie Vacation Rentals for the most authentic local experience.
+    Closing paragraph with compelling reasons to choose Moxie Vacation Rentals for the most authentic local experience.
     
-    Write in a warm, conversational tone as if you're a Eugene resident sharing favorite spots and insider knowledge with a friend who's visiting.`
+    Write in a warm, conversational tone as if you're a Eugene resident sharing favorite spots and insider knowledge with a friend who's visiting. Structure each topic in its own well-defined paragraph for maximum readability.`
   },
   {
     id: 'eugene-seasonal-guide',
@@ -66,25 +74,34 @@ export const blogTemplates: BlogTemplate[] = [
     - Focus on storytelling and engaging narrative flow
     - Write as if you're writing directly in a word processor
 
-    Content should naturally progress through:
+    PARAGRAPH STRUCTURE REQUIREMENTS:
+    - Create distinct, well-structured paragraphs for maximum readability
+    - Each paragraph should focus on ONE main topic or idea
+    - Use double line breaks between paragraphs to create clear separation
+    - Write 2-4 sentences per paragraph for optimal readability
+    - Create natural transitions between paragraphs
+    - Structure content with clear topic progression
+    - Make content easily scannable with proper paragraph spacing
+
+    Content should naturally progress through well-structured paragraphs covering:
     
-    Introduction to Eugene's distinct seasons and how each offers unique experiences for vacation rental guests.
+    Introduction paragraph about Eugene's distinct seasons and how each offers unique experiences for vacation rental guests.
     
-    Spring activities including cherry blossoms, emerging hiking trails, local festivals, and the awakening of outdoor farmers markets and cultural events.
+    Separate paragraphs for spring activities including cherry blossoms, emerging hiking trails, local festivals, and the awakening of outdoor farmers markets and cultural events.
     
-    Summer adventures highlighting river activities, outdoor concerts, hiking opportunities, local beer gardens, and the vibrant energy of Eugene's peak season.
+    Individual paragraphs highlighting summer adventures with river activities, outdoor concerts, hiking opportunities, local beer gardens, and the vibrant energy of Eugene's peak season.
     
-    Fall experiences featuring harvest season, changing foliage, university events, indoor cultural activities, and cozy local gathering spots.
+    Distinct paragraphs covering fall experiences featuring harvest season, changing foliage, university events, indoor cultural activities, and cozy local gathering spots.
     
-    Winter activities showcasing Eugene's milder climate advantages, indoor attractions, holiday events, nearby skiing, and the charm of off-season local life.
+    Well-structured paragraphs about winter activities showcasing Eugene's milder climate advantages, indoor attractions, holiday events, nearby skiing, and the charm of off-season local life.
     
-    Year-round attractions that visitors can enjoy regardless of when they visit Eugene.
+    Separate paragraphs for year-round attractions that visitors can enjoy regardless of when they visit Eugene.
     
-    Tips for planning visits during different seasons and what to pack for each time of year.
+    Individual paragraphs with tips for planning visits during different seasons and what to pack for each time of year.
     
-    Recommendations for how Moxie's vacation rental properties provide the perfect base for seasonal exploration.
+    Closing paragraphs with recommendations for how Moxie's vacation rental properties provide the perfect base for seasonal exploration.
     
-    Write as a local expert who understands how to make the most of Eugene's offerings throughout the year.`
+    Write as a local expert who understands how to make the most of Eugene's offerings throughout the year. Structure each seasonal topic in its own well-defined paragraph for excellent readability.`
   },
   {
     id: 'university-oregon-guide',
@@ -103,6 +120,15 @@ export const blogTemplates: BlogTemplate[] = [
     - NEVER use - or * for bullet points - write in flowing paragraph form
     - Focus on storytelling and engaging narrative flow
     - Write as if you're writing directly in a word processor
+
+    PARAGRAPH STRUCTURE REQUIREMENTS:
+    - Create distinct, well-structured paragraphs for maximum readability
+    - Each paragraph should focus on ONE main topic or idea
+    - Use double line breaks between paragraphs to create clear separation
+    - Write 2-4 sentences per paragraph for optimal readability
+    - Create natural transitions between paragraphs
+    - Structure content with clear topic progression
+    - Make content easily scannable with proper paragraph spacing
 
     Content should seamlessly cover:
     
@@ -143,6 +169,15 @@ export const blogTemplates: BlogTemplate[] = [
     - NEVER use - or * for bullet points - write in flowing paragraph form
     - Focus on storytelling and engaging narrative flow
     - Write as if you're writing directly in a word processor
+
+    PARAGRAPH STRUCTURE REQUIREMENTS:
+    - Create distinct, well-structured paragraphs for maximum readability
+    - Each paragraph should focus on ONE main topic or idea
+    - Use double line breaks between paragraphs to create clear separation
+    - Write 2-4 sentences per paragraph for optimal readability
+    - Create natural transitions between paragraphs
+    - Structure content with clear topic progression
+    - Make content easily scannable with proper paragraph spacing
 
     Content should flow naturally through:
     
@@ -185,6 +220,15 @@ export const blogTemplates: BlogTemplate[] = [
     - NEVER use - or * for bullet points - write in flowing paragraph form
     - Focus on storytelling and engaging narrative flow
     - Write as if you're writing directly in a word processor
+
+    PARAGRAPH STRUCTURE REQUIREMENTS:
+    - Create distinct, well-structured paragraphs for maximum readability
+    - Each paragraph should focus on ONE main topic or idea
+    - Use double line breaks between paragraphs to create clear separation
+    - Write 2-4 sentences per paragraph for optimal readability
+    - Create natural transitions between paragraphs
+    - Structure content with clear topic progression
+    - Make content easily scannable with proper paragraph spacing
 
     Content should naturally flow through:
     

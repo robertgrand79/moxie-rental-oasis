@@ -64,15 +64,38 @@ const BlogAIGenerator = ({
 - Write as if you're writing directly in a word processor
 - Use natural paragraph breaks and flowing sentences
 
+**PARAGRAPH STRUCTURE REQUIREMENTS:**
+- Create distinct, well-structured paragraphs for maximum readability
+- Each paragraph should focus on ONE main topic or idea
+- Use double line breaks between paragraphs to create clear separation
+- Write 2-4 sentences per paragraph for optimal readability
+- Create natural transitions between paragraphs
+- Structure content with clear topic progression
+- Make content easily scannable with proper paragraph spacing
+- Start new paragraphs when introducing new concepts or ideas
+
 **MOXIE BLOG CONTENT REQUIREMENTS:**
 - Create engaging blog post content with natural flow between topics
 - Use conversational tone appropriate for travel blog readers
 - Include specific Eugene, Oregon details and local expertise
-- Write in paragraph format with clear section breaks
+- Write in well-structured paragraph format with clear section breaks
 - Include actionable tips and practical information
-- Make content naturally scannable with good paragraph structure
+- Make content naturally scannable with excellent paragraph structure
 - End with a compelling call-to-action encouraging bookings
 - Ensure content is SEO-friendly and engaging for vacation rental guests
+
+**CONTENT FLOW STRUCTURE:**
+Write content in distinct, well-spaced paragraphs that flow like this:
+
+Opening paragraph that introduces the topic and captures reader interest.
+
+Second paragraph that expands on the main theme with specific details.
+
+Additional paragraphs that each cover individual aspects, locations, or experiences, with each paragraph being a complete thought.
+
+Include practical information paragraphs that provide actionable advice.
+
+Conclude with strong closing paragraphs that encourage engagement and bookings.
 
 **MOXIE BRAND VOICE:**
 - We are Moxie Vacation Rentals, Eugene's premier local experts
@@ -81,7 +104,7 @@ const BlogAIGenerator = ({
 - Our guests value quality accommodations and authentic local experiences
 - We specialize in helping visitors experience Eugene like locals do
 
-Write clean prose that will work perfectly with rich text editors - absolutely no formatting syntax allowed.`
+Write clean, well-structured prose with excellent paragraph breaks that will work perfectly with rich text editors - absolutely no formatting syntax allowed.`
         : selectedField === 'title'
         ? `Create an engaging, SEO-friendly blog post title for: ${promptToUse}
 
@@ -231,15 +254,38 @@ Excerpt: ${generatedExcerpt}
 - Write as if you're writing directly in a word processor
 - Use natural paragraph breaks and flowing sentences
 
+**PARAGRAPH STRUCTURE REQUIREMENTS:**
+- Create distinct, well-structured paragraphs for maximum readability
+- Each paragraph should focus on ONE main topic or idea
+- Use double line breaks between paragraphs to create clear separation
+- Write 2-4 sentences per paragraph for optimal readability
+- Create natural transitions between paragraphs
+- Structure content with clear topic progression
+- Make content easily scannable with proper paragraph spacing
+- Start new paragraphs when introducing new concepts or ideas
+
 **MOXIE BLOG CONTENT REQUIREMENTS:**
 - Create engaging blog post content with natural flow between topics
 - Use conversational tone appropriate for travel blog readers
 - Include specific Eugene, Oregon details and local expertise
-- Write in paragraph format with clear section breaks
+- Write in well-structured paragraph format with clear section breaks
 - Include actionable tips and practical information
-- Make content naturally scannable with good paragraph structure
+- Make content naturally scannable with excellent paragraph structure
 - End with a compelling call-to-action encouraging bookings
 - Ensure content is SEO-friendly and engaging for vacation rental guests
+
+**CONTENT FLOW STRUCTURE:**
+Write content in distinct, well-spaced paragraphs that flow like this:
+
+Opening paragraph that introduces the topic and captures reader interest.
+
+Second paragraph that expands on the main theme with specific details.
+
+Additional paragraphs that each cover individual aspects, locations, or experiences, with each paragraph being a complete thought.
+
+Include practical information paragraphs that provide actionable advice.
+
+Conclude with strong closing paragraphs that encourage engagement and bookings.
 
 **MOXIE BRAND VOICE:**
 - We are Moxie Vacation Rentals, Eugene's premier local experts
@@ -248,7 +294,7 @@ Excerpt: ${generatedExcerpt}
 - Our guests value quality accommodations and authentic local experiences
 - We specialize in helping visitors experience Eugene like locals do
 
-Write clean prose that will work perfectly with rich text editors - absolutely no formatting syntax allowed.`;
+Write clean, well-structured prose with excellent paragraph breaks that will work perfectly with rich text editors - absolutely no formatting syntax allowed.`;
 
       const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-site-content', {
         body: {
@@ -308,31 +354,41 @@ Write clean prose that will work perfectly with rich text editors - absolutely n
 - Focus on storytelling and engaging narrative flow
 - Write as if you're writing directly in a word processor
 
+**PARAGRAPH STRUCTURE REQUIREMENTS:**
+- Create distinct, well-structured paragraphs for maximum readability
+- Each paragraph should focus on ONE main topic or idea
+- Use double line breaks between paragraphs to create clear separation
+- Write 2-4 sentences per paragraph for optimal readability
+- Create natural transitions between paragraphs
+- Structure content with clear topic progression
+- Make content easily scannable with proper paragraph spacing
+- Start new paragraphs when introducing new concepts or ideas
+
 **Blog Post Content Structure:**
 Create a comprehensive blog post with natural flow between topics, including:
 
-Engaging opening that captures reader attention and introduces the topic with clear value for Eugene visitors.
+Engaging opening paragraph that captures reader attention and introduces the topic with clear value for Eugene visitors.
 
-Main content sections that flow naturally from one topic to the next, each containing 2-3 substantial paragraphs with specific Eugene details, local insights, and practical information.
+Main content sections that flow naturally from one topic to the next, each in separate, well-structured paragraphs containing specific Eugene details, local insights, and practical information.
 
-Include authentic local expertise covering Eugene attractions, dining, activities, and cultural experiences that vacation rental guests would appreciate.
+Include authentic local expertise covering Eugene attractions, dining, activities, and cultural experiences that vacation rental guests would appreciate, with each major topic in its own paragraph.
 
-Practical travel information woven naturally into the narrative, including tips for getting around, seasonal considerations, and insider knowledge.
+Practical travel information woven naturally into distinct paragraphs, including tips for getting around, seasonal considerations, and insider knowledge.
 
-Personal touches and storytelling elements that make the content engaging and memorable.
+Personal touches and storytelling elements in separate paragraphs that make the content engaging and memorable.
 
-Strong closing with compelling reasons to choose Moxie Vacation Rentals and encouragement to explore available properties.
+Strong closing paragraph with compelling reasons to choose Moxie Vacation Rentals and encouragement to explore available properties.
 
 **Content Guidelines:**
 - Target 1,500-2,000 words for comprehensive coverage
 - Use engaging, conversational tone suitable for travel blog
 - Balance inspirational content with actionable advice
 - Include specific Eugene locations, restaurants, and attractions
-- Make content naturally scannable through good paragraph structure
+- Make content naturally scannable through excellent paragraph structure
 - Optimize for SEO while maintaining excellent readability
 - Write from the perspective of local Eugene experts sharing insider knowledge
 
-Write clean, flowing prose that will work perfectly in rich text editors without any formatting syntax.`;
+Write clean, flowing prose with excellent paragraph structure that will work perfectly in rich text editors without any formatting syntax.`;
 
     await generateContent(completePrompt);
   };

@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -46,6 +45,16 @@ serve(async (req) => {
           - Use natural paragraph breaks and flowing sentences
           - Focus on storytelling and engaging narrative rather than formatted structure
 
+          **PARAGRAPH STRUCTURE REQUIREMENTS:**
+          - Create distinct, well-structured paragraphs for maximum readability
+          - Each paragraph should focus on ONE main topic or idea
+          - Use double line breaks between paragraphs to create clear separation
+          - Write 2-4 sentences per paragraph for optimal readability
+          - Create natural transitions between paragraphs
+          - Structure content with clear topic progression
+          - Make content easily scannable with proper paragraph spacing
+          - Start new paragraphs when introducing new concepts or ideas
+
           **MOXIE VACATION RENTALS BRAND GUIDELINES:**
           - Company: Moxie Vacation Rentals
           - Tagline: "Your Home Base for Living Like a Local in Eugene"
@@ -57,14 +66,14 @@ serve(async (req) => {
           **CONTENT STYLE REQUIREMENTS:**
           - Write engaging, conversational blog content without any formatting syntax
           - Create natural section breaks with descriptive introductory sentences
-          - Write 2-3 substantial paragraphs per topic area
+          - Write 2-3 substantial paragraphs per topic area with proper spacing
           - Include specific Eugene locations, attractions, and experiences
           - Mix practical information with inspirational storytelling
           - End with compelling calls-to-action for bookings
           - Write as a knowledgeable local sharing insider tips
           - Use warm, conversational tone that reflects local expertise
           - Include sensory details that help readers envision experiences
-          - Structure content to flow naturally from topic to topic
+          - Structure content to flow naturally from topic to topic in well-defined paragraphs
 
           **EUGENE LOCAL EXPERTISE TO INCLUDE:**
           - University of Oregon campus and events
@@ -78,15 +87,15 @@ serve(async (req) => {
           - Day trips to Oregon Coast, Cascade Mountains, wine country
 
           **CONTENT STRUCTURE (WITHOUT MARKDOWN):**
-          - Start with an engaging opening that draws readers in
-          - Flow naturally between topics with transitional sentences
-          - Include specific details rather than generic tourism language
-          - Write in scannable paragraphs with natural breaks
-          - Include specific names of places, restaurants, trails, etc.
-          - End with strong call-to-action for bookings or engagement
-          - Ensure content flows logically and tells a cohesive story
+          - Start with an engaging opening paragraph that draws readers in
+          - Flow naturally between topics with transitional sentences and proper paragraph breaks
+          - Include specific details rather than generic tourism language in well-structured paragraphs
+          - Write in scannable paragraphs with natural breaks and proper spacing
+          - Include specific names of places, restaurants, trails, etc. in separate, focused paragraphs
+          - End with strong call-to-action paragraph for bookings or engagement
+          - Ensure content flows logically and tells a cohesive story through well-structured paragraphs
 
-          Return clean prose content that will work perfectly with rich text editors - no formatting syntax allowed.`;
+          Return clean prose content with excellent paragraph structure that will work perfectly with rich text editors - no formatting syntax allowed.`;
 
         case 'newsletter':
           return `You are a professional newsletter copywriter specializing in vacation rental marketing and Eugene, Oregon tourism.
@@ -235,9 +244,9 @@ serve(async (req) => {
     const data = await response.json();
     let content = data.choices[0].message.content;
 
-    // Post-process content to remove any markdown artifacts
+    // Post-process content to ensure proper paragraph structure
     if (context.category === 'blog') {
-      content = cleanMarkdownArtifacts(content);
+      content = enhanceParagraphStructure(content);
     }
 
     return new Response(JSON.stringify({ content }), {
@@ -252,8 +261,8 @@ serve(async (req) => {
   }
 });
 
-// Helper function to clean up any markdown artifacts
-function cleanMarkdownArtifacts(content: string): string {
+// Enhanced function to improve paragraph structure
+function enhanceParagraphStructure(content: string): string {
   return content
     // Remove markdown headers
     .replace(/^#{1,6}\s+/gm, '')
@@ -267,7 +276,18 @@ function cleanMarkdownArtifacts(content: string): string {
     .replace(/^\s*[-*+]\s+/gm, '')
     // Remove numbered lists
     .replace(/^\s*\d+\.\s+/gm, '')
-    // Clean up extra whitespace
-    .replace(/\n\s*\n\s*\n/g, '\n\n')
+    // Ensure proper paragraph spacing - convert single line breaks to spaces within paragraphs
+    .replace(/([.!?])\s*\n(?!\n)/g, '$1 ')
+    // Ensure double line breaks between distinct paragraphs
+    .replace(/\n\s*\n/g, '\n\n')
+    // Clean up excessive whitespace but preserve paragraph breaks
+    .replace(/\n{3,}/g, '\n\n')
+    // Ensure sentences that should start new paragraphs do so
+    .replace(/([.!?])\s+(Spring|Summer|Fall|Winter|Another|Additionally|Furthermore|However|Meanwhile|First|Second|Third|Finally|In conclusion|To conclude|Eugene|The|When|During|Whether)/g, '$1\n\n$2')
     .trim();
+}
+
+// Helper function to clean up any remaining markdown artifacts (keeping existing functionality)
+function cleanMarkdownArtifacts(content: string): string {
+  return enhanceParagraphStructure(content);
 }
