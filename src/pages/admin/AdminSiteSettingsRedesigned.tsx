@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import SettingsSearch from '@/components/admin/settings/SettingsSearch';
 import SettingsCategoryGrid from '@/components/admin/settings/SettingsCategoryGrid';
@@ -45,7 +45,6 @@ const AdminSiteSettingsRedesigned = () => {
         twitter: '',
         googlePlaces: ''
       },
-      // Fix: Convert emailSetupVerified to boolean properly
       emailSetupVerified: Boolean(settings.emailSetupVerified === true || settings.emailSetupVerified === 'true')
     },
     seoData: {
@@ -67,8 +66,8 @@ const AdminSiteSettingsRedesigned = () => {
     mapboxToken: settings.mapboxToken || ''
   });
 
-  // Update local data when settings change
-  React.useEffect(() => {
+  // Update local data when settings change - now with proper dependencies
+  const updateLocalDataFromSettings = useCallback(() => {
     if (!loading) {
       console.log('[Settings Page] Updating local data from settings:', settings);
       setLocalData({
@@ -92,7 +91,6 @@ const AdminSiteSettingsRedesigned = () => {
             twitter: '',
             googlePlaces: ''
           },
-          // Fix: Convert emailSetupVerified to boolean properly
           emailSetupVerified: Boolean(settings.emailSetupVerified === true || settings.emailSetupVerified === 'true')
         },
         seoData: {
@@ -115,6 +113,10 @@ const AdminSiteSettingsRedesigned = () => {
       });
     }
   }, [settings, loading]);
+
+  React.useEffect(() => {
+    updateLocalDataFromSettings();
+  }, [updateLocalDataFromSettings]);
 
   const handleInputChange = (field: string, value: string) => {
     console.log('[Settings Page] Input change:', field, value);

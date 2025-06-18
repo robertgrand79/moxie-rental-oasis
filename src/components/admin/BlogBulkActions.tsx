@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Trash2, Eye, EyeOff } from 'lucide-react';
+import { Trash2, Eye, EyeOff, AlertTriangle, RefreshCw } from 'lucide-react';
 import { BlogPost } from '@/hooks/useBlogPosts';
 import { toast } from '@/hooks/use-toast';
 
@@ -30,6 +30,7 @@ const BlogBulkActions = ({
 }: BlogBulkActionsProps) => {
   const [bulkAction, setBulkAction] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [actionErrors, setActionErrors] = useState<string[]>([]);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -58,6 +59,7 @@ const BlogBulkActions = ({
     }
 
     setIsProcessing(true);
+    setActionErrors([]);
     
     try {
       if (bulkAction === 'delete') {
@@ -70,50 +72,105 @@ const BlogBulkActions = ({
           return;
         }
 
-        // Delete posts one by one
+        // Delete posts one by one with error tracking
+        const errors: string[] = [];
+        let successCount = 0;
+
         for (const postId of selectedPosts) {
-          await onDeletePost(postId);
+          try {
+            await onDeletePost(postId);
+            successCount++;
+          } catch (error) {
+            const postTitle = posts.find(p => p.id === postId)?.title || 'Unknown post';
+            errors.push(`Failed to delete "${postTitle}"`);
+            console.error(`Failed to delete post ${postId}:`, error);
+          }
         }
         
-        toast({
-          title: 'Success',
-          description: `Successfully deleted ${selectedPosts.length} post(s).`
-        });
+        if (errors.length > 0) {
+          setActionErrors(errors);
+          toast({
+            title: 'Partial Success',
+            description: `Successfully deleted ${successCount} post(s). ${errors.length} failed.`,
+            variant: 'destructive'
+          });
+        } else {
+          toast({
+            title: 'Success',
+            description: `Successfully deleted ${successCount} post(s).`
+          });
+        }
       } else if (bulkAction === 'publish') {
-        // Publish selected posts
+        // Publish selected posts with error tracking
+        const errors: string[] = [];
         let successCount = 0;
+
         for (const postId of selectedPosts) {
-          const result = await onUpdatePost(postId, { 
-            status: 'published',
-            published_at: new Date().toISOString()
-          });
-          if (result) successCount++;
+          try {
+            const result = await onUpdatePost(postId, { 
+              status: 'published',
+              published_at: new Date().toISOString()
+            });
+            if (result) successCount++;
+          } catch (error) {
+            const postTitle = posts.find(p => p.id === postId)?.title || 'Unknown post';
+            errors.push(`Failed to publish "${postTitle}"`);
+            console.error(`Failed to publish post ${postId}:`, error);
+          }
         }
         
-        toast({
-          title: 'Success',
-          description: `Successfully published ${successCount} post(s).`
-        });
+        if (errors.length > 0) {
+          setActionErrors(errors);
+          toast({
+            title: 'Partial Success',
+            description: `Successfully published ${successCount} post(s). ${errors.length} failed.`,
+            variant: 'destructive'
+          });
+        } else {
+          toast({
+            title: 'Success',
+            description: `Successfully published ${successCount} post(s).`
+          });
+        }
       } else if (bulkAction === 'draft') {
-        // Unpublish selected posts
+        // Unpublish selected posts with error tracking
+        const errors: string[] = [];
         let successCount = 0;
+
         for (const postId of selectedPosts) {
-          const result = await onUpdatePost(postId, { 
-            status: 'draft',
-            published_at: null
-          });
-          if (result) successCount++;
+          try {
+            const result = await onUpdatePost(postId, { 
+              status: 'draft',
+              published_at: null
+            });
+            if (result) successCount++;
+          } catch (error) {
+            const postTitle = posts.find(p => p.id === postId)?.title || 'Unknown post';
+            errors.push(`Failed to move "${postTitle}" to draft`);
+            console.error(`Failed to update post ${postId}:`, error);
+          }
         }
         
-        toast({
-          title: 'Success',
-          description: `Successfully moved ${successCount} post(s) to draft.`
-        });
+        if (errors.length > 0) {
+          setActionErrors(errors);
+          toast({
+            title: 'Partial Success',
+            description: `Successfully moved ${successCount} post(s) to draft. ${errors.length} failed.`,
+            variant: 'destructive'
+          });
+        } else {
+          toast({
+            title: 'Success',
+            description: `Successfully moved ${successCount} post(s) to draft.`
+          });
+        }
       }
 
-      // Clear selection and reset
-      onSelectedPostsChange([]);
-      setBulkAction('');
+      // Clear selection only if no errors occurred
+      if (actionErrors.length === 0) {
+        onSelectedPostsChange([]);
+        setBulkAction('');
+      }
     } catch (error) {
       console.error('Bulk action error:', error);
       toast({
@@ -179,11 +236,35 @@ const BlogBulkActions = ({
               disabled={!bulkAction || isProcessing}
               variant={bulkAction === 'delete' ? 'destructive' : 'default'}
             >
-              {isProcessing ? 'Processing...' : 'Apply'}
+              {isProcessing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Apply'
+              )}
             </Button>
           </div>
         )}
       </div>
+
+      {/* Error Messages */}
+      {actionErrors.length > 0 && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+          <div className="flex items-start">
+            <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 mr-2 flex-shrink-0" />
+            <div>
+              <h4 className="text-sm font-medium text-red-800">Some actions failed:</h4>
+              <ul className="mt-1 text-sm text-red-700 list-disc list-inside">
+                {actionErrors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Individual Post Checkboxes */}
       <div className="space-y-2">

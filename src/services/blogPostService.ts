@@ -1,6 +1,36 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blogPost';
 import { toast } from '@/hooks/use-toast';
+
+const isNetworkError = (error: any): boolean => {
+  return error?.message?.includes('Failed to fetch') || 
+         error?.message?.includes('Network request failed') ||
+         error?.name === 'NetworkError' ||
+         error?.code === 'NETWORK_ERROR';
+};
+
+const handleServiceError = (operation: string, error: any, showToast = true) => {
+  console.error(`❌ ${operation} error:`, error);
+  
+  let errorMessage = 'An unexpected error occurred';
+  
+  if (isNetworkError(error)) {
+    errorMessage = 'Network connection error. Please check your internet connection.';
+  } else if (error?.message) {
+    errorMessage = error.message;
+  }
+  
+  if (showToast) {
+    toast({
+      title: 'Error',
+      description: errorMessage,
+      variant: 'destructive'
+    });
+  }
+  
+  throw new Error(errorMessage);
+};
 
 export const blogPostService = {
   async fetchBlogPosts(publishedOnly: boolean = false): Promise<BlogPost[]> {
@@ -20,8 +50,8 @@ export const blogPostService = {
       const { data, error } = await query;
 
       if (error) {
-        console.error('❌ Error fetching blog posts:', error);
-        throw error;
+        handleServiceError('Blog posts fetch', error, false);
+        return [];
       }
 
       console.log('✅ Fetched blog posts:', data?.length || 0, 'posts');
@@ -31,12 +61,7 @@ export const blogPostService = {
         status: post.status as 'published' | 'draft'
       }));
     } catch (error) {
-      console.error('💥 Error in fetchBlogPosts:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch blog posts.',
-        variant: 'destructive'
-      });
+      handleServiceError('Blog posts fetch', error, false);
       return [];
     }
   },
@@ -53,8 +78,8 @@ export const blogPostService = {
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Error fetching blog post by slug:', error);
-        throw error;
+        handleServiceError('Blog post by slug fetch', error);
+        return null;
       }
 
       console.log('✅ Fetched blog post by slug:', data?.title || 'Not found');
@@ -64,12 +89,7 @@ export const blogPostService = {
         status: data.status as 'published' | 'draft'
       } : null;
     } catch (error) {
-      console.error('💥 Error in fetchBlogPostBySlug:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch blog post.',
-        variant: 'destructive'
-      });
+      handleServiceError('Blog post by slug fetch', error);
       return null;
     }
   },
@@ -88,12 +108,7 @@ export const blogPostService = {
         .single();
 
       if (error) {
-        console.error('❌ Error creating blog post:', error);
-        toast({
-          title: 'Error',
-          description: `Failed to create blog post: ${error.message}`,
-          variant: 'destructive'
-        });
+        handleServiceError('Blog post creation', error);
         return null;
       }
 
@@ -108,12 +123,7 @@ export const blogPostService = {
         status: data.status as 'published' | 'draft'
       };
     } catch (error) {
-      console.error('💥 Error in createBlogPost:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create blog post.',
-        variant: 'destructive'
-      });
+      handleServiceError('Blog post creation', error);
       return null;
     }
   },
@@ -130,12 +140,7 @@ export const blogPostService = {
         .single();
 
       if (error) {
-        console.error('❌ Error updating blog post:', error);
-        toast({
-          title: 'Error',
-          description: `Failed to update blog post: ${error.message}`,
-          variant: 'destructive'
-        });
+        handleServiceError('Blog post update', error);
         return null;
       }
 
@@ -150,12 +155,7 @@ export const blogPostService = {
         status: data.status as 'published' | 'draft'
       };
     } catch (error) {
-      console.error('💥 Error in updateBlogPost:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update blog post.',
-        variant: 'destructive'
-      });
+      handleServiceError('Blog post update', error);
       return null;
     }
   },
@@ -170,12 +170,7 @@ export const blogPostService = {
         .eq('id', postId);
 
       if (error) {
-        console.error('❌ Error deleting blog post:', error);
-        toast({
-          title: 'Error',
-          description: `Failed to delete blog post: ${error.message}`,
-          variant: 'destructive'
-        });
+        handleServiceError('Blog post deletion', error);
         return false;
       }
 
@@ -186,12 +181,7 @@ export const blogPostService = {
       });
       return true;
     } catch (error) {
-      console.error('💥 Error in deleteBlogPost:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete blog post.',
-        variant: 'destructive'
-      });
+      handleServiceError('Blog post deletion', error);
       return false;
     }
   }
