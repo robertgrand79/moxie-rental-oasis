@@ -77,13 +77,9 @@ const CompactPropertyShowcase = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
-                          <div className="font-bold text-lg text-gray-900">
-                            ${property.price_per_night}
-                            <span className="text-sm font-normal text-gray-500">/night</span>
-                          </div>
+                        <div className="flex justify-center">
                           <Link to={`/property/${addressSlug}`}>
-                            <Button size="sm" className="min-h-[40px]">
+                            <Button size="sm" className="min-h-[40px] w-full">
                               View Details
                             </Button>
                           </Link>
