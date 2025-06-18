@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useOptimizedPropertyData } from '@/hooks/useOptimizedPropertyData';
@@ -72,9 +71,9 @@ const EnhancedPropertyManagementDashboard = () => {
 
   // Load data on mount
   useEffect(() => {
-    console.log('Loading property management data...');
+    console.log('🚀 EnhancedPropertyManagementDashboard - Loading property management data...');
     loadData().catch((err) => {
-      console.error('Failed to load data:', err);
+      console.error('❌ EnhancedPropertyManagementDashboard - Failed to load data:', err);
       setError(err);
     });
   }, []);
@@ -100,75 +99,55 @@ const EnhancedPropertyManagementDashboard = () => {
     ? projects 
     : projects.filter(project => project.property_id === selectedProperty);
 
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'blocked': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPriorityBadgeColor = (priority: string) => {
-    switch (priority) {
-      case 'critical': return 'bg-red-100 text-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const retryLoadData = async () => {
     try {
       setError(null);
-      console.log('Retrying data load...');
+      console.log('🔄 EnhancedPropertyManagementDashboard - Retrying data load...');
       await loadData();
     } catch (err) {
-      console.error('Retry failed:', err);
+      console.error('❌ EnhancedPropertyManagementDashboard - Retry failed:', err);
       setError(err as Error);
     }
   };
 
   // Create wrapper functions to handle the void returns expected by the component
-  const handleCreateTask = async (taskData: any) => {
+  const handleCreateTask = async (taskData: any): Promise<void> => {
     try {
-      console.log('Creating task:', taskData);
+      console.log('📝 Creating task:', taskData);
       await createTask(taskData);
       await refreshData();
     } catch (error) {
-      console.error('Failed to create task:', error);
+      console.error('❌ Failed to create task:', error);
     }
   };
 
-  const handleCreateProject = async (projectData: any) => {
+  const handleCreateProject = async (projectData: any): Promise<void> => {
     try {
-      console.log('Creating project:', projectData);
+      console.log('📂 Creating project:', projectData);
       await createProject(projectData);
       await refreshData();
     } catch (error) {
-      console.error('Failed to create project:', error);
+      console.error('❌ Failed to create project:', error);
     }
   };
 
-  const handleUpdateProject = async (projectId: string, projectData: any) => {
+  const handleUpdateProject = async (projectId: string, projectData: any): Promise<void> => {
     try {
-      console.log('Updating project:', projectId, projectData);
+      console.log('📝 Updating project:', projectId, projectData);
       await updateProject(projectId, projectData);
       await refreshData();
     } catch (error) {
-      console.error('Failed to update project:', error);
+      console.error('❌ Failed to update project:', error);
     }
   };
 
-  const handleCreateWorkOrder = async (workOrderData: any) => {
+  const handleCreateWorkOrder = async (workOrderData: any): Promise<void> => {
     try {
-      console.log('Creating work order:', workOrderData);
+      console.log('🔧 Creating work order:', workOrderData);
       await createWorkOrder(workOrderData);
       await refreshData();
     } catch (error) {
-      console.error('Failed to create work order:', error);
+      console.error('❌ Failed to create work order:', error);
     }
   };
 
@@ -215,7 +194,7 @@ const EnhancedPropertyManagementDashboard = () => {
     }
   };
 
-  console.log('Dashboard render - Loading:', loading, 'Properties:', properties.length, 'Tasks:', tasks.length, 'Projects:', projects.length);
+  console.log('🎯 EnhancedPropertyManagementDashboard render - Loading:', loading, 'Properties:', properties.length, 'Tasks:', tasks.length, 'Projects:', projects.length, 'Error:', error?.message);
 
   return (
     <SmartLoadingWrapper
@@ -243,7 +222,15 @@ const EnhancedPropertyManagementDashboard = () => {
         <PropertyManagementAlerts
           tasks={tasks}
           overdueTasks={overdueTasks}
-          getPriorityBadgeColor={getPriorityBadgeColor}
+          getPriorityBadgeColor={(priority: string) => {
+            switch (priority) {
+              case 'critical': return 'bg-red-100 text-red-800';
+              case 'high': return 'bg-orange-100 text-orange-800';
+              case 'medium': return 'bg-yellow-100 text-yellow-800';
+              case 'low': return 'bg-green-100 text-green-800';
+              default: return 'bg-gray-100 text-gray-800';
+            }
+          }}
         />
 
         <PropertyManagementTabs
@@ -263,19 +250,70 @@ const EnhancedPropertyManagementDashboard = () => {
           setIsTaskModalOpen={setIsTaskModalOpen}
           setIsProjectModalOpen={setIsProjectModalOpen}
           setIsWorkOrderModalOpen={setIsWorkOrderModalOpen}
-          generateTurnoverTasks={handleGenerateTurnoverTasks}
+          generateTurnoverTasks={async (propertyId: string) => {
+            try {
+              console.log('🔄 Generating turnover tasks for property:', propertyId);
+              await generateTurnoverTasks(propertyId);
+              await refreshData();
+            } catch (error) {
+              console.error('❌ Failed to generate turnover tasks:', error);
+            }
+          }}
           onToggleBulkMode={() => setBulkMode(!bulkMode)}
           onSelectAllTasks={() => selectAllTasks(filteredTasks.map(t => t.id))}
           onTaskClick={(task) => setEditingTask(task)}
-          onStatusChange={handleStatusChange}
-          onDeleteTask={handleDeleteTask}
-          onDeleteProject={handleDeleteProject}
+          onStatusChange={async (taskId: string, status: string) => {
+            const validStatuses = ['pending', 'in_progress', 'completed', 'blocked', 'cancelled'];
+            if (validStatuses.includes(status)) {
+              try {
+                console.log('🔄 Updating task status:', taskId, status);
+                await updateTask(taskId, { status: status as any });
+                await refreshData();
+              } catch (error) {
+                console.error('❌ Failed to update task status:', error);
+              }
+            }
+          }}
+          onDeleteTask={async (taskId: string) => {
+            try {
+              console.log('🗑️ Deleting task:', taskId);
+              await deleteTask(taskId);
+              await refreshData();
+            } catch (error) {
+              console.error('❌ Failed to delete task:', error);
+            }
+          }}
+          onDeleteProject={async (projectId: string) => {
+            try {
+              console.log('🗑️ Deleting project:', projectId);
+              await deleteProject(projectId);
+              await refreshData();
+            } catch (error) {
+              console.error('❌ Failed to delete project:', error);
+            }
+          }}
           onCreateWorkOrder={() => setIsWorkOrderModalOpen(true)}
           onToggleTaskSelection={toggleTaskSelection}
           clearSelection={clearSelection}
           refreshData={refreshData}
-          getStatusBadgeColor={getStatusBadgeColor}
-          getPriorityBadgeColor={getPriorityBadgeColor}
+          getStatusBadgeColor={(status: string) => {
+            switch (status) {
+              case 'completed': return 'bg-green-100 text-green-800';
+              case 'in_progress': return 'bg-blue-100 text-blue-800';
+              case 'pending': return 'bg-yellow-100 text-yellow-800';
+              case 'blocked': return 'bg-red-100 text-red-800';
+              default: return 'bg-gray-100 text-gray-800';
+            }
+          }}
+          getPriorityBadgeColor={(priority: string) => {
+            switch (priority) {
+              case 'critical': return 'bg-red-100 text-red-800';
+              case 'high': return 'bg-orange-100 text-orange-800';
+              case 'medium': return 'bg-yellow-100 text-yellow-800';
+              case 'low': return 'bg-green-100 text-green-800';
+              default: return 'bg-gray-100 text-gray-800';
+            }
+          }}
         />
 
         <TaskManagementModals

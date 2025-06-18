@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -13,7 +12,8 @@ export const useOptimizedPropertyData = () => {
   const { toast } = useToast();
 
   const fetchProperties = async () => {
-    console.log('Fetching properties...');
+    const startTime = Date.now();
+    console.log('🏠 useOptimizedPropertyData - Fetching properties...');
     try {
       const { data, error } = await supabase
         .from('properties')
@@ -21,12 +21,17 @@ export const useOptimizedPropertyData = () => {
         .order('title')
         .limit(50); // Limit for performance
 
-      if (error) throw error;
-      console.log('Properties fetched:', data?.length || 0);
+      if (error) {
+        console.error('❌ useOptimizedPropertyData - Properties fetch error:', error);
+        throw error;
+      }
+      
+      const endTime = Date.now();
+      console.log(`✅ useOptimizedPropertyData - Properties fetched: ${data?.length || 0} in ${endTime - startTime}ms`);
       setProperties(data || []);
       return data || [];
     } catch (error) {
-      console.error('Error fetching properties:', error);
+      console.error('❌ useOptimizedPropertyData - Error fetching properties:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch properties',
@@ -37,7 +42,8 @@ export const useOptimizedPropertyData = () => {
   };
 
   const fetchProjectsWithJoins = async () => {
-    console.log('Fetching projects...');
+    const startTime = Date.now();
+    console.log('📂 useOptimizedPropertyData - Fetching projects...');
     try {
       const { data, error } = await supabase
         .from('property_projects')
@@ -48,9 +54,13 @@ export const useOptimizedPropertyData = () => {
         .order('created_at', { ascending: false })
         .limit(100); // Limit for performance
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ useOptimizedPropertyData - Projects fetch error:', error);
+        throw error;
+      }
       
-      console.log('Projects fetched:', data?.length || 0);
+      const endTime = Date.now();
+      console.log(`✅ useOptimizedPropertyData - Projects fetched: ${data?.length || 0} in ${endTime - startTime}ms`);
       
       const projectsWithProperties: PropertyProject[] = (data || []).map(project => ({
         id: project.id,
@@ -74,7 +84,7 @@ export const useOptimizedPropertyData = () => {
       setProjects(projectsWithProperties);
       return projectsWithProperties;
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      console.error('❌ useOptimizedPropertyData - Error fetching projects:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch projects',
@@ -85,7 +95,8 @@ export const useOptimizedPropertyData = () => {
   };
 
   const fetchTasksWithJoins = async () => {
-    console.log('Fetching tasks...');
+    const startTime = Date.now();
+    console.log('📝 useOptimizedPropertyData - Fetching tasks...');
     try {
       const { data, error } = await supabase
         .from('property_tasks')
@@ -97,9 +108,13 @@ export const useOptimizedPropertyData = () => {
         .order('created_at', { ascending: false })
         .limit(200); // Limit for performance
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ useOptimizedPropertyData - Tasks fetch error:', error);
+        throw error;
+      }
       
-      console.log('Tasks fetched:', data?.length || 0);
+      const endTime = Date.now();
+      console.log(`✅ useOptimizedPropertyData - Tasks fetched: ${data?.length || 0} in ${endTime - startTime}ms`);
       
       const tasksWithRelations: PropertyTask[] = (data || []).map(task => ({
         id: task.id,
@@ -149,7 +164,7 @@ export const useOptimizedPropertyData = () => {
       setTasks(tasksWithRelations);
       return tasksWithRelations;
     } catch (error) {
-      console.error('Error fetching tasks:', error);
+      console.error('❌ useOptimizedPropertyData - Error fetching tasks:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch tasks',
@@ -160,7 +175,8 @@ export const useOptimizedPropertyData = () => {
   };
 
   const loadData = async () => {
-    console.log('Starting data load...');
+    const startTime = Date.now();
+    console.log('🚀 useOptimizedPropertyData - Starting data load...');
     setLoading(true);
     try {
       const results = await Promise.allSettled([
@@ -172,13 +188,19 @@ export const useOptimizedPropertyData = () => {
       // Check if any promises were rejected
       const rejectedResults = results.filter(result => result.status === 'rejected');
       if (rejectedResults.length > 0) {
-        console.error('Some data fetches failed:', rejectedResults);
+        console.error('❌ useOptimizedPropertyData - Some data fetches failed:', rejectedResults);
+        rejectedResults.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            console.error(`❌ useOptimizedPropertyData - Failed fetch ${index}:`, result.reason);
+          }
+        });
         // Don't throw here - we want to show partial data if possible
       }
       
-      console.log('Data load completed successfully');
+      const endTime = Date.now();
+      console.log(`✅ useOptimizedPropertyData - Data load completed in ${endTime - startTime}ms`);
     } catch (error) {
-      console.error('Critical error during data load:', error);
+      console.error('❌ useOptimizedPropertyData - Critical error during data load:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -186,16 +208,22 @@ export const useOptimizedPropertyData = () => {
   };
 
   const refreshData = async () => {
-    console.log('Refreshing data...');
+    console.log('🔄 useOptimizedPropertyData - Refreshing data...');
     try {
-      await Promise.allSettled([
+      const results = await Promise.allSettled([
         fetchProperties(),
         fetchProjectsWithJoins(),
         fetchTasksWithJoins()
       ]);
-      console.log('Data refresh completed');
+      
+      const rejectedResults = results.filter(result => result.status === 'rejected');
+      if (rejectedResults.length > 0) {
+        console.error('❌ useOptimizedPropertyData - Some refresh fetches failed:', rejectedResults);
+      }
+      
+      console.log('✅ useOptimizedPropertyData - Data refresh completed');
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      console.error('❌ useOptimizedPropertyData - Error refreshing data:', error);
     }
   };
 
