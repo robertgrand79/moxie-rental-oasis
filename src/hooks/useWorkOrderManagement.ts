@@ -112,10 +112,13 @@ export const useWorkOrderManagement = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Remove fields that don't exist in the database schema or are auto-generated
+      const { property, contractor, ...cleanData } = workOrderData as any;
+
       const { data, error } = await supabase
         .from('work_orders')
         .insert({
-          ...workOrderData,
+          ...cleanData,
           created_by: user.id
         })
         .select(`
@@ -147,9 +150,12 @@ export const useWorkOrderManagement = () => {
 
   const updateWorkOrder = async (id: string, updates: Partial<WorkOrder>) => {
     try {
+      // Remove fields that don't belong in the database update
+      const { property, contractor, ...cleanUpdates } = updates as any;
+
       const { data, error } = await supabase
         .from('work_orders')
-        .update(updates)
+        .update(cleanUpdates)
         .eq('id', id)
         .select(`
           *,
@@ -203,6 +209,94 @@ export const useWorkOrderManagement = () => {
     }
   };
 
+  const createContractor = async (contractorData: Omit<Contractor, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('contractors')
+        .insert({
+          ...contractorData,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setContractors(prev => [data, ...prev]);
+      toast({
+        title: 'Success',
+        description: 'Contractor created successfully',
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('Error creating contractor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create contractor',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const updateContractor = async (id: string, updates: Partial<Contractor>) => {
+    try {
+      const { data, error } = await supabase
+        .from('contractors')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setContractors(prev => prev.map(contractor => contractor.id === id ? data : contractor));
+      toast({
+        title: 'Success',
+        description: 'Contractor updated successfully',
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('Error updating contractor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update contractor',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const deleteContractor = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('contractors')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      setContractors(prev => prev.filter(contractor => contractor.id !== id));
+      toast({
+        title: 'Success',
+        description: 'Contractor deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting contractor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete contractor',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -225,6 +319,9 @@ export const useWorkOrderManagement = () => {
     createWorkOrder,
     updateWorkOrder,
     deleteWorkOrder,
+    createContractor,
+    updateContractor,
+    deleteContractor,
     refreshData,
   };
 };
