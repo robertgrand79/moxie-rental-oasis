@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,9 +6,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Bot, Send, User, Sparkles, CheckCircle, X, RefreshCw, Clock } from 'lucide-react';
+import { Bot, Send, User, Sparkles, CheckCircle, X, RefreshCw, Clock, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useContentApproval } from '@/hooks/useContentApproval';
 
 interface Message {
   id: string;
@@ -32,10 +34,12 @@ interface QuickAction {
 
 const UnifiedAIChat = () => {
   const { toast } = useToast();
+  const { addContentItem, refetch } = useContentApproval();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [appliedContentIds, setAppliedContentIds] = useState<Set<string>>(new Set());
+  const [buttonLoadingStates, setButtonLoadingStates] = useState<{[key: string]: boolean}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const quickActions: QuickAction[] = [
@@ -96,6 +100,13 @@ const UnifiedAIChat = () => {
     }
   }, []);
 
+  const setButtonLoading = (buttonId: string, loading: boolean) => {
+    setButtonLoadingStates(prev => ({
+      ...prev,
+      [buttonId]: loading
+    }));
+  };
+
   const sendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return;
 
@@ -111,6 +122,8 @@ const UnifiedAIChat = () => {
     setIsLoading(true);
 
     try {
+      console.log('Sending message to AI unified chat function...');
+      
       const { data, error } = await supabase.functions.invoke('ai-unified-chat', {
         body: {
           message: content,
@@ -121,7 +134,12 @@ const UnifiedAIChat = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      console.log('AI response received:', data);
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -142,6 +160,16 @@ const UnifiedAIChat = () => {
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: 'assistant',
+        content: 'I apologize, but I encountered an error processing your request. Please try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
@@ -157,10 +185,16 @@ const UnifiedAIChat = () => {
   };
 
   const handleSendForApproval = async (messageId: string) => {
+    const buttonId = `approval-${messageId}`;
     const message = messages.find(m => m.id === messageId);
-    if (!message?.generatedContent) return;
+    
+    if (!message?.generatedContent || buttonLoadingStates[buttonId]) return;
+
+    setButtonLoading(buttonId, true);
 
     try {
+      console.log('Sending content for approval:', message.generatedContent);
+
       const { data, error } = await supabase.functions.invoke('apply-generated-content', {
         body: {
           type: message.generatedContent.type,
@@ -169,9 +203,15 @@ const UnifiedAIChat = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error sending for approval:', error);
+        throw error;
+      }
+
+      console.log('Content sent for approval successfully:', data);
 
       setAppliedContentIds(prev => new Set([...prev, messageId]));
+      refetch(); // Refresh the content approval list
 
       toast({
         title: "Content Sent for Approval",
@@ -184,14 +224,22 @@ const UnifiedAIChat = () => {
         description: "Failed to send content for approval. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setButtonLoading(buttonId, false);
     }
   };
 
   const handleApplyDirectly = async (messageId: string) => {
+    const buttonId = `apply-${messageId}`;
     const message = messages.find(m => m.id === messageId);
-    if (!message?.generatedContent) return;
+    
+    if (!message?.generatedContent || buttonLoadingStates[buttonId]) return;
+
+    setButtonLoading(buttonId, true);
 
     try {
+      console.log('Applying content directly:', message.generatedContent);
+
       const { data, error } = await supabase.functions.invoke('apply-generated-content', {
         body: {
           type: message.generatedContent.type,
@@ -200,7 +248,12 @@ const UnifiedAIChat = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error applying content:', error);
+        throw error;
+      }
+
+      console.log('Content applied successfully:', data);
 
       setAppliedContentIds(prev => new Set([...prev, messageId]));
 
@@ -215,7 +268,17 @@ const UnifiedAIChat = () => {
         description: "Failed to apply content. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setButtonLoading(buttonId, false);
     }
+  };
+
+  const handleDiscard = (messageId: string) => {
+    setAppliedContentIds(prev => new Set([...prev, messageId]));
+    toast({
+      title: "Content Discarded",
+      description: "Generated content has been discarded",
+    });
   };
 
   return (
@@ -299,20 +362,34 @@ const UnifiedAIChat = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleSendForApproval(message.id)}
+                              disabled={buttonLoadingStates[`approval-${message.id}`]}
                               className="border-blue-300 text-blue-700 hover:bg-blue-50"
                             >
-                              <Clock className="h-3 w-3 mr-1" />
+                              {buttonLoadingStates[`approval-${message.id}`] ? (
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              ) : (
+                                <Clock className="h-3 w-3 mr-1" />
+                              )}
                               Send for Approval
                             </Button>
                             <Button
                               size="sm"
                               onClick={() => handleApplyDirectly(message.id)}
+                              disabled={buttonLoadingStates[`apply-${message.id}`]}
                               className="bg-green-600 hover:bg-green-700"
                             >
-                              <CheckCircle className="h-3 w-3 mr-1" />
+                              {buttonLoadingStates[`apply-${message.id}`] ? (
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              ) : (
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                              )}
                               Apply Directly
                             </Button>
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleDiscard(message.id)}
+                            >
                               <X className="h-3 w-3 mr-1" />
                               Discard
                             </Button>
@@ -336,6 +413,7 @@ const UnifiedAIChat = () => {
                           variant="outline"
                           className="text-xs"
                           onClick={() => sendMessage(suggestion)}
+                          disabled={isLoading}
                         >
                           {suggestion}
                         </Button>
@@ -350,10 +428,9 @@ const UnifiedAIChat = () => {
                     <Bot className="h-4 w-4 text-blue-600 animate-pulse" />
                   </div>
                   <div className="bg-gray-100 rounded-lg p-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm text-gray-600">AI is thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -371,6 +448,7 @@ const UnifiedAIChat = () => {
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Ask me to generate content, enhance existing data, or help with your website..."
               className="flex-1 min-h-[60px] max-h-[120px] resize-none"
+              disabled={isLoading}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -383,7 +461,11 @@ const UnifiedAIChat = () => {
               disabled={!inputValue.trim() || isLoading}
               className="px-4"
             >
-              <Send className="h-4 w-4" />
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </CardContent>
