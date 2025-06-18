@@ -15,6 +15,7 @@ import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
 import Auth from "@/pages/Auth";
 import AdminLayoutWrapper from "@/components/layouts/AdminLayoutWrapper";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminProperties from "@/pages/admin/AdminProperties";
 import AdminWorkOrders from "@/pages/admin/AdminWorkOrders";
 import AdminContractors from "@/pages/admin/AdminContractors";
@@ -27,6 +28,9 @@ import AdminPageManagement from "@/pages/admin/AdminPageManagement";
 import AdminNewsletterManagement from "@/pages/admin/AdminNewsletterManagement";
 import BlogManagement from "@/pages/BlogManagement";
 import AdminSiteSettingsRedesigned from "@/pages/admin/AdminSiteSettingsRedesigned";
+import AdminAnalytics from "@/pages/admin/AdminAnalytics";
+import AdminSiteMetrics from "@/pages/admin/AdminSiteMetrics";
+import AdminRolesPermissions from "@/pages/admin/AdminRolesPermissions";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -59,7 +63,7 @@ function App() {
                   <AdminLayoutWrapper />
                 </ProtectedRoute>
               }>
-                <Route index element={<AdminProperties />} />
+                <Route index element={<AdminDashboard />} />
                 <Route path="properties" element={<AdminProperties />} />
                 <Route path="workorders" element={<AdminWorkOrders />} />
                 <Route path="contractors" element={<AdminContractors />} />
@@ -72,6 +76,9 @@ function App() {
                 <Route path="newsletter" element={<AdminNewsletterManagement />} />
                 <Route path="blog-posts" element={<BlogManagement />} />
                 <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="site-metrics" element={<AdminSiteMetrics />} />
+                <Route path="roles-permissions" element={<AdminRolesPermissions />} />
               </Route>
             </Routes>
           </BrowserRouter>

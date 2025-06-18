@@ -13,7 +13,6 @@ import {
   TrendingUp,
   Shield,
   Wrench,
-  Building2,
   HardHat
 } from 'lucide-react';
 
@@ -65,7 +64,7 @@ export const adminMenuItems: MenuSection[] = [
       {
         title: 'Blog Posts',
         icon: FileText,
-        href: '/admin/blog',
+        href: '/admin/blog-posts',
         description: 'Create and edit blog content'
       },
       {
@@ -80,15 +79,9 @@ export const adminMenuItems: MenuSection[] = [
     title: 'Operations',
     items: [
       {
-        title: 'Property Management',
-        icon: Building2,
-        href: '/admin/property-management',
-        description: 'Complete property operations, tasks, projects & calendar management'
-      },
-      {
         title: 'Work Orders',
         icon: Wrench,
-        href: '/admin/work-orders',
+        href: '/admin/workorders',
         description: 'Contractor work orders'
       },
       {
@@ -103,21 +96,21 @@ export const adminMenuItems: MenuSection[] = [
     title: 'Local Content',
     items: [
       {
-        title: 'Events',
+        title: 'Eugene Events',
         icon: Calendar,
-        href: '/admin/events',
+        href: '/admin/eugene-events',
         description: 'Eugene events calendar'
       },
       {
         title: 'Lifestyle Gallery',
         icon: Camera,
-        href: '/admin/lifestyle',
+        href: '/admin/lifestyle-gallery',
         description: 'Local lifestyle photos'
       },
       {
         title: 'Points of Interest',
         icon: MapPin,
-        href: '/admin/poi',
+        href: '/admin/points-of-interest',
         description: 'Local attractions and venues'
       },
       {
@@ -132,9 +125,9 @@ export const adminMenuItems: MenuSection[] = [
     title: 'Marketing',
     items: [
       {
-        title: 'Newsletter Management',
+        title: 'Newsletter',
         icon: Mail,
-        href: '/admin/newsletter-management',
+        href: '/admin/newsletter',
         description: 'Email newsletter management'
       }
     ]
@@ -145,7 +138,7 @@ export const adminMenuItems: MenuSection[] = [
       {
         title: 'Users',
         icon: Users,
-        href: '/admin/user-management',
+        href: '/admin/users',
         description: 'Manage user accounts'
       },
       {
@@ -160,7 +153,7 @@ export const adminMenuItems: MenuSection[] = [
     title: 'Configuration',
     items: [
       {
-        title: 'Site Settings',
+        title: 'Settings',
         icon: Settings,
         href: '/admin/settings',
         description: 'Website configuration'
