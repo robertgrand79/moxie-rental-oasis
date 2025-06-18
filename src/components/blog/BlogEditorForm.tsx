@@ -81,11 +81,9 @@ const BlogEditorForm = ({
           </div>
 
           <div>
-            <Label>Featured Image</Label>
             <ImageUploader
-              onImageUploaded={onImageChange}
-              currentImage={uploadedImage}
-              className="w-full"
+              uploadedImage={uploadedImage}
+              onImageChange={onImageChange}
             />
           </div>
         </div>
