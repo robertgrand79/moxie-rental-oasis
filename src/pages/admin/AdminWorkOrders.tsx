@@ -122,6 +122,7 @@ const AdminWorkOrders = () => {
         onWorkOrderClick={handleWorkOrderClick}
         onStatusChange={handleStatusChange}
         onDeleteWorkOrder={handleDeleteWorkOrder}
+        onUpdateWorkOrder={updateWorkOrder}
       />
 
       <CreateWorkOrderModal
@@ -139,14 +140,14 @@ const AdminWorkOrders = () => {
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
         onCreateProject={handleCreateProjectFromWorkOrder}
-        workOrder={selectedWorkOrderForRelationship!}
+        workOrder={selectedWorkOrderForRelationship}
       />
 
       <CreateTaskFromWorkOrderModal
         isOpen={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
         onCreateTask={handleCreateTaskFromWorkOrder}
-        workOrder={selectedWorkOrderForRelationship!}
+        workOrder={selectedWorkOrderForRelationship}
         projects={projects}
       />
 

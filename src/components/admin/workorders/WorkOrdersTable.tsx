@@ -14,18 +14,22 @@ interface WorkOrdersTableProps {
   workOrders: WorkOrder[];
   onWorkOrderClick: (workOrder: WorkOrder) => void;
   onStatusChange: (workOrderId: string, status: string) => void;
+  onPriorityChange: (workOrderId: string, priority: string) => void;
   onDeleteWorkOrder: (workOrderId: string) => void;
   emailingWorkOrders: Set<string>;
   onEmailWorkOrder: (workOrder: WorkOrder) => void;
+  updatingWorkOrders?: Set<string>;
 }
 
 const WorkOrdersTable = ({
   workOrders,
   onWorkOrderClick,
   onStatusChange,
+  onPriorityChange,
   onDeleteWorkOrder,
   emailingWorkOrders,
   onEmailWorkOrder,
+  updatingWorkOrders,
 }: WorkOrdersTableProps) => {
   if (workOrders.length === 0) {
     return (
@@ -59,9 +63,11 @@ const WorkOrdersTable = ({
               workOrder={workOrder}
               onWorkOrderClick={onWorkOrderClick}
               onStatusChange={onStatusChange}
+              onPriorityChange={onPriorityChange}
               onDeleteWorkOrder={onDeleteWorkOrder}
               isEmailing={emailingWorkOrders.has(workOrder.id)}
               onEmailWorkOrder={onEmailWorkOrder}
+              updatingWorkOrders={updatingWorkOrders}
             />
           ))}
         </TableBody>

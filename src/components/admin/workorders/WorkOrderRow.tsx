@@ -4,27 +4,33 @@ import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { Badge } from '@/components/ui/badge';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import WorkOrderStatusBadge from './WorkOrderStatusBadge';
-import WorkOrderPriorityBadge from './WorkOrderPriorityBadge';
+import InteractiveWorkOrderStatusBadge from './InteractiveWorkOrderStatusBadge';
+import InteractiveWorkOrderPriorityBadge from './InteractiveWorkOrderPriorityBadge';
 import WorkOrderActions from './WorkOrderActions';
 
 interface WorkOrderRowProps {
   workOrder: WorkOrder;
   onWorkOrderClick: (workOrder: WorkOrder) => void;
   onStatusChange: (workOrderId: string, status: string) => void;
+  onPriorityChange: (workOrderId: string, priority: string) => void;
   onDeleteWorkOrder: (workOrderId: string) => void;
   isEmailing: boolean;
   onEmailWorkOrder: (workOrder: WorkOrder) => void;
+  updatingWorkOrders?: Set<string>;
 }
 
 const WorkOrderRow = ({
   workOrder,
   onWorkOrderClick,
   onStatusChange,
+  onPriorityChange,
   onDeleteWorkOrder,
   isEmailing,
   onEmailWorkOrder,
+  updatingWorkOrders = new Set(),
 }: WorkOrderRowProps) => {
+  const isUpdating = updatingWorkOrders.has(workOrder.id);
+
   return (
     <TableRow 
       className="cursor-pointer hover:bg-gray-50"
@@ -52,11 +58,21 @@ const WorkOrderRow = ({
           'Unassigned'
         )}
       </TableCell>
-      <TableCell>
-        <WorkOrderStatusBadge status={workOrder.status} />
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <InteractiveWorkOrderStatusBadge
+          status={workOrder.status}
+          workOrderId={workOrder.id}
+          onStatusChange={onStatusChange}
+          isUpdating={isUpdating}
+        />
       </TableCell>
-      <TableCell>
-        <WorkOrderPriorityBadge priority={workOrder.priority} />
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <InteractiveWorkOrderPriorityBadge
+          priority={workOrder.priority}
+          workOrderId={workOrder.id}
+          onPriorityChange={onPriorityChange}
+          isUpdating={isUpdating}
+        />
       </TableCell>
       <TableCell>
         {workOrder.estimated_completion_date 
