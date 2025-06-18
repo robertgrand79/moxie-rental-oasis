@@ -57,65 +57,67 @@ const BlogEditorForm = ({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              {...register('title', { required: 'Title is required' })}
-              placeholder="Enter blog post title"
-            />
-            {errors.title && (
-              <p className="text-sm text-red-600 mt-1">{errors.title.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="excerpt">Excerpt</Label>
-            <Textarea
-              id="excerpt"
-              {...register('excerpt')}
-              placeholder="Brief description of the post..."
-              rows={3}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="tags">Tags (comma-separated)</Label>
-            <Input
-              id="tags"
-              {...register('tags')}
-              placeholder="travel, eugene, accommodation"
-            />
-          </div>
-
-          <div>
-            <ImageUploader
-              uploadedImage={uploadedImage}
-              onImageChange={onImageChange}
-            />
-          </div>
+      {/* Top Section: Basic Info Fields */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <Label htmlFor="title">Title</Label>
+          <Input
+            id="title"
+            {...register('title', { required: 'Title is required' })}
+            placeholder="Enter blog post title"
+          />
+          {errors.title && (
+            <p className="text-sm text-red-600 mt-1">{errors.title.message}</p>
+          )}
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="content">Content</Label>
-            <div className="border rounded-lg overflow-hidden">
-              <TiptapEditor
-                content={content}
-                onChange={handleEditorChange}
-                placeholder="Start writing your blog post..."
-                className="min-h-[400px]"
-              />
-            </div>
-            {errors.content && (
-              <p className="text-sm text-red-600 mt-1">{errors.content.message}</p>
-            )}
-          </div>
+        <div>
+          <Label htmlFor="excerpt">Excerpt</Label>
+          <Textarea
+            id="excerpt"
+            {...register('excerpt')}
+            placeholder="Brief description of the post..."
+            rows={3}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="tags">Tags (comma-separated)</Label>
+          <Input
+            id="tags"
+            {...register('tags')}
+            placeholder="travel, eugene, accommodation"
+          />
         </div>
       </div>
 
+      {/* Middle Section: Featured Image */}
+      <div>
+        <ImageUploader
+          uploadedImage={uploadedImage}
+          onImageChange={onImageChange}
+        />
+      </div>
+
+      {/* Bottom Section: Content Editor (Full Width) */}
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="content">Content</Label>
+          <div className="border rounded-lg overflow-hidden">
+            <TiptapEditor
+              content={content}
+              onChange={handleEditorChange}
+              placeholder="Start writing your blog post..."
+              className="min-h-[500px]"
+            />
+          </div>
+          {errors.content && (
+            <p className="text-sm text-red-600 mt-1">{errors.content.message}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
       <div className="flex justify-between items-center pt-6 border-t">
         <Button 
           type="button" 
