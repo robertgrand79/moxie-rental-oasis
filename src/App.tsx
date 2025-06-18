@@ -7,9 +7,22 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import PublicLayout from '@/components/layouts/PublicLayout';
+import AdminLayoutWrapper from '@/components/layouts/AdminLayoutWrapper';
+
+// Public Pages
+import Index from '@/pages/Index';
+import Properties from '@/pages/Properties';
+import About from '@/pages/About';
+import Contact from '@/pages/Contact';
+import Blog from '@/pages/Blog';
+import Events from '@/pages/Events';
+import Experiences from '@/pages/Experiences';
 import Auth from '@/pages/Auth';
-import AdminProfile from '@/pages/AdminProfile';
+
+// Admin Pages
 import Admin from '@/pages/Admin';
+import AdminProfile from '@/pages/AdminProfile';
 import AdminProperties from '@/pages/admin/AdminProperties';
 import AdminPropertyManagement from '@/pages/admin/AdminPropertyManagement';
 import AdminTaskManagement from '@/pages/admin/AdminTaskManagement';
@@ -57,102 +70,83 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
+        {/* Public Routes wrapped in PublicLayout */}
+        <Route path="/" element={<PublicLayout />}>
+          <Route index element={<Index />} />
+          <Route path="properties" element={<Properties />} />
+          <Route path="about" element={<About />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="blog" element={<Blog />} />
+          <Route path="events" element={<Events />} />
+          <Route path="experiences" element={<Experiences />} />
+        </Route>
+
+        {/* Auth Route (standalone) */}
         <Route path="/auth" element={<Auth />} />
         
-        {/* Main Admin Dashboard */}
-        <Route
-          path="/admin"
-          element={
+        {/* Admin Routes wrapped in AdminLayoutWrapper */}
+        <Route path="/admin" element={<AdminLayoutWrapper />}>
+          <Route index element={
             <ProtectedRoute requiredRole="admin">
               <Admin />
             </ProtectedRoute>
-          }
-        />
-        
-        {/* Admin Profile */}
-        <Route
-          path="/admin/profile"
-          element={
+          } />
+          
+          <Route path="profile" element={
             <ProtectedRoute requiredRole="admin">
               <AdminProfile />
             </ProtectedRoute>
-          }
-        />
-        
-        {/* User Profile (non-admin) */}
-        <Route path="/profile" element={<ProtectedRoute><AdminProfile /></ProtectedRoute>} />
-
-        {/* Property Management */}
-        <Route
-          path="/admin/properties"
-          element={
+          } />
+          
+          <Route path="properties" element={
             <ProtectedRoute requiredRole="admin">
               <AdminProperties />
             </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/admin/property-management"
-          element={
+          } />
+          
+          <Route path="property-management" element={
             <ProtectedRoute requiredRole="admin">
               <AdminPropertyManagement />
             </ProtectedRoute>
-          }
-        />
-
-        {/* Task Management */}
-        <Route
-          path="/admin/tasks"
-          element={
+          } />
+          
+          <Route path="tasks" element={
             <ProtectedRoute requiredRole="admin">
               <AdminTaskManagement />
             </ProtectedRoute>
-          }
-        />
-
-        {/* Work Orders */}
-        <Route
-          path="/admin/workorders"
-          element={
+          } />
+          
+          <Route path="workorders" element={
             <ProtectedRoute requiredRole="admin">
               <AdminWorkOrders />
             </ProtectedRoute>
-          }
-        />
-
-        {/* Contractors */}
-        <Route
-          path="/admin/contractors"
-          element={
+          } />
+          
+          <Route path="contractors" element={
             <ProtectedRoute requiredRole="admin">
               <AdminContractors />
             </ProtectedRoute>
-          }
-        />
-
-        {/* Analytics */}
-        <Route
-          path="/admin/analytics"
-          element={
+          } />
+          
+          <Route path="analytics" element={
             <ProtectedRoute requiredRole="admin">
               <AdminAnalytics />
             </ProtectedRoute>
-          }
-        />
-
-        {/* Enhanced User Management */}
-        <Route
-          path="/admin/user-management-enhanced"
-          element={
+          } />
+          
+          <Route path="user-management-enhanced" element={
             <ProtectedRoute requiredRole="admin">
               <EnhancedAdminUserManagement />
             </ProtectedRoute>
-          }
-        />
+          } />
+        </Route>
 
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/auth" />} />
+        {/* User Profile (non-admin) */}
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <AdminProfile />
+          </ProtectedRoute>
+        } />
       </Routes>
     </Router>
   );
