@@ -20,7 +20,7 @@ const PropertyManagementAlerts = ({
     return null;
   }
 
-  const overdueTasks = tasks.filter(task => 
+  const overdueTasksList = tasks.filter(task => 
     task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
   );
 
@@ -29,12 +29,12 @@ const PropertyManagementAlerts = ({
       <CardHeader>
         <CardTitle className="text-red-800 flex items-center gap-2">
           <AlertTriangle className="h-5 w-5" />
-          Overdue Tasks ({overdueTasks.length})
+          Overdue Tasks ({overdueTasksList.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {overdueTasks.slice(0, 3).map((task) => (
+          {overdueTasksList.slice(0, 3).map((task) => (
             <div key={task.id} className="flex items-center justify-between p-2 bg-white rounded">
               <div>
                 <span className="font-medium">{task.title}</span>
