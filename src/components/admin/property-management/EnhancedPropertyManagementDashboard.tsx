@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useOptimizedPropertyData } from '@/hooks/useOptimizedPropertyData';
@@ -138,7 +137,7 @@ const EnhancedPropertyManagementDashboard = () => {
       await updateProject(projectId, projectData);
       await refreshData();
     } catch (error) {
-      console.error('❌ Failed to update project:', error);
+      console.error('❌ Failed to create project:', error);
     }
   };
 
@@ -251,48 +250,13 @@ const EnhancedPropertyManagementDashboard = () => {
           setIsTaskModalOpen={setIsTaskModalOpen}
           setIsProjectModalOpen={setIsProjectModalOpen}
           setIsWorkOrderModalOpen={setIsWorkOrderModalOpen}
-          generateTurnoverTasks={async (propertyId: string) => {
-            try {
-              console.log('🔄 Generating turnover tasks for property:', propertyId);
-              await generateTurnoverTasks(propertyId);
-              await refreshData();
-            } catch (error) {
-              console.error('❌ Failed to generate turnover tasks:', error);
-            }
-          }}
+          generateTurnoverTasks={handleGenerateTurnoverTasks}
           onToggleBulkMode={() => setBulkMode(!bulkMode)}
           onSelectAllTasks={() => selectAllTasks(filteredTasks.map(t => t.id))}
           onTaskClick={(task) => setEditingTask(task)}
-          onStatusChange={async (taskId: string, status: string) => {
-            const validStatuses = ['pending', 'in_progress', 'completed', 'blocked', 'cancelled'];
-            if (validStatuses.includes(status)) {
-              try {
-                console.log('🔄 Updating task status:', taskId, status);
-                await updateTask(taskId, { status: status as any });
-                await refreshData();
-              } catch (error) {
-                console.error('❌ Failed to update task status:', error);
-              }
-            }
-          }}
-          onDeleteTask={async (taskId: string) => {
-            try {
-              console.log('🗑️ Deleting task:', taskId);
-              await deleteTask(taskId);
-              await refreshData();
-            } catch (error) {
-              console.error('❌ Failed to delete task:', error);
-            }
-          }}
-          onDeleteProject={async (projectId: string) => {
-            try {
-              console.log('🗑️ Deleting project:', projectId);
-              await deleteProject(projectId);
-              await refreshData();
-            } catch (error) {
-              console.error('❌ Failed to delete project:', error);
-            }
-          }}
+          onStatusChange={handleStatusChange}
+          onDeleteTask={handleDeleteTask}
+          onDeleteProject={handleDeleteProject}
           onCreateWorkOrder={() => setIsWorkOrderModalOpen(true)}
           onToggleTaskSelection={toggleTaskSelection}
           clearSelection={clearSelection}

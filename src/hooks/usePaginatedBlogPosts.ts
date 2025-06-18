@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blogPost';
@@ -39,14 +40,10 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
 
       const offset = (page - 1) * POSTS_PER_PAGE;
 
-      // Optimize query by selecting only essential fields for listing
-      const selectFields = publishedOnly 
-        ? 'id, title, excerpt, author, image_url, slug, status, published_at, created_at, updated_at'
-        : 'id, title, excerpt, author, image_url, slug, status, published_at, created_at, updated_at, created_by';
-
+      // Build query with proper field selection
       let query = supabase
         .from('blog_posts')
-        .select(selectFields, { count: 'exact' })
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(offset, offset + POSTS_PER_PAGE - 1);
 
@@ -75,12 +72,12 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
       
       // Map data with proper typing and validation
       const mappedPosts: BlogPost[] = (data || [])
-        .filter((post): post is NonNullable<typeof post> => post !== null && typeof post === 'object')
+        .filter((post): post is any => post !== null && typeof post === 'object' && 'id' in post)
         .map(post => ({
           id: post.id || '',
           title: post.title || '',
           excerpt: post.excerpt || '',
-          content: '', // Don't load full content for listing performance
+          content: post.content || '', // Load full content if available
           author: post.author || '',
           image_url: post.image_url || undefined,
           slug: post.slug || '',
@@ -89,7 +86,7 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
           created_at: post.created_at || '',
           updated_at: post.updated_at || '',
           created_by: post.created_by || '',
-          tags: [] // Initialize empty tags array for listing
+          tags: Array.isArray(post.tags) ? post.tags : [] // Handle tags array properly
         }));
 
       setPosts(mappedPosts);
