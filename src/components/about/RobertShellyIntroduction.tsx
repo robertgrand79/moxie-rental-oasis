@@ -7,48 +7,46 @@ const RobertShellyIntroduction = () => {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Left side - Creative Photo Mosaic */}
+          {/* Left side - Magazine-style Photo Layout */}
           <div className="flex justify-center">
-            <div className="w-full max-w-lg h-96 relative">
-              {/* Hero photo - large and prominent */}
-              <div className="absolute top-0 left-0 w-3/5 h-3/5 overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 z-10">
-                <img 
-                  src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
-                  alt="Robert and Shelly - Main photo"
-                  className="w-full h-full object-cover"
-                />
+            <div className="w-full max-w-2xl">
+              {/* Main hero photo - large and prominent */}
+              <div className="mb-4">
+                <div className="w-full h-80 overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                  <img 
+                    src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
+                    alt="Robert and Shelly - Main photo"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
               
-              {/* Medium photo - top right */}
-              <div className="absolute top-0 right-0 w-2/5 h-1/2 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 z-20">
-                <img 
-                  src="/lovable-uploads/d1f71962-f44a-4556-b875-d05f2a8a537a.png"
-                  alt="Robert and Shelly outdoors"
-                  className="w-full h-full object-cover"
-                />
+              {/* Bottom row - three supporting photos */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+                  <img 
+                    src="/lovable-uploads/d1f71962-f44a-4556-b875-d05f2a8a537a.png"
+                    alt="Robert and Shelly outdoors"
+                    className="w-full h-32 object-cover"
+                  />
+                </div>
+                
+                <div className="overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+                  <img 
+                    src="/lovable-uploads/11aea8e1-1241-453f-bc09-d4c8c7394c8c.png"
+                    alt="Robert and Shelly lifestyle"
+                    className="w-full h-32 object-cover"
+                  />
+                </div>
+                
+                <div className="overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+                  <img 
+                    src="/lovable-uploads/ca979f86-d583-4e11-a233-176ed76d2d7b.png"
+                    alt="Robert and Shelly community"
+                    className="w-full h-32 object-cover"
+                  />
+                </div>
               </div>
-              
-              {/* Medium photo - bottom left */}
-              <div className="absolute bottom-0 left-0 w-1/2 h-2/5 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 z-20">
-                <img 
-                  src="/lovable-uploads/11aea8e1-1241-453f-bc09-d4c8c7394c8c.png"
-                  alt="Robert and Shelly lifestyle"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              
-              {/* Accent photo - small bottom right */}
-              <div className="absolute bottom-0 right-0 w-2/5 h-1/3 overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 z-30">
-                <img 
-                  src="/lovable-uploads/ca979f86-d583-4e11-a233-176ed76d2d7b.png"
-                  alt="Robert and Shelly community"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              
-              {/* Decorative elements for depth */}
-              <div className="absolute top-4 right-4 w-6 h-6 bg-blue-500 rounded-full opacity-20 animate-pulse"></div>
-              <div className="absolute bottom-8 left-8 w-4 h-4 bg-orange-500 rounded-full opacity-30"></div>
             </div>
           </div>
 
