@@ -7,7 +7,7 @@ import { POIFormData } from '@/components/admin/poi/POIFormFields';
 import { toast } from '@/hooks/use-toast';
 
 export const usePOIManager = () => {
-  const { pointsOfInterest, isLoading, createPOI, updatePOI, deletePOI } = usePointsOfInterest();
+  const { pointsOfInterest, isLoading, createPointOfInterest, updatePointOfInterest, deletePointOfInterest } = usePointsOfInterest();
   const { user } = useAuth();
   const { getLocationBasedSuggestions, getCategoryBasedSuggestions } = useCrossContentIntegration();
   
@@ -54,13 +54,13 @@ export const usePOIManager = () => {
 
     try {
       if (editingPOI) {
-        await updatePOI.mutateAsync({ id: editingPOI.id, ...dataWithCreatedBy });
+        await updatePointOfInterest.mutateAsync({ id: editingPOI.id, ...dataWithCreatedBy });
         toast({
           title: 'Success',
           description: 'Point of interest updated successfully'
         });
       } else {
-        await createPOI.mutateAsync(dataWithCreatedBy);
+        await createPointOfInterest.mutateAsync(dataWithCreatedBy);
         toast({
           title: 'Success',
           description: 'Point of interest created successfully'
@@ -91,7 +91,7 @@ export const usePOIManager = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this point of interest?')) {
       try {
-        await deletePOI.mutateAsync(id);
+        await deletePointOfInterest.mutateAsync(id);
         toast({
           title: 'Success',
           description: 'Point of interest deleted successfully'
