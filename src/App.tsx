@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { AuthProvider } from './contexts/AuthContext';
 import PublicLayout from './components/layouts/PublicLayout';
+import Auth from './pages/Auth';
 import Index from './pages/Index';
 import Properties from './pages/Properties';
 import About from './pages/About';
@@ -42,6 +43,9 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <Routes>
+              {/* Standalone Auth Route */}
+              <Route path="/auth" element={<Auth />} />
+
               {/* Public Routes with PublicLayout */}
               <Route path="/" element={<PublicLayout />}>
                 <Route index element={<Index />} />
