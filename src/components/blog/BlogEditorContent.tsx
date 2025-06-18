@@ -45,7 +45,7 @@ const BlogEditorContent = ({
     [];
 
   const handleContentChange = (newContent: string) => {
-    console.log('📝 Content changed in BlogEditorContent:', newContent);
+    console.log('📝 Content changed in BlogEditorContent:', newContent.substring(0, 100));
     setContent(newContent);
     form.setValue('content', newContent);
   };
@@ -54,7 +54,7 @@ const BlogEditorContent = ({
     if (field === 'content') {
       // Convert plain text with line breaks to proper HTML paragraphs
       const formattedContent = ensureHTMLParagraphs(generatedContent);
-      console.log('🤖 AI generated content formatted:', formattedContent);
+      console.log('🤖 AI generated content formatted:', formattedContent.substring(0, 100));
       setContent(formattedContent);
       form.setValue('content', formattedContent);
     } else {
@@ -82,14 +82,12 @@ const BlogEditorContent = ({
           {/* Live Preview below editor when in editor mode */}
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Live Preview</h3>
-            <BlogPostVisualPreview
-              title={watchedValues.title || ''}
-              excerpt={watchedValues.excerpt || ''}
-              content={content}
-              author="Admin"
-              tags={tagsArray}
-              imageUrl={uploadedImage || undefined}
-            />
+            <div className="bg-card rounded-lg p-8 shadow-sm border border-border">
+              <div 
+                className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground prose-code:text-foreground"
+                dangerouslySetInnerHTML={{ __html: content || '<p>Start typing to see your content preview...</p>' }}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -108,14 +106,10 @@ const BlogEditorContent = ({
 
       {/* Preview Panel */}
       {viewMode === 'preview' && (
-        <div>
-          <BlogPostVisualPreview
-            title={watchedValues.title || ''}
-            excerpt={watchedValues.excerpt || ''}
-            content={content}
-            author="Admin"
-            tags={tagsArray}
-            imageUrl={uploadedImage || undefined}
+        <div className="bg-card rounded-lg p-8 shadow-sm border border-border">
+          <div 
+            className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground prose-code:text-foreground"
+            dangerouslySetInnerHTML={{ __html: content || '<p>No content to preview yet...</p>' }}
           />
         </div>
       )}

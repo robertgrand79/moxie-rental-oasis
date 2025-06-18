@@ -26,7 +26,7 @@ const BlogPost = () => {
         const fetchedPost = await blogPostService.fetchBlogPostBySlug(slug);
         if (fetchedPost) {
           setPost(fetchedPost);
-          console.log('✅ Loaded blog post:', fetchedPost.title);
+          console.log('✅ Loaded blog post:', fetchedPost.title, 'Content:', fetchedPost.content.substring(0, 100) + '...');
         } else {
           setNotFound(true);
           console.log('❌ Blog post not found');
@@ -142,12 +142,12 @@ const BlogPost = () => {
         )}
 
         {/* Article Content */}
-        <article className="prose prose-lg max-w-none bg-card rounded-lg p-8 shadow-sm border border-border">
+        <div className="bg-card rounded-lg p-8 shadow-sm border border-border">
           <div 
+            className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground prose-code:text-foreground"
             dangerouslySetInnerHTML={{ __html: post.content }}
-            className="prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground"
           />
-        </article>
+        </div>
 
         {/* Back to Blog Footer */}
         <div className="mt-12 text-center">

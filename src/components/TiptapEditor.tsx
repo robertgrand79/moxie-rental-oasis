@@ -62,7 +62,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
     onUpdate: ({ editor }) => {
       const htmlContent = editor.getHTML();
       const sanitizedContent = sanitizeRichTextContent(htmlContent);
-      console.log('📝 TiptapEditor onUpdate:', { htmlContent, sanitizedContent });
+      console.log('📝 TiptapEditor onUpdate - Original:', htmlContent.substring(0, 100), 'Sanitized:', sanitizedContent.substring(0, 100));
       onChange(sanitizedContent);
     },
   });
@@ -70,7 +70,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
   // Sync content prop changes with editor
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      console.log('🔄 Syncing content prop with editor:', content);
+      console.log('🔄 Syncing content prop with editor. Prop content:', content.substring(0, 100), 'Editor content:', editor.getHTML().substring(0, 100));
       editor.commands.setContent(content, false);
     }
   }, [content, editor]);
@@ -105,6 +105,18 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
     editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   };
 
+  const handleToolbarClick = (command: () => void) => {
+    console.log('🎯 Toolbar button clicked, executing command');
+    command();
+    // Add a small delay to ensure the editor processes the command
+    setTimeout(() => {
+      if (editor) {
+        const newContent = editor.getHTML();
+        console.log('📝 Content after toolbar action:', newContent.substring(0, 100));
+      }
+    }, 10);
+  };
+
   if (!editor) {
     return null;
   }
@@ -118,7 +130,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().toggleBold().run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().toggleBold().run())}
           className={editor.isActive('bold') ? 'bg-gray-200' : ''}
         >
           <Bold className="h-4 w-4" />
@@ -128,7 +140,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().toggleItalic().run())}
           className={editor.isActive('italic') ? 'bg-gray-200' : ''}
         >
           <Italic className="h-4 w-4" />
@@ -138,7 +150,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().toggleStrike().run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().toggleStrike().run())}
           className={editor.isActive('strike') ? 'bg-gray-200' : ''}
         >
           <Strikethrough className="h-4 w-4" />
@@ -148,7 +160,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().toggleCode().run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().toggleCode().run())}
           className={editor.isActive('code') ? 'bg-gray-200' : ''}
         >
           <Code className="h-4 w-4" />
@@ -160,7 +172,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().toggleHeading({ level: 1 }).run())}
           className={editor.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}
         >
           <Heading1 className="h-4 w-4" />
@@ -170,7 +182,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().toggleHeading({ level: 2 }).run())}
           className={editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}
         >
           <Heading2 className="h-4 w-4" />
@@ -180,7 +192,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().toggleHeading({ level: 3 }).run())}
           className={editor.isActive('heading', { level: 3 }) ? 'bg-gray-200' : ''}
         >
           <Heading3 className="h-4 w-4" />
@@ -192,7 +204,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().toggleBulletList().run())}
           className={editor.isActive('bulletList') ? 'bg-gray-200' : ''}
         >
           <List className="h-4 w-4" />
@@ -202,7 +214,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().toggleOrderedList().run())}
           className={editor.isActive('orderedList') ? 'bg-gray-200' : ''}
         >
           <ListOrdered className="h-4 w-4" />
@@ -212,7 +224,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().toggleBlockquote().run())}
           className={editor.isActive('blockquote') ? 'bg-gray-200' : ''}
         >
           <Quote className="h-4 w-4" />
@@ -224,7 +236,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().setTextAlign('left').run())}
           className={editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}
         >
           <AlignLeft className="h-4 w-4" />
@@ -234,7 +246,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().setTextAlign('center').run())}
           className={editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}
         >
           <AlignCenter className="h-4 w-4" />
@@ -244,7 +256,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().setTextAlign('right').run())}
           className={editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}
         >
           <AlignRight className="h-4 w-4" />
@@ -276,7 +288,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().undo().run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().undo().run())}
           disabled={!editor.can().undo()}
         >
           <Undo className="h-4 w-4" />
@@ -286,7 +298,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().redo().run()}
+          onClick={() => handleToolbarClick(() => editor.chain().focus().redo().run())}
           disabled={!editor.can().redo()}
         >
           <Redo className="h-4 w-4" />
@@ -296,7 +308,7 @@ const TiptapEditor = ({ content, onChange, placeholder = "Start writing...", cla
       {/* Editor Content */}
       <EditorContent 
         editor={editor} 
-        className="prose max-w-none p-4 min-h-[200px] focus:outline-none"
+        className="prose prose-lg max-w-none p-4 min-h-[200px] focus:outline-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground prose-code:text-foreground"
       />
     </div>
   );
