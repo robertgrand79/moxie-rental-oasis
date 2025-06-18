@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import BlogForm from '@/components/BlogForm';
 import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
 import BlogPostsList from './BlogPostsList';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BlogManagementTabsProps {
   autoOpenAdd?: boolean;
@@ -14,6 +15,7 @@ const BlogManagementTabs = ({ autoOpenAdd }: BlogManagementTabsProps) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const { blogPosts, addBlogPost, updateBlogPost, deleteBlogPost } = useBlogPosts();
+  const isMobile = useIsMobile();
 
   // Auto-open add form when autoOpenAdd prop is true
   useEffect(() => {
@@ -57,10 +59,13 @@ const BlogManagementTabs = ({ autoOpenAdd }: BlogManagementTabsProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Blog Posts</h2>
+      <div className={`flex ${isMobile ? 'flex-col space-y-4' : 'justify-between items-center'}`}>
+        <h2 className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>Blog Posts</h2>
         {!showAddForm && (
-          <Button onClick={handleAddPost} className="flex items-center">
+          <Button 
+            onClick={handleAddPost} 
+            className={`flex items-center ${isMobile ? 'w-full min-h-[44px] justify-center' : ''}`}
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Post
           </Button>

@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type MenuItem = {
   title: string;
@@ -25,10 +26,11 @@ interface AdminSidebarSectionProps {
 
 const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      <SidebarGroupLabel className={`text-xs font-semibold text-gray-500 uppercase tracking-wider ${isMobile ? 'px-3' : ''}`}>
         {title}
       </SidebarGroupLabel>
       <SidebarGroupContent>
@@ -39,10 +41,16 @@ const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
             
             return (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton asChild isActive={isActive}>
-                  <Link to={item.href} className="flex items-center space-x-3">
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={isActive}
+                  className={isMobile ? 'min-h-[44px]' : ''}
+                >
+                  <Link to={item.href} className={`flex items-center space-x-3 ${isMobile ? 'px-3 py-3' : ''}`}>
                     <IconComponent className="h-5 w-5 text-gray-600" />
-                    <span className="font-medium">{item.title}</span>
+                    <span className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
+                      {item.title}
+                    </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

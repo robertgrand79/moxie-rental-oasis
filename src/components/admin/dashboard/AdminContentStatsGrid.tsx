@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { Plus, Building2, BookOpen, FileText, MapPin, Camera, Star, Mail, Users } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ContentStat {
   title: string;
@@ -38,6 +39,8 @@ const AdminContentStatsGrid = ({
   testimonials, 
   subscriberCount 
 }: AdminContentStatsGridProps) => {
+  const isMobile = useIsMobile();
+
   const contentStats: ContentStat[] = [
     {
       title: 'Properties',
@@ -127,23 +130,29 @@ const AdminContentStatsGrid = ({
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className={`grid gap-4 md:gap-6 ${
+      isMobile 
+        ? 'grid-cols-1' 
+        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+    }`}>
       {contentStats.map((stat) => (
         <Card key={stat.title} className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-          <CardContent className="p-6">
+          <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
             <div className="flex items-center justify-between mb-4">
-              <stat.icon className={`h-8 w-8 ${stat.color}`} />
-              <Badge variant="secondary" className="text-lg font-semibold px-3 py-1">
+              <stat.icon className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} ${stat.color}`} />
+              <Badge variant="secondary" className={`${isMobile ? 'text-base px-2 py-1' : 'text-lg px-3 py-1'} font-semibold`}>
                 {stat.count}
               </Badge>
             </div>
             
-            <h3 className="font-semibold text-gray-900 mb-3 text-lg">{stat.title}</h3>
+            <h3 className={`font-semibold text-gray-900 mb-3 ${isMobile ? 'text-base' : 'text-lg'}`}>
+              {stat.title}
+            </h3>
             
             {stat.additionalStats && (
               <div className="mb-4 space-y-2">
                 {stat.additionalStats.map((addStat, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm text-gray-600">
+                  <div key={index} className={`flex items-center justify-between ${isMobile ? 'text-xs' : 'text-sm'} text-gray-600`}>
                     <div className="flex items-center">
                       {addStat.icon && <addStat.icon className="h-3 w-3 mr-1" />}
                       <span>{addStat.label}:</span>
@@ -155,14 +164,14 @@ const AdminContentStatsGrid = ({
             )}
             
             <div className="space-y-2">
-              <Button asChild size="sm" variant="outline" className="w-full">
+              <Button asChild size={isMobile ? "sm" : "sm"} variant="outline" className={`w-full ${isMobile ? 'min-h-[44px]' : ''}`}>
                 <Link to={stat.actionHref}>
                   <Plus className="h-3 w-3 mr-1" />
                   {stat.actionText}
                 </Link>
               </Button>
               
-              <Button asChild size="sm" variant="ghost" className="w-full">
+              <Button asChild size={isMobile ? "sm" : "sm"} variant="ghost" className={`w-full ${isMobile ? 'min-h-[44px]' : ''}`}>
                 <Link to={stat.href}>
                   Manage All
                 </Link>

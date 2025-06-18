@@ -7,6 +7,7 @@ import LoadingState from '@/components/ui/loading-state';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import PropertyFormContainer from '@/components/admin/properties/PropertyFormContainer';
 import PropertyListContainer from '@/components/admin/properties/PropertyListContainer';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminProperties = () => {
   const {
@@ -22,6 +23,8 @@ const AdminProperties = () => {
     handleFormCancel,
     deleteProperty
   } = usePropertyForm();
+  
+  const isMobile = useIsMobile();
 
   if (loading) {
     return <LoadingState variant="page" message="Loading your properties..." />;
@@ -33,7 +36,7 @@ const AdminProperties = () => {
       variant="gradient"
       icon={<Plus className="h-4 w-4" />}
       disabled={isSubmitting}
-      className="px-6 py-3"
+      className={`${isMobile ? 'w-full min-h-[44px] px-4 py-3' : 'px-6 py-3'}`}
     >
       Add Property
     </EnhancedButton>
@@ -45,7 +48,7 @@ const AdminProperties = () => {
       description={`Manage your rental properties and listings (${properties.length} properties)`}
       actions={pageActions}
     >
-      <div className="p-6">
+      <div className={isMobile ? 'p-4' : 'p-6'}>
         {showAddForm && (
           <div className="mb-6">
             <PropertyFormContainer

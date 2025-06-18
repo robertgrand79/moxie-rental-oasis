@@ -6,10 +6,12 @@ import { toast } from '@/hooks/use-toast';
 import { User, LogOut } from 'lucide-react';
 import { SidebarFooter } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminSidebarFooter = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -32,18 +34,20 @@ const AdminSidebarFooter = () => {
 
   return (
     <SidebarFooter>
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg flex-1">
+      <div className={`border-t border-gray-200 ${isMobile ? 'p-3' : 'p-4'}`}>
+        <div className={`flex items-center space-x-3 ${isMobile ? 'mb-2' : 'mb-3'}`}>
+          <div className={`flex items-center bg-gray-50 rounded-lg flex-1 ${isMobile ? 'px-2 py-2' : 'px-3 py-2'}`}>
             <User className="h-4 w-4 text-icon-gray mr-2" />
-            <span className="text-sm font-medium text-gray-700 truncate">{displayName}</span>
+            <span className={`font-medium text-gray-700 truncate ${isMobile ? 'text-xs' : 'text-sm'}`}>
+              {displayName}
+            </span>
           </div>
         </div>
         <Button
           variant="outline"
-          size="sm"
+          size={isMobile ? "sm" : "sm"}
           onClick={handleSignOut}
-          className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+          className={`w-full border-gray-300 text-gray-700 hover:bg-gray-50 ${isMobile ? 'min-h-[44px] text-xs' : ''}`}
         >
           <LogOut className="h-4 w-4 mr-2 text-icon-gray" />
           Sign Out
