@@ -49,7 +49,7 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
   // Update content in form when it changes
   useEffect(() => {
     console.log('📝 BlogForm content updated:', content);
-    form.setValue('content', content);
+    form.setValue('content', content, { shouldValidate: false });
   }, [content, form]);
 
   const onFormSubmit = (data: any) => {

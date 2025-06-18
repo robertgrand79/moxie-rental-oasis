@@ -37,16 +37,26 @@ const BlogEditorForm = ({
   isEditing,
   onCancel
 }: BlogEditorFormProps) => {
-  const { register, handleSubmit, formState: { errors } } = form;
+  const { register, handleSubmit, formState: { errors }, setValue } = form;
 
   const handleEditorChange = (newContent: string) => {
     console.log('📝 TiptapEditor content changed:', newContent);
     onContentChange(newContent);
-    form.setValue('content', newContent);
+    setValue('content', newContent);
+  };
+
+  const handleSaveDraft = () => {
+    setValue('status', 'draft');
+    handleSubmit(onSubmit)();
+  };
+
+  const handlePublish = () => {
+    setValue('status', 'published');
+    handleSubmit(onSubmit)();
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
@@ -117,21 +127,21 @@ const BlogEditorForm = ({
         
         <div className="space-x-2">
           <Button 
-            type="submit" 
+            type="button" 
             variant="outline"
-            onClick={() => form.setValue('status', 'draft')}
+            onClick={handleSaveDraft}
           >
             Save as Draft
           </Button>
           <Button 
-            type="submit"
-            onClick={() => form.setValue('status', 'published')}
+            type="button"
+            onClick={handlePublish}
           >
             {isEditing ? 'Update Post' : 'Publish Post'}
           </Button>
         </div>
       </div>
-    </form>
+    </div>
   );
 };
 
