@@ -1,45 +1,100 @@
 
 import React from 'react';
+import { Home, Award, Heart, Star } from 'lucide-react';
 
 const RobertShellyIntroduction = () => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-8 items-center">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-12 items-start">
+          {/* Left side - Photo Grid */}
           <div>
-            <img 
-              src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
-              alt="Robert and Shelly - Founders of Moxie Vacation Rentals"
-              className="rounded-lg shadow-sm w-full h-64 object-cover"
-            />
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <img 
+                src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
+                alt="Robert and Shelly - Founders"
+                className="rounded-lg shadow-sm w-full h-48 object-cover"
+              />
+              <img 
+                src="/lovable-uploads/d1f71962-f44a-4556-b875-d05f2a8a537a.png"
+                alt="Community involvement"
+                className="rounded-lg shadow-sm w-full h-48 object-cover"
+              />
+              <img 
+                src="/lovable-uploads/11aea8e1-1241-453f-bc09-d4c8c7394c8c.png"
+                alt="Oregon lifestyle"
+                className="rounded-lg shadow-sm w-full h-48 object-cover"
+              />
+              <img 
+                src="/lovable-uploads/dfe77e53-d5e7-44f1-be6c-7fd801ecc7fa.png"
+                alt="Family moments"
+                className="rounded-lg shadow-sm w-full h-48 object-cover"
+              />
+            </div>
           </div>
-          
-          <div className="space-y-6">
+
+          {/* Right side - Content */}
+          <div className="space-y-8">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Meet Robert & Shelly</h2>
-              <p className="text-lg text-gray-700 leading-relaxed">
+              <p className="text-lg text-gray-700 leading-relaxed mb-6">
                 We're thrilled to welcome you to Moxie Vacation Rentals, where Oregon hospitality meets exceptional service.
+                As lifelong Oregon residents, we've spent decades exploring every corner of this beautiful state.
               </p>
             </div>
-            
-            <p className="text-gray-600 leading-relaxed">
-              As lifelong Oregon residents, we've spent decades exploring every corner of this beautiful state. 
-              From the rugged coastline to the majestic Cascade Mountains, we know the hidden gems and local favorites 
-              that make Oregon truly special.
-            </p>
-            
-            <div className="grid grid-cols-3 gap-4 pt-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">30+</div>
-                <div className="text-sm text-gray-600">Years in Oregon</div>
+
+            {/* Feature boxes with colored backgrounds */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Home className="h-5 w-5 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900 text-sm mb-2">Local Expertise</h4>
+                <p className="text-xs text-gray-600">Deep roots in Oregon with knowledge of every hidden gem</p>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">100%</div>
-                <div className="text-sm text-gray-600">Local Expertise</div>
+              
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Award className="h-5 w-5 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900 text-sm mb-2">Quality Focus</h4>
+                <p className="text-xs text-gray-600">Every property carefully curated and maintained</p>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">5★</div>
-                <div className="text-sm text-gray-600">Guest Experience</div>
+              
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Heart className="h-5 w-5 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900 text-sm mb-2">Passionate Hosts</h4>
+                <p className="text-xs text-gray-600">Genuine love for Oregon and exceptional service</p>
+              </div>
+              
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+                <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Star className="h-5 w-5 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900 text-sm mb-2">Family Values</h4>
+                <p className="text-xs text-gray-600">Family-owned business creating memorable experiences</p>
+              </div>
+            </div>
+
+            {/* Quote section */}
+            <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-blue-500">
+              <blockquote className="text-lg text-gray-700 italic mb-4">
+                "We believe in creating spaces where families can come together, where memories are made, 
+                and where the beauty of Oregon becomes part of your story."
+              </blockquote>
+              <p className="font-semibold text-gray-900">— Robert & Shelly</p>
+            </div>
+
+            {/* Bottom tagline and tags */}
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">Your local ambassadors to the heart of Oregon</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">Oregon</span>
+                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Local</span>
+                <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">Quality</span>
+                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">Family</span>
               </div>
             </div>
           </div>
