@@ -1,62 +1,13 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blogPost';
-import { toast } from '@/hooks/use-toast';
+import { blogCache } from './blog/blogCache';
+import { handleBlogServiceError } from './blog/blogErrorHandler';
+import { BlogQueryBuilder } from './blog/blogQueryBuilder';
+import { transformToBlogPostSummary, transformToFullBlogPost } from './blog/blogTransforms';
 
-const isNetworkError = (error: any): boolean => {
-  return error?.message?.includes('Failed to fetch') || 
-         error?.message?.includes('Network request failed') ||
-         error?.name === 'NetworkError' ||
-         error?.code === 'NETWORK_ERROR';
-};
-
-const handleServiceError = (operation: string, error: any, showToast = true) => {
-  console.error(`❌ ${operation} error:`, error);
-  
-  let errorMessage = 'An unexpected error occurred';
-  
-  if (isNetworkError(error)) {
-    errorMessage = 'Network connection error. Please check your internet connection.';
-  } else if (error?.message) {
-    errorMessage = error.message;
-  }
-  
-  if (showToast) {
-    toast({
-      title: 'Error',
-      description: errorMessage,
-      variant: 'destructive'
-    });
-  }
-  
-  throw new Error(errorMessage);
-};
-
-// Lightweight blog post type for listings (without full content)
-export interface BlogPostSummary {
-  id: string;
-  title: string;
-  excerpt: string;
-  author: string;
-  published_at: string | null;
-  image_url?: string;
-  tags: string[];
-  slug: string;
-  status: 'draft' | 'published';
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-}
-
-export interface PaginatedBlogResponse {
-  posts: BlogPostSummary[];
-  totalCount: number;
-  hasMore: boolean;
-}
-
-// Simple cache for blog posts
-const blogCache = new Map<string, { data: PaginatedBlogResponse; timestamp: number }>();
-const CACHE_DURATION = 60000; // 1 minute cache
+// Re-export types for backward compatibility
+export type { BlogPostSummary, PaginatedBlogResponse, BlogStats } from './blog/types';
+import type { BlogPostSummary, PaginatedBlogResponse, BlogStats } from './blog/types';
 
 export const optimizedBlogService = {
   // Fetch blog post summaries for listings (without full content)
@@ -70,58 +21,31 @@ export const optimizedBlogService = {
     console.log('🔍 Fetching blog post summaries, page:', page, 'limit:', limit, 'publishedOnly:', publishedOnly);
     
     // Create cache key
-    const cacheKey = `${publishedOnly}-${page}-${limit}-${searchQuery || ''}-${category || ''}`;
-    const cached = blogCache.get(cacheKey);
+    const cacheKey = blogCache.createKey({
+      publishedOnly,
+      page,
+      limit,
+      searchQuery: searchQuery || '',
+      category: category || ''
+    });
     
     // Return cached data if still valid
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    const cached = blogCache.get<PaginatedBlogResponse>(cacheKey);
+    if (cached) {
       console.log('📦 Returning cached blog posts');
-      return cached.data;
+      return cached;
     }
     
     try {
-      const offset = (page - 1) * limit;
-
-      // Build optimized query with better performance hints
-      let query = supabase
-        .from('blog_posts')
-        .select(`
-          id,
-          title,
-          excerpt,
-          author,
-          published_at,
-          image_url,
-          tags,
-          slug,
-          status,
-          created_at,
-          updated_at,
-          created_by
-        `, { count: 'exact' })
-        .range(offset, offset + limit - 1);
-
-      // Apply filters first for better query optimization
-      if (publishedOnly) {
-        query = query.eq('status', 'published');
-      }
-
-      if (searchQuery && searchQuery.trim()) {
-        query = query.or(`title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%`);
-      }
-
-      if (category && category !== 'all') {
-        if (category === 'robert-shelly') {
-          query = query.contains('tags', ["Robert & Shelly's Travels"]);
-        } else {
-          query = query.contains('tags', [category]);
-        }
-      }
-
-      // Always order by created_at last for better index usage
-      query = query.order('created_at', { ascending: false });
-
       const startTime = Date.now();
+      const query = BlogQueryBuilder.buildSummariesQuery(
+        publishedOnly,
+        page,
+        limit,
+        searchQuery,
+        category
+      );
+      
       const { data, error, count } = await query;
       const endTime = Date.now();
       
@@ -129,32 +53,26 @@ export const optimizedBlogService = {
 
       if (error) {
         console.error('Database error:', error);
-        handleServiceError('Blog post summaries fetch', error, false);
-        return { posts: [], totalCount: 0, hasMore: false };
+        handleBlogServiceError('Blog post summaries fetch', error, false);
       }
 
-      const mappedPosts: BlogPostSummary[] = (data || []).map(post => ({
-        ...post,
-        status: post.status as 'published' | 'draft',
-        tags: Array.isArray(post.tags) ? post.tags : []
-      }));
+      const mappedPosts: BlogPostSummary[] = (data || []).map(transformToBlogPostSummary);
 
       console.log('✅ Fetched blog post summaries:', mappedPosts.length, 'Total count:', count);
       
-      const result = {
+      const result: PaginatedBlogResponse = {
         posts: mappedPosts,
         totalCount: count || 0,
-        hasMore: (count || 0) > offset + limit
+        hasMore: (count || 0) > ((page - 1) * limit) + limit
       };
 
       // Cache the result
-      blogCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      blogCache.set(cacheKey, result);
       
       return result;
     } catch (error) {
       console.error('Service error:', error);
-      handleServiceError('Blog post summaries fetch', error, false);
-      return { posts: [], totalCount: 0, hasMore: false };
+      handleBlogServiceError('Blog post summaries fetch', error, false);
     }
   },
 
@@ -168,37 +86,23 @@ export const optimizedBlogService = {
     console.log('🔍 Fetching full blog post by slug:', slug);
     
     try {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('slug', slug)
-        .eq('status', 'published')
-        .maybeSingle();
+      const { data, error } = await BlogQueryBuilder.buildFullPostQuery(slug);
 
       if (error) {
-        handleServiceError('Full blog post fetch', error);
-        return null;
+        handleBlogServiceError('Full blog post fetch', error);
       }
 
       console.log('✅ Fetched full blog post:', data?.title || 'Not found');
-      return data ? {
-        ...data,
-        status: data.status as 'published' | 'draft',
-        tags: Array.isArray(data.tags) ? data.tags : []
-      } : null;
+      return data ? transformToFullBlogPost(data) : null;
     } catch (error) {
-      handleServiceError('Full blog post fetch', error);
-      return null;
+      handleBlogServiceError('Full blog post fetch', error);
     }
   },
 
   // Get blog post stats (for admin dashboard)
-  async getBlogStats(): Promise<{ total: number; published: number; drafts: number }> {
+  async getBlogStats(): Promise<BlogStats> {
     try {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('status')
-        .order('created_at', { ascending: false });
+      const { data, error } = await BlogQueryBuilder.buildStatsQuery();
 
       if (error) {
         console.error('Error fetching blog stats:', error);
