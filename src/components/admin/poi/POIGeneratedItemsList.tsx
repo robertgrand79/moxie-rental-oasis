@@ -5,23 +5,23 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 
-interface LifestyleGeneratedItemsListProps {
+interface POIGeneratedItemsListProps {
   generatedItems: any[];
   onItemsGenerated: (items: any[]) => void;
   setGeneratedItems: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
-const LifestyleGeneratedItemsList = ({
+const POIGeneratedItemsList = ({
   generatedItems,
   onItemsGenerated,
   setGeneratedItems
-}: LifestyleGeneratedItemsListProps) => {
+}: POIGeneratedItemsListProps) => {
   const handleApplyAll = () => {
     onItemsGenerated(generatedItems);
     setGeneratedItems([]);
     toast({
       title: 'Success',
-      description: `Applied ${generatedItems.length} lifestyle items to your gallery!`
+      description: `Applied ${generatedItems.length} POI items to your database!`
     });
   };
 
@@ -30,7 +30,7 @@ const LifestyleGeneratedItemsList = ({
     setGeneratedItems(prev => prev.filter(i => i !== item));
     toast({
       title: 'Success',
-      description: 'Lifestyle item added to your gallery!'
+      description: 'POI item added to your database!'
     });
   };
 
@@ -41,7 +41,7 @@ const LifestyleGeneratedItemsList = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Generated Items</h3>
+        <h3 className="text-lg font-semibold">Generated POI Items</h3>
         <Button onClick={handleApplyAll} variant="default">
           Apply All {generatedItems.length} Items
         </Button>
@@ -49,7 +49,7 @@ const LifestyleGeneratedItemsList = ({
       
       <div className="grid gap-4">
         {generatedItems.map((item, index) => {
-          if (!item || !item.title) {
+          if (!item || !item.name) {
             return null;
           }
           
@@ -58,16 +58,17 @@ const LifestyleGeneratedItemsList = ({
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-semibold">{item.title}</h4>
+                    <h4 className="font-semibold">{item.name}</h4>
                     {item.category && <Badge variant="outline">{item.category}</Badge>}
                     {item.is_featured && <Badge>Featured</Badge>}
                   </div>
                   {item.description && (
                     <p className="text-sm text-gray-600 mb-2">{item.description}</p>
                   )}
-                  <div className="text-sm text-gray-500">
-                    {item.location && <p>📍 {item.location}</p>}
-                    {item.activity_type && <p>🏃 {item.activity_type}</p>}
+                  <div className="text-sm text-gray-500 space-y-1">
+                    {item.address && <p>📍 {item.address}</p>}
+                    {item.phone && <p>📞 {item.phone}</p>}
+                    {item.rating && <p>⭐ {item.rating}/5</p>}
                   </div>
                 </div>
                 <Button 
@@ -86,4 +87,4 @@ const LifestyleGeneratedItemsList = ({
   );
 };
 
-export default LifestyleGeneratedItemsList;
+export default POIGeneratedItemsList;

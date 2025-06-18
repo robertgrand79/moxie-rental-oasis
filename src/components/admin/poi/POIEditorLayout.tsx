@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +10,7 @@ import POIPreview from './POIPreview';
 import POIAllFieldsGenerator from './POIAllFieldsGenerator';
 import POIGrid from './POIGrid';
 import POIStatusFilter from './POIStatusFilter';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface POIEditorLayoutProps {
   pointsOfInterest: PointOfInterest[];
@@ -37,6 +37,7 @@ const POIEditorLayout = ({
   enhancingId,
   getSuggestions
 }: POIEditorLayoutProps) => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('list');
   const [editingItem, setEditingItem] = useState<PointOfInterest | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -132,14 +133,15 @@ const POIEditorLayout = ({
     setActiveTab('list');
   };
 
-  const handleAIGenerated = (generatedItems: any[]) => {
+  const handleAIGenerated = async (generatedItems: any[]) => {
     // Handle multiple generated items
-    generatedItems.forEach(item => {
-      onSubmit({
+    for (const item of generatedItems) {
+      await onSubmit({
         ...item,
+        created_by: user?.id || '',
         status: 'draft' // AI generated items start as drafts
       });
-    });
+    }
   };
 
   return (
