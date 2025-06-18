@@ -13,6 +13,7 @@ const BlogManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
 
+  // Use more efficient pagination for admin - smaller page size for faster loading
   const {
     posts,
     loading,
@@ -25,7 +26,7 @@ const BlogManagement = () => {
     nextPage,
     previousPage,
     refetch,
-  } = usePaginatedBlogPosts(false);
+  } = usePaginatedBlogPosts(false); // Include drafts for admin
 
   const handleAddPost = () => {
     setEditingPost(null);

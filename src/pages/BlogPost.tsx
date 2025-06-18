@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, User, ArrowLeft, Tag } from 'lucide-react';
-import { blogPostService } from '@/services/blogPostService';
+import { optimizedBlogService } from '@/services/optimizedBlogService';
 import { BlogPost as BlogPostType } from '@/types/blogPost';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,10 +23,10 @@ const BlogPost = () => {
       setNotFound(false);
       
       try {
-        const fetchedPost = await blogPostService.fetchBlogPostBySlug(slug);
+        const fetchedPost = await optimizedBlogService.fetchFullBlogPost(slug);
         if (fetchedPost) {
           setPost(fetchedPost);
-          console.log('✅ Loaded blog post:', fetchedPost.title, 'Content:', fetchedPost.content.substring(0, 100) + '...');
+          console.log('✅ Loaded blog post:', fetchedPost.title);
         } else {
           setNotFound(true);
           console.log('❌ Blog post not found');
@@ -137,6 +137,7 @@ const BlogPost = () => {
               src={post.image_url}
               alt={post.title}
               className="w-full h-auto object-cover"
+              loading="eager"
             />
           </div>
         )}

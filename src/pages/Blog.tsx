@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Calendar, User, ArrowRight, BookOpen, Plane, MapPin } from 'lucide-react';
-import { useBlogPosts } from '@/hooks/useBlogPosts';
+import { Search, Calendar, User, ArrowRight, BookOpen, Plane, MapPin, Loader2 } from 'lucide-react';
+import { useOptimizedBlogPosts } from '@/hooks/useOptimizedBlogPosts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -10,31 +10,40 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import { getTagColor } from '@/utils/blogPostUtils';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const Blog = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const { blogPosts, loading } = useBlogPosts({ publishedOnly: true });
-
-  console.log('🎯 Blog page - posts:', blogPosts.length, 'loading:', loading);
-
-  const filteredPosts = blogPosts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesCategory = selectedCategory === 'all' || 
-      (selectedCategory === 'robert-shelly' && post.tags?.includes("Robert & Shelly's Travels")) ||
-      (selectedCategory !== 'robert-shelly' && post.tags?.some(tag => tag.toLowerCase().includes(selectedCategory.toLowerCase())));
-    
-    return matchesSearch && matchesCategory;
+  
+  // Debounce search query to reduce API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  
+  const { 
+    posts: blogPosts, 
+    loading, 
+    hasMore, 
+    totalCount,
+    loadMore,
+    isLoadingMore 
+  } = useOptimizedBlogPosts({ 
+    publishedOnly: true,
+    searchQuery: debouncedSearchQuery,
+    category: selectedCategory,
+    pageSize: 12
   });
 
-  const robertShellyPosts = blogPosts.filter(post => 
-    post.tags?.includes("Robert & Shelly's Travels")
-  );
+  console.log('🎯 Blog page - posts:', blogPosts.length, 'loading:', loading, 'hasMore:', hasMore);
 
-  const featuredPost = blogPosts.find(post => post.tags?.includes('featured')) || blogPosts[0];
+  // Memoize expensive calculations
+  const { robertShellyPosts, featuredPost } = useMemo(() => {
+    const robertShellyPosts = blogPosts.filter(post => 
+      post.tags?.includes("Robert & Shelly's Travels")
+    );
+    const featuredPost = blogPosts.find(post => post.tags?.includes('featured')) || blogPosts[0];
+    
+    return { robertShellyPosts, featuredPost };
+  }, [blogPosts]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -53,7 +62,7 @@ const Blog = () => {
     { id: 'destinations', name: 'Destinations', icon: MapPin }
   ];
 
-  if (loading) {
+  if (loading && blogPosts.length === 0) {
     return (
       <div className="min-h-screen bg-background py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -64,16 +73,18 @@ const Blog = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
                 {[1, 2, 3, 4].map((i) => (
                   <Card key={i} className="overflow-hidden">
-                    <Skeleton className="h-48 w-full" />
-                    <CardContent className="p-6">
-                      <Skeleton className="h-6 w-full mb-2" />
-                      <Skeleton className="h-4 w-3/4 mb-4" />
-                      <Skeleton className="h-4 w-full mb-2" />
-                      <Skeleton className="h-4 w-2/3" />
-                    </CardContent>
+                    <div className="md:flex">
+                      <Skeleton className="md:w-1/3 h-48 md:h-full" />
+                      <div className="md:w-2/3 p-6">
+                        <Skeleton className="h-6 w-full mb-2" />
+                        <Skeleton className="h-4 w-3/4 mb-4" />
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-4 w-2/3" />
+                      </div>
+                    </div>
                   </Card>
                 ))}
               </div>
@@ -136,10 +147,17 @@ const Blog = () => {
               />
             </div>
           </div>
+
+          {/* Results count */}
+          {totalCount > 0 && (
+            <p className="text-sm text-muted-foreground mt-4">
+              {totalCount} {totalCount === 1 ? 'post' : 'posts'} found
+            </p>
+          )}
         </div>
 
         {/* Robert & Shelly's Featured Section */}
-        {robertShellyPosts.length > 0 && selectedCategory === 'all' && (
+        {robertShellyPosts.length > 0 && selectedCategory === 'all' && !searchQuery && (
           <div className="mb-16">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-foreground mb-4 flex items-center justify-center gap-3">
@@ -160,6 +178,7 @@ const Blog = () => {
                         src={post.image_url}
                         alt={post.title}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
                       />
                     </div>
                   )}
@@ -204,11 +223,11 @@ const Blog = () => {
           </div>
         )}
 
-        {/* Main Content - Now using 3/4 layout with sidebar */}
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-16">
           {/* Blog Posts */}
           <div className="lg:col-span-3">
-            {filteredPosts.length === 0 ? (
+            {blogPosts.length === 0 && !loading ? (
               <div className="text-center py-16">
                 <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-2xl font-semibold text-foreground mb-2">
@@ -238,9 +257,9 @@ const Blog = () => {
                   </h2>
                 )}
                 
-                {/* Stacked article layout */}
+                {/* Blog posts grid */}
                 <div className="space-y-6">
-                  {filteredPosts.map((post) => (
+                  {blogPosts.map((post) => (
                     <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-card border-border hover:shadow-lg">
                       <div className="md:flex">
                         {post.image_url && (
@@ -249,6 +268,7 @@ const Blog = () => {
                               src={post.image_url}
                               alt={post.title}
                               className="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
                             />
                           </div>
                         )}
@@ -294,6 +314,27 @@ const Blog = () => {
                     </Card>
                   ))}
                 </div>
+
+                {/* Load More Button */}
+                {hasMore && (
+                  <div className="text-center pt-8">
+                    <Button
+                      onClick={loadMore}
+                      disabled={isLoadingMore}
+                      variant="outline"
+                      className="bg-card hover:bg-accent"
+                    >
+                      {isLoadingMore ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Loading more posts...
+                        </>
+                      ) : (
+                        'Load More Posts'
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -301,7 +342,7 @@ const Blog = () => {
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-8">
             {/* Featured Post */}
-            {featuredPost && selectedCategory === 'all' && (
+            {featuredPost && selectedCategory === 'all' && !searchQuery && (
               <Card className="bg-muted border-border">
                 <CardHeader>
                   <CardTitle className="text-lg text-foreground">Featured Story</CardTitle>
@@ -312,6 +353,7 @@ const Blog = () => {
                       src={featuredPost.image_url}
                       alt={featuredPost.title}
                       className="w-full h-32 object-cover rounded-lg mb-4"
+                      loading="lazy"
                     />
                   )}
                   <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
@@ -354,7 +396,7 @@ const Blog = () => {
           </div>
         </div>
 
-        {/* Newsletter Signup Section - Now at the bottom */}
+        {/* Newsletter Signup Section */}
         <div className="border-t border-border pt-16">
           <div className="max-w-2xl mx-auto text-center">
             <TravelNewsletterSignup />
