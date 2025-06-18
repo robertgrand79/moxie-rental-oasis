@@ -70,12 +70,22 @@ const LifestyleAllFieldsGenerator = ({
 
       if (error) throw error;
 
+      // Filter out any undefined or invalid items and ensure they have required properties
       const items = Array.isArray(data.generatedContent) ? data.generatedContent : [data.generatedContent];
-      setGeneratedItems(items);
+      const validItems = items.filter(item => 
+        item && 
+        typeof item === 'object' && 
+        item.title && 
+        typeof item.title === 'string' &&
+        item.description &&
+        typeof item.description === 'string'
+      );
+
+      setGeneratedItems(validItems);
       
       toast({
         title: 'Success',
-        description: `Generated ${items.length} lifestyle items successfully!`
+        description: `Generated ${validItems.length} lifestyle items successfully!`
       });
     } catch (error) {
       console.error('Error generating lifestyle items:', error);
@@ -178,31 +188,40 @@ const LifestyleAllFieldsGenerator = ({
             </div>
             
             <div className="grid gap-4">
-              {generatedItems.map((item, index) => (
-                <Card key={index} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-semibold">{item.title}</h4>
-                        <Badge variant="outline">{item.category}</Badge>
-                        {item.is_featured && <Badge>Featured</Badge>}
+              {generatedItems.map((item, index) => {
+                // Additional safety check to ensure item has required properties
+                if (!item || !item.title) {
+                  return null;
+                }
+                
+                return (
+                  <Card key={index} className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-semibold">{item.title}</h4>
+                          {item.category && <Badge variant="outline">{item.category}</Badge>}
+                          {item.is_featured && <Badge>Featured</Badge>}
+                        </div>
+                        {item.description && (
+                          <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                        )}
+                        <div className="text-sm text-gray-500">
+                          {item.location && <p>📍 {item.location}</p>}
+                          {item.activity_type && <p>🏃 {item.activity_type}</p>}
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                      <div className="text-sm text-gray-500">
-                        <p>📍 {item.location}</p>
-                        {item.activity_type && <p>🏃 {item.activity_type}</p>}
-                      </div>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleApplySelected(item)}
+                        variant="outline"
+                      >
+                        Add This Item
+                      </Button>
                     </div>
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleApplySelected(item)}
-                      variant="outline"
-                    >
-                      Add This Item
-                    </Button>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}
