@@ -536,6 +536,7 @@ export type Database = {
           is_active: boolean | null
           is_featured: boolean | null
           location: string | null
+          status: string
           title: string
           updated_at: string
         }
@@ -551,6 +552,7 @@ export type Database = {
           is_active?: boolean | null
           is_featured?: boolean | null
           location?: string | null
+          status?: string
           title: string
           updated_at?: string
         }
@@ -566,6 +568,7 @@ export type Database = {
           is_active?: boolean | null
           is_featured?: boolean | null
           location?: string | null
+          status?: string
           title?: string
           updated_at?: string
         }

@@ -38,8 +38,15 @@ const LifestyleGalleryCard = ({
               Featured
             </Badge>
           )}
+          {item.status === 'draft' && (
+            <Badge variant="outline" className="bg-gray-100">
+              Draft
+            </Badge>
+          )}
           {!item.is_active && (
-            <Badge variant="outline">Inactive</Badge>
+            <Badge variant="outline" className="bg-red-100 text-red-800">
+              Inactive
+            </Badge>
           )}
         </div>
       </div>
@@ -89,6 +96,9 @@ const LifestyleGalleryCard = ({
               {item.activity_type}
             </Badge>
           )}
+          <Badge variant={item.status === 'published' ? 'default' : 'secondary'} className="text-xs">
+            {item.status}
+          </Badge>
         </div>
         
         {item.location && (
