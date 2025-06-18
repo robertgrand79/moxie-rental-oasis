@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { UseFormReturn } from 'react-hook-form';
 import BlogEditorHeader from './blog/BlogEditorHeader';
 import BlogEditorContent from './blog/BlogEditorContent';
 import { ensureHTMLParagraphs } from '@/utils/contentFormatting';
+import { BlogPost } from '@/types/blogPost';
 
 interface BlogFormData {
   title: string;
@@ -22,6 +24,8 @@ interface BlogEditorLayoutProps {
   onSubmit: (data: BlogFormData) => void;
   isEditing: boolean;
   onCancel: () => void;
+  autoSavedPost?: BlogPost | null;
+  lastSaved?: Date | null;
 }
 
 const BlogEditorLayout = ({
@@ -32,7 +36,9 @@ const BlogEditorLayout = ({
   setUploadedImage,
   onSubmit,
   isEditing,
-  onCancel
+  onCancel,
+  autoSavedPost,
+  lastSaved
 }: BlogEditorLayoutProps) => {
   const [viewMode, setViewMode] = useState<'editor' | 'preview' | 'ai'>('editor');
 
@@ -55,6 +61,8 @@ const BlogEditorLayout = ({
         <BlogEditorHeader
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          autoSavedPost={autoSavedPost}
+          lastSaved={lastSaved}
         />
       </CardHeader>
       <CardContent>

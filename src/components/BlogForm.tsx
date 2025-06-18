@@ -1,20 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import BlogEditorLayout from './BlogEditorLayout';
-
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  published_at: string | null;
-  image_url?: string;
-  tags: string[];
-  slug: string;
-  status: 'draft' | 'published';
-}
+import { useAutoSave } from '@/hooks/useAutoSave';
+import { BlogPost } from '@/types/blogPost';
 
 interface BlogFormProps {
   post?: BlogPost | null;
@@ -25,6 +14,8 @@ interface BlogFormProps {
 const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(post?.image_url || null);
   const [content, setContent] = useState(post?.content || '');
+  const [autoSavedPost, setAutoSavedPost] = useState<BlogPost | null>(post || null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const form = useForm({
     defaultValues: {
@@ -36,6 +27,29 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
     }
   });
 
+  const watchedValues = form.watch();
+
+  // Auto-save functionality
+  const { autoSave } = useAutoSave({
+    data: {
+      title: watchedValues.title,
+      excerpt: watchedValues.excerpt,
+      content: content,
+      tags: watchedValues.tags
+    },
+    postId: autoSavedPost?.id,
+    onAutoSave: (savedPost) => {
+      setAutoSavedPost(savedPost);
+      setLastSaved(new Date());
+    },
+    delay: 3000
+  });
+
+  // Update content in form when it changes
+  useEffect(() => {
+    form.setValue('content', content);
+  }, [content, form]);
+
   const onFormSubmit = (data: any) => {
     const formData = {
       ...data,
@@ -45,8 +59,28 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       author: 'Admin',
       slug: data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     };
+
+    // If we have an auto-saved post, update it instead of creating new
+    if (autoSavedPost && !post) {
+      formData.id = autoSavedPost.id;
+    }
+
     onSubmit(formData);
   };
+
+  // Warn user before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const hasContent = watchedValues.title || watchedValues.excerpt || content || watchedValues.tags;
+      if (hasContent && !lastSaved) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [watchedValues, content, lastSaved]);
 
   return (
     <div className="space-y-6">
@@ -59,6 +93,8 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
         onSubmit={onFormSubmit}
         isEditing={!!post}
         onCancel={onCancel}
+        autoSavedPost={autoSavedPost}
+        lastSaved={lastSaved}
       />
     </div>
   );

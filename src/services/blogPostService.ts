@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blogPost';
 import { toast } from '@/hooks/use-toast';
@@ -113,10 +112,15 @@ export const blogPostService = {
       }
 
       console.log('✅ Created blog post:', data.title);
-      toast({
-        title: 'Success',
-        description: 'Blog post created successfully!'
-      });
+      
+      // Only show toast for published posts or manual saves
+      if (postData.status === 'published') {
+        toast({
+          title: 'Success',
+          description: 'Blog post published successfully!'
+        });
+      }
+      
       // Cast the status field to the correct type
       return {
         ...data,
@@ -145,10 +149,15 @@ export const blogPostService = {
       }
 
       console.log('✅ Updated blog post:', data.title);
-      toast({
-        title: 'Success',
-        description: 'Blog post updated successfully!'
-      });
+      
+      // Only show toast for published posts or manual saves
+      if (postData.status === 'published') {
+        toast({
+          title: 'Success',
+          description: 'Blog post updated successfully!'
+        });
+      }
+      
       // Cast the status field to the correct type
       return {
         ...data,
@@ -182,6 +191,37 @@ export const blogPostService = {
       return true;
     } catch (error) {
       handleServiceError('Blog post deletion', error);
+      return false;
+    }
+  },
+
+  async deleteOldAutoSavedDrafts(olderThanDays: number = 7): Promise<boolean> {
+    console.log('🗑️ Cleaning up old auto-saved drafts');
+    
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
+
+      const { error } = await supabase
+        .from('blog_posts')
+        .delete()
+        .eq('status', 'draft')
+        .like('title', '%Untitled Draft%')
+        .lt('updated_at', cutoffDate.toISOString());
+
+      if (error) {
+        handleServiceError('Auto-saved drafts cleanup', error);
+        return false;
+      }
+
+      console.log('✅ Cleaned up old auto-saved drafts');
+      toast({
+        title: 'Success',
+        description: 'Old auto-saved drafts cleaned up successfully!'
+      });
+      return true;
+    } catch (error) {
+      handleServiceError('Auto-saved drafts cleanup', error);
       return false;
     }
   }

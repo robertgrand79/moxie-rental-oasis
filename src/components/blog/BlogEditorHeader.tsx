@@ -1,49 +1,56 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { CardDescription, CardTitle } from '@/components/ui/card';
-import { Edit3, Eye, Wand2 } from 'lucide-react';
+import { Edit, Eye, Sparkles } from 'lucide-react';
+import AutoSaveIndicator from './AutoSaveIndicator';
+import { BlogPost } from '@/types/blogPost';
 
 interface BlogEditorHeaderProps {
   viewMode: 'editor' | 'preview' | 'ai';
   onViewModeChange: (mode: 'editor' | 'preview' | 'ai') => void;
+  autoSavedPost?: BlogPost | null;
+  lastSaved?: Date | null;
 }
 
-const BlogEditorHeader = ({ viewMode, onViewModeChange }: BlogEditorHeaderProps) => {
+const BlogEditorHeader = ({ 
+  viewMode, 
+  onViewModeChange,
+  autoSavedPost,
+  lastSaved
+}: BlogEditorHeaderProps) => {
   return (
-    <div className="flex justify-between items-start">
-      <div>
-        <CardTitle>Blog Post Editor</CardTitle>
-        <CardDescription>
-          Create and preview your blog post with our visual editor and AI assistance
-        </CardDescription>
-      </div>
-      <div className="flex gap-2">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-2">
         <Button
           variant={viewMode === 'editor' ? 'default' : 'outline'}
           size="sm"
           onClick={() => onViewModeChange('editor')}
         >
-          <Edit3 className="h-4 w-4 mr-1" />
+          <Edit className="h-4 w-4 mr-2" />
           Editor
-        </Button>
-        <Button
-          variant={viewMode === 'ai' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => onViewModeChange('ai')}
-        >
-          <Wand2 className="h-4 w-4 mr-1" />
-          AI Generator
         </Button>
         <Button
           variant={viewMode === 'preview' ? 'default' : 'outline'}
           size="sm"
           onClick={() => onViewModeChange('preview')}
         >
-          <Eye className="h-4 w-4 mr-1" />
+          <Eye className="h-4 w-4 mr-2" />
           Preview
         </Button>
+        <Button
+          variant={viewMode === 'ai' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => onViewModeChange('ai')}
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          AI Generator
+        </Button>
       </div>
+      
+      <AutoSaveIndicator
+        lastSaved={lastSaved}
+        hasUnsavedChanges={false}
+      />
     </div>
   );
 };
