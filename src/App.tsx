@@ -17,7 +17,7 @@ import FAQ from './pages/FAQ';
 import AdminLayoutWrapper from './components/layouts/AdminLayoutWrapper';
 import Admin from './pages/Admin';
 import AdminProperties from './pages/admin/AdminProperties';
-import PageManagement from './pages/PageManagement';
+import AdminPageManagement from './pages/admin/AdminPageManagement';
 import BlogManagement from './pages/BlogManagement';
 import AdminSiteSettingsRedesigned from './pages/admin/AdminSiteSettingsRedesigned';
 import AdminUserManagement from './pages/admin/AdminUserManagement';
@@ -64,7 +64,7 @@ function App() {
                 <Route index element={<Admin />} />
                 <Route path="properties" element={<AdminProperties />} />
                 <Route path="blog" element={<BlogManagement />} />
-                <Route path="pages" element={<PageManagement />} />
+                <Route path="pages" element={<AdminPageManagement />} />
                 <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
                 <Route path="user-management" element={<AdminUserManagement />} />
                 <Route path="roles-permissions" element={<AdminRolesPermissions />} />
