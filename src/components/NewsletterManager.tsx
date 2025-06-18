@@ -8,7 +8,7 @@ import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 import NewsletterOverview from './NewsletterOverview';
 import NewsletterAIGenerator from './NewsletterAIGenerator';
 import NewsletterEditorLayout from './NewsletterEditorLayout';
-import EnhancedNewsletterPreview from './newsletter/EnhancedNewsletterPreview';
+import TemporaryNewsletterPreview from './newsletter/TemporaryNewsletterPreview';
 import NewsletterQuickActions from './NewsletterQuickActions';
 
 interface NewsletterFormData {
@@ -120,8 +120,8 @@ const NewsletterManager = () => {
         blogPostsLoading={blogPostsLoading}
       />
 
-      {/* Single Enhanced Newsletter Preview with Send Functionality */}
-      <EnhancedNewsletterPreview
+      {/* Temporary Visual-Only Newsletter Preview */}
+      <TemporaryNewsletterPreview
         subject={currentSubject}
         content={content}
       />
