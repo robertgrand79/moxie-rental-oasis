@@ -20,10 +20,34 @@ interface PropertyTaskKanbanBoardProps {
 }
 
 const columns = [
-  { id: 'pending', title: 'Pending', color: 'border-gray-200' },
-  { id: 'in_progress', title: 'In Progress', color: 'border-blue-200' },
-  { id: 'completed', title: 'Completed', color: 'border-green-200' },
-  { id: 'blocked', title: 'Blocked', color: 'border-red-200' },
+  { 
+    id: 'pending', 
+    title: 'Pending', 
+    color: 'border-gray-200 bg-gray-50',
+    cardColor: 'border-l-4 border-gray-400',
+    badgeColor: 'bg-gray-100 text-gray-700'
+  },
+  { 
+    id: 'in_progress', 
+    title: 'In Progress', 
+    color: 'border-blue-200 bg-blue-50',
+    cardColor: 'border-l-4 border-blue-500',
+    badgeColor: 'bg-blue-100 text-blue-700'
+  },
+  { 
+    id: 'completed', 
+    title: 'Completed', 
+    color: 'border-green-200 bg-green-50',
+    cardColor: 'border-l-4 border-green-500',
+    badgeColor: 'bg-green-100 text-green-700'
+  },
+  { 
+    id: 'blocked', 
+    title: 'Blocked', 
+    color: 'border-red-200 bg-red-50',
+    cardColor: 'border-l-4 border-red-500',
+    badgeColor: 'bg-red-100 text-red-700'
+  },
 ];
 
 const priorityColors = {
@@ -57,6 +81,14 @@ const PropertyTaskKanbanBoard = ({
     e.dataTransfer.setData('text/plain', taskId);
   };
 
+  const handleCardClick = (task: PropertyTask) => {
+    if (bulkMode) {
+      onToggleTaskSelection(task.id);
+    } else {
+      onTaskClick(task);
+    }
+  };
+
   const getTaskTypeDisplay = (task: PropertyTask) => {
     if (task.task_type) {
       return {
@@ -65,12 +97,22 @@ const PropertyTaskKanbanBoard = ({
         icon: task.task_type.icon
       };
     }
-    // Fallback to legacy type
     return {
       name: task.type.replace('_', ' '),
       color: '#6B7280',
       icon: 'clipboard'
     };
+  };
+
+  const getAssignmentDisplay = (task: PropertyTask) => {
+    if (!task.assignments || task.assignments.length === 0) return null;
+    
+    if (task.assignments.length === 1) {
+      const user = task.assignments[0].user;
+      return user?.full_name || user?.email || 'Assigned';
+    }
+    
+    return `${task.assignments.length} assignees`;
   };
 
   return (
@@ -82,12 +124,14 @@ const PropertyTaskKanbanBoard = ({
           <div key={column.id} className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-gray-900">{column.title}</h3>
-              <Badge variant="outline">{columnTasks.length}</Badge>
+              <Badge variant="outline" className={column.badgeColor}>
+                {columnTasks.length}
+              </Badge>
             </div>
             
             <div
               className={cn(
-                "min-h-[500px] p-4 rounded-lg border-2 border-dashed",
+                "min-h-[500px] p-4 rounded-lg border-2 border-dashed transition-colors",
                 column.color
               )}
               onDrop={(e) => handleDrop(e, column.id)}
@@ -97,16 +141,20 @@ const PropertyTaskKanbanBoard = ({
                 {columnTasks.map((task) => {
                   const taskTypeDisplay = getTaskTypeDisplay(task);
                   const isSelected = selectedTaskIds.includes(task.id);
+                  const assignmentText = getAssignmentDisplay(task);
                   
                   return (
                     <Card
                       key={task.id}
                       className={cn(
-                        "cursor-move hover:shadow-md transition-shadow",
-                        isSelected && "ring-2 ring-blue-500"
+                        "cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]",
+                        column.cardColor,
+                        isSelected && "ring-2 ring-blue-500",
+                        !bulkMode && "hover:bg-gray-50"
                       )}
                       draggable={!bulkMode}
                       onDragStart={(e) => handleDragStart(e, task.id)}
+                      onClick={() => handleCardClick(task)}
                     >
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
@@ -118,10 +166,7 @@ const PropertyTaskKanbanBoard = ({
                                 onClick={(e) => e.stopPropagation()}
                               />
                             )}
-                            <CardTitle 
-                              className="text-sm cursor-pointer hover:text-blue-600 flex-1"
-                              onClick={() => !bulkMode && onTaskClick(task)}
-                            >
+                            <CardTitle className="text-sm flex-1 leading-tight">
                               {task.title}
                             </CardTitle>
                           </div>
@@ -129,8 +174,11 @@ const PropertyTaskKanbanBoard = ({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => onDeleteTask(task.id)}
-                              className="text-red-600 hover:text-red-800 h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteTask(task.id);
+                              }}
+                              className="text-red-600 hover:text-red-800 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -145,7 +193,7 @@ const PropertyTaskKanbanBoard = ({
                           </p>
                         )}
                         
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2">
                           <Badge className={priorityColors[task.priority as keyof typeof priorityColors]} variant="outline">
                             {task.priority}
                           </Badge>
@@ -162,24 +210,19 @@ const PropertyTaskKanbanBoard = ({
                           {task.property && (
                             <div className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
-                              <span>{task.property.title}</span>
+                              <span className="truncate">{task.property.title}</span>
                             </div>
                           )}
                           {task.project && (
                             <div className="flex items-center gap-1">
                               <Plus className="h-3 w-3" />
-                              <span>{task.project.title}</span>
+                              <span className="truncate">{task.project.title}</span>
                             </div>
                           )}
-                          {task.assignments && task.assignments.length > 0 && (
+                          {assignmentText && (
                             <div className="flex items-center gap-1">
                               <Users className="h-3 w-3" />
-                              <span>
-                                {task.assignments.length > 1 
-                                  ? `${task.assignments.length} assignees`
-                                  : task.assignments[0].user?.full_name || task.assignments[0].user?.email || 'Assigned'
-                                }
-                              </span>
+                              <span className="truncate">{assignmentText}</span>
                             </div>
                           )}
                           {task.due_date && (
@@ -191,7 +234,7 @@ const PropertyTaskKanbanBoard = ({
                           {task.is_recurring && task.recurrence_frequency && (
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              <span>
+                              <span className="truncate">
                                 Repeats {task.recurrence_frequency}
                                 {task.recurrence_interval && task.recurrence_interval > 1 && ` (every ${task.recurrence_interval})`}
                               </span>
@@ -203,7 +246,10 @@ const PropertyTaskKanbanBoard = ({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => onCreateWorkOrder(task)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onCreateWorkOrder(task);
+                            }}
                             className="w-full mt-2"
                           >
                             <Wrench className="h-3 w-3 mr-1" />

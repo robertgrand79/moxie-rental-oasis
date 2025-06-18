@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PropertyTask } from './types';
@@ -272,6 +273,33 @@ export const useTaskOperations = (
           .insert(assignments);
 
         if (error) throw error;
+      }
+
+      // Refresh the task to get updated assignments
+      const { data: taskData, error: taskError } = await supabase
+        .from('property_tasks')
+        .select(`
+          *,
+          property:properties(*),
+          project:property_projects(*),
+          task_type:custom_task_types(*),
+          assignments:task_assignments(
+            id,
+            user_id,
+            assigned_at,
+            assigned_by,
+            user:profiles!task_assignments_user_id_fkey(id, email, full_name)
+          )
+        `)
+        .eq('id', taskId)
+        .single();
+
+      if (taskError) throw taskError;
+
+      if (taskData) {
+        setTasks(prev => prev.map(task => 
+          task.id === taskId ? taskData as PropertyTask : task
+        ));
       }
 
       toast({

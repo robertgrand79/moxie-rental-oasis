@@ -10,6 +10,7 @@ import TaskTypeForm from './forms/TaskTypeForm';
 import TaskDetailsForm from './forms/TaskDetailsForm';
 import TaskRecurrenceForm from './forms/TaskRecurrenceForm';
 import TaskNotesForm from './forms/TaskNotesForm';
+import TaskAssignmentForm from './forms/TaskAssignmentForm';
 
 interface CreatePropertyTaskModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface CreatePropertyTaskModalProps {
   projects: PropertyProject[];
   taskTypes: CustomTaskType[];
   editingTask?: PropertyTask | null;
+  onAssignUsers?: (taskId: string, userIds: string[]) => Promise<void>;
 }
 
 const CreatePropertyTaskModal = ({
@@ -29,6 +31,7 @@ const CreatePropertyTaskModal = ({
   projects,
   taskTypes,
   editingTask,
+  onAssignUsers,
 }: CreatePropertyTaskModalProps) => {
   const [formData, setFormData] = useState({
     title: editingTask?.title || '',
@@ -48,11 +51,15 @@ const CreatePropertyTaskModal = ({
     notes: editingTask?.notes || '',
   });
 
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
+    editingTask?.assignments?.map(a => a.user_id) || []
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      await onCreateTask({
+      const taskData = {
         ...formData,
         property_id: formData.property_id && formData.property_id !== "" && formData.property_id !== "none" && formData.property_id !== "null" ? formData.property_id : undefined,
         project_id: formData.project_id && formData.project_id !== "" && formData.project_id !== "none" && formData.project_id !== "null" ? formData.project_id : undefined,
@@ -67,43 +74,89 @@ const CreatePropertyTaskModal = ({
         assigned_to: undefined,
         actual_hours: undefined,
         recurrence_pattern: undefined,
-      });
+      };
+
+      await onCreateTask(taskData);
+      
+      // If we have assignments and this is an edit, handle user assignments
+      if (editingTask && onAssignUsers && selectedUserIds.length >= 0) {
+        await onAssignUsers(editingTask.id, selectedUserIds);
+      }
+      
       onClose();
     } catch (error) {
       console.error('Error creating task:', error);
     }
   };
 
+  const handleClose = () => {
+    // Reset form when closing
+    if (!editingTask) {
+      setFormData({
+        title: '',
+        description: '',
+        property_id: '',
+        project_id: '',
+        type: 'admin' as const,
+        status: 'pending' as const,
+        priority: 'medium' as const,
+        due_date: '',
+        estimated_hours: 0,
+        is_recurring: false,
+        recurrence_frequency: undefined,
+        recurrence_interval: 1,
+        recurrence_end_date: '',
+        task_type_id: '',
+        notes: '',
+      });
+      setSelectedUserIds([]);
+    }
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {editingTask ? 'Edit Task' : 'Create New Task'}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <TaskBasicInfoForm formData={formData} onFormDataChange={setFormData} />
-            <TaskSelectionForm 
-              formData={formData} 
-              properties={properties} 
-              projects={projects} 
-              onFormDataChange={setFormData} 
-            />
-            <TaskTypeForm 
-              formData={formData} 
-              taskTypes={taskTypes} 
-              onFormDataChange={setFormData} 
-            />
-            <TaskDetailsForm formData={formData} onFormDataChange={setFormData} />
-            <TaskRecurrenceForm formData={formData} onFormDataChange={setFormData} />
-            <TaskNotesForm formData={formData} onFormDataChange={setFormData} />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <TaskBasicInfoForm formData={formData} onFormDataChange={setFormData} />
+              <TaskSelectionForm 
+                formData={formData} 
+                properties={properties} 
+                projects={projects} 
+                onFormDataChange={setFormData} 
+              />
+              <TaskTypeForm 
+                formData={formData} 
+                taskTypes={taskTypes} 
+                onFormDataChange={setFormData} 
+              />
+            </div>
+            
+            <div className="space-y-4">
+              <TaskDetailsForm formData={formData} onFormDataChange={setFormData} />
+              <TaskRecurrenceForm formData={formData} onFormDataChange={setFormData} />
+              <TaskNotesForm formData={formData} onFormDataChange={setFormData} />
+            </div>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="border-t pt-4">
+            <TaskAssignmentForm
+              taskId={editingTask?.id}
+              selectedUserIds={selectedUserIds}
+              onUserSelectionChange={setSelectedUserIds}
+            />
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             <Button type="submit">

@@ -10,7 +10,8 @@ import {
   Kanban,
   Table as TableIcon,
   Edit,
-  Trash2
+  Trash2,
+  User
 } from 'lucide-react';
 import { Property } from '@/types/property';
 import { PropertyProject, PropertyTask, CustomTaskType } from '@/hooks/property-management/types';
@@ -18,6 +19,7 @@ import TaskManagementActions from '../tasks/TaskManagementActions';
 import TaskManagementViews from '../tasks/TaskManagementViews';
 import BulkTaskActions from '../tasks/BulkTaskActions';
 import GoogleCalendarIntegration from '../tasks/GoogleCalendarIntegration';
+import MyTasksDashboard from '../tasks/MyTasksDashboard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -101,14 +103,22 @@ const PropertyManagementTabs = ({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="grid w-full grid-cols-6">
-        <TabsTrigger value="tasks">Tasks</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-7">
+        <TabsTrigger value="my-tasks">My Tasks</TabsTrigger>
+        <TabsTrigger value="tasks">All Tasks</TabsTrigger>
         <TabsTrigger value="projects">Projects</TabsTrigger>
         <TabsTrigger value="properties">Properties</TabsTrigger>
         <TabsTrigger value="calendar">Calendar</TabsTrigger>
         <TabsTrigger value="workorders">Work Orders</TabsTrigger>
         <TabsTrigger value="integrations">Integrations</TabsTrigger>
       </TabsList>
+
+      <TabsContent value="my-tasks" className="space-y-4">
+        <MyTasksDashboard
+          onTaskClick={onTaskClick}
+          onStatusChange={onStatusChange}
+        />
+      </TabsContent>
 
       <TabsContent value="tasks" className="space-y-4">
         <div className="flex items-center justify-between">

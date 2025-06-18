@@ -24,6 +24,7 @@ interface TaskManagementModalsProps {
   onCreateProject: (projectData: any) => Promise<void>;
   onUpdateProject?: (projectId: string, projectData: any) => Promise<void>;
   onCreateWorkOrder: (workOrderData: any) => Promise<void>;
+  onAssignUsers?: (taskId: string, userIds: string[]) => Promise<void>;
 }
 
 const TaskManagementModals = ({
@@ -44,6 +45,7 @@ const TaskManagementModals = ({
   onCreateProject,
   onUpdateProject,
   onCreateWorkOrder,
+  onAssignUsers,
 }: TaskManagementModalsProps) => {
   return (
     <>
@@ -55,6 +57,7 @@ const TaskManagementModals = ({
         projects={projects}
         taskTypes={taskTypes}
         editingTask={editingTask}
+        onAssignUsers={onAssignUsers}
       />
 
       <CreatePropertyProjectModal
