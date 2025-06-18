@@ -7,8 +7,9 @@ import { useBulkTaskOperations } from '@/hooks/useBulkTaskOperations';
 import { useCustomTaskTypes } from '@/hooks/useCustomTaskTypes';
 import { useTaskManagementState } from '@/hooks/useTaskManagementState';
 import { useTaskManagementHandlers } from '@/hooks/useTaskManagementHandlers';
+import { usePropertyManagementLoading } from '@/hooks/usePropertyManagementLoading';
 import { useTaskStats } from '@/components/admin/tasks/TaskManagementStats';
-import LoadingState from '@/components/ui/loading-state';
+import SmartLoadingWrapper from './SmartLoadingWrapper';
 import TaskManagementModals from '../tasks/TaskManagementModals';
 import PropertyManagementHeader from './PropertyManagementHeader';
 import PropertyManagementStats from './PropertyManagementStats';
@@ -33,6 +34,7 @@ const EnhancedPropertyManagementDashboard = () => {
 
   const { contractors, createWorkOrder } = useWorkOrderManagement();
   const { taskTypes } = useCustomTaskTypes();
+  const { setLoading, loadingStates } = usePropertyManagementLoading();
   
   const {
     selectedTaskIds,
@@ -60,17 +62,18 @@ const EnhancedPropertyManagementDashboard = () => {
     setBulkMode,
   } = useTaskManagementState();
 
-  // Add editingProject state
   const [editingProject, setEditingProject] = useState<any>(null);
+  const [error, setError] = useState<Error | null>(null);
 
+  // Enhanced handlers with loading states
   const {
     handleTaskClick,
     handleCreateWorkOrder,
     handleStatusChange,
-    handleCreateTask,
-    handleCreateProject,
+    handleCreateTask: originalHandleCreateTask,
+    handleCreateProject: originalHandleCreateProject,
     handleCreateWorkOrderFromTask,
-    handleDeleteTask,
+    handleDeleteTask: originalHandleDeleteTask,
     handleToggleBulkMode,
     handleSelectAllTasks,
   } = useTaskManagementHandlers({
@@ -92,10 +95,74 @@ const EnhancedPropertyManagementDashboard = () => {
     clearSelection,
   });
 
-  const { totalTasks, completedTasks, pendingTasks, overdueTasks } = useTaskStats(tasks);
+  // Enhanced handlers with loading state management
+  const handleCreateTask = async (taskData: any) => {
+    try {
+      setLoading('creating', true);
+      await originalHandleCreateTask(taskData);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading('creating', false);
+    }
+  };
 
+  const handleCreateProject = async (projectData: any) => {
+    try {
+      setLoading('creating', true);
+      await originalHandleCreateProject(projectData);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading('creating', false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      setLoading('deleting', true);
+      await originalHandleDeleteTask(taskId);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading('deleting', false);
+    }
+  };
+
+  const handleUpdateProject = async (projectId: string, projectData: any) => {
+    try {
+      setLoading('updating', true);
+      await updateProject(projectId, projectData);
+      setEditingProject(null);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading('updating', false);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      setLoading('deleting', true);
+      await deleteProject(projectId);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading('deleting', false);
+    }
+  };
+
+  const retryLoadData = async () => {
+    try {
+      setError(null);
+      await refreshData();
+    } catch (err) {
+      setError(err as Error);
+    }
+  };
+
+  const { totalTasks, completedTasks, pendingTasks, overdueTasks } = useTaskStats(tasks);
   const [selectedProperty, setSelectedProperty] = useState<string>('all');
-  
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('tasks');
 
@@ -135,102 +202,97 @@ const EnhancedPropertyManagementDashboard = () => {
     }
   };
 
-  const handleUpdateProject = async (projectId: string, projectData: any) => {
-    await updateProject(projectId, projectData);
-    setEditingProject(null);
-  };
-
-  const handleDeleteProject = async (projectId: string) => {
-    await deleteProject(projectId);
-  };
-
-  if (loading) {
-    return <LoadingState />;
-  }
-
   return (
-    <div className="space-y-6">
-      <PropertyManagementHeader
-        selectedProperty={selectedProperty}
-        onPropertyChange={setSelectedProperty}
-        properties={properties}
-      />
+    <SmartLoadingWrapper
+      isLoading={loading}
+      view={activeTab as any}
+      error={error}
+      retry={retryLoadData}
+      loadingMessage="Loading property management dashboard..."
+    >
+      <div className="space-y-6">
+        <PropertyManagementHeader
+          selectedProperty={selectedProperty}
+          onPropertyChange={setSelectedProperty}
+          properties={properties}
+        />
 
-      <PropertyManagementStats
-        properties={properties}
-        projects={projects}
-        totalTasks={totalTasks}
-        pendingTasks={pendingTasks}
-        overdueTasks={overdueTasks}
-      />
+        <PropertyManagementStats
+          properties={properties}
+          projects={projects}
+          totalTasks={totalTasks}
+          pendingTasks={pendingTasks}
+          overdueTasks={overdueTasks}
+        />
 
-      <PropertyManagementAlerts
-        tasks={tasks}
-        overdueTasks={overdueTasks}
-        getPriorityBadgeColor={getPriorityBadgeColor}
-      />
+        <PropertyManagementAlerts
+          tasks={tasks}
+          overdueTasks={overdueTasks}
+          getPriorityBadgeColor={getPriorityBadgeColor}
+        />
 
-      <PropertyManagementTabs
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        view={view}
-        setView={setView}
-        filteredTasks={filteredTasks}
-        filteredProjects={filteredProjects}
-        properties={properties}
-        tasks={tasks}
-        selectedTaskIds={selectedTaskIds}
-        bulkMode={bulkMode}
-        contractors={contractors}
-        setEditingTask={setEditingTask}
-        setEditingProject={setEditingProject}
-        setIsTaskModalOpen={setIsTaskModalOpen}
-        setIsProjectModalOpen={setIsProjectModalOpen}
-        setIsWorkOrderModalOpen={setIsWorkOrderModalOpen}
-        generateTurnoverTasks={generateTurnoverTasks}
-        onToggleBulkMode={handleToggleBulkMode}
-        onSelectAllTasks={handleSelectAllTasks}
-        onTaskClick={handleTaskClick}
-        onStatusChange={handleStatusChange}
-        onDeleteTask={handleDeleteTask}
-        onDeleteProject={handleDeleteProject}
-        onCreateWorkOrder={handleCreateWorkOrder}
-        onToggleTaskSelection={toggleTaskSelection}
-        clearSelection={clearSelection}
-        refreshData={refreshData}
-        getStatusBadgeColor={getStatusBadgeColor}
-        getPriorityBadgeColor={getPriorityBadgeColor}
-      />
+        <PropertyManagementTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          view={view}
+          setView={setView}
+          filteredTasks={filteredTasks}
+          filteredProjects={filteredProjects}
+          properties={properties}
+          tasks={tasks}
+          selectedTaskIds={selectedTaskIds}
+          bulkMode={bulkMode}
+          contractors={contractors}
+          setEditingTask={setEditingTask}
+          setEditingProject={setEditingProject}
+          setIsTaskModalOpen={setIsTaskModalOpen}
+          setIsProjectModalOpen={setIsProjectModalOpen}
+          setIsWorkOrderModalOpen={setIsWorkOrderModalOpen}
+          generateTurnoverTasks={generateTurnoverTasks}
+          onToggleBulkMode={handleToggleBulkMode}
+          onSelectAllTasks={handleSelectAllTasks}
+          onTaskClick={handleTaskClick}
+          onStatusChange={handleStatusChange}
+          onDeleteTask={handleDeleteTask}
+          onDeleteProject={handleDeleteProject}
+          onCreateWorkOrder={handleCreateWorkOrder}
+          onToggleTaskSelection={toggleTaskSelection}
+          clearSelection={clearSelection}
+          refreshData={refreshData}
+          getStatusBadgeColor={getStatusBadgeColor}
+          getPriorityBadgeColor={getPriorityBadgeColor}
+        />
 
-      <TaskManagementModals
-        isTaskModalOpen={isTaskModalOpen}
-        isProjectModalOpen={isProjectModalOpen}
-        isWorkOrderModalOpen={isWorkOrderModalOpen}
-        editingTask={editingTask}
-        editingProject={editingProject}
-        selectedTaskForWorkOrder={selectedTaskForWorkOrder}
-        properties={properties}
-        projects={projects}
-        taskTypes={taskTypes}
-        contractors={contractors}
-        onCloseTaskModal={() => {
-          setIsTaskModalOpen(false);
-          setEditingTask(null);
-        }}
-        onCloseProjectModal={() => {
-          setIsProjectModalOpen(false);
-          setEditingProject(null);
-        }}
-        onCloseWorkOrderModal={() => {
-          setIsWorkOrderModalOpen(false);
-          setSelectedTaskForWorkOrder(null);
-        }}
-        onCreateTask={handleCreateTask}
-        onCreateProject={handleCreateProject}
-        onUpdateProject={handleUpdateProject}
-        onCreateWorkOrder={handleCreateWorkOrderFromTask}
-      />
-    </div>
+        <TaskManagementModals
+          isTaskModalOpen={isTaskModalOpen}
+          isProjectModalOpen={isProjectModalOpen}
+          isWorkOrderModalOpen={isWorkOrderModalOpen}
+          editingTask={editingTask}
+          editingProject={editingProject}
+          selectedTaskForWorkOrder={selectedTaskForWorkOrder}
+          properties={properties}
+          projects={projects}
+          taskTypes={taskTypes}
+          contractors={contractors}
+          onCloseTaskModal={() => {
+            setIsTaskModalOpen(false);
+            setEditingTask(null);
+          }}
+          onCloseProjectModal={() => {
+            setIsProjectModalOpen(false);
+            setEditingProject(null);
+          }}
+          onCloseWorkOrderModal={() => {
+            setIsWorkOrderModalOpen(false);
+            setSelectedTaskForWorkOrder(null);
+          }}
+          onCreateTask={handleCreateTask}
+          onCreateProject={handleCreateProject}
+          onUpdateProject={handleUpdateProject}
+          onCreateWorkOrder={handleCreateWorkOrderFromTask}
+        />
+      </div>
+    </SmartLoadingWrapper>
   );
 };
 
