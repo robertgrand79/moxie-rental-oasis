@@ -1333,6 +1333,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_task_assignments_assigned_by"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_task_assignments_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "task_assignments_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
