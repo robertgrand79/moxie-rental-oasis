@@ -18,23 +18,33 @@ export const useEnhancedRolesPermissions = () => {
         .from('system_roles')
         .select(`
           *,
-          role_permissions(
-            permission:system_permissions(*)
-          ),
-          user_roles(count)
+          role_permissions!role_permissions_role_id_fkey(
+            permission:system_permissions!role_permissions_permission_id_fkey(*)
+          )
         `)
         .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
 
-      const rolesWithPermissions = data?.map(role => ({
-        ...role,
-        permissions: role.role_permissions?.map(rp => rp.permission).filter(Boolean) || [],
-        user_count: role.user_roles?.[0]?.count || 0
-      })) || [];
+      // Get user counts for each role separately to avoid complex joins
+      const rolesWithData = await Promise.all(
+        (data || []).map(async (role) => {
+          const { count } = await supabase
+            .from('user_roles')
+            .select('*', { count: 'exact', head: true })
+            .eq('role_id', role.id)
+            .eq('is_active', true);
 
-      setRoles(rolesWithPermissions);
+          return {
+            ...role,
+            permissions: role.role_permissions?.map(rp => rp.permission).filter(Boolean) || [],
+            user_count: count || 0
+          };
+        })
+      );
+
+      setRoles(rolesWithData);
     } catch (error) {
       console.error('Error fetching roles:', error);
       toast({
@@ -342,7 +352,7 @@ export const useEnhancedRolesPermissions = () => {
         .from('user_roles')
         .select(`
           *,
-          role:system_roles(*)
+          role:system_roles!user_roles_role_id_fkey(*)
         `)
         .eq('user_id', userId)
         .eq('is_active', true);
