@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -44,6 +43,11 @@ interface SettingsState {
   emailFromName: string;
   emailReplyTo: string;
   
+  // Email verification tracking
+  emailSetupVerified: boolean | string;
+  emailLastTestedAt: string | null;
+  emailVerificationDetails: any;
+  
   // SEO settings
   siteTitle: string;
   metaDescription: string;
@@ -87,6 +91,9 @@ const defaultSettings: SettingsState = {
   emailFromAddress: 'noreply@moxievacationrentals.com',
   emailFromName: 'Moxie Vacation Rentals',
   emailReplyTo: 'contact@moxievacationrentals.com',
+  emailSetupVerified: false,
+  emailLastTestedAt: null,
+  emailVerificationDetails: {},
   siteTitle: 'Moxie Vacation Rentals',
   metaDescription: 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.',
   ogTitle: '',
@@ -133,10 +140,13 @@ export const useStableSiteSettings = () => {
       const settingsMap = data?.reduce((acc, setting) => {
         // Handle JSON parsing for complex objects
         try {
-          if (setting.key === 'socialMedia') {
+          if (setting.key === 'socialMedia' || setting.key === 'emailVerificationDetails') {
             acc[setting.key] = typeof setting.value === 'string' 
               ? JSON.parse(setting.value) 
               : setting.value;
+          } else if (setting.key === 'emailSetupVerified') {
+            // Handle boolean conversion for emailSetupVerified
+            acc[setting.key] = setting.value === 'true' || setting.value === true;
           } else {
             acc[setting.key] = setting.value;
           }
@@ -156,6 +166,10 @@ export const useStableSiteSettings = () => {
         socialMedia: {
           ...defaultSettings.socialMedia,
           ...(settingsMap.socialMedia || {})
+        },
+        emailVerificationDetails: {
+          ...defaultSettings.emailVerificationDetails,
+          ...(settingsMap.emailVerificationDetails || {})
         }
       };
 
@@ -297,7 +311,7 @@ export const useStableSiteSettings = () => {
     if (allSuccessful) {
       toast({
         title: "Settings Saved",
-        description: "Your hero section settings have been successfully updated.",
+        description: "Your settings have been successfully updated.",
       });
       
       // After successful batch save, ensure local state is fully synced

@@ -2,6 +2,7 @@
 import React from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
 import { CheckCircle } from 'lucide-react';
+import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 
 interface QuickSetupProgressProps {
   isBasicComplete: boolean;
@@ -10,6 +11,10 @@ interface QuickSetupProgressProps {
 }
 
 const QuickSetupProgress = ({ isBasicComplete, isHeroComplete, isSocialComplete }: QuickSetupProgressProps) => {
+  const { settings } = useStableSiteSettings();
+  
+  const isEmailSetupComplete = settings.emailSetupVerified === 'true' || settings.emailSetupVerified === true;
+
   return (
     <EnhancedCard variant="glass" className="border-l-4 border-l-blue-500">
       <EnhancedCardHeader>
@@ -22,7 +27,7 @@ const QuickSetupProgress = ({ isBasicComplete, isHeroComplete, isSocialComplete 
         </EnhancedCardDescription>
       </EnhancedCardHeader>
       <EnhancedCardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className={`p-4 rounded-lg border-2 ${isBasicComplete ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
             <div className="flex items-center justify-between">
               <span className="font-medium">Basic Info</span>
@@ -43,6 +48,13 @@ const QuickSetupProgress = ({ isBasicComplete, isHeroComplete, isSocialComplete 
               {isSocialComplete && <CheckCircle className="h-5 w-5 text-green-600" />}
             </div>
             <p className="text-sm text-gray-600 mt-1">Connect social media</p>
+          </div>
+          <div className={`p-4 rounded-lg border-2 ${isEmailSetupComplete ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Email Setup</span>
+              {isEmailSetupComplete && <CheckCircle className="h-5 w-5 text-green-600" />}
+            </div>
+            <p className="text-sm text-gray-600 mt-1">Newsletter & notifications</p>
           </div>
         </div>
       </EnhancedCardContent>

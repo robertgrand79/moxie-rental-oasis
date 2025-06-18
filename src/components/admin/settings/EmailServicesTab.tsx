@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const EmailServicesTab = () => {
-  const { settings, saving, saveSettings } = useStableSiteSettings();
+  const { settings, saving, saveSettings, saveSetting } = useStableSiteSettings();
   const [localSettings, setLocalSettings] = useState({
     emailFromAddress: settings.emailFromAddress || 'noreply@moxievacationrentals.com',
     emailFromName: settings.emailFromName || settings.siteName || 'Moxie Vacation Rentals',
@@ -19,15 +19,32 @@ const EmailServicesTab = () => {
   const [testEmail, setTestEmail] = useState('');
   const [testing, setTesting] = useState(false);
   const [lastTestResult, setLastTestResult] = useState<any>(null);
+  const [emailSetupVerified, setEmailSetupVerified] = useState(false);
+  const [emailLastTestedAt, setEmailLastTestedAt] = useState<string | null>(null);
+  const [emailVerificationDetails, setEmailVerificationDetails] = useState<any>({});
 
   // Update local state when settings change
-  React.useEffect(() => {
+  useEffect(() => {
     setLocalSettings(prev => ({
       ...prev,
       emailFromAddress: settings.emailFromAddress || 'noreply@moxievacationrentals.com',
       emailFromName: settings.emailFromName || settings.siteName || 'Moxie Vacation Rentals',
       emailReplyTo: settings.emailReplyTo || settings.contactEmail || 'contact@moxievacationrentals.com',
     }));
+
+    // Load email verification status from settings
+    setEmailSetupVerified(settings.emailSetupVerified === 'true' || settings.emailSetupVerified === true);
+    setEmailLastTestedAt(settings.emailLastTestedAt && settings.emailLastTestedAt !== 'null' ? settings.emailLastTestedAt : null);
+    
+    // Parse verification details
+    try {
+      const details = typeof settings.emailVerificationDetails === 'string' 
+        ? JSON.parse(settings.emailVerificationDetails) 
+        : settings.emailVerificationDetails || {};
+      setEmailVerificationDetails(details);
+    } catch (e) {
+      setEmailVerificationDetails({});
+    }
   }, [settings]);
 
   const handleInputChange = (field: string, value: string) => {
@@ -99,10 +116,31 @@ const EmailServicesTab = () => {
       }
 
       if (data?.success) {
+        const verificationDetails = {
+          testEmail,
+          fromEmail: data.details?.from || localSettings.emailFromAddress,
+          fromName: data.details?.fromName || localSettings.emailFromName,
+          replyTo: data.details?.replyTo || localSettings.emailReplyTo,
+          domain: data.details?.domain || localSettings.emailFromAddress.split('@')[1],
+          timestamp: data.details?.timestamp || new Date().toISOString()
+        };
+
+        // Store verification status in database
+        await Promise.all([
+          saveSetting('emailSetupVerified', true),
+          saveSetting('emailLastTestedAt', verificationDetails.timestamp),
+          saveSetting('emailVerificationDetails', verificationDetails)
+        ]);
+
+        // Update local state
+        setEmailSetupVerified(true);
+        setEmailLastTestedAt(verificationDetails.timestamp);
+        setEmailVerificationDetails(verificationDetails);
         setLastTestResult(data);
+
         toast({
           title: '✅ Test Email Sent Successfully!',
-          description: `Test email delivered to ${testEmail} from ${data.details?.from || localSettings.emailFromAddress}. Check your inbox!`,
+          description: `Test email delivered to ${testEmail} from ${verificationDetails.fromEmail}. Email setup is now verified!`,
         });
       } else {
         throw new Error(data?.error || 'Unknown error occurred');
@@ -136,6 +174,47 @@ const EmailServicesTab = () => {
 
   return (
     <div className="space-y-8">
+      {/* Email Setup Status */}
+      {emailSetupVerified && (
+        <EnhancedCard variant="glass" className="border-l-4 border-l-green-500">
+          <EnhancedCardHeader>
+            <EnhancedCardTitle className="flex items-center text-green-700">
+              <CheckCircle className="h-5 w-5 mr-2" />
+              Email Setup Verified
+            </EnhancedCardTitle>
+            <EnhancedCardDescription>
+              Your email configuration has been successfully tested and verified
+            </EnhancedCardDescription>
+          </EnhancedCardHeader>
+          <EnhancedCardContent>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 mr-2" />
+                <div className="text-sm">
+                  <h4 className="font-medium text-green-900 mb-2">Email Configuration Verified</h4>
+                  {emailVerificationDetails && (
+                    <div className="space-y-1 text-green-700">
+                      <p><strong>Verified Configuration:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 ml-4">
+                        <li><strong>From:</strong> {emailVerificationDetails.fromName} &lt;{emailVerificationDetails.fromEmail}&gt;</li>
+                        <li><strong>Reply-To:</strong> {emailVerificationDetails.replyTo}</li>
+                        <li><strong>Domain:</strong> {emailVerificationDetails.domain}</li>
+                      </ul>
+                      {emailLastTestedAt && (
+                        <div className="flex items-center mt-2">
+                          <Clock className="h-4 w-4 mr-1" />
+                          <span className="text-xs">Last verified: {new Date(emailLastTestedAt).toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </EnhancedCardContent>
+        </EnhancedCard>
+      )}
+
       {/* Domain Verification Status */}
       <EnhancedCard variant="glass">
         <EnhancedCardHeader>
@@ -300,7 +379,7 @@ const EmailServicesTab = () => {
             ) : (
               <>
                 <Send className="h-4 w-4 mr-2" />
-                Send Test Email
+                {emailSetupVerified ? 'Re-test Email Configuration' : 'Send Test Email'}
               </>
             )}
           </Button>
@@ -356,7 +435,7 @@ const EmailServicesTab = () => {
                 API key generated and added to secrets
               </li>
               <li className="flex items-center">
-                {lastTestResult?.success ? (
+                {emailSetupVerified ? (
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 ) : (
                   <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
@@ -364,7 +443,7 @@ const EmailServicesTab = () => {
                 Domain moxievacationrentals.com verified in SendGrid
               </li>
               <li className="flex items-center">
-                {lastTestResult?.success ? (
+                {emailSetupVerified ? (
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 ) : (
                   <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
