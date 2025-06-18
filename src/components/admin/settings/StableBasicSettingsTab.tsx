@@ -1,22 +1,22 @@
 
 import React, { useState } from 'react';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import GeneralInformationSettings from './GeneralInformationSettings';
 import HeroSectionSettings from './HeroSectionSettings';
 import ContactInformationSettings from './ContactInformationSettings';
 
 const StableBasicSettingsTab = () => {
-  const { settings, saving, updateSettingOptimistic, saveSettings, refetch } = useStableSiteSettings();
+  const { settings, saving, saveSettings, updateSettingOptimistic } = useSimplifiedSiteSettings();
   const [localSettings, setLocalSettings] = useState(settings);
 
   // Update local state when settings change
   React.useEffect(() => {
-    console.log('Settings changed in hook:', settings);
+    console.log('[Basic Settings] Settings updated:', settings);
     setLocalSettings(settings);
   }, [settings]);
 
   const handleInputChange = (field: string, value: string) => {
-    console.log('Input changed:', field, value);
+    console.log('[Basic Settings] Input changed:', field, value);
     setLocalSettings(prev => ({
       ...prev,
       [field]: value
@@ -26,6 +26,7 @@ const StableBasicSettingsTab = () => {
   };
 
   const handleSocialMediaChange = (platform: string, value: string) => {
+    console.log('[Basic Settings] Social media changed:', platform, value);
     const newSocialMedia = {
       ...localSettings.socialMedia,
       [platform]: value
@@ -38,23 +39,17 @@ const StableBasicSettingsTab = () => {
   };
 
   const handleSaveBasicInfo = async () => {
-    const success = await saveSettings({
+    console.log('[Basic Settings] Saving basic info...');
+    await saveSettings({
       siteName: localSettings.siteName,
       tagline: localSettings.tagline,
       description: localSettings.description
     });
-
-    if (success) {
-      console.log('Basic info saved successfully, refreshing settings...');
-      await refetch();
-    }
   };
 
   const handleSaveHeroSettings = async () => {
-    console.log('Saving hero settings...');
-    
-    // Save hero settings including background image
-    const success = await saveSettings({
+    console.log('[Basic Settings] Saving hero settings...');
+    await saveSettings({
       heroTitle: localSettings.heroTitle,
       heroSubtitle: localSettings.heroSubtitle,
       heroDescription: localSettings.heroDescription,
@@ -63,25 +58,16 @@ const StableBasicSettingsTab = () => {
       heroRating: localSettings.heroRating,
       heroCTAText: localSettings.heroCTAText
     });
-
-    if (success) {
-      console.log('Hero settings saved successfully, refreshing settings...');
-      await refetch();
-    }
   };
 
   const handleSaveContactInfo = async () => {
-    const success = await saveSettings({
+    console.log('[Basic Settings] Saving contact info...');
+    await saveSettings({
       contactEmail: localSettings.contactEmail,
       phone: localSettings.phone,
       address: localSettings.address,
       socialMedia: localSettings.socialMedia
     });
-
-    if (success) {
-      console.log('Contact info saved successfully, refreshing settings...');
-      await refetch();
-    }
   };
 
   // Check for unsaved changes
