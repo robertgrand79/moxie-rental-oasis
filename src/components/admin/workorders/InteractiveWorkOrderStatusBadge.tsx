@@ -59,11 +59,28 @@ const InteractiveWorkOrderStatusBadge = ({
 }: InteractiveWorkOrderStatusBadgeProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('Status change clicked:', { workOrderId, currentStatus: status, newStatus });
+    
     if (newStatus !== status && !isUpdating) {
-      await onStatusChange(workOrderId, newStatus);
+      try {
+        await onStatusChange(workOrderId, newStatus);
+        console.log('Status change successful');
+      } catch (error) {
+        console.error('Status change failed:', error);
+      }
     }
     setIsOpen(false);
+  };
+
+  const handleBadgeClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    console.log('Badge clicked for work order:', workOrderId);
+    setIsOpen(!isOpen);
   };
 
   return (
@@ -71,7 +88,7 @@ const InteractiveWorkOrderStatusBadge = ({
       <DropdownMenuTrigger asChild>
         <Badge 
           className={`${statusColors[status as keyof typeof statusColors]} flex items-center gap-1 w-fit cursor-pointer hover:opacity-80 transition-opacity`}
-          onClick={(e) => e.stopPropagation()}
+          onClick={handleBadgeClick}
         >
           {getStatusIcon(status)}
           {status.replace('_', ' ')}
@@ -79,14 +96,15 @@ const InteractiveWorkOrderStatusBadge = ({
         </Badge>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
-        className="w-40 bg-white border shadow-lg z-50"
+        className="w-40 !bg-white border shadow-lg !z-[9999] opacity-100"
         onClick={(e) => e.stopPropagation()}
+        style={{ zIndex: 9999, backgroundColor: 'white' }}
       >
         {statusOptions.map((option) => (
           <DropdownMenuItem
             key={option.value}
-            onClick={() => handleStatusChange(option.value)}
-            className={`cursor-pointer ${status === option.value ? 'bg-gray-100' : ''}`}
+            onClick={(e) => handleStatusChange(option.value, e)}
+            className={`cursor-pointer hover:bg-gray-100 ${status === option.value ? 'bg-gray-100 font-medium' : ''}`}
             disabled={isUpdating}
           >
             {option.label}

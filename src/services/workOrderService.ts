@@ -4,6 +4,7 @@ import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 
 export const workOrderService = {
   async fetchAll() {
+    console.log('Fetching all work orders...');
     const { data, error } = await supabase
       .from('work_orders')
       .select(`
@@ -15,24 +16,35 @@ export const workOrderService = {
       `)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching work orders:', error);
+      throw error;
+    }
+    
+    console.log('Fetched work orders:', data?.length || 0);
     return data || [];
   },
 
   async create(workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'contractor' | 'property' | 'task' | 'project'>) {
+    console.log('Creating work order with data:', workOrderData);
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     // Remove pricing and permit fields from the data being sent
     const { estimated_cost, actual_cost, requires_permits, ...cleanData } = workOrderData as any;
 
+    const insertData = { 
+      ...cleanData, 
+      created_by: user.id,
+      work_order_number: '' // This will trigger auto-generation via database trigger
+    };
+    
+    console.log('Inserting work order data:', insertData);
+
     const { data, error } = await supabase
       .from('work_orders')
-      .insert([{ 
-        ...cleanData, 
-        created_by: user.id,
-        work_order_number: '' // This will trigger auto-generation via database trigger
-      }])
+      .insert([insertData])
       .select(`
         *,
         contractor:contractors(*),
@@ -42,13 +54,22 @@ export const workOrderService = {
       `)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating work order:', error);
+      throw error;
+    }
+    
+    console.log('Created work order:', data);
     return data;
   },
 
   async update(workOrderId: string, updates: Partial<WorkOrder>) {
+    console.log('Updating work order:', { workOrderId, updates });
+    
     // Remove pricing and permit fields from updates
     const { estimated_cost, actual_cost, requires_permits, ...cleanUpdates } = updates as any;
+
+    console.log('Clean updates being sent to database:', cleanUpdates);
 
     const { data, error } = await supabase
       .from('work_orders')
@@ -63,16 +84,28 @@ export const workOrderService = {
       `)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating work order:', error);
+      throw error;
+    }
+    
+    console.log('Updated work order:', data);
     return data;
   },
 
   async delete(workOrderId: string) {
+    console.log('Deleting work order:', workOrderId);
+    
     const { error } = await supabase
       .from('work_orders')
       .delete()
       .eq('id', workOrderId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error deleting work order:', error);
+      throw error;
+    }
+    
+    console.log('Deleted work order successfully');
   }
 };

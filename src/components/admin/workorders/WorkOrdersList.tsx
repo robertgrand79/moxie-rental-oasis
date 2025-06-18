@@ -28,15 +28,68 @@ const WorkOrdersList = ({
     await handleEmailWorkOrder(workOrder, onStatusChange);
   };
 
-  const handlePriorityChange = async (workOrderId: string, priority: string) => {
+  const handleStatusChange = async (workOrderId: string, status: string) => {
+    console.log('Handling status change:', { workOrderId, status });
+    
     if (updatingWorkOrders.has(workOrderId)) {
+      console.log('Update already in progress, skipping');
       return;
     }
 
     setUpdatingWorkOrders(prev => new Set([...prev, workOrderId]));
 
     try {
+      const updateData: any = { status };
+      
+      if (status === 'sent' && !workOrders.find(wo => wo.id === workOrderId)?.sent_at) {
+        updateData.sent_at = new Date().toISOString();
+      }
+      if (status === 'acknowledged') {
+        updateData.acknowledged_at = new Date().toISOString();
+      }
+      if (status === 'completed') {
+        updateData.completed_at = new Date().toISOString();
+      }
+      
+      console.log('Updating work order with data:', updateData);
+      await onUpdateWorkOrder(workOrderId, updateData);
+      
+      console.log('Status update successful');
+      toast({
+        title: 'Success',
+        description: 'Work order status updated successfully',
+      });
+    } catch (error) {
+      console.error('Error updating work order status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update work order status',
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdatingWorkOrders(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(workOrderId);
+        return newSet;
+      });
+    }
+  };
+
+  const handlePriorityChange = async (workOrderId: string, priority: string) => {
+    console.log('Handling priority change:', { workOrderId, priority });
+    
+    if (updatingWorkOrders.has(workOrderId)) {
+      console.log('Update already in progress, skipping');
+      return;
+    }
+
+    setUpdatingWorkOrders(prev => new Set([...prev, workOrderId]));
+
+    try {
+      console.log('Updating work order priority');
       await onUpdateWorkOrder(workOrderId, { priority });
+      
+      console.log('Priority update successful');
       toast({
         title: 'Success',
         description: 'Work order priority updated successfully',
@@ -61,7 +114,7 @@ const WorkOrdersList = ({
     <WorkOrdersTable
       workOrders={workOrders}
       onWorkOrderClick={onWorkOrderClick}
-      onStatusChange={onStatusChange}
+      onStatusChange={handleStatusChange}
       onPriorityChange={handlePriorityChange}
       onDeleteWorkOrder={onDeleteWorkOrder}
       emailingWorkOrders={emailingWorkOrders}
