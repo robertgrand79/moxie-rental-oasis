@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import BlogEditorForm from './BlogEditorForm';
@@ -44,6 +45,7 @@ const BlogEditorContent = ({
     [];
 
   const handleContentChange = (newContent: string) => {
+    console.log('📝 Content changed in BlogEditorContent:', newContent);
     setContent(newContent);
     form.setValue('content', newContent);
   };
@@ -52,6 +54,7 @@ const BlogEditorContent = ({
     if (field === 'content') {
       // Convert plain text with line breaks to proper HTML paragraphs
       const formattedContent = ensureHTMLParagraphs(generatedContent);
+      console.log('🤖 AI generated content formatted:', formattedContent);
       setContent(formattedContent);
       form.setValue('content', formattedContent);
     } else {
@@ -76,7 +79,7 @@ const BlogEditorContent = ({
             onCancel={onCancel}
           />
           
-          {/* Preview below editor when in editor mode */}
+          {/* Live Preview below editor when in editor mode */}
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Live Preview</h3>
             <BlogPostVisualPreview

@@ -41,6 +41,7 @@ export const useAutoSave = ({
         tags: data.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
         status: 'draft' as const,
         author: 'Admin',
+        published_at: null,
         slug: (data.title || 'untitled-draft').toLowerCase()
           .replace(/\s+/g, '-')
           .replace(/[^a-z0-9-]/g, '')

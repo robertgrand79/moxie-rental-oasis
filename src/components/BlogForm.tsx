@@ -39,6 +39,7 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
     },
     postId: autoSavedPost?.id,
     onAutoSave: (savedPost) => {
+      console.log('💾 Auto-saved post:', savedPost);
       setAutoSavedPost(savedPost);
       setLastSaved(new Date());
     },
@@ -47,10 +48,12 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
 
   // Update content in form when it changes
   useEffect(() => {
+    console.log('📝 BlogForm content updated:', content);
     form.setValue('content', content);
   }, [content, form]);
 
   const onFormSubmit = (data: any) => {
+    console.log('📨 Blog form submitted:', data);
     const formData = {
       ...data,
       content,

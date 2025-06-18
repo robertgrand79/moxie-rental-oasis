@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { UseFormReturn } from 'react-hook-form';
-import TiptapEditor from '../TiptapEditor';
-import ImageUploader from '../ImageUploader';
+import TiptapEditor from '@/components/TiptapEditor';
+import ImageUploader from '@/components/ImageUploader';
 
 interface BlogFormData {
   title: string;
@@ -37,107 +37,103 @@ const BlogEditorForm = ({
   isEditing,
   onCancel
 }: BlogEditorFormProps) => {
+  const { register, handleSubmit, formState: { errors } } = form;
+
+  const handleEditorChange = (newContent: string) => {
+    console.log('📝 TiptapEditor content changed:', newContent);
+    onContentChange(newContent);
+    form.setValue('content', newContent);
+  };
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter blog post title" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              {...register('title', { required: 'Title is required' })}
+              placeholder="Enter blog post title"
+            />
+            {errors.title && (
+              <p className="text-sm text-red-600 mt-1">{errors.title.message}</p>
             )}
-          />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <FormControl>
-                  <select
-                    {...field}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                  </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+          <div>
+            <Label htmlFor="excerpt">Excerpt</Label>
+            <Textarea
+              id="excerpt"
+              {...register('excerpt')}
+              placeholder="Brief description of the post..."
+              rows={3}
+            />
+          </div>
 
-        <FormField
-          control={form.control}
-          name="excerpt"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Excerpt</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Brief description of the blog post"
-                  rows={3}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div>
+            <Label htmlFor="tags">Tags (comma-separated)</Label>
+            <Input
+              id="tags"
+              {...register('tags')}
+              placeholder="travel, eugene, accommodation"
+            />
+          </div>
 
-        <FormField
-          control={form.control}
-          name="tags"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tags</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter tags separated by commas"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <ImageUploader
-          uploadedImage={uploadedImage}
-          onImageChange={onImageChange}
-        />
-
-        <div>
-          <FormLabel>Content</FormLabel>
-          <div className="mt-2">
-            <TiptapEditor
-              content={content}
-              onChange={onContentChange}
-              placeholder="Write your blog post content here..."
-              className="min-h-[400px]"
+          <div>
+            <Label>Featured Image</Label>
+            <ImageUploader
+              onImageUploaded={onImageChange}
+              currentImage={uploadedImage}
+              className="w-full"
             />
           </div>
         </div>
 
-        <div className="flex gap-4 pt-4">
-          <Button type="submit" className="flex-1">
-            {isEditing ? 'Update Post' : 'Create Post'}
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="content">Content</Label>
+            <div className="border rounded-lg overflow-hidden">
+              <TiptapEditor
+                content={content}
+                onChange={handleEditorChange}
+                placeholder="Start writing your blog post..."
+                className="min-h-[400px]"
+              />
+            </div>
+            {errors.content && (
+              <p className="text-sm text-red-600 mt-1">{errors.content.message}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center pt-6 border-t">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        
+        <div className="space-x-2">
+          <Button 
+            type="submit" 
+            variant="outline"
+            onClick={() => form.setValue('status', 'draft')}
+          >
+            Save as Draft
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
-            Cancel
+          <Button 
+            type="submit"
+            onClick={() => form.setValue('status', 'published')}
+          >
+            {isEditing ? 'Update Post' : 'Publish Post'}
           </Button>
         </div>
-      </form>
-    </Form>
+      </div>
+    </form>
   );
 };
 
