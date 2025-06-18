@@ -71,7 +71,14 @@ const EventsAllFieldsGenerator = ({ onEventsGenerated, existingEvents }: EventsA
 
       if (error) throw error;
 
-      const events = Array.isArray(data.generatedContent) ? data.generatedContent : [data.generatedContent];
+      // Ensure we have a valid array and filter out any undefined/null items
+      let events = Array.isArray(data.generatedContent) ? data.generatedContent : [data.generatedContent];
+      events = events.filter(event => event && typeof event === 'object' && event.title);
+      
+      if (events.length === 0) {
+        throw new Error('No valid events were generated');
+      }
+
       setGeneratedEvents(events);
       
       toast({
@@ -194,32 +201,39 @@ const EventsAllFieldsGenerator = ({ onEventsGenerated, existingEvents }: EventsA
             </div>
             
             <div className="grid gap-4">
-              {generatedEvents.map((event, index) => (
-                <Card key={index} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-semibold">{event.title}</h4>
-                        <Badge variant="outline">{event.category}</Badge>
-                        {event.is_featured && <Badge>Featured</Badge>}
+              {generatedEvents.map((event, index) => {
+                // Safety check for each event object
+                if (!event || typeof event !== 'object') {
+                  return null;
+                }
+
+                return (
+                  <Card key={index} className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-semibold">{event.title || 'Untitled Event'}</h4>
+                          <Badge variant="outline">{event.category || 'Uncategorized'}</Badge>
+                          {event.is_featured && <Badge>Featured</Badge>}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{event.description || 'No description available'}</p>
+                        <div className="text-sm text-gray-500">
+                          <p>📅 {event.event_date || 'Date TBD'} {event.time_start && `at ${event.time_start}`}</p>
+                          {event.location && <p>📍 {event.location}</p>}
+                          {event.price_range && <p>💰 {event.price_range}</p>}
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{event.description}</p>
-                      <div className="text-sm text-gray-500">
-                        <p>📅 {event.event_date} {event.time_start && `at ${event.time_start}`}</p>
-                        {event.location && <p>📍 {event.location}</p>}
-                        {event.price_range && <p>💰 {event.price_range}</p>}
-                      </div>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleApplySelected(event)}
+                        variant="outline"
+                      >
+                        Add This Event
+                      </Button>
                     </div>
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleApplySelected(event)}
-                      variant="outline"
-                    >
-                      Add This Event
-                    </Button>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}
