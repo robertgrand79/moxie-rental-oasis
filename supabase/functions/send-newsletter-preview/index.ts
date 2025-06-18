@@ -25,7 +25,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Creating Supabase client...");
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     const authHeader = req.headers.get("Authorization");
@@ -33,55 +33,121 @@ const handler = async (req: Request): Promise<Response> => {
     
     if (!authHeader) {
       console.error("No authorization header provided");
-      throw new Error("No authorization header");
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "No authorization header provided",
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
+    // Extract the JWT token from Bearer header
+    const token = authHeader.replace("Bearer ", "");
+    console.log("Token extracted, length:", token.length);
+
+    // Verify the token and get user
     console.log("Verifying user authentication...");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError) {
       console.error("Auth error:", authError);
-      throw new Error("Authentication failed: " + authError.message);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "Authentication failed: " + authError.message,
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
     if (!user) {
-      console.error("No user found");
-      throw new Error("Unauthorized - no user");
+      console.error("No user found from token");
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "No user found from authentication token",
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
-    console.log("User authenticated:", user.id);
+    console.log("User authenticated successfully:", user.id, user.email);
 
-    // Check if user is admin
+    // Check if user is admin using service role key for bypassing RLS
     console.log("Checking user role...");
     const { data: profile, error: profileError } = await supabaseClient
       .from("profiles")
-      .select("role")
+      .select("role, email")
       .eq("id", user.id)
       .single();
 
     if (profileError) {
       console.error("Profile fetch error:", profileError);
-      throw new Error("Failed to fetch user profile: " + profileError.message);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "Failed to fetch user profile: " + profileError.message,
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
-    console.log("User role:", profile?.role);
+    console.log("User profile found:", { id: user.id, email: profile?.email, role: profile?.role });
 
     if (profile?.role !== "admin") {
       console.error("User is not admin, role:", profile?.role);
-      throw new Error("Admin access required");
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: `Admin access required. Current role: ${profile?.role || 'unknown'}`,
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
+    console.log("Admin access confirmed for user:", user.email);
+
+    // Parse request body
     console.log("Parsing request body...");
     const requestBody = await req.json();
-    console.log("Request body:", requestBody);
+    console.log("Request body received:", { email: requestBody.email, subject: requestBody.subject });
     
     const { email, subject, content }: PreviewRequest = requestBody;
 
     if (!email || !subject || !content) {
       console.error("Missing required fields:", { email: !!email, subject: !!subject, content: !!content });
-      throw new Error("Email, subject, and content are required");
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "Email, subject, and content are required",
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
     console.log("Fetching email settings from database...");
@@ -167,7 +233,17 @@ const handler = async (req: Request): Promise<Response> => {
     
     if (!sendGridApiKey) {
       console.error("SendGrid API key not found in environment");
-      throw new Error("SendGrid API key not configured. Please add SENDGRID_API_KEY to your environment variables.");
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "SendGrid API key not configured. Please add SENDGRID_API_KEY to your environment variables.",
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
     console.log("Preparing to send email via SendGrid...");
@@ -216,7 +292,17 @@ const handler = async (req: Request): Promise<Response> => {
         errorMessage += ` - ${errorText}`;
       }
       
-      throw new Error(errorMessage);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: errorMessage,
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
     const responseText = await response.text();
