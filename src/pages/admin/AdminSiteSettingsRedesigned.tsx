@@ -54,7 +54,10 @@ const AdminSiteSettingsRedesigned = () => {
     setDialogOpen(false);
   };
 
-  const settingsCategories = createSettingsCategories(siteData, seoData, analyticsData, mapboxToken);
+  // Get email setup status from siteData (this comes from useSettingsData which loads from database)
+  const emailSetupVerified = siteData.emailSetupVerified === 'true' || siteData.emailSetupVerified === true;
+
+  const settingsCategories = createSettingsCategories(siteData, seoData, analyticsData, mapboxToken, emailSetupVerified);
 
   const filteredCategories = settingsCategories.filter(category =>
     category.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

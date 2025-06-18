@@ -24,7 +24,8 @@ export const useSettingsData = () => {
       instagram: '',
       twitter: '',
       googlePlaces: ''
-    }
+    },
+    emailSetupVerified: false
   });
 
   const [mapboxToken, setMapboxToken] = useState('');
@@ -68,7 +69,8 @@ export const useSettingsData = () => {
           instagram: '',
           twitter: '',
           googlePlaces: ''
-        }
+        },
+        emailSetupVerified: settings.emailSetupVerified || false
       });
       
       setMapboxToken(settings.mapboxToken || '');

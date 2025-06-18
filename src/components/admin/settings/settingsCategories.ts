@@ -1,7 +1,7 @@
 
 import { Settings, Palette, Globe, Code } from 'lucide-react';
 
-export const createSettingsCategories = (siteData: any, seoData: any, analyticsData: any, mapboxToken: string) => [
+export const createSettingsCategories = (siteData: any, seoData: any, analyticsData: any, mapboxToken: string, emailSetupVerified: boolean = false) => [
   {
     id: 'general',
     title: 'General Settings',
@@ -75,7 +75,7 @@ export const createSettingsCategories = (siteData: any, seoData: any, analyticsD
       { 
         name: 'Email Services', 
         description: 'SendGrid for newsletters and transactional emails', 
-        status: 'needs-setup',
+        status: emailSetupVerified ? 'configured' : 'needs-setup',
         key: 'email-services'
       },
       { 
