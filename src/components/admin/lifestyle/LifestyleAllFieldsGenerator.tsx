@@ -44,6 +44,7 @@ const LifestyleAllFieldsGenerator = ({
     try {
       const { data, error } = await supabase.functions.invoke('generate-content-ai', {
         body: {
+          type: 'lifestyle',
           prompt: `Generate ${numberOfItems} lifestyle gallery items for Eugene, Oregon based on this request: ${prompt}. 
           
           Focus area: ${focusArea || 'General lifestyle activities'}
@@ -60,7 +61,9 @@ const LifestyleAllFieldsGenerator = ({
           - is_active: boolean (default true)
           
           Make sure activities are diverse, realistic for Eugene, and include local venues/areas when possible.`,
-          type: 'lifestyle',
+          count: numberOfItems,
+          location: 'Eugene, Oregon',
+          category: focusArea || 'lifestyle',
           context: {
             existingItemsCount: existingItems.length,
             recentItems: existingItems.slice(0, 5).map(i => ({ title: i.title, category: i.category }))
@@ -70,9 +73,11 @@ const LifestyleAllFieldsGenerator = ({
 
       if (error) throw error;
 
+      // Handle the correct response structure from the edge function
+      const items = data.content || [];
+      
       // Filter out any undefined or invalid items and ensure they have required properties
-      const items = Array.isArray(data.generatedContent) ? data.generatedContent : [data.generatedContent];
-      const validItems = items.filter(item => 
+      const validItems = items.filter((item: any) => 
         item && 
         typeof item === 'object' && 
         item.title && 

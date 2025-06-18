@@ -15,20 +15,22 @@ serve(async (req) => {
   }
 
   try {
-    const { type, prompt, category, count, location } = await req.json();
+    const { type, prompt, category, count, location, context } = await req.json();
 
     let systemPrompt = '';
     let userPrompt = '';
+    let requestCount = count || 5;
+    let requestLocation = location || 'Eugene, Oregon';
 
     if (type === 'poi') {
-      systemPrompt = `You are a local expert for ${location}. Generate realistic points of interest data in JSON format. Each POI should include: name, description, address, category, phone (realistic local format), website_url (realistic but can be placeholder), rating (3.5-5.0), price_level (1-4), distance_from_properties (0.5-15 miles), driving_time (2-30 minutes). Make them authentic to ${location}.`;
-      userPrompt = `Generate ${count} ${category} points of interest in ${location}. ${prompt}`;
+      systemPrompt = `You are a local expert for ${requestLocation}. Generate realistic points of interest data in JSON format. Each POI should include: name, description, address, category, phone (realistic local format), website_url (realistic but can be placeholder), rating (3.5-5.0), price_level (1-4), distance_from_properties (0.5-15 miles), driving_time (2-30 minutes). Make them authentic to ${requestLocation}.`;
+      userPrompt = `Generate ${requestCount} ${category} points of interest in ${requestLocation}. ${prompt}`;
     } else if (type === 'events') {
-      systemPrompt = `You are an events coordinator for ${location}. Generate realistic event data in JSON format. Each event should include: title, description, event_date (future dates), end_date (if multi-day), time_start, time_end, location (specific venues in ${location}), category, price_range. Make events authentic to the area and seasonal.`;
-      userPrompt = `Generate ${count} ${category} events for ${location}. ${prompt}`;
+      systemPrompt = `You are an events coordinator for ${requestLocation}. Generate realistic event data in JSON format. Each event should include: title, description, event_date (future dates), end_date (if multi-day), time_start, time_end, location (specific venues in ${requestLocation}), category, price_range. Make events authentic to the area and seasonal.`;
+      userPrompt = `Generate ${requestCount} ${category} events for ${requestLocation}. ${prompt}`;
     } else if (type === 'lifestyle') {
-      systemPrompt = `You are a lifestyle photographer and local guide for ${location}. Generate lifestyle gallery content in JSON format. Each item should include: title, description, category, location (specific places in ${location}), activity_type. Focus on authentic activities and experiences visitors would enjoy.`;
-      userPrompt = `Generate ${count} ${category} lifestyle activities and experiences in ${location}. ${prompt}`;
+      systemPrompt = `You are a lifestyle photographer and local guide for ${requestLocation}. Generate lifestyle gallery content in JSON format. Each item should include: title, description, category, location (specific places in ${requestLocation}), activity_type, image_url (relevant Unsplash URL), display_order, is_featured (boolean), is_active (boolean, default true). Focus on authentic activities and experiences visitors would enjoy.`;
+      userPrompt = `Generate ${requestCount} ${category || 'lifestyle'} activities and experiences in ${requestLocation}. ${prompt}`;
     }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -68,7 +70,7 @@ serve(async (req) => {
       throw new Error('Failed to parse AI response as JSON');
     }
 
-    console.log(`Generated ${content.length} ${type} items for ${location}`);
+    console.log(`Generated ${content.length} ${type} items for ${requestLocation}`);
 
     return new Response(JSON.stringify({ content }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

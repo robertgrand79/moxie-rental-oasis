@@ -27,6 +27,7 @@ export const useEventGeneration = (existingEvents: EugeneEvent[]) => {
     try {
       const { data, error } = await supabase.functions.invoke('generate-content-ai', {
         body: {
+          type: 'events',
           prompt: `Generate ${numberOfEvents} ${eventType ? eventType + ' ' : ''}events for Eugene, Oregon based on this request: ${prompt}. 
           
           Time frame: ${timeframe}
@@ -50,8 +51,9 @@ export const useEventGeneration = (existingEvents: EugeneEvent[]) => {
           - recurrence_pattern: string (if recurring)
           
           Make sure events are diverse, realistic for Eugene, and include local venues when possible.`,
-          type: 'events',
+          count: numberOfEvents,
           location: 'Eugene, Oregon',
+          category: eventType || 'events',
           context: {
             existingEventsCount: existingEvents.length,
             recentEvents: existingEvents.slice(0, 5).map(e => ({ title: e.title, category: e.category }))
@@ -61,14 +63,14 @@ export const useEventGeneration = (existingEvents: EugeneEvent[]) => {
 
       if (error) throw error;
 
-      // Fix: Check for both data.content and data.generatedContent
-      let events = data.content || data.generatedContent;
+      // Handle the consistent response structure from the edge function
+      let events = data.content || [];
       
       // Ensure we have a valid array and filter out any undefined/null items
       if (!Array.isArray(events)) {
         events = [events];
       }
-      events = events.filter(event => event && typeof event === 'object' && event.title);
+      events = events.filter((event: any) => event && typeof event === 'object' && event.title);
       
       if (events.length === 0) {
         throw new Error('No valid events were generated');
