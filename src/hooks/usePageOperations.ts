@@ -82,15 +82,26 @@ export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) 
     const defaultPages = getDefaultPages(user.id);
 
     try {
+      const existingPages = await pageService.fetchPages();
+      
       for (const pageData of defaultPages) {
-        const exists = await pageService.checkPageExists(pageData.slug);
+        const existingPage = existingPages.find(page => page.slug === pageData.slug);
         
-        if (!exists) {
+        if (!existingPage) {
+          // Create new page if it doesn't exist
           await pageService.createPage(pageData);
+        } else if (existingPage.content && existingPage.content.length < 500) {
+          // Update existing page if it has minimal content (less than 500 characters)
+          console.log(`Updating page ${pageData.slug} with rich content`);
+          await pageService.updatePage(existingPage.id, {
+            content: pageData.content,
+            meta_description: pageData.meta_description,
+            is_published: pageData.is_published
+          });
         }
       }
 
-      console.log('Auto-loaded all website pages into database');
+      console.log('Auto-loaded and updated all website pages');
     } catch (error) {
       console.error('Error auto-loading pages:', error);
     }
@@ -109,11 +120,20 @@ export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) 
     const publicPages = getDefaultPages(user.id).filter(page => page.is_published);
 
     try {
+      const existingPages = await pageService.fetchPages();
+      
       for (const pageData of publicPages) {
-        const exists = await pageService.checkPageExists(pageData.slug);
+        const existingPage = existingPages.find(page => page.slug === pageData.slug);
         
-        if (!exists) {
+        if (!existingPage) {
           await pageService.createPage(pageData);
+        } else if (existingPage.content && existingPage.content.length < 500) {
+          // Update pages with minimal content
+          await pageService.updatePage(existingPage.id, {
+            content: pageData.content,
+            meta_description: pageData.meta_description,
+            is_published: pageData.is_published
+          });
         }
       }
 
@@ -121,7 +141,7 @@ export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) 
       
       toast({
         title: 'Success',
-        description: 'Site pages have been added successfully!'
+        description: 'Site pages have been added and updated successfully!'
       });
     } catch (error) {
       console.error('Error adding site pages:', error);
