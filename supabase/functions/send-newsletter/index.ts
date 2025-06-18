@@ -68,6 +68,27 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Fetch email settings from site_settings
+    const { data: emailSettings, error: settingsError } = await supabaseClient
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["emailFromAddress", "emailFromName", "emailReplyTo", "siteName"]);
+
+    if (settingsError) {
+      console.error("Error fetching email settings:", settingsError);
+    }
+
+    // Convert settings array to object
+    const settings = emailSettings?.reduce((acc, setting) => {
+      acc[setting.key] = setting.value;
+      return acc;
+    }, {} as Record<string, string>) || {};
+
+    // Use configured settings with fallbacks
+    const fromEmail = settings.emailFromAddress || "noreply@moxievacationrentals.com";
+    const fromName = settings.emailFromName || settings.siteName || "Moxie Vacation Rentals";
+    const replyTo = settings.emailReplyTo || fromEmail;
+
     // Create email template
     const emailHtml = `
       <!DOCTYPE html>
@@ -79,7 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="margin: 0; font-size: 28px;">Moxie Travel Blog</h1>
+            <h1 style="margin: 0; font-size: 28px;">${fromName}</h1>
             <p style="margin: 10px 0 0 0; opacity: 0.9;">Your travel inspiration delivered</p>
           </div>
           
@@ -92,11 +113,11 @@ const handler = async (req: Request): Promise<Response> => {
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
               <p style="margin: 0; color: #666; font-size: 14px;">
-                Thanks for subscribing to Moxie Travel Blog!
+                Thanks for subscribing to ${fromName}!
               </p>
               <p style="margin: 10px 0 0 0; color: #666; font-size: 12px;">
                 <a href="{{unsubscribe_url}}" style="color: #666;">Unsubscribe</a> | 
-                <a href="${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '') || ''}" style="color: #666;">Visit our blog</a>
+                <a href="https://moxievacationrentals.com" style="color: #666;">Visit our website</a>
               </p>
             </div>
           </div>
@@ -129,7 +150,8 @@ const handler = async (req: Request): Promise<Response> => {
               subject: subject,
             },
           ],
-          from: { email: "noreply@yourdomain.com", name: "Moxie Travel Blog" },
+          from: { email: fromEmail, name: fromName },
+          reply_to: { email: replyTo },
           content: [
             {
               type: "text/html",
@@ -165,12 +187,13 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Failed to save campaign:", campaignError);
     }
 
-    console.log(`Newsletter sent successfully to ${subscribers.length} subscribers`);
+    console.log(`Newsletter sent successfully to ${subscribers.length} subscribers from ${fromEmail}`);
 
     return new Response(
       JSON.stringify({ 
         message: "Newsletter sent successfully", 
-        recipientCount: subscribers.length 
+        recipientCount: subscribers.length,
+        fromEmail: fromEmail
       }),
       {
         status: 200,

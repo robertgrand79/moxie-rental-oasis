@@ -4,19 +4,17 @@ import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCar
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Save, Mail, ExternalLink, CheckCircle, AlertCircle, Send } from 'lucide-react';
+import { Save, Mail, ExternalLink, CheckCircle, AlertCircle, Send, Shield, Globe } from 'lucide-react';
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const EmailServicesTab = () => {
-  const { settings, saving, updateSettingOptimistic, saveSettings } = useStableSiteSettings();
+  const { settings, saving, saveSettings } = useStableSiteSettings();
   const [localSettings, setLocalSettings] = useState({
-    sendgridApiKey: '',
-    emailFromAddress: settings.contactEmail || 'noreply@yourdomain.com',
-    emailFromName: settings.siteName || 'Your Site',
-    emailReplyTo: settings.contactEmail || '',
+    emailFromAddress: settings.emailFromAddress || 'noreply@moxievacationrentals.com',
+    emailFromName: settings.emailFromName || settings.siteName || 'Moxie Vacation Rentals',
+    emailReplyTo: settings.emailReplyTo || settings.contactEmail || 'contact@moxievacationrentals.com',
   });
   const [testEmail, setTestEmail] = useState('');
   const [testing, setTesting] = useState(false);
@@ -25,9 +23,9 @@ const EmailServicesTab = () => {
   React.useEffect(() => {
     setLocalSettings(prev => ({
       ...prev,
-      emailFromAddress: settings.contactEmail || 'noreply@yourdomain.com',
-      emailFromName: settings.siteName || 'Your Site',
-      emailReplyTo: settings.contactEmail || '',
+      emailFromAddress: settings.emailFromAddress || 'noreply@moxievacationrentals.com',
+      emailFromName: settings.emailFromName || settings.siteName || 'Moxie Vacation Rentals',
+      emailReplyTo: settings.emailReplyTo || settings.contactEmail || 'contact@moxievacationrentals.com',
     }));
   }, [settings]);
 
@@ -61,13 +59,17 @@ const EmailServicesTab = () => {
       const { data, error } = await supabase.functions.invoke('send-newsletter-preview', {
         body: {
           email: testEmail,
-          subject: 'SendGrid Configuration Test',
+          subject: 'SendGrid Configuration Test - Moxie Vacation Rentals',
           content: `
             <h2>SendGrid Test Email</h2>
-            <p>Congratulations! Your SendGrid configuration is working correctly.</p>
-            <p>This test email was sent from your newsletter system.</p>
-            <p><strong>From:</strong> ${localSettings.emailFromName} &lt;${localSettings.emailFromAddress}&gt;</p>
-            <p><strong>Sent at:</strong> ${new Date().toLocaleString()}</p>
+            <p>Congratulations! Your SendGrid configuration is working correctly with your moxievacationrentals.com domain.</p>
+            <p>This test email was sent from your newsletter system using the following configuration:</p>
+            <ul>
+              <li><strong>From:</strong> ${localSettings.emailFromName} &lt;${localSettings.emailFromAddress}&gt;</li>
+              <li><strong>Reply-To:</strong> ${localSettings.emailReplyTo}</li>
+              <li><strong>Sent at:</strong> ${new Date().toLocaleString()}</li>
+            </ul>
+            <p>Your domain verification and email configuration are working properly!</p>
           `
         }
       });
@@ -78,13 +80,13 @@ const EmailServicesTab = () => {
 
       toast({
         title: 'Test Email Sent!',
-        description: `A test email has been sent to ${testEmail}. Check your inbox.`,
+        description: `A test email has been sent to ${testEmail} from ${localSettings.emailFromAddress}. Check your inbox.`,
       });
     } catch (error) {
       console.error('Test email error:', error);
       toast({
         title: 'Test Email Failed',
-        description: error.message || 'Failed to send test email. Please check your SendGrid configuration.',
+        description: error.message || 'Failed to send test email. Please check your SendGrid configuration and domain verification.',
         variant: 'destructive'
       });
     } finally {
@@ -94,48 +96,73 @@ const EmailServicesTab = () => {
 
   return (
     <div className="space-y-8">
+      {/* Domain Verification Status */}
+      <EnhancedCard variant="glass">
+        <EnhancedCardHeader>
+          <EnhancedCardTitle className="flex items-center">
+            <Shield className="h-5 w-5 mr-2 text-green-600" />
+            Domain Verification Status
+          </EnhancedCardTitle>
+          <EnhancedCardDescription>
+            Verify your moxievacationrentals.com domain in SendGrid for proper email delivery
+          </EnhancedCardDescription>
+        </EnhancedCardHeader>
+        <EnhancedCardContent className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <Globe className="h-5 w-5 text-blue-600 mt-0.5 mr-2" />
+              <div className="text-sm">
+                <p className="font-medium text-blue-900 mb-2">Domain: moxievacationrentals.com</p>
+                <p className="text-blue-700 mb-3">
+                  To send emails from your domain, you must verify it in SendGrid. This ensures high deliverability and prevents your emails from being marked as spam.
+                </p>
+                <div className="space-y-2">
+                  <h4 className="font-medium text-blue-900">Verification Steps:</h4>
+                  <ol className="list-decimal list-inside space-y-1 text-blue-700">
+                    <li>Go to SendGrid → Settings → Sender Authentication</li>
+                    <li>Click "Verify a Single Sender" or "Authenticate Your Domain"</li>
+                    <li>Enter moxievacationrentals.com as your domain</li>
+                    <li>Add the provided DNS records to your domain</li>
+                    <li>Wait for verification (can take up to 48 hours)</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open('https://app.sendgrid.com/settings/sender_auth', '_blank')}
+            >
+              <ExternalLink className="h-4 w-4 mr-1" />
+              Verify Domain in SendGrid
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open('https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication', '_blank')}
+            >
+              <ExternalLink className="h-4 w-4 mr-1" />
+              Domain Setup Guide
+            </Button>
+          </div>
+        </EnhancedCardContent>
+      </EnhancedCard>
+
       {/* SendGrid Configuration */}
       <EnhancedCard variant="glass">
         <EnhancedCardHeader>
           <EnhancedCardTitle className="flex items-center">
             <Mail className="h-5 w-5 mr-2 text-blue-600" />
-            SendGrid Configuration
+            Email Configuration
           </EnhancedCardTitle>
           <EnhancedCardDescription>
-            Configure SendGrid for sending newsletters and transactional emails
+            Configure your email sender information for newsletters and notifications
           </EnhancedCardDescription>
         </EnhancedCardHeader>
         <EnhancedCardContent className="space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 mr-2" />
-              <div className="text-sm">
-                <p className="font-medium text-blue-900 mb-1">SendGrid API Key Required</p>
-                <p className="text-blue-700 mb-2">
-                  Your SendGrid API key is stored securely in Supabase secrets. To update it, use the button below.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.open('https://app.sendgrid.com/settings/api_keys', '_blank')}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Get SendGrid API Key
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.open('https://app.sendgrid.com/settings/sender_auth', '_blank')}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Verify Domain
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="emailFromName">Sender Name *</Label>
@@ -143,7 +170,7 @@ const EmailServicesTab = () => {
                 id="emailFromName"
                 value={localSettings.emailFromName}
                 onChange={(e) => handleInputChange('emailFromName', e.target.value)}
-                placeholder="Your Company Name"
+                placeholder="Moxie Vacation Rentals"
                 className="mt-1"
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -157,11 +184,11 @@ const EmailServicesTab = () => {
                 type="email"
                 value={localSettings.emailFromAddress}
                 onChange={(e) => handleInputChange('emailFromAddress', e.target.value)}
-                placeholder="noreply@yourdomain.com"
+                placeholder="noreply@moxievacationrentals.com"
                 className="mt-1"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Must be a verified domain in SendGrid
+                Must use your verified domain: moxievacationrentals.com
               </p>
             </div>
           </div>
@@ -173,7 +200,7 @@ const EmailServicesTab = () => {
               type="email"
               value={localSettings.emailReplyTo}
               onChange={(e) => handleInputChange('emailReplyTo', e.target.value)}
-              placeholder="support@yourdomain.com"
+              placeholder="contact@moxievacationrentals.com"
               className="mt-1"
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -200,7 +227,7 @@ const EmailServicesTab = () => {
             Test Email Configuration
           </EnhancedCardTitle>
           <EnhancedCardDescription>
-            Send a test email to verify your SendGrid configuration is working
+            Send a test email to verify your SendGrid and domain configuration
           </EnhancedCardDescription>
         </EnhancedCardHeader>
         <EnhancedCardContent className="space-y-6">
@@ -215,7 +242,7 @@ const EmailServicesTab = () => {
               className="mt-1"
             />
             <p className="text-xs text-gray-500 mt-1">
-              We'll send a test email to this address
+              We'll send a test email to this address using your configured settings
             </p>
           </div>
 
@@ -242,13 +269,19 @@ const EmailServicesTab = () => {
               </li>
               <li className="flex items-center">
                 <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
-                Domain verified in SendGrid (required for delivery)
+                Domain moxievacationrentals.com verified in SendGrid
               </li>
               <li className="flex items-center">
                 <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
-                Test email sent successfully
+                Test email sent successfully from verified domain
               </li>
             </ul>
+            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
+              <p className="text-yellow-800">
+                <strong>Important:</strong> Emails will only be delivered reliably once your domain is verified in SendGrid. 
+                Unverified domains may result in emails being blocked or marked as spam.
+              </p>
+            </div>
           </div>
         </EnhancedCardContent>
       </EnhancedCard>

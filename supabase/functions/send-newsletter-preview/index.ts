@@ -54,6 +54,27 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Email, subject, and content are required");
     }
 
+    // Fetch email settings from site_settings
+    const { data: emailSettings, error: settingsError } = await supabaseClient
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["emailFromAddress", "emailFromName", "emailReplyTo", "siteName"]);
+
+    if (settingsError) {
+      console.error("Error fetching email settings:", settingsError);
+    }
+
+    // Convert settings array to object
+    const settings = emailSettings?.reduce((acc, setting) => {
+      acc[setting.key] = setting.value;
+      return acc;
+    }, {} as Record<string, string>) || {};
+
+    // Use configured settings with fallbacks
+    const fromEmail = settings.emailFromAddress || "noreply@moxievacationrentals.com";
+    const fromName = settings.emailFromName || settings.siteName || "Moxie Vacation Rentals";
+    const replyTo = settings.emailReplyTo || fromEmail;
+
     // Create email template
     const emailHtml = `
       <!DOCTYPE html>
@@ -65,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="margin: 0; font-size: 28px;">Moxie Travel Blog</h1>
+            <h1 style="margin: 0; font-size: 28px;">${fromName}</h1>
             <p style="margin: 10px 0 0 0; opacity: 0.9;">Newsletter Preview</p>
           </div>
           
@@ -83,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
               <p style="margin: 0; color: #666; font-size: 14px;">
-                Thanks for subscribing to Moxie Travel Blog!
+                Thanks for subscribing to ${fromName}!
               </p>
               <p style="margin: 10px 0 0 0; color: #666; font-size: 12px;">
                 This was a preview email sent from the newsletter manager.
@@ -113,7 +134,8 @@ const handler = async (req: Request): Promise<Response> => {
             subject: `[PREVIEW] ${subject}`,
           },
         ],
-        from: { email: "noreply@yourdomain.com", name: "Moxie Travel Blog" },
+        from: { email: fromEmail, name: fromName },
+        reply_to: { email: replyTo },
         content: [
           {
             type: "text/html",
@@ -129,12 +151,13 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`SendGrid API error: ${response.status}`);
     }
 
-    console.log(`Preview newsletter sent successfully to ${email}`);
+    console.log(`Preview newsletter sent successfully to ${email} from ${fromEmail}`);
 
     return new Response(
       JSON.stringify({ 
         message: "Preview sent successfully", 
-        email: email 
+        email: email,
+        fromEmail: fromEmail
       }),
       {
         status: 200,
