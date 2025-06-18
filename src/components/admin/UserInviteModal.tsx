@@ -43,8 +43,17 @@ const UserInviteModal = ({ isOpen, onClose, onInvite }: UserInviteModalProps) =>
     setIsSubmitting(false);
   };
 
+  const handleClose = () => {
+    if (!isSubmitting) {
+      setEmail('');
+      setFullName('');
+      setRole('user');
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Invite New User</DialogTitle>
@@ -92,7 +101,7 @@ const UserInviteModal = ({ isOpen, onClose, onInvite }: UserInviteModalProps) =>
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isSubmitting}
             >
               Cancel

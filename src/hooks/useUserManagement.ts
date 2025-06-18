@@ -30,6 +30,25 @@ export const useUserManagement = () => {
       setLoading(true);
       setError(null);
       
+      // Check if current user is admin first
+      const { data: currentUserProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user?.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error checking user role:', profileError);
+        setError('Failed to verify admin access');
+        return;
+      }
+
+      if (currentUserProfile?.role !== 'admin') {
+        setError('Access denied: Admin privileges required');
+        return;
+      }
+
+      // Fetch all users (RLS will handle access control)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
