@@ -1,103 +1,88 @@
 
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import PublicLayout from './components/layouts/PublicLayout';
-import Auth from './pages/Auth';
-import Index from './pages/Index';
-import Properties from './pages/Properties';
-import PropertyPage from './components/PropertyPage';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
-import Events from './pages/Events';
-import Experiences from './pages/Experiences';
-import FAQ from './pages/FAQ';
-import AdminLayoutWrapper from './components/layouts/AdminLayoutWrapper';
-import Admin from './pages/Admin';
-import AdminProperties from './pages/admin/AdminProperties';
-import AdminPageManagement from './pages/admin/AdminPageManagement';
-import BlogManagement from './pages/BlogManagement';
-import AdminSiteSettingsRedesigned from './pages/admin/AdminSiteSettingsRedesigned';
-import AdminUserManagement from './pages/admin/AdminUserManagement';
-import AdminRolesPermissions from './pages/admin/AdminRolesPermissions';
-import AdminAnalytics from './pages/admin/AdminAnalytics';
-import AdminSiteMetrics from './pages/admin/AdminSiteMetrics';
-import AdminNewsletterManagement from './pages/admin/AdminNewsletterManagement';
-import AdminLifestyle from './pages/admin/AdminLifestyle';
-import AdminPOI from './pages/admin/AdminPOI';
-import AdminTestimonials from './pages/admin/AdminTestimonials';
-import AdminEvents from './pages/admin/AdminEvents';
-import AdminWorkOrders from './pages/admin/AdminWorkOrders';
-import AdminContractors from './pages/admin/AdminContractors';
-import AdminPropertyManagement from './pages/admin/AdminPropertyManagement';
-import AdminTaskManagementRedirect from '@/pages/admin/AdminTaskManagementRedirect';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import Layout from "@/components/Layout";
+import Index from "@/pages/Index";
+import Properties from "@/pages/Properties";
+import PropertyDetails from "@/pages/PropertyDetails";
+import EugeneLife from "@/pages/EugeneLife";
+import Events from "@/pages/Events";
+import Contact from "@/pages/Contact";
+import Blog from "@/pages/Blog";
+import BlogPost from "@/pages/BlogPost";
+import Auth from "@/pages/Auth";
+import AdminLayout from "@/components/admin/AdminLayout";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminProperties from "@/pages/admin/AdminProperties";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminWorkOrders from "@/pages/admin/AdminWorkOrders";
+import AdminOfficeSpaces from "@/pages/admin/AdminOfficeSpaces";
+import AdminEugeneEvents from "@/pages/admin/AdminEugeneEvents";
+import AdminLifestyleGallery from "@/pages/admin/AdminLifestyleGallery";
+import AdminPointsOfInterest from "@/pages/admin/AdminPointsOfInterest";
+import AdminTestimonials from "@/pages/admin/AdminTestimonials";
+import AdminPages from "@/pages/admin/AdminPages";
+import AdminNewsletter from "@/pages/admin/AdminNewsletter";
+import AdminBlogPosts from "@/pages/admin/AdminBlogPosts";
+import AdminSettings from "@/pages/admin/AdminSettings";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import DynamicPage from "@/pages/DynamicPage";
 
 const queryClient = new QueryClient();
 
-const App: React.FC = () => {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <BrowserRouter>
-          <AuthProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
             <Routes>
-              {/* Standalone Auth Route */}
-              <Route path="/auth" element={<Auth />} />
-
-              {/* Public Routes with PublicLayout */}
-              <Route path="/" element={<PublicLayout />}>
+              {/* Public routes */}
+              <Route path="/" element={<Layout />}>
                 <Route index element={<Index />} />
                 <Route path="properties" element={<Properties />} />
-                <Route path="property/:addressSlug" element={<PropertyPage />} />
-                <Route path="about" element={<About />} />
+                <Route path="properties/:id" element={<PropertyDetails />} />
+                <Route path="eugene-life" element={<EugeneLife />} />
+                <Route path="events" element={<Events />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="blog" element={<Blog />} />
                 <Route path="blog/:slug" element={<BlogPost />} />
-                <Route path="events" element={<Events />} />
-                <Route path="experiences" element={<Experiences />} />
-                <Route path="faq" element={<FAQ />} />
+                <Route path="auth" element={<Auth />} />
+                <Route path="pages/:slug" element={<DynamicPage />} />
               </Route>
 
-              {/* Protected Admin Routes */}
+              {/* Admin routes */}
               <Route path="/admin" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminLayoutWrapper />
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout />
                 </ProtectedRoute>
               }>
-                <Route index element={<Admin />} />
+                <Route index element={<AdminDashboard />} />
                 <Route path="properties" element={<AdminProperties />} />
-                <Route path="blog" element={<BlogManagement />} />
-                <Route path="pages" element={<AdminPageManagement />} />
-                <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
-                <Route path="user-management" element={<AdminUserManagement />} />
-                <Route path="roles-permissions" element={<AdminRolesPermissions />} />
-                <Route path="analytics" element={<AdminAnalytics />} />
-                <Route path="site-metrics" element={<AdminSiteMetrics />} />
-                <Route path="newsletter-management" element={<AdminNewsletterManagement />} />
-                <Route path="lifestyle" element={<AdminLifestyle />} />
-                <Route path="poi" element={<AdminPOI />} />
+                <Route path="workorders" element={<AdminWorkOrders />} />
+                <Route path="office-spaces" element={<AdminOfficeSpaces />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="eugene-events" element={<AdminEugeneEvents />} />
+                <Route path="lifestyle-gallery" element={<AdminLifestyleGallery />} />
+                <Route path="points-of-interest" element={<AdminPointsOfInterest />} />
                 <Route path="testimonials" element={<AdminTestimonials />} />
-                <Route path="events" element={<AdminEvents />} />
-                <Route path="work-orders" element={<AdminWorkOrders />} />
-                <Route path="contractors" element={<AdminContractors />} />
-                <Route path="property-management" element={<AdminPropertyManagement />} />
-                
-                {/* Redirect old task management to property management */}
-                <Route path="task-management" element={<AdminTaskManagementRedirect />} />
-                
+                <Route path="pages" element={<AdminPages />} />
+                <Route path="newsletter" element={<AdminNewsletter />} />
+                <Route path="blog-posts" element={<AdminBlogPosts />} />
+                <Route path="settings" element={<AdminSettings />} />
               </Route>
-              
             </Routes>
-          </AuthProvider>
-        </BrowserRouter>
+          </BrowserRouter>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;

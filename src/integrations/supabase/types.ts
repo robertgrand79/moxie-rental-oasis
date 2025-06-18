@@ -286,45 +286,6 @@ export type Database = {
         }
         Relationships: []
       }
-      custom_task_types: {
-        Row: {
-          color: string | null
-          created_at: string
-          created_by: string
-          description: string | null
-          icon: string | null
-          id: string
-          is_active: boolean
-          is_system: boolean
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          color?: string | null
-          created_at?: string
-          created_by: string
-          description?: string | null
-          icon?: string | null
-          id?: string
-          is_active?: boolean
-          is_system?: boolean
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          color?: string | null
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          icon?: string | null
-          id?: string
-          is_active?: boolean
-          is_system?: boolean
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       eugene_events: {
         Row: {
           category: string | null
@@ -573,50 +534,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      maintenance_schedules: {
-        Row: {
-          created_at: string
-          frequency: string
-          id: string
-          is_active: boolean
-          last_completed: string | null
-          next_due_date: string
-          property_id: string
-          task_type: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          frequency: string
-          id?: string
-          is_active?: boolean
-          last_completed?: string | null
-          next_due_date: string
-          property_id: string
-          task_type: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          frequency?: string
-          id?: string
-          is_active?: boolean
-          last_completed?: string | null
-          next_due_date?: string
-          property_id?: string
-          task_type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "maintenance_schedules_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       newsletter_campaigns: {
         Row: {
@@ -1120,171 +1037,6 @@ export type Database = {
         }
         Relationships: []
       }
-      property_projects: {
-        Row: {
-          actual_completion_date: string | null
-          actual_cost: number | null
-          budget: number | null
-          created_at: string
-          created_by: string
-          description: string | null
-          id: string
-          priority: string
-          property_id: string
-          start_date: string | null
-          status: string
-          target_completion_date: string | null
-          title: string
-          type: string
-          updated_at: string
-        }
-        Insert: {
-          actual_completion_date?: string | null
-          actual_cost?: number | null
-          budget?: number | null
-          created_at?: string
-          created_by: string
-          description?: string | null
-          id?: string
-          priority?: string
-          property_id: string
-          start_date?: string | null
-          status?: string
-          target_completion_date?: string | null
-          title: string
-          type: string
-          updated_at?: string
-        }
-        Update: {
-          actual_completion_date?: string | null
-          actual_cost?: number | null
-          budget?: number | null
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          id?: string
-          priority?: string
-          property_id?: string
-          start_date?: string | null
-          status?: string
-          target_completion_date?: string | null
-          title?: string
-          type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "property_projects_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      property_tasks: {
-        Row: {
-          actual_hours: number | null
-          assigned_to: string | null
-          checklist_items: string[] | null
-          created_at: string
-          created_by: string
-          description: string | null
-          due_date: string | null
-          estimated_hours: number | null
-          id: string
-          is_recurring: boolean
-          notes: string | null
-          photos: string[] | null
-          priority: string
-          project_id: string | null
-          property_id: string | null
-          recurrence_end_date: string | null
-          recurrence_frequency: string | null
-          recurrence_interval: number | null
-          recurrence_pattern: string | null
-          status: string
-          task_type_id: string | null
-          title: string
-          type: string
-          updated_at: string
-        }
-        Insert: {
-          actual_hours?: number | null
-          assigned_to?: string | null
-          checklist_items?: string[] | null
-          created_at?: string
-          created_by: string
-          description?: string | null
-          due_date?: string | null
-          estimated_hours?: number | null
-          id?: string
-          is_recurring?: boolean
-          notes?: string | null
-          photos?: string[] | null
-          priority?: string
-          project_id?: string | null
-          property_id?: string | null
-          recurrence_end_date?: string | null
-          recurrence_frequency?: string | null
-          recurrence_interval?: number | null
-          recurrence_pattern?: string | null
-          status?: string
-          task_type_id?: string | null
-          title: string
-          type?: string
-          updated_at?: string
-        }
-        Update: {
-          actual_hours?: number | null
-          assigned_to?: string | null
-          checklist_items?: string[] | null
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          due_date?: string | null
-          estimated_hours?: number | null
-          id?: string
-          is_recurring?: boolean
-          notes?: string | null
-          photos?: string[] | null
-          priority?: string
-          project_id?: string | null
-          property_id?: string | null
-          recurrence_end_date?: string | null
-          recurrence_frequency?: string | null
-          recurrence_interval?: number | null
-          recurrence_pattern?: string | null
-          status?: string
-          task_type_id?: string | null
-          title?: string
-          type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "property_tasks_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "property_projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "property_tasks_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "property_tasks_task_type_id_fkey"
-            columns: ["task_type_id"]
-            isOneToOne: false
-            referencedRelation: "custom_task_types"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       role_permissions: {
         Row: {
           granted_at: string
@@ -1466,84 +1218,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      task_assignments: {
-        Row: {
-          assigned_at: string
-          assigned_by: string
-          id: string
-          task_id: string
-          user_id: string
-        }
-        Insert: {
-          assigned_at?: string
-          assigned_by: string
-          id?: string
-          task_id: string
-          user_id: string
-        }
-        Update: {
-          assigned_at?: string
-          assigned_by?: string
-          id?: string
-          task_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_task_assignments_assigned_by"
-            columns: ["assigned_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_task_assignments_user_id"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_assignments_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "property_tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      task_comments: {
-        Row: {
-          comment: string
-          created_at: string
-          created_by: string
-          id: string
-          task_id: string
-        }
-        Insert: {
-          comment: string
-          created_at?: string
-          created_by: string
-          id?: string
-          task_id: string
-        }
-        Update: {
-          comment?: string
-          created_at?: string
-          created_by?: string
-          id?: string
-          task_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_comments_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       tasks: {
         Row: {
@@ -1835,7 +1509,6 @@ export type Database = {
           id: string
           invoice_attachments: string[] | null
           priority: string
-          project_id: string | null
           property_id: string | null
           requires_permits: boolean | null
           scope_of_work: string | null
@@ -1863,7 +1536,6 @@ export type Database = {
           id?: string
           invoice_attachments?: string[] | null
           priority?: string
-          project_id?: string | null
           property_id?: string | null
           requires_permits?: boolean | null
           scope_of_work?: string | null
@@ -1891,7 +1563,6 @@ export type Database = {
           id?: string
           invoice_attachments?: string[] | null
           priority?: string
-          project_id?: string | null
           property_id?: string | null
           requires_permits?: boolean | null
           scope_of_work?: string | null
@@ -1909,13 +1580,6 @@ export type Database = {
             columns: ["contractor_id"]
             isOneToOne: false
             referencedRelation: "contractors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "work_orders_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "property_projects"
             referencedColumns: ["id"]
           },
           {
