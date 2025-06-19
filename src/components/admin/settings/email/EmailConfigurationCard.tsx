@@ -9,11 +9,13 @@ import { Settings, Save, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 const EmailConfigurationCard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: emailSettings } = useQuery({
     queryKey: ['email-settings'],
@@ -32,9 +34,22 @@ const EmailConfigurationCard = () => {
     },
   });
 
-  const handleSaveSettings = async (formData: FormData) => {
+  const handleSaveSettings = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to save settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
+    
     try {
+      const formData = new FormData(event.currentTarget);
       const settings = [
         { key: 'emailFromAddress', value: formData.get('emailFromAddress') as string },
         { key: 'emailFromName', value: formData.get('emailFromName') as string },
@@ -44,7 +59,11 @@ const EmailConfigurationCard = () => {
       for (const setting of settings) {
         const { error } = await supabase
           .from('site_settings')
-          .upsert(setting, { onConflict: 'key' });
+          .upsert({
+            key: setting.key,
+            value: setting.value,
+            created_by: user.id
+          }, { onConflict: 'key' });
         
         if (error) throw error;
       }
@@ -76,7 +95,7 @@ const EmailConfigurationCard = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={handleSaveSettings} className="space-y-4">
+        <form onSubmit={handleSaveSettings} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="emailFromAddress">From Email Address *</Label>
