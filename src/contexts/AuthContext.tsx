@@ -36,46 +36,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserRole = async (userId: string) => {
     try {
       setRoleLoading(true);
-      console.log('Fetching role for user:', userId);
+      console.log('🔍 Fetching role for user:', userId);
       
-      // Check legacy system first
-      const { data: profile } = await supabase
+      // Use only the legacy system for now - it's what works
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', userId)
         .single();
 
-      if (profile?.role === 'admin') {
-        console.log('User is admin (legacy system)');
-        setUserRole('admin');
-        setIsAdmin(true);
+      if (error) {
+        console.error('❌ Error fetching user profile:', error);
+        setUserRole('user');
+        setIsAdmin(false);
         return;
       }
 
-      // Try new role system with explicit column hint
-      const { data: userRoles } = await supabase
-        .from('user_roles')
-        .select(`
-          role:role_id(
-            name
-          )
-        `)
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .limit(1);
-
-      if (userRoles && userRoles.length > 0 && userRoles[0].role) {
-        const roleName = (userRoles[0].role as any).name;
-        console.log('User role from new system:', roleName);
-        setUserRole(roleName);
-        setIsAdmin(roleName === 'Admin');
-      } else {
-        console.log('No roles found, defaulting to user');
-        setUserRole('user');
-        setIsAdmin(false);
-      }
+      const role = profile?.role || 'user';
+      console.log('✅ User role from profiles:', role);
+      
+      setUserRole(role);
+      setIsAdmin(role === 'admin');
+      
     } catch (error) {
-      console.error('Error fetching user role:', error);
+      console.error('💥 Unexpected error fetching user role:', error);
       setUserRole('user');
       setIsAdmin(false);
     } finally {
@@ -84,19 +68,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener - MUST NOT BE ASYNC to avoid blocking
+    console.log('🔄 Setting up auth listener...');
+    
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+      async (event, session) => {
+        console.log('🔐 Auth state changed:', event, session?.user?.email);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Use setTimeout to defer role fetching and avoid blocking auth state change
-          setTimeout(() => {
-            fetchUserRole(session.user.id);
-          }, 0);
+          console.log('👤 User authenticated, fetching role...');
+          await fetchUserRole(session.user.id);
         } else {
+          console.log('👤 No user, clearing role state');
           setUserRole(null);
           setIsAdmin(false);
           setRoleLoading(false);
@@ -107,25 +93,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        // Use setTimeout here too for consistency
-        setTimeout(() => {
-          fetchUserRole(session.user.id);
-        }, 0);
+    const initializeAuth = async () => {
+      try {
+        console.log('🔍 Checking for existing session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('📋 Initial session check:', session?.user?.email || 'No session');
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchUserRole(session.user.id);
+        }
+        
+      } catch (error) {
+        console.error('💥 Error initializing auth:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      console.log('🧹 Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
+    console.log('📝 Attempting sign up for:', email);
+    
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -138,22 +143,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     });
+
+    if (error) {
+      console.error('❌ Sign up error:', error);
+    } else {
+      console.log('✅ Sign up successful');
+    }
+
     return { error };
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log('🔑 Attempting sign in for:', email);
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
+
+    if (error) {
+      console.error('❌ Sign in error:', error);
+    } else {
+      console.log('✅ Sign in successful');
+    }
+
     return { error };
   };
 
   const signOut = async () => {
+    console.log('🚪 Signing out...');
+    
     const { error } = await supabase.auth.signOut();
-    setUserRole(null);
-    setIsAdmin(false);
-    setRoleLoading(false);
+    
+    if (!error) {
+      setUserRole(null);
+      setIsAdmin(false);
+      setRoleLoading(false);
+      console.log('✅ Sign out successful');
+    } else {
+      console.error('❌ Sign out error:', error);
+    }
+    
     return { error };
   };
 

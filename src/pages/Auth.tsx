@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
@@ -13,30 +14,37 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
+  const [debugInfo, setDebugInfo] = useState('');
   const { signIn, signUp, user, isAdmin, loading, roleLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Only redirect once we have user info and aren't loading anything
+    // Debug logging
+    const info = `
+      User: ${user?.email || 'None'}
+      Loading: ${loading}
+      Role Loading: ${roleLoading}
+      Is Admin: ${isAdmin}
+      Current Time: ${new Date().toLocaleTimeString()}
+    `;
+    setDebugInfo(info);
+
+    // Handle redirect once everything is loaded
     if (user && !loading && !roleLoading) {
-      console.log('Auth redirect check:', { 
+      console.log('🎯 Auth complete, redirecting...', { 
         hasUser: !!user, 
-        loading, 
-        roleLoading, 
         isAdmin, 
         userEmail: user.email 
       });
       
-      // Small delay to ensure role is fully loaded
-      setTimeout(() => {
-        if (isAdmin) {
-          console.log('Redirecting admin to /admin');
-          navigate('/admin');
-        } else {
-          console.log('Redirecting user to /');
-          navigate('/');
-        }
-      }, 100);
+      // Simple, direct redirect
+      if (isAdmin) {
+        console.log('👑 Redirecting admin to /admin');
+        navigate('/admin', { replace: true });
+      } else {
+        console.log('👤 Redirecting user to /');
+        navigate('/', { replace: true });
+      }
     }
   }, [user, isAdmin, loading, roleLoading, navigate]);
 
@@ -45,15 +53,28 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      console.log('🔑 Login attempt for:', loginData.email);
+      
       const { error } = await signIn(loginData.email, loginData.password);
       
       if (error) {
+        console.error('❌ Login failed:', error);
+        
+        // Show specific error messages
+        let errorMessage = error.message;
+        if (error.message.includes('invalid_credentials') || error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        } else if (error.message.includes('email_not_confirmed')) {
+          errorMessage = 'Please check your email and confirm your account before signing in.';
+        }
+        
         toast({
           title: 'Login Failed',
-          description: error.message,
+          description: errorMessage,
           variant: 'destructive'
         });
       } else {
+        console.log('✅ Login successful');
         toast({
           title: 'Welcome back!',
           description: 'You have successfully logged in.',
@@ -61,7 +82,7 @@ const Auth = () => {
         // Navigation will be handled by the useEffect above
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('💥 Unexpected login error:', error);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
@@ -77,23 +98,25 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      console.log('📝 Signup attempt for:', signupData.email);
+      
       const { error } = await signUp(signupData.email, signupData.password, signupData.fullName);
       
       if (error) {
+        console.error('❌ Signup failed:', error);
+        
+        let errorMessage = error.message;
         if (error.message.includes('already registered')) {
-          toast({
-            title: 'Account Already Exists',
-            description: 'This email is already registered. Please try logging in instead.',
-            variant: 'destructive'
-          });
-        } else {
-          toast({
-            title: 'Signup Failed',
-            description: error.message,
-            variant: 'destructive'
-          });
+          errorMessage = 'This email is already registered. Please try logging in instead.';
         }
+        
+        toast({
+          title: 'Signup Failed',
+          description: errorMessage,
+          variant: 'destructive'
+        });
       } else {
+        console.log('✅ Signup successful');
         toast({
           title: 'Account Created!',
           description: 'Welcome! Please check your email to verify your account.',
@@ -101,7 +124,7 @@ const Auth = () => {
         // Navigation will be handled by the useEffect above
       }
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('💥 Unexpected signup error:', error);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
@@ -112,7 +135,7 @@ const Auth = () => {
     }
   };
 
-  // Show loading state while determining role - but with timeout to prevent infinite loading
+  // Show loading state while auth is being determined
   if (user && (loading || roleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -121,6 +144,13 @@ const Auth = () => {
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-sm text-muted-foreground">Setting up your account...</p>
+              {process.env.NODE_ENV === 'development' && (
+                <Alert className="mt-4">
+                  <AlertDescription>
+                    <pre className="text-xs whitespace-pre-wrap">{debugInfo}</pre>
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -214,6 +244,18 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
+
+          {/* Debug info for development */}
+          {process.env.NODE_ENV === 'development' && (
+            <Alert className="mt-4">
+              <AlertDescription>
+                <details>
+                  <summary className="cursor-pointer text-sm font-medium">Debug Info</summary>
+                  <pre className="text-xs whitespace-pre-wrap mt-2">{debugInfo}</pre>
+                </details>
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
       </Card>
     </div>
