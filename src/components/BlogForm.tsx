@@ -24,7 +24,7 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       content: post?.content || '',
       tags: post?.tags?.join(', ') || '',
       status: post?.status || 'draft',
-      author: post?.author || 'Admin',
+      author: post?.author || 'Moxie Team',
       published_at: post?.published_at ? new Date(post.published_at) : null
     }
   });
@@ -60,7 +60,7 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
     console.log('📨 Blog form submitted:', data);
     
     // Ensure we have a valid author - use the actual value from the form
-    const finalAuthor = data.author && data.author.trim() ? data.author.trim() : 'Admin';
+    const finalAuthor = data.author && data.author.trim() ? data.author.trim() : 'Moxie Team';
     
     const formData = {
       ...data,

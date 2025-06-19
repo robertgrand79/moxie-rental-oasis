@@ -49,7 +49,7 @@ const BlogEditorForm = ({
   const watchedAuthor = watch('author');
   const watchedPublishedAt = watch('published_at');
   
-  const predefinedAuthors = ['Admin', 'Robert', 'Shelly', 'Robert & Shelly'];
+  const predefinedAuthors = ['Moxie Team', 'Robert', 'Shelly', 'Robert & Shelly'];
 
   const handleEditorChange = (newContent: string) => {
     console.log('📝 ReactQuill content changed:', newContent.substring(0, 100));
@@ -94,7 +94,7 @@ const BlogEditorForm = ({
 
         <div>
           <Label htmlFor="author">Author</Label>
-          <Select value={watchedAuthor || 'Admin'} onValueChange={handleAuthorChange}>
+          <Select value={watchedAuthor || 'Moxie Team'} onValueChange={handleAuthorChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select author" />
             </SelectTrigger>
@@ -111,7 +111,7 @@ const BlogEditorForm = ({
             <Input
               className="mt-2"
               placeholder="Enter custom author name"
-              value={watchedAuthor === 'custom' ? '' : watchedAuthor || ''}
+              value=""
               onChange={(e) => handleAuthorChange(e.target.value)}
             />
           )}
