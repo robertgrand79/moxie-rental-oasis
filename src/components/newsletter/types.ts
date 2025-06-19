@@ -25,6 +25,10 @@ export interface NewsletterFormProps {
   isLoading: boolean;
 }
 
+export interface NewsletterSuccessProps {
+  userName: string;
+}
+
 export interface EnhancedSubscriber {
   id: string;
   email: string;
