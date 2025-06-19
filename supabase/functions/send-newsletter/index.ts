@@ -182,12 +182,67 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`- Reply-to: ${replyTo}`);
     console.log(`- Contact: ${contactEmail} | ${phone}`);
 
+    // Save campaign record first to get campaign ID
+    console.log("💾 Saving campaign record...");
+    const { data: campaign, error: campaignError } = await supabaseAdmin
+      .from("newsletter_campaigns")
+      .insert({
+        blog_post_id: blogPostId,
+        subject,
+        content,
+        sent_at: new Date().toISOString(),
+        recipient_count: subscribers.length,
+      })
+      .select()
+      .single();
+
+    if (campaignError) {
+      console.error("❌ Failed to save campaign:", campaignError);
+      throw campaignError;
+    }
+
+    const campaignId = campaign.id;
+    console.log("✅ Campaign saved with ID:", campaignId);
+
     // Generate preheader from content
     const textContent = content.replace(/<[^>]*>/g, '').trim();
     const preheader = textContent.split('\n')[0]?.trim()?.substring(0, 100) + '...' || `${subject} - Your Eugene adventure awaits!`;
 
-    // Create email template with modern header design
-    const emailHtml = `
+    // Function to add tracking to links
+    const addClickTracking = async (htmlContent: string, campaignId: string, subscriberEmail: string) => {
+      const linkRegex = /<a\s+(?:[^>]*?\s+)?href=(["'])((?:(?!\1)[^\\]|\\.)*)?\1/gi;
+      let trackedContent = htmlContent;
+      const matches = [...htmlContent.matchAll(linkRegex)];
+
+      for (const match of matches) {
+        const originalUrl = match[2];
+        if (originalUrl && !originalUrl.startsWith('#') && !originalUrl.includes('unsubscribe')) {
+          // Generate tracking ID
+          const trackingId = crypto.randomUUID();
+          
+          // Save click tracking record
+          await supabaseAdmin.from("newsletter_click_tracking").insert({
+            campaign_id: campaignId,
+            subscriber_email: subscriberEmail,
+            original_url: originalUrl,
+            tracking_id: trackingId,
+          });
+
+          // Replace URL with tracking URL
+          const trackingUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/track-newsletter-click?t=${trackingId}`;
+          trackedContent = trackedContent.replace(match[0], match[0].replace(originalUrl, trackingUrl));
+        }
+      }
+
+      return trackedContent;
+    };
+
+    // Create email template with modern header design and tracking
+    const createEmailTemplate = async (campaignId: string, subscriberEmail: string) => {
+      const trackedContent = await addClickTracking(content, campaignId, subscriberEmail);
+      const trackingPixelUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/track-newsletter-open?c=${campaignId}&e=${encodeURIComponent(subscriberEmail)}`;
+
+      return `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -323,7 +378,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div class="content">
                   <h2 style="margin-top: 0;">${subject}</h2>
-                  <div>${content}</div>
+                  <div>${trackedContent}</div>
               </div>
               
               <div class="footer">
@@ -344,10 +399,14 @@ const handler = async (req: Request): Promise<Response> => {
                       <a href="https://moxievacationrentals.com" style="margin-left: 8px;">Update Preferences</a>
                   </p>
               </div>
+              
+              <!-- Tracking Pixel -->
+              <img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />
           </div>
       </body>
       </html>
     `;
+    };
 
     // Send emails using SendGrid
     const sendGridApiKey = Deno.env.get("SENDGRID_API_KEY");
@@ -361,10 +420,22 @@ const handler = async (req: Request): Promise<Response> => {
     const emailPromises = subscribers.map(async (subscriber, index) => {
       console.log(`📧 Sending email ${index + 1}/${subscribers.length} to ${subscriber.email}`);
       
-      const personalizedHtml = emailHtml.replace(
+      const personalizedHtml = await createEmailTemplate(campaignId, subscriber.email);
+      const finalHtml = personalizedHtml.replace(
         "{{unsubscribe_url}}",
         `${Deno.env.get("SUPABASE_URL")}/functions/v1/unsubscribe-newsletter?email=${encodeURIComponent(subscriber.email)}`
       );
+
+      // Record sent event
+      await supabaseAdmin.from("newsletter_analytics").insert({
+        campaign_id: campaignId,
+        subscriber_email: subscriber.email,
+        event_type: "sent",
+        event_data: {
+          timestamp: new Date().toISOString(),
+          subject: subject
+        }
+      });
 
       const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
         method: "POST",
@@ -384,7 +455,7 @@ const handler = async (req: Request): Promise<Response> => {
           content: [
             {
               type: "text/html",
-              value: personalizedHtml,
+              value: finalHtml,
             },
           ],
         }),
@@ -402,22 +473,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     await Promise.all(emailPromises);
 
-    console.log("💾 Saving campaign record...");
-    // Save campaign record using admin client
-    const { error: campaignError } = await supabaseAdmin
-      .from("newsletter_campaigns")
-      .insert({
-        blog_post_id: blogPostId,
-        subject,
-        content,
-        sent_at: new Date().toISOString(),
-        recipient_count: subscribers.length,
-      });
-
-    if (campaignError) {
-      console.error("❌ Failed to save campaign:", campaignError);
-    }
-
     console.log(`🎉 Newsletter sent successfully to ${subscribers.length} subscribers from ${fromEmail}`);
 
     return new Response(
@@ -431,6 +486,7 @@ const handler = async (req: Request): Promise<Response> => {
           phone: phone,
           address: address
         },
+        campaignId: campaignId,
         success: true
       }),
       {

@@ -634,38 +634,141 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_analytics: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          location_data: Json | null
+          subscriber_email: string
+          user_agent: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          location_data?: Json | null
+          subscriber_email: string
+          user_agent?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          location_data?: Json | null
+          subscriber_email?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_analytics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_campaigns: {
         Row: {
           blog_post_id: string | null
+          bounce_rate: number | null
+          click_rate: number | null
           content: string
           created_at: string
           id: string
+          open_rate: number | null
           recipient_count: number | null
           sent_at: string | null
           subject: string
+          total_bounces: number | null
+          total_clicks: number | null
+          total_opens: number | null
           updated_at: string
         }
         Insert: {
           blog_post_id?: string | null
+          bounce_rate?: number | null
+          click_rate?: number | null
           content: string
           created_at?: string
           id?: string
+          open_rate?: number | null
           recipient_count?: number | null
           sent_at?: string | null
           subject: string
+          total_bounces?: number | null
+          total_clicks?: number | null
+          total_opens?: number | null
           updated_at?: string
         }
         Update: {
           blog_post_id?: string | null
+          bounce_rate?: number | null
+          click_rate?: number | null
           content?: string
           created_at?: string
           id?: string
+          open_rate?: number | null
           recipient_count?: number | null
           sent_at?: string | null
           subject?: string
+          total_bounces?: number | null
+          total_clicks?: number | null
+          total_opens?: number | null
           updated_at?: string
         }
         Relationships: []
+      }
+      newsletter_click_tracking: {
+        Row: {
+          campaign_id: string | null
+          click_count: number | null
+          clicked_at: string | null
+          created_at: string
+          id: string
+          original_url: string
+          subscriber_email: string
+          tracking_id: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          click_count?: number | null
+          clicked_at?: string | null
+          created_at?: string
+          id?: string
+          original_url: string
+          subscriber_email: string
+          tracking_id: string
+        }
+        Update: {
+          campaign_id?: string | null
+          click_count?: number | null
+          clicked_at?: string | null
+          created_at?: string
+          id?: string
+          original_url?: string
+          subscriber_email?: string
+          tracking_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_click_tracking_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       newsletter_subscribers: {
         Row: {
