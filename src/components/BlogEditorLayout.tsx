@@ -15,6 +15,7 @@ interface BlogFormData {
   status: 'draft' | 'published';
   author: string;
   published_at: Date | null;
+  image_credit: string;
 }
 
 interface BlogEditorLayoutProps {
