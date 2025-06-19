@@ -96,45 +96,16 @@ const BlogEditorContent = ({
 
       {/* Editor Panel */}
       {viewMode === 'editor' && (
-        <div className="space-y-6">
-          <BlogEditorForm
-            form={form}
-            content={content}
-            onContentChange={handleContentChange}
-            uploadedImage={uploadedImage}
-            onImageChange={setUploadedImage}
-            onSubmit={onSubmit}
-            isEditing={isEditing}
-            onCancel={onCancel}
-          />
-          
-          {/* Live Preview below editor when in editor mode */}
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Live Preview</h3>
-            <div className="bg-card rounded-lg p-8 shadow-sm border border-border">
-              {/* Show featured image with credit if present */}
-              {uploadedImage && (
-                <div className="mb-6">
-                  <img 
-                    src={uploadedImage} 
-                    alt={watchedValues.title || 'Featured image'} 
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                  {watchedValues.image_credit && (
-                    <div 
-                      className="text-xs text-muted-foreground mt-2"
-                      dangerouslySetInnerHTML={{ __html: watchedValues.image_credit }}
-                    />
-                  )}
-                </div>
-              )}
-              <div 
-                className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground prose-code:text-foreground"
-                dangerouslySetInnerHTML={{ __html: content || '<p>Start typing to see your content preview...</p>' }}
-              />
-            </div>
-          </div>
-        </div>
+        <BlogEditorForm
+          form={form}
+          content={content}
+          onContentChange={handleContentChange}
+          uploadedImage={uploadedImage}
+          onImageChange={setUploadedImage}
+          onSubmit={onSubmit}
+          isEditing={isEditing}
+          onCancel={onCancel}
+        />
       )}
 
       {/* Content Assistant Panel */}
