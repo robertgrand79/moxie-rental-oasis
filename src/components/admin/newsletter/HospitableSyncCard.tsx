@@ -12,7 +12,9 @@ import {
   Users, 
   UserPlus,
   RefreshCw,
-  Clock
+  Clock,
+  ExternalLink,
+  Settings
 } from 'lucide-react';
 import { useHospitableSync } from '@/hooks/useHospitableSync';
 
@@ -35,6 +37,27 @@ const HospitableSyncCard = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* API Key Setup Instructions */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <Settings className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div className="flex-1">
+              <h4 className="font-medium text-blue-900 mb-1">Setup Required</h4>
+              <p className="text-sm text-blue-700 mb-2">
+                You need a Hospitable API key to sync contacts. Get yours from your Hospitable account settings.
+              </p>
+              <a 
+                href="https://app.hospitable.com/settings/integrations" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+              >
+                Get API Key from Hospitable <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          </div>
+        </div>
+
         {/* Sync Button */}
         <div className="flex items-center gap-3">
           <Button 
@@ -97,6 +120,14 @@ const HospitableSyncCard = () => {
               </div>
               <div className="text-sm text-gray-600">Skipped</div>
             </div>
+            {lastSyncResult.stats.errors && lastSyncResult.stats.errors > 0 && (
+              <div className="col-span-full text-center pt-2 border-t border-green-300">
+                <div className="text-lg font-bold text-red-600">
+                  {lastSyncResult.stats.errors} Error{lastSyncResult.stats.errors !== 1 ? 's' : ''}
+                </div>
+                <div className="text-sm text-red-500">Some contacts couldn't be processed</div>
+              </div>
+            )}
           </div>
         )}
 
@@ -106,6 +137,27 @@ const HospitableSyncCard = () => {
             <AlertCircle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
               <strong>Sync Failed:</strong> {lastSyncResult.error || 'Unknown error occurred'}
+              
+              {lastSyncResult.troubleshooting && (
+                <div className="mt-3 space-y-2">
+                  <div>
+                    <strong>Common Issues:</strong>
+                    <ul className="list-disc list-inside ml-2 text-sm">
+                      {lastSyncResult.troubleshooting.commonIssues.map((issue, index) => (
+                        <li key={index}>{issue}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <strong>Next Steps:</strong>
+                    <ul className="list-disc list-inside ml-2 text-sm">
+                      {lastSyncResult.troubleshooting.nextSteps.map((step, index) => (
+                        <li key={index}>{step}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
         )}

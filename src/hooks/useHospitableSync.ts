@@ -8,6 +8,7 @@ interface HospitableSyncStats {
   newSubscribers: number;
   updatedSubscribers: number;
   skippedContacts: number;
+  errors?: number;
 }
 
 interface HospitableSyncResult {
@@ -15,6 +16,10 @@ interface HospitableSyncResult {
   message: string;
   stats?: HospitableSyncStats;
   error?: string;
+  troubleshooting?: {
+    commonIssues: string[];
+    nextSteps: string[];
+  };
 }
 
 export const useHospitableSync = () => {
@@ -38,9 +43,17 @@ export const useHospitableSync = () => {
       setLastSyncResult(result);
 
       if (result.success && result.stats) {
+        const { stats } = result;
+        let description = `Added ${stats.newSubscribers} new contacts, updated ${stats.updatedSubscribers} existing contacts from ${stats.totalBookings} bookings.`;
+        
+        if (stats.errors && stats.errors > 0) {
+          description += ` ${stats.errors} contacts had errors during processing.`;
+        }
+
         toast({
           title: "Hospitable Sync Completed! 🎉",
-          description: `Added ${result.stats.newSubscribers} new contacts, updated ${result.stats.updatedSubscribers} existing contacts from ${result.stats.totalBookings} bookings.`,
+          description,
+          variant: stats.errors && stats.errors > 0 ? "default" : "default",
         });
       } else {
         throw new Error(result.error || 'Unknown sync error');
@@ -58,9 +71,27 @@ export const useHospitableSync = () => {
 
       setLastSyncResult(errorResult);
 
+      // Provide specific error messages based on common issues
+      let errorTitle = "Sync Failed";
+      let errorDescription = err.message || "Failed to sync Hospitable contacts.";
+
+      if (err.message?.includes('API key')) {
+        errorTitle = "API Key Issue";
+        errorDescription = err.message + " Please check your Hospitable API key in the Supabase dashboard.";
+      } else if (err.message?.includes('Authentication failed')) {
+        errorTitle = "Authentication Failed";
+        errorDescription = "Your Hospitable API key may have expired. Please generate a new one.";
+      } else if (err.message?.includes('Rate limit')) {
+        errorTitle = "Rate Limited";
+        errorDescription = "Too many requests. Please wait a few minutes before trying again.";
+      } else if (err.message?.includes('permission')) {
+        errorTitle = "Permission Denied";
+        errorDescription = "Your API key doesn't have the required permissions. Please check your Hospitable account settings.";
+      }
+
       toast({
-        title: "Sync Failed",
-        description: err.message || "Failed to sync Hospitable contacts. Please check your API key and try again.",
+        title: errorTitle,
+        description: errorDescription,
         variant: "destructive",
       });
 
