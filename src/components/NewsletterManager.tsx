@@ -8,7 +8,6 @@ import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 import NewsletterOverview from './NewsletterOverview';
 import NewsletterAIGenerator from './NewsletterAIGenerator';
 import NewsletterEditorLayout from './NewsletterEditorLayout';
-import EnhancedNewsletterPreview from './newsletter/EnhancedNewsletterPreview';
 import NewsletterQuickActions from './NewsletterQuickActions';
 
 interface NewsletterFormData {
@@ -96,15 +95,12 @@ const NewsletterManager = () => {
   // Filter to only show published blog posts
   const publishedBlogPosts = blogPosts.filter(post => post.status === 'published');
 
-  // Get current form values for preview
-  const currentSubject = form.watch('subject');
-
   return (
     <div className="space-y-6">
       <NewsletterOverview subscriberCount={subscriberCount} />
 
       <NewsletterAIGenerator
-        currentSubject={currentSubject}
+        currentSubject={form.watch('subject')}
         currentContent={content}
         onContentGenerated={handleContentGenerated}
       />
@@ -118,12 +114,6 @@ const NewsletterManager = () => {
         subscriberCount={subscriberCount}
         blogPosts={publishedBlogPosts}
         blogPostsLoading={blogPostsLoading}
-      />
-
-      {/* Enhanced Newsletter Preview with Send Functionality */}
-      <EnhancedNewsletterPreview
-        subject={currentSubject}
-        content={content}
       />
 
       <NewsletterQuickActions
