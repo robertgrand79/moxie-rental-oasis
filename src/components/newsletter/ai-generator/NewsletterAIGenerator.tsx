@@ -114,13 +114,7 @@ const NewsletterAIGenerator = ({
 - We specialize in helping guests experience Eugene like locals
 - Our expertise is in Eugene, Oregon attractions, dining, and experiences
 - We offer premium vacation rental properties throughout Eugene
-- Our guests value authentic local experiences and quality accommodations
-
-**EXAMPLE OUTPUT FORMAT:**
-<h2>Welcome to Eugene's Best Season</h2>
-<p>Discover what makes this time of year special in Eugene with our local insider tips...</p>
-<h3>Featured Properties</h3>
-<p>This month we're highlighting our downtown properties that put you walking distance from...</p>`
+- Our guests value authentic local experiences and quality accommodations`
         : promptToUse;
 
       const { data, error } = await supabase.functions.invoke('generate-site-content', {
@@ -235,6 +229,7 @@ Generate newsletter content using these sections with HTML formatting:
   };
 
   const useTemplate = async (template: any) => {
+    console.log('Using template:', template);
     setAiPrompt(template.prompt);
     setSelectedField('content');
     await generateContent(template.prompt);
@@ -305,11 +300,13 @@ Generate newsletter content using these sections with HTML formatting:
             <TabsTrigger value="custom">Custom Prompt</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="templates" className="space-y-4">
-            <div className="space-y-4">
+          <TabsContent value="templates" className="space-y-6">
+            <div className="space-y-6">
               <div>
-                <p className="text-sm font-medium">Moxie Newsletter Templates</p>
-                <p className="text-sm text-gray-600 mt-1">Choose from professionally designed templates with Moxie branding</p>
+                <h3 className="text-lg font-semibold mb-2">Moxie Newsletter Templates</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Choose from professionally designed templates with Moxie branding and Eugene expertise
+                </p>
               </div>
               
               <TemplateSelector
@@ -318,11 +315,14 @@ Generate newsletter content using these sections with HTML formatting:
                 isGenerating={isGenerating}
               />
               
-              <QuickPrompts
-                prompts={quickPrompts}
-                onPromptSelect={useQuickPrompt}
-                isGenerating={isGenerating}
-              />
+              <div className="border-t pt-6">
+                <h4 className="text-md font-medium mb-3">Quick Design Ideas</h4>
+                <QuickPrompts
+                  prompts={quickPrompts}
+                  onPromptSelect={useQuickPrompt}
+                  isGenerating={isGenerating}
+                />
+              </div>
             </div>
           </TabsContent>
 

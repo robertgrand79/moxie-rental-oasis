@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Sparkles } from 'lucide-react';
 
 interface QuickPromptsProps {
   prompts: string[];
@@ -10,21 +11,36 @@ interface QuickPromptsProps {
 }
 
 const QuickPrompts = ({ prompts, onPromptSelect, isGenerating }: QuickPromptsProps) => {
+  if (!prompts || prompts.length === 0) {
+    return (
+      <div className="text-sm text-gray-500 italic">
+        No quick prompts available
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-3">
-      <Label className="text-sm font-medium">Quick Design Ideas</Label>
-      <div className="flex flex-wrap gap-2">
+    <div className="space-y-4">
+      <div className="grid gap-3">
         {prompts.map((prompt, index) => (
-          <Button
-            key={index}
-            variant="outline"
-            size="sm"
-            onClick={() => onPromptSelect(prompt)}
-            disabled={isGenerating}
-            className="text-xs"
-          >
-            {prompt}
-          </Button>
+          <div key={index} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="flex-1">
+              <p className="text-sm text-gray-700 leading-relaxed">{prompt}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                console.log('Using quick prompt:', prompt);
+                onPromptSelect(prompt);
+              }}
+              disabled={isGenerating}
+              className="flex-shrink-0"
+            >
+              <Sparkles className="h-3 w-3 mr-1" />
+              Use
+            </Button>
+          </div>
         ))}
       </div>
     </div>
