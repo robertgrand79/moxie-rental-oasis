@@ -7,6 +7,7 @@ export interface BlogPost {
   author: string;
   published_at: string | null;
   image_url?: string;
+  image_credit?: string;
   tags: string[];
   slug: string;
   status: 'draft' | 'published';
@@ -24,6 +25,7 @@ export interface BlogPostDB {
   author: string;
   published_at: string | null;
   image_url?: string;
+  image_credit?: string;
   tags: string[];
   slug: string;
   status: string; // This comes as string from DB

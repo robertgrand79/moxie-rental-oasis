@@ -25,7 +25,8 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       tags: post?.tags?.join(', ') || '',
       status: post?.status || 'draft',
       author: post?.author || 'Moxie Team',
-      published_at: post?.published_at ? new Date(post.published_at) : null
+      published_at: post?.published_at ? new Date(post.published_at) : null,
+      image_credit: post?.image_credit || ''
     }
   });
 
@@ -39,7 +40,8 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       content: content,
       tags: watchedValues.tags,
       author: watchedValues.author,
-      image_url: uploadedImage || undefined
+      image_url: uploadedImage || undefined,
+      image_credit: watchedValues.image_credit || undefined
     },
     postId: autoSavedPost?.id,
     onAutoSave: (savedPost) => {
@@ -66,6 +68,7 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       ...data,
       content,
       image_url: uploadedImage,
+      image_credit: data.image_credit || null,
       tags: data.tags ? data.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag) : [],
       author: finalAuthor,
       published_at: data.published_at ? data.published_at.toISOString() : null,

@@ -22,6 +22,7 @@ interface BlogFormData {
   status: 'draft' | 'published';
   author: string;
   published_at: Date | null;
+  image_credit: string;
 }
 
 interface BlogEditorFormProps {
@@ -173,12 +174,29 @@ const BlogEditorForm = ({
         </div>
       </div>
 
-      {/* Middle Section: Featured Image */}
-      <div>
+      {/* Featured Image Section */}
+      <div className="space-y-4">
         <ImageUploader
           uploadedImage={uploadedImage}
           onImageChange={onImageChange}
         />
+        
+        {/* Image Credit Field */}
+        {uploadedImage && (
+          <div>
+            <Label htmlFor="image_credit">Image Credit (optional)</Label>
+            <Textarea
+              id="image_credit"
+              {...register('image_credit')}
+              placeholder="Paste image credit HTML here (e.g., from Unsplash)"
+              rows={2}
+              className="text-sm"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Paste the credit HTML provided by Unsplash or other photo sources
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Bottom Section: Content Editor (Full Width) */}
