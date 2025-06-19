@@ -32,10 +32,50 @@ const NewsletterManager = () => {
   });
 
   const onSubmit = async (data: NewsletterFormData) => {
+    console.log('📧 Newsletter form submission started');
+    console.log('Form data:', data);
+    console.log('Content:', content);
+    
+    // Validate required fields on the frontend
+    if (!data.subject || !content) {
+      console.error('❌ Missing required fields:', { subject: !!data.subject, content: !!content });
+      toast({
+        title: "Missing Information",
+        description: "Please provide both a subject and content for the newsletter.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data.subject.trim() === '' || content.trim() === '') {
+      console.error('❌ Empty required fields:', { subjectEmpty: data.subject.trim() === '', contentEmpty: content.trim() === '' });
+      toast({
+        title: "Empty Fields",
+        description: "Subject and content cannot be empty.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!subscriberCount || subscriberCount === 0) {
+      toast({
+        title: "No Subscribers",
+        description: "There are no active subscribers to send the newsletter to.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      console.log('📧 Sending newsletter to all subscribers');
+      console.log('📤 Sending newsletter to all subscribers');
+      console.log('Payload being sent:', {
+        subject: data.subject,
+        content: content,
+        blogPostId: data.blogPostId || undefined,
+      });
+
       const { data: result, error } = await supabase.functions.invoke('send-newsletter', {
         body: {
           subject: data.subject,
@@ -44,23 +84,45 @@ const NewsletterManager = () => {
         }
       });
 
+      console.log('📧 Newsletter send response:', { result, error });
+
       if (error) {
+        console.error('❌ Newsletter send error:', error);
         throw error;
       }
 
-      toast({
-        title: "Newsletter Sent!",
-        description: `Successfully sent to ${result.recipientCount} subscribers.`,
-      });
-      
-      form.reset();
-      setContent('');
-      refetchSubscriberCount();
+      if (result?.success) {
+        toast({
+          title: "Newsletter Sent! 🎉",
+          description: `Successfully sent to ${result.recipientCount} subscribers.`,
+        });
+        
+        form.reset();
+        setContent('');
+        refetchSubscriberCount();
+      } else {
+        throw new Error(result?.error || "Failed to send newsletter");
+      }
     } catch (error: any) {
-      console.error('Newsletter send error:', error);
+      console.error('❌ Newsletter send error:', error);
+      
+      let errorMessage = "Failed to send newsletter.";
+      
+      if (error.message?.includes("Missing required fields")) {
+        errorMessage = "Please ensure both subject and content are provided.";
+      } else if (error.message?.includes("No active subscribers")) {
+        errorMessage = "There are no active subscribers to send to.";
+      } else if (error.message?.includes("SendGrid")) {
+        errorMessage = "Email delivery service error. Please check your configuration.";
+      } else if (error.message?.includes("Admin access required")) {
+        errorMessage = "You need administrator privileges to send newsletters.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Send Failed",
-        description: error.message || "Please try again later.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

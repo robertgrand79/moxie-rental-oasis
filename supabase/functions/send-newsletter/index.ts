@@ -20,6 +20,10 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("📧 Newsletter send request received");
+    console.log("Request method:", req.method);
+    console.log("Request headers:", Object.fromEntries(req.headers.entries()));
+
     // Create admin client for database operations
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -34,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      console.error("No authorization header provided");
+      console.error("❌ No authorization header provided");
       throw new Error("No authorization header");
     }
 
@@ -44,7 +48,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     if (authError || !user) {
-      console.error("Authentication failed:", authError);
+      console.error("❌ Authentication failed:", authError);
       throw new Error("Unauthorized");
     }
 
@@ -59,24 +63,52 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (profileError) {
-      console.error("Error fetching user profile:", profileError);
+      console.error("❌ Error fetching user profile:", profileError);
       throw new Error("Failed to verify admin permissions");
     }
 
     if (profile?.role !== "admin") {
-      console.error("User is not admin. Role:", profile?.role);
+      console.error("❌ User is not admin. Role:", profile?.role);
       throw new Error("Admin access required");
     }
 
     console.log("✅ Admin access confirmed");
 
-    const { blogPostId, subject, content, previewText }: NewsletterRequest = await req.json();
-
-    if (!subject || !content) {
-      throw new Error("Subject and content are required");
+    // Parse request body with better error handling
+    let requestBody;
+    try {
+      const bodyText = await req.text();
+      console.log("📝 Raw request body:", bodyText);
+      
+      if (!bodyText || bodyText.trim() === '') {
+        throw new Error("Empty request body received");
+      }
+      
+      requestBody = JSON.parse(bodyText);
+      console.log("📋 Parsed request body:", requestBody);
+    } catch (parseError) {
+      console.error("❌ Failed to parse request body:", parseError);
+      throw new Error("Invalid JSON in request body");
     }
 
-    console.log("📧 Getting active subscribers...");
+    const { blogPostId, subject, content, previewText }: NewsletterRequest = requestBody;
+
+    console.log("📊 Newsletter data validation:");
+    console.log("- Subject:", subject ? `"${subject}" (${subject.length} chars)` : "MISSING");
+    console.log("- Content:", content ? `${content.length} characters` : "MISSING");
+    console.log("- BlogPostId:", blogPostId || "None");
+
+    if (!subject || !content) {
+      console.error("❌ Missing required fields - Subject:", !!subject, "Content:", !!content);
+      throw new Error(`Missing required fields: ${!subject ? 'subject ' : ''}${!content ? 'content' : ''}`);
+    }
+
+    if (subject.trim() === '' || content.trim() === '') {
+      console.error("❌ Empty required fields - Subject empty:", subject.trim() === '', "Content empty:", content.trim() === '');
+      throw new Error("Subject and content cannot be empty");
+    }
+
+    console.log("📬 Getting active subscribers...");
     // Get active subscribers using admin client
     const { data: subscribers, error: subscribersError } = await supabaseAdmin
       .from("newsletter_subscribers")
@@ -84,14 +116,14 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("is_active", true);
 
     if (subscribersError) {
-      console.error("Error fetching subscribers:", subscribersError);
+      console.error("❌ Error fetching subscribers:", subscribersError);
       throw subscribersError;
     }
 
     if (!subscribers || subscribers.length === 0) {
       console.log("⚠️  No active subscribers found");
       return new Response(
-        JSON.stringify({ error: "No active subscribers found" }),
+        JSON.stringify({ error: "No active subscribers found", success: false }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -109,7 +141,7 @@ const handler = async (req: Request): Promise<Response> => {
       ]);
 
     if (settingsError) {
-      console.error("Error fetching site settings:", settingsError);
+      console.error("❌ Error fetching site settings:", settingsError);
     }
 
     // Convert settings array to object with proper parsing
@@ -146,8 +178,10 @@ const handler = async (req: Request): Promise<Response> => {
       googlePlaces: ''
     };
 
-    console.log(`📤 Sending from: ${fromName} <${fromEmail}>`);
-    console.log(`📞 Contact info: ${contactEmail} | ${phone}`);
+    console.log(`📤 Email configuration:`);
+    console.log(`- From: ${fromName} <${fromEmail}>`);
+    console.log(`- Reply-to: ${replyTo}`);
+    console.log(`- Contact: ${contactEmail} | ${phone}`);
 
     // Generate preheader from content
     const textContent = content.replace(/<[^>]*>/g, '').trim();
@@ -363,7 +397,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
     if (campaignError) {
-      console.error("Failed to save campaign:", campaignError);
+      console.error("❌ Failed to save campaign:", campaignError);
     }
 
     console.log(`🎉 Newsletter sent successfully to ${subscribers.length} subscribers from ${fromEmail}`);
