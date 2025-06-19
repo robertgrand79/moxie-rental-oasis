@@ -53,13 +53,32 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
         timestamp: new Date().toISOString()
       });
 
-      const { data, error } = await supabase.functions.invoke('send-newsletter-preview-actual', {
-        body: {
-          email: email,
-          subject: subject,
-          content: content,
-        }
-      });
+      // Try the preview function first, then fallback to the actual function
+      let data, error;
+      
+      try {
+        const response = await supabase.functions.invoke('send-newsletter-preview', {
+          body: {
+            email: email,
+            subject: subject,
+            content: content,
+          }
+        });
+        data = response.data;
+        error = response.error;
+      } catch (previewError) {
+        console.log('📧 Preview function failed, trying actual function:', previewError);
+        
+        const response = await supabase.functions.invoke('send-newsletter-preview-actual', {
+          body: {
+            email: email,
+            subject: subject,
+            content: content,
+          }
+        });
+        data = response.data;
+        error = response.error;
+      }
 
       console.log('📧 Preview response:', { data, error });
 

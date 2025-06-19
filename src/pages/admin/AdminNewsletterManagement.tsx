@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import NewsletterManager from '@/components/NewsletterManager';
+import NewsletterSubscribersList from '@/components/newsletter/NewsletterSubscribersList';
 
 const AdminNewsletterManagement = () => {
   const [newsletterHistory] = useState([
@@ -79,14 +80,19 @@ const AdminNewsletterManagement = () => {
     >
       <div className="p-8">
         <Tabs defaultValue="create" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="create">Create Newsletter</TabsTrigger>
+            <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
             <TabsTrigger value="history">Newsletter History</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="create">
             <NewsletterManager />
+          </TabsContent>
+
+          <TabsContent value="subscribers">
+            <NewsletterSubscribersList />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">
