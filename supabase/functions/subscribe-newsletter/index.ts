@@ -20,27 +20,6 @@ interface SubscribeRequest {
   contactSource?: string;
 }
 
-const validatePhoneNumber = (phone: string): string | null => {
-  if (!phone) return null;
-  
-  // Remove all non-digit characters
-  const cleaned = phone.replace(/\D/g, '');
-  
-  // Check if it's a valid US number (10 digits) or international (7-15 digits)
-  if (cleaned.length === 10) {
-    // US number, add country code
-    return `+1${cleaned}`;
-  } else if (cleaned.length === 11 && cleaned.startsWith('1')) {
-    // US number with country code
-    return `+${cleaned}`;
-  } else if (cleaned.length >= 7 && cleaned.length <= 15) {
-    // International number
-    return `+${cleaned}`;
-  }
-  
-  return null;
-};
-
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -77,33 +56,13 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // If SMS is selected, phone number is required and must be valid
-    let validatedPhone = null;
-    if (smsOptIn) {
-      if (!phone || phone.trim() === '') {
-        return new Response(
-          JSON.stringify({ error: "Phone number is required for SMS updates" }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
-      
-      validatedPhone = validatePhoneNumber(phone);
-      if (!validatedPhone) {
-        return new Response(
-          JSON.stringify({ error: "Please enter a valid phone number" }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
+    // If SMS is selected, phone number is required
+    if (smsOptIn && (!phone || phone.trim() === '')) {
+      return new Response(
+        JSON.stringify({ error: "Phone number is required for SMS updates" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
-
-    console.log('📝 Newsletter subscription request:', {
-      email,
-      name: name || 'Not provided',
-      phone: validatedPhone ? 'Provided' : 'Not provided',
-      emailOptIn,
-      smsOptIn,
-      contactSource
-    });
 
     // Check if already subscribed
     const { data: existing } = await supabaseClient
@@ -120,7 +79,7 @@ const handler = async (req: Request): Promise<Response> => {
           is_active: true,
           email_opt_in: emailOptIn,
           sms_opt_in: smsOptIn,
-          phone: validatedPhone,
+          phone: phone || null,
           name: name || null,
           communication_preferences: communicationPreferences,
           contact_source: contactSource,
@@ -130,15 +89,12 @@ const handler = async (req: Request): Promise<Response> => {
         .eq("id", existing.id);
 
       if (updateError) {
-        console.error('❌ Error updating subscription:', updateError);
         throw updateError;
       }
 
       const message = existing.is_active 
         ? "Subscription preferences updated successfully"
         : "Welcome back! Your subscription has been reactivated with your new preferences.";
-
-      console.log('✅ Updated existing subscription for:', email);
 
       return new Response(
         JSON.stringify({ message }),
@@ -154,7 +110,7 @@ const handler = async (req: Request): Promise<Response> => {
         .insert({
           email: email.toLowerCase(),
           name: name || null,
-          phone: validatedPhone,
+          phone: phone || null,
           is_active: true,
           email_opt_in: emailOptIn,
           sms_opt_in: smsOptIn,
@@ -164,12 +120,16 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
       if (insertError) {
-        console.error('❌ Error creating subscription:', insertError);
         throw insertError;
       }
-
-      console.log('✅ Created new subscription for:', email);
     }
+
+    console.log(`Newsletter subscription successful for: ${email} with preferences:`, {
+      emailOptIn,
+      smsOptIn,
+      phone: phone ? 'provided' : 'not provided',
+      contactSource
+    });
 
     const channels = [];
     if (emailOptIn) channels.push('email');
@@ -187,9 +147,9 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error: any) {
-    console.error("❌ Error in subscribe-newsletter function:", error);
+    console.error("Error in subscribe-newsletter function:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to subscribe to newsletter" }),
+      JSON.stringify({ error: "Failed to subscribe to newsletter" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
