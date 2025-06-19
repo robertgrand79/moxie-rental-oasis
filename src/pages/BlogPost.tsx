@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import SimpleOptimizedImage from '@/components/ui/simple-optimized-image';
+import BlogPostFooter from '@/components/blog/BlogPostFooter';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -142,6 +143,13 @@ const BlogPost = () => {
               priority={true}
               showProgressiveLoading={true}
             />
+            {/* Image Credit */}
+            {post.image_credit && (
+              <div 
+                className="text-xs text-muted-foreground mt-2 px-2"
+                dangerouslySetInnerHTML={{ __html: post.image_credit }}
+              />
+            )}
           </div>
         )}
 
@@ -152,6 +160,9 @@ const BlogPost = () => {
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </div>
+
+        {/* Blog Post Footer - Newsletter Signup & Moxie Links */}
+        <BlogPostFooter />
 
         {/* Back to Blog Footer */}
         <div className="mt-12 text-center">
