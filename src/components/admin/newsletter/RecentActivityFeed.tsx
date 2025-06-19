@@ -114,7 +114,7 @@ const RecentActivityFeed = ({ recentActivity, loading = false }: RecentActivityF
                     </span>
                   </div>
                   
-                  <div className="text-xs text-muted-fore"rund">
+                  <div className="text-xs text-muted-foreground">
                     {formatTimeAgo(activity.created_at)}
                   </div>
                 </div>
