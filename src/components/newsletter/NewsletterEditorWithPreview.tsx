@@ -8,6 +8,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { BlogPost } from '@/hooks/useBlogPosts';
 import NewsletterEditorForm from './NewsletterEditorForm';
 import NewsletterPreviewPanel from './NewsletterPreviewPanel';
+import NewsletterEmailPreview from './NewsletterEmailPreview';
 
 interface NewsletterFormData {
   subject: string;
@@ -102,8 +103,9 @@ const NewsletterEditorWithPreview = ({
         {/* Editor Panel */}
         <div className="space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="editor">Editor</TabsTrigger>
+              <TabsTrigger value="preview-email">Email Preview</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
             
@@ -119,6 +121,14 @@ const NewsletterEditorWithPreview = ({
                 blogPostsLoading={blogPostsLoading}
               />
             </TabsContent>
+
+            <TabsContent value="preview-email">
+              <NewsletterEmailPreview
+                subject={currentSubject}
+                content={content}
+                disabled={isLoading}
+              />
+            </TabsContent>
             
             <TabsContent value="settings">
               <Card>
@@ -127,14 +137,20 @@ const NewsletterEditorWithPreview = ({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">Preview Settings</h4>
+                    <h4 className="font-medium text-blue-900 mb-2">Live Preview</h4>
                     <p className="text-sm text-blue-700">
                       The preview automatically updates as you type. Use the sync button to force refresh if needed.
                     </p>
                   </div>
                   <div className="p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-medium text-green-900 mb-2">Professional Design</h4>
+                    <h4 className="font-medium text-green-900 mb-2">Email Preview</h4>
                     <p className="text-sm text-green-700">
+                      Send a test email to yourself to see exactly what subscribers will receive.
+                    </p>
+                  </div>
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <h4 className="font-medium text-purple-900 mb-2">Professional Design</h4>
+                    <p className="text-sm text-purple-700">
                       Your newsletter includes Moxie branding, responsive design, and professional email formatting.
                     </p>
                   </div>
