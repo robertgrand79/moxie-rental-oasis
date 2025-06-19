@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Plus, Mail, Eye, Edit, Trash2, Users, TrendingUp } from 'lucide-react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
@@ -17,49 +17,32 @@ import {
 } from '@/components/ui/table';
 import NewsletterManager from '@/components/NewsletterManager';
 import NewsletterSubscribersList from '@/components/newsletter/NewsletterSubscribersList';
+import { useNewsletterCampaigns } from '@/hooks/useNewsletterCampaigns';
+import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 
 const AdminNewsletterManagement = () => {
-  const [newsletterHistory] = useState([
-    {
-      id: 1,
-      subject: 'Welcome to Eugene - Your Local Guide',
-      sentDate: '2024-01-15',
-      recipients: 150,
-      openRate: '68%',
-      clickRate: '12%',
-      status: 'Sent'
-    },
-    {
-      id: 2,
-      subject: 'New Property Added: Downtown Loft',
-      sentDate: '2024-01-10',
-      recipients: 142,
-      openRate: '72%',
-      clickRate: '18%',
-      status: 'Sent'
-    },
-    {
-      id: 3,
-      subject: 'January Events in Eugene',
-      sentDate: '2024-01-05',
-      recipients: 138,
-      openRate: '65%',
-      clickRate: '15%',
-      status: 'Sent'
-    }
-  ]);
+  const { campaigns, loading: campaignsLoading } = useNewsletterCampaigns();
+  const { subscriberCount } = useNewsletterStats();
 
-  const handleViewNewsletter = (id: number) => {
+  const handleViewNewsletter = (id: string) => {
     console.log('View newsletter:', id);
+    // TODO: Implement newsletter preview modal
   };
 
-  const handleEditNewsletter = (id: number) => {
+  const handleEditNewsletter = (id: string) => {
     console.log('Edit newsletter:', id);
+    // TODO: Implement newsletter editing
   };
 
-  const handleDeleteNewsletter = (id: number) => {
+  const handleDeleteNewsletter = (id: string) => {
     console.log('Delete newsletter:', id);
+    // TODO: Implement newsletter deletion
   };
+
+  // Calculate statistics from real data
+  const sentCampaigns = campaigns.filter(campaign => campaign.sent_at);
+  const totalRecipients = sentCampaigns.reduce((sum, campaign) => sum + campaign.recipient_count, 0);
+  const avgRecipients = sentCampaigns.length > 0 ? Math.round(totalRecipients / sentCampaigns.length) : 0;
 
   const pageActions = (
     <div className="flex gap-2">
@@ -103,22 +86,22 @@ const AdminNewsletterManagement = () => {
                   <Mail className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{newsletterHistory.length}</div>
+                  <div className="text-2xl font-bold">{sentCampaigns.length}</div>
                   <p className="text-xs text-muted-foreground">
-                    This month
+                    Newsletter campaigns
                   </p>
                 </CardContent>
               </Card>
               
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Avg. Open Rate</CardTitle>
-                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Avg. Recipients</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">68.3%</div>
+                  <div className="text-2xl font-bold">{avgRecipients}</div>
                   <p className="text-xs text-muted-foreground">
-                    +2.5% from last month
+                    Per campaign
                   </p>
                 </CardContent>
               </Card>
@@ -129,9 +112,9 @@ const AdminNewsletterManagement = () => {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">150</div>
+                  <div className="text-2xl font-bold">{subscriberCount || 0}</div>
                   <p className="text-xs text-muted-foreground">
-                    +8 new this month
+                    Active subscribers
                   </p>
                 </CardContent>
               </Card>
@@ -145,58 +128,75 @@ const AdminNewsletterManagement = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Sent Date</TableHead>
-                      <TableHead>Recipients</TableHead>
-                      <TableHead>Open Rate</TableHead>
-                      <TableHead>Click Rate</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {newsletterHistory.map((newsletter) => (
-                      <TableRow key={newsletter.id}>
-                        <TableCell className="font-medium">{newsletter.subject}</TableCell>
-                        <TableCell>{newsletter.sentDate}</TableCell>
-                        <TableCell>{newsletter.recipients}</TableCell>
-                        <TableCell>{newsletter.openRate}</TableCell>
-                        <TableCell>{newsletter.clickRate}</TableCell>
-                        <TableCell>
-                          <Badge variant="default">{newsletter.status}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewNewsletter(newsletter.id)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditNewsletter(newsletter.id)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteNewsletter(newsletter.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                {campaignsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  </div>
+                ) : campaigns.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No newsletters have been sent yet</p>
+                    <p className="text-sm">Create and send your first newsletter from the Create Newsletter tab</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Sent Date</TableHead>
+                        <TableHead>Recipients</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {campaigns.map((campaign) => (
+                        <TableRow key={campaign.id}>
+                          <TableCell className="font-medium">{campaign.subject}</TableCell>
+                          <TableCell>
+                            {campaign.sent_at 
+                              ? new Date(campaign.sent_at).toLocaleDateString() 
+                              : 'Not sent'
+                            }
+                          </TableCell>
+                          <TableCell>{campaign.recipient_count}</TableCell>
+                          <TableCell>
+                            <Badge variant={campaign.sent_at ? "default" : "secondary"}>
+                              {campaign.sent_at ? "Sent" : "Draft"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewNewsletter(campaign.id)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {!campaign.sent_at && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditNewsletter(campaign.id)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteNewsletter(campaign.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -213,7 +213,7 @@ const AdminNewsletterManagement = () => {
                 <div className="text-center py-8 text-muted-foreground">
                   <TrendingUp className="h-12 w-12 mx-auto mb-4" />
                   <p>Detailed analytics dashboard coming soon</p>
-                  <p className="text-sm">Track opens, clicks, conversions, and subscriber growth</p>
+                  <p className="text-sm">Email tracking for opens, clicks, and conversions will be available in a future update</p>
                 </div>
               </CardContent>
             </Card>
