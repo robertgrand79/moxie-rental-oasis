@@ -36,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserRole = async (userId: string) => {
     try {
       setRoleLoading(true);
+      console.log('Fetching role for user:', userId);
       
       // Check legacy system first
       const { data: profile } = await supabase
@@ -45,6 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (profile?.role === 'admin') {
+        console.log('User is admin (legacy system)');
         setUserRole('admin');
         setIsAdmin(true);
         return;
@@ -64,9 +66,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (userRoles && userRoles.length > 0 && userRoles[0].role) {
         const roleName = (userRoles[0].role as any).name;
+        console.log('User role from new system:', roleName);
         setUserRole(roleName);
         setIsAdmin(roleName === 'Admin');
       } else {
+        console.log('No roles found, defaulting to user');
         setUserRole('user');
         setIsAdmin(false);
       }
@@ -80,16 +84,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener
+    // Set up auth state listener - MUST NOT BE ASYNC to avoid blocking
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch role immediately and wait for it
-          await fetchUserRole(session.user.id);
+          // Use setTimeout to defer role fetching and avoid blocking auth state change
+          setTimeout(() => {
+            fetchUserRole(session.user.id);
+          }, 0);
         } else {
           setUserRole(null);
           setIsAdmin(false);
@@ -101,12 +107,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        await fetchUserRole(session.user.id);
+        // Use setTimeout here too for consistency
+        setTimeout(() => {
+          fetchUserRole(session.user.id);
+        }, 0);
       }
       
       setLoading(false);

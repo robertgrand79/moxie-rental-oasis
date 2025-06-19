@@ -17,16 +17,26 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Only redirect once we have a user AND role information is loaded
+    // Only redirect once we have user info and aren't loading anything
     if (user && !loading && !roleLoading) {
-      console.log('Redirecting user:', { isAdmin, userEmail: user.email });
+      console.log('Auth redirect check:', { 
+        hasUser: !!user, 
+        loading, 
+        roleLoading, 
+        isAdmin, 
+        userEmail: user.email 
+      });
       
-      // Redirect based on user role
-      if (isAdmin) {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
+      // Small delay to ensure role is fully loaded
+      setTimeout(() => {
+        if (isAdmin) {
+          console.log('Redirecting admin to /admin');
+          navigate('/admin');
+        } else {
+          console.log('Redirecting user to /');
+          navigate('/');
+        }
+      }, 100);
     }
   }, [user, isAdmin, loading, roleLoading, navigate]);
 
@@ -51,6 +61,7 @@ const Auth = () => {
         // Navigation will be handled by the useEffect above
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
@@ -90,6 +101,7 @@ const Auth = () => {
         // Navigation will be handled by the useEffect above
       }
     } catch (error) {
+      console.error('Signup error:', error);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
@@ -100,7 +112,7 @@ const Auth = () => {
     }
   };
 
-  // Show loading state while determining role
+  // Show loading state while determining role - but with timeout to prevent infinite loading
   if (user && (loading || roleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
