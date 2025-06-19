@@ -54,11 +54,12 @@ const BlogEditorForm = ({
         onImageChange={onImageChange}
       />
 
-      {/* Bottom Section: Content Editor (Full Width) */}
+      {/* Bottom Section: Content Editor (Collapsible) */}
       <EditorSection 
         form={form}
         content={content}
         onContentChange={onContentChange}
+        isEditing={isEditing}
       />
 
       {/* Action Buttons */}

@@ -42,7 +42,7 @@ export const useAutoSave = ({
         excerpt: data.excerpt,
         content: data.content,
         image_url: data.image_url || null,
-        image_credit: data.image_credit || null,
+        image_credit: data.image_credit || null, // Ensure image_credit is included
         tags: data.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
         status: 'draft' as const,
         author: data.author || 'Admin',
@@ -52,6 +52,8 @@ export const useAutoSave = ({
           .replace(/[^a-z0-9-]/g, '')
           .slice(0, 50) + '-' + Date.now()
       };
+
+      console.log('💾 Auto-saving with image_credit:', data.image_credit);
 
       let savedPost: BlogPost | null;
       
@@ -65,7 +67,7 @@ export const useAutoSave = ({
         onAutoSave(savedPost);
       }
 
-      console.log('✅ Auto-saved blog post');
+      console.log('✅ Auto-saved blog post with image_credit');
     } catch (error) {
       console.error('❌ Auto-save failed:', error);
     }

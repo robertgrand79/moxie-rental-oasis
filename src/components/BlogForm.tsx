@@ -41,7 +41,7 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       tags: watchedValues.tags,
       author: watchedValues.author,
       image_url: uploadedImage || undefined,
-      image_credit: watchedValues.image_credit || undefined
+      image_credit: watchedValues.image_credit || undefined // Include image_credit in auto-save
     },
     postId: autoSavedPost?.id,
     onAutoSave: (savedPost) => {
@@ -60,6 +60,7 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
 
   const onFormSubmit = (data: any) => {
     console.log('📨 Blog form submitted:', data);
+    console.log('📨 Image credit being submitted:', data.image_credit);
     
     // Ensure we have a valid author - use the actual value from the form
     const finalAuthor = data.author && data.author.trim() ? data.author.trim() : 'Moxie Team';
@@ -68,7 +69,7 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       ...data,
       content,
       image_url: uploadedImage,
-      image_credit: data.image_credit || null,
+      image_credit: data.image_credit || null, // Ensure image_credit is properly included
       tags: data.tags ? data.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag) : [],
       author: finalAuthor,
       published_at: data.published_at ? data.published_at.toISOString() : null,
