@@ -98,34 +98,62 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`📬 Found ${subscribers.length} active subscribers`);
 
-    // Fetch email settings from site_settings
-    const { data: emailSettings, error: settingsError } = await supabaseAdmin
+    // Fetch all email and contact settings from site_settings
+    console.log("⚙️ Fetching site settings...");
+    const { data: siteSettings, error: settingsError } = await supabaseAdmin
       .from("site_settings")
       .select("key, value")
-      .in("key", ["emailFromAddress", "emailFromName", "emailReplyTo", "siteName"]);
+      .in("key", [
+        "emailFromAddress", "emailFromName", "emailReplyTo", 
+        "siteName", "contactEmail", "phone", "address", "socialMedia"
+      ]);
 
     if (settingsError) {
-      console.error("Error fetching email settings:", settingsError);
+      console.error("Error fetching site settings:", settingsError);
     }
 
-    // Convert settings array to object
-    const settings = emailSettings?.reduce((acc, setting) => {
-      acc[setting.key] = setting.value;
+    // Convert settings array to object with proper parsing
+    const settings = siteSettings?.reduce((acc, setting) => {
+      if (setting.key === 'socialMedia') {
+        try {
+          acc[setting.key] = typeof setting.value === 'string' 
+            ? JSON.parse(setting.value) 
+            : setting.value;
+        } catch (parseError) {
+          console.warn(`Failed to parse socialMedia setting:`, parseError);
+          acc[setting.key] = setting.value;
+        }
+      } else {
+        acc[setting.key] = setting.value;
+      }
       return acc;
-    }, {} as Record<string, string>) || {};
+    }, {} as Record<string, any>) || {};
+
+    console.log("📋 Site settings loaded:", Object.keys(settings));
 
     // Use configured settings with fallbacks
-    const fromEmail = settings.emailFromAddress || "noreply@moxievacationrentals.com";
-    const fromName = settings.emailFromName || settings.siteName || "Moxie Vacation Rentals";
+    const siteName = settings.siteName || "Moxie Vacation Rentals";
+    const fromEmail = settings.emailFromAddress || settings.contactEmail || "noreply@moxievacationrentals.com";
+    const fromName = settings.emailFromName || siteName;
     const replyTo = settings.emailReplyTo || fromEmail;
+    const contactEmail = settings.contactEmail || fromEmail;
+    const phone = settings.phone || "+1 (555) 123-4567";
+    const address = settings.address || "123 Vacation St, Eugene, OR 97401";
+    const socialMedia = settings.socialMedia || {
+      facebook: '',
+      instagram: '',
+      twitter: '',
+      googlePlaces: ''
+    };
 
     console.log(`📤 Sending from: ${fromName} <${fromEmail}>`);
+    console.log(`📞 Contact info: ${contactEmail} | ${phone}`);
 
     // Generate preheader from content
     const textContent = content.replace(/<[^>]*>/g, '').trim();
     const preheader = textContent.split('\n')[0]?.trim()?.substring(0, 100) + '...' || `${subject} - Your Eugene adventure awaits!`;
 
-    // Create email template that matches the preview
+    // Create email template that uses dynamic contact information
     const emailHtml = `
       <!DOCTYPE html>
       <html lang="en">
@@ -215,6 +243,15 @@ const handler = async (req: Request): Promise<Response> => {
                   text-decoration: none; 
                   margin: 0 8px; 
               }
+              .social-links {
+                  margin: 16px 0;
+              }
+              .social-links a {
+                  display: inline-block;
+                  margin: 0 8px;
+                  color: #667eea;
+                  text-decoration: none;
+              }
               @media (max-width: 600px) {
                   .header { padding: 30px 20px; }
                   .header h1 { font-size: 24px; }
@@ -228,7 +265,7 @@ const handler = async (req: Request): Promise<Response> => {
               ${preheader ? `<div style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">${preheader}</div>` : ''}
               
               <div class="header">
-                  <h1>${fromName}</h1>
+                  <h1>${siteName}</h1>
                   <p>Your Home Base for Living Like a Local in Eugene</p>
               </div>
               
@@ -238,12 +275,17 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <div class="footer">
-                  <p><strong>${fromName}</strong></p>
+                  <p><strong>${siteName}</strong></p>
                   <p>Your Home Base for Living Like a Local in Eugene</p>
-                  <p>Eugene, Oregon | contact@moxievacationrentals.com</p>
-                  <div style="margin: 16px 0;">
+                  <p>${address} | ${contactEmail}</p>
+                  ${phone ? `<p>Phone: ${phone}</p>` : ''}
+                  <div class="social-links">
                       <a href="https://moxievacationrentals.com">Visit Our Website</a>
                       <a href="https://moxievacationrentals.com">View Properties</a>
+                      ${socialMedia?.facebook ? `<a href="${socialMedia.facebook}">Facebook</a>` : ''}
+                      ${socialMedia?.instagram ? `<a href="${socialMedia.instagram}">Instagram</a>` : ''}
+                      ${socialMedia?.twitter ? `<a href="${socialMedia.twitter}">Twitter</a>` : ''}
+                      ${socialMedia?.googlePlaces ? `<a href="${socialMedia.googlePlaces}">Find Us</a>` : ''}
                   </div>
                   <p style="font-size: 12px;">
                       <a href="{{unsubscribe_url}}">Unsubscribe</a> | 
@@ -331,6 +373,12 @@ const handler = async (req: Request): Promise<Response> => {
         message: "Newsletter sent successfully", 
         recipientCount: subscribers.length,
         fromEmail: fromEmail,
+        fromName: siteName,
+        contactInfo: {
+          email: contactEmail,
+          phone: phone,
+          address: address
+        },
         success: true
       }),
       {

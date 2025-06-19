@@ -3,6 +3,8 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Eye } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NewsletterPreviewPanelProps {
   subject: string;
@@ -11,6 +13,39 @@ interface NewsletterPreviewPanelProps {
 }
 
 const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPreviewPanelProps) => {
+  // Fetch dynamic site settings for preview
+  const { data: siteSettings } = useQuery({
+    queryKey: ['newsletter-preview-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['siteName', 'contactEmail', 'phone', 'address', 'socialMedia']);
+
+      if (error) {
+        console.error('Error fetching site settings for preview:', error);
+        return {};
+      }
+
+      return data?.reduce((acc, setting) => {
+        if (setting.key === 'socialMedia') {
+          try {
+            acc[setting.key] = typeof setting.value === 'string' 
+              ? JSON.parse(setting.value) 
+              : setting.value;
+          } catch (parseError) {
+            console.warn(`Failed to parse socialMedia setting:`, parseError);
+            acc[setting.key] = setting.value;
+          }
+        } else {
+          acc[setting.key] = setting.value;
+        }
+        return acc;
+      }, {} as Record<string, any>) || {};
+    },
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
   const preheader = useMemo(() => {
     // Generate preheader from content
     const textContent = content.replace(/<[^>]*>/g, '').trim();
@@ -20,8 +55,19 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
 
   const isEmpty = !subject && !content;
 
-  // Create the newsletter HTML with Moxie branding
+  // Create the newsletter HTML with dynamic settings
   const generateNewsletterHTML = (subject: string, content: string, preheader: string) => {
+    const siteName = siteSettings?.siteName || "Moxie Vacation Rentals";
+    const contactEmail = siteSettings?.contactEmail || "contact@moxievacationrentals.com";
+    const phone = siteSettings?.phone || "+1 (555) 123-4567";
+    const address = siteSettings?.address || "123 Vacation St, Eugene, OR 97401";
+    const socialMedia = siteSettings?.socialMedia || {
+      facebook: '',
+      instagram: '',
+      twitter: '',
+      googlePlaces: ''
+    };
+
     return `
       <!DOCTYPE html>
       <html lang="en">
@@ -111,6 +157,15 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
                   text-decoration: none; 
                   margin: 0 8px; 
               }
+              .social-links {
+                  margin: 16px 0;
+              }
+              .social-links a {
+                  display: inline-block;
+                  margin: 0 8px;
+                  color: #667eea;
+                  text-decoration: none;
+              }
               @media (max-width: 600px) {
                   .header { padding: 30px 20px; }
                   .header h1 { font-size: 24px; }
@@ -124,7 +179,7 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
               ${preheader ? `<div style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">${preheader}</div>` : ''}
               
               <div class="header">
-                  <h1>Moxie Vacation Rentals</h1>
+                  <h1>${siteName}</h1>
                   <p>Your Home Base for Living Like a Local in Eugene</p>
               </div>
               
@@ -134,12 +189,17 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
               </div>
               
               <div class="footer">
-                  <p><strong>Moxie Vacation Rentals</strong></p>
+                  <p><strong>${siteName}</strong></p>
                   <p>Your Home Base for Living Like a Local in Eugene</p>
-                  <p>Eugene, Oregon | contact@moxievacationrentals.com</p>
-                  <div style="margin: 16px 0;">
-                      <a href="#">Visit Our Website</a>
-                      <a href="#">View Properties</a>
+                  <p>${address} | ${contactEmail}</p>
+                  ${phone ? `<p>Phone: ${phone}</p>` : ''}
+                  <div class="social-links">
+                      <a href="https://moxievacationrentals.com">Visit Our Website</a>
+                      <a href="https://moxievacationrentals.com">View Properties</a>
+                      ${socialMedia?.facebook ? `<a href="${socialMedia.facebook}">Facebook</a>` : ''}
+                      ${socialMedia?.instagram ? `<a href="${socialMedia.instagram}">Instagram</a>` : ''}
+                      ${socialMedia?.twitter ? `<a href="${socialMedia.twitter}">Twitter</a>` : ''}
+                      ${socialMedia?.googlePlaces ? `<a href="${socialMedia.googlePlaces}">Find Us</a>` : ''}
                   </div>
                   <p style="font-size: 12px;">
                       <a href="#">Unsubscribe</a> | 
@@ -182,7 +242,7 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
             {/* Email Client Header */}
             <div className="bg-white border-b px-4 py-3 text-sm">
               <div className="flex justify-between items-center text-gray-600">
-                <span>From: Moxie Vacation Rentals</span>
+                <span>From: {siteSettings?.siteName || "Moxie Vacation Rentals"}</span>
                 <span>📧</span>
               </div>
               <div className="font-semibold text-gray-800 mt-1">
@@ -215,8 +275,8 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
         
         <div className="mt-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
           <p className="text-xs text-green-800">
-            ✨ This preview shows exactly what your subscribers will receive. The content updates 
-            automatically as you type in the editor above.
+            ✨ This preview shows exactly what your subscribers will receive, using your current contact 
+            information from the admin settings. Changes to contact info will automatically appear here.
           </p>
         </div>
       </CardContent>
