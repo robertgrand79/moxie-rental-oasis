@@ -1,13 +1,14 @@
 
 import React from 'react';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sparkles } from 'lucide-react';
 
 interface BlogCustomPromptInputProps {
-  selectedField: 'title' | 'excerpt' | 'content';
-  onFieldChange: (field: 'title' | 'excerpt' | 'content') => void;
+  selectedField: 'title' | 'excerpt' | 'content' | 'tags';
+  onFieldChange: (field: 'title' | 'excerpt' | 'content' | 'tags') => void;
   aiPrompt: string;
   onPromptChange: (prompt: string) => void;
   onGenerate: () => void;
@@ -25,27 +26,29 @@ const BlogCustomPromptInput = ({
   return (
     <div className="space-y-4">
       <div>
-        <Label>Content Field to Generate</Label>
-        <select
-          value={selectedField}
-          onChange={(e) => onFieldChange(e.target.value as 'title' | 'excerpt' | 'content')}
-          className="w-full p-2 border rounded-md mt-1"
-        >
-          <option value="title">Blog Post Title</option>
-          <option value="excerpt">Blog Post Excerpt</option>
-          <option value="content">Blog Post Content</option>
-        </select>
+        <Label htmlFor="field-select">Generate Content For</Label>
+        <Select value={selectedField} onValueChange={onFieldChange}>
+          <SelectTrigger id="field-select">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="title">Title</SelectItem>
+            <SelectItem value="excerpt">Excerpt</SelectItem>
+            <SelectItem value="content">Content</SelectItem>
+            <SelectItem value="tags">Tags</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
-        <Label htmlFor="blogAiPrompt">Custom AI Prompt</Label>
+        <Label htmlFor="custom-prompt">Custom Prompt</Label>
         <Textarea
-          id="blogAiPrompt"
+          id="custom-prompt"
           value={aiPrompt}
           onChange={(e) => onPromptChange(e.target.value)}
-          placeholder="Describe what kind of blog post content you want AI to generate..."
+          placeholder={`Enter your custom prompt for generating ${selectedField}...`}
           rows={4}
-          className="mt-1"
+          disabled={isGenerating}
         />
       </div>
 
@@ -55,7 +58,7 @@ const BlogCustomPromptInput = ({
         className="w-full"
       >
         <Sparkles className="h-4 w-4 mr-2" />
-        {isGenerating ? "Generating..." : "Generate Blog Content"}
+        {isGenerating ? 'Generating...' : `Generate ${selectedField}`}
       </Button>
     </div>
   );

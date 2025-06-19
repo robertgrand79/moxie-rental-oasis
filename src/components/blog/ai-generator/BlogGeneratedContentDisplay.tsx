@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import SecureContentRenderer from '@/components/SecureContentRenderer';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle, X } from 'lucide-react';
 
 interface BlogGeneratedContentDisplayProps {
   generatedContent: string;
-  selectedField: 'title' | 'excerpt' | 'content';
+  selectedField: 'title' | 'excerpt' | 'content' | 'tags';
   onApply: () => void;
   onClear: () => void;
 }
@@ -19,41 +19,49 @@ const BlogGeneratedContentDisplay = ({
 }: BlogGeneratedContentDisplayProps) => {
   if (!generatedContent) return null;
 
+  const getFieldDisplayName = (field: string) => {
+    switch (field) {
+      case 'title': return 'Title';
+      case 'excerpt': return 'Excerpt';
+      case 'content': return 'Content';
+      case 'tags': return 'Tags';
+      default: return field;
+    }
+  };
+
   return (
-    <div className="space-y-4 border-t pt-4">
-      <div>
-        <Label>Generated Blog Content</Label>
-        <div className="mt-1 p-4 border rounded-md bg-gradient-to-r from-blue-50 to-purple-50 max-h-60 overflow-y-auto">
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
+          Generated {getFieldDisplayName(selectedField)}
+        </CardTitle>
+        <CardDescription>
+          Review the generated content and apply it to your blog post
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="bg-gray-50 p-4 rounded-lg">
           {selectedField === 'content' ? (
-            <div className="max-w-none overflow-hidden">
-              <SecureContentRenderer
-                content={generatedContent}
-                className="prose prose-sm max-w-none break-words"
-                maxLength={10000}
-              />
-            </div>
+            <div 
+              className="prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: generatedContent }}
+            />
           ) : (
-            <p className="whitespace-pre-wrap text-sm break-words">{generatedContent}</p>
+            <p className="text-sm whitespace-pre-wrap">{generatedContent}</p>
           )}
         </div>
-      </div>
-      
-      <div className="flex gap-2">
-        <Button onClick={onApply} className="flex-1">
-          Apply to {selectedField === 'title' ? 'Title' : selectedField === 'excerpt' ? 'Excerpt' : 'Content'}
-        </Button>
-        <Button variant="outline" onClick={onClear}>
-          Clear
-        </Button>
-      </div>
-      
-      <div className="p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
-        <p className="text-sm text-green-800">
-          ✨ This content will be formatted and styled with your blog's clean, modern design 
-          when applied to your blog post. Content is properly constrained for display.
-        </p>
-      </div>
-    </div>
+        
+        <div className="flex gap-2">
+          <Button onClick={onApply} className="flex-1">
+            Apply to {getFieldDisplayName(selectedField)}
+          </Button>
+          <Button variant="outline" onClick={onClear}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
