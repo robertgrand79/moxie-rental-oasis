@@ -24,7 +24,7 @@ const AddSubscriberModal = ({ open, onClose, onSubmit, isLoading }: AddSubscribe
     smsOptIn: false,
     communicationPreferences: {
       frequency: 'weekly',
-      preferredTime: 'morning'
+      preferred_time: 'morning'
     },
     contactSource: 'manual_add'
   });
@@ -41,7 +41,7 @@ const AddSubscriberModal = ({ open, onClose, onSubmit, isLoading }: AddSubscribe
       smsOptIn: false,
       communicationPreferences: {
         frequency: 'weekly',
-        preferredTime: 'morning'
+        preferred_time: 'morning'
       },
       contactSource: 'manual_add'
     });
