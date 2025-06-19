@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -29,15 +28,23 @@ const Auth = () => {
     `;
     setDebugInfo(info);
 
-    // Handle redirect once everything is loaded
-    if (user && !loading && !roleLoading) {
-      console.log('🎯 Auth complete, redirecting...', { 
+    // Handle redirect once auth is complete
+    if (user && !loading) {
+      console.log('🎯 Auth complete, checking role...', { 
         hasUser: !!user, 
         isAdmin, 
+        roleLoading,
         userEmail: user.email 
       });
       
-      // Simple, direct redirect
+      // If role is still loading, wait a bit more
+      if (roleLoading) {
+        console.log('⏳ Role still loading, waiting...');
+        return;
+      }
+      
+      // Role loading complete, redirect
+      console.log('🚀 Redirecting user...');
       if (isAdmin) {
         console.log('👑 Redirecting admin to /admin');
         navigate('/admin', { replace: true });
@@ -60,7 +67,6 @@ const Auth = () => {
       if (error) {
         console.error('❌ Login failed:', error);
         
-        // Show specific error messages
         let errorMessage = error.message;
         if (error.message.includes('invalid_credentials') || error.message.includes('Invalid login credentials')) {
           errorMessage = 'Invalid email or password. Please check your credentials and try again.';
@@ -79,7 +85,6 @@ const Auth = () => {
           title: 'Welcome back!',
           description: 'You have successfully logged in.',
         });
-        // Navigation will be handled by the useEffect above
       }
     } catch (error) {
       console.error('💥 Unexpected login error:', error);
@@ -121,7 +126,6 @@ const Auth = () => {
           title: 'Account Created!',
           description: 'Welcome! Please check your email to verify your account.',
         });
-        // Navigation will be handled by the useEffect above
       }
     } catch (error) {
       console.error('💥 Unexpected signup error:', error);
@@ -143,7 +147,9 @@ const Auth = () => {
           <CardContent className="flex items-center justify-center p-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-sm text-muted-foreground">Setting up your account...</p>
+              <p className="text-sm text-muted-foreground">
+                {loading ? 'Authenticating...' : 'Loading your profile...'}
+              </p>
               {process.env.NODE_ENV === 'development' && (
                 <Alert className="mt-4">
                   <AlertDescription>
