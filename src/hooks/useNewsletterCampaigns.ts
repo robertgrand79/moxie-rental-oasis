@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface NewsletterCampaign {
   id: string;
@@ -17,6 +18,8 @@ export const useNewsletterCampaigns = () => {
   const [campaigns, setCampaigns] = useState<NewsletterCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const fetchCampaigns = async () => {
     try {
@@ -36,6 +39,37 @@ export const useNewsletterCampaigns = () => {
     }
   };
 
+  const deleteCampaign = async (campaignId: string) => {
+    try {
+      setDeleting(campaignId);
+      
+      const { error } = await supabase
+        .from('newsletter_campaigns')
+        .delete()
+        .eq('id', campaignId);
+
+      if (error) throw error;
+
+      // Optimistically update the UI
+      setCampaigns(prev => prev.filter(campaign => campaign.id !== campaignId));
+      
+      toast({
+        title: "Campaign Deleted",
+        description: "The newsletter campaign has been successfully deleted.",
+      });
+
+    } catch (err: any) {
+      console.error('Error deleting newsletter campaign:', err);
+      toast({
+        title: "Delete Failed",
+        description: err.message || "Failed to delete the newsletter campaign.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   useEffect(() => {
     fetchCampaigns();
   }, []);
@@ -44,6 +78,8 @@ export const useNewsletterCampaigns = () => {
     campaigns,
     loading,
     error,
-    refetch: fetchCampaigns
+    deleting,
+    refetch: fetchCampaigns,
+    deleteCampaign
   };
 };

@@ -13,23 +13,8 @@ import { useNewsletterCampaigns } from '@/hooks/useNewsletterCampaigns';
 import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 
 const AdminNewsletterManagement = () => {
-  const { campaigns, loading: campaignsLoading } = useNewsletterCampaigns();
+  const { campaigns, loading: campaignsLoading, deleting, deleteCampaign } = useNewsletterCampaigns();
   const { subscriberCount } = useNewsletterStats();
-
-  const handleViewNewsletter = (id: string) => {
-    console.log('View newsletter:', id);
-    // TODO: Implement newsletter preview modal
-  };
-
-  const handleEditNewsletter = (id: string) => {
-    console.log('Edit newsletter:', id);
-    // TODO: Implement newsletter editing
-  };
-
-  const handleDeleteNewsletter = (id: string) => {
-    console.log('Delete newsletter:', id);
-    // TODO: Implement newsletter deletion
-  };
 
   // Calculate statistics from real data
   const sentCampaigns = campaigns.filter(campaign => campaign.sent_at);
@@ -80,9 +65,8 @@ const AdminNewsletterManagement = () => {
             <NewsletterCampaignsTable
               campaigns={campaigns}
               loading={campaignsLoading}
-              onView={handleViewNewsletter}
-              onEdit={handleEditNewsletter}
-              onDelete={handleDeleteNewsletter}
+              deleting={deleting}
+              onDelete={deleteCampaign}
             />
           </TabsContent>
 
