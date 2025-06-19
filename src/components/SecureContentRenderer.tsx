@@ -25,7 +25,12 @@ const SecureContentRenderer: React.FC<SecureContentRendererProps> = ({
 
   return (
     <div 
-      className={className}
+      className={`overflow-hidden word-wrap break-words ${className}`}
+      style={{ 
+        maxWidth: '100%',
+        wordBreak: 'break-word',
+        overflowWrap: 'break-word'
+      }}
       dangerouslySetInnerHTML={{ __html: sanitizedContent }}
     />
   );
