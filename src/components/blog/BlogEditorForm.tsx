@@ -1,18 +1,11 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { UseFormReturn } from 'react-hook-form';
-import ReactQuillEditor from '@/components/ReactQuillEditor';
-import ImageUploader from '@/components/ImageUploader';
+import BasicInfoSection from './form/BasicInfoSection';
+import ContentSection from './form/ContentSection';
+import ImageSection from './form/ImageSection';
+import EditorSection from './form/EditorSection';
+import ActionButtons from './form/ActionButtons';
 
 interface BlogFormData {
   title: string;
@@ -46,203 +39,35 @@ const BlogEditorForm = ({
   isEditing,
   onCancel
 }: BlogEditorFormProps) => {
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = form;
-  const watchedAuthor = watch('author');
-  const watchedPublishedAt = watch('published_at');
-  
-  const predefinedAuthors = ['Moxie Team', 'Robert', 'Shelly', 'Robert & Shelly'];
-
-  const handleEditorChange = (newContent: string) => {
-    console.log('📝 ReactQuill content changed:', newContent.substring(0, 100));
-    onContentChange(newContent);
-    setValue('content', newContent);
-  };
-
-  const handleSaveDraft = () => {
-    setValue('status', 'draft');
-    handleSubmit(onSubmit)();
-  };
-
-  const handlePublish = () => {
-    setValue('status', 'published');
-    handleSubmit(onSubmit)();
-  };
-
-  const handleAuthorChange = (value: string) => {
-    console.log('Author changed to:', value);
-    setValue('author', value, { shouldDirty: true, shouldTouch: true });
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    setValue('published_at', date || null);
-  };
-
   return (
     <div className="space-y-6">
       {/* Top Section: Basic Info Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
-          <Label htmlFor="title">Title</Label>
-          <Input
-            id="title"
-            {...register('title', { required: 'Title is required' })}
-            placeholder="Enter blog post title"
-          />
-          {errors.title && (
-            <p className="text-sm text-red-600 mt-1">{errors.title.message}</p>
-          )}
-        </div>
+      <BasicInfoSection form={form} />
 
-        <div>
-          <Label htmlFor="author">Author</Label>
-          <Select value={watchedAuthor || 'Moxie Team'} onValueChange={handleAuthorChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select author" />
-            </SelectTrigger>
-            <SelectContent>
-              {predefinedAuthors.map((author) => (
-                <SelectItem key={author} value={author}>
-                  {author}
-                </SelectItem>
-              ))}
-              <SelectItem value="custom">Custom Author...</SelectItem>
-            </SelectContent>
-          </Select>
-          {watchedAuthor === 'custom' && (
-            <Input
-              className="mt-2"
-              placeholder="Enter custom author name"
-              value=""
-              onChange={(e) => handleAuthorChange(e.target.value)}
-            />
-          )}
-          {errors.author && (
-            <p className="text-sm text-red-600 mt-1">{errors.author.message}</p>
-          )}
-        </div>
-
-        <div>
-          <Label htmlFor="published_at">Publication Date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !watchedPublishedAt && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {watchedPublishedAt ? (
-                  format(watchedPublishedAt, "PPP")
-                ) : (
-                  <span>Pick a date (optional)</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={watchedPublishedAt || undefined}
-                onSelect={handleDateSelect}
-                initialFocus
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <Label htmlFor="excerpt">Excerpt</Label>
-          <Textarea
-            id="excerpt"
-            {...register('excerpt')}
-            placeholder="Brief description of the post..."
-            rows={3}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="tags">Tags (comma-separated)</Label>
-          <Input
-            id="tags"
-            {...register('tags')}
-            placeholder="travel, eugene, accommodation"
-          />
-        </div>
-      </div>
+      {/* Content Section: Excerpt and Tags */}
+      <ContentSection form={form} />
 
       {/* Featured Image Section */}
-      <div className="space-y-4">
-        <ImageUploader
-          uploadedImage={uploadedImage}
-          onImageChange={onImageChange}
-        />
-        
-        {/* Image Credit Field */}
-        {uploadedImage && (
-          <div>
-            <Label htmlFor="image_credit">Image Credit (optional)</Label>
-            <Textarea
-              id="image_credit"
-              {...register('image_credit')}
-              placeholder="Paste image credit HTML here (e.g., from Unsplash)"
-              rows={2}
-              className="text-sm"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Paste the credit HTML provided by Unsplash or other photo sources
-            </p>
-          </div>
-        )}
-      </div>
+      <ImageSection 
+        form={form}
+        uploadedImage={uploadedImage}
+        onImageChange={onImageChange}
+      />
 
       {/* Bottom Section: Content Editor (Full Width) */}
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="content">Content</Label>
-          <div className="border rounded-lg overflow-hidden">
-            <ReactQuillEditor
-              content={content}
-              onChange={handleEditorChange}
-              placeholder="Start writing your blog post..."
-              className="min-h-[500px]"
-            />
-          </div>
-          {errors.content && (
-            <p className="text-sm text-red-600 mt-1">{errors.content.message}</p>
-          )}
-        </div>
-      </div>
+      <EditorSection 
+        form={form}
+        content={content}
+        onContentChange={onContentChange}
+      />
 
       {/* Action Buttons */}
-      <div className="flex justify-between items-center pt-6 border-t">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onCancel}
-        >
-          Cancel
-        </Button>
-        
-        <div className="space-x-2">
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={handleSaveDraft}
-          >
-            Save as Draft
-          </Button>
-          <Button 
-            type="button"
-            onClick={handlePublish}
-          >
-            {isEditing ? 'Update Post' : 'Publish Post'}
-          </Button>
-        </div>
-      </div>
+      <ActionButtons 
+        form={form}
+        onSubmit={onSubmit}
+        isEditing={isEditing}
+        onCancel={onCancel}
+      />
     </div>
   );
 };
