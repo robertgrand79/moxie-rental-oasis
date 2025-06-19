@@ -772,32 +772,50 @@ export type Database = {
       }
       newsletter_subscribers: {
         Row: {
+          communication_preferences: Json | null
+          contact_source: string | null
           created_at: string
           email: string
+          email_opt_in: boolean | null
           id: string
           is_active: boolean
+          last_engagement_date: string | null
           name: string | null
+          phone: string | null
           preferences: Json | null
+          sms_opt_in: boolean | null
           subscribed_at: string
           updated_at: string
         }
         Insert: {
+          communication_preferences?: Json | null
+          contact_source?: string | null
           created_at?: string
           email: string
+          email_opt_in?: boolean | null
           id?: string
           is_active?: boolean
+          last_engagement_date?: string | null
           name?: string | null
+          phone?: string | null
           preferences?: Json | null
+          sms_opt_in?: boolean | null
           subscribed_at?: string
           updated_at?: string
         }
         Update: {
+          communication_preferences?: Json | null
+          contact_source?: string | null
           created_at?: string
           email?: string
+          email_opt_in?: boolean | null
           id?: string
           is_active?: boolean
+          last_engagement_date?: string | null
           name?: string | null
+          phone?: string | null
           preferences?: Json | null
+          sms_opt_in?: boolean | null
           subscribed_at?: string
           updated_at?: string
         }

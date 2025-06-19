@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,38 +17,42 @@ import {
   Search, 
   Download, 
   Mail, 
+  MessageSquare,
   Calendar,
   AlertCircle,
   CheckCircle,
   Filter,
   Plus,
   Edit,
-  Trash2
+  Trash2,
+  Phone
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useEnhancedNewsletterSubscribers } from '@/hooks/useEnhancedNewsletterSubscribers';
 import { useNewsletterSubscribersCRUD } from '@/hooks/useNewsletterSubscribersCRUD';
+import MultiChannelStatsCards from '@/components/admin/newsletter/MultiChannelStatsCards';
+import EnhancedSubscriberModal from '@/components/admin/newsletter/EnhancedSubscriberModal';
 import AddSubscriberModal from '@/components/admin/newsletter/AddSubscriberModal';
-import EditSubscriberModal from '@/components/admin/newsletter/EditSubscriberModal';
 import DeleteSubscriberModal from '@/components/admin/newsletter/DeleteSubscriberModal';
-
-interface Subscriber {
-  id: string;
-  email: string;
-  name: string | null;
-  is_active: boolean;
-  subscribed_at: string;
-  preferences: any;
-}
+import { EnhancedSubscriber } from './types';
 
 const NewsletterSubscribersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
+  const [filterChannel, setFilterChannel] = useState<'all' | 'email' | 'sms' | 'both'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingSubscriber, setEditingSubscriber] = useState<Subscriber | null>(null);
-  const [deletingSubscriber, setDeletingSubscriber] = useState<Subscriber | null>(null);
+  const [editingSubscriber, setEditingSubscriber] = useState<EnhancedSubscriber | null>(null);
+  const [deletingSubscriber, setDeletingSubscriber] = useState<EnhancedSubscriber | null>(null);
   const { toast } = useToast();
+
+  const { 
+    subscribers, 
+    loading: isLoadingSubscribers, 
+    error, 
+    refetch,
+    updateSubscriberCommunicationPrefs,
+    getSubscriberStats
+  } = useEnhancedNewsletterSubscribers();
 
   const { 
     addSubscriber, 
@@ -59,30 +62,26 @@ const NewsletterSubscribersList = () => {
     deleting 
   } = useNewsletterSubscribersCRUD();
 
-  const { data: subscribers, isLoading: isLoadingSubscribers, error, refetch } = useQuery({
-    queryKey: ['newsletter-subscribers'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('newsletter_subscribers')
-        .select('*')
-        .order('subscribed_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as Subscriber[];
-    },
-  });
+  const stats = getSubscriberStats();
 
   const filteredSubscribers = subscribers?.filter(subscriber => {
     const matchesSearch = 
       subscriber.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (subscriber.name && subscriber.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      (subscriber.name && subscriber.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (subscriber.phone && subscriber.phone.includes(searchTerm));
     
-    const matchesFilter = 
+    const matchesActiveFilter = 
       filterActive === 'all' || 
       (filterActive === 'active' && subscriber.is_active) ||
       (filterActive === 'inactive' && !subscriber.is_active);
 
-    return matchesSearch && matchesFilter;
+    const matchesChannelFilter = 
+      filterChannel === 'all' ||
+      (filterChannel === 'email' && subscriber.email_opt_in && !subscriber.sms_opt_in) ||
+      (filterChannel === 'sms' && subscriber.sms_opt_in && !subscriber.email_opt_in) ||
+      (filterChannel === 'both' && subscriber.email_opt_in && subscriber.sms_opt_in);
+
+    return matchesSearch && matchesActiveFilter && matchesChannelFilter;
   }) || [];
 
   const handleExportSubscribers = () => {
@@ -96,11 +95,17 @@ const NewsletterSubscribersList = () => {
     }
 
     const csvData = [
-      ['Email', 'Name', 'Status', 'Subscribed Date'],
+      ['Email', 'Name', 'Phone', 'Status', 'Email Opt-in', 'SMS Opt-in', 'Contact Source', 'Frequency', 'Preferred Time', 'Subscribed Date'],
       ...filteredSubscribers.map(sub => [
         sub.email,
         sub.name || '',
+        sub.phone || '',
         sub.is_active ? 'Active' : 'Inactive',
+        sub.email_opt_in ? 'Yes' : 'No',
+        sub.sms_opt_in ? 'Yes' : 'No',
+        sub.contact_source,
+        sub.communication_preferences?.frequency || 'weekly',
+        sub.communication_preferences?.preferred_time || 'morning',
         new Date(sub.subscribed_at).toLocaleDateString()
       ])
     ];
@@ -110,60 +115,20 @@ const NewsletterSubscribersList = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `newsletter-subscribers-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `newsletter-contacts-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
 
     toast({
       title: "Export Complete",
-      description: `Exported ${filteredSubscribers.length} subscribers to CSV.`,
+      description: `Exported ${filteredSubscribers.length} contacts to CSV.`,
     });
   };
 
-  const handleToggleStatus = async (subscriberId: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('newsletter_subscribers')
-        .update({ is_active: !currentStatus })
-        .eq('id', subscriberId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Status Updated",
-        description: `Subscriber ${!currentStatus ? 'activated' : 'deactivated'} successfully.`,
-      });
-
-      refetch();
-    } catch (error) {
-      toast({
-        title: "Update Failed",
-        description: "Failed to update subscriber status.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleAddSubscriber = async (data: { email: string; name: string; is_active: boolean }) => {
-    const success = await addSubscriber(data);
-    if (success) {
-      setShowAddModal(false);
-      refetch();
-    }
-  };
-
-  const handleEditSubscriber = async (id: string, data: { email: string; name: string; is_active: boolean }) => {
-    const success = await editSubscriber(id, data);
+  const handleEditSubscriber = async (id: string, data: any) => {
+    const success = await updateSubscriberCommunicationPrefs(id, data);
     if (success) {
       setEditingSubscriber(null);
-      refetch();
-    }
-  };
-
-  const handleDeleteSubscriber = async (id: string) => {
-    const success = await deleteSubscriber(id);
-    if (success) {
-      setDeletingSubscriber(null);
       refetch();
     }
   };
@@ -183,65 +148,23 @@ const NewsletterSubscribersList = () => {
     );
   }
 
-  const activeCount = subscribers?.filter(s => s.is_active).length || 0;
-  const totalCount = subscribers?.length || 0;
-
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Subscribers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalCount}</div>
-            <p className="text-xs text-muted-foreground">
-              All newsletter subscribers
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Subscribers</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{activeCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Currently receiving newsletters
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactive Subscribers</CardTitle>
-            <AlertCircle className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{totalCount - activeCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Unsubscribed or inactive
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Enhanced Statistics */}
+      <MultiChannelStatsCards stats={stats} loading={isLoadingSubscribers} />
 
       {/* Subscriber List */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="flex items-center">
-              <Mail className="h-5 w-5 mr-2" />
-              Newsletter Subscribers
+              <Users className="h-5 w-5 mr-2" />
+              Contact Management
             </CardTitle>
             <div className="flex gap-2">
               <Button onClick={() => setShowAddModal(true)} size="sm">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Subscriber
+                Add Contact
               </Button>
               <Button onClick={handleExportSubscribers} variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
@@ -251,13 +174,13 @@ const NewsletterSubscribersList = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {/* Search and Filter */}
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1">
+          {/* Enhanced Search and Filter */}
+          <div className="flex gap-4 mb-6 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Search by email or name..."
+                  placeholder="Search by email, name, or phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -268,12 +191,22 @@ const NewsletterSubscribersList = () => {
               <Filter className="h-4 w-4 text-gray-400" />
               <select
                 value={filterActive}
-                onChange={(e) => setFilterActive(e.target.value as 'all' | 'active' | 'inactive')}
+                onChange={(e) => setFilterActive(e.target.value as any)}
                 className="px-3 py-2 border rounded-md text-sm"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active Only</option>
                 <option value="inactive">Inactive Only</option>
+              </select>
+              <select
+                value={filterChannel}
+                onChange={(e) => setFilterChannel(e.target.value as any)}
+                className="px-3 py-2 border rounded-md text-sm"
+              >
+                <option value="all">All Channels</option>
+                <option value="email">Email Only</option>
+                <option value="sms">SMS Only</option>
+                <option value="both">Both Channels</option>
               </select>
             </div>
           </div>
@@ -281,14 +214,14 @@ const NewsletterSubscribersList = () => {
           {isLoadingSubscribers ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading subscribers...</p>
+              <p className="mt-2 text-gray-600">Loading contacts...</p>
             </div>
           ) : filteredSubscribers.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <Mail className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p className="font-medium">No subscribers found</p>
+              <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p className="font-medium">No contacts found</p>
               <p className="text-sm">
-                {searchTerm || filterActive !== 'all' 
+                {searchTerm || filterActive !== 'all' || filterChannel !== 'all'
                   ? 'Try adjusting your search or filter criteria.' 
                   : 'No one has subscribed to your newsletter yet.'}
               </p>
@@ -298,23 +231,58 @@ const NewsletterSubscribersList = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Name</TableHead>
+                    <TableHead>Contact Info</TableHead>
+                    <TableHead>Communication Channels</TableHead>
+                    <TableHead>Preferences</TableHead>
+                    <TableHead>Source</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Subscribed Date</TableHead>
+                    <TableHead>Subscribed</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredSubscribers.map((subscriber) => (
                     <TableRow key={subscriber.id}>
-                      <TableCell className="font-medium">
-                        {subscriber.email}
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium">{subscriber.email}</div>
+                          {subscriber.name && (
+                            <div className="text-sm text-gray-600">{subscriber.name}</div>
+                          )}
+                          {subscriber.phone && (
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Phone className="h-3 w-3 mr-1" />
+                              {subscriber.phone}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
-                        {subscriber.name || (
-                          <span className="text-gray-400 italic">No name</span>
-                        )}
+                        <div className="flex flex-wrap gap-1">
+                          {subscriber.email_opt_in && (
+                            <Badge variant="outline" className="text-blue-600 border-blue-200">
+                              <Mail className="h-3 w-3 mr-1" />
+                              Email
+                            </Badge>
+                          )}
+                          {subscriber.sms_opt_in && (
+                            <Badge variant="outline" className="text-green-600 border-green-200">
+                              <MessageSquare className="h-3 w-3 mr-1" />
+                              SMS
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">
+                          <div>{subscriber.communication_preferences?.frequency || 'weekly'}</div>
+                          <div className="text-xs">{subscriber.communication_preferences?.preferred_time || 'morning'}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {subscriber.contact_source.replace('_', ' ')}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge 
@@ -342,13 +310,6 @@ const NewsletterSubscribersList = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleToggleStatus(subscriber.id, subscriber.is_active)}
-                          >
-                            {subscriber.is_active ? "Deactivate" : "Activate"}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
                             onClick={() => setDeletingSubscriber(subscriber)}
                             disabled={deleting === subscriber.id}
                           >
@@ -369,7 +330,7 @@ const NewsletterSubscribersList = () => {
 
           {filteredSubscribers.length > 0 && (
             <div className="mt-4 text-sm text-gray-600">
-              Showing {filteredSubscribers.length} of {totalCount} subscribers
+              Showing {filteredSubscribers.length} of {subscribers.length} contacts
             </div>
           )}
         </CardContent>
@@ -379,11 +340,11 @@ const NewsletterSubscribersList = () => {
       <AddSubscriberModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onSubmit={handleAddSubscriber}
+        onSubmit={addSubscriber}
         isLoading={isLoading}
       />
 
-      <EditSubscriberModal
+      <EnhancedSubscriberModal
         subscriber={editingSubscriber}
         open={!!editingSubscriber}
         onClose={() => setEditingSubscriber(null)}
@@ -395,7 +356,7 @@ const NewsletterSubscribersList = () => {
         subscriber={deletingSubscriber}
         open={!!deletingSubscriber}
         onClose={() => setDeletingSubscriber(null)}
-        onConfirm={handleDeleteSubscriber}
+        onConfirm={deleteSubscriber}
         isDeleting={deleting === deletingSubscriber?.id}
       />
     </div>

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import NewsletterForm from './newsletter/NewsletterForm';
+import EnhancedNewsletterForm from './newsletter/EnhancedNewsletterForm';
 import NewsletterSuccess from './newsletter/NewsletterSuccess';
 import { NewsletterFormData } from './newsletter/types';
 
@@ -19,9 +19,12 @@ const TravelNewsletterSignup = () => {
       const { data, error } = await supabase.functions.invoke('subscribe-newsletter', {
         body: { 
           email: formData.email, 
-          name: formData.name, 
-          frequency: 'weekly',
-          interests: ['general'] 
+          name: formData.name,
+          phone: formData.phone || null,
+          emailOptIn: formData.emailOptIn,
+          smsOptIn: formData.smsOptIn,
+          communicationPreferences: formData.communicationPreferences,
+          contactSource: 'newsletter'
         }
       });
 
@@ -31,9 +34,14 @@ const TravelNewsletterSignup = () => {
 
       setIsSubscribed(true);
       setSubscribedUserName(formData.name);
+      
+      const methods = [];
+      if (formData.emailOptIn) methods.push('email');
+      if (formData.smsOptIn) methods.push('SMS');
+      
       toast({
         title: "🎉 Welcome to Moxie Travel!",
-        description: "You'll receive our travel insights and Eugene adventures.",
+        description: `You'll receive updates via ${methods.join(' and ')}.`,
       });
     } catch (error: any) {
       console.error('Newsletter subscription error:', error);
@@ -51,7 +59,7 @@ const TravelNewsletterSignup = () => {
     return <NewsletterSuccess userName={subscribedUserName} />;
   }
 
-  return <NewsletterForm onSubmit={handleSubmit} isLoading={isLoading} />;
+  return <EnhancedNewsletterForm onSubmit={handleSubmit} isLoading={isLoading} />;
 };
 
 export default TravelNewsletterSignup;
