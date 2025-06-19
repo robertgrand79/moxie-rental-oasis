@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -48,21 +49,7 @@ const BlogEditorForm = ({
   const watchedAuthor = watch('author');
   const watchedPublishedAt = watch('published_at');
   
-  // Separate state for custom author input to avoid conflicts
-  const [customAuthorValue, setCustomAuthorValue] = useState('');
-  const [selectedAuthorType, setSelectedAuthorType] = useState(() => {
-    const currentAuthor = watchedAuthor || 'Admin';
-    const predefinedAuthors = ['Admin', 'Robert', 'Shelly', 'Robert & Shelly'];
-    return predefinedAuthors.includes(currentAuthor) ? currentAuthor : 'custom';
-  });
-
-  const predefinedAuthors = [
-    { value: 'Admin', label: 'Admin' },
-    { value: 'Robert', label: 'Robert' },
-    { value: 'Shelly', label: 'Shelly' },
-    { value: 'Robert & Shelly', label: 'Robert & Shelly' },
-    { value: 'custom', label: 'Custom Author...' }
-  ];
+  const predefinedAuthors = ['Admin', 'Robert', 'Shelly', 'Robert & Shelly'];
 
   const handleEditorChange = (newContent: string) => {
     console.log('📝 ReactQuill content changed:', newContent.substring(0, 100));
@@ -81,21 +68,8 @@ const BlogEditorForm = ({
   };
 
   const handleAuthorChange = (value: string) => {
-    setSelectedAuthorType(value);
-    if (value !== 'custom') {
-      setValue('author', value);
-      setCustomAuthorValue('');
-    } else {
-      // Keep existing custom value if switching back to custom
-      const currentCustom = customAuthorValue || watchedAuthor;
-      setValue('author', currentCustom);
-    }
-  };
-
-  const handleCustomAuthorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setCustomAuthorValue(value);
-    setValue('author', value);
+    console.log('Author changed to:', value);
+    setValue('author', value, { shouldDirty: true, shouldTouch: true });
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -120,24 +94,25 @@ const BlogEditorForm = ({
 
         <div>
           <Label htmlFor="author">Author</Label>
-          <Select value={selectedAuthorType} onValueChange={handleAuthorChange}>
+          <Select value={watchedAuthor || 'Admin'} onValueChange={handleAuthorChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select author" />
             </SelectTrigger>
             <SelectContent>
               {predefinedAuthors.map((author) => (
-                <SelectItem key={author.value} value={author.value}>
-                  {author.label}
+                <SelectItem key={author} value={author}>
+                  {author}
                 </SelectItem>
               ))}
+              <SelectItem value="custom">Custom Author...</SelectItem>
             </SelectContent>
           </Select>
-          {selectedAuthorType === 'custom' && (
+          {watchedAuthor === 'custom' && (
             <Input
               className="mt-2"
               placeholder="Enter custom author name"
-              value={customAuthorValue}
-              onChange={handleCustomAuthorChange}
+              value={watchedAuthor === 'custom' ? '' : watchedAuthor || ''}
+              onChange={(e) => handleAuthorChange(e.target.value)}
             />
           )}
           {errors.author && (

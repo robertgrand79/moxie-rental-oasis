@@ -1,13 +1,13 @@
 
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface UseBlogAIGenerationProps {
   currentTitle: string;
   currentExcerpt: string;
   currentContent: string;
-  onContentGenerated: (field: 'title' | 'excerpt' | 'content', content: string) => void;
+  onContentGenerated: (field: 'title' | 'excerpt' | 'content' | 'tags', content: string) => void;
 }
 
 export const useBlogAIGeneration = ({
@@ -17,131 +17,58 @@ export const useBlogAIGeneration = ({
   onContentGenerated
 }: UseBlogAIGenerationProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [selectedField, setSelectedField] = useState<'title' | 'excerpt' | 'content'>('content');
-  const [generatedContent, setGeneratedContent] = useState('');
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [generationProgress, setGenerationProgress] = useState('');
-  const { toast } = useToast();
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [selectedField, setSelectedField] = useState<'title' | 'excerpt' | 'content' | 'tags'>('content');
+  const [generatedContent, setGeneratedContent] = useState('');
 
-  const generateContent = async (customPrompt?: string) => {
-    const promptToUse = customPrompt || aiPrompt;
-    
-    if (!promptToUse.trim()) {
+  const generateContent = async (promptOverride?: string) => {
+    const prompt = promptOverride || aiPrompt;
+    if (!prompt.trim()) {
       toast({
-        title: "Prompt Required",
-        description: "Please enter a prompt or select a template to generate content.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please enter a prompt first.',
+        variant: 'destructive'
       });
       return;
     }
 
     setIsGenerating(true);
-
     try {
-      const enhancedPrompt = selectedField === 'content' 
-        ? `${promptToUse}
-
-**CRITICAL: NO MARKDOWN FORMATTING ALLOWED**
-- Write in clean, flowing prose without any markdown syntax
-- NEVER use ### or ## for headings - write descriptive section titles as regular text
-- NEVER use *** or ** for bold text - write naturally
-- NEVER use * for italic text - write naturally  
-- NEVER use - or * for bullet points - write in paragraph form
-- Focus on storytelling and engaging narrative
-- Write as if you're writing directly in a word processor
-- Use natural paragraph breaks and flowing sentences
-
-**PARAGRAPH STRUCTURE REQUIREMENTS:**
-- Create distinct, well-structured paragraphs for maximum readability
-- Each paragraph should focus on ONE main topic or idea
-- Use double line breaks between paragraphs to create clear separation
-- Write 2-4 sentences per paragraph for optimal readability
-- Create natural transitions between paragraphs
-- Structure content with clear topic progression
-- Make content easily scannable with proper paragraph spacing
-- Start new paragraphs when introducing new concepts or ideas
-
-**MOXIE BLOG CONTENT REQUIREMENTS:**
-- Create engaging blog post content with natural flow between topics
-- Use conversational tone appropriate for travel blog readers
-- Include specific Eugene, Oregon details and local expertise
-- Write in well-structured paragraph format with clear section breaks
-- Include actionable tips and practical information
-- Make content naturally scannable with excellent paragraph structure
-- End with a compelling call-to-action encouraging bookings
-- Ensure content is SEO-friendly and engaging for vacation rental guests
-
-**CONTENT FLOW STRUCTURE:**
-Write content in distinct, well-spaced paragraphs that flow like this:
-
-Opening paragraph that introduces the topic and captures reader interest.
-
-Second paragraph that expands on the main theme with specific details.
-
-Additional paragraphs that each cover individual aspects, locations, or experiences, with each paragraph being a complete thought.
-
-Include practical information paragraphs that provide actionable advice.
-
-Conclude with strong closing paragraphs that encourage engagement and bookings.
-
-**MOXIE BRAND VOICE:**
-- We are Moxie Vacation Rentals, Eugene's premier local experts
-- Our mission: "Your Home Base for Living Like a Local in Eugene"
-- We provide authentic local experiences and insider knowledge
-- Our guests value quality accommodations and authentic local experiences
-- We specialize in helping visitors experience Eugene like locals do
-
-Write clean, well-structured prose with excellent paragraph breaks that will work perfectly with rich text editors - absolutely no formatting syntax allowed.`
-        : selectedField === 'title'
-        ? `Create an engaging, SEO-friendly blog post title for: ${promptToUse}
-
-**Title Guidelines:**
-- Keep under 60 characters for SEO optimization
-- Include "Eugene" or local references when relevant
-- Make it compelling and click-worthy
-- Appeal to vacation rental guests and travelers
-- Reflect Moxie's local expertise and premium positioning`
-        : `Create a compelling blog post excerpt (150-160 characters) for: ${promptToUse}
-
-**Excerpt Guidelines:**
-- Engaging preview that entices readers to continue
-- Include key benefits or highlights
-- Appeal to vacation rental guests
-- Professional yet approachable tone
-- Include local Eugene context when relevant`;
-
+      console.log('🤖 Generating content for field:', selectedField, 'with prompt:', prompt);
+      
       const { data, error } = await supabase.functions.invoke('generate-site-content', {
         body: {
-          prompt: enhancedPrompt,
+          prompt,
           context: {
-            businessType: 'vacation rental blog',
-            currentContent: {
-              siteName: 'Moxie Vacation Rentals',
-              title: currentTitle,
-              excerpt: currentExcerpt,
-              content: currentContent
-            },
+            category: 'blog',
             field: selectedField,
-            category: 'blog'
+            currentTitle,
+            currentExcerpt,
+            currentContent,
+            location: 'Eugene, Oregon'
           }
         }
       });
 
       if (error) throw error;
 
-      setGeneratedContent(data.content);
-      
+      if (data?.content) {
+        console.log('✅ AI generated content:', data.content.substring(0, 100));
+        setGeneratedContent(data.content);
+        
+        toast({
+          title: 'Content Generated!',
+          description: `AI has generated ${selectedField} content for your blog post.`
+        });
+      }
+    } catch (error) {
+      console.error('❌ AI generation error:', error);
       toast({
-        title: "Content Generated!",
-        description: "AI has created clean, editor-friendly blog content with Moxie's branding and local expertise.",
-      });
-    } catch (error: any) {
-      console.error('Blog content generation error:', error);
-      toast({
-        title: "Generation Failed",
-        description: error.message || "Please try again later.",
-        variant: "destructive",
+        title: 'Generation Failed',
+        description: 'Failed to generate content. Please try again.',
+        variant: 'destructive'
       });
     } finally {
       setIsGenerating(false);
@@ -151,174 +78,117 @@ Write clean, well-structured prose with excellent paragraph breaks that will wor
   const generateAllFields = async (topicPrompt: string) => {
     if (!topicPrompt.trim()) {
       toast({
-        title: "Topic Required",
-        description: "Please enter a topic to generate all blog fields.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please enter a topic for the blog post.',
+        variant: 'destructive'
       });
       return;
     }
 
     setIsGeneratingAll(true);
+    setGenerationProgress('Starting generation...');
 
     try {
-      // Step 1: Generate title
+      // Generate Title
       setGenerationProgress('Generating title...');
-      const titlePrompt = `Create an engaging, SEO-friendly blog post title for: ${topicPrompt}
-
-**Title Guidelines:**
-- Keep under 60 characters for SEO optimization
-- Include "Eugene" or local references when relevant
-- Make it compelling and click-worthy
-- Appeal to vacation rental guests and travelers
-- Reflect Moxie's local expertise and premium positioning`;
-
+      const titlePrompt = `Create an engaging, SEO-friendly blog post title about: ${topicPrompt}. Focus on Eugene, Oregon and vacation rentals/travel. Make it compelling and click-worthy.`;
+      
       const { data: titleData, error: titleError } = await supabase.functions.invoke('generate-site-content', {
         body: {
           prompt: titlePrompt,
           context: {
-            businessType: 'vacation rental blog',
-            currentContent: {
-              siteName: 'Moxie Vacation Rentals',
-              title: currentTitle,
-              excerpt: currentExcerpt,
-              content: currentContent
-            },
+            category: 'blog',
             field: 'title',
-            category: 'blog'
+            location: 'Eugene, Oregon'
           }
         }
       });
 
       if (titleError) throw titleError;
-      const generatedTitle = titleData.content;
+      const generatedTitle = titleData?.content || 'Untitled Post';
+      onContentGenerated('title', generatedTitle);
 
-      // Step 2: Generate excerpt
+      // Generate Tags
+      setGenerationProgress('Generating tags...');
+      const tagsPrompt = `Generate 5-8 relevant, SEO-friendly tags for a blog post about: ${topicPrompt}. Focus on Eugene, Oregon, vacation rentals, travel, and local experiences. Return as comma-separated values.`;
+      
+      const { data: tagsData, error: tagsError } = await supabase.functions.invoke('generate-site-content', {
+        body: {
+          prompt: tagsPrompt,
+          context: {
+            category: 'blog',
+            field: 'tags',
+            location: 'Eugene, Oregon'
+          }
+        }
+      });
+
+      if (tagsError) throw tagsError;
+      const generatedTags = tagsData?.content || 'eugene, oregon, travel';
+      onContentGenerated('tags', generatedTags);
+
+      // Generate Excerpt
       setGenerationProgress('Generating excerpt...');
-      const excerptPrompt = `Create a compelling blog post excerpt (150-160 characters) for a blog post titled: "${generatedTitle}"
-
-Topic: ${topicPrompt}
-
-**Excerpt Guidelines:**
-- Engaging preview that entices readers to continue
-- Include key benefits or highlights
-- Appeal to vacation rental guests
-- Professional yet approachable tone
-- Include local Eugene context when relevant`;
-
+      const excerptPrompt = `Create a compelling 2-3 sentence excerpt for a blog post titled "${generatedTitle}" about: ${topicPrompt}. Make it engaging and informative for travelers interested in Eugene, Oregon.`;
+      
       const { data: excerptData, error: excerptError } = await supabase.functions.invoke('generate-site-content', {
         body: {
           prompt: excerptPrompt,
           context: {
-            businessType: 'vacation rental blog',
-            currentContent: {
-              siteName: 'Moxie Vacation Rentals',
-              title: generatedTitle,
-              excerpt: currentExcerpt,
-              content: currentContent
-            },
+            category: 'blog',
             field: 'excerpt',
-            category: 'blog'
+            location: 'Eugene, Oregon'
           }
         }
       });
 
       if (excerptError) throw excerptError;
-      const generatedExcerpt = excerptData.content;
+      const generatedExcerpt = excerptData?.content || 'A great post about Eugene, Oregon.';
+      onContentGenerated('excerpt', generatedExcerpt);
 
-      // Step 3: Generate content
-      setGenerationProgress('Generating content...');
-      const contentPrompt = `Create a comprehensive blog post about: ${topicPrompt}
-
-Title: ${generatedTitle}
-Excerpt: ${generatedExcerpt}
-
-**CRITICAL: NO MARKDOWN FORMATTING ALLOWED**
-- Write in clean, flowing prose without any markdown syntax
-- NEVER use ### or ## for headings - write descriptive section titles as regular text
-- NEVER use *** or ** for bold text - write naturally
-- NEVER use * for italic text - write naturally  
-- NEVER use - or * for bullet points - write in paragraph form
-- Focus on storytelling and engaging narrative
-- Write as if you're writing directly in a word processor
-- Use natural paragraph breaks and flowing sentences
-
-**PARAGRAPH STRUCTURE REQUIREMENTS:**
-- Create distinct, well-structured paragraphs for maximum readability
-- Each paragraph should focus on ONE main topic or idea
-- Use double line breaks between paragraphs to create clear separation
-- Write 2-4 sentences per paragraph for optimal readability
-- Create natural transitions between paragraphs
-- Structure content with clear topic progression
-- Make content easily scannable with proper paragraph spacing
-- Start new paragraphs when introducing new concepts or ideas
-
-**MOXIE BLOG CONTENT REQUIREMENTS:**
-- Create engaging blog post content with natural flow between topics
-- Use conversational tone appropriate for travel blog readers
-- Include specific Eugene, Oregon details and local expertise
-- Write in well-structured paragraph format with clear section breaks
-- Include actionable tips and practical information
-- Make content naturally scannable with excellent paragraph structure
-- End with a compelling call-to-action encouraging bookings
-- Ensure content is SEO-friendly and engaging for vacation rental guests
-
-**CONTENT FLOW STRUCTURE:**
-Write content in distinct, well-spaced paragraphs that flow like this:
-
-Opening paragraph that introduces the topic and captures reader interest.
-
-Second paragraph that expands on the main theme with specific details.
-
-Additional paragraphs that each cover individual aspects, locations, or experiences, with each paragraph being a complete thought.
-
-Include practical information paragraphs that provide actionable advice.
-
-Conclude with strong closing paragraphs that encourage engagement and bookings.
-
-**MOXIE BRAND VOICE:**
-- We are Moxie Vacation Rentals, Eugene's premier local experts
-- Our mission: "Your Home Base for Living Like a Local in Eugene"
-- We provide authentic local experiences and insider knowledge
-- Our guests value quality accommodations and authentic local experiences
-- We specialize in helping visitors experience Eugene like locals do
-
-Write clean, well-structured prose with excellent paragraph breaks that will work perfectly with rich text editors - absolutely no formatting syntax allowed.`;
-
+      // Generate Content
+      setGenerationProgress('Generating main content...');
+      const contentPrompt = `Write a comprehensive, engaging blog post titled "${generatedTitle}" about: ${topicPrompt}. 
+      
+      The post should:
+      - Be 800-1200 words
+      - Focus on Eugene, Oregon and surrounding areas
+      - Be helpful for vacation rental guests and travelers
+      - Include practical tips and local insights
+      - Use a friendly, informative tone
+      - Include specific locations, attractions, or experiences when relevant
+      - Be well-structured with clear paragraphs
+      
+      Make it valuable for people visiting Eugene or considering vacation rentals in the area.`;
+      
       const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-site-content', {
         body: {
           prompt: contentPrompt,
           context: {
-            businessType: 'vacation rental blog',
-            currentContent: {
-              siteName: 'Moxie Vacation Rentals',
-              title: generatedTitle,
-              excerpt: generatedExcerpt,
-              content: currentContent
-            },
+            category: 'blog',
             field: 'content',
-            category: 'blog'
+            location: 'Eugene, Oregon'
           }
         }
       });
 
       if (contentError) throw contentError;
+      const generatedContent = contentData?.content || 'Blog content could not be generated.';
+      onContentGenerated('content', generatedContent);
 
-      // Apply all generated content
-      onContentGenerated('title', generatedTitle);
-      onContentGenerated('excerpt', generatedExcerpt);
-      onContentGenerated('content', contentData.content);
-
-      toast({
-        title: "All Fields Generated!",
-        description: "Successfully generated title, excerpt, and content for your blog post.",
-      });
+      setGenerationProgress('Complete!');
       
-    } catch (error: any) {
-      console.error('All fields generation error:', error);
       toast({
-        title: "Generation Failed",
-        description: error.message || "Please try again later.",
-        variant: "destructive",
+        title: 'Complete Blog Post Generated!',
+        description: 'AI has generated title, excerpt, tags, and content for your blog post.',
+      });
+
+    } catch (error) {
+      console.error('❌ Complete blog generation error:', error);
+      toast({
+        title: 'Generation Failed',
+        description: 'Failed to generate complete blog post. Please try again.',
+        variant: 'destructive'
       });
     } finally {
       setIsGeneratingAll(false);
@@ -326,85 +196,30 @@ Write clean, well-structured prose with excellent paragraph breaks that will wor
     }
   };
 
-  const generateCompleteBlogPost = async () => {
-    setSelectedField('content');
-    const completePrompt = `Create a complete, professionally written blog post for Moxie Vacation Rentals with clean, flowing prose:
-
-**CRITICAL FORMATTING REQUIREMENTS:**
-- Write in clean, natural prose without any markdown syntax
-- NEVER use ### or ## for headings - write descriptive introductory sentences
-- NEVER use *** or ** for bold - write naturally and let the editor handle emphasis
-- NEVER use * for italic - write naturally
-- NEVER use - or * for bullet points - write in flowing paragraph form
-- Focus on storytelling and engaging narrative flow
-- Write as if you're writing directly in a word processor
-
-**PARAGRAPH STRUCTURE REQUIREMENTS:**
-- Create distinct, well-structured paragraphs for maximum readability
-- Each paragraph should focus on ONE main topic or idea
-- Use double line breaks between paragraphs to create clear separation
-- Write 2-4 sentences per paragraph for optimal readability
-- Create natural transitions between paragraphs
-- Structure content with clear topic progression
-- Make content easily scannable with proper paragraph spacing
-- Start new paragraphs when introducing new concepts or ideas
-
-**Blog Post Content Structure:**
-Create a comprehensive blog post with natural flow between topics, including:
-
-Engaging opening paragraph that captures reader attention and introduces the topic with clear value for Eugene visitors.
-
-Main content sections that flow naturally from one topic to the next, each in separate, well-structured paragraphs containing specific Eugene details, local insights, and practical information.
-
-Include authentic local expertise covering Eugene attractions, dining, activities, and cultural experiences that vacation rental guests would appreciate, with each major topic in its own paragraph.
-
-Practical travel information woven naturally into distinct paragraphs, including tips for getting around, seasonal considerations, and insider knowledge.
-
-Personal touches and storytelling elements in separate paragraphs that make the content engaging and memorable.
-
-Strong closing paragraph with compelling reasons to choose Moxie Vacation Rentals and encouragement to explore available properties.
-
-**Content Guidelines:**
-- Target 1,500-2,000 words for comprehensive coverage
-- Use engaging, conversational tone suitable for travel blog
-- Balance inspirational content with actionable advice
-- Include specific Eugene locations, restaurants, and attractions
-- Make content naturally scannable through excellent paragraph structure
-- Optimize for SEO while maintaining excellent readability
-- Write from the perspective of local Eugene experts sharing insider knowledge
-
-Write clean, flowing prose with excellent paragraph structure that will work perfectly in rich text editors without any formatting syntax.`;
-
-    await generateContent(completePrompt);
-  };
-
   const applyGeneratedContent = () => {
-    if (!generatedContent) return;
-
-    onContentGenerated(selectedField, generatedContent);
-
-    toast({
-      title: "Content Applied",
-      description: `Updated ${selectedField} with professionally generated content.`,
-    });
-
-    setGeneratedContent('');
-    setAiPrompt('');
+    if (generatedContent) {
+      onContentGenerated(selectedField, generatedContent);
+      setGeneratedContent('');
+      
+      toast({
+        title: 'Content Applied!',
+        description: `The generated ${selectedField} has been applied to your blog post.`
+      });
+    }
   };
 
   return {
     isGenerating,
+    isGeneratingAll,
+    generationProgress,
     aiPrompt,
     setAiPrompt,
     selectedField,
     setSelectedField,
     generatedContent,
     setGeneratedContent,
-    isGeneratingAll,
-    generationProgress,
     generateContent,
     generateAllFields,
-    generateCompleteBlogPost,
     applyGeneratedContent
   };
 };

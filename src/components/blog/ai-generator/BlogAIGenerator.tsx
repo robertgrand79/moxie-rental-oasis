@@ -8,13 +8,14 @@ import BlogTemplateSelector from './BlogTemplateSelector';
 import BlogQuickPrompts from './BlogQuickPrompts';
 import BlogCustomPromptInput from './BlogCustomPromptInput';
 import BlogGeneratedContentDisplay from './BlogGeneratedContentDisplay';
+import BlogTagsGenerator from './BlogTagsGenerator';
 import { useBlogAIGeneration } from './useBlogAIGeneration';
 
 interface BlogAIGeneratorProps {
   currentTitle: string;
   currentExcerpt: string;
   currentContent: string;
-  onContentGenerated: (field: 'title' | 'excerpt' | 'content', content: string) => void;
+  onContentGenerated: (field: 'title' | 'excerpt' | 'content' | 'tags', content: string) => void;
 }
 
 const BlogAIGenerator = ({ 
@@ -53,6 +54,10 @@ const BlogAIGenerator = ({
     await generateContent(prompt);
   };
 
+  const handleTagsGenerated = (tags: string) => {
+    onContentGenerated('tags', tags);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -66,8 +71,9 @@ const BlogAIGenerator = ({
       </CardHeader>
       <CardContent className="space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="templates">Content Templates</TabsTrigger>
+            <TabsTrigger value="tags">Smart Tags</TabsTrigger>
             <TabsTrigger value="custom">Custom Prompt</TabsTrigger>
           </TabsList>
 
@@ -90,6 +96,15 @@ const BlogAIGenerator = ({
                 isGenerating={isGenerating}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="tags" className="space-y-4">
+            <BlogTagsGenerator
+              currentTitle={currentTitle}
+              currentContent={currentContent}
+              onTagsGenerated={handleTagsGenerated}
+              isGenerating={isGenerating}
+            />
           </TabsContent>
 
           <TabsContent value="custom" className="space-y-4">
