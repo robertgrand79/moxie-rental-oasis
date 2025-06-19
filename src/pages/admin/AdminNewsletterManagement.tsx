@@ -9,6 +9,7 @@ import NewsletterSubscribersList from '@/components/newsletter/NewsletterSubscri
 import NewsletterStatsCards from '@/components/admin/newsletter/NewsletterStatsCards';
 import NewsletterCampaignsTable from '@/components/admin/newsletter/NewsletterCampaignsTable';
 import NewsletterAnalyticsTab from '@/components/admin/newsletter/NewsletterAnalyticsTab';
+import HospitableSyncCard from '@/components/admin/newsletter/HospitableSyncCard';
 import { useNewsletterCampaigns } from '@/hooks/useNewsletterCampaigns';
 import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 
@@ -40,9 +41,10 @@ const AdminNewsletterManagement = () => {
     >
       <div className="p-8">
         <Tabs defaultValue="create" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="create">Create Newsletter</TabsTrigger>
             <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
+            <TabsTrigger value="integrations">Integrations</TabsTrigger>
             <TabsTrigger value="history">Newsletter History</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -53,6 +55,18 @@ const AdminNewsletterManagement = () => {
 
           <TabsContent value="subscribers">
             <NewsletterSubscribersList />
+          </TabsContent>
+
+          <TabsContent value="integrations" className="space-y-6">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Guest Contact Integration</h3>
+                <p className="text-gray-600 mb-4">
+                  Automatically import guest contact information from your booking platforms to grow your newsletter audience.
+                </p>
+              </div>
+              <HospitableSyncCard />
+            </div>
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">

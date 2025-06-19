@@ -1,5 +1,53 @@
 
 project_id = "joiovubyokikqjytxtuv"
 
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54324
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["https://lovable.dev"]
+jwt_expiry = 3600
+enable_signup = true
+enable_confirmations = false
+
+[db]
+enabled = true
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[functions.send-newsletter]
+verify_jwt = false
+
+[functions.send-newsletter-preview-actual]
+verify_jwt = false
+
+[functions.track-newsletter-click]
+verify_jwt = false
+
 [functions.generate-content-ai]
 verify_jwt = false
+
+[functions.apply-generated-content]
+verify_jwt = false
+
+[functions.google-calendar-auth]
+verify_jwt = false
+
+[functions.hospitable-sync]
+verify_jwt = false
+
+[edge-runtime]
+enabled = true
+port = 54323
+
+[studio]
+enabled = true
+port = 54323
