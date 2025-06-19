@@ -44,10 +44,11 @@ export const useBlogAIGeneration = ({
           context: {
             category: 'blog',
             field: selectedField,
-            currentTitle,
-            currentExcerpt,
-            currentContent,
-            location: 'Eugene, Oregon'
+            currentTitle: currentTitle || '',
+            currentExcerpt: currentExcerpt || '',
+            currentContent: currentContent || '',
+            location: 'Eugene, Oregon',
+            businessType: 'Vacation Rental Business'
           }
         }
       });
@@ -99,7 +100,11 @@ export const useBlogAIGeneration = ({
           context: {
             category: 'blog',
             field: 'title',
-            location: 'Eugene, Oregon'
+            location: 'Eugene, Oregon',
+            businessType: 'Vacation Rental Business',
+            currentTitle: '',
+            currentExcerpt: '',
+            currentContent: ''
           }
         }
       });
@@ -108,9 +113,9 @@ export const useBlogAIGeneration = ({
       const generatedTitle = titleData?.content || 'Untitled Post';
       onContentGenerated('title', generatedTitle);
 
-      // Generate Tags
+      // Generate Tags with specific context
       setGenerationProgress('Generating tags...');
-      const tagsPrompt = `Generate 5-8 relevant, SEO-friendly tags for a blog post about: ${topicPrompt}. Focus on Eugene, Oregon, vacation rentals, travel, and local experiences. Return as comma-separated values.`;
+      const tagsPrompt = `Generate SEO-friendly tags for a blog post about: ${topicPrompt}. Focus on Eugene, Oregon, vacation rentals, and travel keywords.`;
       
       const { data: tagsData, error: tagsError } = await supabase.functions.invoke('generate-site-content', {
         body: {
@@ -118,7 +123,11 @@ export const useBlogAIGeneration = ({
           context: {
             category: 'blog',
             field: 'tags',
-            location: 'Eugene, Oregon'
+            location: 'Eugene, Oregon',
+            businessType: 'Vacation Rental Business',
+            currentTitle: generatedTitle,
+            currentExcerpt: '',
+            currentContent: ''
           }
         }
       });
@@ -137,7 +146,11 @@ export const useBlogAIGeneration = ({
           context: {
             category: 'blog',
             field: 'excerpt',
-            location: 'Eugene, Oregon'
+            location: 'Eugene, Oregon',
+            businessType: 'Vacation Rental Business',
+            currentTitle: generatedTitle,
+            currentExcerpt: '',
+            currentContent: ''
           }
         }
       });
@@ -150,16 +163,16 @@ export const useBlogAIGeneration = ({
       setGenerationProgress('Generating main content...');
       const contentPrompt = `Write a comprehensive, engaging blog post titled "${generatedTitle}" about: ${topicPrompt}. 
       
-      The post should:
-      - Be 800-1200 words
-      - Focus on Eugene, Oregon and surrounding areas
-      - Be helpful for vacation rental guests and travelers
-      - Include practical tips and local insights
-      - Use a friendly, informative tone
-      - Include specific locations, attractions, or experiences when relevant
-      - Be well-structured with clear paragraphs
+The post should:
+- Be 800-1200 words
+- Focus on Eugene, Oregon and surrounding areas
+- Be helpful for vacation rental guests and travelers
+- Include practical tips and local insights
+- Use a friendly, informative tone
+- Include specific locations, attractions, or experiences when relevant
+- Be well-structured with clear paragraphs
       
-      Make it valuable for people visiting Eugene or considering vacation rentals in the area.`;
+Make it valuable for people visiting Eugene or considering vacation rentals in the area.`;
       
       const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-site-content', {
         body: {
@@ -167,7 +180,11 @@ export const useBlogAIGeneration = ({
           context: {
             category: 'blog',
             field: 'content',
-            location: 'Eugene, Oregon'
+            location: 'Eugene, Oregon',
+            businessType: 'Vacation Rental Business',
+            currentTitle: generatedTitle,
+            currentExcerpt: generatedExcerpt,
+            currentContent: ''
           }
         }
       });

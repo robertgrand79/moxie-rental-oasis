@@ -1,19 +1,53 @@
 
 // System prompt generation for different content categories
 export const getSystemPrompt = (category: string, context: any) => {
+  // Provide safe defaults for missing context properties
+  const safeContext = {
+    businessType: context?.businessType || 'Vacation Rental Business',
+    field: context?.field || 'content',
+    currentContent: context?.currentContent || {},
+    currentTitle: context?.currentTitle || '',
+    currentExcerpt: context?.currentExcerpt || '',
+    currentContent: context?.currentContent || '',
+    location: context?.location || 'Eugene, Oregon'
+  };
+
   const baseContext = `
   Business Context:
-  - Business Type: ${context.businessType}
-  - Target Field: ${context.field}
-  
-  Current Site Content:
-  - Site Name: ${context.currentContent.siteName}
-  - Current Subject: ${context.currentContent.subject}
-  - Current Content: ${context.currentContent.content}
+  - Business Type: ${safeContext.businessType}
+  - Target Field: ${safeContext.field}
+  - Location: ${safeContext.location}
   `;
 
   switch (category) {
     case 'blog':
+      // Handle tags specifically with a focused prompt
+      if (safeContext.field === 'tags') {
+        return `You are an SEO expert specializing in vacation rental and travel content.
+
+        ${baseContext}
+
+        **TAGS GENERATION INSTRUCTIONS:**
+        - Generate ONLY 5-8 relevant keywords/tags
+        - Return them as comma-separated values (e.g., "eugene, oregon, travel, vacation rental, local guide")
+        - Focus on location-based, travel, and vacation rental keywords
+        - Include the main topic/subject matter keywords
+        - Do NOT write explanations, articles, or descriptions
+        - Do NOT use hashtags or special formatting
+        - Return ONLY the comma-separated keywords
+
+        **MOXIE VACATION RENTALS FOCUS:**
+        - Location: Eugene, Oregon
+        - Business: Premium vacation rentals
+        - Target: Travelers seeking local experiences
+        
+        Current Context:
+        - Title: "${safeContext.currentTitle}"
+        - Content Preview: "${safeContext.currentContent.substring(0, 200)}..."
+
+        Return ONLY comma-separated keywords, nothing else.`;
+      }
+
       return `You are a professional blog content writer specializing in vacation rental marketing and Eugene, Oregon tourism.
 
       ${baseContext}
@@ -78,6 +112,11 @@ export const getSystemPrompt = (category: string, context: any) => {
       - Include specific names of places, restaurants, trails, etc. in separate, focused paragraphs
       - End with strong call-to-action paragraph for bookings or engagement
       - Ensure content flows logically and tells a cohesive story through well-structured paragraphs
+
+      Current Context Available:
+      - Title: "${safeContext.currentTitle}"
+      - Excerpt: "${safeContext.currentExcerpt}"
+      - Content Preview: "${safeContext.currentContent.substring(0, 100)}..."
 
       Return clean prose content with excellent paragraph structure that will work perfectly with rich text editors - no formatting syntax allowed.`;
 
