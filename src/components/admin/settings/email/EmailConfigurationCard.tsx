@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Settings, Save, ExternalLink } from 'lucide-react';
+import { Settings, Save, ExternalLink, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -67,6 +67,15 @@ const EmailConfigurationCard = () => {
         
         if (error) throw error;
       }
+
+      // Mark email setup as verified after successful configuration
+      await supabase
+        .from('site_settings')
+        .upsert({
+          key: 'emailSetupVerified',
+          value: 'true',
+          created_by: user.id
+        }, { onConflict: 'key' });
 
       toast({
         title: "Settings Saved",
@@ -134,31 +143,39 @@ const EmailConfigurationCard = () => {
             </div>
           </div>
 
-          <Alert className="border-blue-200 bg-blue-50">
-            <AlertDescription className="text-blue-800">
-              <strong>📧 SendGrid Setup Required:</strong>
+          <Alert className="border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              <strong>✅ SendGrid API Key Configured!</strong>
               <br />
               <span className="text-sm">
-                You need to add your SendGrid API key to Supabase secrets. The API key should be named <code className="bg-blue-100 px-1 rounded">SENDGRID_API_KEY</code>.
+                Your SendGrid API key is now configured. Complete the form above and test your email setup below.
+              </span>
+            </AlertDescription>
+          </Alert>
+
+          <Alert className="border-blue-200 bg-blue-50">
+            <AlertDescription className="text-blue-800">
+              <strong>📧 Next Steps:</strong>
+              <br />
+              <span className="text-sm">
+                1. Fill in your sender email address (must be verified in SendGrid)
+                <br />
+                2. Add your business name and reply-to email
+                <br />
+                3. Save the configuration
+                <br />
+                4. Test your setup using the Email Testing section below
               </span>
               <div className="flex gap-2 mt-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open('https://app.sendgrid.com/settings/api_keys', '_blank')}
+                  onClick={() => window.open('https://app.sendgrid.com/settings/sender_auth', '_blank')}
                 >
                   <ExternalLink className="h-3 w-3 mr-1" />
-                  Get SendGrid API Key
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(`https://supabase.com/dashboard/project/joiovubyokikqjytxtuv/settings/functions`, '_blank')}
-                >
-                  <Settings className="h-3 w-3 mr-1" />
-                  Add to Supabase Secrets
+                  Verify Sender in SendGrid
                 </Button>
               </div>
             </AlertDescription>

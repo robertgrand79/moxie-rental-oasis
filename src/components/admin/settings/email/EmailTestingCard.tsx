@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -29,27 +29,35 @@ const EmailTestingCard = () => {
     setLastTestResult(null);
 
     try {
+      console.log('🧪 Sending test email to:', testEmail);
+      
       const { data, error } = await supabase.functions.invoke('send-newsletter-preview', {
         body: {
           email: testEmail,
-          subject: 'Test Email from Your Newsletter System',
+          subject: '🧪 Email System Test - Configuration Verified',
           content: `
-            <h2>🎉 Email System Test</h2>
-            <p>Congratulations! Your email system is working correctly.</p>
-            <p>This is a test email sent from your newsletter management system to verify that:</p>
-            <ul>
-              <li>✅ SendGrid API is properly configured</li>
-              <li>✅ Email templates are rendering correctly</li>
-              <li>✅ Your sender email is verified</li>
-              <li>✅ Email delivery is functioning</li>
-            </ul>
-            <p>You can now confidently send newsletter previews and campaigns to your subscribers.</p>
-            <p><strong>Next steps:</strong></p>
-            <ol>
-              <li>Create your newsletter content</li>
-              <li>Send preview emails to test</li>
-              <li>Send campaigns to your subscribers</li>
-            </ol>
+            <div style="padding: 20px; font-family: Arial, sans-serif;">
+              <h2 style="color: #667eea;">🎉 Email System Test Successful!</h2>
+              <p>Congratulations! Your email system is working correctly.</p>
+              <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <h3 style="color: #333; margin-top: 0;">✅ Verified Components:</h3>
+                <ul style="color: #666; line-height: 1.6;">
+                  <li>SendGrid API configuration</li>
+                  <li>Email templates rendering</li>
+                  <li>Sender email verification</li>
+                  <li>Email delivery system</li>
+                </ul>
+              </div>
+              <p><strong>🚀 You're ready to:</strong></p>
+              <ol style="color: #666; line-height: 1.6;">
+                <li>Send newsletter previews to test recipients</li>
+                <li>Create and send newsletter campaigns</li>
+                <li>Manage your subscriber list</li>
+              </ol>
+              <p style="color: #888; font-size: 14px; margin-top: 24px;">
+                This test email confirms your email system is properly configured and ready for production use.
+              </p>
+            </div>
           `
         }
       });
@@ -61,19 +69,19 @@ const EmailTestingCard = () => {
       if (data?.success) {
         setLastTestResult(data);
         toast({
-          title: "Test Email Sent!",
-          description: `Test email has been sent to ${testEmail}. Check your inbox (and spam folder).`,
+          title: "Test Email Sent Successfully! 🎉",
+          description: `Test email sent to ${testEmail}. Check your inbox (and spam folder).`,
         });
       } else {
         throw new Error(data?.error || "Failed to send test email");
       }
     } catch (error: any) {
-      console.error('Test email error:', error);
+      console.error('❌ Test email error:', error);
       
       let errorMessage = "Failed to send test email.";
       
       if (error.message?.includes("SENDGRID_API_KEY")) {
-        errorMessage = "SendGrid API key is not configured. Please add SENDGRID_API_KEY to your Supabase secrets.";
+        errorMessage = "SendGrid API key issue. Please verify it's correctly configured in Supabase secrets.";
       } else if (error.message?.includes("Authentication")) {
         errorMessage = "Authentication error. Please log in again.";
       } else if (error.message) {
@@ -110,6 +118,9 @@ const EmailTestingCard = () => {
             value={testEmail}
             onChange={(e) => setTestEmail(e.target.value)}
           />
+          <p className="text-xs text-gray-600">
+            We'll send a comprehensive test email to verify your setup
+          </p>
         </div>
 
         <Button
@@ -119,13 +130,13 @@ const EmailTestingCard = () => {
         >
           {isLoading ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Sending Test...
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Sending Test Email...
             </>
           ) : (
             <>
               <Send className="h-4 w-4 mr-2" />
-              Send Test Email
+              Send Configuration Test Email
             </>
           )}
         </Button>
@@ -163,14 +174,18 @@ const EmailTestingCard = () => {
 
         <Alert className="border-blue-200 bg-blue-50">
           <AlertDescription className="text-blue-800">
-            <strong>💡 Testing Tips:</strong>
+            <strong>💡 Testing Checklist:</strong>
             <br />
             <span className="text-sm">
-              • Check your spam/junk folder if you don't receive the test email
+              ✅ SendGrid API key configured
               <br />
-              • Ensure your sender email is verified in SendGrid
+              📧 Configure sender email in settings above
               <br />
-              • Make sure your SendGrid API key has send permissions
+              🔍 Verify sender email in SendGrid dashboard
+              <br />
+              🧪 Send test email to confirm setup
+              <br />
+              📬 Test newsletter functionality
             </span>
           </AlertDescription>
         </Alert>
