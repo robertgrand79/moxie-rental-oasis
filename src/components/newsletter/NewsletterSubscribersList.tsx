@@ -21,11 +21,18 @@ import {
   Calendar,
   AlertCircle,
   CheckCircle,
-  Filter
+  Filter,
+  Plus,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNewsletterSubscribersCRUD } from '@/hooks/useNewsletterSubscribersCRUD';
+import AddSubscriberModal from '@/components/admin/newsletter/AddSubscriberModal';
+import EditSubscriberModal from '@/components/admin/newsletter/EditSubscriberModal';
+import DeleteSubscriberModal from '@/components/admin/newsletter/DeleteSubscriberModal';
 
 interface Subscriber {
   id: string;
@@ -39,9 +46,20 @@ interface Subscriber {
 const NewsletterSubscribersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingSubscriber, setEditingSubscriber] = useState<Subscriber | null>(null);
+  const [deletingSubscriber, setDeletingSubscriber] = useState<Subscriber | null>(null);
   const { toast } = useToast();
 
-  const { data: subscribers, isLoading, error, refetch } = useQuery({
+  const { 
+    addSubscriber, 
+    editSubscriber, 
+    deleteSubscriber, 
+    isLoading, 
+    deleting 
+  } = useNewsletterSubscribersCRUD();
+
+  const { data: subscribers, isLoading: isLoadingSubscribers, error, refetch } = useQuery({
     queryKey: ['newsletter-subscribers'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -126,6 +144,30 @@ const NewsletterSubscribersList = () => {
     }
   };
 
+  const handleAddSubscriber = async (data: { email: string; name: string; is_active: boolean }) => {
+    const success = await addSubscriber(data);
+    if (success) {
+      setShowAddModal(false);
+      refetch();
+    }
+  };
+
+  const handleEditSubscriber = async (id: string, data: { email: string; name: string; is_active: boolean }) => {
+    const success = await editSubscriber(id, data);
+    if (success) {
+      setEditingSubscriber(null);
+      refetch();
+    }
+  };
+
+  const handleDeleteSubscriber = async (id: string) => {
+    const success = await deleteSubscriber(id);
+    if (success) {
+      setDeletingSubscriber(null);
+      refetch();
+    }
+  };
+
   if (error) {
     return (
       <Card>
@@ -196,10 +238,16 @@ const NewsletterSubscribersList = () => {
               <Mail className="h-5 w-5 mr-2" />
               Newsletter Subscribers
             </CardTitle>
-            <Button onClick={handleExportSubscribers} variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowAddModal(true)} size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Subscriber
+              </Button>
+              <Button onClick={handleExportSubscribers} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -230,7 +278,7 @@ const NewsletterSubscribersList = () => {
             </div>
           </div>
 
-          {isLoading ? (
+          {isLoadingSubscribers ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
               <p className="mt-2 text-gray-600">Loading subscribers...</p>
@@ -283,13 +331,34 @@ const NewsletterSubscribersList = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToggleStatus(subscriber.id, subscriber.is_active)}
-                        >
-                          {subscriber.is_active ? "Deactivate" : "Activate"}
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingSubscriber(subscriber)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleToggleStatus(subscriber.id, subscriber.is_active)}
+                          >
+                            {subscriber.is_active ? "Deactivate" : "Activate"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeletingSubscriber(subscriber)}
+                            disabled={deleting === subscriber.id}
+                          >
+                            {deleting === subscriber.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -305,6 +374,30 @@ const NewsletterSubscribersList = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <AddSubscriberModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddSubscriber}
+        isLoading={isLoading}
+      />
+
+      <EditSubscriberModal
+        subscriber={editingSubscriber}
+        open={!!editingSubscriber}
+        onClose={() => setEditingSubscriber(null)}
+        onSubmit={handleEditSubscriber}
+        isLoading={isLoading}
+      />
+
+      <DeleteSubscriberModal
+        subscriber={deletingSubscriber}
+        open={!!deletingSubscriber}
+        onClose={() => setDeletingSubscriber(null)}
+        onConfirm={handleDeleteSubscriber}
+        isDeleting={deleting === deletingSubscriber?.id}
+      />
     </div>
   );
 };
