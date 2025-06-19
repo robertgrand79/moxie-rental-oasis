@@ -11,6 +11,11 @@ export interface NewsletterFormData {
   };
 }
 
+export interface BasicNewsletterFormData {
+  email: string;
+  name: string;
+}
+
 export interface EnhancedSubscriber {
   id: string;
   email: string;
@@ -29,8 +34,14 @@ export interface EnhancedSubscriber {
   preferences: any;
 }
 
-// Add missing interface exports
+// Basic newsletter form props
 export interface NewsletterFormProps {
+  onSubmit: (data: BasicNewsletterFormData) => Promise<void>;
+  isLoading: boolean;
+}
+
+// Enhanced newsletter form props
+export interface EnhancedNewsletterFormProps {
   onSubmit: (data: NewsletterFormData) => Promise<void>;
   isLoading: boolean;
 }

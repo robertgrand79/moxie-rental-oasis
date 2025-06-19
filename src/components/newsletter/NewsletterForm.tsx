@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Plane, Shield } from 'lucide-react';
-import { NewsletterFormProps, NewsletterFormData } from './types';
+import { NewsletterFormProps, BasicNewsletterFormData } from './types';
 
 const NewsletterForm: React.FC<NewsletterFormProps> = ({ onSubmit, isLoading }) => {
   const [email, setEmail] = useState('');
@@ -12,7 +12,8 @@ const NewsletterForm: React.FC<NewsletterFormProps> = ({ onSubmit, isLoading }) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit({ email, name });
+    const formData: BasicNewsletterFormData = { email, name };
+    await onSubmit(formData);
     setEmail('');
     setName('');
   };
