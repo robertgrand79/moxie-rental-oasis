@@ -8,14 +8,14 @@ import EmailTestingCard from './email/EmailTestingCard';
 const EmailServicesTab = () => {
   return (
     <div className="space-y-8">
-      {/* Email Setup Status */}
+      {/* Email Setup Status Overview */}
       <EmailSetupStatus />
-
-      {/* Domain Verification Status */}
-      <DomainVerificationCard />
 
       {/* SendGrid Configuration */}
       <EmailConfigurationCard />
+
+      {/* Domain Verification Status */}
+      <DomainVerificationCard />
 
       {/* Email Testing */}
       <EmailTestingCard />

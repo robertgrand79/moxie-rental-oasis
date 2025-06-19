@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, Send, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { Mail, Send, CheckCircle, AlertCircle, Info, Settings, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -19,6 +19,7 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [lastSentDetails, setLastSentDetails] = useState<any>(null);
+  const [setupError, setSetupError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleSendPreview = async () => {
@@ -44,41 +45,18 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
 
     setIsLoading(true);
     setLastSentDetails(null);
+    setSetupError(null);
 
     try {
       console.log('📧 Sending newsletter preview to:', email);
-      console.log('📧 Preview details:', { 
-        subject, 
-        contentLength: content.length,
-        timestamp: new Date().toISOString()
-      });
 
-      // Try the preview function first, then fallback to the actual function
-      let data, error;
-      
-      try {
-        const response = await supabase.functions.invoke('send-newsletter-preview', {
-          body: {
-            email: email,
-            subject: subject,
-            content: content,
-          }
-        });
-        data = response.data;
-        error = response.error;
-      } catch (previewError) {
-        console.log('📧 Preview function failed, trying actual function:', previewError);
-        
-        const response = await supabase.functions.invoke('send-newsletter-preview-actual', {
-          body: {
-            email: email,
-            subject: subject,
-            content: content,
-          }
-        });
-        data = response.data;
-        error = response.error;
-      }
+      const { data, error } = await supabase.functions.invoke('send-newsletter-preview', {
+        body: {
+          email: email,
+          subject: subject,
+          content: content,
+        }
+      });
 
       console.log('📧 Preview response:', { data, error });
 
@@ -102,20 +80,27 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
     } catch (error: any) {
       console.error('❌ Preview send error:', error);
       
-      let errorMessage = "Failed to send preview email. Please try again.";
+      let errorMessage = "Failed to send preview email.";
+      let isSetupError = false;
       
       if (error.message) {
-        if (error.message.includes("Authentication")) {
+        if (error.message.includes("SENDGRID_API_KEY")) {
+          errorMessage = "SendGrid API key is not configured.";
+          isSetupError = true;
+        } else if (error.message.includes("Authentication")) {
           errorMessage = "Please log in again to send preview emails.";
         } else if (error.message.includes("Admin access required")) {
           errorMessage = "Admin access is required to send newsletter previews.";
-        } else if (error.message.includes("SENDGRID_API_KEY")) {
-          errorMessage = "Email service is not configured. Please contact the administrator.";
         } else if (error.message.includes("Email delivery failed")) {
           errorMessage = "Email delivery failed. Please check your SendGrid configuration.";
+          isSetupError = true;
         } else {
           errorMessage = error.message;
         }
+      }
+
+      if (isSetupError) {
+        setSetupError(errorMessage);
       }
 
       toast({
@@ -145,6 +130,35 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {setupError && (
+          <Alert className="border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              <strong>⚙️ Setup Required:</strong>
+              <br />
+              {setupError}
+              <div className="flex gap-2 mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open('https://app.sendgrid.com/settings/api_keys', '_blank')}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Get SendGrid API Key
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(`https://supabase.com/dashboard/project/joiovubyokikqjytxtuv/settings/functions`, '_blank')}
+                >
+                  <Settings className="h-3 w-3 mr-1" />
+                  Add to Supabase
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="space-y-2">
           <Label htmlFor="preview-email">Preview Email Address</Label>
           <Input
@@ -211,14 +225,16 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertCircle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
-            <strong>📧 Email Delivery Tips:</strong>
+            <strong>📧 Troubleshooting Tips:</strong>
             <br />
             <span className="text-sm">
               • Check your spam/junk folder if you don't see the email
               <br />
-              • Make sure your SendGrid API key is properly configured
+              • Ensure your SendGrid API key is configured in Supabase secrets
               <br />
               • Verify that your sender email is verified in SendGrid
+              <br />
+              • Make sure you're logged in as an admin user
             </span>
           </AlertDescription>
         </Alert>

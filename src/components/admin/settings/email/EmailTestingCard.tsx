@@ -1,174 +1,181 @@
 
-import React, { useState, useEffect } from 'react';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
-import { Send } from 'lucide-react';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
-import { toast } from '@/hooks/use-toast';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import EmailTestingForm from './EmailTestingForm';
-import EmailTestResult from './EmailTestResult';
-import EmailConfigurationChecklist from './EmailConfigurationChecklist';
 
 const EmailTestingCard = () => {
-  const { settings, saveSetting } = useStableSiteSettings();
   const [testEmail, setTestEmail] = useState('');
-  const [testing, setTesting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [lastTestResult, setLastTestResult] = useState<any>(null);
-  const [emailSetupVerified, setEmailSetupVerified] = useState(false);
-  const [emailLastTestedAt, setEmailLastTestedAt] = useState<string | null>(null);
-  const [emailVerificationDetails, setEmailVerificationDetails] = useState<any>({});
+  const { toast } = useToast();
 
-  // Load email verification status from settings
-  useEffect(() => {
-    setEmailSetupVerified(settings.emailSetupVerified === 'true' || settings.emailSetupVerified === true);
-    setEmailLastTestedAt(settings.emailLastTestedAt && settings.emailLastTestedAt !== 'null' ? settings.emailLastTestedAt : null);
-    
-    // Parse verification details
-    try {
-      const details = typeof settings.emailVerificationDetails === 'string' 
-        ? JSON.parse(settings.emailVerificationDetails) 
-        : settings.emailVerificationDetails || {};
-      setEmailVerificationDetails(details);
-    } catch (e) {
-      setEmailVerificationDetails({});
-    }
-  }, [settings]);
-
-  const handleTestEmail = async () => {
+  const handleSendTestEmail = async () => {
     if (!testEmail) {
       toast({
-        title: 'Email Required',
-        description: 'Please enter an email address to send the test email to.',
-        variant: 'destructive'
+        title: "Email Required",
+        description: "Please enter an email address to send a test email.",
+        variant: "destructive",
       });
       return;
     }
 
-    setTesting(true);
+    setIsLoading(true);
     setLastTestResult(null);
-    
+
     try {
-      console.log('Sending test email request...');
-      
       const { data, error } = await supabase.functions.invoke('send-newsletter-preview', {
         body: {
           email: testEmail,
-          subject: 'SendGrid Domain Verification Test',
+          subject: 'Test Email from Your Newsletter System',
           content: `
-            <h2>✅ SendGrid Integration Test Successful!</h2>
-            <p>Congratulations! Your SendGrid configuration is working correctly with your <strong>moxievacationrentals.com</strong> domain.</p>
-            
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
-              <h3>What this test confirms:</h3>
-              <ul>
-                <li>✅ SendGrid API key is properly configured</li>
-                <li>✅ Domain authentication is working</li>
-                <li>✅ Email delivery is functional</li>
-                <li>✅ Sender settings are correctly applied</li>
-              </ul>
-            </div>
-            
-            <p><strong>Configuration used for this test:</strong></p>
+            <h2>🎉 Email System Test</h2>
+            <p>Congratulations! Your email system is working correctly.</p>
+            <p>This is a test email sent from your newsletter management system to verify that:</p>
             <ul>
-              <li><strong>From:</strong> ${settings.emailFromName} &lt;${settings.emailFromAddress}&gt;</li>
-              <li><strong>Reply-To:</strong> ${settings.emailReplyTo}</li>
-              <li><strong>Domain:</strong> ${settings.emailFromAddress.split('@')[1]}</li>
+              <li>✅ SendGrid API is properly configured</li>
+              <li>✅ Email templates are rendering correctly</li>
+              <li>✅ Your sender email is verified</li>
+              <li>✅ Email delivery is functioning</li>
             </ul>
-            
-            <p>Your newsletter system is ready to send emails to your subscribers!</p>
+            <p>You can now confidently send newsletter previews and campaigns to your subscribers.</p>
+            <p><strong>Next steps:</strong></p>
+            <ol>
+              <li>Create your newsletter content</li>
+              <li>Send preview emails to test</li>
+              <li>Send campaigns to your subscribers</li>
+            </ol>
           `
         }
       });
 
-      console.log('Test email response:', { data, error });
-
       if (error) {
-        console.error('Supabase function error:', error);
         throw error;
       }
 
       if (data?.success) {
-        const verificationDetails = {
-          testEmail,
-          fromEmail: data.details?.from || settings.emailFromAddress,
-          fromName: data.details?.fromName || settings.emailFromName,
-          replyTo: data.details?.replyTo || settings.emailReplyTo,
-          domain: data.details?.domain || settings.emailFromAddress.split('@')[1],
-          timestamp: data.details?.timestamp || new Date().toISOString()
-        };
-
-        // Store verification status in database
-        await Promise.all([
-          saveSetting('emailSetupVerified', true),
-          saveSetting('emailLastTestedAt', verificationDetails.timestamp),
-          saveSetting('emailVerificationDetails', verificationDetails)
-        ]);
-
-        // Update local state
-        setEmailSetupVerified(true);
-        setEmailLastTestedAt(verificationDetails.timestamp);
-        setEmailVerificationDetails(verificationDetails);
         setLastTestResult(data);
-
         toast({
-          title: '✅ Test Email Sent Successfully!',
-          description: `Test email delivered to ${testEmail} from ${verificationDetails.fromEmail}. Email setup is now verified!`,
+          title: "Test Email Sent!",
+          description: `Test email has been sent to ${testEmail}. Check your inbox (and spam folder).`,
         });
       } else {
-        throw new Error(data?.error || 'Unknown error occurred');
+        throw new Error(data?.error || "Failed to send test email");
       }
-
     } catch (error: any) {
       console.error('Test email error:', error);
-      setLastTestResult({ success: false, error: error.message });
       
-      let errorMessage = 'Failed to send test email. ';
+      let errorMessage = "Failed to send test email.";
       
-      if (error.message?.includes('Admin access required')) {
-        errorMessage += 'Please ensure you have admin privileges.';
-      } else if (error.message?.includes('SendGrid API key')) {
-        errorMessage += 'Please check your SendGrid API key configuration.';
-      } else if (error.message?.includes('domain')) {
-        errorMessage += 'Please verify your domain in SendGrid.';
-      } else {
-        errorMessage += error.message || 'Please check your configuration and try again.';
+      if (error.message?.includes("SENDGRID_API_KEY")) {
+        errorMessage = "SendGrid API key is not configured. Please add SENDGRID_API_KEY to your Supabase secrets.";
+      } else if (error.message?.includes("Authentication")) {
+        errorMessage = "Authentication error. Please log in again.";
+      } else if (error.message) {
+        errorMessage = error.message;
       }
-      
+
       toast({
-        title: 'Test Email Failed',
+        title: "Test Failed",
         description: errorMessage,
-        variant: 'destructive'
+        variant: "destructive",
       });
+
+      setLastTestResult({ success: false, error: errorMessage });
     } finally {
-      setTesting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <EnhancedCard variant="glass">
-      <EnhancedCardHeader>
-        <EnhancedCardTitle className="flex items-center">
-          <Send className="h-5 w-5 mr-2 text-green-600" />
-          Test Email Configuration
-        </EnhancedCardTitle>
-        <EnhancedCardDescription>
-          Send a test email to verify your SendGrid and domain configuration
-        </EnhancedCardDescription>
-      </EnhancedCardHeader>
-      <EnhancedCardContent className="space-y-6">
-        <EmailTestingForm
-          testEmail={testEmail}
-          setTestEmail={setTestEmail}
-          testing={testing}
-          emailSetupVerified={emailSetupVerified}
-          onTestEmail={handleTestEmail}
-        />
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Mail className="h-5 w-5 mr-2" />
+          Email System Testing
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="testEmail">Test Email Address</Label>
+          <Input
+            id="testEmail"
+            type="email"
+            placeholder="your-email@example.com"
+            value={testEmail}
+            onChange={(e) => setTestEmail(e.target.value)}
+          />
+        </div>
 
-        <EmailTestResult lastTestResult={lastTestResult} />
+        <Button
+          onClick={handleSendTestEmail}
+          disabled={isLoading || !testEmail}
+          className="w-full"
+        >
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Sending Test...
+            </>
+          ) : (
+            <>
+              <Send className="h-4 w-4 mr-2" />
+              Send Test Email
+            </>
+          )}
+        </Button>
 
-        <EmailConfigurationChecklist emailSetupVerified={emailSetupVerified} />
-      </EnhancedCardContent>
-    </EnhancedCard>
+        {lastTestResult && (
+          <Alert className={lastTestResult.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+            {lastTestResult.success ? (
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-red-600" />
+            )}
+            <AlertDescription className={lastTestResult.success ? "text-green-800" : "text-red-800"}>
+              {lastTestResult.success ? (
+                <div>
+                  <strong>✅ Test email sent successfully!</strong>
+                  <br />
+                  <span className="text-sm">
+                    Sent to: {lastTestResult.details?.to}
+                    <br />
+                    From: {lastTestResult.details?.fromName} &lt;{lastTestResult.details?.from}&gt;
+                    <br />
+                    Time: {new Date(lastTestResult.details?.timestamp).toLocaleString()}
+                  </span>
+                </div>
+              ) : (
+                <div>
+                  <strong>❌ Test email failed</strong>
+                  <br />
+                  <span className="text-sm">{lastTestResult.error}</span>
+                </div>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <Alert className="border-blue-200 bg-blue-50">
+          <AlertDescription className="text-blue-800">
+            <strong>💡 Testing Tips:</strong>
+            <br />
+            <span className="text-sm">
+              • Check your spam/junk folder if you don't receive the test email
+              <br />
+              • Ensure your sender email is verified in SendGrid
+              <br />
+              • Make sure your SendGrid API key has send permissions
+            </span>
+          </AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
   );
 };
 

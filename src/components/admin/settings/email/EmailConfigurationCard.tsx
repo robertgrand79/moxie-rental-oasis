@@ -1,112 +1,157 @@
 
-import React, { useState, useEffect } from 'react';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Mail } from 'lucide-react';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Settings, Save, ExternalLink } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const EmailConfigurationCard = () => {
-  const { settings, saving, saveSettings } = useStableSiteSettings();
-  const [localSettings, setLocalSettings] = useState({
-    emailFromAddress: settings.emailFromAddress || 'noreply@moxievacationrentals.com',
-    emailFromName: settings.emailFromName || settings.siteName || 'Moxie Vacation Rentals',
-    emailReplyTo: settings.emailReplyTo || settings.contactEmail || 'contact@moxievacationrentals.com',
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: emailSettings } = useQuery({
+    queryKey: ['email-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['emailFromAddress', 'emailFromName', 'emailReplyTo']);
+
+      if (error) throw error;
+
+      return data?.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {} as Record<string, any>) || {};
+    },
   });
 
-  // Update local state when settings change
-  useEffect(() => {
-    setLocalSettings(prev => ({
-      ...prev,
-      emailFromAddress: settings.emailFromAddress || 'noreply@moxievacationrentals.com',
-      emailFromName: settings.emailFromName || settings.siteName || 'Moxie Vacation Rentals',
-      emailReplyTo: settings.emailReplyTo || settings.contactEmail || 'contact@moxievacationrentals.com',
-    }));
-  }, [settings]);
+  const handleSaveSettings = async (formData: FormData) => {
+    setIsLoading(true);
+    try {
+      const settings = [
+        { key: 'emailFromAddress', value: formData.get('emailFromAddress') as string },
+        { key: 'emailFromName', value: formData.get('emailFromName') as string },
+        { key: 'emailReplyTo', value: formData.get('emailReplyTo') as string },
+      ].filter(setting => setting.value); // Only save non-empty values
 
-  const handleInputChange = (field: string, value: string) => {
-    setLocalSettings(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+      for (const setting of settings) {
+        const { error } = await supabase
+          .from('site_settings')
+          .upsert(setting, { onConflict: 'key' });
+        
+        if (error) throw error;
+      }
 
-  const handleSaveEmailSettings = async () => {
-    await saveSettings({
-      emailFromAddress: localSettings.emailFromAddress,
-      emailFromName: localSettings.emailFromName,
-      emailReplyTo: localSettings.emailReplyTo,
-    });
+      toast({
+        title: "Settings Saved",
+        description: "Email configuration has been updated successfully.",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['email-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['email-setup-status'] });
+    } catch (error: any) {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save email settings.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <EnhancedCard variant="glass">
-      <EnhancedCardHeader>
-        <EnhancedCardTitle className="flex items-center">
-          <Mail className="h-5 w-5 mr-2 text-blue-600" />
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Settings className="h-5 w-5 mr-2" />
           Email Configuration
-        </EnhancedCardTitle>
-        <EnhancedCardDescription>
-          Configure your email sender information for newsletters and notifications
-        </EnhancedCardDescription>
-      </EnhancedCardHeader>
-      <EnhancedCardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="emailFromName">Sender Name *</Label>
-            <Input
-              id="emailFromName"
-              value={localSettings.emailFromName}
-              onChange={(e) => handleInputChange('emailFromName', e.target.value)}
-              placeholder="Moxie Vacation Rentals"
-              className="mt-1"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              This name will appear as the sender in emails
-            </p>
-          </div>
-          <div>
-            <Label htmlFor="emailFromAddress">From Email Address *</Label>
-            <Input
-              id="emailFromAddress"
-              type="email"
-              value={localSettings.emailFromAddress}
-              onChange={(e) => handleInputChange('emailFromAddress', e.target.value)}
-              placeholder="noreply@moxievacationrentals.com"
-              className="mt-1"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Must use your verified domain: moxievacationrentals.com
-            </p>
-          </div>
-        </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form action={handleSaveSettings} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="emailFromAddress">From Email Address *</Label>
+              <Input
+                id="emailFromAddress"
+                name="emailFromAddress"
+                type="email"
+                placeholder="noreply@yourdomain.com"
+                defaultValue={emailSettings?.emailFromAddress || ''}
+                required
+              />
+              <p className="text-xs text-gray-600">
+                Must be verified in your SendGrid account
+              </p>
+            </div>
 
-        <div>
-          <Label htmlFor="emailReplyTo">Reply-To Email</Label>
-          <Input
-            id="emailReplyTo"
-            type="email"
-            value={localSettings.emailReplyTo}
-            onChange={(e) => handleInputChange('emailReplyTo', e.target.value)}
-            placeholder="contact@moxievacationrentals.com"
-            className="mt-1"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Where replies to your emails will be sent
-          </p>
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="emailFromName">From Name</Label>
+              <Input
+                id="emailFromName"
+                name="emailFromName"
+                placeholder="Your Business Name"
+                defaultValue={emailSettings?.emailFromName || ''}
+              />
+            </div>
 
-        <Button 
-          onClick={handleSaveEmailSettings} 
-          disabled={saving.emailFromAddress || saving.emailFromName || saving.emailReplyTo}
-          className="w-full"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          {(saving.emailFromAddress || saving.emailFromName || saving.emailReplyTo) ? 'Saving...' : 'Save Email Settings'}
-        </Button>
-      </EnhancedCardContent>
-    </EnhancedCard>
+            <div className="space-y-2">
+              <Label htmlFor="emailReplyTo">Reply-To Email</Label>
+              <Input
+                id="emailReplyTo"
+                name="emailReplyTo"
+                type="email"
+                placeholder="contact@yourdomain.com"
+                defaultValue={emailSettings?.emailReplyTo || ''}
+              />
+            </div>
+          </div>
+
+          <Alert className="border-blue-200 bg-blue-50">
+            <AlertDescription className="text-blue-800">
+              <strong>📧 SendGrid Setup Required:</strong>
+              <br />
+              <span className="text-sm">
+                You need to add your SendGrid API key to Supabase secrets. The API key should be named <code className="bg-blue-100 px-1 rounded">SENDGRID_API_KEY</code>.
+              </span>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open('https://app.sendgrid.com/settings/api_keys', '_blank')}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Get SendGrid API Key
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(`https://supabase.com/dashboard/project/joiovubyokikqjytxtuv/settings/functions`, '_blank')}
+                >
+                  <Settings className="h-3 w-3 mr-1" />
+                  Add to Supabase Secrets
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+
+          <Button type="submit" disabled={isLoading} className="w-full">
+            <Save className="h-4 w-4 mr-2" />
+            {isLoading ? 'Saving...' : 'Save Email Configuration'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 
