@@ -44,6 +44,12 @@ verify_jwt = false
 [functions.hospitable-sync]
 verify_jwt = false
 
+[functions.send-sms]
+verify_jwt = false
+
+[functions.send-newsletter-sms]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +8,7 @@ import NewsletterOverview from './NewsletterOverview';
 import NewsletterAIGenerator from './NewsletterAIGenerator';
 import NewsletterEditorLayout from './NewsletterEditorLayout';
 import NewsletterQuickActions from './NewsletterQuickActions';
+import NewsletterSMSCard from './NewsletterSMSCard';
 
 interface NewsletterFormData {
   subject: string;
@@ -167,16 +167,20 @@ const NewsletterManager = () => {
         onContentGenerated={handleContentGenerated}
       />
 
-      <NewsletterEditorLayout
-        form={form}
-        content={content}
-        setContent={setContent}
-        onSubmit={onSubmit}
-        isLoading={isLoading}
-        subscriberCount={subscriberCount}
-        blogPosts={publishedBlogPosts}
-        blogPostsLoading={blogPostsLoading}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <NewsletterEditorLayout
+          form={form}
+          content={content}
+          setContent={setContent}
+          onSubmit={onSubmit}
+          isLoading={isLoading}
+          subscriberCount={subscriberCount}
+          blogPosts={publishedBlogPosts}
+          blogPostsLoading={blogPostsLoading}
+        />
+
+        <NewsletterSMSCard />
+      </div>
 
       <NewsletterQuickActions
         onGenerateBlogNewsletter={generateBlogNewsletter}
