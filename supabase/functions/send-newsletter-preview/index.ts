@@ -15,6 +15,8 @@ interface PreviewRequest {
 
 const handler = async (req: Request): Promise<Response> => {
   console.log(`[${new Date().toISOString()}] Newsletter preview request: ${req.method}`);
+  console.log(`[DEBUG] Request URL: ${req.url}`);
+  console.log(`[DEBUG] Request headers:`, Object.fromEntries(req.headers.entries()));
   
   if (req.method === "OPTIONS") {
     console.log("✅ Handling CORS preflight request");
@@ -22,6 +24,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("🔧 Creating Supabase clients...");
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -34,6 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const authHeader = req.headers.get("Authorization");
     console.log("🔐 Authorization header present:", !!authHeader);
+    console.log("🔐 Auth header length:", authHeader?.length || 0);
     
     if (!authHeader) {
       console.error("❌ No authorization header provided");
@@ -52,15 +56,19 @@ const handler = async (req: Request): Promise<Response> => {
 
     const token = authHeader.replace("Bearer ", "");
     console.log("🎫 Token extracted, length:", token.length);
+    console.log("🎫 Token preview:", token.substring(0, 20) + "...");
 
+    console.log("🔍 Authenticating user...");
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
       console.error("❌ Auth error:", authError);
+      console.error("❌ User object:", user);
       return new Response(
         JSON.stringify({ 
           success: false,
           error: "Authentication failed - please log in again",
+          details: authError?.message || "No user found",
           timestamp: new Date().toISOString()
         }),
         {
@@ -80,11 +88,12 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (profileError) {
-      console.error("Error fetching user profile:", profileError);
+      console.error("❌ Error fetching user profile:", profileError);
       return new Response(
         JSON.stringify({ 
           success: false,
           error: "Failed to verify admin permissions",
+          details: profileError.message,
           timestamp: new Date().toISOString()
         }),
         {
@@ -94,12 +103,14 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    console.log("👤 User profile:", profile);
     if (profile?.role !== "admin") {
-      console.error("User is not admin. Role:", profile?.role);
+      console.error("❌ User is not admin. Role:", profile?.role);
       return new Response(
         JSON.stringify({ 
           success: false,
           error: "Admin access required",
+          userRole: profile?.role || "unknown",
           timestamp: new Date().toISOString()
         }),
         {
@@ -112,8 +123,39 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("✅ Admin access confirmed");
 
     console.log("📝 Parsing request body...");
-    const requestBody = await req.json();
+    let requestBody;
+    try {
+      const bodyText = await req.text();
+      console.log("📝 Raw request body:", bodyText);
+      
+      if (!bodyText || bodyText.trim() === '') {
+        throw new Error("Empty request body received");
+      }
+      
+      requestBody = JSON.parse(bodyText);
+      console.log("📋 Parsed request body:", requestBody);
+    } catch (parseError) {
+      console.error("❌ Failed to parse request body:", parseError);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "Invalid JSON in request body",
+          details: parseError.message,
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     const { email, subject, content }: PreviewRequest = requestBody;
+
+    console.log("📊 Newsletter data validation:");
+    console.log("- Email:", email ? `"${email}"` : "MISSING");
+    console.log("- Subject:", subject ? `"${subject}" (${subject.length} chars)` : "MISSING");
+    console.log("- Content:", content ? `${content.length} characters` : "MISSING");
 
     if (!email || !subject || !content) {
       console.error("❌ Missing required fields:", { 
@@ -125,6 +167,11 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ 
           success: false,
           error: "Email, subject, and content are required",
+          missingFields: {
+            email: !email,
+            subject: !subject,
+            content: !content
+          },
           timestamp: new Date().toISOString()
         }),
         {
@@ -141,6 +188,7 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ 
           success: false,
           error: "Please enter a valid email address",
+          providedEmail: email,
           timestamp: new Date().toISOString()
         }),
         {
@@ -152,6 +200,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const sendGridApiKey = Deno.env.get("SENDGRID_API_KEY");
     console.log("📧 SendGrid API key present:", !!sendGridApiKey);
+    console.log("📧 SendGrid key length:", sendGridApiKey?.length || 0);
     
     if (!sendGridApiKey) {
       console.error("❌ SendGrid API key not found");
@@ -168,7 +217,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Use the same logic as the actual preview function
     console.log("⚙️ Fetching email settings from database...");
     const { data: siteSettings, error: settingsError } = await supabaseAdmin
       .from("site_settings")
@@ -198,16 +246,22 @@ const handler = async (req: Request): Promise<Response> => {
       return acc;
     }, {} as Record<string, any>) || {};
 
+    console.log("📋 Site settings loaded:", Object.keys(settings));
+
     const siteName = settings.siteName || "Moxie Vacation Rentals";
     const fromEmail = settings.emailFromAddress || settings.contactEmail || "noreply@moxievacationrentals.com";
     const fromName = settings.emailFromName || siteName;
     const replyTo = settings.emailReplyTo || fromEmail;
 
-    console.log("📧 Email configuration:", { fromEmail, fromName, replyTo });
+    console.log(`📧 Email configuration:`);
+    console.log(`- From: ${fromName} <${fromEmail}>`);
+    console.log(`- Reply-to: ${replyTo}`);
+    console.log(`- Site: ${siteName}`);
 
     const textContent = content.replace(/<[^>]*>/g, '').trim();
     const preheader = textContent.split('\n')[0]?.trim()?.substring(0, 100) + '...' || `${subject} - Your Eugene adventure awaits!`;
 
+    // Updated email template with modern slate-gray gradient matching the main newsletter
     const emailHtml = `
       <!DOCTYPE html>
       <html lang="en">
@@ -238,20 +292,37 @@ const handler = async (req: Request): Promise<Response> => {
                   font-weight: 500;
               }
               .header { 
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                  color: white; 
+                  background: linear-gradient(135deg, hsl(220, 8%, 85%) 0%, hsl(220, 3%, 97%) 100%);
+                  position: relative;
+                  overflow: hidden;
                   padding: 40px 30px; 
                   text-align: center; 
               }
+              .header::before {
+                  content: '';
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  background: linear-gradient(45deg, transparent 0%, hsl(220, 6%, 88%) 50%, transparent 100%);
+                  opacity: 0.3;
+              }
+              .header-content {
+                  position: relative;
+                  z-index: 10;
+              }
               .header h1 { 
-                  margin: 0 0 10px 0; 
+                  margin: 0 0 12px 0; 
                   font-size: 28px; 
                   font-weight: bold; 
+                  color: hsl(222.2, 47.4%, 11.2%);
               }
               .header p { 
                   margin: 0; 
-                  opacity: 0.9; 
                   font-size: 16px; 
+                  font-weight: 500;
+                  color: hsl(215.4, 16.3%, 46.9%);
               }
               .content { 
                   padding: 30px; 
@@ -283,7 +354,7 @@ const handler = async (req: Request): Promise<Response> => {
                   color: #333; 
               }
               .content a { 
-                  color: #667eea; 
+                  color: hsl(222.2, 47.4%, 11.2%); 
                   text-decoration: none; 
               }
               .content a:hover { 
@@ -301,7 +372,7 @@ const handler = async (req: Request): Promise<Response> => {
                   font-size: 14px; 
               }
               .footer a { 
-                  color: #667eea; 
+                  color: hsl(222.2, 47.4%, 11.2%); 
                   text-decoration: none; 
                   margin: 0 8px; 
               }
@@ -311,7 +382,7 @@ const handler = async (req: Request): Promise<Response> => {
               .social-links a {
                   display: inline-block;
                   margin: 0 8px;
-                  color: #667eea;
+                  color: hsl(222.2, 47.4%, 11.2%);
                   text-decoration: none;
               }
               @media (max-width: 600px) {
@@ -331,8 +402,10 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <div class="header">
-                  <h1>${siteName}</h1>
-                  <p>Your Home Base for Living Like a Local in Eugene</p>
+                  <div class="header-content">
+                      <h1>${siteName}</h1>
+                      <p>Your Home Base for Living Like a Local in Eugene</p>
+                  </div>
               </div>
               
               <div class="content">
@@ -380,6 +453,7 @@ const handler = async (req: Request): Promise<Response> => {
       ],
     };
 
+    console.log("📧 SendGrid payload:", JSON.stringify(sendGridPayload, null, 2));
     console.log("📧 Sending email via SendGrid...");
 
     const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
@@ -392,6 +466,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     console.log("📬 SendGrid response status:", response.status);
+    console.log("📬 SendGrid response headers:", Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -411,6 +486,7 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ 
           success: false,
           error: errorMessage,
+          sendGridError: errorText,
           timestamp: new Date().toISOString()
         }),
         {
@@ -448,11 +524,12 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: false,
         error: error.message || "An unexpected error occurred",
+        errorType: error.constructor.name,
         timestamp: new Date().toISOString()
       }),
       {
         status: 500,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   }

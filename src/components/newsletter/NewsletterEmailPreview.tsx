@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, Send, CheckCircle, AlertCircle, Info, Settings, ExternalLink } from 'lucide-react';
+import { Mail, Send, CheckCircle, AlertCircle, Info, Settings, ExternalLink, Bug } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,10 +20,15 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
   const [isLoading, setIsLoading] = useState(false);
   const [lastSentDetails, setLastSentDetails] = useState<any>(null);
   const [setupError, setSetupError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   const { toast } = useToast();
 
   const handleSendPreview = async () => {
+    console.log('🚀 Preview send initiated');
+    console.log('📝 Form data:', { email, subject: subject?.substring(0, 50), contentLength: content?.length });
+
     if (!email || !subject || !content) {
+      console.error('❌ Missing required fields:', { email: !!email, subject: !!subject, content: !!content });
       toast({
         title: "Missing Information",
         description: "Please enter an email address and ensure the newsletter has a subject and content.",
@@ -35,6 +40,7 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      console.error('❌ Invalid email format:', email);
       toast({
         title: "Invalid Email",
         description: "Please enter a valid email address.",
@@ -46,26 +52,52 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
     setIsLoading(true);
     setLastSentDetails(null);
     setSetupError(null);
+    setDebugInfo(null);
 
     try {
-      console.log('📧 Sending newsletter preview to:', email);
-
-      const { data, error } = await supabase.functions.invoke('send-newsletter-preview', {
-        body: {
-          email: email,
-          subject: subject,
-          content: content,
-        }
+      console.log('📧 Calling send-newsletter-preview function...');
+      
+      const payload = {
+        email: email,
+        subject: subject,
+        content: content,
+      };
+      
+      console.log('📤 Payload being sent:', {
+        email: payload.email,
+        subject: payload.subject?.substring(0, 50) + '...',
+        contentLength: payload.content?.length
       });
 
-      console.log('📧 Preview response:', { data, error });
+      const startTime = Date.now();
+      const { data, error } = await supabase.functions.invoke('send-newsletter-preview', {
+        body: payload
+      });
+      const endTime = Date.now();
+
+      console.log('📧 Function response received in', endTime - startTime, 'ms');
+      console.log('📧 Response data:', data);
+      console.log('📧 Response error:', error);
+
+      // Set debug info for troubleshooting
+      setDebugInfo({
+        requestTime: endTime - startTime,
+        payload: {
+          email: payload.email,
+          subjectLength: payload.subject?.length,
+          contentLength: payload.content?.length
+        },
+        response: data,
+        error: error
+      });
 
       if (error) {
-        console.error('❌ Preview send error:', error);
+        console.error('❌ Function invocation error:', error);
         throw error;
       }
 
       if (data?.success) {
+        console.log('✅ Preview sent successfully:', data);
         setLastSentDetails(data.details);
         toast({
           title: "Preview Sent Successfully!",
@@ -75,6 +107,7 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
         // Store the email in localStorage for next use
         localStorage.setItem('newsletter-preview-email', email);
       } else {
+        console.error('❌ Function returned failure:', data);
         throw new Error(data?.error || "Failed to send preview email");
       }
     } catch (error: any) {
@@ -84,16 +117,18 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
       let isSetupError = false;
       
       if (error.message) {
-        if (error.message.includes("SENDGRID_API_KEY")) {
+        if (error.message.includes("SENDGRID_API_KEY") || error.message.includes("Email service not configured")) {
           errorMessage = "SendGrid API key is not configured.";
           isSetupError = true;
-        } else if (error.message.includes("Authentication")) {
+        } else if (error.message.includes("Authentication") || error.message.includes("log in")) {
           errorMessage = "Please log in again to send preview emails.";
         } else if (error.message.includes("Admin access required")) {
           errorMessage = "Admin access is required to send newsletter previews.";
-        } else if (error.message.includes("Email delivery failed")) {
+        } else if (error.message.includes("Email delivery failed") || error.message.includes("SendGrid")) {
           errorMessage = "Email delivery failed. Please check your SendGrid configuration.";
           isSetupError = true;
+        } else if (error.message.includes("Invalid JSON") || error.message.includes("request body")) {
+          errorMessage = "Request formatting error. Please try again or contact support.";
         } else {
           errorMessage = error.message;
         }
@@ -206,6 +241,27 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
           </Alert>
         )}
 
+        {debugInfo && (
+          <Alert className="border-blue-200 bg-blue-50">
+            <Bug className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <strong>🔍 Debug Information:</strong>
+              <br />
+              <span className="text-xs">
+                Request time: {debugInfo.requestTime}ms
+                <br />
+                Email: {debugInfo.payload?.email}
+                <br />
+                Subject length: {debugInfo.payload?.subjectLength} chars
+                <br />
+                Content length: {debugInfo.payload?.contentLength} chars
+                <br />
+                {debugInfo.error && `Error: ${JSON.stringify(debugInfo.error)}`}
+              </span>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
           <div className="flex items-start space-x-2">
             <Info className="h-4 w-4 text-blue-600 mt-0.5" />
@@ -214,7 +270,7 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
               <ul className="mt-1 space-y-1 text-blue-800">
                 <li>• Uses your current contact information from settings</li>
                 <li>• Shows exactly what subscribers will receive</li>
-                <li>• Includes professional Moxie branding</li>
+                <li>• Includes professional Moxie branding with modern design</li>
                 <li>• Subject line marked as [PREVIEW]</li>
                 <li>• Blue banner indicates it's a preview email</li>
               </ul>
@@ -235,6 +291,8 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
               • Verify that your sender email is verified in SendGrid
               <br />
               • Make sure you're logged in as an admin user
+              <br />
+              • Check browser console for detailed error logs
             </span>
           </AlertDescription>
         </Alert>
