@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
@@ -15,15 +14,12 @@ import { generateAddressSlug } from '@/utils/addressSlug';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const PropertyPage = () => {
-  const { slug, addressSlug } = useParams<{ slug?: string; addressSlug?: string }>();
+  const { addressSlug } = useParams<{ addressSlug: string }>();
   const { properties, loading } = useProperties();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("about");
 
-  // Use addressSlug if available (from /property/:addressSlug route), otherwise use slug
-  const currentSlug = addressSlug || slug;
-
-  console.log('PropertyPage - Current slug from URL:', currentSlug);
+  console.log('PropertyPage - Current addressSlug from URL:', addressSlug);
   console.log('PropertyPage - Available properties:', properties.length);
 
   if (loading) {
@@ -41,9 +37,9 @@ const PropertyPage = () => {
     if (!p.location) return false;
     
     const propertySlug = generateAddressSlug(p.location);
-    console.log(`Comparing: "${currentSlug}" with "${propertySlug}" for property: ${p.location}`);
+    console.log(`Comparing: "${addressSlug}" with "${propertySlug}" for property: ${p.location}`);
     
-    return currentSlug === propertySlug;
+    return addressSlug === propertySlug;
   });
 
   console.log('PropertyPage - Found property:', property ? property.title : 'Not found');
@@ -55,7 +51,7 @@ const PropertyPage = () => {
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Property Not Found</h1>
             <p className="text-xl text-gray-600">The property you're looking for doesn't exist or has been removed.</p>
-            <p className="text-sm text-gray-500 mt-4">Looking for slug: {currentSlug}</p>
+            <p className="text-sm text-gray-500 mt-4">Looking for slug: {addressSlug}</p>
           </div>
         </div>
       </BackgroundWrapper>

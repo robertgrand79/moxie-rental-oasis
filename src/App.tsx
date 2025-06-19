@@ -67,7 +67,7 @@ function App() {
                 <Route path="/" element={<PublicLayout />}>
                   <Route index element={<Index />} />
                   <Route path="/properties" element={<Properties />} />
-                  <Route path="/property/:id" element={<PropertyPage />} />
+                  <Route path="/property/:addressSlug" element={<PropertyPage />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/experiences" element={<Experiences />} />
