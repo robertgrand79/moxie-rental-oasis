@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -187,7 +186,7 @@ const handler = async (req: Request): Promise<Response> => {
     const textContent = content.replace(/<[^>]*>/g, '').trim();
     const preheader = textContent.split('\n')[0]?.trim()?.substring(0, 100) + '...' || `${subject} - Your Eugene adventure awaits!`;
 
-    // Create email template that uses dynamic contact information
+    // Create email template with modern header design
     const emailHtml = `
       <!DOCTYPE html>
       <html lang="en">
@@ -210,20 +209,37 @@ const handler = async (req: Request): Promise<Response> => {
                   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
               }
               .header { 
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                  color: white; 
+                  background: linear-gradient(135deg, hsl(220, 8%, 85%) 0%, hsl(220, 3%, 97%) 100%);
+                  position: relative;
+                  overflow: hidden;
                   padding: 40px 30px; 
                   text-align: center; 
               }
+              .header::before {
+                  content: '';
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  background: linear-gradient(45deg, transparent 0%, hsl(220, 6%, 88%) 50%, transparent 100%);
+                  opacity: 0.3;
+              }
+              .header-content {
+                  position: relative;
+                  z-index: 10;
+              }
               .header h1 { 
-                  margin: 0 0 10px 0; 
+                  margin: 0 0 12px 0; 
                   font-size: 28px; 
                   font-weight: bold; 
+                  color: hsl(222.2, 47.4%, 11.2%);
               }
               .header p { 
                   margin: 0; 
-                  opacity: 0.9; 
                   font-size: 16px; 
+                  font-weight: 500;
+                  color: hsl(215.4, 16.3%, 46.9%);
               }
               .content { 
                   padding: 30px; 
@@ -255,7 +271,7 @@ const handler = async (req: Request): Promise<Response> => {
                   color: #333; 
               }
               .content a { 
-                  color: #667eea; 
+                  color: hsl(222.2, 47.4%, 11.2%); 
                   text-decoration: none; 
               }
               .content a:hover { 
@@ -273,7 +289,7 @@ const handler = async (req: Request): Promise<Response> => {
                   font-size: 14px; 
               }
               .footer a { 
-                  color: #667eea; 
+                  color: hsl(222.2, 47.4%, 11.2%); 
                   text-decoration: none; 
                   margin: 0 8px; 
               }
@@ -283,7 +299,7 @@ const handler = async (req: Request): Promise<Response> => {
               .social-links a {
                   display: inline-block;
                   margin: 0 8px;
-                  color: #667eea;
+                  color: hsl(222.2, 47.4%, 11.2%);
                   text-decoration: none;
               }
               @media (max-width: 600px) {
@@ -299,8 +315,10 @@ const handler = async (req: Request): Promise<Response> => {
               ${preheader ? `<div style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">${preheader}</div>` : ''}
               
               <div class="header">
-                  <h1>${siteName}</h1>
-                  <p>Your Home Base for Living Like a Local in Eugene</p>
+                  <div class="header-content">
+                      <h1>${siteName}</h1>
+                      <p>Your Home Base for Living Like a Local in Eugene</p>
+                  </div>
               </div>
               
               <div class="content">

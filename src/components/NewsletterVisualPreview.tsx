@@ -35,15 +35,25 @@ const NewsletterVisualPreview = ({ subject, content }: NewsletterVisualPreviewPr
 
           {/* Email Content Preview */}
           <div className="max-w-[600px] mx-auto bg-white">
-            {/* Header with gradient */}
+            {/* Header with modern gradient */}
             <div 
-              className="text-white p-8 text-center"
+              className="text-white p-8 text-center relative overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                background: 'linear-gradient(135deg, hsl(220, 8%, 85%) 0%, hsl(220, 3%, 97%) 100%)',
+                color: 'hsl(222.2, 47.4%, 11.2%)'
               }}
             >
-              <h1 className="text-3xl font-bold m-0">Moxie Travel Blog</h1>
-              <p className="mt-2 mb-0 opacity-90">Your travel inspiration delivered</p>
+              <div className="relative z-10">
+                <h1 className="text-3xl font-bold m-0 text-slate-800">Moxie Vacation Rentals</h1>
+                <p className="mt-3 mb-0 text-slate-600 font-medium">Your Home Base for Living Like a Local in Eugene</p>
+              </div>
+              {/* Subtle accent overlay */}
+              <div 
+                className="absolute inset-0 opacity-30"
+                style={{
+                  background: 'linear-gradient(45deg, transparent 0%, hsl(220, 6%, 88%) 50%, transparent 100%)'
+                }}
+              />
             </div>
             
             {/* Content Area */}
@@ -64,11 +74,11 @@ const NewsletterVisualPreview = ({ subject, content }: NewsletterVisualPreviewPr
             <div className="px-8 pb-8">
               <div className="pt-6 border-t border-gray-200 text-center">
                 <p className="text-gray-600 text-sm mb-2">
-                  Thanks for subscribing to Moxie Travel Blog!
+                  Thanks for subscribing to Moxie Vacation Rentals!
                 </p>
                 <p className="text-gray-500 text-xs">
                   <a href="#" className="text-gray-500 hover:text-gray-700">Unsubscribe</a> | 
-                  <a href="#" className="text-gray-500 hover:text-gray-700 ml-1">Visit our blog</a>
+                  <a href="#" className="text-gray-500 hover:text-gray-700 ml-1">Visit our website</a>
                 </p>
               </div>
             </div>
