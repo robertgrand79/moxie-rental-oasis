@@ -47,7 +47,7 @@ const TravelNewsletterSignup = () => {
       console.error('Newsletter subscription error:', error);
       toast({
         title: "Subscription Failed",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     } finally {

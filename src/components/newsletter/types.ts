@@ -6,8 +6,8 @@ export interface NewsletterFormData {
   emailOptIn: boolean;
   smsOptIn: boolean;
   communicationPreferences: {
-    frequency: 'daily' | 'weekly' | 'monthly';
-    preferredTime: 'morning' | 'afternoon' | 'evening';
+    frequency: string;
+    preferred_time: string;
   };
 }
 
@@ -16,11 +16,20 @@ export interface BasicNewsletterFormData {
   name: string;
 }
 
+export interface AddSubscriberFormData extends NewsletterFormData {
+  contactSource: string;
+}
+
+export interface NewsletterFormProps {
+  onSubmit: (data: BasicNewsletterFormData) => Promise<void>;
+  isLoading: boolean;
+}
+
 export interface EnhancedSubscriber {
   id: string;
   email: string;
-  name: string | null;
-  phone: string | null;
+  name?: string;
+  phone?: string;
   is_active: boolean;
   email_opt_in: boolean;
   sms_opt_in: boolean;
@@ -30,36 +39,7 @@ export interface EnhancedSubscriber {
   };
   contact_source: string;
   subscribed_at: string;
-  last_engagement_date: string | null;
-  preferences: any;
-}
-
-// Basic newsletter form props
-export interface NewsletterFormProps {
-  onSubmit: (data: BasicNewsletterFormData) => Promise<void>;
-  isLoading: boolean;
-}
-
-// Enhanced newsletter form props
-export interface EnhancedNewsletterFormProps {
-  onSubmit: (data: NewsletterFormData) => Promise<void>;
-  isLoading: boolean;
-}
-
-export interface NewsletterSuccessProps {
-  userName: string;
-}
-
-// Add interface for Add Subscriber Modal
-export interface AddSubscriberFormData {
-  email: string;
-  name: string;
-  phone?: string;
-  emailOptIn: boolean;
-  smsOptIn: boolean;
-  communicationPreferences: {
-    frequency: 'daily' | 'weekly' | 'monthly';
-    preferredTime: 'morning' | 'afternoon' | 'evening';
-  };
-  contactSource: string;
+  created_at: string;
+  updated_at: string;
+  last_engagement_date?: string;
 }
