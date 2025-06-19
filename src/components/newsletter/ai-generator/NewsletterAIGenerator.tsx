@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wand2, Zap } from 'lucide-react';
+import { Wand2, Zap, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { newsletterTemplates, quickPrompts } from './NewsletterTemplates';
@@ -11,6 +11,7 @@ import QuickPrompts from './QuickPrompts';
 import CustomPromptInput from './CustomPromptInput';
 import GeneratedContentDisplay from './GeneratedContentDisplay';
 import { marked } from 'marked';
+import { extractContentFromHTML, isFullHTMLDocument } from '@/utils/htmlContentExtractor';
 
 interface NewsletterAIGeneratorProps {
   currentSubject: string;
@@ -27,6 +28,7 @@ const NewsletterAIGenerator = ({
   const [aiPrompt, setAiPrompt] = useState('');
   const [selectedField, setSelectedField] = useState<'subject' | 'content'>('content');
   const [generatedContent, setGeneratedContent] = useState('');
+  const [contentWasFiltered, setContentWasFiltered] = useState(false);
   const [activeTab, setActiveTab] = useState('templates');
   const { toast } = useToast();
 
@@ -79,14 +81,17 @@ const NewsletterAIGenerator = ({
     }
 
     setIsGenerating(true);
+    setContentWasFiltered(false);
 
     try {
       const enhancedPrompt = selectedField === 'content' 
         ? `${promptToUse}
 
-**IMPORTANT HTML FORMATTING INSTRUCTIONS:**
-- Generate content using clean HTML tags only (no markdown syntax)
-- Use proper HTML tags: <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>, <br>
+**IMPORTANT: GENERATE ONLY CONTENT FRAGMENTS FOR EDITOR**
+- Generate ONLY the newsletter content that goes inside an email body
+- DO NOT include <!DOCTYPE>, <html>, <head>, <body> tags or any full document structure
+- DO NOT include <style> tags or CSS stylesheets
+- Generate clean HTML content fragments using only: <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>, <br>
 - Structure content with clear HTML sections using proper heading tags
 - Keep content width-constrained and responsive for email display
 - Avoid fixed widths, use percentage-based or relative sizing
@@ -99,8 +104,9 @@ const NewsletterAIGenerator = ({
 - Use <strong> for emphasis (NOT **)
 - Use <em> for italics (NOT *)
 - Ensure content is appropriate for email newsletter format
-- NO markdown syntax allowed - only clean HTML
+- NO markdown syntax allowed - only clean HTML fragments
 - Keep images and tables responsive with max-width: 100%
+- DO NOT create a complete email template - only the content that will go inside the template
 
 **MOXIE BRAND CONTEXT:**
 - We are Moxie Vacation Rentals, Eugene's premier vacation rental company
@@ -108,7 +114,13 @@ const NewsletterAIGenerator = ({
 - We specialize in helping guests experience Eugene like locals
 - Our expertise is in Eugene, Oregon attractions, dining, and experiences
 - We offer premium vacation rental properties throughout Eugene
-- Our guests value authentic local experiences and quality accommodations`
+- Our guests value authentic local experiences and quality accommodations
+
+**EXAMPLE OUTPUT FORMAT:**
+<h2>Welcome to Eugene's Best Season</h2>
+<p>Discover what makes this time of year special in Eugene with our local insider tips...</p>
+<h3>Featured Properties</h3>
+<p>This month we're highlighting our downtown properties that put you walking distance from...</p>`
         : promptToUse;
 
       const { data, error } = await supabase.functions.invoke('generate-site-content', {
@@ -134,6 +146,15 @@ const NewsletterAIGenerator = ({
         ? convertMarkdownToHtml(data.content)
         : data.content;
       
+      // Extract content if it's a full HTML document
+      const extractionResult = extractContentFromHTML(cleanContent);
+      cleanContent = extractionResult.content;
+      
+      if (extractionResult.wasFullDocument) {
+        setContentWasFiltered(true);
+        console.log('Filtered full HTML document to content fragment');
+      }
+
       // Validate and clean the content
       cleanContent = validateAndCleanContent(cleanContent);
 
@@ -141,7 +162,9 @@ const NewsletterAIGenerator = ({
       
       toast({
         title: "Content Generated!",
-        description: "AI has created well-formatted, responsive content with Moxie's branding and style.",
+        description: extractionResult.wasFullDocument 
+          ? "AI content was filtered to extract only the newsletter content for the editor."
+          : "AI has created well-formatted, responsive content with Moxie's branding and style.",
       });
     } catch (error: any) {
       console.error('Content generation error:', error);
@@ -157,9 +180,11 @@ const NewsletterAIGenerator = ({
 
   const generateCompleteNewsletter = async () => {
     setSelectedField('content');
-    const completePrompt = `Create a complete, professionally formatted newsletter for Moxie Vacation Rentals using clean HTML formatting:
+    const completePrompt = `Create newsletter content for Moxie Vacation Rentals with clean HTML formatting.
 
-**Newsletter Structure (use proper HTML tags):**
+**IMPORTANT: Generate ONLY content fragments, NOT a full email template**
+
+Generate newsletter content using these sections with HTML formatting:
 
 <h2>Welcome Section:</h2>
 <p>Engaging opening that welcomes readers with brief overview of newsletter content</p>
@@ -168,7 +193,7 @@ const NewsletterAIGenerator = ({
 <p>Property highlight with compelling description</p>
 <p>Local Eugene events and attractions</p>
 <p>Seasonal activities and recommendations</p>
-<p>Guest experience story or testimonial</p>
+<p>Guest experience story or testimonials</p>
 
 <h2>Local Expertise Section:</h2>
 <p>Insider tips for experiencing Eugene like a local</p>
@@ -180,7 +205,8 @@ const NewsletterAIGenerator = ({
 <p>Mention available properties and special offers</p>
 <p>Invite engagement and social media follows</p>
 
-**HTML FORMATTING REQUIREMENTS:**
+**CONTENT REQUIREMENTS:**
+- Generate ONLY the content fragments (no full HTML document structure)
 - Use <h2> and <h3> for headings (NOT ## or ###)
 - Use <p> tags for paragraphs
 - Use <strong> for emphasis (NOT **)
@@ -202,7 +228,8 @@ const NewsletterAIGenerator = ({
 - Scannable HTML format with clear paragraph breaks
 - Engaging content that makes readers excited about Eugene
 - Include specific details rather than generic tourism information
-- NO MARKDOWN SYNTAX - only clean HTML tags`;
+- NO MARKDOWN SYNTAX - only clean HTML fragments
+- NO full document structure - content fragments only`;
 
     await generateContent(completePrompt);
   };
@@ -232,6 +259,7 @@ const NewsletterAIGenerator = ({
 
     setGeneratedContent('');
     setAiPrompt('');
+    setContentWasFiltered(false);
   };
 
   return (
@@ -246,6 +274,19 @@ const NewsletterAIGenerator = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {contentWasFiltered && (
+          <div className="flex items-start space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-blue-800">Content Automatically Filtered</h4>
+              <p className="text-sm text-blue-700 mt-1">
+                The AI generated a full email template, but we've extracted just the content for the editor. 
+                The full professional template will be applied when you send the newsletter.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <Button 
             onClick={generateCompleteNewsletter}
@@ -254,7 +295,7 @@ const NewsletterAIGenerator = ({
             size="lg"
           >
             <Zap className="h-4 w-4 mr-2" />
-            {isGenerating ? "Generating..." : "Generate Complete Designed Newsletter"}
+            {isGenerating ? "Generating..." : "Generate Complete Newsletter Content"}
           </Button>
         </div>
 
@@ -301,7 +342,10 @@ const NewsletterAIGenerator = ({
           generatedContent={generatedContent}
           selectedField={selectedField}
           onApply={applyGeneratedContent}
-          onClear={() => setGeneratedContent('')}
+          onClear={() => {
+            setGeneratedContent('');
+            setContentWasFiltered(false);
+          }}
         />
       </CardContent>
     </Card>
