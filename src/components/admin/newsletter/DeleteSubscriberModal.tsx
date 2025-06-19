@@ -1,41 +1,18 @@
 
 import React from 'react';
-import { Trash2, AlertTriangle } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-
-interface Subscriber {
-  id: string;
-  email: string;
-  name: string | null;
-  is_active: boolean;
-  subscribed_at: string;
-  preferences: any;
-}
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { EnhancedSubscriber } from '@/components/newsletter/types';
 
 interface DeleteSubscriberModalProps {
-  subscriber: Subscriber | null;
+  subscriber: EnhancedSubscriber | null;
   open: boolean;
   onClose: () => void;
   onConfirm: (id: string) => Promise<void>;
   isDeleting: boolean;
 }
 
-const DeleteSubscriberModal = ({ 
-  subscriber, 
-  open, 
-  onClose, 
-  onConfirm, 
-  isDeleting 
-}: DeleteSubscriberModalProps) => {
+const DeleteSubscriberModal = ({ subscriber, open, onClose, onConfirm, isDeleting }: DeleteSubscriberModalProps) => {
   const handleConfirm = async () => {
     if (subscriber) {
       await onConfirm(subscriber.id);
@@ -43,51 +20,30 @@ const DeleteSubscriberModal = ({
     }
   };
 
-  if (!subscriber) return null;
-
   return (
-    <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-red-500" />
-            Delete Subscriber
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to delete the subscriber "{subscriber.email}"?
-            {subscriber.name && (
-              <span> ({subscriber.name})</span>
-            )}
-            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
-              <strong>Warning:</strong> This will permanently remove the subscriber from your newsletter list.
-            </div>
-            <div className="mt-2 text-sm text-gray-600">
-              This action cannot be undone.
-            </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Delete Contact</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to permanently delete {subscriber?.name || 'this contact'}? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button 
+            type="button" 
+            variant="destructive" 
             onClick={handleConfirm}
             disabled={isDeleting}
-            className="bg-red-600 hover:bg-red-700"
           >
-            {isDeleting ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Deleting...
-              </>
-            ) : (
-              <>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Subscriber
-              </>
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

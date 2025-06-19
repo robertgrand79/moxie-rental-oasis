@@ -28,3 +28,27 @@ export interface EnhancedSubscriber {
   last_engagement_date: string | null;
   preferences: any;
 }
+
+// Add missing interface exports
+export interface NewsletterFormProps {
+  onSubmit: (data: NewsletterFormData) => Promise<void>;
+  isLoading: boolean;
+}
+
+export interface NewsletterSuccessProps {
+  userName: string;
+}
+
+// Add interface for Add Subscriber Modal
+export interface AddSubscriberFormData {
+  email: string;
+  name: string;
+  phone?: string;
+  emailOptIn: boolean;
+  smsOptIn: boolean;
+  communicationPreferences: {
+    frequency: 'daily' | 'weekly' | 'monthly';
+    preferredTime: 'morning' | 'afternoon' | 'evening';
+  };
+  contactSource: string;
+}

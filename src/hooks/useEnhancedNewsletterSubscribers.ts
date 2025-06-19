@@ -19,7 +19,14 @@ export const useEnhancedNewsletterSubscribers = () => {
         .order('subscribed_at', { ascending: false });
       
       if (error) throw error;
-      setSubscribers(data as EnhancedSubscriber[]);
+      
+      // Transform the data to match our EnhancedSubscriber type
+      const transformedData: EnhancedSubscriber[] = (data || []).map(subscriber => ({
+        ...subscriber,
+        communication_preferences: subscriber.communication_preferences as { frequency: string; preferred_time: string; } || { frequency: 'weekly', preferred_time: 'morning' }
+      }));
+      
+      setSubscribers(transformedData);
     } catch (err: any) {
       console.error('Error fetching subscribers:', err);
       setError(err.message);

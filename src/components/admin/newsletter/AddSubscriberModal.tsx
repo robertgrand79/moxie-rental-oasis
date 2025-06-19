@@ -1,23 +1,12 @@
 
-import React from 'react';
-import { Plus } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-
-interface AddSubscriberFormData {
-  email: string;
-  name: string;
-  is_active: boolean;
-}
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AddSubscriberFormData } from '@/components/newsletter/types';
 
 interface AddSubscriberModalProps {
   open: boolean;
@@ -27,74 +16,119 @@ interface AddSubscriberModalProps {
 }
 
 const AddSubscriberModal = ({ open, onClose, onSubmit, isLoading }: AddSubscriberModalProps) => {
-  const form = useForm<AddSubscriberFormData>({
-    defaultValues: {
-      email: '',
-      name: '',
-      is_active: true,
+  const [formData, setFormData] = useState<AddSubscriberFormData>({
+    email: '',
+    name: '',
+    phone: '',
+    emailOptIn: true,
+    smsOptIn: false,
+    communicationPreferences: {
+      frequency: 'weekly',
+      preferredTime: 'morning'
     },
+    contactSource: 'manual_add'
   });
 
-  const handleSubmit = async (data: AddSubscriberFormData) => {
-    await onSubmit(data);
-    form.reset();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSubmit(formData);
     onClose();
+    setFormData({
+      email: '',
+      name: '',
+      phone: '',
+      emailOptIn: true,
+      smsOptIn: false,
+      communicationPreferences: {
+        frequency: 'weekly',
+        preferredTime: 'morning'
+      },
+      contactSource: 'manual_add'
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Add New Subscriber
-          </DialogTitle>
+          <DialogTitle>Add New Contact</DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address *</Label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              placeholder="subscriber@example.com"
-              {...form.register('email', { 
-                required: 'Email is required',
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: 'Please enter a valid email address'
-                }
-              })}
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
             />
-            {form.formState.errors.email && (
-              <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
-            )}
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="name">Name (Optional)</Label>
+          <div>
+            <Label htmlFor="name">Name</Label>
             <Input
               id="name"
-              placeholder="Subscriber's full name"
-              {...form.register('name')}
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
             />
           </div>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="is_active">Active Subscription</Label>
-            <Switch
-              id="is_active"
-              checked={form.watch('is_active')}
-              onCheckedChange={(checked) => form.setValue('is_active', checked)}
+          <div>
+            <Label htmlFor="phone">Phone (Optional)</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             />
           </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+          <div className="space-y-2">
+            <Label>Communication Preferences</Label>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="emailOptIn"
+                checked={formData.emailOptIn}
+                onCheckedChange={(checked) => setFormData({ ...formData, emailOptIn: checked as boolean })}
+              />
+              <Label htmlFor="emailOptIn">Email newsletters</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="smsOptIn"
+                checked={formData.smsOptIn}
+                onCheckedChange={(checked) => setFormData({ ...formData, smsOptIn: checked as boolean })}
+              />
+              <Label htmlFor="smsOptIn">SMS updates</Label>
+            </div>
+          </div>
+          <div>
+            <Label>Frequency</Label>
+            <Select
+              value={formData.communicationPreferences.frequency}
+              onValueChange={(value) => setFormData({
+                ...formData,
+                communicationPreferences: {
+                  ...formData.communicationPreferences,
+                  frequency: value as 'daily' | 'weekly' | 'monthly'
+                }
+              })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Adding...' : 'Add Subscriber'}
+              {isLoading ? 'Adding...' : 'Add Contact'}
             </Button>
           </div>
         </form>

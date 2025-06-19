@@ -2,25 +2,14 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface AddSubscriberData {
-  email: string;
-  name: string;
-  is_active: boolean;
-}
-
-interface EditSubscriberData {
-  email: string;
-  name: string;
-  is_active: boolean;
-}
+import { AddSubscriberFormData } from '@/components/newsletter/types';
 
 export const useNewsletterSubscribersCRUD = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const addSubscriber = async (data: AddSubscriberData) => {
+  const addSubscriber = async (data: AddSubscriberFormData): Promise<void> => {
     try {
       setIsLoading(true);
       
@@ -37,7 +26,7 @@ export const useNewsletterSubscribersCRUD = () => {
           description: "This email address is already subscribed to your newsletter.",
           variant: "destructive",
         });
-        return false;
+        return;
       }
 
       const { error } = await supabase
@@ -45,7 +34,13 @@ export const useNewsletterSubscribersCRUD = () => {
         .insert({
           email: data.email.toLowerCase(),
           name: data.name || null,
-          is_active: data.is_active,
+          phone: data.phone || null,
+          is_active: true,
+          email_opt_in: data.emailOptIn,
+          sms_opt_in: data.smsOptIn,
+          communication_preferences: data.communicationPreferences,
+          contact_source: data.contactSource,
+          last_engagement_date: new Date().toISOString(),
         });
 
       if (error) throw error;
@@ -54,8 +49,6 @@ export const useNewsletterSubscribersCRUD = () => {
         title: "Subscriber Added",
         description: "The subscriber has been successfully added to your newsletter.",
       });
-
-      return true;
     } catch (err: any) {
       console.error('Error adding subscriber:', err);
       toast({
@@ -63,41 +56,19 @@ export const useNewsletterSubscribersCRUD = () => {
         description: err.message || "Failed to add the subscriber.",
         variant: "destructive",
       });
-      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const editSubscriber = async (id: string, data: EditSubscriberData) => {
+  const editSubscriber = async (id: string, data: any): Promise<void> => {
     try {
       setIsLoading(true);
       
-      // Check if new email already exists (excluding current subscriber)
-      if (data.email) {
-        const { data: existing } = await supabase
-          .from('newsletter_subscribers')
-          .select('id')
-          .eq('email', data.email.toLowerCase())
-          .neq('id', id)
-          .single();
-
-        if (existing) {
-          toast({
-            title: "Email Already Exists",
-            description: "Another subscriber already uses this email address.",
-            variant: "destructive",
-          });
-          return false;
-        }
-      }
-
       const { error } = await supabase
         .from('newsletter_subscribers')
         .update({
-          email: data.email.toLowerCase(),
-          name: data.name || null,
-          is_active: data.is_active,
+          ...data,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id);
@@ -108,8 +79,6 @@ export const useNewsletterSubscribersCRUD = () => {
         title: "Subscriber Updated",
         description: "The subscriber information has been successfully updated.",
       });
-
-      return true;
     } catch (err: any) {
       console.error('Error updating subscriber:', err);
       toast({
@@ -117,13 +86,12 @@ export const useNewsletterSubscribersCRUD = () => {
         description: err.message || "Failed to update the subscriber.",
         variant: "destructive",
       });
-      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const deleteSubscriber = async (id: string) => {
+  const deleteSubscriber = async (id: string): Promise<void> => {
     try {
       setDeleting(id);
       
@@ -138,8 +106,6 @@ export const useNewsletterSubscribersCRUD = () => {
         title: "Subscriber Deleted",
         description: "The subscriber has been permanently removed from your newsletter.",
       });
-
-      return true;
     } catch (err: any) {
       console.error('Error deleting subscriber:', err);
       toast({
@@ -147,7 +113,6 @@ export const useNewsletterSubscribersCRUD = () => {
         description: err.message || "Failed to delete the subscriber.",
         variant: "destructive",
       });
-      return false;
     } finally {
       setDeleting(null);
     }
