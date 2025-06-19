@@ -20,6 +20,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Create admin client for database operations
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // Create regular client for user authentication
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
@@ -27,49 +34,72 @@ const handler = async (req: Request): Promise<Response> => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
+      console.error("No authorization header provided");
       throw new Error("No authorization header");
     }
 
+    console.log("🔐 Authenticating user...");
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(
       authHeader.replace("Bearer ", "")
     );
 
     if (authError || !user) {
+      console.error("Authentication failed:", authError);
       throw new Error("Unauthorized");
     }
 
-    // Check if user is admin
-    const { data: profile } = await supabaseClient
+    console.log("✅ User authenticated:", user.email);
+
+    // Check if user is admin using the admin client to avoid RLS issues
+    console.log("🔍 Checking admin permissions...");
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
+    if (profileError) {
+      console.error("Error fetching user profile:", profileError);
+      throw new Error("Failed to verify admin permissions");
+    }
+
     if (profile?.role !== "admin") {
+      console.error("User is not admin. Role:", profile?.role);
       throw new Error("Admin access required");
     }
 
+    console.log("✅ Admin access confirmed");
+
     const { blogPostId, subject, content, previewText }: NewsletterRequest = await req.json();
 
-    // Get active subscribers
-    const { data: subscribers, error: subscribersError } = await supabaseClient
+    if (!subject || !content) {
+      throw new Error("Subject and content are required");
+    }
+
+    console.log("📧 Getting active subscribers...");
+    // Get active subscribers using admin client
+    const { data: subscribers, error: subscribersError } = await supabaseAdmin
       .from("newsletter_subscribers")
       .select("email, name")
       .eq("is_active", true);
 
     if (subscribersError) {
+      console.error("Error fetching subscribers:", subscribersError);
       throw subscribersError;
     }
 
     if (!subscribers || subscribers.length === 0) {
+      console.log("⚠️  No active subscribers found");
       return new Response(
         JSON.stringify({ error: "No active subscribers found" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
+    console.log(`📬 Found ${subscribers.length} active subscribers`);
+
     // Fetch email settings from site_settings
-    const { data: emailSettings, error: settingsError } = await supabaseClient
+    const { data: emailSettings, error: settingsError } = await supabaseAdmin
       .from("site_settings")
       .select("key, value")
       .in("key", ["emailFromAddress", "emailFromName", "emailReplyTo", "siteName"]);
@@ -88,6 +118,8 @@ const handler = async (req: Request): Promise<Response> => {
     const fromEmail = settings.emailFromAddress || "noreply@moxievacationrentals.com";
     const fromName = settings.emailFromName || settings.siteName || "Moxie Vacation Rentals";
     const replyTo = settings.emailReplyTo || fromEmail;
+
+    console.log(`📤 Sending from: ${fromName} <${fromEmail}>`);
 
     // Generate preheader from content
     const textContent = content.replace(/<[^>]*>/g, '').trim();
@@ -226,10 +258,15 @@ const handler = async (req: Request): Promise<Response> => {
     // Send emails using SendGrid
     const sendGridApiKey = Deno.env.get("SENDGRID_API_KEY");
     if (!sendGridApiKey) {
-      throw new Error("SendGrid API key not configured");
+      console.error("❌ SendGrid API key not configured");
+      throw new Error("SendGrid API key not configured. Please add SENDGRID_API_KEY to your Supabase secrets.");
     }
 
-    const emailPromises = subscribers.map(async (subscriber) => {
+    console.log("🚀 Sending emails via SendGrid...");
+
+    const emailPromises = subscribers.map(async (subscriber, index) => {
+      console.log(`📧 Sending email ${index + 1}/${subscribers.length} to ${subscriber.email}`);
+      
       const personalizedHtml = emailHtml.replace(
         "{{unsubscribe_url}}",
         `${Deno.env.get("SUPABASE_URL")}/functions/v1/unsubscribe-newsletter?email=${encodeURIComponent(subscriber.email)}`
@@ -261,17 +298,19 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`Failed to send email to ${subscriber.email}:`, errorText);
-        throw new Error(`SendGrid API error: ${response.status}`);
+        console.error(`❌ Failed to send email to ${subscriber.email}:`, errorText);
+        throw new Error(`SendGrid API error for ${subscriber.email}: ${response.status} - ${errorText}`);
       }
 
+      console.log(`✅ Email sent successfully to ${subscriber.email}`);
       return response;
     });
 
     await Promise.all(emailPromises);
 
-    // Save campaign record
-    const { error: campaignError } = await supabaseClient
+    console.log("💾 Saving campaign record...");
+    // Save campaign record using admin client
+    const { error: campaignError } = await supabaseAdmin
       .from("newsletter_campaigns")
       .insert({
         blog_post_id: blogPostId,
@@ -285,13 +324,14 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Failed to save campaign:", campaignError);
     }
 
-    console.log(`Newsletter sent successfully to ${subscribers.length} subscribers from ${fromEmail}`);
+    console.log(`🎉 Newsletter sent successfully to ${subscribers.length} subscribers from ${fromEmail}`);
 
     return new Response(
       JSON.stringify({ 
         message: "Newsletter sent successfully", 
         recipientCount: subscribers.length,
-        fromEmail: fromEmail
+        fromEmail: fromEmail,
+        success: true
       }),
       {
         status: 200,
@@ -300,9 +340,13 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error: any) {
-    console.error("Error in send-newsletter function:", error);
+    console.error("❌ Error in send-newsletter function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        success: false,
+        details: "Check the function logs for more information"
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
