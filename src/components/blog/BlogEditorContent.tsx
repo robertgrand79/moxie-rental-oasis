@@ -28,7 +28,7 @@ interface BlogEditorContentProps {
   onSubmit: (data: BlogFormData) => void;
   isEditing: boolean;
   onCancel: () => void;
-  onAIContentGenerated: (field: 'title' | 'excerpt' | 'content', generatedContent: string) => void;
+  onAIContentGenerated: (field: 'title' | 'excerpt' | 'content' | 'tags', generatedContent: string) => void;
 }
 
 const BlogEditorContent = ({
@@ -65,13 +65,17 @@ const BlogEditorContent = ({
     setContent(newContent);
   };
 
-  const handleAIContentGenerated = (field: 'title' | 'excerpt' | 'content', generatedContent: string) => {
+  const handleAIContentGenerated = (field: 'title' | 'excerpt' | 'content' | 'tags', generatedContent: string) => {
     if (field === 'content') {
       // Convert plain text with line breaks to proper HTML paragraphs with double spacing
       const formattedContent = ensureHTMLParagraphs(generatedContent);
       console.log('🤖 AI generated content formatted:', formattedContent.substring(0, 100));
       setContent(formattedContent);
       form.setValue('content', formattedContent);
+    } else if (field === 'tags') {
+      // Handle tags - pass through as-is
+      form.setValue('tags', generatedContent);
+      onAIContentGenerated(field, generatedContent);
     } else {
       // For title and excerpt, pass through as-is
       onAIContentGenerated(field, generatedContent);
