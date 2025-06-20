@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -47,17 +46,24 @@ serve(async (req) => {
       throw new Error('Contractor email not found');
     }
 
-    // Get contact phone number from site settings
-    const { data: phoneSettings } = await supabaseClient
+    // Get contact information from site settings
+    const { data: siteSettings } = await supabaseClient
       .from('site_settings')
-      .select('value')
-      .eq('key', 'contactPhone')
-      .single();
+      .select('key, value')
+      .in('key', ['contactEmail', 'phone']);
 
-    const contactPhone = phoneSettings?.value || '"(541) 555-0123"';
+    const settingsMap = siteSettings?.reduce((acc, setting) => {
+      acc[setting.key] = setting.value;
+      return acc;
+    }, {} as Record<string, any>) || {};
+
+    const contactEmail = settingsMap.contactEmail || 'team@moxievacationrentals.com';
+    const contactPhone = settingsMap.phone || '(541) 555-0123';
+
+    console.log('Using contact info:', { contactEmail, contactPhone });
 
     // Generate email content
-    const emailContent = generateEmailContent(workOrder, contactPhone);
+    const emailContent = generateEmailContent(workOrder, contactEmail, contactPhone);
 
     // Send email using SendGrid
     const emailResult = await sendWorkOrderEmail(
@@ -96,8 +102,9 @@ serve(async (req) => {
   }
 });
 
-function generateEmailContent(workOrder: any, contactPhone: string): string {
+function generateEmailContent(workOrder: any, contactEmail: string, contactPhone: string): string {
   const currentDate = new Date().toLocaleDateString();
+  // Use a reliable logo URL - this one is from the Moxie site uploads
   const logoUrl = 'https://joiovubyokikqjytxtuv.supabase.co/storage/v1/object/public/uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png';
   
   // Generate attachments section
@@ -136,6 +143,9 @@ function generateEmailContent(workOrder: any, contactPhone: string): string {
           max-width: 200px; 
           height: auto; 
           margin-bottom: 15px; 
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
         }
         .work-order-title { 
           font-size: 18px; 
@@ -314,7 +324,7 @@ function generateEmailContent(workOrder: any, contactPhone: string): string {
     <body>
       <div class="email-container">
         <div class="header">
-          <img src="${logoUrl}" alt="Moxie Vacation Rentals" class="company-logo" />
+          <img src="${logoUrl}" alt="Moxie Vacation Rentals" class="company-logo" onerror="this.style.display='none'" />
           <h1 class="work-order-title">Work Order Request</h1>
         </div>
 
@@ -399,10 +409,10 @@ function generateEmailContent(workOrder: any, contactPhone: string): string {
             Please acknowledge receipt of this work order and provide an estimated completion timeline.
           </p>
           <div class="contact-item">
-            <strong>📧 Email:</strong> robert@moxievacationrentals.com
+            <strong>📧 Email:</strong> ${contactEmail}
           </div>
           <div class="contact-item">
-            <strong>📞 Phone:</strong> ${contactPhone.replace(/"/g, '')}
+            <strong>📞 Phone:</strong> ${contactPhone}
           </div>
           <p style="margin-top: 15px; font-size: 14px; color: #1e40af;">
             For urgent matters or questions about property access, please call directly.
@@ -509,8 +519,8 @@ async function sendWorkOrderEmail(
       subject: `Work Order Request - ${workOrder.work_order_number} | ${workOrder.title}`
     }],
     from: { 
-      email: 'robert@moxievacationrentals.com', 
-      name: 'Robert - Moxie Vacation Rentals' 
+      email: 'team@moxievacationrentals.com', 
+      name: 'Moxie Vacation Rentals Team' 
     },
     content: [{
       type: 'text/html',
