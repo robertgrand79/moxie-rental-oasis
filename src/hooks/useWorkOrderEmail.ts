@@ -3,10 +3,12 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
+import { useWorkOrderAcknowledgement } from '@/hooks/useWorkOrderAcknowledgement';
 
 export const useWorkOrderEmail = () => {
   const [emailingWorkOrders, setEmailingWorkOrders] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const { generateAcknowledgementLink } = useWorkOrderAcknowledgement();
 
   const handleEmailWorkOrder = async (
     workOrder: WorkOrder, 
@@ -46,6 +48,12 @@ export const useWorkOrderEmail = () => {
       if (workOrder.status === 'draft') {
         onStatusChange(workOrder.id, 'sent');
       }
+
+      // Show acknowledgement URL in console for testing (remove in production)
+      if (data?.acknowledgementUrl) {
+        console.log('Acknowledgement URL generated:', data.acknowledgementUrl);
+      }
+
     } catch (error) {
       console.error('Error sending work order email:', error);
       
