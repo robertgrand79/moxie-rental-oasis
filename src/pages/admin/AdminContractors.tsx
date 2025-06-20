@@ -1,45 +1,59 @@
 
 import React, { useState } from 'react';
-import { useWorkOrderManagement, Contractor } from '@/hooks/useWorkOrderManagement';
-import ContractorsTable from '@/components/admin/workorders/ContractorsTable';
-import CreateContractorModal from '@/components/admin/workorders/CreateContractorModal';
-import EditContractorModal from '@/components/admin/workorders/EditContractorModal';
+import { useContractorOperations } from '@/hooks/useContractorOperations';
+import { useContractorFilters } from '@/hooks/useContractorFilters';
+import { useContractorStats } from '@/hooks/useContractorStats';
+import ModernContractorsHeader from '@/components/admin/contractors/ModernContractorsHeader';
+import ContractorsGrid from '@/components/admin/contractors/ContractorsGrid';
+import ContractorSidePanel from '@/components/admin/contractors/ContractorSidePanel';
 import LoadingState from '@/components/ui/loading-state';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Contractor } from '@/hooks/useWorkOrderManagement';
 
 const AdminContractors = () => {
   const {
     contractors,
     loading,
-    createContractor,
-    updateContractor,
-    deleteContractor,
-  } = useWorkOrderManagement();
+    updatingContractors,
+    handleSaveContractor,
+    handleDeleteContractor,
+    handleToggleContractorStatus,
+    refreshData,
+  } = useContractorOperations();
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const {
+    statusFilter,
+    setStatusFilter,
+    specialtyFilter,
+    setSpecialtyFilter,
+    searchQuery,
+    setSearchQuery,
+    filteredContractors,
+  } = useContractorFilters(contractors);
+
+  const stats = useContractorStats(contractors);
+
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [editingContractor, setEditingContractor] = useState<Contractor | null>(null);
 
-  const handleCreateContractor = async (contractorData: any) => {
-    await createContractor(contractorData);
+  const handleCreateContractor = () => {
+    setEditingContractor(null);
+    setIsSidePanelOpen(true);
   };
 
   const handleEditContractor = (contractor: Contractor) => {
     setEditingContractor(contractor);
-    setIsEditModalOpen(true);
+    setIsSidePanelOpen(true);
   };
 
-  const handleUpdateContractor = async (contractorId: string, contractorData: any) => {
-    await updateContractor(contractorId, contractorData);
+  const handleCloseSidePanel = () => {
+    setIsSidePanelOpen(false);
+    setEditingContractor(null);
   };
 
-  const handleDeleteContractor = async (contractorId: string) => {
-    await deleteContractor(contractorId);
-  };
-
-  const handleToggleContractorStatus = async (contractorId: string, isActive: boolean) => {
-    await updateContractor(contractorId, { is_active: isActive });
+  const handleSaveAndClose = async (contractorData: any) => {
+    await handleSaveContractor(contractorData, editingContractor);
+    handleCloseSidePanel();
   };
 
   if (loading) {
@@ -47,38 +61,36 @@ const AdminContractors = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Contractor Management</h1>
-          <p className="text-gray-600">Manage your contractors and their information</p>
-        </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Contractor
-        </Button>
-      </div>
+    <div className="space-y-8">
+      <ModernContractorsHeader
+        totalContractors={stats.totalContractors}
+        activeContractors={stats.activeContractors}
+        inactiveContractors={stats.inactiveContractors}
+        topSpecialties={stats.topSpecialties}
+        onCreateContractor={handleCreateContractor}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        specialtyFilter={specialtyFilter}
+        onSpecialtyFilterChange={setSpecialtyFilter}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onRefresh={refreshData}
+      />
 
-      <ContractorsTable
-        contractors={contractors}
-        onEditContractor={handleEditContractor}
+      <ContractorsGrid
+        contractors={filteredContractors}
+        onContractorEdit={handleEditContractor}
         onDeleteContractor={handleDeleteContractor}
         onToggleStatus={handleToggleContractorStatus}
+        updatingContractors={updatingContractors}
       />
 
-      <CreateContractorModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreateContractor={handleCreateContractor}
-      />
-
-      <EditContractorModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingContractor(null);
-        }}
-        onUpdateContractor={handleUpdateContractor}
+      <ContractorSidePanel
+        isOpen={isSidePanelOpen}
+        onClose={handleCloseSidePanel}
+        onSave={handleSaveAndClose}
         contractor={editingContractor}
       />
     </div>
