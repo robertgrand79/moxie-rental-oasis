@@ -2,14 +2,54 @@
 import React from 'react';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const ContactInfo = () => {
-  const { settings } = useStableSiteSettings();
+  // Fetch contact settings directly from database with no caching
+  const { data: settings } = useQuery({
+    queryKey: ['contact-info-settings', new Date().getMinutes()], // Cache busting
+    queryFn: async () => {
+      console.log('Fetching contact info settings from database...');
+      
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['contactEmail', 'phone', 'address']);
 
-  const contactEmail = settings.contactEmail || 'hello@moxievacationrentals.com';
-  const phone = settings.phone || '(541) 555-0123';
-  const address = settings.address || '2472 Willamette Street, Eugene, OR 97405';
+      if (error) {
+        console.error('Error fetching contact info settings:', error);
+        throw error;
+      }
+
+      console.log('Raw contact info settings:', data);
+
+      const settingsMap = data?.reduce((acc, setting) => {
+        if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
+          acc[setting.key] = setting.value;
+        }
+        return acc;
+      }, {} as Record<string, any>) || {};
+
+      // Use current database values with updated defaults
+      const finalSettings = {
+        contactEmail: settingsMap.contactEmail || 'gabby@moxievacationrental.com',
+        phone: settingsMap.phone || '+1 541-255-1698',
+        address: settingsMap.address || '2472 Willamette St Eugene OR 97405'
+      };
+
+      console.log('Final contact info settings:', finalSettings);
+      return finalSettings;
+    },
+    staleTime: 0, // No caching
+    refetchInterval: false
+  });
+
+  const currentSettings = settings || {
+    contactEmail: 'gabby@moxievacationrental.com',
+    phone: '+1 541-255-1698',
+    address: '2472 Willamette St Eugene OR 97405'
+  };
 
   return (
     <div className="space-y-6">
@@ -25,20 +65,20 @@ const ContactInfo = () => {
             <div className="flex flex-col items-center space-y-2">
               <Phone className="h-5 w-5 text-primary" />
               <span className="font-medium">Phone</span>
-              <span className="text-gray-600">{phone}</span>
+              <span className="text-gray-600">{currentSettings.phone}</span>
             </div>
             
             <div className="flex flex-col items-center space-y-2">
               <Mail className="h-5 w-5 text-primary" />
               <span className="font-medium">Email</span>
-              <span className="text-gray-600">{contactEmail}</span>
+              <span className="text-gray-600">{currentSettings.contactEmail}</span>
             </div>
             
             <div className="flex flex-col items-center space-y-2">
               <MapPin className="h-5 w-5 text-primary" />
               <span className="font-medium">Address</span>
               <span className="text-gray-600 text-center">
-                {address}
+                {currentSettings.address}
               </span>
             </div>
             

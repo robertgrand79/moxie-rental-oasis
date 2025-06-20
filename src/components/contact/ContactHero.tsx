@@ -1,15 +1,56 @@
 
 import React from 'react';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 
 const ContactHero = () => {
-  const { settings } = useStableSiteSettings();
+  // Fetch contact settings directly from database with no caching
+  const { data: settings } = useQuery({
+    queryKey: ['contact-hero-settings', new Date().getMinutes()], // Cache busting with minute precision
+    queryFn: async () => {
+      console.log('Fetching contact hero settings from database...');
+      
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['siteName', 'contactEmail', 'phone', 'address']);
 
-  const siteName = settings.siteName || 'Moxie Vacation Rentals';
-  const contactEmail = settings.contactEmail || 'gabby@moxievactionrental.com';
-  const phone = settings.phone || '+1 541-255-1698';
-  const address = settings.address || '2472 Willamette St Eugene OR 97405';
+      if (error) {
+        console.error('Error fetching contact hero settings:', error);
+        throw error;
+      }
+
+      console.log('Raw contact hero settings:', data);
+
+      const settingsMap = data?.reduce((acc, setting) => {
+        if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
+          acc[setting.key] = setting.value;
+        }
+        return acc;
+      }, {} as Record<string, any>) || {};
+
+      // Use current database values with updated defaults
+      const finalSettings = {
+        siteName: settingsMap.siteName || 'Moxie Vacation Rentals',
+        contactEmail: settingsMap.contactEmail || 'gabby@moxievacationrental.com',
+        phone: settingsMap.phone || '+1 541-255-1698',
+        address: settingsMap.address || '2472 Willamette St Eugene OR 97405'
+      };
+
+      console.log('Final contact hero settings:', finalSettings);
+      return finalSettings;
+    },
+    staleTime: 0, // No caching
+    refetchInterval: false
+  });
+
+  const currentSettings = settings || {
+    siteName: 'Moxie Vacation Rentals',
+    contactEmail: 'gabby@moxievacationrental.com',
+    phone: '+1 541-255-1698',
+    address: '2472 Willamette St Eugene OR 97405'
+  };
 
   return (
     <div className="relative bg-gradient-to-br from-gradient-from via-gradient-via to-gradient-to text-foreground py-20">
@@ -29,7 +70,7 @@ const ContactHero = () => {
                 <MapPin className="h-6 w-6 text-icon-blue" />
               </div>
               <h3 className="font-semibold mb-2">Visit Us</h3>
-              <p className="text-sm text-muted-foreground">{address}</p>
+              <p className="text-sm text-muted-foreground">{currentSettings.address}</p>
             </div>
             
             <div className="bg-background/10 backdrop-blur-sm rounded-lg p-6 text-center">
@@ -37,7 +78,7 @@ const ContactHero = () => {
                 <Phone className="h-6 w-6 text-icon-emerald" />
               </div>
               <h3 className="font-semibold mb-2">Call Us</h3>
-              <p className="text-sm text-muted-foreground">{phone}</p>
+              <p className="text-sm text-muted-foreground">{currentSettings.phone}</p>
             </div>
             
             <div className="bg-background/10 backdrop-blur-sm rounded-lg p-6 text-center">
@@ -45,7 +86,7 @@ const ContactHero = () => {
                 <Mail className="h-6 w-6 text-icon-amber" />
               </div>
               <h3 className="font-semibold mb-2">Email Us</h3>
-              <p className="text-sm text-muted-foreground">{contactEmail}</p>
+              <p className="text-sm text-muted-foreground">{currentSettings.contactEmail}</p>
             </div>
             
             <div className="bg-background/10 backdrop-blur-sm rounded-lg p-6 text-center">

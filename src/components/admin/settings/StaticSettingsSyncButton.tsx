@@ -5,9 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Globe, Loader2, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { useStaticSettingsSync } from '@/hooks/useStaticSettingsSync';
 import { shouldShowAdminFeatures } from '@/utils/domainUtils';
+import { useQueryClient } from '@tanstack/react-query';
 
 const StaticSettingsSyncButton = () => {
   const { syncToPublicSite, syncing, lastSyncTime } = useStaticSettingsSync();
+  const queryClient = useQueryClient();
 
   // Only show on admin domain
   if (!shouldShowAdminFeatures()) {
@@ -15,7 +17,22 @@ const StaticSettingsSyncButton = () => {
   }
 
   const handleSync = async () => {
-    await syncToPublicSite();
+    console.log('🔄 Starting sync process...');
+    
+    // Invalidate all cached queries to force fresh data
+    await queryClient.invalidateQueries();
+    console.log('🧹 Cleared all query caches');
+    
+    // Sync to public site
+    const result = await syncToPublicSite();
+    
+    if (result.success) {
+      console.log('✅ Sync completed successfully');
+      // Force page reload to clear any remaining cache
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
   };
 
   const formatSyncTime = (timeString: string) => {
@@ -27,10 +44,10 @@ const StaticSettingsSyncButton = () => {
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-blue-900">
           <Globe className="h-5 w-5" />
-          Public Site Sync
+          Public Site Sync & Cache Clear
         </CardTitle>
         <CardDescription className="text-blue-700">
-          Sync your admin panel changes to the public moxievacationrentals.com website
+          Sync your admin panel changes to the public site and clear all caches for immediate updates
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -59,18 +76,18 @@ const StaticSettingsSyncButton = () => {
           {syncing ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Syncing to Public Site...
+              Syncing & Clearing Cache...
             </>
           ) : (
             <>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Publish Changes to Public Site
+              Publish Changes & Clear Cache
             </>
           )}
         </Button>
 
         <div className="text-xs text-gray-500 bg-white/50 p-3 rounded-md">
-          <strong>How it works:</strong> This button updates the public website with your latest admin panel changes including hero images, contact information, and all site settings.
+          <strong>Enhanced Sync:</strong> This button now updates the public website, clears all cached data, and forces fresh data loading for immediate visibility of your changes.
         </div>
       </CardContent>
     </Card>

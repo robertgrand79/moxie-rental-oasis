@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -14,9 +13,9 @@ const DEFAULT_HERO_SETTINGS = {
 
 export const useHeroSettings = () => {
   const { data: heroSettings, isLoading, error: queryError } = useQuery({
-    queryKey: ['hero-settings-v4'],
+    queryKey: ['hero-settings-live', new Date().getMinutes()], // Cache busting with minute precision
     queryFn: async () => {
-      console.log('🔄 Fetching hero settings from database...');
+      console.log('🔄 Fetching hero settings from database (live)...');
       
       const { data, error } = await supabase
         .from('site_settings')
@@ -51,10 +50,10 @@ export const useHeroSettings = () => {
         ...settingsMap
       };
 
-      console.log('✅ Final hero settings:', finalSettings);
+      console.log('✅ Final hero settings (live):', finalSettings);
       return finalSettings;
     },
-    staleTime: 1000,
+    staleTime: 0, // No caching - always fetch fresh
     refetchInterval: false,
     retry: 3
   });
