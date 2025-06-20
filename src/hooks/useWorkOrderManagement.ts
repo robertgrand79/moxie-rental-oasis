@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +21,7 @@ export interface WorkOrder {
   completion_photos?: string[];
   invoice_attachments?: string[];
   requires_permits?: boolean;
+  access_code?: string;
   sent_at?: string;
   acknowledged_at?: string;
   completed_at?: string;

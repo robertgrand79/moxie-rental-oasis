@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Save, Calendar, User, Building } from 'lucide-react';
+import { X, Save, Calendar, User, Building, Key } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface WorkOrderSidePanelProps {
@@ -35,6 +35,7 @@ const WorkOrderSidePanel = ({
     estimated_completion_date: '',
     scope_of_work: '',
     special_instructions: '',
+    access_code: '',
   });
 
   React.useEffect(() => {
@@ -48,6 +49,7 @@ const WorkOrderSidePanel = ({
         estimated_completion_date: workOrder.estimated_completion_date || '',
         scope_of_work: workOrder.scope_of_work || '',
         special_instructions: workOrder.special_instructions || '',
+        access_code: workOrder.access_code || '',
       });
     } else {
       setFormData({
@@ -59,6 +61,7 @@ const WorkOrderSidePanel = ({
         estimated_completion_date: '',
         scope_of_work: '',
         special_instructions: '',
+        access_code: '',
       });
     }
   }, [workOrder]);
@@ -187,7 +190,21 @@ const WorkOrderSidePanel = ({
                 </Select>
               </div>
 
-              <div className="md:col-span-2 space-y-2">
+              <div className="space-y-2">
+                <Label htmlFor="access_code">Property Access Code</Label>
+                <div className="relative">
+                  <Key className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="access_code"
+                    value={formData.access_code}
+                    onChange={(e) => setFormData(prev => ({ ...prev, access_code: e.target.value }))}
+                    placeholder="e.g., 1234, #5678, Key under mat"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="estimated_completion_date">Due Date</Label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />

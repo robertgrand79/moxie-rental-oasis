@@ -47,8 +47,17 @@ serve(async (req) => {
       throw new Error('Contractor email not found');
     }
 
+    // Get contact phone number from site settings
+    const { data: phoneSettings } = await supabaseClient
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'contactPhone')
+      .single();
+
+    const contactPhone = phoneSettings?.value || '"(541) 555-0123"';
+
     // Generate email content
-    const emailContent = generateEmailContent(workOrder);
+    const emailContent = generateEmailContent(workOrder, contactPhone);
 
     // Send email using SendGrid
     const emailResult = await sendWorkOrderEmail(
@@ -87,8 +96,9 @@ serve(async (req) => {
   }
 });
 
-function generateEmailContent(workOrder: any): string {
+function generateEmailContent(workOrder: any, contactPhone: string): string {
   const currentDate = new Date().toLocaleDateString();
+  const logoUrl = 'https://joiovubyokikqjytxtuv.supabase.co/storage/v1/object/public/uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png';
   
   return `
     <!DOCTYPE html>
@@ -119,11 +129,10 @@ function generateEmailContent(workOrder: any): string {
           border-bottom: 3px solid #2563eb; 
           padding-bottom: 20px; 
         }
-        .company-name { 
-          font-size: 28px; 
-          font-weight: bold; 
-          color: #2563eb; 
-          margin-bottom: 8px; 
+        .company-logo { 
+          max-width: 200px; 
+          height: auto; 
+          margin-bottom: 15px; 
         }
         .work-order-title { 
           font-size: 18px; 
@@ -179,6 +188,32 @@ function generateEmailContent(workOrder: any): string {
           border-radius: 4px; 
           display: inline-block;
         }
+        .access-code-section {
+          background: #f0f9ff;
+          border: 2px solid #0ea5e9;
+          padding: 20px;
+          border-radius: 8px;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .access-code-title {
+          font-size: 18px;
+          font-weight: bold;
+          color: #0c4a6e;
+          margin-bottom: 10px;
+        }
+        .access-code-value {
+          font-size: 24px;
+          font-weight: bold;
+          color: #0369a1;
+          background: #ffffff;
+          padding: 12px 20px;
+          border-radius: 6px;
+          border: 2px solid #0ea5e9;
+          display: inline-block;
+          margin-top: 10px;
+          letter-spacing: 2px;
+        }
         .contact-info {
           background: #eff6ff;
           padding: 20px;
@@ -190,7 +225,11 @@ function generateEmailContent(workOrder: any): string {
           font-size: 16px;
           font-weight: bold;
           color: #1e40af;
+          margin-bottom: 15px;
+        }
+        .contact-item {
           margin-bottom: 10px;
+          color: #1e40af;
         }
         .footer { 
           margin-top: 30px; 
@@ -208,13 +247,17 @@ function generateEmailContent(workOrder: any): string {
           .field-label {
             min-width: auto;
           }
+          .access-code-value {
+            font-size: 20px;
+            padding: 10px 15px;
+          }
         }
       </style>
     </head>
     <body>
       <div class="email-container">
         <div class="header">
-          <div class="company-name">Moxie Vacation Rentals</div>
+          <img src="${logoUrl}" alt="Moxie Vacation Rentals" class="company-logo" />
           <h1 class="work-order-title">Work Order Request</h1>
         </div>
 
@@ -258,6 +301,15 @@ function generateEmailContent(workOrder: any): string {
           ` : '<p style="color: #64748b; font-style: italic;">No property assigned</p>'}
         </div>
 
+        ${workOrder.access_code ? `
+        <div class="access-code-section">
+          <div class="access-code-title">🔑 Property Access Code</div>
+          <p style="margin: 10px 0; color: #0c4a6e;">Use this code to access the property:</p>
+          <div class="access-code-value">${workOrder.access_code}</div>
+          <p style="margin-top: 15px; font-size: 14px; color: #0369a1;"><strong>Important:</strong> Keep this code secure and do not share with unauthorized personnel.</p>
+        </div>
+        ` : ''}
+
         <div class="section">
           <div class="section-title">Work Description</div>
           <div class="field">
@@ -284,9 +336,17 @@ function generateEmailContent(workOrder: any): string {
 
         <div class="contact-info">
           <div class="contact-title">Need to Get in Touch?</div>
-          <p style="margin: 0; color: #1e40af;">
-            Please acknowledge receipt of this work order and provide an estimated completion timeline.<br>
-            For questions or concerns, please contact <strong>robert@moxievacationrentals.com</strong>
+          <p style="margin-bottom: 15px; color: #1e40af;">
+            Please acknowledge receipt of this work order and provide an estimated completion timeline.
+          </p>
+          <div class="contact-item">
+            <strong>📧 Email:</strong> robert@moxievacationrentals.com
+          </div>
+          <div class="contact-item">
+            <strong>📞 Phone:</strong> ${contactPhone.replace(/"/g, '')}
+          </div>
+          <p style="margin-top: 15px; font-size: 14px; color: #1e40af;">
+            For urgent matters or questions about property access, please call directly.
           </p>
         </div>
 

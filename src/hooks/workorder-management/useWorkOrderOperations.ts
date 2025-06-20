@@ -22,6 +22,7 @@ export interface WorkOrder {
   completed_at?: string;
   requires_permits?: boolean;
   special_instructions?: string;
+  access_code?: string;
   attachments?: string[];
   completion_photos?: string[];
   invoice_attachments?: string[];

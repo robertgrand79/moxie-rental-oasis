@@ -1720,6 +1720,7 @@ export type Database = {
       }
       work_orders: {
         Row: {
+          access_code: string | null
           acknowledged_at: string | null
           actual_completion_date: string | null
           actual_cost: number | null
@@ -1747,6 +1748,7 @@ export type Database = {
           work_order_number: string
         }
         Insert: {
+          access_code?: string | null
           acknowledged_at?: string | null
           actual_completion_date?: string | null
           actual_cost?: number | null
@@ -1774,6 +1776,7 @@ export type Database = {
           work_order_number: string
         }
         Update: {
+          access_code?: string | null
           acknowledged_at?: string | null
           actual_completion_date?: string | null
           actual_cost?: number | null
