@@ -1,3 +1,4 @@
+
 import { GoogleAnalyticsService } from './googleAnalytics';
 import { PerformanceMonitorService } from './performanceMonitor';
 import { SystemMonitorService } from './systemMonitor';
@@ -7,7 +8,8 @@ class AnalyticsService {
   private googleAnalytics: GoogleAnalyticsService;
   private performanceMonitor: PerformanceMonitorService;
   private systemMonitor: SystemMonitorService;
-  private initializationPromise: Promise<boolean> | null = null;
+  private lastInitCheck: number = 0;
+  private initCheckInterval: number = 30000; // 30 seconds
 
   constructor() {
     this.googleAnalytics = new GoogleAnalyticsService();
@@ -15,12 +17,17 @@ class AnalyticsService {
     this.systemMonitor = new SystemMonitorService();
   }
 
-  // Initialize Google Analytics with better error handling and logging
+  // Initialize Google Analytics with better caching and timing
   async initializeGA(): Promise<boolean> {
     try {
       console.log('🔄 Analytics Service: Initializing GA...');
       const result = await this.googleAnalytics.initializeGA();
       console.log(`📊 Analytics Service: GA initialization ${result ? 'successful' : 'failed'}`);
+      
+      // Log current status for debugging
+      const status = this.googleAnalytics.getInitializationStatus();
+      console.log('📊 Analytics Service: Current GA status:', status);
+      
       return result;
     } catch (error) {
       console.error('❌ Analytics Service: GA initialization error:', error);
@@ -28,13 +35,25 @@ class AnalyticsService {
     }
   }
 
-  // Get analytics data with improved fallback handling
+  // Get analytics data with improved fallback handling and less frequent re-initialization
   async getAnalyticsData(): Promise<AnalyticsData> {
     try {
       console.log('📊 Analytics Service: Fetching analytics data...');
       
-      // Try to initialize GA if not already done
-      const hasRealGA = await this.initializeGA();
+      // Only try to initialize GA if we haven't checked recently
+      const now = Date.now();
+      let hasRealGA = false;
+      
+      if (now - this.lastInitCheck > this.initCheckInterval) {
+        console.log('📊 Analytics Service: Checking GA initialization (throttled)...');
+        hasRealGA = await this.initializeGA();
+        this.lastInitCheck = now;
+      } else {
+        // Check current status without re-initializing
+        const status = this.googleAnalytics.getInitializationStatus();
+        hasRealGA = status.gaInitialized && status.hasGtag;
+        console.log('📊 Analytics Service: Using cached GA status:', { hasRealGA, status });
+      }
       
       if (hasRealGA) {
         console.log('✅ Analytics Service: Using real analytics data');
@@ -131,7 +150,7 @@ class AnalyticsService {
   async refreshGA(): Promise<boolean> {
     try {
       console.log('🔄 Analytics Service: Force refreshing GA...');
-      this.initializationPromise = null;
+      this.lastInitCheck = 0; // Reset throttle
       return this.googleAnalytics.refreshInitialization();
     } catch (error) {
       console.error('❌ Analytics Service: Error refreshing GA:', error);
@@ -142,12 +161,19 @@ class AnalyticsService {
   // Check if currently using demo data
   async isDemoMode(): Promise<boolean> {
     try {
-      const hasRealGA = await this.initializeGA();
-      return !hasRealGA;
+      const status = this.googleAnalytics.getInitializationStatus();
+      const isDemo = !status.gaInitialized || !status.hasGtag;
+      console.log('📊 Analytics Service: Demo mode check:', { isDemo, status });
+      return isDemo;
     } catch (error) {
       console.error('❌ Analytics Service: Error checking demo mode:', error);
       return true;
     }
+  }
+
+  // Get detailed initialization status for debugging
+  getGAStatus() {
+    return this.googleAnalytics.getInitializationStatus();
   }
 
   // Cleanup method

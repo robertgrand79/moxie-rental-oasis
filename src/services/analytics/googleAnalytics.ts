@@ -8,49 +8,70 @@ export class GoogleAnalyticsService {
   private initializationPromise: Promise<boolean> | null = null;
   private settingsSubscription: any = null;
   private scriptLoadListener: ((event: Event) => void) | null = null;
+  private debugMode = true; // Enable detailed debugging
 
   async initializeGA(): Promise<boolean> {
+    // Return cached result if already initialized successfully
+    if (this.gaInitialized && this.gaId) {
+      this.debugLog('GA already initialized successfully', { gaId: this.gaId });
+      return true;
+    }
+
     // Return existing promise if initialization is already in progress
     if (this.initializationPromise) {
-      console.log('📊 GA initialization already in progress, waiting...');
+      this.debugLog('GA initialization already in progress, waiting...');
       return this.initializationPromise;
     }
 
+    this.debugLog('Starting new GA initialization...');
     this.initializationPromise = this.performInitialization();
     return this.initializationPromise;
   }
 
   private async performInitialization(): Promise<boolean> {
     try {
-      console.log('📊 Starting GA initialization...');
+      this.debugLog('🔄 Starting GA initialization process...');
       
       // Get fresh GA ID from settings
-      const { data: settings } = await supabase
+      const { data: settings, error } = await supabase
         .from('site_settings')
         .select('value')
         .eq('key', 'googleAnalyticsId')
         .single();
       
+      if (error) {
+        this.debugLog('❌ Error fetching GA ID from database:', error);
+        return false;
+      }
+
       this.gaId = settings?.value ? String(settings.value).trim() : null;
-      console.log('📊 Retrieved GA ID:', this.gaId ? `${this.gaId.substring(0, 8)}...` : 'none');
+      this.debugLog('📊 Retrieved GA ID from database:', { 
+        gaId: this.gaId ? `${this.gaId.substring(0, 8)}...` : 'none',
+        fullValue: this.gaId 
+      });
 
       if (!this.gaId || !this.gaId.startsWith('G-')) {
-        console.log('📊 No valid Google Analytics ID configured');
+        this.debugLog('❌ No valid Google Analytics ID configured:', { gaId: this.gaId });
         return false;
       }
 
       // Check if we're in browser environment
       if (typeof window === 'undefined') {
-        console.log('📊 Not in browser environment');
+        this.debugLog('❌ Not in browser environment');
         return false;
       }
 
+      this.debugLog('🌐 Browser environment confirmed, starting script detection...');
+
       // Enhanced GA script detection and waiting
-      const isGtagAvailable = await this.waitForGtagAdvanced();
+      const isGtagAvailable = await this.waitForGtagWithEnhancedDetection();
       
       if (isGtagAvailable) {
         this.gaInitialized = true;
-        console.log('✅ Google Analytics initialized successfully with ID:', this.gaId);
+        this.debugLog('✅ Google Analytics initialized successfully!', { 
+          gaId: this.gaId,
+          gtagAvailable: typeof (window as any).gtag === 'function'
+        });
         
         // Clear any cached demo data when switching to real GA
         this.clearDemoCache();
@@ -61,33 +82,45 @@ export class GoogleAnalyticsService {
         return true;
       }
 
-      console.log('⚠️ Google Analytics script not available after waiting');
+      this.debugLog('❌ Google Analytics script not available after enhanced detection');
       return false;
     } catch (error) {
-      console.error('❌ Error initializing Google Analytics:', error);
+      this.debugLog('❌ Error in GA initialization:', error);
       return false;
+    } finally {
+      // Reset initialization promise to allow future attempts
+      setTimeout(() => {
+        this.initializationPromise = null;
+      }, 1000);
     }
   }
 
-  private async waitForGtagAdvanced(maxRetries = 40, initialDelay = 200): Promise<boolean> {
-    console.log('📊 Enhanced GA script detection starting...');
+  private async waitForGtagWithEnhancedDetection(maxRetries = 50, initialDelay = 300): Promise<boolean> {
+    this.debugLog('🔍 Starting enhanced GA script detection...', {
+      maxRetries,
+      initialDelay,
+      gaId: this.gaId
+    });
     
     // Set up event listener for SiteHead script load notification
     const scriptLoadedPromise = new Promise<boolean>((resolve) => {
       this.scriptLoadListener = (event: Event) => {
         const customEvent = event as CustomEvent;
+        this.debugLog('📡 Received ga-script-loaded event:', customEvent.detail);
+        
         if (customEvent.detail?.gaId === this.gaId) {
-          console.log('📊 Received ga-script-loaded event for:', this.gaId);
+          this.debugLog('✅ GA script loaded event matches our GA ID!');
           resolve(true);
         }
       };
       
       window.addEventListener('ga-script-loaded', this.scriptLoadListener);
+      this.debugLog('👂 Event listener registered for ga-script-loaded');
       
       // Also resolve if we detect gtag is already available
       setTimeout(() => {
         if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
-          console.log('📊 gtag already available, resolving immediately');
+          this.debugLog('⚡ gtag already available, resolving immediately');
           resolve(true);
         }
       }, 100);
@@ -97,22 +130,32 @@ export class GoogleAnalyticsService {
     const pollingPromise = new Promise<boolean>(async (resolve) => {
       for (let i = 0; i < maxRetries; i++) {
         try {
+          this.debugLog(`🔍 Detection attempt ${i + 1}/${maxRetries}...`);
+
           // Method 1: Check for gtag function
           if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
-            console.log(`✅ gtag function found via polling (attempt ${i + 1})`);
+            this.debugLog(`✅ gtag function found via polling (attempt ${i + 1})`);
             resolve(true);
             return;
           }
 
           // Method 2: Check for GA script element with our specific ID
-          const gaScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${this.gaId}"]`);
-          if (gaScript) {
-            console.log(`📊 GA script element found (attempt ${i + 1}), checking for gtag...`);
+          const gaScripts = document.querySelectorAll(`script[src*="googletagmanager.com/gtag/js"]`);
+          const ourGaScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${this.gaId}"]`);
+          
+          this.debugLog(`📜 GA scripts found:`, {
+            totalGAScripts: gaScripts.length,
+            ourSpecificScript: !!ourGaScript,
+            scriptSrcs: Array.from(gaScripts).map(s => s.getAttribute('src'))
+          });
+
+          if (ourGaScript) {
+            this.debugLog(`📊 Our GA script element found (attempt ${i + 1}), waiting for gtag...`);
             
             // If script exists, wait a bit more for gtag to be available
-            await this.sleep(300);
+            await this.sleep(500);
             if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
-              console.log(`✅ gtag function available after script detection (attempt ${i + 1})`);
+              this.debugLog(`✅ gtag function available after script detection (attempt ${i + 1})`);
               resolve(true);
               return;
             }
@@ -120,42 +163,48 @@ export class GoogleAnalyticsService {
 
           // Method 3: Check for dataLayer as secondary indicator
           if (typeof window !== 'undefined' && (window as any).dataLayer && Array.isArray((window as any).dataLayer)) {
-            console.log(`📊 dataLayer found (attempt ${i + 1}), checking for gtag...`);
+            const dataLayerLength = (window as any).dataLayer.length;
+            this.debugLog(`📊 dataLayer found with ${dataLayerLength} items (attempt ${i + 1})`);
             
-            // If dataLayer exists, gtag might be available soon
-            await this.sleep(200);
-            if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
-              console.log(`✅ gtag function available via dataLayer check (attempt ${i + 1})`);
-              resolve(true);
-              return;
+            // If dataLayer has content, gtag might be available soon
+            if (dataLayerLength > 0) {
+              await this.sleep(300);
+              if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
+                this.debugLog(`✅ gtag function available via dataLayer check (attempt ${i + 1})`);
+                resolve(true);
+                return;
+              }
             }
           }
 
-          // Method 4: Check if any Google Analytics related scripts are loading
-          const allScripts = document.querySelectorAll('script[src*="googletagmanager.com"]');
-          if (allScripts.length > 0) {
-            console.log(`📊 Found ${allScripts.length} GA-related scripts (attempt ${i + 1})`);
+          // Method 4: Check window.google and window.ga objects
+          const hasGoogleObjects = !!(window as any).google || !!(window as any).ga;
+          if (hasGoogleObjects) {
+            this.debugLog(`🔍 Google objects detected (attempt ${i + 1}):`, {
+              google: !!(window as any).google,
+              ga: !!(window as any).ga
+            });
           }
 
-          // Exponential backoff delay with reasonable cap
-          const delay = Math.min(initialDelay * Math.pow(1.15, i), 1500);
+          // Progressive delay with reasonable cap
+          const delay = Math.min(initialDelay * Math.pow(1.2, i), 2000);
           await this.sleep(delay);
           
         } catch (error) {
-          console.error(`❌ Error in GA detection attempt ${i + 1}:`, error);
+          this.debugLog(`❌ Error in detection attempt ${i + 1}:`, error);
         }
       }
       
-      console.log('❌ gtag function not available after maximum polling attempts');
+      this.debugLog('❌ gtag function not available after maximum polling attempts');
       resolve(false);
     });
 
     // Race between event listener and polling, with overall timeout
     const timeoutPromise = new Promise<boolean>((resolve) => {
       setTimeout(() => {
-        console.log('⏰ GA initialization timeout reached');
+        this.debugLog('⏰ GA initialization timeout reached (20 seconds)');
         resolve(false);
-      }, 15000); // 15 second overall timeout
+      }, 20000); // 20 second overall timeout
     });
 
     try {
@@ -165,24 +214,34 @@ export class GoogleAnalyticsService {
       if (this.scriptLoadListener) {
         window.removeEventListener('ga-script-loaded', this.scriptLoadListener);
         this.scriptLoadListener = null;
+        this.debugLog('🧹 Event listener cleaned up');
       }
       
       if (result) {
-        console.log('✅ GA script detection successful');
+        this.debugLog('🎉 GA script detection successful!');
         
         // Final verification that gtag is actually callable
         if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
-          console.log('✅ Final gtag verification passed');
+          this.debugLog('✅ Final gtag verification passed');
+          
+          // Test gtag function
+          try {
+            (window as any).gtag('config', this.gaId);
+            this.debugLog('✅ gtag config test successful');
+          } catch (gtagError) {
+            this.debugLog('⚠️ gtag config test failed:', gtagError);
+          }
+          
           return true;
         } else {
-          console.log('❌ Final gtag verification failed');
+          this.debugLog('❌ Final gtag verification failed');
           return false;
         }
       }
       
       return false;
     } catch (error) {
-      console.error('❌ Error in enhanced GA detection:', error);
+      this.debugLog('❌ Error in enhanced GA detection:', error);
       return false;
     }
   }
@@ -204,7 +263,7 @@ export class GoogleAnalyticsService {
           filter: 'key=eq.googleAnalyticsId'
         }, 
         (payload) => {
-          console.log('📊 GA settings changed, refreshing initialization...');
+          this.debugLog('📊 GA settings changed, refreshing initialization...', payload);
           this.refreshInitialization();
         }
       )
@@ -212,7 +271,7 @@ export class GoogleAnalyticsService {
   }
 
   private clearDemoCache() {
-    console.log('🧹 Clearing demo analytics cache...');
+    this.debugLog('🧹 Clearing demo analytics cache...');
     const cacheKeys = ['analytics_dailyVisitors', 'analytics_dailyPageViews', 'analytics_dailySessions'];
     cacheKeys.forEach(key => {
       localStorage.removeItem(key);
@@ -220,7 +279,7 @@ export class GoogleAnalyticsService {
   }
 
   refreshInitialization(): Promise<boolean> {
-    console.log('🔄 Refreshing GA initialization...');
+    this.debugLog('🔄 Refreshing GA initialization...');
     this.gaInitialized = false;
     this.gaId = null;
     this.initializationPromise = null;
@@ -239,6 +298,16 @@ export class GoogleAnalyticsService {
 
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private debugLog(message: string, data?: any) {
+    if (this.debugMode) {
+      if (data) {
+        console.log(`🔧 GA Debug: ${message}`, data);
+      } else {
+        console.log(`🔧 GA Debug: ${message}`);
+      }
+    }
   }
 
   async getRealAnalyticsData(): Promise<AnalyticsData> {
@@ -286,10 +355,10 @@ export class GoogleAnalyticsService {
 
   trackEvent(eventName: string, parameters?: Record<string, any>) {
     if (this.gaInitialized && typeof window !== 'undefined' && 'gtag' in window) {
-      console.log('📊 Tracking GA event:', eventName, parameters);
+      this.debugLog('📊 Tracking GA event:', { eventName, parameters });
       (window as any).gtag('event', eventName, parameters);
     } else {
-      console.log('📊 GA not initialized, storing event locally:', eventName);
+      this.debugLog('📊 GA not initialized, storing event locally:', { eventName, parameters });
     }
     
     // Also store locally for our own analytics
@@ -327,6 +396,17 @@ export class GoogleAnalyticsService {
     } catch {
       return fallback;
     }
+  }
+
+  // Check if GA is actually initialized (for external debugging)
+  getInitializationStatus() {
+    return {
+      gaInitialized: this.gaInitialized,
+      gaId: this.gaId,
+      hasGtag: typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function',
+      hasDataLayer: typeof window !== 'undefined' && (window as any).dataLayer && Array.isArray((window as any).dataLayer),
+      dataLayerLength: typeof window !== 'undefined' && (window as any).dataLayer ? (window as any).dataLayer.length : 0
+    };
   }
 
   // Cleanup method
