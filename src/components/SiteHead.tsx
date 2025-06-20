@@ -1,3 +1,4 @@
+
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 import { useHeroSettings } from '@/components/home/hooks/useHeroSettings';
 import { useEffect } from 'react';
@@ -89,7 +90,7 @@ const SiteHead = () => {
       ogImageMeta.setAttribute('content', ogImage);
     }
 
-    // Enhanced Google Analytics setup with better error handling
+    // Enhanced Google Analytics setup with improved timing and event coordination
     if (googleAnalyticsId && /^G-[A-Z0-9]+$/.test(googleAnalyticsId)) {
       const existingScript = document.querySelector(`script[src*="${googleAnalyticsId}"]`);
       
@@ -101,9 +102,30 @@ const SiteHead = () => {
         gaScript.async = true;
         gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`;
         
-        // Add load event listeners for better debugging
+        // Enhanced load event handling with better timing
         gaScript.onload = () => {
           console.log('✅ SiteHead: Google Analytics script loaded successfully');
+          
+          // Wait for gtag to be fully available before dispatching event
+          const checkGtagAndDispatch = () => {
+            if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
+              console.log('📊 SiteHead: gtag function confirmed available, dispatching event');
+              
+              // Dispatch event with slight delay to ensure everything is ready
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('ga-script-loaded', { 
+                  detail: { gaId: googleAnalyticsId } 
+                }));
+                console.log('📊 SiteHead: ga-script-loaded event dispatched for', googleAnalyticsId);
+              }, 200);
+            } else {
+              console.log('📊 SiteHead: gtag not yet available, checking again...');
+              setTimeout(checkGtagAndDispatch, 100);
+            }
+          };
+          
+          // Start checking for gtag availability
+          setTimeout(checkGtagAndDispatch, 100);
         };
         
         gaScript.onerror = (error) => {
@@ -112,7 +134,7 @@ const SiteHead = () => {
         
         document.head.appendChild(gaScript);
 
-        // Create the GA configuration script
+        // Create the GA configuration script with improved timing
         const gaConfigScript = document.createElement('script');
         gaConfigScript.innerHTML = `
           window.dataLayer = window.dataLayer || [];
@@ -123,14 +145,17 @@ const SiteHead = () => {
         `;
         document.head.appendChild(gaConfigScript);
         
-        // Dispatch event to notify analytics service
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('ga-script-loaded', { 
-            detail: { gaId: googleAnalyticsId } 
-          }));
-        }, 100);
       } else {
         console.log('📊 SiteHead: Google Analytics script already exists');
+        // If script already exists, still dispatch event in case service is waiting
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
+            window.dispatchEvent(new CustomEvent('ga-script-loaded', { 
+              detail: { gaId: googleAnalyticsId } 
+            }));
+            console.log('📊 SiteHead: ga-script-loaded event dispatched for existing script');
+          }
+        }, 100);
       }
     } else if (googleAnalyticsId) {
       console.warn('⚠️ SiteHead: Invalid Google Analytics ID format:', googleAnalyticsId);
