@@ -161,7 +161,7 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: #f8fafc;
           min-height: 100vh;
           display: flex;
           align-items: center;
@@ -172,15 +172,14 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         }
         
         .container {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border-radius: 24px;
+          background: #ffffff;
+          border-radius: 16px;
           padding: 48px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           max-width: 600px;
           width: 100%;
           animation: slideUp 0.6s ease-out;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid #e2e8f0;
         }
         
         @keyframes slideUp {
@@ -221,7 +220,7 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         .success-icon {
           width: 80px;
           height: 80px;
-          background: linear-gradient(135deg, #10b981, #059669);
+          background: #10b981;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -246,10 +245,7 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         .brand-logo {
           font-size: 28px;
           font-weight: 700;
-          background: linear-gradient(135deg, #667eea, #764ba2);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: #1f2937;
           margin-bottom: 8px;
         }
         
@@ -277,23 +273,11 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         }
         
         .work-order-details {
-          background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-          border-radius: 16px;
+          background: #f8fafc;
+          border-radius: 12px;
           padding: 32px;
           margin: 32px 0;
-          border: 1px solid #e5e7eb;
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .work-order-details::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 4px;
-          background: linear-gradient(135deg, #667eea, #764ba2);
+          border: 1px solid #e2e8f0;
         }
         
         .details-title {
@@ -317,7 +301,7 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
           align-items: center;
           margin-bottom: 16px;
           padding: 12px 0;
-          border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+          border-bottom: 1px solid #e5e7eb;
           flex-wrap: wrap;
           gap: 8px;
         }
@@ -342,7 +326,7 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         }
         
         .status-badge {
-          background: linear-gradient(135deg, #10b981, #059669);
+          background: #10b981;
           color: white;
           padding: 6px 16px;
           border-radius: 20px;
@@ -350,15 +334,16 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.05em;
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+          box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
         }
         
         .next-steps {
-          background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+          background: #ffffff;
+          border: 2px solid #3b82f6;
           border-left: 6px solid #3b82f6;
           padding: 24px;
           margin: 32px 0;
-          border-radius: 12px;
+          border-radius: 8px;
           position: relative;
         }
         
@@ -371,7 +356,7 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         }
         
         .next-steps h4 {
-          color: #1e40af;
+          color: #1f2937;
           margin-bottom: 16px;
           font-size: 18px;
           font-weight: 600;
@@ -389,25 +374,13 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         }
         
         .contact-info {
-          background: linear-gradient(135deg, #1f2937, #374151);
-          color: white;
+          background: #f8fafc;
+          color: #1f2937;
           padding: 32px;
-          border-radius: 16px;
+          border-radius: 12px;
           text-align: center;
           margin-top: 40px;
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .contact-info::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, rgba(103, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-          pointer-events: none;
+          border: 1px solid #e2e8f0;
         }
         
         .contact-info-content {
@@ -419,15 +392,16 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
           font-size: 20px;
           font-weight: 600;
           margin-bottom: 16px;
+          color: #1f2937;
         }
         
         .contact-details {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border-radius: 12px;
+          background: #ffffff;
+          border-radius: 8px;
           padding: 20px;
           margin: 20px 0;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
         
         .contact-item {
@@ -438,17 +412,33 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
           margin: 12px 0;
           font-size: 16px;
           font-weight: 500;
+          color: #1f2937;
+        }
+        
+        .contact-item strong {
+          color: #1f2937;
+        }
+        
+        .contact-item a {
+          color: #3b82f6;
+          text-decoration: none;
+          font-weight: 600;
+        }
+        
+        .contact-item a:hover {
+          color: #2563eb;
+          text-decoration: underline;
         }
         
         .timestamp {
-          background: rgba(255, 255, 255, 0.05);
+          background: #ffffff;
           padding: 16px;
           border-radius: 8px;
           font-size: 14px;
-          color: rgba(255, 255, 255, 0.8);
+          color: #6b7280;
           text-align: center;
           margin-top: 24px;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid #e2e8f0;
         }
         
         @media (max-width: 640px) {
@@ -548,11 +538,11 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
             <div class="contact-details">
               <div class="contact-item">
                 <span>📞</span>
-                <strong>+1 541-255-1698</strong>
+                <strong><a href="tel:+15412551698">+1 541-255-1698</a></strong>
               </div>
               <div class="contact-item">
                 <span>✉️</span>
-                <strong>team@moxievacationrentals.com</strong>
+                <strong><a href="mailto:team@moxievacationrentals.com">team@moxievacationrentals.com</a></strong>
               </div>
               <div class="contact-item">
                 <span>📍</span>
@@ -591,7 +581,7 @@ function getErrorPage(message: string) {
         
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%);
+          background: #f8fafc;
           min-height: 100vh;
           display: flex;
           align-items: center;
@@ -602,16 +592,15 @@ function getErrorPage(message: string) {
         }
         
         .container {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border-radius: 24px;
+          background: #ffffff;
+          border-radius: 16px;
           padding: 48px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           max-width: 600px;
           width: 100%;
           text-align: center;
           animation: slideUp 0.6s ease-out;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid #e2e8f0;
         }
         
         @keyframes slideUp {
@@ -628,7 +617,7 @@ function getErrorPage(message: string) {
         .error-icon {
           width: 80px;
           height: 80px;
-          background: linear-gradient(135deg, #ef4444, #dc2626);
+          background: #ef4444;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -649,10 +638,7 @@ function getErrorPage(message: string) {
         .brand-logo {
           font-size: 28px;
           font-weight: 700;
-          background: linear-gradient(135deg, #ef4444, #dc2626);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: #1f2937;
           margin-bottom: 8px;
         }
         
@@ -676,24 +662,12 @@ function getErrorPage(message: string) {
         }
         
         .contact-info {
-          background: linear-gradient(135deg, #1f2937, #374151);
-          color: white;
+          background: #f8fafc;
+          color: #1f2937;
           padding: 32px;
-          border-radius: 16px;
+          border-radius: 12px;
           margin-top: 32px;
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .contact-info::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
-          pointer-events: none;
+          border: 1px solid #e2e8f0;
         }
         
         .contact-info-content {
@@ -705,20 +679,37 @@ function getErrorPage(message: string) {
           font-size: 20px;
           font-weight: 600;
           margin-bottom: 16px;
+          color: #1f2937;
         }
         
         .contact-details {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border-radius: 12px;
+          background: #ffffff;
+          border-radius: 8px;
           padding: 20px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
         
         .contact-item {
           margin: 12px 0;
           font-size: 16px;
           font-weight: 500;
+          color: #1f2937;
+        }
+        
+        .contact-item strong {
+          color: #1f2937;
+        }
+        
+        .contact-item a {
+          color: #3b82f6;
+          text-decoration: none;
+          font-weight: 600;
+        }
+        
+        .contact-item a:hover {
+          color: #2563eb;
+          text-decoration: underline;
         }
         
         @media (max-width: 640px) {
@@ -760,8 +751,8 @@ function getErrorPage(message: string) {
           <div class="contact-info-content">
             <div class="contact-title">Need Help?</div>
             <div class="contact-details">
-              <div class="contact-item">📞 <strong>+1 541-255-1698</strong></div>
-              <div class="contact-item">✉️ <strong>team@moxievacationrentals.com</strong></div>
+              <div class="contact-item">📞 <strong><a href="tel:+15412551698">+1 541-255-1698</a></strong></div>
+              <div class="contact-item">✉️ <strong><a href="mailto:team@moxievacationrentals.com">team@moxievacationrentals.com</a></strong></div>
               <div class="contact-item">📍 <strong>2472 Willamette St, Eugene, OR 97405</strong></div>
             </div>
           </div>

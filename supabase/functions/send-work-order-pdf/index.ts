@@ -201,7 +201,7 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
           color: #1f2937;
           margin: 0;
           padding: 0;
-          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          background: #f8fafc;
           min-height: 100vh;
         }
         
@@ -211,32 +211,16 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
           background: #ffffff;
           border-radius: 16px;
           overflow: hidden;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e2e8f0;
         }
         
         .header {
-          background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%);
-          color: white;
+          background: #ffffff;
+          color: #1f2937;
           padding: 40px 30px;
           text-align: center;
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .header::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(45deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
-          pointer-events: none;
-        }
-        
-        .header-content {
-          position: relative;
-          z-index: 1;
+          border-bottom: 3px solid #3b82f6;
         }
         
         .logo {
@@ -244,29 +228,31 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
           font-weight: 800;
           margin-bottom: 8px;
           letter-spacing: -0.025em;
+          color: #1f2937;
         }
         
         .tagline {
           font-size: 16px;
-          opacity: 0.9;
+          color: #6b7280;
           margin-bottom: 20px;
           font-weight: 400;
         }
         
         .work-order-badge {
           display: inline-block;
-          background: rgba(255, 255, 255, 0.15);
-          backdrop-filter: blur(10px);
+          background: #f3f4f6;
           padding: 12px 24px;
-          border-radius: 30px;
+          border-radius: 8px;
           font-weight: 600;
           font-size: 18px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 2px solid #3b82f6;
+          color: #1f2937;
           margin-top: 10px;
         }
         
         .content {
           padding: 40px 30px;
+          background: #ffffff;
         }
         
         .greeting {
@@ -286,32 +272,24 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
         }
         
         .acknowledge-card {
-          background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+          background: #ffffff;
           border: 2px solid #3b82f6;
           border-radius: 16px;
           padding: 32px;
           text-align: center;
           margin: 0 0 40px 0;
-          position: relative;
-        }
-        
-        .acknowledge-card::before {
-          content: '✨';
-          position: absolute;
-          top: -10px;
-          right: 20px;
-          font-size: 24px;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
         
         .acknowledge-title {
           font-size: 20px;
           font-weight: 700;
-          color: #1e40af;
+          color: #1f2937;
           margin-bottom: 12px;
         }
         
         .acknowledge-subtitle {
-          color: #1f2937;
+          color: #4b5563;
           margin-bottom: 24px;
           font-size: 16px;
           line-height: 1.6;
@@ -319,21 +297,22 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
         
         .acknowledge-button {
           display: inline-block;
-          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+          background: #3b82f6;
           color: white;
           text-decoration: none;
           padding: 16px 32px;
-          border-radius: 12px;
+          border-radius: 8px;
           font-weight: 600;
           font-size: 16px;
           transition: all 0.3s ease;
-          box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.3);
+          box-shadow: 0 2px 4px 0 rgba(59, 130, 246, 0.2);
           border: none;
         }
         
         .acknowledge-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px 0 rgba(59, 130, 246, 0.4);
+          background: #2563eb;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px 0 rgba(59, 130, 246, 0.3);
         }
         
         .work-order-details {
@@ -341,7 +320,7 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
           border-radius: 12px;
           padding: 30px;
           margin: 30px 0;
-          border-left: 4px solid #3b82f6;
+          border: 1px solid #e2e8f0;
         }
         
         .details-title {
@@ -367,9 +346,9 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
         .detail-item {
           background: white;
           padding: 20px;
-          border-radius: 10px;
+          border-radius: 8px;
           border: 1px solid #e5e7eb;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
         
         .detail-label {
@@ -399,39 +378,41 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
           text-transform: capitalize;
           color: white;
           background: ${priorityColor};
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         
         .description-section {
-          background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+          background: #fffbeb;
           border-left: 4px solid #f59e0b;
           padding: 24px;
           margin: 24px 0;
           border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         
         .contact-section {
-          background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-          color: white;
+          background: #f8fafc;
+          color: #1f2937;
           padding: 40px 30px;
           text-align: center;
           margin-top: 40px;
+          border-top: 1px solid #e2e8f0;
         }
         
         .contact-title {
           font-size: 24px;
           font-weight: 700;
           margin-bottom: 16px;
+          color: #1f2937;
         }
         
         .contact-info {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
+          background: #ffffff;
           border-radius: 12px;
           padding: 24px;
           margin: 24px 0;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
         
         .contact-detail {
@@ -441,18 +422,31 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
           gap: 12px;
           margin: 12px 0;
           font-size: 16px;
+          color: #1f2937;
         }
         
         .contact-detail strong {
           font-weight: 600;
+          color: #1f2937;
+        }
+        
+        .contact-detail a {
+          color: #3b82f6;
+          text-decoration: none;
+          font-weight: 600;
+        }
+        
+        .contact-detail a:hover {
+          color: #2563eb;
+          text-decoration: underline;
         }
         
         .footer-note {
           font-size: 14px;
-          opacity: 0.8;
+          color: #6b7280;
           margin-top: 24px;
           padding-top: 24px;
-          border-top: 1px solid rgba(255, 255, 255, 0.2);
+          border-top: 1px solid #e2e8f0;
         }
         
         @media (max-width: 600px) {
@@ -486,11 +480,9 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
     <body>
       <div class="email-container">
         <div class="header">
-          <div class="header-content">
-            <div class="logo">Moxie Vacation Rentals</div>
-            <div class="tagline">Your Home Base for Living Like a Local</div>
-            <div class="work-order-badge">${workOrder.work_order_number}</div>
-          </div>
+          <div class="logo">Moxie Vacation Rentals</div>
+          <div class="tagline">Your Home Base for Living Like a Local</div>
+          <div class="work-order-badge">${workOrder.work_order_number}</div>
         </div>
         
         <div class="content">
@@ -576,11 +568,11 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
           <div class="contact-info">
             <div class="contact-detail">
               <span>📞</span>
-              <span><strong>Phone:</strong> +1 541-255-1698</span>
+              <span><strong>Phone:</strong> <a href="tel:+15412551698">+1 541-255-1698</a></span>
             </div>
             <div class="contact-detail">
               <span>✉️</span>
-              <span><strong>Email:</strong> gabby@moxievacationrental.com</span>
+              <span><strong>Email:</strong> <a href="mailto:team@moxievacationrentals.com">team@moxievacationrentals.com</a></span>
             </div>
             <div class="contact-detail">
               <span>📍</span>
