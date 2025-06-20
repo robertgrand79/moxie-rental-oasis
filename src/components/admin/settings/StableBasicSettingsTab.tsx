@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Save, Globe, Image, AlertCircle } from 'lucide-react';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useBasicSettingsSave } from '@/hooks/useBasicSettingsSave';
-import ImageUploader from '@/components/admin/ImageUploader';
+import HeroImageUploader from '@/components/HeroImageUploader';
 import StaticSettingsSyncButton from './StaticSettingsSyncButton';
 
 const StableBasicSettingsTab = () => {
@@ -174,10 +175,9 @@ const StableBasicSettingsTab = () => {
           </div>
           <div>
             <Label htmlFor="heroBackgroundImage">Hero Background Image</Label>
-            <ImageUploader
-              imageUrl={localData.heroBackgroundImage}
-              onImageUpload={(url) => handleInputChange('heroBackgroundImage', url)}
-              onImageRemove={() => handleInputChange('heroBackgroundImage', '')}
+            <HeroImageUploader
+              currentImageUrl={localData.heroBackgroundImage}
+              onImageChange={(url) => handleInputChange('heroBackgroundImage', url || '')}
             />
           </div>
           <div>
