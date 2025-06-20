@@ -11,8 +11,15 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('CORS preflight request received');
     return new Response(null, { headers: corsHeaders });
   }
+
+  console.log('=== ACKNOWLEDGE WORK ORDER FUNCTION START ===');
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+  console.log('Environment check - SUPABASE_URL:', Deno.env.get('SUPABASE_URL') ? 'Present' : 'Missing');
+  console.log('Environment check - SERVICE_ROLE_KEY:', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ? 'Present' : 'Missing');
 
   try {
     const supabase = createClient(
@@ -22,15 +29,18 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     const token = url.searchParams.get('token');
+    console.log('Token parameter:', token ? 'Present' : 'Missing');
+    console.log('Token length:', token ? token.length : 0);
 
     if (!token) {
-      return new Response(getErrorPage('Invalid acknowledgement link'), {
+      console.log('ERROR: No token provided in URL');
+      return new Response(getErrorPage('Invalid acknowledgement link - no token provided'), {
         headers: { 'Content-Type': 'text/html', ...corsHeaders },
         status: 400,
       });
     }
 
-    console.log('Processing acknowledgement for token:', token);
+    console.log('Searching for token in database...');
 
     // Get the acknowledgement token and work order details
     const { data: tokenData, error: tokenError } = await supabase
@@ -48,16 +58,26 @@ serve(async (req) => {
       .eq('token', token)
       .single();
 
+    console.log('Database query result:', {
+      found: !!tokenData,
+      error: tokenError?.message || 'None'
+    });
+
     if (tokenError || !tokenData) {
-      console.error('Token not found:', tokenError);
+      console.error('Token lookup failed:', tokenError);
       return new Response(getErrorPage('Invalid or expired acknowledgement link'), {
         headers: { 'Content-Type': 'text/html', ...corsHeaders },
         status: 404,
       });
     }
 
+    console.log('Token found - Work Order:', tokenData.work_order?.work_order_number);
+    console.log('Token expires at:', tokenData.expires_at);
+    console.log('Token already used:', !!tokenData.used_at);
+
     // Check if token is expired
     if (new Date(tokenData.expires_at) < new Date()) {
+      console.log('ERROR: Token has expired');
       return new Response(getErrorPage('This acknowledgement link has expired'), {
         headers: { 'Content-Type': 'text/html', ...corsHeaders },
         status: 410,
@@ -66,10 +86,13 @@ serve(async (req) => {
 
     // Check if already used
     if (tokenData.used_at) {
+      console.log('Token already used - showing success page');
       return new Response(getSuccessPage(tokenData.work_order, true), {
         headers: { 'Content-Type': 'text/html', ...corsHeaders },
       });
     }
+
+    console.log('Processing acknowledgement - updating work order status...');
 
     // Update work order status to acknowledged
     const { error: updateError } = await supabase
@@ -82,27 +105,36 @@ serve(async (req) => {
 
     if (updateError) {
       console.error('Error updating work order:', updateError);
-      return new Response(getErrorPage('Failed to acknowledge work order'), {
+      return new Response(getErrorPage('Failed to acknowledge work order - database update failed'), {
         headers: { 'Content-Type': 'text/html', ...corsHeaders },
         status: 500,
       });
     }
 
+    console.log('Work order status updated successfully');
+
     // Mark token as used
-    await supabase
+    const { error: tokenUpdateError } = await supabase
       .from('work_order_acknowledgement_tokens')
       .update({ used_at: new Date().toISOString() })
       .eq('id', tokenData.id);
 
-    console.log('Work order acknowledged successfully:', tokenData.work_order_id);
+    if (tokenUpdateError) {
+      console.error('Error marking token as used:', tokenUpdateError);
+      // Don't fail the request for this, just log it
+    }
+
+    console.log('=== ACKNOWLEDGEMENT COMPLETED SUCCESSFULLY ===');
 
     return new Response(getSuccessPage(tokenData.work_order, false), {
       headers: { 'Content-Type': 'text/html', ...corsHeaders },
     });
 
   } catch (error) {
-    console.error('Error in acknowledge-work-order function:', error);
-    return new Response(getErrorPage('An unexpected error occurred'), {
+    console.error('=== CRITICAL ERROR IN ACKNOWLEDGE FUNCTION ===');
+    console.error('Error details:', error);
+    console.error('Error stack:', error.stack);
+    return new Response(getErrorPage('An unexpected error occurred - please contact support'), {
       headers: { 'Content-Type': 'text/html', ...corsHeaders },
       status: 500,
     });
@@ -124,10 +156,11 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
           margin: 0 auto;
           padding: 20px;
           background-color: #f8fafc;
+          line-height: 1.6;
         }
         .container {
           background: white;
-          border-radius: 8px;
+          border-radius: 12px;
           padding: 40px;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
@@ -152,7 +185,7 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         }
         .work-order-details {
           background: #f3f4f6;
-          border-radius: 6px;
+          border-radius: 8px;
           padding: 20px;
           margin: 20px 0;
         }
@@ -160,6 +193,7 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
           display: flex;
           justify-content: space-between;
           margin-bottom: 10px;
+          flex-wrap: wrap;
         }
         .label {
           font-weight: 600;
@@ -173,12 +207,19 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
           border-left: 4px solid #3b82f6;
           padding: 16px;
           margin: 20px 0;
+          border-radius: 4px;
         }
         .contact-info {
           text-align: center;
           margin-top: 30px;
           color: #6b7280;
           font-size: 14px;
+        }
+        .timestamp {
+          font-size: 12px;
+          color: #9ca3af;
+          text-align: center;
+          margin-top: 20px;
         }
       </style>
     </head>
@@ -230,8 +271,13 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         ` : ''}
 
         <div class="contact-info">
-          <p>If you have any questions about this work order,<br>
-          please contact the property management team.</p>
+          <p><strong>Questions about this work order?</strong><br>
+          Contact the property management team at<br>
+          <strong>gabby@moxievacationrental.com</strong> or <strong>+1 541-255-1698</strong></p>
+        </div>
+
+        <div class="timestamp">
+          Acknowledged on ${new Date().toLocaleString()}
         </div>
       </div>
     </body>
@@ -254,10 +300,11 @@ function getErrorPage(message: string) {
           margin: 0 auto;
           padding: 20px;
           background-color: #f8fafc;
+          line-height: 1.6;
         }
         .container {
           background: white;
-          border-radius: 8px;
+          border-radius: 12px;
           padding: 40px;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           text-align: center;
@@ -284,6 +331,12 @@ function getErrorPage(message: string) {
           color: #6b7280;
           margin-bottom: 30px;
         }
+        .contact-info {
+          background: #f3f4f6;
+          border-radius: 8px;
+          padding: 20px;
+          margin-top: 20px;
+        }
       </style>
     </head>
     <body>
@@ -294,7 +347,13 @@ function getErrorPage(message: string) {
         
         <h1>Acknowledgement Failed</h1>
         <p>${message}</p>
-        <p>Please contact the property management team for assistance.</p>
+        
+        <div class="contact-info">
+          <p><strong>Need Help?</strong><br>
+          Please contact the property management team:<br>
+          <strong>gabby@moxievacationrental.com</strong><br>
+          <strong>+1 541-255-1698</strong></p>
+        </div>
       </div>
     </body>
     </html>
