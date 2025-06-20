@@ -552,7 +552,7 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
               </div>
               <div class="contact-item">
                 <span>✉️</span>
-                <strong>gabby@moxievacationrental.com</strong>
+                <strong>team@moxievacationrentals.com</strong>
               </div>
               <div class="contact-item">
                 <span>📍</span>
@@ -761,7 +761,7 @@ function getErrorPage(message: string) {
             <div class="contact-title">Need Help?</div>
             <div class="contact-details">
               <div class="contact-item">📞 <strong>+1 541-255-1698</strong></div>
-              <div class="contact-item">✉️ <strong>gabby@moxievacationrental.com</strong></div>
+              <div class="contact-item">✉️ <strong>team@moxievacationrentals.com</strong></div>
               <div class="contact-item">📍 <strong>2472 Willamette St, Eugene, OR 97405</strong></div>
             </div>
           </div>
