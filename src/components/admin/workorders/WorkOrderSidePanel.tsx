@@ -111,13 +111,23 @@ const WorkOrderSidePanel = ({
     
     const submissionData = {
       ...formData,
-      property_id: formData.property_id === '' ? undefined : formData.property_id,
-      contractor_id: formData.contractor_id === '' ? undefined : formData.contractor_id,
+      property_id: formData.property_id === '' || formData.property_id === 'none' ? undefined : formData.property_id,
+      contractor_id: formData.contractor_id === '' || formData.contractor_id === 'none' ? undefined : formData.contractor_id,
       attachments: attachments.map(file => file.url),
       completion_photos: completionPhotos.map(file => file.url),
     };
     
     onSave(submissionData);
+  };
+
+  const handlePropertyChange = (value: string) => {
+    const propertyId = value === 'none' ? '' : value;
+    setFormData(prev => ({ ...prev, property_id: propertyId }));
+  };
+
+  const handleContractorChange = (value: string) => {
+    const contractorId = value === 'none' ? '' : value;
+    setFormData(prev => ({ ...prev, contractor_id: contractorId }));
   };
 
   const priorityColors = {
@@ -178,12 +188,12 @@ const WorkOrderSidePanel = ({
 
               <div className="space-y-2">
                 <Label htmlFor="property">Property</Label>
-                <Select value={formData.property_id} onValueChange={(value) => setFormData(prev => ({ ...prev, property_id: value }))}>
+                <Select value={formData.property_id || 'none'} onValueChange={handlePropertyChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select property" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Property</SelectItem>
+                    <SelectItem value="none">No Property</SelectItem>
                     {properties.map((property) => (
                       <SelectItem key={property.id} value={property.id}>
                         <div className="flex items-center gap-2">
@@ -198,12 +208,12 @@ const WorkOrderSidePanel = ({
 
               <div className="space-y-2">
                 <Label htmlFor="contractor">Contractor</Label>
-                <Select value={formData.contractor_id} onValueChange={(value) => setFormData(prev => ({ ...prev, contractor_id: value }))}>
+                <Select value={formData.contractor_id || 'none'} onValueChange={handleContractorChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select contractor" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Contractor</SelectItem>
+                    <SelectItem value="none">No Contractor</SelectItem>
                     {contractors.map((contractor) => (
                       <SelectItem key={contractor.id} value={contractor.id}>
                         <div className="flex items-center gap-2">
