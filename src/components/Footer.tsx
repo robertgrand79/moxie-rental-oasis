@@ -7,11 +7,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Default values to use as fallback
 const DEFAULT_SETTINGS = {
-  siteName: 'Moxie Vacation Rentals',
-  description: 'Discover Eugene, Oregon through thoughtfully curated vacation rentals in the heart of the Pacific Northwest.',
-  contactEmail: 'contact@moxievacationrentals.com',
-  phone: '+1 (555) 123-4567',
-  address: '123 Vacation St, Eugene, OR 97401',
+  siteName: 'Moxie Vacation Rental',
+  description: 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.',
+  contactEmail: 'gabby@moxievacationrental.com',
+  phone: '+1 541-255-1698',
+  address: '2472 Willamette St Eugene OR 97405',
   socialMedia: {
     facebook: '',
     instagram: '',
@@ -21,11 +21,11 @@ const DEFAULT_SETTINGS = {
 };
 
 const Footer = () => {
-  // Always fetch settings from database
+  // Force fresh data fetch every time with timestamp-based cache busting
   const { data: settings } = useQuery({
-    queryKey: ['footer-settings'],
+    queryKey: ['footer-settings', Date.now()], // Always fresh
     queryFn: async () => {
-      console.log('Fetching footer settings from database...');
+      console.log('🔄 Footer: Fetching fresh settings from database...');
       
       const { data, error } = await supabase
         .from('site_settings')
@@ -40,11 +40,11 @@ const Footer = () => {
         ]);
 
       if (error) {
-        console.error('Error fetching footer settings:', error);
+        console.error('❌ Footer: Error fetching settings:', error);
         return DEFAULT_SETTINGS;
       }
 
-      console.log('Raw footer settings from database:', data);
+      console.log('📄 Footer: Raw settings from database:', data);
 
       // Convert array to object and handle empty/null values properly
       const settingsMap = data?.reduce((acc, setting) => {
@@ -57,7 +57,7 @@ const Footer = () => {
                 ? JSON.parse(setting.value) 
                 : setting.value;
             } catch (parseError) {
-              console.warn(`Failed to parse socialMedia:`, parseError);
+              console.warn(`❌ Footer: Failed to parse socialMedia:`, parseError);
               acc[setting.key] = setting.value;
             }
           } else {
@@ -67,7 +67,7 @@ const Footer = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      console.log('Processed footer settings (non-empty values only):', settingsMap);
+      console.log('🔧 Footer: Processed settings (non-empty values only):', settingsMap);
 
       // Merge with defaults - database values override defaults only if they exist and are not empty
       const finalSettings = {
@@ -79,11 +79,13 @@ const Footer = () => {
         }
       };
 
-      console.log('Final footer settings with defaults:', finalSettings);
+      console.log('✅ Footer: Final settings with defaults:', finalSettings);
       return finalSettings;
     },
-    // Cache for 30 seconds to reduce database calls
-    staleTime: 30000
+    staleTime: 0, // Never consider data stale
+    gcTime: 0, // Don't cache
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   // Use fetched settings or fallback to defaults

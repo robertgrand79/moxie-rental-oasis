@@ -5,11 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 
 const ContactHero = () => {
-  // Fetch contact settings directly from database with no caching
+  // Force fresh data fetch every time with timestamp-based cache busting
   const { data: settings } = useQuery({
-    queryKey: ['contact-hero-settings', new Date().getMinutes()], // Cache busting with minute precision
+    queryKey: ['contact-hero-settings', Date.now()], // Always fresh
     queryFn: async () => {
-      console.log('Fetching contact hero settings from database...');
+      console.log('🔄 ContactHero: Fetching fresh settings from database...');
       
       const { data, error } = await supabase
         .from('site_settings')
@@ -17,11 +17,11 @@ const ContactHero = () => {
         .in('key', ['siteName', 'contactEmail', 'phone', 'address']);
 
       if (error) {
-        console.error('Error fetching contact hero settings:', error);
+        console.error('❌ ContactHero: Error fetching settings:', error);
         throw error;
       }
 
-      console.log('Raw contact hero settings:', data);
+      console.log('📄 ContactHero: Raw settings:', data);
 
       const settingsMap = data?.reduce((acc, setting) => {
         if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
@@ -32,21 +32,24 @@ const ContactHero = () => {
 
       // Use current database values with updated defaults
       const finalSettings = {
-        siteName: settingsMap.siteName || 'Moxie Vacation Rentals',
+        siteName: settingsMap.siteName || 'Moxie Vacation Rental',
         contactEmail: settingsMap.contactEmail || 'gabby@moxievacationrental.com',
         phone: settingsMap.phone || '+1 541-255-1698',
         address: settingsMap.address || '2472 Willamette St Eugene OR 97405'
       };
 
-      console.log('Final contact hero settings:', finalSettings);
+      console.log('✅ ContactHero: Final settings:', finalSettings);
       return finalSettings;
     },
-    staleTime: 0, // No caching
-    refetchInterval: false
+    staleTime: 0, // Never consider data stale
+    gcTime: 0, // Don't cache
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
+  // Always use fresh settings, no fallback to outdated defaults
   const currentSettings = settings || {
-    siteName: 'Moxie Vacation Rentals',
+    siteName: 'Moxie Vacation Rental',
     contactEmail: 'gabby@moxievacationrental.com',
     phone: '+1 541-255-1698',
     address: '2472 Willamette St Eugene OR 97405'
