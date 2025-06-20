@@ -35,7 +35,7 @@ serve(async (req) => {
     if (!token) {
       console.log('ERROR: No token provided in URL');
       return new Response(getErrorPage('Invalid acknowledgement link - no token provided'), {
-        headers: { 'Content-Type': 'text/html', ...corsHeaders },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
         status: 400,
       });
     }
@@ -66,7 +66,7 @@ serve(async (req) => {
     if (tokenError || !tokenData) {
       console.error('Token lookup failed:', tokenError);
       return new Response(getErrorPage('Invalid or expired acknowledgement link'), {
-        headers: { 'Content-Type': 'text/html', ...corsHeaders },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
         status: 404,
       });
     }
@@ -79,7 +79,7 @@ serve(async (req) => {
     if (new Date(tokenData.expires_at) < new Date()) {
       console.log('ERROR: Token has expired');
       return new Response(getErrorPage('This acknowledgement link has expired'), {
-        headers: { 'Content-Type': 'text/html', ...corsHeaders },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
         status: 410,
       });
     }
@@ -88,7 +88,7 @@ serve(async (req) => {
     if (tokenData.used_at) {
       console.log('Token already used - showing success page');
       return new Response(getSuccessPage(tokenData.work_order, true), {
-        headers: { 'Content-Type': 'text/html', ...corsHeaders },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
       });
     }
 
@@ -106,7 +106,7 @@ serve(async (req) => {
     if (updateError) {
       console.error('Error updating work order:', updateError);
       return new Response(getErrorPage('Failed to acknowledge work order - database update failed'), {
-        headers: { 'Content-Type': 'text/html', ...corsHeaders },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
         status: 500,
       });
     }
@@ -127,7 +127,7 @@ serve(async (req) => {
     console.log('=== ACKNOWLEDGEMENT COMPLETED SUCCESSFULLY ===');
 
     return new Response(getSuccessPage(tokenData.work_order, false), {
-      headers: { 'Content-Type': 'text/html', ...corsHeaders },
+      headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
     });
 
   } catch (error) {
@@ -135,7 +135,7 @@ serve(async (req) => {
     console.error('Error details:', error);
     console.error('Error stack:', error.stack);
     return new Response(getErrorPage('An unexpected error occurred - please contact support'), {
-      headers: { 'Content-Type': 'text/html', ...corsHeaders },
+      headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
       status: 500,
     });
   }
@@ -148,90 +148,358 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Work Order ${alreadyAcknowledged ? 'Previously ' : ''}Acknowledged</title>
+      <title>Work Order ${alreadyAcknowledged ? 'Previously ' : ''}Acknowledged - Moxie Vacation Rentals</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
       <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
         body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          max-width: 600px;
-          margin: 0 auto;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           padding: 20px;
-          background-color: #f8fafc;
           line-height: 1.6;
+          color: #1f2937;
         }
+        
         .container {
-          background: white;
-          border-radius: 12px;
-          padding: 40px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-radius: 24px;
+          padding: 48px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          max-width: 600px;
+          width: 100%;
+          animation: slideUp 0.6s ease-out;
+          border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes checkmarkAnimation {
+          0% {
+            transform: scale(0) rotate(45deg);
+            opacity: 0;
+          }
+          50% {
+            transform: scale(1.2) rotate(45deg);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(1) rotate(45deg);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes pulseGlow {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+          }
+          50% {
+            box-shadow: 0 0 0 20px rgba(16, 185, 129, 0);
+          }
+        }
+        
         .success-icon {
-          width: 64px;
-          height: 64px;
-          background: #10b981;
+          width: 80px;
+          height: 80px;
+          background: linear-gradient(135deg, #10b981, #059669);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin: 0 auto 20px;
+          margin: 0 auto 32px;
+          position: relative;
+          animation: pulseGlow 2s infinite;
         }
+        
         .checkmark {
           color: white;
-          font-size: 32px;
+          font-size: 40px;
+          font-weight: bold;
+          animation: checkmarkAnimation 0.8s ease-out 0.3s both;
         }
+        
+        .brand-header {
+          text-align: center;
+          margin-bottom: 32px;
+        }
+        
+        .brand-logo {
+          font-size: 28px;
+          font-weight: 700;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          margin-bottom: 8px;
+        }
+        
+        .brand-tagline {
+          color: #6b7280;
+          font-size: 14px;
+          font-weight: 500;
+        }
+        
         h1 {
           color: #1f2937;
           text-align: center;
-          margin-bottom: 20px;
+          margin-bottom: 16px;
+          font-size: 32px;
+          font-weight: 700;
+          line-height: 1.2;
         }
+        
+        .subtitle {
+          text-align: center;
+          color: #6b7280;
+          margin-bottom: 40px;
+          font-size: 18px;
+          font-weight: 400;
+        }
+        
         .work-order-details {
-          background: #f3f4f6;
-          border-radius: 8px;
-          padding: 20px;
-          margin: 20px 0;
+          background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+          border-radius: 16px;
+          padding: 32px;
+          margin: 32px 0;
+          border: 1px solid #e5e7eb;
+          position: relative;
+          overflow: hidden;
         }
+        
+        .work-order-details::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .details-title {
+          font-size: 20px;
+          font-weight: 600;
+          color: #1f2937;
+          margin-bottom: 24px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        
+        .details-title::before {
+          content: '📋';
+          font-size: 20px;
+        }
+        
         .detail-row {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 10px;
+          align-items: center;
+          margin-bottom: 16px;
+          padding: 12px 0;
+          border-bottom: 1px solid rgba(229, 231, 235, 0.5);
           flex-wrap: wrap;
+          gap: 8px;
         }
+        
+        .detail-row:last-child {
+          border-bottom: none;
+          margin-bottom: 0;
+        }
+        
         .label {
           font-weight: 600;
           color: #374151;
-        }
-        .value {
-          color: #6b7280;
-        }
-        .next-steps {
-          background: #eff6ff;
-          border-left: 4px solid #3b82f6;
-          padding: 16px;
-          margin: 20px 0;
-          border-radius: 4px;
-        }
-        .contact-info {
-          text-align: center;
-          margin-top: 30px;
-          color: #6b7280;
           font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
-        .timestamp {
-          font-size: 12px;
-          color: #9ca3af;
+        
+        .value {
+          color: #1f2937;
+          font-weight: 500;
+          font-size: 16px;
+        }
+        
+        .status-badge {
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: white;
+          padding: 6px 16px;
+          border-radius: 20px;
+          font-size: 14px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .next-steps {
+          background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+          border-left: 6px solid #3b82f6;
+          padding: 24px;
+          margin: 32px 0;
+          border-radius: 12px;
+          position: relative;
+        }
+        
+        .next-steps::before {
+          content: '🚀';
+          position: absolute;
+          top: -8px;
+          right: 20px;
+          font-size: 24px;
+        }
+        
+        .next-steps h4 {
+          color: #1e40af;
+          margin-bottom: 16px;
+          font-size: 18px;
+          font-weight: 600;
+        }
+        
+        .next-steps ul {
+          margin: 0;
+          padding-left: 24px;
+          color: #374151;
+        }
+        
+        .next-steps li {
+          margin-bottom: 8px;
+          font-weight: 500;
+        }
+        
+        .contact-info {
+          background: linear-gradient(135deg, #1f2937, #374151);
+          color: white;
+          padding: 32px;
+          border-radius: 16px;
           text-align: center;
-          margin-top: 20px;
+          margin-top: 40px;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .contact-info::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(103, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+          pointer-events: none;
+        }
+        
+        .contact-info-content {
+          position: relative;
+          z-index: 1;
+        }
+        
+        .contact-title {
+          font-size: 20px;
+          font-weight: 600;
+          margin-bottom: 16px;
+        }
+        
+        .contact-details {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border-radius: 12px;
+          padding: 20px;
+          margin: 20px 0;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .contact-item {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin: 12px 0;
+          font-size: 16px;
+          font-weight: 500;
+        }
+        
+        .timestamp {
+          background: rgba(255, 255, 255, 0.05);
+          padding: 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.8);
+          text-align: center;
+          margin-top: 24px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        @media (max-width: 640px) {
+          .container {
+            padding: 32px 24px;
+            margin: 10px;
+          }
+          
+          h1 {
+            font-size: 28px;
+          }
+          
+          .success-icon {
+            width: 64px;
+            height: 64px;
+          }
+          
+          .checkmark {
+            font-size: 32px;
+          }
+          
+          .work-order-details {
+            padding: 24px;
+          }
+          
+          .detail-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+          }
+          
+          .contact-info {
+            padding: 24px;
+          }
         }
       </style>
     </head>
     <body>
       <div class="container">
+        <div class="brand-header">
+          <div class="brand-logo">Moxie Vacation Rentals</div>
+          <div class="brand-tagline">Your Home Base for Living Like a Local</div>
+        </div>
+        
         <div class="success-icon">
           <span class="checkmark">✓</span>
         </div>
         
         <h1>${alreadyAcknowledged ? 'Work Order Previously Acknowledged' : 'Work Order Acknowledged Successfully'}</h1>
         
-        <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">
+        <p class="subtitle">
           ${alreadyAcknowledged 
             ? 'This work order has already been acknowledged.' 
             : 'Thank you for confirming receipt of this work order.'
@@ -239,29 +507,33 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         </p>
 
         <div class="work-order-details">
-          <h3 style="margin-top: 0; color: #1f2937;">Work Order Details</h3>
+          <div class="details-title">Work Order Details</div>
+          
           <div class="detail-row">
-            <span class="label">Work Order #:</span>
+            <span class="label">Work Order #</span>
             <span class="value">${workOrder.work_order_number}</span>
           </div>
+          
           <div class="detail-row">
-            <span class="label">Title:</span>
+            <span class="label">Title</span>
             <span class="value">${workOrder.title}</span>
           </div>
+          
           <div class="detail-row">
-            <span class="label">Status:</span>
-            <span class="value">Acknowledged</span>
+            <span class="label">Status</span>
+            <span class="status-badge">Acknowledged</span>
           </div>
+          
           <div class="detail-row">
-            <span class="label">Contractor:</span>
+            <span class="label">Contractor</span>
             <span class="value">${workOrder.contractor?.name || 'Not assigned'}</span>
           </div>
         </div>
 
         ${!alreadyAcknowledged ? `
         <div class="next-steps">
-          <h4 style="margin-top: 0; color: #1e40af;">Next Steps</h4>
-          <ul style="margin: 0; padding-left: 20px; color: #374151;">
+          <h4>Next Steps</h4>
+          <ul>
             <li>Review the work order details and requirements</li>
             <li>Contact the property manager if you have any questions</li>
             <li>Begin work according to the specified timeline</li>
@@ -271,13 +543,27 @@ function getSuccessPage(workOrder: any, alreadyAcknowledged: boolean) {
         ` : ''}
 
         <div class="contact-info">
-          <p><strong>Questions about this work order?</strong><br>
-          Contact the property management team at<br>
-          <strong>gabby@moxievacationrental.com</strong> or <strong>+1 541-255-1698</strong></p>
-        </div>
-
-        <div class="timestamp">
-          Acknowledged on ${new Date().toLocaleString()}
+          <div class="contact-info-content">
+            <div class="contact-title">Questions about this work order?</div>
+            <div class="contact-details">
+              <div class="contact-item">
+                <span>📞</span>
+                <strong>+1 541-255-1698</strong>
+              </div>
+              <div class="contact-item">
+                <span>✉️</span>
+                <strong>gabby@moxievacationrental.com</strong>
+              </div>
+              <div class="contact-item">
+                <span>📍</span>
+                <strong>2472 Willamette St, Eugene, OR 97405</strong>
+              </div>
+            </div>
+            
+            <div class="timestamp">
+              Acknowledged on ${new Date().toLocaleString()}
+            </div>
+          </div>
         </div>
       </div>
     </body>
@@ -292,55 +578,177 @@ function getErrorPage(message: string) {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Acknowledgement Error</title>
+      <title>Acknowledgement Error - Moxie Vacation Rentals</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
       <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
         body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          max-width: 600px;
-          margin: 0 auto;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%);
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           padding: 20px;
-          background-color: #f8fafc;
           line-height: 1.6;
+          color: #1f2937;
         }
+        
         .container {
-          background: white;
-          border-radius: 12px;
-          padding: 40px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-radius: 24px;
+          padding: 48px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          max-width: 600px;
+          width: 100%;
           text-align: center;
+          animation: slideUp 0.6s ease-out;
+          border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
         .error-icon {
-          width: 64px;
-          height: 64px;
-          background: #ef4444;
+          width: 80px;
+          height: 80px;
+          background: linear-gradient(135deg, #ef4444, #dc2626);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin: 0 auto 20px;
+          margin: 0 auto 32px;
         }
+        
         .x-mark {
           color: white;
-          font-size: 32px;
+          font-size: 40px;
+          font-weight: bold;
         }
+        
+        .brand-header {
+          margin-bottom: 32px;
+        }
+        
+        .brand-logo {
+          font-size: 28px;
+          font-weight: 700;
+          background: linear-gradient(135deg, #ef4444, #dc2626);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          margin-bottom: 8px;
+        }
+        
+        .brand-tagline {
+          color: #6b7280;
+          font-size: 14px;
+          font-weight: 500;
+        }
+        
         h1 {
           color: #1f2937;
           margin-bottom: 20px;
+          font-size: 32px;
+          font-weight: 700;
         }
+        
         p {
           color: #6b7280;
           margin-bottom: 30px;
+          font-size: 18px;
         }
+        
         .contact-info {
-          background: #f3f4f6;
-          border-radius: 8px;
+          background: linear-gradient(135deg, #1f2937, #374151);
+          color: white;
+          padding: 32px;
+          border-radius: 16px;
+          margin-top: 32px;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .contact-info::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+          pointer-events: none;
+        }
+        
+        .contact-info-content {
+          position: relative;
+          z-index: 1;
+        }
+        
+        .contact-title {
+          font-size: 20px;
+          font-weight: 600;
+          margin-bottom: 16px;
+        }
+        
+        .contact-details {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border-radius: 12px;
           padding: 20px;
-          margin-top: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .contact-item {
+          margin: 12px 0;
+          font-size: 16px;
+          font-weight: 500;
+        }
+        
+        @media (max-width: 640px) {
+          .container {
+            padding: 32px 24px;
+            margin: 10px;
+          }
+          
+          h1 {
+            font-size: 28px;
+          }
+          
+          .error-icon {
+            width: 64px;
+            height: 64px;
+          }
+          
+          .x-mark {
+            font-size: 32px;
+          }
         }
       </style>
     </head>
     <body>
       <div class="container">
+        <div class="brand-header">
+          <div class="brand-logo">Moxie Vacation Rentals</div>
+          <div class="brand-tagline">Your Home Base for Living Like a Local</div>
+        </div>
+        
         <div class="error-icon">
           <span class="x-mark">✕</span>
         </div>
@@ -349,10 +757,14 @@ function getErrorPage(message: string) {
         <p>${message}</p>
         
         <div class="contact-info">
-          <p><strong>Need Help?</strong><br>
-          Please contact the property management team:<br>
-          <strong>gabby@moxievacationrental.com</strong><br>
-          <strong>+1 541-255-1698</strong></p>
+          <div class="contact-info-content">
+            <div class="contact-title">Need Help?</div>
+            <div class="contact-details">
+              <div class="contact-item">📞 <strong>+1 541-255-1698</strong></div>
+              <div class="contact-item">✉️ <strong>gabby@moxievacationrental.com</strong></div>
+              <div class="contact-item">📍 <strong>2472 Willamette St, Eugene, OR 97405</strong></div>
+            </div>
+          </div>
         </div>
       </div>
     </body>
