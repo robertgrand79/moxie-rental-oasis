@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { useHeroSettings } from './hooks/useHeroSettings';
-import HeroBackground from './HeroBackground';
 import HeroContent from './HeroContent';
 import ScrollIndicator from './ScrollIndicator';
+import OptimizedImage from '@/components/ui/optimized-image';
 
 const HeroSection = () => {
   const { settings, isLoading, error } = useHeroSettings();
@@ -29,11 +29,32 @@ const HeroSection = () => {
     imageUrl: settings.heroBackgroundImage
   });
 
+  const hasHeroImage = settings.heroBackgroundImage && settings.heroBackgroundImage.trim() !== '';
+
   return (
-    <HeroBackground imageUrl={settings.heroBackgroundImage}>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image or Gradient */}
+      {hasHeroImage ? (
+        <div className="absolute inset-0">
+          <OptimizedImage
+            src={settings.heroBackgroundImage}
+            alt="Hero background"
+            className="w-full h-full object-cover"
+            priority={true}
+            showProgressiveLoading={true}
+            aspectRatio="auto"
+          />
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/30 to-black/40"></div>
+        </div>
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
+      )}
+
+      {/* Content */}
       <HeroContent settings={settings} />
       <ScrollIndicator />
-    </HeroBackground>
+    </section>
   );
 };
 

@@ -1,9 +1,11 @@
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useHeroSettings } from '@/components/home/hooks/useHeroSettings';
 import { useEffect } from 'react';
 import { sanitizeHtml } from '@/utils/security';
 
 const SiteHead = () => {
   const { settings } = useStableSiteSettings();
+  const { settings: heroSettings } = useHeroSettings();
 
   const siteTitle = settings.siteTitle || 'Moxie Vacation Rentals';
   const metaDescription = settings.metaDescription || 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.';
@@ -56,6 +58,20 @@ const SiteHead = () => {
       document.head.appendChild(faviconLink);
     }
     faviconLink.setAttribute('href', favicon);
+
+    // Preload hero image for faster loading
+    if (heroSettings.heroBackgroundImage && heroSettings.heroBackgroundImage.trim() !== '') {
+      let heroPreload = document.querySelector('link[rel="preload"][data-hero-image]');
+      if (!heroPreload) {
+        heroPreload = document.createElement('link');
+        heroPreload.setAttribute('rel', 'preload');
+        heroPreload.setAttribute('as', 'image');
+        heroPreload.setAttribute('data-hero-image', 'true');
+        document.head.appendChild(heroPreload);
+      }
+      heroPreload.setAttribute('href', heroSettings.heroBackgroundImage);
+      console.log('🚀 Preloading hero image:', heroSettings.heroBackgroundImage);
+    }
 
     // Update Open Graph tags
     let ogTitleMeta = document.querySelector('meta[property="og:title"]');
@@ -188,7 +204,7 @@ const SiteHead = () => {
       }
     }
 
-  }, [siteTitle, metaDescription, ogTitle, ogDescription, ogImage, favicon, googleAnalyticsId, googleTagManagerId, facebookPixelId, customHeaderScripts, customFooterScripts, customCss]);
+  }, [siteTitle, metaDescription, ogTitle, ogDescription, ogImage, favicon, googleAnalyticsId, googleTagManagerId, facebookPixelId, customHeaderScripts, customFooterScripts, customCss, heroSettings.heroBackgroundImage]);
 
   return null;
 };

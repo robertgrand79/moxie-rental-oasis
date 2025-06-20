@@ -13,9 +13,9 @@ const DEFAULT_HERO_SETTINGS = {
 
 export const useHeroSettings = () => {
   const { data: heroSettings, isLoading, error: queryError } = useQuery({
-    queryKey: ['hero-settings-live', new Date().getMinutes()], // Cache busting with minute precision
+    queryKey: ['hero-settings'], 
     queryFn: async () => {
-      console.log('🔄 Fetching hero settings from database (live)...');
+      console.log('🔄 Fetching hero settings from database...');
       
       const { data, error } = await supabase
         .from('site_settings')
@@ -50,10 +50,10 @@ export const useHeroSettings = () => {
         ...settingsMap
       };
 
-      console.log('✅ Final hero settings (live):', finalSettings);
+      console.log('✅ Final hero settings:', finalSettings);
       return finalSettings;
     },
-    staleTime: 0, // No caching - always fetch fresh
+    staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: false,
     retry: 3
   });
