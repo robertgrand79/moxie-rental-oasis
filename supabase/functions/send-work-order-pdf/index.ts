@@ -42,14 +42,13 @@ serve(async (req) => {
 
     console.log('Sending work order email for ID:', workOrderId);
 
-    // Fetch work order details with related data
+    // Fetch work order details with related data (removed problematic profile join)
     const { data: workOrder, error: fetchError } = await supabase
       .from('work_orders')
       .select(`
         *,
         contractor:contractors(*),
-        property:properties(*),
-        created_by_profile:profiles!work_orders_created_by_fkey(full_name, email)
+        property:properties(*)
       `)
       .eq('id', workOrderId)
       .single();
@@ -400,8 +399,8 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
           <p><strong>Important:</strong> Please acknowledge this work order within 24 hours of receipt.</p>
           <div class="contact-info">
             <p>Questions about this work order?<br>
-            Contact: ${workOrder.created_by_profile?.full_name || 'Property Management'}<br>
-            Email: ${workOrder.created_by_profile?.email || 'support@example.com'}</p>
+            Contact: Property Management Team<br>
+            Email: support@example.com</p>
           </div>
           <p style="margin-top: 20px; font-size: 12px;">
             This is an automated message. Please do not reply directly to this email.
