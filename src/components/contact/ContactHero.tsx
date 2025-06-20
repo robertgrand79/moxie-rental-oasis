@@ -5,11 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 
 const ContactHero = () => {
-  // Force fresh data fetch every time with timestamp-based cache busting
   const { data: settings } = useQuery({
-    queryKey: ['contact-hero-settings', Date.now()], // Always fresh
+    queryKey: ['contact-hero-settings'],
     queryFn: async () => {
-      console.log('🔄 ContactHero: Fetching fresh settings from database...');
+      console.log('🔄 ContactHero: Fetching settings from database...');
       
       const { data, error } = await supabase
         .from('site_settings')
@@ -30,7 +29,6 @@ const ContactHero = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      // Use current database values with updated defaults
       const finalSettings = {
         siteName: settingsMap.siteName || 'Moxie Vacation Rental',
         contactEmail: settingsMap.contactEmail || 'gabby@moxievacationrental.com',
@@ -41,13 +39,11 @@ const ContactHero = () => {
       console.log('✅ ContactHero: Final settings:', finalSettings);
       return finalSettings;
     },
-    staleTime: 0, // Never consider data stale
-    gcTime: 0, // Don't cache
-    refetchOnMount: true,
-    refetchOnWindowFocus: true
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false,
+    retry: 3
   });
 
-  // Always use fresh settings, no fallback to outdated defaults
   const currentSettings = settings || {
     siteName: 'Moxie Vacation Rental',
     contactEmail: 'gabby@moxievacationrental.com',

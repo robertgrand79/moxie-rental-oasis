@@ -6,11 +6,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const ContactInfo = () => {
-  // Force fresh data fetch every time with timestamp-based cache busting
   const { data: settings } = useQuery({
-    queryKey: ['contact-info-settings', Date.now()], // Always fresh
+    queryKey: ['contact-info-settings'],
     queryFn: async () => {
-      console.log('🔄 ContactInfo: Fetching fresh settings from database...');
+      console.log('🔄 ContactInfo: Fetching settings from database...');
       
       const { data, error } = await supabase
         .from('site_settings')
@@ -31,7 +30,6 @@ const ContactInfo = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      // Use current database values with updated defaults
       const finalSettings = {
         contactEmail: settingsMap.contactEmail || 'gabby@moxievacationrental.com',
         phone: settingsMap.phone || '+1 541-255-1698',
@@ -41,10 +39,9 @@ const ContactInfo = () => {
       console.log('✅ ContactInfo: Final settings:', finalSettings);
       return finalSettings;
     },
-    staleTime: 0, // Never consider data stale
-    gcTime: 0, // Don't cache
-    refetchOnMount: true,
-    refetchOnWindowFocus: true
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false,
+    retry: 3
   });
 
   const currentSettings = settings || {

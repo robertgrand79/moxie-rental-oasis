@@ -21,11 +21,10 @@ const DEFAULT_SETTINGS = {
 };
 
 const Footer = () => {
-  // Force fresh data fetch every time with timestamp-based cache busting
   const { data: settings } = useQuery({
-    queryKey: ['footer-settings', Date.now()], // Always fresh
+    queryKey: ['footer-settings'],
     queryFn: async () => {
-      console.log('🔄 Footer: Fetching fresh settings from database...');
+      console.log('🔄 Footer: Fetching settings from database...');
       
       const { data, error } = await supabase
         .from('site_settings')
@@ -82,10 +81,9 @@ const Footer = () => {
       console.log('✅ Footer: Final settings with defaults:', finalSettings);
       return finalSettings;
     },
-    staleTime: 0, // Never consider data stale
-    gcTime: 0, // Don't cache
-    refetchOnMount: true,
-    refetchOnWindowFocus: true
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false,
+    retry: 3
   });
 
   // Use fetched settings or fallback to defaults
