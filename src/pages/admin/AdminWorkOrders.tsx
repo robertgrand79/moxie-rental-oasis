@@ -20,7 +20,7 @@ const AdminWorkOrders = () => {
     refreshData,
   } = useWorkOrderManagement();
 
-  const { emailingWorkOrders, handleEmailWorkOrder } = useWorkOrderEmail();
+  const { emailingWorkOrders, handleEmailWorkOrder: sendEmailWorkOrder } = useWorkOrderEmail();
   const { toast } = useToast();
 
   // UI State
@@ -92,10 +92,6 @@ const AdminWorkOrders = () => {
     }
   };
 
-  const handleEmailWorkOrder = async (workOrder: WorkOrder) => {
-    await handleEmailWorkOrder(workOrder, handleStatusChange);
-  };
-
   const handleStatusChange = async (workOrderId: string, status: string) => {
     if (updatingWorkOrders.has(workOrderId)) return;
 
@@ -133,6 +129,10 @@ const AdminWorkOrders = () => {
         return newSet;
       });
     }
+  };
+
+  const handleEmailWorkOrder = async (workOrder: WorkOrder) => {
+    await sendEmailWorkOrder(workOrder, handleStatusChange);
   };
 
   if (loading) {
