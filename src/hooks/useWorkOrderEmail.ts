@@ -24,15 +24,22 @@ export const useWorkOrderEmail = () => {
     setEmailingWorkOrders(prev => new Set(prev).add(workOrder.id));
 
     try {
+      console.log('Sending work order email for:', workOrder.work_order_number);
+      
       const { data, error } = await supabase.functions.invoke('send-work-order-pdf', {
         body: { workOrderId: workOrder.id }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      console.log('Email sent successfully:', data);
 
       toast({
         title: 'Success',
-        description: `Work order PDF sent to ${workOrder.contractor.email}`,
+        description: `Work order email sent to ${workOrder.contractor.email}`,
       });
 
       // If status was draft, it will be updated to sent by the edge function
@@ -40,10 +47,22 @@ export const useWorkOrderEmail = () => {
         onStatusChange(workOrder.id, 'sent');
       }
     } catch (error) {
-      console.error('Error sending work order PDF:', error);
+      console.error('Error sending work order email:', error);
+      
+      // More specific error handling
+      let errorMessage = 'Failed to send work order email';
+      
+      if (error?.message?.includes('403')) {
+        errorMessage = 'Email sending failed: Sender email not verified. Please contact system administrator.';
+      } else if (error?.message?.includes('API key')) {
+        errorMessage = 'Email configuration error. Please contact system administrator.';
+      } else if (error?.message?.includes('not found')) {
+        errorMessage = 'Work order data not found. Please try again.';
+      }
+      
       toast({
-        title: 'Error',
-        description: 'Failed to send work order PDF',
+        title: 'Email Error',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

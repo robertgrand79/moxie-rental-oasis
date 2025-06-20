@@ -47,17 +47,14 @@ serve(async (req) => {
       throw new Error('Contractor email not found');
     }
 
-    // Generate PDF content as HTML
-    const pdfContent = generatePDFHTML(workOrder);
+    // Generate email content
+    const emailContent = generateEmailContent(workOrder);
 
-    // Convert HTML to PDF using Puppeteer
-    const pdfBuffer = await generatePDF(pdfContent);
-
-    // Send email with PDF attachment using SendGrid
-    const emailResult = await sendEmailWithPDF(
+    // Send email using SendGrid
+    const emailResult = await sendWorkOrderEmail(
       workOrder.contractor.email,
       workOrder,
-      pdfBuffer
+      emailContent
     );
 
     // Update work order status if it was in draft
@@ -73,7 +70,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Work order PDF sent successfully',
+      message: 'Work order email sent successfully',
       emailResult 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -90,7 +87,7 @@ serve(async (req) => {
   }
 });
 
-function generatePDFHTML(workOrder: any): string {
+function generateEmailContent(workOrder: any): string {
   const currentDate = new Date().toLocaleDateString();
   
   return `
@@ -98,138 +95,216 @@ function generatePDFHTML(workOrder: any): string {
     <html>
     <head>
       <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Work Order ${workOrder.work_order_number}</title>
       <style>
-        body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
-        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-        .company-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-        .work-order-title { font-size: 20px; color: #666; }
-        .section { margin-bottom: 30px; }
-        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-        .field { margin-bottom: 10px; }
-        .field-label { font-weight: bold; display: inline-block; width: 150px; }
-        .field-value { display: inline-block; }
-        .description { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 10px; }
-        .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ddd; padding-top: 20px; }
-        .priority-high { color: #dc3545; font-weight: bold; }
-        .priority-medium { color: #ffc107; font-weight: bold; }
-        .priority-low { color: #28a745; font-weight: bold; }
-        .priority-critical { color: #dc3545; font-weight: bold; background: #fff5f5; padding: 2px 8px; border-radius: 3px; }
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+          line-height: 1.6; 
+          color: #333; 
+          max-width: 600px; 
+          margin: 0 auto; 
+          padding: 20px;
+          background-color: #f9f9f9;
+        }
+        .email-container {
+          background-color: #ffffff;
+          border-radius: 8px;
+          padding: 30px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header { 
+          text-align: center; 
+          margin-bottom: 30px; 
+          border-bottom: 3px solid #2563eb; 
+          padding-bottom: 20px; 
+        }
+        .company-name { 
+          font-size: 28px; 
+          font-weight: bold; 
+          color: #2563eb; 
+          margin-bottom: 8px; 
+        }
+        .work-order-title { 
+          font-size: 18px; 
+          color: #64748b; 
+          margin: 0;
+        }
+        .section { 
+          margin-bottom: 25px; 
+          background-color: #f8fafc;
+          padding: 20px;
+          border-radius: 6px;
+          border-left: 4px solid #2563eb;
+        }
+        .section-title { 
+          font-size: 18px; 
+          font-weight: bold; 
+          margin-bottom: 15px; 
+          color: #1e293b; 
+          border-bottom: 1px solid #e2e8f0; 
+          padding-bottom: 8px; 
+        }
+        .field { 
+          margin-bottom: 12px; 
+          display: flex;
+          flex-wrap: wrap;
+        }
+        .field-label { 
+          font-weight: 600; 
+          color: #475569;
+          min-width: 140px;
+          margin-bottom: 4px;
+        }
+        .field-value { 
+          color: #1e293b;
+          flex: 1;
+        }
+        .description-box { 
+          background: #ffffff; 
+          padding: 16px; 
+          border-radius: 6px; 
+          margin-top: 10px; 
+          border: 1px solid #e2e8f0;
+          white-space: pre-wrap;
+        }
+        .priority-high { color: #dc2626; font-weight: bold; }
+        .priority-medium { color: #d97706; font-weight: bold; }
+        .priority-low { color: #16a34a; font-weight: bold; }
+        .priority-critical { 
+          color: #dc2626; 
+          font-weight: bold; 
+          background: #fef2f2; 
+          padding: 4px 12px; 
+          border-radius: 4px; 
+          display: inline-block;
+        }
+        .contact-info {
+          background: #eff6ff;
+          padding: 20px;
+          border-radius: 6px;
+          margin-top: 20px;
+          border-left: 4px solid #3b82f6;
+        }
+        .contact-title {
+          font-size: 16px;
+          font-weight: bold;
+          color: #1e40af;
+          margin-bottom: 10px;
+        }
+        .footer { 
+          margin-top: 30px; 
+          text-align: center; 
+          font-size: 14px; 
+          color: #64748b; 
+          border-top: 1px solid #e2e8f0; 
+          padding-top: 20px; 
+          line-height: 1.5;
+        }
+        @media (max-width: 600px) {
+          .field {
+            flex-direction: column;
+          }
+          .field-label {
+            min-width: auto;
+          }
+        }
       </style>
     </head>
     <body>
-      <div class="header">
-        <div class="company-name">Moxie Management</div>
-        <div class="work-order-title">Work Order Request</div>
-      </div>
+      <div class="email-container">
+        <div class="header">
+          <div class="company-name">Moxie Vacation Rentals</div>
+          <h1 class="work-order-title">Work Order Request</h1>
+        </div>
 
-      <div class="section">
-        <div class="section-title">Work Order Information</div>
-        <div class="field">
-          <span class="field-label">Work Order #:</span>
-          <span class="field-value">${workOrder.work_order_number}</span>
+        <div class="section">
+          <div class="section-title">Work Order Information</div>
+          <div class="field">
+            <span class="field-label">Work Order #:</span>
+            <span class="field-value"><strong>${workOrder.work_order_number}</strong></span>
+          </div>
+          <div class="field">
+            <span class="field-label">Date Issued:</span>
+            <span class="field-value">${currentDate}</span>
+          </div>
+          <div class="field">
+            <span class="field-label">Priority:</span>
+            <span class="field-value priority-${workOrder.priority}">${workOrder.priority.toUpperCase()}</span>
+          </div>
+          <div class="field">
+            <span class="field-label">Status:</span>
+            <span class="field-value">${workOrder.status.replace('_', ' ').toUpperCase()}</span>
+          </div>
+          ${workOrder.estimated_completion_date ? `
+          <div class="field">
+            <span class="field-label">Target Completion:</span>
+            <span class="field-value">${new Date(workOrder.estimated_completion_date).toLocaleDateString()}</span>
+          </div>
+          ` : ''}
         </div>
-        <div class="field">
-          <span class="field-label">Date Issued:</span>
-          <span class="field-value">${currentDate}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">Priority:</span>
-          <span class="field-value priority-${workOrder.priority}">${workOrder.priority.toUpperCase()}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">Status:</span>
-          <span class="field-value">${workOrder.status.replace('_', ' ').toUpperCase()}</span>
-        </div>
-        ${workOrder.estimated_completion_date ? `
-        <div class="field">
-          <span class="field-label">Target Completion:</span>
-          <span class="field-value">${new Date(workOrder.estimated_completion_date).toLocaleDateString()}</span>
-        </div>
-        ` : ''}
-      </div>
 
-      <div class="section">
-        <div class="section-title">Property Information</div>
-        ${workOrder.property ? `
-        <div class="field">
-          <span class="field-label">Property Name:</span>
-          <span class="field-value">${workOrder.property.title}</span>
+        <div class="section">
+          <div class="section-title">Property Information</div>
+          ${workOrder.property ? `
+          <div class="field">
+            <span class="field-label">Property Name:</span>
+            <span class="field-value"><strong>${workOrder.property.title}</strong></span>
+          </div>
+          <div class="field">
+            <span class="field-label">Address:</span>
+            <span class="field-value">${workOrder.property.location}</span>
+          </div>
+          ` : '<p style="color: #64748b; font-style: italic;">No property assigned</p>'}
         </div>
-        <div class="field">
-          <span class="field-label">Address:</span>
-          <span class="field-value">${workOrder.property.location}</span>
-        </div>
-        ` : '<p>No property assigned</p>'}
-      </div>
 
-      <div class="section">
-        <div class="section-title">Work Description</div>
-        <div class="field">
-          <span class="field-label">Title:</span>
-          <span class="field-value">${workOrder.title}</span>
+        <div class="section">
+          <div class="section-title">Work Description</div>
+          <div class="field">
+            <span class="field-label">Title:</span>
+            <span class="field-value"><strong>${workOrder.title}</strong></span>
+          </div>
+          <div class="description-box">
+            <strong>Description:</strong><br>
+            ${workOrder.description.replace(/\n/g, '<br>')}
+          </div>
+          ${workOrder.scope_of_work ? `
+          <div class="description-box">
+            <strong>Scope of Work:</strong><br>
+            ${workOrder.scope_of_work.replace(/\n/g, '<br>')}
+          </div>
+          ` : ''}
+          ${workOrder.special_instructions ? `
+          <div class="description-box">
+            <strong>Special Instructions:</strong><br>
+            ${workOrder.special_instructions.replace(/\n/g, '<br>')}
+          </div>
+          ` : ''}
         </div>
-        <div class="description">
-          <strong>Description:</strong><br>
-          ${workOrder.description.replace(/\n/g, '<br>')}
-        </div>
-        ${workOrder.scope_of_work ? `
-        <div class="description">
-          <strong>Scope of Work:</strong><br>
-          ${workOrder.scope_of_work.replace(/\n/g, '<br>')}
-        </div>
-        ` : ''}
-        ${workOrder.special_instructions ? `
-        <div class="description">
-          <strong>Special Instructions:</strong><br>
-          ${workOrder.special_instructions.replace(/\n/g, '<br>')}
-        </div>
-        ` : ''}
-      </div>
 
-      <div class="section">
-        <div class="section-title">Contractor Information</div>
-        <div class="field">
-          <span class="field-label">Company:</span>
-          <span class="field-value">${workOrder.contractor.company_name || 'N/A'}</span>
+        <div class="contact-info">
+          <div class="contact-title">Need to Get in Touch?</div>
+          <p style="margin: 0; color: #1e40af;">
+            Please acknowledge receipt of this work order and provide an estimated completion timeline.<br>
+            For questions or concerns, please contact <strong>robert@moxievacationrentals.com</strong>
+          </p>
         </div>
-        <div class="field">
-          <span class="field-label">Contact:</span>
-          <span class="field-value">${workOrder.contractor.name}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">Email:</span>
-          <span class="field-value">${workOrder.contractor.email}</span>
-        </div>
-        ${workOrder.contractor.phone ? `
-        <div class="field">
-          <span class="field-label">Phone:</span>
-          <span class="field-value">${workOrder.contractor.phone}</span>
-        </div>
-        ` : ''}
-      </div>
 
-      <div class="footer">
-        <p>Please acknowledge receipt of this work order and provide an estimated completion timeline.</p>
-        <p>For questions or concerns, please contact Moxie Management.</p>
-        <p><em>Generated on ${currentDate}</em></p>
+        <div class="footer">
+          <p><strong>Moxie Vacation Rentals</strong></p>
+          <p>Professional Property Management Services</p>
+          <p><em>Generated on ${currentDate}</em></p>
+        </div>
       </div>
     </body>
     </html>
   `;
 }
 
-async function generatePDF(htmlContent: string): Promise<Uint8Array> {
-  // For now, we'll use a simple HTML to PDF conversion
-  // In a production environment, you might want to use Puppeteer or similar
-  const encoder = new TextEncoder();
-  return encoder.encode(htmlContent);
-}
-
-async function sendEmailWithPDF(
+async function sendWorkOrderEmail(
   recipientEmail: string, 
   workOrder: any, 
-  pdfBuffer: Uint8Array
+  emailContent: string
 ): Promise<any> {
   const sendGridApiKey = Deno.env.get('SENDGRID_API_KEY');
   
@@ -237,41 +312,18 @@ async function sendEmailWithPDF(
     throw new Error('SendGrid API key not configured');
   }
 
-  // Convert PDF buffer to base64
-  const base64PDF = btoa(String.fromCharCode(...pdfBuffer));
-
   const emailData = {
     personalizations: [{
       to: [{ email: recipientEmail }],
-      subject: `Work Order Request - ${workOrder.work_order_number}`
+      subject: `Work Order Request - ${workOrder.work_order_number} | ${workOrder.title}`
     }],
-    from: { email: 'noreply@moxiemanagement.com', name: 'Moxie Management' },
+    from: { 
+      email: 'robert@moxievacationrentals.com', 
+      name: 'Robert - Moxie Vacation Rentals' 
+    },
     content: [{
       type: 'text/html',
-      value: `
-        <h2>New Work Order Request</h2>
-        <p>Hello ${workOrder.contractor.name},</p>
-        <p>Please find attached a new work order request for your review.</p>
-        
-        <h3>Work Order Details:</h3>
-        <ul>
-          <li><strong>Work Order #:</strong> ${workOrder.work_order_number}</li>
-          <li><strong>Property:</strong> ${workOrder.property?.title || 'N/A'}</li>
-          <li><strong>Priority:</strong> ${workOrder.priority.toUpperCase()}</li>
-          <li><strong>Title:</strong> ${workOrder.title}</li>
-        </ul>
-        
-        <p>Please acknowledge receipt of this work order and provide an estimated completion timeline.</p>
-        
-        <p>Thank you,<br>
-        Moxie Management Team</p>
-      `
-    }],
-    attachments: [{
-      content: base64PDF,
-      filename: `work-order-${workOrder.work_order_number}.html`,
-      type: 'text/html',
-      disposition: 'attachment'
+      value: emailContent
     }]
   };
 
@@ -286,6 +338,7 @@ async function sendEmailWithPDF(
 
   if (!response.ok) {
     const errorText = await response.text();
+    console.error('SendGrid API Response:', response.status, errorText);
     throw new Error(`SendGrid API error: ${response.status} - ${errorText}`);
   }
 
