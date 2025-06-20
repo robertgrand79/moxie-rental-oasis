@@ -100,6 +100,9 @@ function generateEmailContent(workOrder: any, contactPhone: string): string {
   const currentDate = new Date().toLocaleDateString();
   const logoUrl = 'https://joiovubyokikqjytxtuv.supabase.co/storage/v1/object/public/uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png';
   
+  // Generate attachments section
+  const attachmentsSection = generateAttachmentsSection(workOrder.attachments || []);
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -214,6 +217,57 @@ function generateEmailContent(workOrder: any, contactPhone: string): string {
           margin-top: 10px;
           letter-spacing: 2px;
         }
+        .attachments-section {
+          background: #fefbf3;
+          border: 2px solid #f59e0b;
+          padding: 20px;
+          border-radius: 8px;
+          margin: 20px 0;
+        }
+        .attachments-title {
+          font-size: 18px;
+          font-weight: bold;
+          color: #92400e;
+          margin-bottom: 15px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .attachment-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px;
+          background: #ffffff;
+          border-radius: 6px;
+          margin-bottom: 10px;
+          border: 1px solid #f3f4f6;
+        }
+        .attachment-icon {
+          width: 24px;
+          height: 24px;
+          flex-shrink: 0;
+        }
+        .attachment-link {
+          color: #2563eb;
+          text-decoration: none;
+          font-weight: 500;
+        }
+        .attachment-link:hover {
+          text-decoration: underline;
+        }
+        .attachment-images {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 10px;
+          margin-top: 15px;
+        }
+        .attachment-image {
+          border-radius: 6px;
+          max-width: 100%;
+          height: auto;
+          border: 2px solid #e5e7eb;
+        }
         .contact-info {
           background: #eff6ff;
           padding: 20px;
@@ -250,6 +304,9 @@ function generateEmailContent(workOrder: any, contactPhone: string): string {
           .access-code-value {
             font-size: 20px;
             padding: 10px 15px;
+          }
+          .attachment-images {
+            grid-template-columns: 1fr;
           }
         }
       </style>
@@ -334,6 +391,8 @@ function generateEmailContent(workOrder: any, contactPhone: string): string {
           ` : ''}
         </div>
 
+        ${attachmentsSection}
+
         <div class="contact-info">
           <div class="contact-title">Need to Get in Touch?</div>
           <p style="margin-bottom: 15px; color: #1e40af;">
@@ -359,6 +418,78 @@ function generateEmailContent(workOrder: any, contactPhone: string): string {
     </body>
     </html>
   `;
+}
+
+function generateAttachmentsSection(attachments: string[]): string {
+  if (!attachments || attachments.length === 0) {
+    return '';
+  }
+
+  const imageAttachments = attachments.filter(url => 
+    url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+  );
+  
+  const documentAttachments = attachments.filter(url => 
+    !url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+  );
+
+  let attachmentsHtml = `
+    <div class="attachments-section">
+      <div class="attachments-title">
+        📎 Attachments (${attachments.length})
+      </div>
+  `;
+
+  // Add document attachments
+  if (documentAttachments.length > 0) {
+    attachmentsHtml += `<div style="margin-bottom: 15px;">`;
+    documentAttachments.forEach(url => {
+      const fileName = url.split('/').pop() || 'Document';
+      const fileIcon = getFileIcon(url);
+      attachmentsHtml += `
+        <div class="attachment-item">
+          ${fileIcon}
+          <a href="${url}" class="attachment-link" target="_blank">${fileName}</a>
+        </div>
+      `;
+    });
+    attachmentsHtml += `</div>`;
+  }
+
+  // Add image attachments
+  if (imageAttachments.length > 0) {
+    attachmentsHtml += `
+      <div style="margin-bottom: 10px; font-weight: 600; color: #92400e;">
+        Reference Images:
+      </div>
+      <div class="attachment-images">
+    `;
+    imageAttachments.forEach(url => {
+      const fileName = url.split('/').pop() || 'Image';
+      attachmentsHtml += `
+        <div>
+          <img src="${url}" alt="${fileName}" class="attachment-image" />
+          <div style="text-align: center; margin-top: 5px; font-size: 12px; color: #6b7280;">
+            ${fileName}
+          </div>
+        </div>
+      `;
+    });
+    attachmentsHtml += `</div>`;
+  }
+
+  attachmentsHtml += `</div>`;
+  return attachmentsHtml;
+}
+
+function getFileIcon(url: string): string {
+  if (url.match(/\.pdf$/i)) {
+    return `<svg class="attachment-icon" fill="currentColor" viewBox="0 0 20 20"><path d="M4 18h12V6h-4V2H4v16zm-2 1V1h10l4 4v14H2z"/><path d="M6 10h8v1H6v-1zm0 2h8v1H6v-1zm0 2h8v1H6v-1z"/></svg>`;
+  } else if (url.match(/\.(doc|docx)$/i)) {
+    return `<svg class="attachment-icon" fill="currentColor" viewBox="0 0 20 20"><path d="M4 2h8l4 4v12H4V2zm7 1v3h3l-3-3zM6 6h2v8H6V6zm3 0h2v8H9V6z"/></svg>`;
+  } else {
+    return `<svg class="attachment-icon" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3h12v14H4V3zm1 1v12h10V4H5z"/></svg>`;
+  }
 }
 
 async function sendWorkOrderEmail(

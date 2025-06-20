@@ -96,6 +96,28 @@ export const workOrderService = {
   async delete(workOrderId: string) {
     console.log('Deleting work order:', workOrderId);
     
+    // Delete associated files from storage
+    try {
+      const { data: files, error: listError } = await supabase.storage
+        .from('work-order-files')
+        .list(workOrderId);
+
+      if (!listError && files && files.length > 0) {
+        const filePaths = files.map(file => `${workOrderId}/${file.name}`);
+        const { error: deleteError } = await supabase.storage
+          .from('work-order-files')
+          .remove(filePaths);
+        
+        if (deleteError) {
+          console.warn('Error deleting work order files:', deleteError);
+        } else {
+          console.log('Deleted work order files:', filePaths.length);
+        }
+      }
+    } catch (error) {
+      console.warn('Error cleaning up work order files:', error);
+    }
+    
     const { error } = await supabase
       .from('work_orders')
       .delete()

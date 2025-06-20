@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { Button } from '@/components/ui/button';
@@ -6,8 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Save, Calendar, User, Building, Key } from 'lucide-react';
+import { X, Save, Calendar, User, Building, Key, Paperclip } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import WorkOrderFileUpload from './WorkOrderFileUpload';
+import WorkOrderCompletionPhotos from './WorkOrderCompletionPhotos';
+import { WorkOrderFile } from '@/hooks/useWorkOrderFileUpload';
 
 interface WorkOrderSidePanelProps {
   isOpen: boolean;
@@ -38,6 +41,9 @@ const WorkOrderSidePanel = ({
     access_code: '',
   });
 
+  const [attachments, setAttachments] = React.useState<WorkOrderFile[]>([]);
+  const [completionPhotos, setCompletionPhotos] = React.useState<WorkOrderFile[]>([]);
+
   React.useEffect(() => {
     if (workOrder) {
       setFormData({
@@ -51,6 +57,32 @@ const WorkOrderSidePanel = ({
         special_instructions: workOrder.special_instructions || '',
         access_code: workOrder.access_code || '',
       });
+
+      // Convert existing attachments to WorkOrderFile format
+      const existingAttachments: WorkOrderFile[] = (workOrder.attachments || []).map((url, index) => ({
+        id: `existing-${index}`,
+        name: url.split('/').pop() || `attachment-${index}`,
+        url,
+        type: url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? 'image' : 'document',
+        mimeType: url.match(/\.(jpg|jpeg)$/i) ? 'image/jpeg' : 
+                  url.match(/\.png$/i) ? 'image/png' :
+                  url.match(/\.pdf$/i) ? 'application/pdf' : 'application/octet-stream',
+        size: 0,
+        uploadedAt: workOrder.created_at,
+      }));
+
+      const existingPhotos: WorkOrderFile[] = (workOrder.completion_photos || []).map((url, index) => ({
+        id: `photo-${index}`,
+        name: url.split('/').pop() || `photo-${index}`,
+        url,
+        type: 'image' as const,
+        mimeType: 'image/jpeg',
+        size: 0,
+        uploadedAt: workOrder.completed_at || workOrder.created_at,
+      }));
+
+      setAttachments(existingAttachments);
+      setCompletionPhotos(existingPhotos);
     } else {
       setFormData({
         title: '',
@@ -63,12 +95,21 @@ const WorkOrderSidePanel = ({
         special_instructions: '',
         access_code: '',
       });
+      setAttachments([]);
+      setCompletionPhotos([]);
     }
   }, [workOrder]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    const submissionData = {
+      ...formData,
+      attachments: attachments.map(file => file.url),
+      completion_photos: completionPhotos.map(file => file.url),
+    };
+    
+    onSave(submissionData);
   };
 
   const priorityColors = {
@@ -252,6 +293,39 @@ const WorkOrderSidePanel = ({
                 />
               </div>
             </div>
+
+            <Separator />
+
+            {/* File Attachments Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Paperclip className="h-5 w-5 text-gray-500" />
+                <h3 className="text-lg font-semibold">File Attachments</h3>
+              </div>
+              
+              <WorkOrderFileUpload
+                files={attachments}
+                onFilesChange={setAttachments}
+                workOrderId={workOrder?.id}
+                label="Work Order Attachments"
+                maxFiles={10}
+              />
+            </div>
+
+            {/* Completion Photos Section - Only show for in-progress or completed work orders */}
+            {(formData.status === 'in_progress' || formData.status === 'completed') && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Completion Documentation</h3>
+                  <WorkOrderCompletionPhotos
+                    photos={completionPhotos}
+                    onPhotosChange={setCompletionPhotos}
+                    workOrderId={workOrder?.id}
+                  />
+                </div>
+              </>
+            )}
 
             {/* Footer Actions */}
             <div className="flex items-center justify-end gap-3 pt-6 border-t">
