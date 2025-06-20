@@ -65,20 +65,31 @@ const SettingsDialog = ({
       case 'hero-section':
         return (
           <HeroSectionSettings
-            siteData={siteData}
+            localData={{
+              heroTitle: siteData.heroTitle || '',
+              heroSubtitle: siteData.heroSubtitle || '',
+              heroDescription: siteData.heroDescription || '',
+              heroBackgroundImage: siteData.heroBackgroundImage || '',
+              heroLocationText: siteData.heroLocationText || '',
+              heroRating: siteData.heroRating || '',
+              heroCTAText: siteData.heroCTAText || ''
+            }}
             onInputChange={onInputChange}
             onSave={onSaveSettings}
-            saving={false}
+            saving={{}}
           />
         );
       case 'contact-info':
         return (
           <ContactInformationSettings
-            siteData={siteData}
+            localData={{
+              contactEmail: siteData.contactEmail || '',
+              phone: siteData.phone || '',
+              address: siteData.address || ''
+            }}
             onInputChange={onInputChange}
-            onSocialMediaChange={onSocialMediaChange}
             onSave={onSaveSettings}
-            saving={false}
+            saving={{}}
           />
         );
       case 'design-branding':
