@@ -5,6 +5,7 @@ import { useContractorFilters } from '@/hooks/useContractorFilters';
 import { useContractorStats } from '@/hooks/useContractorStats';
 import ModernContractorsHeader from '@/components/admin/contractors/ModernContractorsHeader';
 import ContractorsGrid from '@/components/admin/contractors/ContractorsGrid';
+import ContractorsTable from '@/components/admin/contractors/ContractorsTable';
 import ContractorSidePanel from '@/components/admin/contractors/ContractorSidePanel';
 import LoadingState from '@/components/ui/loading-state';
 import { Contractor } from '@/hooks/useWorkOrderManagement';
@@ -79,13 +80,23 @@ const AdminContractors = () => {
         onRefresh={refreshData}
       />
 
-      <ContractorsGrid
-        contractors={filteredContractors}
-        onContractorEdit={handleEditContractor}
-        onDeleteContractor={handleDeleteContractor}
-        onToggleStatus={handleToggleContractorStatus}
-        updatingContractors={updatingContractors}
-      />
+      {viewMode === 'grid' ? (
+        <ContractorsGrid
+          contractors={filteredContractors}
+          onContractorEdit={handleEditContractor}
+          onDeleteContractor={handleDeleteContractor}
+          onToggleStatus={handleToggleContractorStatus}
+          updatingContractors={updatingContractors}
+        />
+      ) : (
+        <ContractorsTable
+          contractors={filteredContractors}
+          onContractorEdit={handleEditContractor}
+          onDeleteContractor={handleDeleteContractor}
+          onToggleStatus={handleToggleContractorStatus}
+          updatingContractors={updatingContractors}
+        />
+      )}
 
       <ContractorSidePanel
         isOpen={isSidePanelOpen}
