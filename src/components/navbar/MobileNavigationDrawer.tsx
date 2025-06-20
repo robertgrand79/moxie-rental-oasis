@@ -6,6 +6,7 @@ import { navigationItems } from './navigationItems';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { shouldShowAdminFeatures } from '@/utils/domainUtils';
 import {
   Sheet,
   SheetContent,
@@ -60,6 +61,15 @@ const MobileNavigationDrawer = ({
 
   const displayName = user?.user_metadata?.full_name || user?.email || 'User';
 
+  // Filter navigation items based on domain
+  const filteredNavItems = navigationItems.filter(item => {
+    // Hide admin navigation if not on admin domain
+    if (item.href === '/admin' && !shouldShowAdminFeatures()) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-80 bg-white">
@@ -69,9 +79,9 @@ const MobileNavigationDrawer = ({
           </SheetTitle>
         </SheetHeader>
         
-        {/* Navigation Links - Simplified without colored icons */}
+        {/* Navigation Links */}
         <nav className="flex flex-col space-y-2">
-          {navigationItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = location.pathname === item.href;
             
             return (
@@ -94,7 +104,7 @@ const MobileNavigationDrawer = ({
         {/* Separator */}
         <Separator className="my-6" />
 
-        {/* Authentication Section */}
+        {/* Authentication Section - Only show admin features on admin domain */}
         <div className="space-y-2">
           {user ? (
             <>
@@ -108,14 +118,16 @@ const MobileNavigationDrawer = ({
                 </div>
               </div>
 
-              {/* Admin Panel Button */}
-              <button
-                onClick={handleAdminPanel}
-                className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
-              >
-                <Shield className="h-6 w-6 text-gray-500" />
-                <span className="text-base">Admin Panel</span>
-              </button>
+              {/* Admin Panel Button - Only on admin domain */}
+              {shouldShowAdminFeatures() && (
+                <button
+                  onClick={handleAdminPanel}
+                  className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
+                >
+                  <Shield className="h-6 w-6 text-gray-500" />
+                  <span className="text-base">Admin Panel</span>
+                </button>
+              )}
 
               {/* Sign Out Button */}
               <button
@@ -127,14 +139,16 @@ const MobileNavigationDrawer = ({
               </button>
             </>
           ) : (
-            /* Admin Login Button */
-            <button
-              onClick={handleAdminLogin}
-              className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
-            >
-              <Settings className="h-6 w-6 text-gray-500" />
-              <span className="text-base">Admin Login</span>
-            </button>
+            /* Admin Login Button - Only on admin domain */
+            shouldShowAdminFeatures() && (
+              <button
+                onClick={handleAdminLogin}
+                className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
+              >
+                <Settings className="h-6 w-6 text-gray-500" />
+                <span className="text-base">Admin Login</span>
+              </button>
+            )
           )}
         </div>
       </SheetContent>

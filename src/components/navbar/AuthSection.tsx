@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { LogOut, Settings } from 'lucide-react';
+import { shouldShowAdminFeatures } from '@/utils/domainUtils';
 
 const AuthSection = () => {
   const { user, signOut } = useAuth();
@@ -50,17 +51,20 @@ const AuthSection = () => {
           </Button>
         </>
       ) : (
-        <Button 
-          variant="outline"
-          size="sm"
-          asChild
-          className="text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-        >
-          <Link to="/auth" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Admin Login
-          </Link>
-        </Button>
+        // Only show Admin Login button on admin domain
+        shouldShowAdminFeatures() && (
+          <Button 
+            variant="outline"
+            size="sm"
+            asChild
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+          >
+            <Link to="/auth" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Admin Login
+            </Link>
+          </Button>
+        )
       )}
     </div>
   );
