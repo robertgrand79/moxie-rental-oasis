@@ -95,8 +95,8 @@ serve(async (req) => {
         subject: `New Work Order: ${workOrder.work_order_number} - ${workOrder.title}`
       }],
       from: {
-        email: 'noreply@example.com', // Replace with your verified sender email
-        name: 'Property Management Team'
+        email: 'team@moxievacationrentals.com',
+        name: 'Moxie Vacation Rentals'
       },
       content: [{
         type: 'text/html',
@@ -399,8 +399,8 @@ function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: strin
           <p><strong>Important:</strong> Please acknowledge this work order within 24 hours of receipt.</p>
           <div class="contact-info">
             <p>Questions about this work order?<br>
-            Contact: Property Management Team<br>
-            Email: support@example.com</p>
+            Contact: Moxie Vacation Rentals<br>
+            Email: team@moxievacationrentals.com</p>
           </div>
           <p style="margin-top: 20px; font-size: 12px;">
             This is an automated message. Please do not reply directly to this email.
