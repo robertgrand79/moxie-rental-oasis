@@ -5,136 +5,112 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Save, Home, AlertCircle } from 'lucide-react';
+import { Save, Image } from 'lucide-react';
 import HeroImageUploader from '@/components/HeroImageUploader';
 
 interface HeroSectionSettingsProps {
-  siteData: any;
+  localData: {
+    heroTitle: string;
+    heroSubtitle: string;
+    heroDescription: string;
+    heroBackgroundImage: string;
+    heroLocationText: string;
+    heroRating: string;
+    heroCTAText: string;
+  };
   onInputChange: (field: string, value: string) => void;
-  onSave: () => Promise<void>;
-  saving: boolean;
-  hasUnsavedChanges?: boolean;
+  onSave: () => void;
+  saving: Record<string, boolean>;
 }
 
-const HeroSectionSettings = ({ 
-  siteData, 
-  onInputChange, 
-  onSave, 
-  saving,
-  hasUnsavedChanges = false 
-}: HeroSectionSettingsProps) => {
-
-  const handleImageChange = async (imageUrl: string | null) => {
-    console.log('[Hero Settings] Image changed to:', imageUrl);
-    // Immediately update the field - this will trigger optimistic update and save
-    onInputChange('heroBackgroundImage', imageUrl || '');
-  };
-
-  const currentImageUrl = siteData.heroBackgroundImage || null;
-  
+const HeroSectionSettings = ({ localData, onInputChange, onSave, saving }: HeroSectionSettingsProps) => {
   return (
     <EnhancedCard variant="glass">
       <EnhancedCardHeader>
         <EnhancedCardTitle className="flex items-center">
-          <Home className="h-5 w-5 mr-2 text-purple-600" />
-          Homepage Hero Section
-          {hasUnsavedChanges && (
-            <div className="flex items-center gap-1 ml-2 text-orange-600">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">Unsaved changes</span>
-            </div>
-          )}
+          <Image className="h-5 w-5 mr-2 text-green-600" />
+          Hero Section Settings
         </EnhancedCardTitle>
         <EnhancedCardDescription>
-          Customize the main hero section that visitors see first on your homepage
+          Customize the main hero section of your landing page
         </EnhancedCardDescription>
       </EnhancedCardHeader>
       <EnhancedCardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="heroTitle">Hero Title *</Label>
-            <Input
-              id="heroTitle"
-              value={siteData.heroTitle}
-              onChange={(e) => onInputChange('heroTitle', e.target.value)}
-              placeholder="Your main headline"
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="heroSubtitle">Hero Subtitle</Label>
-            <Input
-              id="heroSubtitle"
-              value={siteData.heroSubtitle}
-              onChange={(e) => onInputChange('heroSubtitle', e.target.value)}
-              placeholder="Supporting text"
-              className="mt-1"
-            />
-          </div>
+        <div>
+          <Label htmlFor="heroTitle">Hero Title *</Label>
+          <Input
+            id="heroTitle"
+            value={localData.heroTitle}
+            onChange={(e) => onInputChange('heroTitle', e.target.value)}
+            placeholder="Your Main Headline"
+            className="mt-1"
+          />
         </div>
-
+        <div>
+          <Label htmlFor="heroSubtitle">Hero Subtitle</Label>
+          <Input
+            id="heroSubtitle"
+            value={localData.heroSubtitle}
+            onChange={(e) => onInputChange('heroSubtitle', e.target.value)}
+            placeholder="A Catchy Subtitle"
+            className="mt-1"
+          />
+        </div>
         <div>
           <Label htmlFor="heroDescription">Hero Description *</Label>
           <Textarea
             id="heroDescription"
-            value={siteData.heroDescription}
+            value={localData.heroDescription}
             onChange={(e) => onInputChange('heroDescription', e.target.value)}
-            placeholder="Compelling description that encourages visitors to explore"
-            rows={3}
+            placeholder="Describe what makes you special"
             className="mt-1"
           />
         </div>
-
         <div>
+          <Label htmlFor="heroBackgroundImage">Hero Background Image</Label>
           <HeroImageUploader
-            currentImageUrl={currentImageUrl}
-            onImageChange={handleImageChange}
-            hasUnsavedChanges={hasUnsavedChanges}
+            currentImageUrl={localData.heroBackgroundImage}
+            onImageChange={(url) => onInputChange('heroBackgroundImage', url || '')}
           />
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="heroLocationText">Location Text</Label>
-            <Input
-              id="heroLocationText"
-              value={siteData.heroLocationText}
-              onChange={(e) => onInputChange('heroLocationText', e.target.value)}
-              placeholder="Eugene, Oregon"
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="heroCTAText">Button Text</Label>
-            <Input
-              id="heroCTAText"
-              value={siteData.heroCTAText}
-              onChange={(e) => onInputChange('heroCTAText', e.target.value)}
-              placeholder="View Properties"
-              className="mt-1"
-            />
-          </div>
+        <div>
+          <Label htmlFor="heroLocationText">Hero Location Text</Label>
+          <Input
+            id="heroLocationText"
+            value={localData.heroLocationText}
+            onChange={(e) => onInputChange('heroLocationText', e.target.value)}
+            placeholder="Location"
+            className="mt-1"
+          />
         </div>
-
-        <Button 
+        <div>
+          <Label htmlFor="heroRating">Hero Rating</Label>
+          <Input
+            id="heroRating"
+            value={localData.heroRating}
+            onChange={(e) => onInputChange('heroRating', e.target.value)}
+            placeholder="4.9"
+            className="mt-1"
+          />
+        </div>
+        <div>
+          <Label htmlFor="heroCTAText">Hero CTA Text</Label>
+          <Input
+            id="heroCTAText"
+            value={localData.heroCTAText}
+            onChange={(e) => onInputChange('heroCTAText', e.target.value)}
+            placeholder="Call to Action"
+            className="mt-1"
+          />
+        </div>
+        <Button
           onClick={onSave}
-          disabled={saving}
+          disabled={saving['heroTitle'] || saving['heroDescription'] || saving['heroBackgroundImage']}
           className="w-full"
         >
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Saving...' : 'Save Hero Settings'}
+          {saving['heroTitle'] || saving['heroDescription'] || saving['heroBackgroundImage'] ? 'Saving...' : 'Save Hero Section'}
         </Button>
-
-        {hasUnsavedChanges && (
-          <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
-            <div className="flex items-center gap-2 text-orange-700">
-              <AlertCircle className="h-4 w-4" />
-              <p className="text-sm font-medium">
-                You have unsaved changes. Click "Save Hero Settings" to apply them.
-              </p>
-            </div>
-          </div>
-        )}
       </EnhancedCardContent>
     </EnhancedCard>
   );
