@@ -1,9 +1,11 @@
+
 import React, { useState, useCallback } from 'react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import SettingsSearch from '@/components/admin/settings/SettingsSearch';
 import SettingsCategoryGrid from '@/components/admin/settings/SettingsCategoryGrid';
 import SettingsContentArea from '@/components/admin/settings/SettingsContentArea';
 import SettingsDialog from '@/components/admin/settings/SettingsDialog';
+import StaticSettingsSyncButton from '@/components/admin/settings/StaticSettingsSyncButton';
 import { createSettingsCategories } from '@/components/admin/settings/settingsCategories';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
@@ -226,6 +228,9 @@ const AdminSiteSettingsRedesigned = () => {
       description="Configure and customize your website settings"
     >
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+        {/* Static Settings Sync Button - Show at top */}
+        <StaticSettingsSyncButton />
+
         {/* Search Section */}
         <SettingsSearch
           searchQuery={searchQuery}
