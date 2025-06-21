@@ -47,9 +47,10 @@ export const useThirdPartyScripts = (
         }
       }
 
-      // Add Facebook Pixel (only if valid pixel ID is configured and not already loaded)
+      // Add Facebook Pixel with improved detection (only if valid pixel ID is configured and not already loaded)
       if (facebookPixelId && facebookPixelId.trim() !== '' && /^[0-9]+$/.test(facebookPixelId.trim())) {
-        const existingFbScript = document.querySelector(`script[data-fb-pixel="${facebookPixelId.trim()}"]`);
+        // Check for existing Facebook Pixel script by looking for the correct URL pattern
+        const existingFbScript = document.querySelector('script[src*="connect.facebook.net/en_US/fbevents.js"]');
         
         if (!existingFbScript) {
           try {
@@ -70,14 +71,31 @@ export const useThirdPartyScripts = (
               try {
                 fbq('init', '${facebookPixelId.trim()}');
                 fbq('track', 'PageView');
+                console.log('✅ SiteHead: Facebook Pixel initialized successfully for ${facebookPixelId.trim()}');
               } catch (fbError) {
                 console.warn('Facebook Pixel initialization failed:', fbError);
               }
             `;
             document.head.appendChild(fbScript);
+            console.log('✅ SiteHead: Facebook Pixel script loaded successfully');
           } catch (error) {
             console.warn('Facebook Pixel script creation failed:', error);
           }
+        } else {
+          console.log('📱 SiteHead: Facebook Pixel script already exists');
+          
+          // If script already exists, still try to initialize if fbq is available
+          setTimeout(() => {
+            try {
+              if (typeof window !== 'undefined' && (window as any).fbq) {
+                (window as any).fbq('init', facebookPixelId.trim());
+                (window as any).fbq('track', 'PageView');
+                console.log('📱 SiteHead: Facebook Pixel re-initialized for existing script');
+              }
+            } catch (error) {
+              console.warn('Facebook Pixel re-initialization failed:', error);
+            }
+          }, 100);
         }
       } else if (facebookPixelId && facebookPixelId.trim() !== '' && !/^[0-9]+$/.test(facebookPixelId.trim())) {
         console.warn('⚠️ SiteHead: Invalid Facebook Pixel ID format:', facebookPixelId);
