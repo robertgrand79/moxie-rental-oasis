@@ -14,7 +14,7 @@ const HeroBackground = ({ imageUrl, children }: HeroBackgroundProps) => {
   }>({
     loaded: false,
     error: false,
-    tested: false
+    tested: !imageUrl // If no imageUrl, mark as tested immediately
   });
 
   useEffect(() => {
@@ -50,7 +50,8 @@ const HeroBackground = ({ imageUrl, children }: HeroBackgroundProps) => {
     };
   }, [imageUrl]);
 
-  if (!imageStatus.tested) {
+  // Show loading state only when we have an image URL and haven't tested it yet
+  if (imageUrl && !imageStatus.tested) {
     return (
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
