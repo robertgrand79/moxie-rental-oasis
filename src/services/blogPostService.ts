@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blogPost';
 import { toast } from '@/hooks/use-toast';
@@ -6,7 +7,9 @@ const isNetworkError = (error: any): boolean => {
   return error?.message?.includes('Failed to fetch') || 
          error?.message?.includes('Network request failed') ||
          error?.name === 'NetworkError' ||
-         error?.code === 'NETWORK_ERROR';
+         error?.code === 'NETWORK_ERROR' ||
+         error?.message?.includes('network error') ||
+         !navigator.onLine;
 };
 
 const handleServiceError = (operation: string, error: any, showToast = true) => {
@@ -15,12 +18,13 @@ const handleServiceError = (operation: string, error: any, showToast = true) => 
   let errorMessage = 'An unexpected error occurred';
   
   if (isNetworkError(error)) {
-    errorMessage = 'Network connection error. Please check your internet connection.';
+    errorMessage = 'Network connection error. Please check your internet connection and try again.';
   } else if (error?.message) {
     errorMessage = error.message;
   }
   
-  if (showToast) {
+  if (showToast && !isNetworkError(error)) {
+    // Only show toast for non-network errors to avoid spam
     toast({
       title: 'Error',
       description: errorMessage,
@@ -34,6 +38,12 @@ const handleServiceError = (operation: string, error: any, showToast = true) => 
 export const blogPostService = {
   async fetchBlogPosts(publishedOnly: boolean = false): Promise<BlogPost[]> {
     console.log('🔍 Fetching blog posts, publishedOnly:', publishedOnly);
+    
+    // Check network connectivity first
+    if (!navigator.onLine) {
+      console.warn('⚠️ No network connection detected');
+      return [];
+    }
     
     try {
       let query = supabase
@@ -60,6 +70,10 @@ export const blogPostService = {
         status: post.status as 'published' | 'draft'
       }));
     } catch (error) {
+      if (isNetworkError(error)) {
+        console.warn('⚠️ Network error fetching blog posts, returning empty array');
+        return [];
+      }
       handleServiceError('Blog posts fetch', error, false);
       return [];
     }
@@ -67,6 +81,11 @@ export const blogPostService = {
 
   async fetchBlogPostBySlug(slug: string): Promise<BlogPost | null> {
     console.log('🔍 Fetching blog post by slug:', slug);
+    
+    if (!navigator.onLine) {
+      console.warn('⚠️ No network connection detected');
+      return null;
+    }
     
     try {
       const { data, error } = await supabase
@@ -88,6 +107,10 @@ export const blogPostService = {
         status: data.status as 'published' | 'draft'
       } : null;
     } catch (error) {
+      if (isNetworkError(error)) {
+        console.warn('⚠️ Network error fetching blog post by slug');
+        return null;
+      }
       handleServiceError('Blog post by slug fetch', error);
       return null;
     }

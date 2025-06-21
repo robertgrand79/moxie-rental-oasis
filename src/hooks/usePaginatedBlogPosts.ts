@@ -20,6 +20,7 @@ interface UsePaginatedBlogPostsResult {
 }
 
 const POSTS_PER_PAGE = 20;
+const REQUEST_TIMEOUT = 10000; // 10 seconds
 
 export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePaginatedBlogPostsResult => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -35,10 +36,25 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
   const fetchPosts = async (page: number) => {
     try {
       console.log('🔄 usePaginatedBlogPosts - Fetching page:', page, 'publishedOnly:', publishedOnly);
+      
+      // Check network connectivity
+      if (!navigator.onLine) {
+        console.warn('⚠️ No network connection detected');
+        setError('No network connection');
+        setLoading(false);
+        return;
+      }
+      
       setLoading(true);
       setError(null);
 
       const offset = (page - 1) * POSTS_PER_PAGE;
+
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, REQUEST_TIMEOUT);
 
       // Build query with proper field selection
       let query = supabase
@@ -55,16 +71,21 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
       const { data, error: fetchError, count } = await query;
       const endTime = Date.now();
       
+      clearTimeout(timeoutId);
       console.log(`⚡ usePaginatedBlogPosts - Query completed in ${endTime - startTime}ms`);
 
       if (fetchError) {
         console.error('❌ Error fetching blog posts:', fetchError);
         setError(fetchError.message);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch blog posts',
-          variant: 'destructive',
-        });
+        
+        // Only show toast for non-network errors
+        if (!fetchError.message?.includes('Failed to fetch')) {
+          toast({
+            title: 'Error',
+            description: 'Failed to fetch blog posts',
+            variant: 'destructive',
+          });
+        }
         return;
       }
 
@@ -93,12 +114,17 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
       setTotalCount(count || 0);
     } catch (err) {
       console.error('❌ Error in fetchPosts:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      toast({
-        title: 'Error',
-        description: 'Failed to load blog posts',
-        variant: 'destructive',
-      });
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      
+      // Only show toast for non-network errors
+      if (!errorMessage.includes('Failed to fetch') && !errorMessage.includes('aborted')) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load blog posts',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }

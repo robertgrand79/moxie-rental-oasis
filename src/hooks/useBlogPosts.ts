@@ -11,8 +11,9 @@ interface UseBlogPostsOptions {
   publishedOnly?: boolean;
 }
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+const MAX_RETRIES = 2; // Reduced from 3 to prevent spam
+const RETRY_DELAY = 2000; // Increased to 2 seconds
+const NETWORK_TIMEOUT = 10000; // 10 second timeout
 
 export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -27,13 +28,27 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
   const fetchBlogPosts = useCallback(async (attempt = 0) => {
     console.log(`🔄 useBlogPosts - fetching with publishedOnly: ${publishedOnly}, attempt: ${attempt + 1}`);
     
+    // Check network connectivity first
+    if (!navigator.onLine) {
+      console.warn('⚠️ No network connection, using cached data if available');
+      setError('No network connection');
+      setLoading(false);
+      return;
+    }
+    
     if (attempt === 0) {
       setLoading(true);
       setError(null);
     }
 
     try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), NETWORK_TIMEOUT);
+      
       const posts = await blogPostService.fetchBlogPosts(publishedOnly);
+      
+      clearTimeout(timeoutId);
       console.log('📊 useBlogPosts - received posts:', posts.length);
       setBlogPosts(posts);
       setRetryCount(0);
@@ -42,15 +57,18 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
       console.error('❌ Error in useBlogPosts fetchBlogPosts:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const isNetworkIssue = errorMessage.includes('Failed to fetch') || 
+                            errorMessage.includes('Network connection error') ||
+                            !navigator.onLine;
       
-      // Check if we should retry
-      if (attempt < MAX_RETRIES && errorMessage.includes('Failed to fetch')) {
+      // Check if we should retry (only for network issues)
+      if (attempt < MAX_RETRIES && isNetworkIssue) {
         console.log(`🔄 Retrying blog posts fetch in ${RETRY_DELAY}ms (attempt ${attempt + 1}/${MAX_RETRIES})`);
         setRetryCount(attempt + 1);
         
         setTimeout(() => {
           fetchBlogPosts(attempt + 1);
-        }, RETRY_DELAY * (attempt + 1)); // Exponential backoff
+        }, RETRY_DELAY);
         
         return;
       }
@@ -59,10 +77,13 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
       setError(errorMessage);
       setBlogPosts([]);
       
-      if (attempt >= MAX_RETRIES) {
+      if (attempt >= MAX_RETRIES && isNetworkIssue) {
+        console.warn('⚠️ Max retries reached for network error, keeping existing data');
+        // Don't show error toast for network issues after retries
+      } else if (!isNetworkIssue) {
         toast({
-          title: 'Network Error',
-          description: 'Unable to load blog posts after multiple attempts. Please check your connection.',
+          title: 'Error',
+          description: 'Unable to load blog posts. Please try refreshing the page.',
           variant: 'destructive'
         });
       }

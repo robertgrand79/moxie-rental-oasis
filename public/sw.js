@@ -70,26 +70,32 @@ self.addEventListener('fetch', (event) => {
           
           return fetch(request)
             .then((fetchResponse) => {
-              // Only cache successful responses
-              if (fetchResponse.ok && fetchResponse.status === 200) {
+              // Only cache successful responses and valid response types
+              if (fetchResponse.ok && fetchResponse.status === 200 && fetchResponse.type !== 'opaque') {
                 const responseClone = fetchResponse.clone();
                 caches.open(CACHE_NAME)
-                  .then((cache) => cache.put(request, responseClone))
+                  .then((cache) => {
+                    // Additional validation before caching
+                    if (responseClone.headers.get('content-type')?.startsWith('image/')) {
+                      return cache.put(request, responseClone);
+                    }
+                  })
                   .catch((error) => {
-                    console.warn('SW: Failed to cache image:', error);
+                    // Silently handle cache errors to prevent console spam
+                    console.debug('SW: Cache put failed for image:', error.message);
                   });
               }
               return fetchResponse;
             })
             .catch((error) => {
-              console.warn('SW: Failed to fetch image:', error);
+              console.debug('SW: Network failed for image:', request.url);
               // Return a fallback or let it fail gracefully
               return new Response('', { status: 404, statusText: 'Not Found' });
             });
         })
         .catch((error) => {
-          console.warn('SW: Cache match failed for image:', error);
-          return fetch(request);
+          console.debug('SW: Cache match failed for image:', error.message);
+          return fetch(request).catch(() => new Response('', { status: 404, statusText: 'Not Found' }));
         })
     );
     return;
@@ -100,19 +106,26 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Only cache successful API responses
-          if (response.ok && response.status === 200) {
+          // Only cache successful API responses with valid content
+          if (response.ok && response.status === 200 && response.type !== 'opaque') {
             const responseClone = response.clone();
             caches.open(CACHE_NAME)
-              .then((cache) => cache.put(request, responseClone))
+              .then((cache) => {
+                // Validate response before caching
+                const contentType = responseClone.headers.get('content-type');
+                if (contentType && (contentType.includes('application/json') || contentType.includes('text/'))) {
+                  return cache.put(request, responseClone);
+                }
+              })
               .catch((error) => {
-                console.warn('SW: Failed to cache API response:', error);
+                // Silently handle cache errors to prevent console spam
+                console.debug('SW: Cache put failed for API:', error.message);
               });
           }
           return response;
         })
         .catch((networkError) => {
-          console.warn('SW: Network failed for API request, trying cache:', networkError);
+          console.debug('SW: Network failed for API request:', request.url);
           return caches.match(request)
             .then((cachedResponse) => {
               if (cachedResponse) {
@@ -120,7 +133,18 @@ self.addEventListener('fetch', (event) => {
               }
               // Return a proper error response instead of undefined
               return new Response(
-                JSON.stringify({ error: 'Network unavailable' }), 
+                JSON.stringify({ error: 'Network unavailable', offline: true }), 
+                { 
+                  status: 503, 
+                  statusText: 'Service Unavailable',
+                  headers: { 'Content-Type': 'application/json' }
+                }
+              );
+            })
+            .catch(() => {
+              // Fallback for cache errors
+              return new Response(
+                JSON.stringify({ error: 'Service unavailable' }), 
                 { 
                   status: 503, 
                   statusText: 'Service Unavailable',
@@ -140,25 +164,25 @@ self.addEventListener('fetch', (event) => {
         if (response) return response;
         
         return fetch(request).catch((error) => {
-          console.warn('SW: Failed to fetch static asset:', error);
-          // Let the browser handle the error naturally
+          console.debug('SW: Network failed for static asset:', request.url);
+          // Let the browser handle the error naturally for static assets
           throw error;
         });
       })
       .catch((error) => {
-        console.warn('SW: Cache and network both failed:', error);
+        console.debug('SW: Cache and network both failed for:', request.url);
         // Return a basic 404 response
         return new Response('', { status: 404, statusText: 'Not Found' });
       })
   );
 });
 
-// Handle service worker errors
+// Handle service worker errors with reduced logging
 self.addEventListener('error', (event) => {
-  console.error('SW: Service worker error:', event.error);
+  console.debug('SW: Service worker error:', event.error?.message || 'Unknown error');
 });
 
 self.addEventListener('unhandledrejection', (event) => {
-  console.error('SW: Unhandled promise rejection:', event.reason);
+  console.debug('SW: Unhandled promise rejection:', event.reason?.message || 'Unknown rejection');
   event.preventDefault();
 });
