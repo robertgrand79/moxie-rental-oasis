@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 
 export const useThirdPartyScripts = (
@@ -47,8 +46,28 @@ export const useThirdPartyScripts = (
         }
       }
 
+      // Handle Facebook Pixel - remove if disabled
+      if (!facebookPixelId || facebookPixelId.trim() === '') {
+        console.log('📱 SiteHead: Facebook Pixel disabled, cleaning up existing scripts');
+        
+        // Remove existing Facebook Pixel scripts
+        const existingFbScript = document.querySelector('script[data-fb-pixel]');
+        if (existingFbScript) {
+          existingFbScript.remove();
+          console.log('🗑️ SiteHead: Removed existing Facebook Pixel script');
+        }
+        
+        // Remove Facebook Pixel from window object if it exists
+        if (typeof window !== 'undefined' && (window as any).fbq) {
+          delete (window as any).fbq;
+          console.log('🗑️ SiteHead: Cleaned up Facebook Pixel from window object');
+        }
+        
+        return;
+      }
+
       // Add Facebook Pixel with improved detection (only if valid pixel ID is configured and not already loaded)
-      if (facebookPixelId && facebookPixelId.trim() !== '' && /^[0-9]+$/.test(facebookPixelId.trim())) {
+      if (facebookPixelId && /^[0-9]+$/.test(facebookPixelId.trim())) {
         // Check for existing Facebook Pixel script by looking for the correct URL pattern
         const existingFbScript = document.querySelector('script[src*="connect.facebook.net/en_US/fbevents.js"]');
         
