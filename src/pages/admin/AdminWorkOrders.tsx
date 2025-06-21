@@ -52,9 +52,16 @@ const AdminWorkOrders = () => {
   };
 
   const handleSaveAndClose = async (workOrderData: any) => {
-    await handleSaveWorkOrder(workOrderData, editingWorkOrder);
-    setIsWorkOrderPanelOpen(false);
-    setEditingWorkOrder(null);
+    try {
+      await handleSaveWorkOrder(workOrderData, editingWorkOrder);
+      // Only close the modal if the save operation succeeded
+      setIsWorkOrderPanelOpen(false);
+      setEditingWorkOrder(null);
+    } catch (error) {
+      // Don't close the modal if there was an error
+      // The error will be shown via toast in handleSaveWorkOrder
+      console.error('Failed to save work order, keeping modal open:', error);
+    }
   };
 
   const handleClosePanel = () => {

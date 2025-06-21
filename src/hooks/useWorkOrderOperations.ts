@@ -37,6 +37,13 @@ export const useWorkOrderOperations = () => {
       }
     } catch (error) {
       console.error('Error saving work order:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save work order. Please try again.',
+        variant: 'destructive',
+      });
+      // Re-throw the error so the calling component knows the operation failed
+      throw error;
     }
   };
 
