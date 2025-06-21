@@ -113,6 +113,7 @@ const WorkOrderSidePanel = ({
       ...formData,
       property_id: formData.property_id === '' || formData.property_id === 'none' ? undefined : formData.property_id,
       contractor_id: formData.contractor_id === '' || formData.contractor_id === 'none' ? undefined : formData.contractor_id,
+      estimated_completion_date: formData.estimated_completion_date === '' ? undefined : formData.estimated_completion_date,
       attachments: attachments.map(file => file.url),
       completion_photos: completionPhotos.map(file => file.url),
     };
