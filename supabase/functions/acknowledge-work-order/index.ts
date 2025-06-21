@@ -10,6 +10,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const htmlHeaders = {
+  'Content-Type': 'text/html; charset=utf-8',
+  'Cache-Control': 'no-cache, no-store, must-revalidate',
+  'Pragma': 'no-cache',
+  'Expires': '0'
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -37,7 +44,7 @@ serve(async (req) => {
     if (!token) {
       console.log('ERROR: No token provided in URL');
       return new Response(getErrorPage('Invalid acknowledgement link - no token provided'), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
+        headers: htmlHeaders,
         status: 400,
       });
     }
@@ -48,7 +55,7 @@ serve(async (req) => {
       tokenData = await getAcknowledgementToken(supabase, token);
     } catch (error) {
       return new Response(getErrorPage(error.message), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
+        headers: htmlHeaders,
         status: 404,
       });
     }
@@ -58,7 +65,7 @@ serve(async (req) => {
 
     if (isExpired) {
       return new Response(getErrorPage('This acknowledgement link has expired'), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
+        headers: htmlHeaders,
         status: 410,
       });
     }
@@ -66,7 +73,7 @@ serve(async (req) => {
     if (isUsed) {
       console.log('Token already used - showing success page');
       return new Response(getSuccessPage(tokenData.work_order, true), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
+        headers: htmlHeaders,
       });
     }
 
@@ -76,7 +83,7 @@ serve(async (req) => {
       await markTokenAsUsed(supabase, tokenData.id);
     } catch (error) {
       return new Response(getErrorPage(error.message), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
+        headers: htmlHeaders,
         status: 500,
       });
     }
@@ -84,7 +91,7 @@ serve(async (req) => {
     console.log('=== ACKNOWLEDGEMENT COMPLETED SUCCESSFULLY ===');
 
     return new Response(getSuccessPage(tokenData.work_order, false), {
-      headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
+      headers: htmlHeaders,
     });
 
   } catch (error) {
@@ -92,7 +99,7 @@ serve(async (req) => {
     console.error('Error details:', error);
     console.error('Error stack:', error.stack);
     return new Response(getErrorPage('An unexpected error occurred - please contact support'), {
-      headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
+      headers: htmlHeaders,
       status: 500,
     });
   }
