@@ -31,7 +31,7 @@ const staticSettings: StaticSettings = {
   heroTitle: 'Your Home Away From Home',
   heroSubtitle: 'in Eugene',
   heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
-  heroBackgroundImage: '/lovable-uploads/d73f2e35-5081-40d8-a4a8-62765cdea308.png',
+  heroBackgroundImage: '',
   heroLocationText: 'Eugene, Oregon',
   heroRating: '4.9',
   heroCTAText: 'View Properties',
