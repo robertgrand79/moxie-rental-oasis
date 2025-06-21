@@ -50,6 +50,7 @@ const WorkOrderSidePanel = ({
 
   React.useEffect(() => {
     if (workOrder) {
+      // Editing existing work order
       setFormData({
         title: workOrder.title || '',
         description: workOrder.description || '',
@@ -89,6 +90,7 @@ const WorkOrderSidePanel = ({
       setAttachments(existingAttachments);
       setCompletionPhotos(existingPhotos);
     } else {
+      // Creating new work order - reset all fields
       setFormData({
         title: '',
         description: '',
@@ -104,7 +106,7 @@ const WorkOrderSidePanel = ({
       setAttachments([]);
       setCompletionPhotos([]);
     }
-  }, [workOrder]);
+  }, [workOrder, isOpen]); // Add isOpen to dependencies to reset when panel opens
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

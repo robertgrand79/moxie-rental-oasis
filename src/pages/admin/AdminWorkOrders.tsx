@@ -42,6 +42,7 @@ const AdminWorkOrders = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   const handleCreateWorkOrder = () => {
+    // Ensure we clear any existing editing state
     setEditingWorkOrder(null);
     setIsWorkOrderPanelOpen(true);
   };
@@ -54,7 +55,7 @@ const AdminWorkOrders = () => {
   const handleSaveAndClose = async (workOrderData: any) => {
     try {
       await handleSaveWorkOrder(workOrderData, editingWorkOrder);
-      // Only close the modal if the save operation succeeded
+      // Close the modal and reset state after successful save
       setIsWorkOrderPanelOpen(false);
       setEditingWorkOrder(null);
     } catch (error) {
