@@ -18,30 +18,13 @@ export function generateWorkOrderEmailContent(workOrder: any): string {
 
   const priorityColor = priorityColors[workOrder.priority as keyof typeof priorityColors] || '#6b7280';
 
-  // DEBUG: Add version tracking and generation info
-  const debugInfo = {
-    templateVersion: 'v3.1.0-debug',
-    generatedAt: new Date().toISOString(),
-    functionName: 'send-work-order-pdf',
-    workOrderId: workOrder.id,
-    workOrderNumber: workOrder.work_order_number
-  };
-
-  console.log('🐛 EMAIL TEMPLATE DEBUG INFO:', debugInfo);
-  console.log('🐛 Work Order Data:', {
-    id: workOrder.id,
-    number: workOrder.work_order_number,
-    title: workOrder.title,
-    contractor: workOrder.contractor?.email
-  });
-
   return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${subject}</title>
+      <title>Work Order: ${workOrder.work_order_number} - ${workOrder.title}</title>
       <style>
         * {
           margin: 0;
@@ -102,25 +85,6 @@ export function generateWorkOrderEmailContent(workOrder: any): string {
           border: 2px solid #3b82f6;
           color: #1f2937;
           margin-top: 10px;
-        }
-
-        /* DEBUG STYLES */
-        .debug-info {
-          background: #fff3cd;
-          border: 2px solid #ffc107;
-          border-radius: 8px;
-          padding: 16px;
-          margin: 20px;
-          font-family: monospace;
-          font-size: 12px;
-          color: #856404;
-        }
-        
-        .debug-title {
-          font-weight: bold;
-          color: #dc3545;
-          margin-bottom: 8px;
-          font-size: 14px;
         }
         
         .content {
@@ -332,17 +296,6 @@ export function generateWorkOrderEmailContent(workOrder: any): string {
     </head>
     <body>
       <div class="email-container">
-        <!-- DEBUG INFORMATION SECTION -->
-        <div class="debug-info">
-          <div class="debug-title">🐛 DEBUG INFO - REMOVE IN PRODUCTION</div>
-          <div><strong>Template Version:</strong> ${debugInfo.templateVersion}</div>
-          <div><strong>Generated At:</strong> ${debugInfo.generatedAt}</div>
-          <div><strong>Function:</strong> ${debugInfo.functionName}</div>
-          <div><strong>Work Order ID:</strong> ${debugInfo.workOrderId}</div>
-          <div><strong>Work Order #:</strong> ${debugInfo.workOrderNumber}</div>
-          <div><strong>NO ACKNOWLEDGE BUTTON:</strong> This template does NOT contain any "Acknowledge Work Order" button</div>
-        </div>
-
         <div class="header">
           <div class="logo">Moxie Vacation Rentals</div>
           <div class="tagline">Your Home Base for Living Like a Local</div>
