@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -21,6 +20,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import FAQ from './pages/FAQ';
 import Listings from './pages/Listings';
+import WorkOrderAcknowledgment from './pages/WorkOrderAcknowledgment';
 import DynamicPage from './components/DynamicPage';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -82,6 +82,7 @@ function App() {
                   <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/listings" element={<Listings />} />
+                  <Route path="/work-order-acknowledgment/:token" element={<WorkOrderAcknowledgment />} />
                   <Route path="/:slug" element={<DynamicPage />} />
                 </Route>
 

@@ -28,7 +28,8 @@ export async function createAcknowledgementToken(
     throw new Error('Failed to create acknowledgement token');
   }
 
-  const acknowledgementUrl = `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/acknowledge-work-order?token=${encodeURIComponent(token)}`;
+  // Generate the React-based acknowledgement URL
+  const acknowledgementUrl = `https://joiovubyokikqjytxtuv.lovable.app/work-order-acknowledgment/${encodeURIComponent(token)}`;
 
   return { token, acknowledgementUrl };
 }
