@@ -3,7 +3,6 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 import { generateWorkOrderEmailContent } from './emailTemplate.ts';
-import { createAcknowledgementToken } from './tokenManager.ts';
 import { sendWorkOrderEmail } from './emailService.ts';
 import { fetchWorkOrderWithDetails, updateWorkOrderStatus } from './workOrderService.ts';
 
@@ -34,11 +33,8 @@ serve(async (req) => {
     // Fetch work order details
     const workOrder = await fetchWorkOrderWithDetails(supabase, workOrderId);
 
-    // Generate acknowledgement token and URL
-    const { acknowledgementUrl } = await createAcknowledgementToken(supabase, workOrderId);
-
     // Generate email content
-    const emailContent = generateWorkOrderEmailContent(workOrder, acknowledgementUrl);
+    const emailContent = generateWorkOrderEmailContent(workOrder);
 
     // Send email via SendGrid
     await sendWorkOrderEmail(workOrder, emailContent, Deno.env.get('SENDGRID_API_KEY') ?? '');
@@ -50,8 +46,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Work order email sent successfully',
-      acknowledgementUrl 
+      message: 'Work order email sent successfully'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -1,5 +1,5 @@
 
-export function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl: string): string {
+export function generateWorkOrderEmailContent(workOrder: any): string {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not specified';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -108,7 +108,7 @@ export function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl
           line-height: 1.7;
         }
         
-        .acknowledge-card {
+        .confirmation-card {
           background: #ffffff;
           border: 2px solid #3b82f6;
           border-radius: 16px;
@@ -118,38 +118,18 @@ export function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
         
-        .acknowledge-title {
+        .confirmation-title {
           font-size: 20px;
           font-weight: 700;
           color: #1f2937;
           margin-bottom: 12px;
         }
         
-        .acknowledge-subtitle {
+        .confirmation-subtitle {
           color: #4b5563;
-          margin-bottom: 24px;
+          margin-bottom: 0;
           font-size: 16px;
           line-height: 1.6;
-        }
-        
-        .acknowledge-button {
-          display: inline-block;
-          background: #3b82f6;
-          color: white;
-          text-decoration: none;
-          padding: 16px 32px;
-          border-radius: 8px;
-          font-weight: 600;
-          font-size: 16px;
-          transition: all 0.3s ease;
-          box-shadow: 0 2px 4px 0 rgba(59, 130, 246, 0.2);
-          border: none;
-        }
-        
-        .acknowledge-button:hover {
-          background: #2563eb;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px 0 rgba(59, 130, 246, 0.3);
         }
         
         .work-order-details {
@@ -300,7 +280,7 @@ export function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl
             padding: 30px 20px;
           }
           
-          .acknowledge-card {
+          .confirmation-card {
             padding: 24px;
           }
           
@@ -325,17 +305,14 @@ export function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl
         <div class="content">
           <div class="greeting">Hello ${workOrder.contractor?.name || 'Contractor'}!</div>
           <div class="intro-text">
-            We have a new work order ready for you. Please review the details below and acknowledge receipt to get started.
+            We have a new work order ready for you. Please review the details below and confirm receipt by replying to this email.
           </div>
 
-          <div class="acknowledge-card">
-            <div class="acknowledge-title">Action Required</div>
-            <div class="acknowledge-subtitle">
-              Please confirm you've received this work order by clicking the button below. This helps us track project progress and ensures clear communication.
+          <div class="confirmation-card">
+            <div class="confirmation-title">Please Confirm Receipt</div>
+            <div class="confirmation-subtitle">
+              Simply reply to this email to confirm you've received this work order. This helps us track project progress and ensures clear communication.
             </div>
-            <a href="${acknowledgementUrl}" class="acknowledge-button">
-              ✓ Acknowledge Work Order
-            </a>
           </div>
 
           <div class="work-order-details">
@@ -418,7 +395,7 @@ export function generateWorkOrderEmailContent(workOrder: any, acknowledgementUrl
           </div>
           
           <div class="footer-note">
-            <p><strong>Important:</strong> Please acknowledge this work order within 24 hours of receipt.</p>
+            <p><strong>Important:</strong> Please confirm receipt of this work order by replying to this email within 24 hours.</p>
             <p style="margin-top: 16px;">
               This is an automated message from Moxie Vacation Rentals. 
               We're here to help make your work seamless and efficient.

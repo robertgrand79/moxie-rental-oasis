@@ -21,7 +21,6 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import FAQ from './pages/FAQ';
 import Listings from './pages/Listings';
-import WorkOrderAcknowledgment from './pages/WorkOrderAcknowledgment';
 import DynamicPage from './components/DynamicPage';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -65,11 +64,6 @@ function App() {
           <QueryClientProvider client={queryClient}>
             <Router>
               <Routes>
-                {/* Work Order Acknowledgment - standalone route outside public layout */}
-                <Route path="/work-order-acknowledgment/:token" element={<WorkOrderAcknowledgment />} />
-                <Route path="/work-order-acknowledgment/invalid" element={<WorkOrderAcknowledgment />} />
-                <Route path="/work-order-acknowledgment/error" element={<WorkOrderAcknowledgment />} />
-
                 <Route path="/" element={<PublicLayout />}>
                   <Route index element={<Index />} />
                   <Route path="/properties" element={<Properties />} />
