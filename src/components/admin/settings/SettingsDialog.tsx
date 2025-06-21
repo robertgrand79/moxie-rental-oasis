@@ -112,8 +112,27 @@ const SettingsDialog = ({
             analyticsData={analyticsData}
             setAnalyticsData={setAnalyticsData}
             onSave={async () => {
-              await updateSetting('googleAnalyticsId', analyticsData.googleAnalyticsId);
-              setDialogOpen(false);
+              // Save all analytics fields, not just Google Analytics ID
+              const settingsToSave = [
+                { key: 'googleAnalyticsId', value: analyticsData.googleAnalyticsId },
+                { key: 'googleTagManagerId', value: analyticsData.googleTagManagerId },
+                { key: 'facebookPixelId', value: analyticsData.facebookPixelId },
+                { key: 'customHeaderScripts', value: analyticsData.customHeaderScripts },
+                { key: 'customFooterScripts', value: analyticsData.customFooterScripts },
+                { key: 'customCss', value: analyticsData.customCss }
+              ];
+
+              let allSuccessful = true;
+              for (const setting of settingsToSave) {
+                const success = await updateSetting(setting.key, setting.value);
+                if (!success) {
+                  allSuccessful = false;
+                }
+              }
+
+              if (allSuccessful) {
+                setDialogOpen(false);
+              }
             }}
           />
         );
