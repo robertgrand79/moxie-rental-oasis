@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -64,6 +65,11 @@ function App() {
           <QueryClientProvider client={queryClient}>
             <Router>
               <Routes>
+                {/* Work Order Acknowledgment - standalone route outside public layout */}
+                <Route path="/work-order-acknowledgment/:token" element={<WorkOrderAcknowledgment />} />
+                <Route path="/work-order-acknowledgment/invalid" element={<WorkOrderAcknowledgment />} />
+                <Route path="/work-order-acknowledgment/error" element={<WorkOrderAcknowledgment />} />
+
                 <Route path="/" element={<PublicLayout />}>
                   <Route index element={<Index />} />
                   <Route path="/properties" element={<Properties />} />
@@ -82,7 +88,6 @@ function App() {
                   <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/listings" element={<Listings />} />
-                  <Route path="/work-order-acknowledgment/:token" element={<WorkOrderAcknowledgment />} />
                   <Route path="/:slug" element={<DynamicPage />} />
                 </Route>
 
