@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 
 export const useThirdPartyScripts = (
@@ -27,6 +28,58 @@ export const useThirdPartyScripts = (
     return sanitized;
   };
 
+  // Comprehensive Facebook Pixel cleanup function
+  const cleanupFacebookPixel = () => {
+    console.log('🧹 SiteHead: Starting comprehensive Facebook Pixel cleanup');
+    
+    // Remove all Facebook Pixel related scripts
+    const fbScripts = [
+      'script[data-fb-pixel]',
+      'script[src*="connect.facebook.net"]',
+      'script[src*="fbevents.js"]',
+      'script:not([src])'  // Inline scripts that might contain fbq
+    ];
+    
+    fbScripts.forEach(selector => {
+      const scripts = document.querySelectorAll(selector);
+      scripts.forEach(script => {
+        // For inline scripts, check if they contain fbq
+        if (selector === 'script:not([src])' && script.innerHTML && script.innerHTML.includes('fbq')) {
+          script.remove();
+          console.log('🗑️ SiteHead: Removed inline Facebook Pixel script');
+        } else if (selector !== 'script:not([src])') {
+          script.remove();
+          console.log('🗑️ SiteHead: Removed Facebook Pixel script:', selector);
+        }
+      });
+    });
+    
+    // Clean up window object
+    if (typeof window !== 'undefined') {
+      // Remove fbq function
+      if ((window as any).fbq) {
+        delete (window as any).fbq;
+        console.log('🗑️ SiteHead: Removed fbq from window object');
+      }
+      
+      // Remove _fbq if it exists
+      if ((window as any)._fbq) {
+        delete (window as any)._fbq;
+        console.log('🗑️ SiteHead: Removed _fbq from window object');
+      }
+      
+      // Clear any Facebook Pixel related data from dataLayer if it exists
+      if ((window as any).dataLayer) {
+        (window as any).dataLayer = (window as any).dataLayer.filter((item: any) => 
+          !(item && typeof item === 'object' && item.event && item.event.includes('fb'))
+        );
+        console.log('🗑️ SiteHead: Cleaned Facebook events from dataLayer');
+      }
+    }
+    
+    console.log('✅ SiteHead: Facebook Pixel cleanup completed');
+  };
+
   useEffect(() => {
     try {
       // Add Google Tag Manager (if valid GTM ID format)
@@ -46,22 +99,34 @@ export const useThirdPartyScripts = (
         }
       }
 
-      // Handle Facebook Pixel - remove if disabled
+      // Handle Facebook Pixel - comprehensive cleanup if disabled
       if (!facebookPixelId || facebookPixelId.trim() === '') {
-        console.log('📱 SiteHead: Facebook Pixel disabled, cleaning up existing scripts');
+        console.log('📱 SiteHead: Facebook Pixel disabled, performing comprehensive cleanup');
+        cleanupFacebookPixel();
         
-        // Remove existing Facebook Pixel scripts
-        const existingFbScript = document.querySelector('script[data-fb-pixel]');
-        if (existingFbScript) {
-          existingFbScript.remove();
-          console.log('🗑️ SiteHead: Removed existing Facebook Pixel script');
-        }
+        // Set up a mutation observer to catch any new Facebook scripts that might be added
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+              if (node.nodeType === Node.ELEMENT_NODE) {
+                const element = node as Element;
+                if (element.tagName === 'SCRIPT' && 
+                    (element.hasAttribute('data-fb-pixel') || 
+                     (element as HTMLScriptElement).src?.includes('connect.facebook.net') ||
+                     element.innerHTML?.includes('fbq'))) {
+                  console.log('🚫 SiteHead: Prevented Facebook Pixel script from loading');
+                  element.remove();
+                }
+              }
+            });
+          });
+        });
         
-        // Remove Facebook Pixel from window object if it exists
-        if (typeof window !== 'undefined' && (window as any).fbq) {
-          delete (window as any).fbq;
-          console.log('🗑️ SiteHead: Cleaned up Facebook Pixel from window object');
-        }
+        observer.observe(document.head, { childList: true, subtree: true });
+        observer.observe(document.body, { childList: true, subtree: true });
+        
+        // Clean up observer after a short time
+        setTimeout(() => observer.disconnect(), 5000);
         
         return;
       }
