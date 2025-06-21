@@ -1,3 +1,4 @@
+
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 import { useHeroSettings } from '@/components/home/hooks/useHeroSettings';
 import { useEffect } from 'react';
@@ -199,9 +200,12 @@ const SiteHead = () => {
       document.head.appendChild(gtmScript);
     }
 
-    // Add Facebook Pixel (if valid pixel ID format)
-    if (facebookPixelId && /^[0-9]+$/.test(facebookPixelId) && !document.querySelector(`script[src*="connect.facebook.net"]`)) {
+    // Add Facebook Pixel (only if valid pixel ID is configured)
+    if (facebookPixelId && facebookPixelId.trim() !== '' && /^[0-9]+$/.test(facebookPixelId.trim()) && !document.querySelector(`script[data-fb-pixel="${facebookPixelId}"]`)) {
+      console.log('📱 SiteHead: Loading Facebook Pixel for ID:', facebookPixelId);
+      
       const fbScript = document.createElement('script');
+      fbScript.setAttribute('data-fb-pixel', facebookPixelId);
       fbScript.innerHTML = `
         !function(f,b,e,v,n,t,s)
         {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -211,10 +215,14 @@ const SiteHead = () => {
         t.src=v;s=b.getElementsByTagName(e)[0];
         s.parentNode.insertBefore(t,s)}(window, document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '${facebookPixelId}');
+        fbq('init', '${facebookPixelId.trim()}');
         fbq('track', 'PageView');
       `;
       document.head.appendChild(fbScript);
+    } else if (facebookPixelId && facebookPixelId.trim() !== '' && !/^[0-9]+$/.test(facebookPixelId.trim())) {
+      console.warn('⚠️ SiteHead: Invalid Facebook Pixel ID format:', facebookPixelId);
+    } else {
+      console.log('📱 SiteHead: No Facebook Pixel ID configured');
     }
 
     // Add custom header scripts (sanitized)
