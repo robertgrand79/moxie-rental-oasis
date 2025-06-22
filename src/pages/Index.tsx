@@ -1,6 +1,6 @@
 
 import React from 'react';
-import HeroSection from '@/components/home/HeroSection';
+import ModernHeroSection from '@/components/home/ModernHeroSection';
 import CompactPropertyShowcase from '@/components/home/CompactPropertyShowcase';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
 import WhyMoxieSection from '@/components/home/WhyMoxieSection';
@@ -19,7 +19,7 @@ const Index = () => {
   return (
     <BackgroundWrapper>
       <main>
-        <HeroSection />
+        <ModernHeroSection />
         <CompactPropertyShowcase />
         <TestimonialsSection />
         <SocialProofSection />
