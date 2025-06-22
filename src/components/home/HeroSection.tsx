@@ -6,7 +6,25 @@ import ScrollIndicator from './ScrollIndicator';
 import { useHeroSettings } from './hooks/useHeroSettings';
 
 const HeroSection = () => {
-  const { settings } = useHeroSettings();
+  const { settings, isLoading } = useHeroSettings();
+
+  // Show minimal loading state while settings load
+  if (isLoading) {
+    return (
+      <section 
+        className="relative h-screen flex items-center justify-center overflow-hidden"
+        data-hero-section
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
+        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+          <div className="space-y-8 animate-pulse">
+            <div className="h-16 bg-white/20 rounded-lg"></div>
+            <div className="h-8 bg-white/20 rounded-lg"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section 

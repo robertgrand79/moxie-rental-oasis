@@ -53,9 +53,12 @@ export const useHeroSettings = () => {
       console.log('✅ Final hero settings:', finalSettings);
       return finalSettings;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes - longer caching
+    gcTime: 15 * 60 * 1000, // Keep in cache for 15 minutes
     refetchInterval: false,
-    retry: 3
+    retry: 1, // Reduced retries for faster fallback
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches
+    refetchOnMount: false // Use cached data when available
   });
 
   return {
