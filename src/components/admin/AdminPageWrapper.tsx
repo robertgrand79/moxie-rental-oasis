@@ -1,47 +1,66 @@
 
 import React from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Shield } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import AdminAccessSetup from '@/components/admin/AdminAccessSetup';
 
 interface AdminPageWrapperProps {
+  children: React.ReactNode;
   title: string;
   description?: string;
-  children: React.ReactNode;
   actions?: React.ReactNode;
 }
 
-const AdminPageWrapper = ({ 
-  title, 
-  description, 
-  children, 
-  actions 
-}: AdminPageWrapperProps) => {
-  const isMobile = useIsMobile();
+const AdminPageWrapper = ({ children, title, description, actions }: AdminPageWrapperProps) => {
+  const { user, isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <AdminAccessSetup />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <AdminAccessSetup />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 md:space-y-8">
-      {/* Mobile-Optimized Page Header */}
-      <div className="bg-white/95 backdrop-blur-xl rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 border border-gray-100">
-        <div className={`flex ${isMobile ? 'flex-col space-y-4' : 'items-center justify-between'}`}>
-          <div className="flex-1">
-            <h1 className={`font-bold text-gray-900 mb-2 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
-              {title}
-            </h1>
-            {description && (
-              <p className={`text-gray-600 ${isMobile ? 'text-base' : 'text-lg'}`}>
-                {description}
-              </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Shield className="h-6 w-6 text-primary" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+                {description && (
+                  <p className="text-sm text-gray-600 mt-1">{description}</p>
+                )}
+              </div>
+            </div>
+            {actions && (
+              <div className="flex items-center space-x-3">
+                {actions}
+              </div>
             )}
           </div>
-          {actions && (
-            <div className={`flex items-center ${isMobile ? 'justify-center w-full' : 'space-x-3 ml-6'}`}>
-              {actions}
-            </div>
-          )}
         </div>
       </div>
-
-      {/* Mobile-Optimized Page Content */}
-      <div className="bg-white/95 backdrop-blur-xl rounded-xl md:rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+      <div className="max-w-7xl mx-auto">
         {children}
       </div>
     </div>
