@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAutoSync } from '@/hooks/useAutoSync';
 import { SettingsState } from './types';
 
 export const useSettingsOperations = (
@@ -9,6 +10,7 @@ export const useSettingsOperations = (
   setError: React.Dispatch<React.SetStateAction<string | null>>
 ) => {
   const { user } = useAuth();
+  const { triggerAutoSync } = useAutoSync({ enabled: true, debounceMs: 1500 });
 
   // Improved serialization function that handles JSONB properly
   const serializeSettingValue = (value: any): any => {
@@ -37,7 +39,7 @@ export const useSettingsOperations = (
     return value;
   };
 
-  // Save individual setting with improved error handling and logging
+  // Save individual setting with improved error handling and auto-sync
   const saveSetting = useCallback(async (key: string, value: any): Promise<boolean> => {
     console.log(`[Settings] Starting save for ${key}:`, value);
 
@@ -135,6 +137,19 @@ export const useSettingsOperations = (
       });
       
       setError(null);
+      
+      // Trigger auto-sync for public-facing content
+      const publicContentKeys = [
+        'siteName', 'tagline', 'description', 'heroTitle', 'heroSubtitle', 
+        'heroDescription', 'heroBackgroundImage', 'heroLocationText', 
+        'heroCTAText', 'contactEmail', 'phone', 'address', 'socialMedia'
+      ];
+      
+      if (publicContentKeys.includes(key)) {
+        console.log(`[Settings] Triggering auto-sync for public content: ${key}`);
+        triggerAutoSync(`settings change: ${key}`);
+      }
+      
       console.log(`[Settings] Save operation completed successfully for ${key}`);
       return true;
 
@@ -149,9 +164,9 @@ export const useSettingsOperations = (
       });
       return false;
     }
-  }, [user, setSettings, setError]);
+  }, [user, setSettings, setError, triggerAutoSync]);
 
-  // Batch save multiple settings with better error tracking
+  // Batch save multiple settings with better error tracking and auto-sync
   const saveSettings = useCallback(async (updates: Partial<SettingsState>): Promise<boolean> => {
     const keys = Object.keys(updates);
     console.log('[Settings] Starting batch save for keys:', keys);
@@ -184,6 +199,10 @@ export const useSettingsOperations = (
       
       // Ensure local state is fully synced after batch save
       setSettings(prev => ({ ...prev, ...updates }));
+      
+      // Trigger auto-sync after batch save (debounced)
+      console.log('[Settings] Triggering auto-sync after batch save');
+      triggerAutoSync('batch settings save');
     } else {
       console.error('[Settings] Batch save partially failed:', failedKeys);
       toast({
@@ -194,7 +213,7 @@ export const useSettingsOperations = (
     }
 
     return allSuccessful;
-  }, [saveSetting, setSettings]);
+  }, [saveSetting, setSettings, triggerAutoSync]);
 
   // Optimistic update function with logging
   const updateSettingOptimistic = useCallback((updates: Partial<SettingsState>) => {

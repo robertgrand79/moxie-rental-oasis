@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAutoSync } from '@/hooks/useAutoSync';
 
 export interface EugeneEvent {
   id: string;
@@ -30,6 +30,7 @@ export interface EugeneEvent {
 export const useEugeneEvents = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { triggerAutoSync } = useAutoSync({ enabled: true, debounceMs: 2000 });
 
   const { data: events = [], isLoading, error } = useQuery({
     queryKey: ['eugene-events'],
@@ -61,6 +62,9 @@ export const useEugeneEvents = () => {
         title: "Success",
         description: "Event created successfully",
       });
+      
+      // Trigger auto-sync for public content
+      triggerAutoSync('event created');
     },
     onError: (error) => {
       toast({
@@ -89,6 +93,9 @@ export const useEugeneEvents = () => {
         title: "Success",
         description: "Event updated successfully",
       });
+      
+      // Trigger auto-sync for public content
+      triggerAutoSync('event updated');
     },
     onError: (error) => {
       toast({
@@ -114,6 +121,9 @@ export const useEugeneEvents = () => {
         title: "Success",
         description: "Event deleted successfully",
       });
+      
+      // Trigger auto-sync for public content
+      triggerAutoSync('event deleted');
     },
     onError: (error) => {
       toast({
