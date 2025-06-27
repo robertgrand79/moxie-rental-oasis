@@ -18,6 +18,7 @@ interface PaginatedPhotoGridProps {
   photos: Photo[];
   selectedCoverIndex?: number;
   featuredPhotos?: string[];
+  deletedImages?: string[];
   onCoverSelect: (index: number) => void;
   onFeaturedPhotosChange: (photos: string[]) => void;
   onRemove: (index: number) => void;
@@ -30,6 +31,7 @@ const PaginatedPhotoGrid = ({
   photos,
   selectedCoverIndex,
   featuredPhotos = [],
+  deletedImages = [],
   onCoverSelect,
   onFeaturedPhotosChange,
   onRemove,
@@ -99,7 +101,8 @@ const PaginatedPhotoGrid = ({
     <div className="space-y-4">
       <PhotoGridHeader 
         photoCount={photos.length} 
-        featuredCount={featuredPhotos.length} 
+        featuredCount={featuredPhotos.length}
+        deletedCount={deletedImages.length}
       />
 
       <DndContext
@@ -116,6 +119,7 @@ const PaginatedPhotoGrid = ({
               const actualIndex = startIndex + index;
               const isSelected = selectedCoverIndex === actualIndex;
               const isFeatured = featuredPhotos.includes(photo.url);
+              const isMarkedForDeletion = photo.isExisting && deletedImages.includes(photo.url);
               
               return (
                 <DraggablePhotoItem
@@ -124,6 +128,7 @@ const PaginatedPhotoGrid = ({
                   index={actualIndex}
                   isSelected={isSelected}
                   isFeatured={isFeatured}
+                  isMarkedForDeletion={isMarkedForDeletion}
                   onCoverSelect={onCoverSelect}
                   onFeaturedToggle={handleFeaturedToggle}
                   onRemove={onRemove}
@@ -139,7 +144,10 @@ const PaginatedPhotoGrid = ({
         </SortableContext>
       </DndContext>
 
-      <PhotoGridInstructions featuredCount={featuredPhotos.length} />
+      <PhotoGridInstructions 
+        featuredCount={featuredPhotos.length} 
+        deletedCount={deletedImages.length}
+      />
 
       <PhotoGridPagination
         currentPage={currentPage}

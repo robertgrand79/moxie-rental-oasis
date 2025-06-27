@@ -66,7 +66,7 @@ const PhotoUploadSection = ({
         <FormLabel className="text-lg font-semibold">Property Photos</FormLabel>
         <p className="text-sm text-muted-foreground">
           Click the star on any photo to make it the cover photo. It will automatically move to the first position.
-          Click the trash icon to delete photos.
+          Click the trash icon to delete photos. Deleted existing photos will be removed when you save the form.
         </p>
       </div>
       
@@ -75,12 +75,13 @@ const PhotoUploadSection = ({
         <div className="space-y-4">
           <PaginatedPhotoGrid
             photos={allPhotos}
-            selectedCoverIndex={0} // Always use first photo as cover
+            selectedCoverIndex={0}
             featuredPhotos={featuredPhotos}
+            deletedImages={deletedExistingImages}
             onCoverSelect={handleCoverSelect}
             onFeaturedPhotosChange={(photos) => !disabled && onFeaturedPhotosChange?.(photos)}
             onRemove={removePhoto}
-            onMove={() => {}} // Disable manual reordering since we auto-move
+            onMove={() => {}}
             disabled={disabled}
           />
         </div>

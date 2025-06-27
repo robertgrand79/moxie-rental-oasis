@@ -1,32 +1,39 @@
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Star, Heart } from 'lucide-react';
+import { Images, Star, Heart, Trash2 } from 'lucide-react';
 
 interface PhotoGridHeaderProps {
   photoCount: number;
   featuredCount: number;
+  deletedCount?: number;
 }
 
-const PhotoGridHeader = ({ photoCount, featuredCount }: PhotoGridHeaderProps) => {
+const PhotoGridHeader = ({ photoCount, featuredCount, deletedCount = 0 }: PhotoGridHeaderProps) => {
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <h3 className="text-lg font-semibold">Photo Gallery ({photoCount} photos)</h3>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Star className="h-3 w-3" />
-            Cover Photo
-          </Badge>
-          <Badge variant="secondary" className="flex items-center gap-1">
-            <Heart className="h-3 w-3" />
-            Featured: {featuredCount}/10
-          </Badge>
+    <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Images className="h-4 w-4" />
+          <span className="font-medium">{photoCount} Total Photos</span>
         </div>
+        
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Heart className="h-4 w-4 text-red-500" />
+          <span className="font-medium">{featuredCount}/10 Featured</span>
+        </div>
+
+        {deletedCount > 0 && (
+          <div className="flex items-center gap-2 text-sm text-destructive">
+            <Trash2 className="h-4 w-4" />
+            <span className="font-medium">{deletedCount} Marked for Deletion</span>
+          </div>
+        )}
       </div>
-      <p className="text-xs text-muted-foreground">
-        Hover photos to select cover and featured images
-      </p>
+      
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+        <span>Cover Photo</span>
+      </div>
     </div>
   );
 };
