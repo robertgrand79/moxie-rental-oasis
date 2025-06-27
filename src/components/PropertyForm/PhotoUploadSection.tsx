@@ -15,6 +15,7 @@ interface PhotoUploadSectionProps {
   featuredPhotos?: string[];
   onFeaturedPhotosChange?: (photos: string[]) => void;
   onExistingImagesReorder?: (newOrder: string[]) => void;
+  onDeletedImagesChange?: (deletedImages: string[]) => void;
   disabled?: boolean;
 }
 
@@ -28,13 +29,21 @@ const PhotoUploadSection = ({
   featuredPhotos = [],
   onFeaturedPhotosChange,
   onExistingImagesReorder,
+  onDeletedImagesChange,
   disabled = false
 }: PhotoUploadSectionProps) => {
-  const { allPhotos, addPhotos, removePhoto, movePhotoToFirst } = usePhotoManagement(
+  const { allPhotos, addPhotos, removePhoto, movePhotoToFirst, deletedExistingImages } = usePhotoManagement(
     photos,
     onPhotosChange,
     existingImages
   );
+
+  // Notify parent component of deleted images
+  React.useEffect(() => {
+    if (onDeletedImagesChange) {
+      onDeletedImagesChange(deletedExistingImages);
+    }
+  }, [deletedExistingImages, onDeletedImagesChange]);
 
   const handleCoverSelect = (index: number) => {
     if (disabled) return;
@@ -57,6 +66,7 @@ const PhotoUploadSection = ({
         <FormLabel className="text-lg font-semibold">Property Photos</FormLabel>
         <p className="text-sm text-muted-foreground">
           Click the star on any photo to make it the cover photo. It will automatically move to the first position.
+          Click the trash icon to delete photos.
         </p>
       </div>
       

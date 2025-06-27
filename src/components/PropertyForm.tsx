@@ -27,7 +27,7 @@ const propertySchema = z.object({
 });
 
 interface PropertyFormProps {
-  onSubmit: (data: PropertyFormData & { photos: File[]; reorderedExistingImages?: string[]; featuredPhotos?: string[] }) => void;
+  onSubmit: (data: PropertyFormData & { photos: File[]; reorderedExistingImages?: string[]; featuredPhotos?: string[]; deletedImages?: string[] }) => void;
   onCancel: () => void;
   initialData?: Partial<Property>;
   isEditing?: boolean;
@@ -38,6 +38,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
   const [photos, setPhotos] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>(initialData?.images || []);
   const [featuredPhotos, setFeaturedPhotos] = useState<string[]>(initialData?.featured_photos || []);
+  const [deletedImages, setDeletedImages] = useState<string[]>([]);
   const { uploading } = usePhotoUpload();
 
   const form = useForm<PropertyFormData>({
@@ -58,11 +59,13 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
   const handleSubmit = (data: PropertyFormData) => {
     if (isSubmitting) return;
     console.log('Form submitted with reordered existing images:', existingImages);
+    console.log('Deleted images:', deletedImages);
     onSubmit({ 
       ...data, 
       photos, 
       reorderedExistingImages: existingImages,
-      featuredPhotos 
+      featuredPhotos,
+      deletedImages
     });
   };
 
@@ -94,6 +97,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
               onExistingImagesReorder={handleExistingImagesReorder}
               featuredPhotos={featuredPhotos}
               onFeaturedPhotosChange={setFeaturedPhotos}
+              onDeletedImagesChange={setDeletedImages}
               disabled={isProcessing}
             />
 

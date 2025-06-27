@@ -13,6 +13,7 @@ export const usePhotoManagement = (
   existingImages: string[] = []
 ) => {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [deletedExistingImages, setDeletedExistingImages] = useState<string[]>([]);
 
   const addPhotos = useCallback((newFiles: File[]) => {
     const updatedPhotos = [...photos, ...newFiles];
@@ -40,12 +41,17 @@ export const usePhotoManagement = (
         }
         return newUrls;
       });
+    } else {
+      // Mark existing image for deletion
+      const imageToDelete = existingImages[index];
+      setDeletedExistingImages(prev => [...prev, imageToDelete]);
     }
-  }, [existingImages.length, photos, onPhotosChange]);
+  }, [existingImages, photos, onPhotosChange]);
 
   const movePhotoToFirst = useCallback((fromIndex: number) => {
-    // Get all photo URLs in the correct order
-    const allPhotoUrls = [...existingImages, ...previewUrls];
+    // Get all photo URLs in the correct order (excluding deleted ones)
+    const activeExistingImages = existingImages.filter(img => !deletedExistingImages.includes(img));
+    const allPhotoUrls = [...activeExistingImages, ...previewUrls];
     
     if (fromIndex >= 0 && fromIndex < allPhotoUrls.length) {
       // Create new ordered arrays
@@ -59,12 +65,12 @@ export const usePhotoManagement = (
       
       reorderedUrls.forEach((url, index) => {
         const originalIndex = allPhotoUrls.indexOf(url);
-        const wasExisting = originalIndex < existingImages.length;
+        const wasExisting = originalIndex < activeExistingImages.length;
         
         if (wasExisting) {
           newExistingImages.push(url);
         } else {
-          const photoIndex = originalIndex - existingImages.length;
+          const photoIndex = originalIndex - activeExistingImages.length;
           if (photos[photoIndex]) {
             newPhotos.push(photos[photoIndex]);
             newPreviewUrls.push(url);
@@ -80,12 +86,13 @@ export const usePhotoManagement = (
       return newExistingImages;
     }
     
-    return existingImages;
-  }, [existingImages, previewUrls, photos, onPhotosChange]);
+    return activeExistingImages;
+  }, [existingImages, deletedExistingImages, previewUrls, photos, onPhotosChange]);
 
-  // Combine existing images and new photos for display
+  // Combine existing images (excluding deleted ones) and new photos for display
+  const activeExistingImages = existingImages.filter(img => !deletedExistingImages.includes(img));
   const allPhotos: Photo[] = [
-    ...existingImages.map((url, index) => ({
+    ...activeExistingImages.map((url, index) => ({
       id: `existing-${index}`,
       url,
       isExisting: true
@@ -101,6 +108,7 @@ export const usePhotoManagement = (
     allPhotos,
     addPhotos,
     removePhoto,
-    movePhotoToFirst
+    movePhotoToFirst,
+    deletedExistingImages
   };
 };
