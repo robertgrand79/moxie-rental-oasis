@@ -40,6 +40,12 @@ const ThumbnailImage = ({
     return () => observer.disconnect();
   }, []);
 
+  // Reset states when src changes
+  useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+  }, [src]);
+
   const handleLoad = () => {
     console.log('✅ Thumbnail loaded successfully:', src);
     setIsLoaded(true);
@@ -52,13 +58,23 @@ const ThumbnailImage = ({
     setIsLoaded(false);
   };
 
+  // Don't render anything if no src provided
+  if (!src) {
+    console.warn('⚠️ ThumbnailImage: No src provided');
+    return (
+      <div className={cn("relative overflow-hidden bg-gray-100 flex items-center justify-center", className)}>
+        {fallbackIcon && <Images className="h-8 w-8 text-gray-400" />}
+      </div>
+    );
+  }
+
   return (
     <div 
       ref={imgRef}
       className={cn("relative overflow-hidden bg-gray-100", className)}
     >
       {/* Loading placeholder */}
-      {!isLoaded && !hasError && (
+      {!isLoaded && !hasError && isInView && (
         <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
           <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
         </div>
@@ -67,7 +83,10 @@ const ThumbnailImage = ({
       {/* Error state */}
       {hasError && fallbackIcon && (
         <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-          <Images className="h-8 w-8 text-gray-400" />
+          <div className="text-center">
+            <Images className="h-8 w-8 text-gray-400 mx-auto mb-1" />
+            <span className="text-xs text-gray-500">Image unavailable</span>
+          </div>
         </div>
       )}
 

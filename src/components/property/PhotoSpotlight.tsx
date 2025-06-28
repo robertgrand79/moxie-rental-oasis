@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Images } from 'lucide-react';
-import OptimizedImage from '@/components/ui/optimized-image';
+import ThumbnailImage from '@/components/ui/thumbnail-image';
 import PropertyPhotoModal from './PropertyPhotoModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -56,7 +56,7 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
                   className="relative aspect-square cursor-pointer group overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   onClick={() => openModal(index)}
                 >
-                  <OptimizedImage
+                  <ThumbnailImage
                     src={image}
                     alt={`${title} - Photo ${index + 1}`}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
