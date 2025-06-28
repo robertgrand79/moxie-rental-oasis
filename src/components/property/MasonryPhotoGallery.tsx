@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Images, ZoomIn } from 'lucide-react';
-import OptimizedImage from '@/components/ui/optimized-image';
+import ThumbnailImage from '@/components/ui/thumbnail-image';
 import PropertyPhotoModal from './PropertyPhotoModal';
 
 interface MasonryPhotoGalleryProps {
@@ -52,10 +52,10 @@ const MasonryPhotoGallery = ({ images, featuredPhotos, title }: MasonryPhotoGall
                   className={`break-inside-avoid cursor-pointer group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ${height}`}
                   onClick={() => openModal(index)}
                 >
-                  <OptimizedImage
+                  <ThumbnailImage
                     src={image}
                     alt={`${title} - Featured Photo ${index + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="w-full h-full transition-transform duration-500 group-hover:scale-110"
                   />
                   
                   {/* Hover Overlay */}

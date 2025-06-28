@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Trash2 } from 'lucide-react';
-import OptimizedImage from '@/components/ui/optimized-image';
+import ThumbnailImage from '@/components/ui/thumbnail-image';
 import PhotoActionButtons from './PhotoActionButtons';
 import PhotoIndicators from './PhotoIndicators';
 import PhotoControls from './PhotoControls';
@@ -103,12 +102,10 @@ const DraggablePhotoItem = ({
 
         {/* Photo */}
         <div className="cursor-pointer">
-          <OptimizedImage
+          <ThumbnailImage
             src={photo.url}
             alt={`Property image ${index + 1}`}
-            width={150}
-            height={150}
-            className="w-full h-32 object-cover"
+            className="w-full h-32"
           />
         </div>
 

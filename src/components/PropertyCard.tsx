@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Edit, Trash2, MapPin, Bed, Bath, Users } from 'lucide-react';
 import { Property } from '@/types/property';
+import ThumbnailImage from '@/components/ui/thumbnail-image';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,10 +27,10 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
   return (
     <Card className="overflow-hidden">
       <div className="aspect-video bg-gray-200 relative">
-        <img 
+        <ThumbnailImage 
           src={property.image_url} 
           alt={property.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full"
         />
       </div>
       <CardHeader>
