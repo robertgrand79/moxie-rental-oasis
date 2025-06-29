@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { BlogPost } from '@/types/blogPost';
+import { BlogPost, ContentType } from '@/types/blogPost';
 import { toast } from '@/hooks/use-toast';
 
 const isNetworkError = (error: any): boolean => {
@@ -64,10 +64,17 @@ export const blogPostService = {
       }
 
       console.log('✅ Fetched blog posts:', data?.length || 0, 'posts');
-      // Cast the status field to the correct type
+      
+      // Cast and transform the data with proper type safety
       return (data || []).map(post => ({
         ...post,
-        status: post.status as 'published' | 'draft'
+        status: post.status as 'published' | 'draft',
+        content_type: (post.content_type as ContentType) || 'article',
+        metadata: post.metadata || {},
+        display_order: post.display_order || 0,
+        is_featured: post.is_featured || false,
+        is_active: post.is_active !== false,
+        tags: Array.isArray(post.tags) ? post.tags : []
       }));
     } catch (error) {
       if (isNetworkError(error)) {
@@ -101,10 +108,17 @@ export const blogPostService = {
       }
 
       console.log('✅ Fetched blog post by slug:', data?.title || 'Not found');
-      // Cast the status field to the correct type
+      
+      // Transform with proper type safety
       return data ? {
         ...data,
-        status: data.status as 'published' | 'draft'
+        status: data.status as 'published' | 'draft',
+        content_type: (data.content_type as ContentType) || 'article',
+        metadata: data.metadata || {},
+        display_order: data.display_order || 0,
+        is_featured: data.is_featured || false,
+        is_active: data.is_active !== false,
+        tags: Array.isArray(data.tags) ? data.tags : []
       } : null;
     } catch (error) {
       if (isNetworkError(error)) {
@@ -144,10 +158,16 @@ export const blogPostService = {
         });
       }
       
-      // Cast the status field to the correct type
+      // Transform with proper type safety
       return {
         ...data,
-        status: data.status as 'published' | 'draft'
+        status: data.status as 'published' | 'draft',
+        content_type: (data.content_type as ContentType) || 'article',
+        metadata: data.metadata || {},
+        display_order: data.display_order || 0,
+        is_featured: data.is_featured || false,
+        is_active: data.is_active !== false,
+        tags: Array.isArray(data.tags) ? data.tags : []
       };
     } catch (error) {
       handleServiceError('Blog post creation', error);
@@ -181,10 +201,16 @@ export const blogPostService = {
         });
       }
       
-      // Cast the status field to the correct type
+      // Transform with proper type safety
       return {
         ...data,
-        status: data.status as 'published' | 'draft'
+        status: data.status as 'published' | 'draft',
+        content_type: (data.content_type as ContentType) || 'article',
+        metadata: data.metadata || {},
+        display_order: data.display_order || 0,
+        is_featured: data.is_featured || false,
+        is_active: data.is_active !== false,
+        tags: Array.isArray(data.tags) ? data.tags : []
       };
     } catch (error) {
       handleServiceError('Blog post update', error);

@@ -1,3 +1,4 @@
+
 import { Property } from '@/types/property';
 import { BlogPost } from '@/types/blogPost';
 
@@ -106,7 +107,13 @@ Whether you're staying in one of our vacation rentals or just visiting, Eugene's
     status: "published" as const,
     published_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     image_url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80",
-    tags: ["food", "dining", "local", "restaurants"]
+    tags: ["food", "dining", "local", "restaurants"],
+    // Add new required unified content fields
+    content_type: 'article',
+    metadata: {},
+    display_order: 0,
+    is_featured: false,
+    is_active: true
   },
   {
     title: "Exploring Eugene's Outdoor Adventures",
@@ -144,7 +151,13 @@ Plan your outdoor adventure from the comfort of our vacation rentals, perfectly 
     status: "published" as const,
     published_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
     image_url: "https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=800&q=80",
-    tags: ["outdoor", "hiking", "cycling", "adventure"]
+    tags: ["outdoor", "hiking", "cycling", "adventure"],
+    // Add new required unified content fields
+    content_type: 'article',
+    metadata: {},
+    display_order: 0,
+    is_featured: false,
+    is_active: true
   },
   {
     title: "University of Oregon: A Campus Worth Exploring",
@@ -183,6 +196,12 @@ Stay at one of our nearby vacation rentals and walk or bike to campus – you'll
     status: "published" as const,
     published_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
     image_url: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=800&q=80",
-    tags: ["university", "campus", "culture", "attractions"]
+    tags: ["university", "campus", "culture", "attractions"],
+    // Add new required unified content fields
+    content_type: 'article',
+    metadata: {},
+    display_order: 0,
+    is_featured: false,
+    is_active: true
   }
 ];

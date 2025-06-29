@@ -42,7 +42,7 @@ export const useAutoSave = ({
         excerpt: data.excerpt,
         content: data.content,
         image_url: data.image_url || null,
-        image_credit: data.image_credit || null, // Ensure image_credit is included
+        image_credit: data.image_credit || null,
         tags: data.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
         status: 'draft' as const,
         author: data.author || 'Admin',
@@ -50,7 +50,13 @@ export const useAutoSave = ({
         slug: (data.title || 'untitled-draft').toLowerCase()
           .replace(/\s+/g, '-')
           .replace(/[^a-z0-9-]/g, '')
-          .slice(0, 50) + '-' + Date.now()
+          .slice(0, 50) + '-' + Date.now(),
+        // Add new required fields for unified content
+        content_type: 'article' as const,
+        metadata: {},
+        display_order: 0,
+        is_featured: false,
+        is_active: true
       };
 
       console.log('💾 Auto-saving with image_credit:', data.image_credit);
