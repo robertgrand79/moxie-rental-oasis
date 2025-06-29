@@ -35,52 +35,118 @@ export type Database = {
       }
       blog_posts: {
         Row: {
+          activity_type: string | null
+          address: string | null
           author: string
+          category: string | null
           content: string
+          content_type: string
           created_at: string
           created_by: string
+          display_order: number | null
+          end_date: string | null
+          event_date: string | null
           excerpt: string
           id: string
           image_credit: string | null
           image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_recurring: boolean | null
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          metadata: Json | null
+          phone: string | null
+          price_range: string | null
           published_at: string | null
+          rating: number | null
+          recurrence_pattern: string | null
           slug: string
           status: string
           tags: string[] | null
+          ticket_url: string | null
+          time_end: string | null
+          time_start: string | null
           title: string
           updated_at: string
+          website_url: string | null
         }
         Insert: {
+          activity_type?: string | null
+          address?: string | null
           author: string
+          category?: string | null
           content: string
+          content_type?: string
           created_at?: string
           created_by: string
+          display_order?: number | null
+          end_date?: string | null
+          event_date?: string | null
           excerpt: string
           id?: string
           image_credit?: string | null
           image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_recurring?: boolean | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          metadata?: Json | null
+          phone?: string | null
+          price_range?: string | null
           published_at?: string | null
+          rating?: number | null
+          recurrence_pattern?: string | null
           slug: string
           status?: string
           tags?: string[] | null
+          ticket_url?: string | null
+          time_end?: string | null
+          time_start?: string | null
           title: string
           updated_at?: string
+          website_url?: string | null
         }
         Update: {
+          activity_type?: string | null
+          address?: string | null
           author?: string
+          category?: string | null
           content?: string
+          content_type?: string
           created_at?: string
           created_by?: string
+          display_order?: number | null
+          end_date?: string | null
+          event_date?: string | null
           excerpt?: string
           id?: string
           image_credit?: string | null
           image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_recurring?: boolean | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          metadata?: Json | null
+          phone?: string | null
+          price_range?: string | null
           published_at?: string | null
+          rating?: number | null
+          recurrence_pattern?: string | null
           slug?: string
           status?: string
           tags?: string[] | null
+          ticket_url?: string | null
+          time_end?: string | null
+          time_start?: string | null
           title?: string
           updated_at?: string
+          website_url?: string | null
         }
         Relationships: []
       }
