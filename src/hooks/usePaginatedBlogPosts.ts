@@ -89,54 +89,83 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
         return;
       }
 
-      console.log('✅ usePaginatedBlogPosts - Fetched posts:', data?.length || 0, 'Total count:', count);
+      console.log('✅ usePaginatedBlogPosts - Raw data received:', data?.length || 0, 'Total count:', count);
+      
+      // Debug: Log first few posts to see their structure
+      if (data && data.length > 0) {
+        console.log('📋 Sample post data:', data[0]);
+        console.log('📋 Posts by content_type from raw data:', {
+          article: data.filter(p => p.content_type === 'article').length,
+          event: data.filter(p => p.content_type === 'event').length,
+          poi: data.filter(p => p.content_type === 'poi').length,
+          lifestyle: data.filter(p => p.content_type === 'lifestyle').length,
+          undefined: data.filter(p => !p.content_type).length
+        });
+      }
       
       // Map data with proper typing and validation including new fields
       const mappedPosts: BlogPost[] = (data || [])
         .filter((post): post is any => post !== null && typeof post === 'object' && 'id' in post)
-        .map(post => ({
-          id: post.id || '',
-          title: post.title || '',
-          excerpt: post.excerpt || '',
-          content: post.content || '',
-          author: post.author || '',
-          image_url: post.image_url || undefined,
-          image_credit: post.image_credit || undefined,
-          slug: post.slug || '',
-          status: (post.status === 'published' ? 'published' : 'draft') as 'published' | 'draft',
-          published_at: post.published_at || null,
-          created_at: post.created_at || '',
-          updated_at: post.updated_at || '',
-          created_by: post.created_by || '',
-          tags: Array.isArray(post.tags) ? post.tags : [],
-          // Add new unified content fields with defaults
-          content_type: (post.content_type as ContentType) || 'article',
-          metadata: post.metadata || {},
-          category: post.category || undefined,
-          display_order: post.display_order || 0,
-          is_featured: post.is_featured || false,
-          is_active: post.is_active !== false, // Default to true if not set
-          // Location fields
-          location: post.location || undefined,
-          latitude: post.latitude || undefined,
-          longitude: post.longitude || undefined,
-          address: post.address || undefined,
-          // Event fields
-          event_date: post.event_date || undefined,
-          end_date: post.end_date || undefined,
-          time_start: post.time_start || undefined,
-          time_end: post.time_end || undefined,
-          ticket_url: post.ticket_url || undefined,
-          price_range: post.price_range || undefined,
-          is_recurring: post.is_recurring || false,
-          recurrence_pattern: post.recurrence_pattern || undefined,
-          // POI fields
-          rating: post.rating || undefined,
-          phone: post.phone || undefined,
-          website_url: post.website_url || undefined,
-          // Lifestyle fields
-          activity_type: post.activity_type || undefined
-        }));
+        .map(post => {
+          // Safe metadata casting
+          const safeMetadata = post.metadata && typeof post.metadata === 'object' && !Array.isArray(post.metadata) 
+            ? post.metadata as Record<string, any>
+            : {};
+
+          const mappedPost: BlogPost = {
+            id: post.id || '',
+            title: post.title || '',
+            excerpt: post.excerpt || '',
+            content: post.content || '',
+            author: post.author || '',
+            image_url: post.image_url || undefined,
+            image_credit: post.image_credit || undefined,
+            slug: post.slug || '',
+            status: (post.status === 'published' ? 'published' : 'draft') as 'published' | 'draft',
+            published_at: post.published_at || null,
+            created_at: post.created_at || '',
+            updated_at: post.updated_at || '',
+            created_by: post.created_by || '',
+            tags: Array.isArray(post.tags) ? post.tags : [],
+            // Add new unified content fields with defaults
+            content_type: (post.content_type as ContentType) || 'article',
+            metadata: safeMetadata,
+            category: post.category || undefined,
+            display_order: post.display_order || 0,
+            is_featured: post.is_featured || false,
+            is_active: post.is_active !== false, // Default to true if not set
+            // Location fields
+            location: post.location || undefined,
+            latitude: post.latitude || undefined,
+            longitude: post.longitude || undefined,
+            address: post.address || undefined,
+            // Event fields
+            event_date: post.event_date || undefined,
+            end_date: post.end_date || undefined,
+            time_start: post.time_start || undefined,
+            time_end: post.time_end || undefined,
+            ticket_url: post.ticket_url || undefined,
+            price_range: post.price_range || undefined,
+            is_recurring: post.is_recurring || false,
+            recurrence_pattern: post.recurrence_pattern || undefined,
+            // POI fields
+            rating: post.rating || undefined,
+            phone: post.phone || undefined,
+            website_url: post.website_url || undefined,
+            // Lifestyle fields
+            activity_type: post.activity_type || undefined
+          };
+
+          return mappedPost;
+        });
+
+      console.log('✅ usePaginatedBlogPosts - Mapped posts:', mappedPosts.length);
+      console.log('📋 Posts by content_type after mapping:', {
+        article: mappedPosts.filter(p => p.content_type === 'article').length,
+        event: mappedPosts.filter(p => p.content_type === 'event').length,
+        poi: mappedPosts.filter(p => p.content_type === 'poi').length,
+        lifestyle: mappedPosts.filter(p => p.content_type === 'lifestyle').length
+      });
 
       setPosts(mappedPosts);
       setTotalCount(count || 0);
