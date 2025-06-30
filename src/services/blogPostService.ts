@@ -35,6 +35,14 @@ const handleServiceError = (operation: string, error: any, showToast = true) => 
   throw new Error(errorMessage);
 };
 
+// Helper function to safely cast metadata
+const safeMetadataCast = (metadata: any): Record<string, any> => {
+  if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+    return metadata as Record<string, any>;
+  }
+  return {};
+};
+
 export const blogPostService = {
   async fetchBlogPosts(publishedOnly: boolean = false): Promise<BlogPost[]> {
     console.log('🔍 Fetching blog posts, publishedOnly:', publishedOnly);
@@ -70,7 +78,7 @@ export const blogPostService = {
         ...post,
         status: post.status as 'published' | 'draft',
         content_type: (post.content_type as ContentType) || 'article',
-        metadata: post.metadata || {},
+        metadata: safeMetadataCast(post.metadata),
         display_order: post.display_order || 0,
         is_featured: post.is_featured || false,
         is_active: post.is_active !== false,
@@ -114,7 +122,7 @@ export const blogPostService = {
         ...data,
         status: data.status as 'published' | 'draft',
         content_type: (data.content_type as ContentType) || 'article',
-        metadata: data.metadata || {},
+        metadata: safeMetadataCast(data.metadata),
         display_order: data.display_order || 0,
         is_featured: data.is_featured || false,
         is_active: data.is_active !== false,
@@ -163,7 +171,7 @@ export const blogPostService = {
         ...data,
         status: data.status as 'published' | 'draft',
         content_type: (data.content_type as ContentType) || 'article',
-        metadata: data.metadata || {},
+        metadata: safeMetadataCast(data.metadata),
         display_order: data.display_order || 0,
         is_featured: data.is_featured || false,
         is_active: data.is_active !== false,
@@ -206,7 +214,7 @@ export const blogPostService = {
         ...data,
         status: data.status as 'published' | 'draft',
         content_type: (data.content_type as ContentType) || 'article',
-        metadata: data.metadata || {},
+        metadata: safeMetadataCast(data.metadata),
         display_order: data.display_order || 0,
         is_featured: data.is_featured || false,
         is_active: data.is_active !== false,
