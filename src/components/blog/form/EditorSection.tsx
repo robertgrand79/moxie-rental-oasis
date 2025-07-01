@@ -3,7 +3,6 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { UseFormReturn } from 'react-hook-form';
 import ReactQuillEditor from '@/components/ReactQuillEditor';
-import { ContentType } from '@/types/blogPost';
 import { ExtendedBlogFormData } from '@/hooks/useBlogForm';
 
 interface EditorSectionProps {
@@ -20,7 +19,7 @@ const EditorSection = ({ form, content, onContentChange, isEditing }: EditorSect
         <Label>Content *</Label>
         <div className="mt-2">
           <ReactQuillEditor
-            initialValue={content}
+            content={content}
             onChange={onContentChange}
             placeholder={isEditing ? "Edit your content..." : "Start writing your content..."}
           />

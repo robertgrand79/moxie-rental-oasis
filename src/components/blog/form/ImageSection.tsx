@@ -20,8 +20,8 @@ const ImageSection = ({ form, uploadedImage, onImageChange }: ImageSectionProps)
       <div>
         <Label>Featured Image</Label>
         <ImageUploader
-          onImageUploaded={onImageChange}
-          maxSizeInMB={5}
+          uploadedImage={uploadedImage}
+          onImageChange={onImageChange}
         />
       </div>
 
