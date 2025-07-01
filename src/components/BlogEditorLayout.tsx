@@ -5,40 +5,8 @@ import { UseFormReturn } from 'react-hook-form';
 import BlogEditorHeader from './blog/BlogEditorHeader';
 import BlogEditorContent from './blog/BlogEditorContent';
 import { ensureHTMLParagraphs } from '@/utils/contentFormatting';
-import { BlogPost, ContentType } from '@/types/blogPost';
-
-// Extended form data interface matching BlogForm
-interface ExtendedBlogFormData {
-  title: string;
-  excerpt: string;
-  content: string;
-  tags: string;
-  status: 'draft' | 'published';
-  author: string;
-  published_at: Date | null;
-  image_credit: string;
-  content_type: ContentType;
-  category: string;
-  display_order: number;
-  is_featured: boolean;
-  is_active: boolean;
-  location: string;
-  latitude?: number;
-  longitude?: number;
-  address: string;
-  event_date?: Date | null;
-  end_date?: Date | null;
-  time_start: string;
-  time_end: string;
-  ticket_url: string;
-  price_range: string;
-  is_recurring: boolean;
-  recurrence_pattern: string;
-  rating?: number;
-  phone: string;
-  website_url: string;
-  activity_type: string;
-}
+import { BlogPost } from '@/types/blogPost';
+import { ExtendedBlogFormData } from '@/hooks/useBlogForm';
 
 interface BlogEditorLayoutProps {
   form: UseFormReturn<ExtendedBlogFormData>;
