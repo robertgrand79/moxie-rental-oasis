@@ -105,7 +105,33 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
       tags: watchedValues.tags,
       author: watchedValues.author,
       image_url: uploadedImage || undefined,
-      image_credit: watchedValues.image_credit || undefined
+      image_credit: watchedValues.image_credit || undefined,
+      // Content type fields
+      content_type: watchedValues.content_type,
+      category: watchedValues.category,
+      display_order: watchedValues.display_order,
+      is_featured: watchedValues.is_featured,
+      is_active: watchedValues.is_active,
+      // Location fields
+      location: watchedValues.location,
+      latitude: watchedValues.latitude,
+      longitude: watchedValues.longitude,
+      address: watchedValues.address,
+      // Event fields
+      event_date: watchedValues.event_date?.toISOString().split('T')[0],
+      end_date: watchedValues.end_date?.toISOString().split('T')[0],
+      time_start: watchedValues.time_start,
+      time_end: watchedValues.time_end,
+      ticket_url: watchedValues.ticket_url,
+      price_range: watchedValues.price_range,
+      is_recurring: watchedValues.is_recurring,
+      recurrence_pattern: watchedValues.recurrence_pattern,
+      // POI fields
+      rating: watchedValues.rating,
+      phone: watchedValues.phone,
+      website_url: watchedValues.website_url,
+      // Lifestyle fields
+      activity_type: watchedValues.activity_type
     },
     postId: autoSavedPost?.id,
     onAutoSave: (savedPost) => {
@@ -170,9 +196,9 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
 
     // If we have an auto-saved post, update it instead of creating new
     if (autoSavedPost && !post) {
-      formData.id = autoSavedPost.id;
+      (formData as any).id = autoSavedPost.id;
     } else if (post) {
-      formData.id = post.id;
+      (formData as any).id = post.id;
     }
 
     console.log('📨 Final form data being submitted:', formData);

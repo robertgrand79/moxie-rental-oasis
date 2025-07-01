@@ -9,7 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ContentType, CONTENT_TYPE_CATEGORIES } from '@/types/blogPost';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface BlogFormData {
+// Updated interface to match the extended form data
+interface ExtendedBlogFormData {
   title: string;
   excerpt: string;
   content: string;
@@ -42,7 +43,7 @@ interface BlogFormData {
 }
 
 interface ContentTypeFieldsProps {
-  form: UseFormReturn<BlogFormData>;
+  form: UseFormReturn<ExtendedBlogFormData>;
   contentType: ContentType;
 }
 
