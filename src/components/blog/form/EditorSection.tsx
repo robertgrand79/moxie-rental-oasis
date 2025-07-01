@@ -1,13 +1,12 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Label } from '@/components/ui/label';
 import { UseFormReturn } from 'react-hook-form';
-import { ChevronDown } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Button } from '@/components/ui/button';
 import ReactQuillEditor from '@/components/ReactQuillEditor';
+import { ContentType } from '@/types/blogPost';
 
-interface BlogFormData {
+// Updated interface to match the extended form data
+interface ExtendedBlogFormData {
   title: string;
   excerpt: string;
   content: string;
@@ -16,66 +15,49 @@ interface BlogFormData {
   author: string;
   published_at: Date | null;
   image_credit: string;
+  content_type: ContentType;
+  category: string;
+  display_order: number;
+  is_featured: boolean;
+  is_active: boolean;
+  location: string;
+  latitude?: number;
+  longitude?: number;
+  address: string;
+  event_date?: Date | null;
+  end_date?: Date | null;
+  time_start: string;
+  time_end: string;
+  ticket_url: string;
+  price_range: string;
+  is_recurring: boolean;
+  recurrence_pattern: string;
+  rating?: number;
+  phone: string;
+  website_url: string;
+  activity_type: string;
 }
 
 interface EditorSectionProps {
-  form: UseFormReturn<BlogFormData>;
+  form: UseFormReturn<ExtendedBlogFormData>;
   content: string;
   onContentChange: (content: string) => void;
   isEditing: boolean;
 }
 
 const EditorSection = ({ form, content, onContentChange, isEditing }: EditorSectionProps) => {
-  const { formState: { errors }, setValue } = form;
-  const [isOpen, setIsOpen] = useState(isEditing); // Collapsed for new posts, expanded for editing
-
-  const handleEditorChange = (newContent: string) => {
-    console.log('📝 ReactQuill content changed:', newContent.substring(0, 100));
-    onContentChange(newContent);
-    setValue('content', newContent);
-  };
-
   return (
     <div className="space-y-4">
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger asChild>
-          <Button 
-            variant="outline" 
-            className="w-full justify-between"
-            type="button"
-          >
-            <div className="flex items-center space-x-2">
-              <Label>Content Editor</Label>
-              {content && (
-                <span className="text-sm text-muted-foreground">
-                  ({content.replace(/<[^>]*>/g, '').length} characters)
-                </span>
-              )}
-            </div>
-            <ChevronDown 
-              className={`h-4 w-4 transition-transform duration-200 ${
-                isOpen ? 'transform rotate-180' : ''
-              }`} 
-            />
-          </Button>
-        </CollapsibleTrigger>
-        
-        <CollapsibleContent className="space-y-4">
-          <div>
-            <div className="border rounded-lg overflow-hidden">
-              <ReactQuillEditor
-                content={content}
-                onChange={handleEditorChange}
-                placeholder="Start writing your blog post..."
-                className="min-h-[400px]"
-              />
-            </div>
-            {errors.content && (
-              <p className="text-sm text-red-600 mt-1">{errors.content.message}</p>
-            )}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+      <div>
+        <Label>Content *</Label>
+        <div className="mt-2">
+          <ReactQuillEditor
+            value={content}
+            onChange={onContentChange}
+            placeholder={isEditing ? "Edit your content..." : "Start writing your content..."}
+          />
+        </div>
+      </div>
     </div>
   );
 };
