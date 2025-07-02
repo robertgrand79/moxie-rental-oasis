@@ -3,9 +3,11 @@ import { Property } from '@/types/property';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 
 export const usePropertyOperations = () => {
   const { user } = useAuth();
+  const { deletePhoto } = usePhotoUpload();
 
   const addProperty = async (propertyData: Omit<Property, 'id'>): Promise<Property | null> => {
     if (!user) {
@@ -54,11 +56,46 @@ export const usePropertyOperations = () => {
     }
   };
 
-  const editProperty = async (propertyId: string, propertyData: Omit<Property, 'id'>): Promise<Property | null> => {
+  const editProperty = async (propertyId: string, propertyData: any): Promise<Property | null> => {
     try {
+      console.log('Editing property with data:', propertyData);
+      
+      // Handle deleted images from property updates
+      if (propertyData.deletedImages && propertyData.deletedImages.length > 0) {
+        console.log('Deleting images from storage:', propertyData.deletedImages);
+        
+        // Delete each image from storage
+        const deletePromises = propertyData.deletedImages.map(async (imageUrl: string) => {
+          const deleted = await deletePhoto(imageUrl);
+          if (!deleted) {
+            console.warn('Failed to delete image from storage:', imageUrl);
+          }
+          return deleted;
+        });
+        
+        await Promise.all(deletePromises);
+      }
+      
+      // Prepare clean property data (remove form-specific fields)
+      const cleanPropertyData = {
+        title: propertyData.title,
+        description: propertyData.description,
+        location: propertyData.location,
+        bedrooms: propertyData.bedrooms,
+        bathrooms: propertyData.bathrooms,
+        max_guests: propertyData.maxGuests,
+        price_per_night: propertyData.pricePerNight,
+        hospitable_booking_url: propertyData.hospitableBookingUrl || null,
+        amenities: propertyData.amenities || null,
+        images: propertyData.reorderedExistingImages || propertyData.images || [],
+        featured_photos: propertyData.featuredPhotos || [],
+        cover_image_url: propertyData.reorderedExistingImages?.[0] || propertyData.images?.[0] || null,
+        image_url: propertyData.reorderedExistingImages?.[0] || propertyData.images?.[0] || null,
+      };
+
       const { data, error } = await supabase
         .from('properties')
-        .update(propertyData)
+        .update(cleanPropertyData)
         .eq('id', propertyId)
         .select()
         .single();

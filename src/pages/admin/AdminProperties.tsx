@@ -9,6 +9,7 @@ import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import PropertyFormContainer from '@/components/admin/properties/PropertyFormContainer';
 import PropertyListContainer from '@/components/admin/properties/PropertyListContainer';
 import PaginationControls from '@/components/ui/pagination-controls';
+import ImageCleanupButton from '@/components/admin/properties/ImageCleanupButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminProperties = () => {
@@ -45,15 +46,18 @@ const AdminProperties = () => {
   }
 
   const pageActions = !showAddForm ? (
-    <EnhancedButton 
-      onClick={handleAddProperty} 
-      variant="gradient"
-      icon={<Plus className="h-4 w-4" />}
-      disabled={isSubmitting}
-      className={`${isMobile ? 'w-full min-h-[44px] px-4 py-3' : 'px-6 py-3'}`}
-    >
-      Add Property
-    </EnhancedButton>
+    <div className="flex gap-2 flex-wrap">
+      <ImageCleanupButton />
+      <EnhancedButton 
+        onClick={handleAddProperty} 
+        variant="gradient"
+        icon={<Plus className="h-4 w-4" />}
+        disabled={isSubmitting}
+        className={`${isMobile ? 'w-full min-h-[44px] px-4 py-3' : 'px-6 py-3'}`}
+      >
+        Add Property
+      </EnhancedButton>
+    </div>
   ) : null;
 
   return (
