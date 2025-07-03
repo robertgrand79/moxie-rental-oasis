@@ -12,8 +12,10 @@ export const isAdminDomain = (): boolean => {
   
   const hostname = window.location.hostname;
   
-  // Allow admin access on the Lovable staging domain
-  return hostname === 'moxie-rental-oasis.lovable.app' || 
+  // Allow admin access on production and staging domains
+  return hostname === 'moxievacationrentals.com' ||
+         hostname === 'www.moxievacationrentals.com' ||
+         hostname === 'moxie-rental-oasis.lovable.app' || 
          hostname === 'localhost' || 
          hostname === '127.0.0.1';
 };
