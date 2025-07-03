@@ -90,9 +90,11 @@ export const useEnhancedPropertyDeletion = () => {
     properties: Property[], 
     onSuccess?: () => void
   ) => {
+    console.log('🗑️ [DELETE] Starting property deletion...', { propertyId, propertiesCount: properties.length });
+    
     // Prevent multiple deletion attempts
     if (deletingProperties.has(propertyId)) {
-      console.log('Property deletion already in progress for:', propertyId);
+      console.log('⚠️ [DELETE] Property deletion already in progress for:', propertyId);
       return;
     }
 
@@ -104,7 +106,7 @@ export const useEnhancedPropertyDeletion = () => {
       const propertyToDelete = properties.find(p => p.id === propertyId);
       
       if (!propertyToDelete) {
-        console.error('Property not found for deletion:', propertyId);
+        console.error('❌ [DELETE] Property not found for deletion:', propertyId);
         toast({
           title: 'Error',
           description: 'Property not found.',
@@ -113,32 +115,36 @@ export const useEnhancedPropertyDeletion = () => {
         return;
       }
 
-      // Note: We'll rely on refetch to update the UI after successful deletion
-
-      console.log('Starting enhanced property deletion for:', propertyId);
+      console.log('🎯 [DELETE] Found property to delete:', { 
+        id: propertyToDelete.id, 
+        title: propertyToDelete.title,
+        imageCount: propertyToDelete.images?.length || 0 
+      });
 
       // Step 1: Delete all associated photos from storage
+      console.log('📸 [DELETE] Starting photo cleanup...');
       const photoDeleteResult = await deletePropertyPhotos(propertyToDelete);
-      console.log('Photo deletion result:', photoDeleteResult);
+      console.log('✅ [DELETE] Photo deletion result:', photoDeleteResult);
 
       // Step 2: Delete the property from the database
+      console.log('💾 [DELETE] Deleting property from database...');
       const { error } = await supabase
         .from('properties')
         .delete()
         .eq('id', propertyId);
 
       if (error) {
-        console.error('Error deleting property from database:', error);
+        console.error('❌ [DELETE] Database deletion failed:', error);
         
         toast({
           title: 'Error',
-          description: 'Failed to delete property from database.',
+          description: `Failed to delete property from database: ${error.message}`,
           variant: 'destructive'
         });
         return;
       }
 
-      console.log('Property deleted from database successfully');
+      console.log('✅ [DELETE] Property deleted from database successfully');
 
       // Step 3: Delete the corresponding property page
       const pageDeleted = await deletePropertyPage(propertyToDelete);

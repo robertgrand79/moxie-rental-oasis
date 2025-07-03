@@ -10,6 +10,7 @@ import PropertyFormContainer from '@/components/admin/properties/PropertyFormCon
 import PropertyListContainer from '@/components/admin/properties/PropertyListContainer';
 import PaginationControls from '@/components/ui/pagination-controls';
 import ImageCleanupButton from '@/components/admin/properties/ImageCleanupButton';
+import PropertyDiagnostics from '@/components/admin/PropertyDiagnostics';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminProperties = () => {
@@ -71,6 +72,11 @@ const AdminProperties = () => {
       actions={pageActions}
     >
       <div className={isMobile ? 'p-4' : 'p-6'}>
+        {/* Show diagnostics when there are issues */}
+        {!showAddForm && totalCount === 0 && (
+          <PropertyDiagnostics />
+        )}
+
         {showAddForm && (
           <div className="mb-6">
             <PropertyFormContainer

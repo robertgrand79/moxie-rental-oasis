@@ -7,10 +7,13 @@ import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 
 export const usePropertyOperations = () => {
   const { user } = useAuth();
-  const { deletePhoto } = usePhotoUpload();
+  const { deletePhoto, uploadPhotos } = usePhotoUpload();
 
-  const addProperty = async (propertyData: Omit<Property, 'id'>): Promise<Property | null> => {
+  const addProperty = async (propertyData: any): Promise<Property | null> => {
+    console.log('🏠 [ADD] Starting property creation...', { user: user?.id, hasData: !!propertyData });
+    
     if (!user) {
+      console.error('❌ [ADD] No authenticated user found');
       toast({
         title: 'Error',
         description: 'You must be logged in to add properties.',
@@ -20,25 +23,60 @@ export const usePropertyOperations = () => {
     }
 
     try {
+      // Phase 2: Fix form data mapping - handle photo uploads first if any
+      let uploadedImages: string[] = [];
+      if (propertyData.photos && propertyData.photos.length > 0) {
+        console.log('📸 [ADD] Uploading photos first...', propertyData.photos.length);
+        // Create a temporary property ID for upload organization
+        const tempPropertyId = `temp-${Date.now()}`;
+        
+        try {
+          uploadedImages = await uploadPhotos(propertyData.photos, tempPropertyId);
+          console.log('✅ [ADD] Photos uploaded successfully:', uploadedImages.length);
+        } catch (uploadError) {
+          console.warn('⚠️ [ADD] Photo upload failed, proceeding without images:', uploadError);
+          // Phase 3: Continue without photos if upload fails
+        }
+      }
+
+      // Phase 2: Map form fields correctly to database columns
+      const cleanPropertyData = {
+        title: propertyData.title,
+        description: propertyData.description,
+        location: propertyData.location,
+        bedrooms: propertyData.bedrooms,
+        bathrooms: propertyData.bathrooms,
+        max_guests: propertyData.maxGuests, // Form field: maxGuests → DB field: max_guests
+        price_per_night: propertyData.pricePerNight, // Form field: pricePerNight → DB field: price_per_night
+        hospitable_booking_url: propertyData.hospitableBookingUrl || null, // Form field: hospitableBookingUrl → DB field: hospitable_booking_url
+        amenities: propertyData.amenities || null,
+        images: uploadedImages,
+        featured_photos: propertyData.featuredPhotos || [],
+        cover_image_url: uploadedImages[0] || null,
+        image_url: uploadedImages[0] || null,
+        display_order: 0,
+        created_by: user.id
+      };
+
+      console.log('💾 [ADD] Inserting property with mapped data:', cleanPropertyData);
+
       const { data, error } = await supabase
         .from('properties')
-        .insert({
-          ...propertyData,
-          created_by: user.id
-        })
+        .insert(cleanPropertyData)
         .select()
         .single();
 
       if (error) {
-        console.error('Error creating property:', error);
+        console.error('❌ [ADD] Database insert failed:', error);
         toast({
           title: 'Error',
-          description: 'Failed to create property.',
+          description: `Failed to create property: ${error.message}`,
           variant: 'destructive'
         });
         return null;
       }
 
+      console.log('✅ [ADD] Property created successfully:', data?.id);
       toast({
         title: 'Success',
         description: 'Property created successfully!'
@@ -46,10 +84,10 @@ export const usePropertyOperations = () => {
       
       return data;
     } catch (error) {
-      console.error('Error in addProperty:', error);
+      console.error('💥 [ADD] Unexpected error in addProperty:', error);
       toast({
         title: 'Error',
-        description: 'Failed to create property.',
+        description: `Failed to create property: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive'
       });
       return null;
@@ -57,8 +95,9 @@ export const usePropertyOperations = () => {
   };
 
   const editProperty = async (propertyId: string, propertyData: any): Promise<Property | null> => {
+    console.log('🏠 [EDIT] Starting property update...', { propertyId, user: user?.id });
+    
     try {
-      console.log('Editing property with data:', propertyData);
       
       // Handle deleted images from property updates
       if (propertyData.deletedImages && propertyData.deletedImages.length > 0) {
@@ -101,15 +140,16 @@ export const usePropertyOperations = () => {
         .single();
 
       if (error) {
-        console.error('Error updating property:', error);
+        console.error('❌ [EDIT] Database update failed:', error);
         toast({
           title: 'Error',
-          description: 'Failed to update property.',
+          description: `Failed to update property: ${error.message}`,
           variant: 'destructive'
         });
         return null;
       }
 
+      console.log('✅ [EDIT] Property updated successfully:', data?.id);
       toast({
         title: 'Success',
         description: 'Property updated successfully!'
@@ -117,10 +157,10 @@ export const usePropertyOperations = () => {
       
       return data;
     } catch (error) {
-      console.error('Error in editProperty:', error);
+      console.error('💥 [EDIT] Unexpected error in editProperty:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update property.',
+        description: `Failed to update property: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive'
       });
       return null;

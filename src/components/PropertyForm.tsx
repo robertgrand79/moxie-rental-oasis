@@ -57,9 +57,19 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
   });
 
   const handleSubmit = (data: PropertyFormData) => {
-    if (isSubmitting) return;
-    console.log('Form submitted with reordered existing images:', existingImages);
-    console.log('Deleted images:', deletedImages);
+    if (isSubmitting) {
+      console.log('⚠️ [FORM] Form already submitting, ignoring duplicate submission');
+      return;
+    }
+    
+    console.log('📝 [FORM] Form submission started with data:', {
+      ...data,
+      photosCount: photos.length,
+      existingImagesCount: existingImages.length,
+      featuredPhotosCount: featuredPhotos.length,
+      deletedImagesCount: deletedImages.length
+    });
+    
     onSubmit({ 
       ...data, 
       photos, 
