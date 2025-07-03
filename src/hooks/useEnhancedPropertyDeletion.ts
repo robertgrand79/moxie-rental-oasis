@@ -88,7 +88,7 @@ export const useEnhancedPropertyDeletion = () => {
   const deleteProperty = async (
     propertyId: string, 
     properties: Property[], 
-    setProperties: React.Dispatch<React.SetStateAction<Property[]>>
+    onSuccess?: () => void
   ) => {
     // Prevent multiple deletion attempts
     if (deletingProperties.has(propertyId)) {
@@ -113,8 +113,7 @@ export const useEnhancedPropertyDeletion = () => {
         return;
       }
 
-      // Optimistically remove from UI
-      setProperties(prev => prev.filter(property => property.id !== propertyId));
+      // Note: We'll rely on refetch to update the UI after successful deletion
 
       console.log('Starting enhanced property deletion for:', propertyId);
 
@@ -130,9 +129,6 @@ export const useEnhancedPropertyDeletion = () => {
 
       if (error) {
         console.error('Error deleting property from database:', error);
-        
-        // Restore property to UI on database error
-        setProperties(prev => [propertyToDelete, ...prev]);
         
         toast({
           title: 'Error',
@@ -165,14 +161,11 @@ export const useEnhancedPropertyDeletion = () => {
         variant: photoDeleteResult.failed > 0 || !pageDeleted ? 'destructive' : 'default'
       });
 
+      // Call the success callback to refresh the data
+      onSuccess?.();
+
     } catch (error) {
       console.error('Error in enhanced deleteProperty:', error);
-      
-      // Restore property to UI on error
-      const propertyToDelete = properties.find(p => p.id === propertyId);
-      if (propertyToDelete) {
-        setProperties(prev => [propertyToDelete, ...prev]);
-      }
       
       toast({
         title: 'Error',

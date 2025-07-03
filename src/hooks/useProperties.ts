@@ -36,7 +36,7 @@ export const useProperties = () => {
   };
 
   const deleteProperty = async (propertyId: string) => {
-    await deletePropertyOperation(propertyId, safeProperties, setProperties);
+    await deletePropertyOperation(propertyId, safeProperties, refetch);
   };
 
   return {
