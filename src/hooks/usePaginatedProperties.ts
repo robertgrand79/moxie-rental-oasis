@@ -34,10 +34,12 @@ export const usePaginatedProperties = (): UsePaginatedPropertiesResult => {
 
   const fetchProperties = async (page: number) => {
     try {
+      console.log('📊 Starting fetchProperties for page:', page);
       setLoading(true);
       setError(null);
 
       const offset = (page - 1) * PROPERTIES_PER_PAGE;
+      console.log('📊 Fetch offset:', offset, 'limit:', PROPERTIES_PER_PAGE);
 
       const { data, error: fetchError, count } = await supabase
         .from('properties')
@@ -46,7 +48,7 @@ export const usePaginatedProperties = (): UsePaginatedPropertiesResult => {
         .range(offset, offset + PROPERTIES_PER_PAGE - 1);
 
       if (fetchError) {
-        console.error('Error fetching properties:', fetchError);
+        console.error('❌ Error fetching properties:', fetchError);
         setError(fetchError.message);
         toast({
           title: 'Error',
@@ -56,10 +58,16 @@ export const usePaginatedProperties = (): UsePaginatedPropertiesResult => {
         return;
       }
 
+      console.log('✅ Properties fetched successfully:', {
+        count: data?.length,
+        totalCount: count,
+        firstProperty: data?.[0]?.title
+      });
+
       setProperties(data || []);
       setTotalCount(count || 0);
     } catch (err) {
-      console.error('Error in fetchProperties:', err);
+      console.error('💥 Error in fetchProperties:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
@@ -85,6 +93,7 @@ export const usePaginatedProperties = (): UsePaginatedPropertiesResult => {
   };
 
   const refetch = () => {
+    console.log('🔄 Refetching properties for page:', currentPage);
     fetchProperties(currentPage);
   };
 

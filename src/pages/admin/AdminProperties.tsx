@@ -38,6 +38,10 @@ const AdminProperties = () => {
     handleFormCancel,
     deleteProperty
   } = usePropertyForm(properties, refetch);
+
+  const handleFormSubmitWithPageReset = async (propertyData: any) => {
+    await handleFormSubmit(propertyData, () => goToPage(1));
+  };
   
   const isMobile = useIsMobile();
 
@@ -72,7 +76,7 @@ const AdminProperties = () => {
             <PropertyFormContainer
               editingProperty={editingProperty}
               isSubmitting={isSubmitting}
-              onFormSubmit={handleFormSubmit}
+              onFormSubmit={handleFormSubmitWithPageReset}
               onFormCancel={handleFormCancel}
             />
           </div>
