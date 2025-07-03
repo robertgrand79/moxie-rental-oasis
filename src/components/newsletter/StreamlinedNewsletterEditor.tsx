@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Send, Eye, EyeOff, Wand2, Users, Loader2 } from 'lucide-react';
+import { Send, Eye, EyeOff, Wand2, Users, Loader2, Maximize2 } from 'lucide-react';
 import ReactQuillEditor from '../ReactQuillEditor';
 import NewsletterPreviewPanel from './NewsletterPreviewPanel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -26,6 +26,7 @@ const StreamlinedNewsletterEditor = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [content, setContent] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [showFullPagePreview, setShowFullPagePreview] = useState(false);
   const [showAIDialog, setShowAIDialog] = useState(false);
   const { toast } = useToast();
   const { blogPosts, loading: blogPostsLoading } = useBlogPosts();
@@ -147,7 +148,16 @@ const StreamlinedNewsletterEditor = () => {
             onClick={() => setShowPreview(!showPreview)}
           >
             {showPreview ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-            {showPreview ? 'Hide Preview' : 'Show Preview'}
+            {showPreview ? 'Hide Preview' : 'Side Preview'}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFullPagePreview(true)}
+          >
+            <Maximize2 className="h-4 w-4 mr-2" />
+            Full Preview
           </Button>
         </div>
       </div>
@@ -277,6 +287,25 @@ const StreamlinedNewsletterEditor = () => {
           </div>
         )}
       </div>
+
+      {/* Full Page Preview Dialog */}
+      <Dialog open={showFullPagePreview} onOpenChange={setShowFullPagePreview}>
+        <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="flex items-center gap-2">
+              <Maximize2 className="h-5 w-5" />
+              Full Newsletter Preview
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-6 pt-0 overflow-y-auto max-h-[85vh]">
+            <NewsletterPreviewPanel
+              subject={currentSubject}
+              content={content}
+              viewMode="desktop"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
