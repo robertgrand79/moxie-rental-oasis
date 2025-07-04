@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -198,16 +199,16 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const sendGridApiKey = Deno.env.get("SENDGRID_API_KEY");
-    console.log("📧 SendGrid API key present:", !!sendGridApiKey);
-    console.log("📧 SendGrid key length:", sendGridApiKey?.length || 0);
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    console.log("📧 Resend API key present:", !!resendApiKey);
+    console.log("📧 Resend key length:", resendApiKey?.length || 0);
     
-    if (!sendGridApiKey) {
-      console.error("❌ SendGrid API key not found");
+    if (!resendApiKey) {
+      console.error("❌ Resend API key not found");
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: "Email service not configured. Please add SENDGRID_API_KEY to your Supabase secrets.",
+          error: "Email service not configured. Please add RESEND_API_KEY to your Supabase secrets.",
           timestamp: new Date().toISOString()
         }),
         {
@@ -216,6 +217,8 @@ const handler = async (req: Request): Promise<Response> => {
         }
       );
     }
+
+    const resend = new Resend(resendApiKey);
 
     console.log("⚙️ Fetching email settings from database...");
     const { data: siteSettings, error: settingsError } = await supabaseAdmin
@@ -435,58 +438,27 @@ const handler = async (req: Request): Promise<Response> => {
       </body>
       </html>`;
 
-    console.log("📤 Preparing to send newsletter preview via SendGrid...");
-    const sendGridPayload = {
-      personalizations: [
-        {
-          to: [{ email: email }],
-          subject: `[PREVIEW] ${subject}`,
-        },
-      ],
-      from: { email: fromEmail, name: fromName },
-      reply_to: { email: replyTo },
-      content: [
-        {
-          type: "text/html",
-          value: emailHtml,
-        },
-      ],
-    };
+    console.log("📤 Preparing to send newsletter preview via Resend...");
+    console.log("📧 Sending email via Resend...");
 
-    console.log("📧 SendGrid payload:", JSON.stringify(sendGridPayload, null, 2));
-    console.log("📧 Sending email via SendGrid...");
-
-    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${sendGridApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(sendGridPayload),
+    const response = await resend.emails.send({
+      from: `${fromName} <${fromEmail}>`,
+      to: [email],
+      subject: `[PREVIEW] ${subject}`,
+      html: emailHtml,
+      reply_to: replyTo,
     });
 
-    console.log("📬 SendGrid response status:", response.status);
-    console.log("📬 SendGrid response headers:", Object.fromEntries(response.headers.entries()));
+    console.log("📬 Resend response:", response);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`❌ SendGrid API error (${response.status}):`, errorText);
-      
-      let errorMessage = `Email delivery failed: ${response.status}`;
-      try {
-        const errorData = JSON.parse(errorText);
-        if (errorData.errors && errorData.errors.length > 0) {
-          errorMessage += ` - ${errorData.errors[0].message}`;
-        }
-      } catch (e) {
-        errorMessage += ` - ${errorText}`;
-      }
+    if (response.error) {
+      console.error(`❌ Resend API error:`, response.error.message);
       
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: errorMessage,
-          sendGridError: errorText,
+          error: `Email delivery failed: ${response.error.message}`,
+          resendError: response.error,
           timestamp: new Date().toISOString()
         }),
         {

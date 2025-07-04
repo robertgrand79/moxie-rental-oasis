@@ -117,7 +117,7 @@ const EmailConfigurationCard = () => {
                 required
               />
               <p className="text-xs text-gray-600">
-                Must be verified in your SendGrid account
+                Must be verified in your Resend account
               </p>
             </div>
 
@@ -146,10 +146,10 @@ const EmailConfigurationCard = () => {
           <Alert className="border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              <strong>✅ SendGrid API Key Configured!</strong>
+              <strong>✅ Resend API Key Configured!</strong>
               <br />
               <span className="text-sm">
-                Your SendGrid API key is now configured. Complete the form above and test your email setup below.
+                Your Resend API key is now configured. Complete the form above and test your email setup below.
               </span>
             </AlertDescription>
           </Alert>
@@ -159,7 +159,7 @@ const EmailConfigurationCard = () => {
               <strong>📧 Next Steps:</strong>
               <br />
               <span className="text-sm">
-                1. Fill in your sender email address (must be verified in SendGrid)
+                1. Fill in your sender email address (must be verified in Resend)
                 <br />
                 2. Add your business name and reply-to email
                 <br />
@@ -172,10 +172,10 @@ const EmailConfigurationCard = () => {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open('https://app.sendgrid.com/settings/sender_auth', '_blank')}
+                  onClick={() => window.open('https://resend.com/domains', '_blank')}
                 >
                   <ExternalLink className="h-3 w-3 mr-1" />
-                  Verify Sender in SendGrid
+                  Verify Domain in Resend
                 </Button>
               </div>
             </AlertDescription>

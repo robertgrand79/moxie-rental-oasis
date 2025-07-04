@@ -80,8 +80,8 @@ const EmailTestingCard = () => {
       
       let errorMessage = "Failed to send test email.";
       
-      if (error.message?.includes("SENDGRID_API_KEY")) {
-        errorMessage = "SendGrid API key issue. Please verify it's correctly configured in Supabase secrets.";
+      if (error.message?.includes("RESEND_API_KEY")) {
+        errorMessage = "Resend API key issue. Please verify it's correctly configured in Supabase secrets.";
       } else if (error.message?.includes("Authentication")) {
         errorMessage = "Authentication error. Please log in again.";
       } else if (error.message) {
@@ -177,11 +177,11 @@ const EmailTestingCard = () => {
             <strong>💡 Testing Checklist:</strong>
             <br />
             <span className="text-sm">
-              ✅ SendGrid API key configured
+              ✅ Resend API key configured
               <br />
               📧 Configure sender email in settings above
               <br />
-              🔍 Verify sender email in SendGrid dashboard
+              🔍 Verify sender domain in Resend dashboard
               <br />
               🧪 Send test email to confirm setup
               <br />

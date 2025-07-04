@@ -45,9 +45,9 @@ serve(async (req) => {
     
     console.log('Email content generated successfully, length:', emailContent.length);
 
-    // Send email via SendGrid
+    // Send email via Resend
     console.log('Sending email to contractor:', workOrder.contractor?.email);
-    await sendWorkOrderEmail(workOrder, emailContent, Deno.env.get('SENDGRID_API_KEY') ?? '');
+    await sendWorkOrderEmail(workOrder, emailContent, Deno.env.get('RESEND_API_KEY') ?? '');
 
     // Update work order status if needed
     await updateWorkOrderStatus(supabase, workOrderId, workOrder.status);

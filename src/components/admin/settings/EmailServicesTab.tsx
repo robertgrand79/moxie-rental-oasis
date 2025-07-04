@@ -11,7 +11,7 @@ const EmailServicesTab = () => {
       {/* Email Setup Status Overview */}
       <EmailSetupStatus />
 
-      {/* SendGrid Configuration */}
+      {/* Resend Configuration */}
       <EmailConfigurationCard />
 
       {/* Domain Verification Status */}

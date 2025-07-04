@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -408,14 +409,15 @@ const handler = async (req: Request): Promise<Response> => {
     `;
     };
 
-    // Send emails using SendGrid
-    const sendGridApiKey = Deno.env.get("SENDGRID_API_KEY");
-    if (!sendGridApiKey) {
-      console.error("❌ SendGrid API key not configured");
-      throw new Error("SendGrid API key not configured. Please add SENDGRID_API_KEY to your Supabase secrets.");
+    // Send emails using Resend
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) {
+      console.error("❌ Resend API key not configured");
+      throw new Error("Resend API key not configured. Please add RESEND_API_KEY to your Supabase secrets.");
     }
 
-    console.log("🚀 Sending emails via SendGrid...");
+    const resend = new Resend(resendApiKey);
+    console.log("🚀 Sending emails via Resend...");
 
     const emailPromises = subscribers.map(async (subscriber, index) => {
       console.log(`📧 Sending email ${index + 1}/${subscribers.length} to ${subscriber.email}`);
@@ -437,78 +439,76 @@ const handler = async (req: Request): Promise<Response> => {
         }
       });
 
-      const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${sendGridApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          personalizations: [
-            {
-              to: [{ email: subscriber.email, name: subscriber.name || subscriber.email }],
-              subject: subject,
-            },
-          ],
-          from: { email: fromEmail, name: fromName },
-          reply_to: { email: replyTo },
-          content: [
-            {
-              type: "text/html",
-              value: finalHtml,
-            },
-          ],
-        }),
+      const response = await resend.emails.send({
+        from: `${fromName} <${fromEmail}>`,
+        to: [subscriber.email],
+        subject: subject,
+        html: finalHtml,
+        reply_to: replyTo,
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`❌ Failed to send email to ${subscriber.email}:`, errorText);
-        throw new Error(`SendGrid API error for ${subscriber.email}: ${response.status} - ${errorText}`);
+      if (response.error) {
+        console.error(`❌ Failed to send email to ${subscriber.email}:`, response.error.message);
+        throw new Error(`Resend API error for ${subscriber.email}: ${response.error.message}`);
       }
 
-      console.log(`✅ Email sent successfully to ${subscriber.email}`);
-      return response;
-    });
+      console.log(`✅ Email sent to ${subscriber.email} (${index + 1}/${subscribers.length})`);
+      return { email: subscriber.email, success: true };
+    } catch (error) {
+      console.error(`❌ Failed to send email to ${subscriber.email}:`, error);
+      return { email: subscriber.email, success: false, error: error.message };
+    }
+  });
 
-    await Promise.all(emailPromises);
+  console.log("⏳ Waiting for all emails to be sent...");
+  const results = await Promise.allSettled(emailPromises);
+  
+  const successfulSends = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+  const failedSends = results.length - successfulSends;
 
-    console.log(`🎉 Newsletter sent successfully to ${subscribers.length} subscribers from ${fromEmail}`);
+  console.log(`✅ Newsletter sending complete: ${successfulSends} successful, ${failedSends} failed`);
 
-    return new Response(
-      JSON.stringify({ 
-        message: "Newsletter sent successfully", 
-        recipientCount: subscribers.length,
-        fromEmail: fromEmail,
-        fromName: siteName,
-        contactInfo: {
-          email: contactEmail,
-          phone: phone,
-          address: address
-        },
-        campaignId: campaignId,
-        success: true
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+  // Update campaign with final statistics
+  await supabaseAdmin
+    .from("newsletter_campaigns")
+    .update({
+      sent_count: successfulSends,
+      failed_count: failedSends,
+      completed_at: new Date().toISOString()
+    })
+    .eq("id", campaignId);
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      message: `Newsletter sent successfully to ${successfulSends} subscribers`,
+      campaignId,
+      stats: {
+        total: subscribers.length,
+        successful: successfulSends,
+        failed: failedSends
       }
-    );
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    }
+  );
 
-  } catch (error: any) {
-    console.error("❌ Error in send-newsletter function:", error);
-    return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        success: false,
-        details: "Check the function logs for more information"
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
-  }
-};
+} catch (error: any) {
+  console.error("❌ Error in send-newsletter function:", error);
+  console.error("❌ Stack trace:", error.stack);
+  
+  return new Response(
+    JSON.stringify({
+      error: error.message || "An unexpected error occurred",
+      timestamp: new Date().toISOString()
+    }),
+    {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    }
+  );
+}
 
 serve(handler);
