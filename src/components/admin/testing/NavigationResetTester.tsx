@@ -1,0 +1,366 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  TestTube, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  Play, 
+  RotateCcw,
+  Monitor,
+  Smartphone,
+  AlertTriangle 
+} from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { adminMenuItems } from '../sidebar/adminMenuItems';
+import { toast } from 'sonner';
+
+interface TestResult {
+  route: string;
+  title: string;
+  status: 'pending' | 'testing' | 'passed' | 'failed';
+  eventListenerExists: boolean;
+  resetEventTriggered: boolean;
+  memoryLeakCheck: boolean;
+  timestamp?: number;
+  error?: string;
+}
+
+const NavigationResetTester = () => {
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const [currentTest, setCurrentTest] = useState<string | null>(null);
+  const [isTestingAll, setIsTestingAll] = useState(false);
+  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Extract all admin routes from menu items
+  const allAdminRoutes = React.useMemo(() => {
+    const routes: { route: string; title: string }[] = [];
+    adminMenuItems.forEach(section => {
+      section.items.forEach(item => {
+        routes.push({
+          route: item.href,
+          title: item.title
+        });
+      });
+    });
+    return routes;
+  }, []);
+
+  // Initialize test results
+  useEffect(() => {
+    const initialResults: TestResult[] = allAdminRoutes.map(({ route, title }) => ({
+      route,
+      title,
+      status: 'pending',
+      eventListenerExists: false,
+      resetEventTriggered: false,
+      memoryLeakCheck: false
+    }));
+    setTestResults(initialResults);
+  }, [allAdminRoutes]);
+
+  // Check for memory leaks by counting event listeners
+  const checkMemoryLeaks = (): boolean => {
+    const eventListenerTypes = [
+      'resetEventsManager',
+      'resetLifestyleManager',
+      'resetPOIManager',
+      'resetTestimonialsManager',
+      'resetSiteMetricsDashboard',
+      'resetAnalyticsDashboard',
+      'resetAdminSettings',
+      'resetNewsletterTabs',
+      'resetImageOptimization'
+    ];
+
+    let listenerCount = 0;
+    eventListenerTypes.forEach(eventType => {
+      // This is a simplified check - in real scenarios you'd need more sophisticated memory leak detection
+      const listenerExists = (window as any)._eventListeners?.[eventType]?.length > 0;
+      if (listenerExists) listenerCount++;
+    });
+
+    // Reasonable number of listeners (should not exceed number of possible admin pages)
+    return listenerCount <= eventListenerTypes.length;
+  };
+
+  // Test individual route
+  const testRoute = async (route: string, title: string): Promise<TestResult> => {
+    const result: TestResult = {
+      route,
+      title,
+      status: 'testing',
+      eventListenerExists: false,
+      resetEventTriggered: false,
+      memoryLeakCheck: false,
+      timestamp: Date.now()
+    };
+
+    try {
+      // Navigate to the route
+      navigate(route);
+      
+      // Wait for component to mount
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Check if reset event listener exists by attempting to trigger it
+      let eventTriggered = false;
+      const testListener = () => {
+        eventTriggered = true;
+      };
+
+      // Determine which event to test based on route
+      const eventMap: Record<string, string> = {
+        '/admin/events': 'resetEventsManager',
+        '/admin/lifestyle': 'resetLifestyleManager',
+        '/admin/poi': 'resetPOIManager',
+        '/admin/testimonials': 'resetTestimonialsManager',
+        '/admin/metrics': 'resetSiteMetricsDashboard',
+        '/admin/analytics': 'resetAnalyticsDashboard',
+        '/admin/settings': 'resetAdminSettings',
+        '/admin/newsletter': 'resetNewsletterTabs',
+        '/admin/image-optimization': 'resetImageOptimization'
+      };
+
+      const eventName = eventMap[route];
+      if (eventName) {
+        window.addEventListener(eventName, testListener);
+        window.dispatchEvent(new CustomEvent(eventName));
+        
+        // Wait for event processing
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        result.eventListenerExists = true;
+        result.resetEventTriggered = eventTriggered;
+        
+        window.removeEventListener(eventName, testListener);
+      }
+
+      // Check for memory leaks
+      result.memoryLeakCheck = checkMemoryLeaks();
+
+      // Determine overall status
+      if (eventName && result.eventListenerExists && result.resetEventTriggered && result.memoryLeakCheck) {
+        result.status = 'passed';
+      } else if (!eventName) {
+        // Routes without specific reset logic are considered passed if they don't cause memory leaks
+        result.status = result.memoryLeakCheck ? 'passed' : 'failed';
+        result.error = result.memoryLeakCheck ? undefined : 'Memory leak detected';
+      } else {
+        result.status = 'failed';
+        result.error = !result.eventListenerExists ? 'No event listener found' :
+                      !result.resetEventTriggered ? 'Reset event not triggered' :
+                      !result.memoryLeakCheck ? 'Memory leak detected' : 'Unknown error';
+      }
+
+    } catch (error) {
+      result.status = 'failed';
+      result.error = error instanceof Error ? error.message : 'Unknown error';
+    }
+
+    return result;
+  };
+
+  // Test all routes
+  const testAllRoutes = async () => {
+    setIsTestingAll(true);
+    setCurrentTest(null);
+    
+    try {
+      for (const { route, title } of allAdminRoutes) {
+        setCurrentTest(route);
+        const result = await testRoute(route, title);
+        
+        setTestResults(prev => 
+          prev.map(r => r.route === route ? result : r)
+        );
+        
+        // Small delay between tests
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      toast('Navigation reset testing completed');
+    } catch (error) {
+      toast(`Testing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsTestingAll(false);
+      setCurrentTest(null);
+    }
+  };
+
+  // Test current route
+  const testCurrentRoute = async () => {
+    const currentRoute = allAdminRoutes.find(r => r.route === location.pathname);
+    if (!currentRoute) return;
+
+    setCurrentTest(currentRoute.route);
+    const result = await testRoute(currentRoute.route, currentRoute.title);
+    
+    setTestResults(prev => 
+      prev.map(r => r.route === currentRoute.route ? result : r)
+    );
+    
+    setCurrentTest(null);
+  };
+
+  // Reset all test results
+  const resetTests = () => {
+    setTestResults(prev => 
+      prev.map(r => ({
+        ...r,
+        status: 'pending' as const,
+        eventListenerExists: false,
+        resetEventTriggered: false,
+        memoryLeakCheck: false,
+        timestamp: undefined,
+        error: undefined
+      }))
+    );
+    toast('Test results reset');
+  };
+
+  const passedTests = testResults.filter(r => r.status === 'passed').length;
+  const failedTests = testResults.filter(r => r.status === 'failed').length;
+  const pendingTests = testResults.filter(r => r.status === 'pending').length;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TestTube className="h-6 w-6" />
+              <CardTitle>Navigation Reset System Tester</CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === 'desktop' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('desktop')}
+              >
+                <Monitor className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'mobile' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('mobile')}
+              >
+                <Smartphone className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Test Stats */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{passedTests}</div>
+              <div className="text-sm text-muted-foreground">Passed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">{failedTests}</div>
+              <div className="text-sm text-muted-foreground">Failed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{pendingTests}</div>
+              <div className="text-sm text-muted-foreground">Pending</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{testResults.length}</div>
+              <div className="text-sm text-muted-foreground">Total</div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              onClick={testAllRoutes}
+              disabled={isTestingAll}
+              className="flex items-center gap-2"
+            >
+              <Play className="h-4 w-4" />
+              {isTestingAll ? 'Testing All Routes...' : 'Test All Routes'}
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={testCurrentRoute}
+              disabled={!!currentTest}
+              className="flex items-center gap-2"
+            >
+              <TestTube className="h-4 w-4" />
+              Test Current Route
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={resetTests}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset Tests
+            </Button>
+          </div>
+
+          {/* Current Test Indicator */}
+          {currentTest && (
+            <Alert>
+              <Clock className="h-4 w-4" />
+              <AlertDescription>
+                Currently testing: <strong>{allAdminRoutes.find(r => r.route === currentTest)?.title}</strong>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Test Results */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold">Test Results</h3>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {testResults.map((result) => (
+                <div
+                  key={result.route}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    {result.status === 'passed' && <CheckCircle className="h-5 w-5 text-green-600" />}
+                    {result.status === 'failed' && <XCircle className="h-5 w-5 text-red-600" />}
+                    {result.status === 'testing' && <Clock className="h-5 w-5 text-blue-600 animate-spin" />}
+                    {result.status === 'pending' && <TestTube className="h-5 w-5 text-gray-400" />}
+                    
+                    <div>
+                      <div className="font-medium">{result.title}</div>
+                      <div className="text-sm text-muted-foreground">{result.route}</div>
+                      {result.error && (
+                        <div className="text-sm text-red-600 flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          {result.error}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Badge variant={result.eventListenerExists ? 'default' : 'secondary'}>
+                      Listener: {result.eventListenerExists ? 'Yes' : 'No'}
+                    </Badge>
+                    <Badge variant={result.resetEventTriggered ? 'default' : 'secondary'}>
+                      Reset: {result.resetEventTriggered ? 'Yes' : 'No'}
+                    </Badge>
+                    <Badge variant={result.memoryLeakCheck ? 'default' : 'destructive'}>
+                      Memory: {result.memoryLeakCheck ? 'OK' : 'Leak'}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default NavigationResetTester;

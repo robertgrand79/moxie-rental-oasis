@@ -17,6 +17,7 @@ import {
   Shield,
   Settings,
   Database,
+  TestTube,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -149,6 +150,12 @@ export const adminMenuItems = [
         href: '/admin/settings',
         icon: Settings,
         description: 'Configure site settings and preferences'
+      },
+      {
+        title: 'Navigation Testing',
+        href: '/admin/navigation-testing',
+        icon: TestTube,
+        description: 'Test and validate navigation reset system'
       },
       {
         title: 'Sample Data',

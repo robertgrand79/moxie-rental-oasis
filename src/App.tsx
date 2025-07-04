@@ -45,6 +45,7 @@ import SampleDataManagement from './pages/SampleDataManagement';
 import AdminProfile from './pages/AdminProfile';
 import PublicLayout from './components/layouts/PublicLayout';
 import AdminImageOptimization from './pages/admin/AdminImageOptimization';
+import AdminNavigationTesting from './pages/admin/AdminNavigationTesting';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -103,6 +104,7 @@ function App() {
                   <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="metrics" element={<AdminSiteMetrics />} />
                   <Route path="sample-data" element={<SampleDataManagement />} />
+                  <Route path="navigation-testing" element={<AdminNavigationTesting />} />
                   <Route path="image-optimization" element={<AdminImageOptimization />} />
                   <Route path="profile" element={<AdminProfile />} />
                 </Route>
