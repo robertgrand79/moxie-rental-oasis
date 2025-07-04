@@ -35,6 +35,12 @@ export const adminMenuItems = [
         href: '/admin/metrics',
         icon: TrendingUp,
         description: 'Performance metrics and Core Web Vitals'
+      },
+      {
+        title: 'Metrics Testing',
+        href: '/admin/metrics-testing',
+        icon: TestTube,
+        description: 'Test and validate Site Metrics functionality'
       }
     ]
   },
