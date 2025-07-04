@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { analyticsService } from '@/services/analytics/analyticsService';
-import { AnalyticsData, PerformanceMetrics, SystemHealth } from '@/services/analytics/types';
+import { AnalyticsData, PerformanceMetrics, SystemHealth, GAHealthCheck } from '@/services/analytics/types';
+import { toast } from '@/hooks/use-toast';
 
 export const useRealAnalytics = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
@@ -12,6 +13,7 @@ export const useRealAnalytics = () => {
   const [isDemo, setIsDemo] = useState(true);
   const [gaInitializing, setGaInitializing] = useState(false);
   const [gaError, setGaError] = useState<string | null>(null);
+  const [gaHealthCheck, setGaHealthCheck] = useState<GAHealthCheck | null>(null);
 
   const fetchAnalyticsData = useCallback(async () => {
     try {
@@ -32,11 +34,31 @@ export const useRealAnalytics = () => {
       setSystemHealth(health);
       setRealTimeVisitors(visitors);
       
-      // Check current GA status
+      // Check current GA status and health
       setGaInitializing(true);
-      const isDemoMode = await analyticsService.isDemoMode();
+      const [isDemoMode, healthCheck] = await Promise.all([
+        analyticsService.isDemoMode(),
+        analyticsService.getGAHealthCheck()
+      ]);
       setIsDemo(isDemoMode);
+      setGaHealthCheck(healthCheck);
       setGaInitializing(false);
+
+      // Show toast notifications for GA status changes
+      if (healthCheck.status === 'healthy' && isDemo) {
+        toast({
+          title: "Google Analytics Connected",
+          description: "Now showing real analytics data instead of demo data.",
+          duration: 5000,
+        });
+      } else if (healthCheck.status === 'error') {
+        toast({
+          title: "Google Analytics Issue",
+          description: healthCheck.message,
+          variant: "destructive",
+          duration: 7000,
+        });
+      }
       
       console.log(`📊 useRealAnalytics: Data fetch complete - Mode: ${isDemoMode ? 'Demo' : 'Real'}`);
     } catch (error) {
@@ -119,6 +141,7 @@ export const useRealAnalytics = () => {
     isDemo,
     gaInitializing,
     gaError,
+    gaHealthCheck,
     trackEvent,
     refreshData
   };

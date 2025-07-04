@@ -179,6 +179,11 @@ class AnalyticsService {
     return this.googleAnalytics.getInitializationStatus();
   }
 
+  // Get comprehensive GA health check
+  async getGAHealthCheck() {
+    return this.googleAnalytics.getGAHealthCheck();
+  }
+
   // Cleanup method
   destroy() {
     if (this.googleAnalytics) {

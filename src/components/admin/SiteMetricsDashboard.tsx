@@ -23,6 +23,7 @@ import RealTimeActivityCard from './metrics/RealTimeActivityCard';
 import CoreWebVitalsCard from './metrics/CoreWebVitalsCard';
 import SystemStatusCard from './metrics/SystemStatusCard';
 import MetricsLoadingState from './metrics/MetricsLoadingState';
+import GAHealthCheckCard from './GAHealthCheckCard';
 
 const SiteMetricsDashboard = () => {
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -34,7 +35,8 @@ const SiteMetricsDashboard = () => {
     loading, 
     isDemo, 
     gaInitializing,
-    refreshData 
+    gaHealthCheck,
+    refreshData
   } = useRealAnalytics();
 
   const { 
@@ -166,8 +168,8 @@ const SiteMetricsDashboard = () => {
         />
       </div>
 
-      {/* Real-time Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Real-time Analytics & Health Check */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <RealTimeActivityCard
           realTimeVisitors={realTimeVisitors}
           pageViews={analyticsData?.pageViews || 0}
@@ -177,6 +179,12 @@ const SiteMetricsDashboard = () => {
         <CoreWebVitalsCard performanceMetrics={performanceMetrics} />
 
         <SystemStatusCard systemHealth={systemHealth} />
+
+        <GAHealthCheckCard 
+          healthCheck={gaHealthCheck}
+          onRefresh={refreshData}
+          isRefreshing={loading || gaInitializing}
+        />
       </div>
 
       {/* Status Footer */}

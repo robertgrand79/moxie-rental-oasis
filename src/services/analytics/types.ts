@@ -1,4 +1,3 @@
-
 export interface AnalyticsData {
   visitors: number;
   pageViews: number;
@@ -25,4 +24,24 @@ export interface SystemHealth {
   errorRate: number;
   databaseHealth: 'healthy' | 'degraded' | 'down';
   storageHealth: 'healthy' | 'degraded' | 'down';
+}
+
+export interface GAInitializationStatus {
+  gaInitialized: boolean;
+  hasGtag: boolean;
+  gaId: string | null;
+  lastCheck: number;
+  error?: string;
+}
+
+export interface GAHealthCheck {
+  status: 'healthy' | 'warning' | 'error' | 'not_configured';
+  message: string;
+  details?: {
+    configurationValid: boolean;
+    scriptLoaded: boolean;
+    gtagAvailable: boolean;
+    testSuccessful: boolean;
+  };
+  suggestedActions?: string[];
 }

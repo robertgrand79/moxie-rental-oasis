@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { AnalyticsData } from './types';
+import { AnalyticsData, GAInitializationStatus, GAHealthCheck } from './types';
 
 export class GoogleAnalyticsService {
   private gaInitialized = false;
@@ -63,10 +63,10 @@ export class GoogleAnalyticsService {
 
       this.debugLog('🌐 Browser environment confirmed, starting script detection...');
 
-      // Enhanced GA script detection and waiting
-      const isGtagAvailable = await this.waitForGtagWithEnhancedDetection();
+      // Simplified GA script detection
+      const detectionResult = await this.waitForGtagWithEnhancedDetection();
       
-      if (isGtagAvailable) {
+      if (detectionResult.success) {
         this.gaInitialized = true;
         this.debugLog('✅ Google Analytics initialized successfully!', { 
           gaId: this.gaId,
@@ -82,7 +82,7 @@ export class GoogleAnalyticsService {
         return true;
       }
 
-      this.debugLog('❌ Google Analytics script not available after enhanced detection');
+      this.debugLog('❌ Google Analytics initialization failed:', detectionResult.error);
       return false;
     } catch (error) {
       this.debugLog('❌ Error in GA initialization:', error);
@@ -95,155 +95,75 @@ export class GoogleAnalyticsService {
     }
   }
 
-  private async waitForGtagWithEnhancedDetection(maxRetries = 50, initialDelay = 300): Promise<boolean> {
-    this.debugLog('🔍 Starting enhanced GA script detection...', {
-      maxRetries,
-      initialDelay,
-      gaId: this.gaId
-    });
+  // Simplified GA detection with cleaner error handling
+  private async waitForGtagWithEnhancedDetection(maxRetries = 20, initialDelay = 200): Promise<{ success: boolean; error?: string }> {
+    this.debugLog('🔍 Starting simplified GA script detection...', { maxRetries, gaId: this.gaId });
     
-    // Set up event listener for SiteHead script load notification
-    const scriptLoadedPromise = new Promise<boolean>((resolve) => {
+    // Quick check if gtag is already available
+    if (this.isGtagAvailable()) {
+      this.debugLog('⚡ gtag already available');
+      return { success: true };
+    }
+
+    // Set up event listener for script load notification
+    const scriptLoadedPromise = new Promise<{ success: boolean; error?: string }>((resolve) => {
       this.scriptLoadListener = (event: Event) => {
         const customEvent = event as CustomEvent;
-        this.debugLog('📡 Received ga-script-loaded event:', customEvent.detail);
-        
         if (customEvent.detail?.gaId === this.gaId) {
-          this.debugLog('✅ GA script loaded event matches our GA ID!');
-          resolve(true);
+          this.debugLog('✅ GA script loaded event received');
+          resolve({ success: true });
         }
       };
-      
       window.addEventListener('ga-script-loaded', this.scriptLoadListener);
-      this.debugLog('👂 Event listener registered for ga-script-loaded');
-      
-      // Also resolve if we detect gtag is already available
-      setTimeout(() => {
-        if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
-          this.debugLog('⚡ gtag already available, resolving immediately');
-          resolve(true);
-        }
-      }, 100);
     });
 
-    // Enhanced polling with multiple detection methods
-    const pollingPromise = new Promise<boolean>(async (resolve) => {
+    // Simplified polling with progressive delays
+    const pollingPromise = new Promise<{ success: boolean; error?: string }>(async (resolve) => {
       for (let i = 0; i < maxRetries; i++) {
-        try {
-          this.debugLog(`🔍 Detection attempt ${i + 1}/${maxRetries}...`);
-
-          // Method 1: Check for gtag function
-          if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
-            this.debugLog(`✅ gtag function found via polling (attempt ${i + 1})`);
-            resolve(true);
-            return;
-          }
-
-          // Method 2: Check for GA script element with our specific ID
-          const gaScripts = document.querySelectorAll(`script[src*="googletagmanager.com/gtag/js"]`);
-          const ourGaScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${this.gaId}"]`);
-          
-          this.debugLog(`📜 GA scripts found:`, {
-            totalGAScripts: gaScripts.length,
-            ourSpecificScript: !!ourGaScript,
-            scriptSrcs: Array.from(gaScripts).map(s => s.getAttribute('src'))
-          });
-
-          if (ourGaScript) {
-            this.debugLog(`📊 Our GA script element found (attempt ${i + 1}), waiting for gtag...`);
-            
-            // If script exists, wait a bit more for gtag to be available
-            await this.sleep(500);
-            if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
-              this.debugLog(`✅ gtag function available after script detection (attempt ${i + 1})`);
-              resolve(true);
-              return;
-            }
-          }
-
-          // Method 3: Check for dataLayer as secondary indicator
-          if (typeof window !== 'undefined' && (window as any).dataLayer && Array.isArray((window as any).dataLayer)) {
-            const dataLayerLength = (window as any).dataLayer.length;
-            this.debugLog(`📊 dataLayer found with ${dataLayerLength} items (attempt ${i + 1})`);
-            
-            // If dataLayer has content, gtag might be available soon
-            if (dataLayerLength > 0) {
-              await this.sleep(300);
-              if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
-                this.debugLog(`✅ gtag function available via dataLayer check (attempt ${i + 1})`);
-                resolve(true);
-                return;
-              }
-            }
-          }
-
-          // Method 4: Check window.google and window.ga objects
-          const hasGoogleObjects = !!(window as any).google || !!(window as any).ga;
-          if (hasGoogleObjects) {
-            this.debugLog(`🔍 Google objects detected (attempt ${i + 1}):`, {
-              google: !!(window as any).google,
-              ga: !!(window as any).ga
-            });
-          }
-
-          // Progressive delay with reasonable cap
-          const delay = Math.min(initialDelay * Math.pow(1.2, i), 2000);
-          await this.sleep(delay);
-          
-        } catch (error) {
-          this.debugLog(`❌ Error in detection attempt ${i + 1}:`, error);
+        if (this.isGtagAvailable()) {
+          this.debugLog(`✅ gtag available on attempt ${i + 1}`);
+          resolve({ success: true });
+          return;
         }
+
+        // Check if script element exists but gtag isn't ready
+        const scriptExists = !!document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${this.gaId}"]`);
+        if (scriptExists && i > 5) {
+          this.debugLog(`📊 Script exists but gtag not ready (attempt ${i + 1})`);
+        }
+
+        const delay = Math.min(initialDelay * Math.pow(1.1, i), 1000);
+        await this.sleep(delay);
       }
       
-      this.debugLog('❌ gtag function not available after maximum polling attempts');
-      resolve(false);
+      resolve({ success: false, error: 'GA script detection timeout' });
     });
 
-    // Race between event listener and polling, with overall timeout
-    const timeoutPromise = new Promise<boolean>((resolve) => {
+    // Overall timeout
+    const timeoutPromise = new Promise<{ success: boolean; error?: string }>((resolve) => {
       setTimeout(() => {
-        this.debugLog('⏰ GA initialization timeout reached (20 seconds)');
-        resolve(false);
-      }, 20000); // 20 second overall timeout
+        resolve({ success: false, error: 'GA initialization timeout (10 seconds)' });
+      }, 10000);
     });
 
     try {
       const result = await Promise.race([scriptLoadedPromise, pollingPromise, timeoutPromise]);
-      
-      // Cleanup event listener
+      return result;
+    } catch (error) {
+      return { success: false, error: `GA detection error: ${error instanceof Error ? error.message : 'Unknown error'}` };
+    } finally {
+      // Cleanup
       if (this.scriptLoadListener) {
         window.removeEventListener('ga-script-loaded', this.scriptLoadListener);
         this.scriptLoadListener = null;
-        this.debugLog('🧹 Event listener cleaned up');
       }
-      
-      if (result) {
-        this.debugLog('🎉 GA script detection successful!');
-        
-        // Final verification that gtag is actually callable
-        if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function') {
-          this.debugLog('✅ Final gtag verification passed');
-          
-          // Test gtag function
-          try {
-            (window as any).gtag('config', this.gaId);
-            this.debugLog('✅ gtag config test successful');
-          } catch (gtagError) {
-            this.debugLog('⚠️ gtag config test failed:', gtagError);
-          }
-          
-          return true;
-        } else {
-          this.debugLog('❌ Final gtag verification failed');
-          return false;
-        }
-      }
-      
-      return false;
-    } catch (error) {
-      this.debugLog('❌ Error in enhanced GA detection:', error);
-      return false;
     }
+  }
+
+  private isGtagAvailable(): boolean {
+    return typeof window !== 'undefined' && 
+           'gtag' in window && 
+           typeof (window as any).gtag === 'function';
   }
 
   private setupSettingsListener() {
@@ -399,14 +319,111 @@ export class GoogleAnalyticsService {
   }
 
   // Check if GA is actually initialized (for external debugging)
-  getInitializationStatus() {
+  getInitializationStatus(): GAInitializationStatus {
     return {
       gaInitialized: this.gaInitialized,
+      hasGtag: this.isGtagAvailable(),
       gaId: this.gaId,
-      hasGtag: typeof window !== 'undefined' && 'gtag' in window && typeof (window as any).gtag === 'function',
-      hasDataLayer: typeof window !== 'undefined' && (window as any).dataLayer && Array.isArray((window as any).dataLayer),
-      dataLayerLength: typeof window !== 'undefined' && (window as any).dataLayer ? (window as any).dataLayer.length : 0
+      lastCheck: Date.now(),
+      error: this.gaInitialized ? undefined : 'Not initialized'
     };
+  }
+
+  // Get comprehensive GA health check
+  async getGAHealthCheck(): Promise<GAHealthCheck> {
+    try {
+      const { data: settings } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'googleAnalyticsId')
+        .single();
+
+      const gaId = settings?.value ? String(settings.value).trim() : null;
+      
+      if (!gaId || !gaId.startsWith('G-')) {
+        return {
+          status: 'not_configured',
+          message: 'Google Analytics ID is not configured or invalid',
+          suggestedActions: [
+            'Go to Admin Settings > SEO & Analytics',
+            'Enter a valid Google Analytics ID (format: G-XXXXXXXXXX)',
+            'Save settings and refresh this page'
+          ]
+        };
+      }
+
+      const scriptExists = !!document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${gaId}"]`);
+      const gtagAvailable = this.isGtagAvailable();
+      
+      let testSuccessful = false;
+      if (gtagAvailable) {
+        try {
+          (window as any).gtag('config', gaId);
+          testSuccessful = true;
+        } catch (error) {
+          // Test failed
+        }
+      }
+
+      const details = {
+        configurationValid: !!gaId && gaId.startsWith('G-'),
+        scriptLoaded: scriptExists,
+        gtagAvailable,
+        testSuccessful
+      };
+
+      if (this.gaInitialized && gtagAvailable && testSuccessful) {
+        return {
+          status: 'healthy',
+          message: 'Google Analytics is working correctly',
+          details
+        };
+      } else if (scriptExists && !gtagAvailable) {
+        return {
+          status: 'warning',
+          message: 'Google Analytics script loaded but gtag function not available',
+          details,
+          suggestedActions: [
+            'Wait a few seconds for initialization to complete',
+            'Check browser console for JavaScript errors',
+            'Try refreshing the page'
+          ]
+        };
+      } else if (!scriptExists) {
+        return {
+          status: 'error',
+          message: 'Google Analytics script not loaded',
+          details,
+          suggestedActions: [
+            'Ensure you are on the /admin/metrics page',
+            'Check that Google Analytics ID is correctly configured',
+            'Try refreshing the page',
+            'Check browser network tab for failed requests'
+          ]
+        };
+      } else {
+        return {
+          status: 'error',
+          message: 'Google Analytics initialization failed',
+          details,
+          suggestedActions: [
+            'Check the Google Analytics ID format',
+            'Verify the GA property exists and is active',
+            'Try clearing browser cache and refreshing'
+          ]
+        };
+      }
+    } catch (error) {
+      return {
+        status: 'error',
+        message: `Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        suggestedActions: [
+          'Check database connection',
+          'Try refreshing the page',
+          'Contact support if the issue persists'
+        ]
+      };
+    }
   }
 
   // Cleanup method
