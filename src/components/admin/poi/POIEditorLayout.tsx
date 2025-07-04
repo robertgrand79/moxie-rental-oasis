@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Eye, Sparkles } from 'lucide-react';
+import { Plus, Edit, Eye, Sparkles, RotateCcw } from 'lucide-react';
+import { toast } from 'sonner';
 import { PointOfInterest } from '@/hooks/usePointsOfInterest';
 import { POIFormData } from './POIFormFields';
 import POIEditorForm from './POIEditorForm';
@@ -62,6 +63,43 @@ const POIEditorLayout = ({
     created_by: '',
     status: 'draft'
   });
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Reset function for navigation
+  const resetToDefaultState = () => {
+    setActiveTab('list');
+    setEditingItem(null);
+    setStatusFilter('all');
+    setFormData({
+      name: '',
+      description: '',
+      address: '',
+      latitude: 0,
+      longitude: 0,
+      category: 'other',
+      phone: '',
+      website_url: '',
+      image_url: '',
+      rating: 0,
+      price_level: 0,
+      distance_from_properties: 0,
+      driving_time: 0,
+      walking_time: 0,
+      is_featured: false,
+      is_active: true,
+      display_order: 0,
+      created_by: '',
+      status: 'draft'
+    });
+    setHasUnsavedChanges(false);
+    toast.success('POI editor reset to default view');
+  };
+
+  // Listen for reset events from navigation
+  useEffect(() => {
+    window.addEventListener('resetPOIManager', resetToDefaultState);
+    return () => window.removeEventListener('resetPOIManager', resetToDefaultState);
+  }, []);
 
   // Filter items based on status
   const filteredItems = useMemo(() => {
@@ -173,6 +211,14 @@ const POIEditorLayout = ({
             >
               <Sparkles className="h-4 w-4 mr-2" />
               AI Generator
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetToDefaultState}
+              title="Reset to default view"
+            >
+              <RotateCcw className="h-4 w-4" />
             </Button>
           </div>
         </div>

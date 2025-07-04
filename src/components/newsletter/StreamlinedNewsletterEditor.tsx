@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useForm } from 'react-hook-form';
@@ -10,11 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Send, Eye, EyeOff, Wand2, Users, Loader2, Maximize2 } from 'lucide-react';
+import { Send, Eye, EyeOff, Wand2, Users, Loader2, Maximize2, RotateCcw } from 'lucide-react';
 import ReactQuillEditor from '../ReactQuillEditor';
 import NewsletterPreviewPanel from './NewsletterPreviewPanel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import NewsletterAIGenerator from './ai-generator/NewsletterAIGenerator';
+import { toast } from 'sonner';
 
 interface NewsletterFormData {
   subject: string;
@@ -28,7 +29,7 @@ const StreamlinedNewsletterEditor = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [showFullPagePreview, setShowFullPagePreview] = useState(false);
   const [showAIDialog, setShowAIDialog] = useState(false);
-  const { toast } = useToast();
+  const { toast: showToast } = useToast();
   const { blogPosts, loading: blogPostsLoading } = useBlogPosts();
   const { subscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
   
@@ -44,9 +45,26 @@ const StreamlinedNewsletterEditor = () => {
   const isFormValid = currentSubject?.trim() && content?.trim() && subscriberCount && subscriberCount > 0;
   const publishedBlogPosts = blogPosts.filter(post => post.status === 'published');
 
+  // Reset function for navigation
+  const resetToDefaultState = () => {
+    form.reset();
+    setContent('');
+    setShowPreview(false);
+    setShowFullPagePreview(false);
+    setShowAIDialog(false);
+    setIsLoading(false);
+    toast('Newsletter editor reset to clean state');
+  };
+
+  // Listen for reset events from navigation
+  useEffect(() => {
+    window.addEventListener('resetNewsletterTabs', resetToDefaultState);
+    return () => window.removeEventListener('resetNewsletterTabs', resetToDefaultState);
+  }, [form]);
+
   const onSubmit = async (data: NewsletterFormData) => {
     if (!data.subject || !content) {
-      toast({
+      showToast({
         title: "Missing Information",
         description: "Please provide both a subject and content for the newsletter.",
         variant: "destructive",
@@ -55,7 +73,7 @@ const StreamlinedNewsletterEditor = () => {
     }
 
     if (!subscriberCount || subscriberCount === 0) {
-      toast({
+      showToast({
         title: "No Subscribers",
         description: "There are no active subscribers to send the newsletter to.",
         variant: "destructive",
@@ -77,7 +95,7 @@ const StreamlinedNewsletterEditor = () => {
       if (error) throw error;
 
       if (result?.success) {
-        toast({
+        showToast({
           title: "Newsletter Sent! 🎉",
           description: `Successfully sent to ${result.recipientCount} subscribers.`,
         });
@@ -89,7 +107,7 @@ const StreamlinedNewsletterEditor = () => {
         throw new Error(result?.error || "Failed to send newsletter");
       }
     } catch (error: any) {
-      toast({
+      showToast({
         title: "Send Failed",
         description: error.message || "Failed to send newsletter.",
         variant: "destructive",
@@ -158,6 +176,15 @@ const StreamlinedNewsletterEditor = () => {
           >
             <Maximize2 className="h-4 w-4 mr-2" />
             Full Preview
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetToDefaultState}
+            title="Reset editor to clean state"
+          >
+            <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
       </div>

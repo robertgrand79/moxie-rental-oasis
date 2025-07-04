@@ -1,9 +1,10 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Eye, Sparkles } from 'lucide-react';
+import { Plus, Edit, Eye, Sparkles, RotateCcw } from 'lucide-react';
+import { toast } from 'sonner';
 import { EugeneEvent } from '@/hooks/useEugeneEvents';
 import EventsEditorForm from './EventsEditorForm';
 import EventsPreview from './EventsPreview';
@@ -59,6 +60,42 @@ const EventsEditorLayout = ({
     status: 'draft',
     created_by: ''
   });
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Reset function for navigation
+  const resetToDefaultState = () => {
+    setActiveTab('list');
+    setEditingEvent(null);
+    setStatusFilter('all');
+    setFormData({
+      title: '',
+      description: '',
+      event_date: '',
+      end_date: '',
+      time_start: '',
+      time_end: '',
+      location: '',
+      category: 'festival',
+      image_url: '',
+      website_url: '',
+      ticket_url: '',
+      price_range: '',
+      is_featured: false,
+      is_active: true,
+      is_recurring: false,
+      recurrence_pattern: '',
+      status: 'draft',
+      created_by: ''
+    });
+    setHasUnsavedChanges(false);
+    toast.success('Events editor reset to default view');
+  };
+
+  // Listen for reset events from navigation
+  useEffect(() => {
+    window.addEventListener('resetEventsManager', resetToDefaultState);
+    return () => window.removeEventListener('resetEventsManager', resetToDefaultState);
+  }, []);
 
   // Filter events based on status
   const filteredEvents = useMemo(() => {
@@ -167,6 +204,14 @@ const EventsEditorLayout = ({
             >
               <Sparkles className="h-4 w-4 mr-2" />
               AI Generator
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetToDefaultState}
+              title="Reset to default view"
+            >
+              <RotateCcw className="h-4 w-4" />
             </Button>
           </div>
         </div>
