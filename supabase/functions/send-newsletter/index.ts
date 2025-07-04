@@ -512,4 +512,6 @@ const handler = async (req: Request): Promise<Response> => {
   );
 }
 
+}; // Close the main handler function
+
 serve(handler);
