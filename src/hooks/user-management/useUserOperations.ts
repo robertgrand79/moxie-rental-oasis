@@ -163,23 +163,47 @@ export const useUserOperations = () => {
     try {
       setLoading(true);
 
-      // Simple invitation - just create a user invitation record
-      const { error } = await supabase
+      const invitationToken = crypto.randomUUID();
+
+      // Create invitation record
+      const { data: invitationData, error: inviteError } = await supabase
         .from('user_invitations')
         .insert({
           email: invitation.email,
           role: invitation.role,
           full_name: invitation.full_name,
           invited_by: user?.id,
-          invitation_token: crypto.randomUUID()
-        });
+          invitation_token: invitationToken
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (inviteError) throw inviteError;
 
-      toast({
-        title: 'Success',
-        description: `Invitation sent to ${invitation.email}`,
+      // Send invitation email
+      const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+        body: {
+          email: invitation.email,
+          full_name: invitation.full_name,
+          role: invitation.role,
+          invitedBy: user?.id,
+          invitationToken: invitationToken
+        }
       });
+
+      if (emailError) {
+        console.warn('Failed to send invitation email:', emailError);
+        toast({
+          title: 'Partial Success',
+          description: `Invitation created for ${invitation.email}, but email failed to send. The user can still be invited manually.`,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Success',
+          description: `Invitation email sent to ${invitation.email}`,
+        });
+      }
 
       return true;
     } catch (error) {
