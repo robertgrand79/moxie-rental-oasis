@@ -98,10 +98,9 @@ export const usePropertyOperations = () => {
     console.log('🏠 [EDIT] Starting property update...', { propertyId, user: user?.id });
     
     try {
-      
       // Handle deleted images from property updates
       if (propertyData.deletedImages && propertyData.deletedImages.length > 0) {
-        console.log('Deleting images from storage:', propertyData.deletedImages);
+        console.log('🗑️ [EDIT] Deleting images from storage:', propertyData.deletedImages);
         
         // Delete each image from storage
         const deletePromises = propertyData.deletedImages.map(async (imageUrl: string) => {
@@ -114,6 +113,34 @@ export const usePropertyOperations = () => {
         
         await Promise.all(deletePromises);
       }
+
+      // Handle new photo uploads during edit
+      let uploadedImages: string[] = [];
+      if (propertyData.photos && propertyData.photos.length > 0) {
+        console.log('📸 [EDIT] Uploading new photos...', propertyData.photos.length);
+        
+        try {
+          uploadedImages = await uploadPhotos(propertyData.photos, propertyId);
+          console.log('✅ [EDIT] New photos uploaded successfully:', uploadedImages.length);
+        } catch (uploadError) {
+          console.error('❌ [EDIT] Photo upload failed:', uploadError);
+          toast({
+            title: 'Photo Upload Error',
+            description: 'Some photos failed to upload. Property will be saved without the new photos.',
+            variant: 'destructive'
+          });
+        }
+      }
+
+      // Combine existing reordered images with newly uploaded images
+      const existingImages = propertyData.reorderedExistingImages || [];
+      const allImages = [...existingImages, ...uploadedImages];
+      
+      console.log('🔄 [EDIT] Final image arrays:', {
+        existingImages: existingImages.length,
+        uploadedImages: uploadedImages.length,
+        totalImages: allImages.length
+      });
       
       // Prepare clean property data (remove form-specific fields)
       const cleanPropertyData = {
@@ -126,10 +153,10 @@ export const usePropertyOperations = () => {
         price_per_night: propertyData.pricePerNight,
         hospitable_booking_url: propertyData.hospitableBookingUrl || null,
         amenities: propertyData.amenities || null,
-        images: propertyData.reorderedExistingImages || propertyData.images || [],
+        images: allImages,
         featured_photos: propertyData.featuredPhotos || [],
-        cover_image_url: propertyData.reorderedExistingImages?.[0] || propertyData.images?.[0] || null,
-        image_url: propertyData.reorderedExistingImages?.[0] || propertyData.images?.[0] || null,
+        cover_image_url: allImages[0] || null,
+        image_url: allImages[0] || null,
       };
 
       const { data, error } = await supabase
