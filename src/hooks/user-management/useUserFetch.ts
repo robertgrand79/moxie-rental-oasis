@@ -48,8 +48,8 @@ export const useUserFetch = () => {
         .from('profiles')
         .select(`
           *,
-          user_roles(
-            role:system_roles(name)
+          user_roles!user_roles_user_id_fkey(
+            role:system_roles!user_roles_role_id_fkey(name)
           )
         `)
         .order('created_at', { ascending: false });

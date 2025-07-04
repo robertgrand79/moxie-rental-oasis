@@ -60,9 +60,9 @@ export const usePermissions = () => {
         const { data, error } = await supabase
           .from('user_roles')
           .select(`
-            role:role_id(
+            role:system_roles!user_roles_role_id_fkey(
               role_permissions(
-                permission:permission_id(*)
+                permission:system_permissions(*)
               )
             )
           `)
