@@ -8,6 +8,7 @@ import { MapPin, Bed, Bath, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Property } from '@/types/property';
 import { generateAddressSlug } from '@/utils/addressSlug';
+import ThumbnailImage from '@/components/ui/thumbnail-image';
 
 interface PropertyListProps {
   properties: Property[];
@@ -36,6 +37,28 @@ const PropertyList = ({
     );
   }
 
+  // Helper function to get the best image URL for thumbnail display
+  const getBestImageUrl = (property: Property): string | null => {
+    // Priority: cover_image_url > image_url > images[0]
+    if (property.cover_image_url) {
+      console.log('🖼️ Using cover_image_url:', property.cover_image_url);
+      return property.cover_image_url;
+    }
+    
+    if (property.image_url) {
+      console.log('🖼️ Using image_url:', property.image_url);
+      return property.image_url;
+    }
+    
+    if (property.images && Array.isArray(property.images) && property.images.length > 0) {
+      console.log('🖼️ Using first image from array:', property.images[0]);
+      return property.images[0];
+    }
+    
+    console.log('🖼️ No image found for property:', property.title);
+    return null;
+  };
+
   const handleDeleteClick = (id: string, title: string) => {
     if (deletingProperties.has(id)) {
       return; // Prevent multiple deletion attempts
@@ -57,6 +80,7 @@ const PropertyList = ({
 
         const isDeleting = deletingProperties.has(property.id);
         const addressSlug = generateAddressSlug(property.location || '');
+        const imageUrl = getBestImageUrl(property);
         
         return (
           <Card 
@@ -65,15 +89,23 @@ const PropertyList = ({
               isDeleting ? 'opacity-50 pointer-events-none' : ''
             }`}
           >
-            {property.image_url && (
-              <div className="aspect-[4/3] relative overflow-hidden">
-                <img
-                  src={property.image_url}
+            <div className="aspect-[4/3] relative overflow-hidden">
+              {imageUrl ? (
+                <ThumbnailImage
+                  src={imageUrl}
                   alt={property.title || 'Property image'}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  fallbackIcon={true}
                 />
-              </div>
-            )}
+              ) : (
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                  <div className="text-center text-gray-400">
+                    <div className="text-2xl mb-2">🏠</div>
+                    <div className="text-sm">No image available</div>
+                  </div>
+                </div>
+              )}
+            </div>
             
             <CardHeader className="p-6">
               <div className="flex justify-between items-start">
