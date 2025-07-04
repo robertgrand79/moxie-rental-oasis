@@ -42,7 +42,7 @@ const EmailTestingCard = () => {
               <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin: 16px 0;">
                 <h3 style="color: #333; margin-top: 0;">✅ Verified Components:</h3>
                 <ul style="color: #666; line-height: 1.6;">
-                  <li>SendGrid API configuration</li>
+                  <li>Resend API configuration</li>
                   <li>Email templates rendering</li>
                   <li>Sender email verification</li>
                   <li>Email delivery system</li>
@@ -84,6 +84,10 @@ const EmailTestingCard = () => {
         errorMessage = "Resend API key issue. Please verify it's correctly configured in Supabase secrets.";
       } else if (error.message?.includes("Authentication")) {
         errorMessage = "Authentication error. Please log in again.";
+      } else if (error.message?.includes("Admin access required")) {
+        errorMessage = "Admin access required. Please ensure your account has admin privileges.";
+      } else if (error.message?.includes("non-2xx status code")) {
+        errorMessage = "Email service error. Please check your Resend domain verification and API key.";
       } else if (error.message) {
         errorMessage = error.message;
       }
