@@ -48,17 +48,18 @@ export const useRealAnalytics = () => {
     }
   }, []);
 
-  // Optimized refresh that only re-initializes GA
+  // Optimized refresh that bypasses throttling for manual requests
   const refreshData = useCallback(async () => {
     try {
       console.log('🔄 useRealAnalytics: Manual refresh triggered');
       setGaInitializing(true);
       setGaError(null);
       
-      // Force refresh GA initialization
-      await analyticsService.refreshGA();
+      // Force refresh GA initialization (bypasses throttling)
+      const gaRefreshResult = await analyticsService.refreshGA();
+      console.log('📊 useRealAnalytics: GA refresh result:', gaRefreshResult);
       
-      // Re-fetch all data
+      // Re-fetch all data immediately after GA refresh
       await fetchAnalyticsData();
     } catch (error) {
       console.error('❌ useRealAnalytics: Error during manual refresh:', error);

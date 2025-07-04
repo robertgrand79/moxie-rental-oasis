@@ -17,10 +17,12 @@ const SiteHead = () => {
   // Only preload hero image on home page
   useHeroImagePreload(heroSettings.heroBackgroundImage, isHomePage);
   
-  // Only load analytics on non-admin pages to reduce resource conflicts
+  // Load analytics on non-admin pages, except specifically allow on /admin/metrics
   const isAdminPage = location.pathname.startsWith('/admin');
+  const isMetricsPage = location.pathname === '/admin/metrics';
+  const shouldLoadAnalytics = !isAdminPage || isMetricsPage;
   
-  if (!isAdminPage) {
+  if (shouldLoadAnalytics) {
     useGoogleAnalytics(settings.googleAnalyticsId || '');
     
     useThirdPartyScripts(

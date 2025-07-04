@@ -10,6 +10,7 @@ class AnalyticsService {
   private systemMonitor: SystemMonitorService;
   private lastInitCheck: number = 0;
   private initCheckInterval: number = 30000; // 30 seconds
+  private manualRefreshRequested: boolean = false;
 
   constructor() {
     this.googleAnalytics = new GoogleAnalyticsService();
@@ -40,14 +41,15 @@ class AnalyticsService {
     try {
       console.log('📊 Analytics Service: Fetching analytics data...');
       
-      // Only try to initialize GA if we haven't checked recently
+      // Only try to initialize GA if we haven't checked recently, unless manual refresh
       const now = Date.now();
       let hasRealGA = false;
       
-      if (now - this.lastInitCheck > this.initCheckInterval) {
-        console.log('📊 Analytics Service: Checking GA initialization (throttled)...');
+      if (this.manualRefreshRequested || now - this.lastInitCheck > this.initCheckInterval) {
+        console.log(`📊 Analytics Service: ${this.manualRefreshRequested ? 'Manual refresh' : 'Throttled check'} - Initializing GA...`);
         hasRealGA = await this.initializeGA();
         this.lastInitCheck = now;
+        this.manualRefreshRequested = false;
       } else {
         // Check current status without re-initializing
         const status = this.googleAnalytics.getInitializationStatus();
@@ -150,6 +152,7 @@ class AnalyticsService {
   async refreshGA(): Promise<boolean> {
     try {
       console.log('🔄 Analytics Service: Force refreshing GA...');
+      this.manualRefreshRequested = true; // Flag for immediate refresh
       this.lastInitCheck = 0; // Reset throttle
       return this.googleAnalytics.refreshInitialization();
     } catch (error) {
