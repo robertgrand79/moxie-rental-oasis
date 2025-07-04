@@ -86,22 +86,33 @@ const PaginatedPhotoGrid = ({
   const handleFeaturedToggle = (imageUrl: string) => {
     if (disabled) return;
     
-    if (featuredPhotos.includes(imageUrl)) {
-      onFeaturedPhotosChange(featuredPhotos.filter(url => url !== imageUrl));
-    } else if (featuredPhotos.length < 10) {
-      onFeaturedPhotosChange([...featuredPhotos, imageUrl]);
+    // Only allow selection of actual storage URLs, not blob URLs
+    if (imageUrl.startsWith('blob:')) {
+      console.warn('Cannot select blob URL as featured photo:', imageUrl);
+      return;
+    }
+    
+    // Filter out blob URLs from current featured photos
+    const validFeaturedPhotos = featuredPhotos.filter(url => !url.startsWith('blob:'));
+    
+    if (validFeaturedPhotos.includes(imageUrl)) {
+      onFeaturedPhotosChange(validFeaturedPhotos.filter(url => url !== imageUrl));
+    } else if (validFeaturedPhotos.length < 10) {
+      onFeaturedPhotosChange([...validFeaturedPhotos, imageUrl]);
     }
   };
 
   if (photos.length === 0) return null;
 
-  const canAddMoreFeatured = featuredPhotos.length < 10;
+  // Only count valid storage URLs, not blob URLs
+  const validFeaturedPhotos = featuredPhotos.filter(url => !url.startsWith('blob:'));
+  const canAddMoreFeatured = validFeaturedPhotos.length < 10;
 
   return (
     <div className="space-y-4">
       <PhotoGridHeader 
         photoCount={photos.length} 
-        featuredCount={featuredPhotos.length}
+        featuredCount={validFeaturedPhotos.length}
         deletedCount={deletedImages.length}
       />
 
@@ -118,7 +129,7 @@ const PaginatedPhotoGrid = ({
             {currentPhotos.map((photo, index) => {
               const actualIndex = startIndex + index;
               const isSelected = selectedCoverIndex === actualIndex;
-              const isFeatured = featuredPhotos.includes(photo.url);
+              const isFeatured = validFeaturedPhotos.includes(photo.url);
               const isMarkedForDeletion = photo.isExisting && deletedImages.includes(photo.url);
               
               return (
@@ -145,7 +156,7 @@ const PaginatedPhotoGrid = ({
       </DndContext>
 
       <PhotoGridInstructions 
-        featuredCount={featuredPhotos.length} 
+        featuredCount={validFeaturedPhotos.length} 
         deletedCount={deletedImages.length}
       />
 

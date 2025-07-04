@@ -51,7 +51,7 @@ export const usePropertyOperations = () => {
         hospitable_booking_url: propertyData.hospitableBookingUrl || null, // Form field: hospitableBookingUrl → DB field: hospitable_booking_url
         amenities: propertyData.amenities || null,
         images: uploadedImages,
-        featured_photos: propertyData.featuredPhotos || [],
+        featured_photos: (propertyData.featuredPhotos || []).filter((url: string) => !url.startsWith('blob:')),
         cover_image_url: uploadedImages[0] || null,
         image_url: uploadedImages[0] || null,
         display_order: 0,
@@ -142,7 +142,7 @@ export const usePropertyOperations = () => {
         totalImages: allImages.length
       });
       
-      // Prepare clean property data (remove form-specific fields)
+      // Prepare clean property data (remove form-specific fields and filter blob URLs)
       const cleanPropertyData = {
         title: propertyData.title,
         description: propertyData.description,
@@ -154,7 +154,7 @@ export const usePropertyOperations = () => {
         hospitable_booking_url: propertyData.hospitableBookingUrl || null,
         amenities: propertyData.amenities || null,
         images: allImages,
-        featured_photos: propertyData.featuredPhotos || [],
+        featured_photos: (propertyData.featuredPhotos || []).filter((url: string) => !url.startsWith('blob:')),
         cover_image_url: allImages[0] || null,
         image_url: allImages[0] || null,
       };
