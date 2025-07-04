@@ -4,6 +4,7 @@ import { analyticsService } from '@/services/analytics/analyticsService';
 import { AnalyticsData, PerformanceMetrics, SystemHealth, GAHealthCheck } from '@/services/analytics/types';
 import { toast } from '@/hooks/use-toast';
 import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
+import { useSiteMetricsOptimization } from '@/hooks/useSiteMetricsOptimization';
 
 export const useRealAnalytics = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
@@ -18,6 +19,7 @@ export const useRealAnalytics = () => {
 
   // Performance optimization hooks
   const { throttledFunction, debouncedFunction, memoryUsageMonitor } = usePerformanceOptimization();
+  const { optimizePerformance } = useSiteMetricsOptimization();
 
   // Optimized data fetching with performance monitoring
   const fetchAnalyticsData = useCallback(async () => {
@@ -146,11 +148,12 @@ export const useRealAnalytics = () => {
     [throttledFunction]
   );
 
-  // Initialize on mount
+  // Initialize on mount with optimization
   useEffect(() => {
-    console.log('🔄 useRealAnalytics: Initializing...');
+    console.log('🔄 useRealAnalytics: Initializing with optimization...');
+    optimizePerformance();
     fetchAnalyticsData();
-  }, [fetchAnalyticsData]);
+  }, [fetchAnalyticsData, optimizePerformance]);
 
   // Set up optimized intervals for real-time updates
   useEffect(() => {

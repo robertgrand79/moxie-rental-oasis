@@ -24,6 +24,7 @@ import CoreWebVitalsCard from './metrics/CoreWebVitalsCard';
 import SystemStatusCard from './metrics/SystemStatusCard';
 import MetricsLoadingState from './metrics/MetricsLoadingState';
 import GAHealthCheckCard from './GAHealthCheckCard';
+import SiteMetricsEdgeCaseMonitor from './SiteMetricsEdgeCaseMonitor';
 
 const SiteMetricsDashboard = () => {
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -186,6 +187,9 @@ const SiteMetricsDashboard = () => {
           isRefreshing={loading || gaInitializing}
         />
       </div>
+
+      {/* Edge Case Monitoring */}
+      <SiteMetricsEdgeCaseMonitor />
 
       {/* Status Footer */}
       <Card>
