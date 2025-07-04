@@ -4,6 +4,7 @@ import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import AdminSettingsContent from '@/components/admin/settings/AdminSettingsContent';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useSettingsLocalData } from '@/hooks/useSettingsLocalData';
+import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminSiteSettingsRedesigned = () => {
   const {
@@ -16,6 +17,14 @@ const AdminSiteSettingsRedesigned = () => {
   } = useSimplifiedSiteSettings();
 
   const { localData, setLocalData } = useSettingsLocalData(settings, loading);
+
+  // Handle admin state reset when clicking same menu item
+  useAdminStateReset({ 
+    onReset: () => {
+      // AdminSettingsContent will reset to default state
+      window.dispatchEvent(new CustomEvent('resetAdminSettings'));
+    }
+  });
 
   if (loading) {
     return (

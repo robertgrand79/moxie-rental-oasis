@@ -5,8 +5,17 @@ import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import ImageOptimizationDashboard from '@/components/admin/analytics/ImageOptimizationDashboard';
 import ImageMigrationTool from '@/components/admin/ImageMigrationTool';
 import { Image, BarChart3, Database } from 'lucide-react';
+import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminImageOptimization = () => {
+  // Handle admin state reset when clicking same menu item
+  useAdminStateReset({ 
+    onReset: () => {
+      // Image optimization tabs will reset to default state
+      window.dispatchEvent(new CustomEvent('resetImageOptimization'));
+    }
+  });
+
   return (
     <AdminPageWrapper
       title="Image Optimization"
