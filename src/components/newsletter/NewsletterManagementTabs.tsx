@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, Users, Settings, History, Zap } from 'lucide-react';
 import StreamlinedNewsletterEditor from './StreamlinedNewsletterEditor';
@@ -12,8 +12,19 @@ import { useNewsletterCampaigns } from '@/hooks/useNewsletterCampaigns';
 import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 
 const NewsletterManagementTabs = () => {
+  const [activeTab, setActiveTab] = useState("create");
   const { campaigns, loading: campaignsLoading, deleting, deleteCampaign } = useNewsletterCampaigns();
   const { subscriberCount } = useNewsletterStats();
+
+  // Listen for reset event from parent
+  useEffect(() => {
+    const handleReset = () => {
+      setActiveTab("create");
+    };
+
+    window.addEventListener('resetNewsletterTabs', handleReset);
+    return () => window.removeEventListener('resetNewsletterTabs', handleReset);
+  }, []);
 
   // Calculate statistics from real data
   const sentCampaigns = campaigns.filter(campaign => campaign.sent_at);
@@ -21,7 +32,7 @@ const NewsletterManagementTabs = () => {
   const avgRecipients = sentCampaigns.length > 0 ? Math.round(totalRecipients / sentCampaigns.length) : 0;
 
   return (
-    <Tabs defaultValue="create" className="space-y-6">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
       <TabsList className="grid w-full grid-cols-5 h-12">
         <TabsTrigger value="create" className="flex items-center gap-2">
           <Zap className="h-4 w-4" />

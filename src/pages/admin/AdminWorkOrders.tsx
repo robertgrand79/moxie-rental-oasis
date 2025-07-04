@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { useWorkOrderOperations } from '@/hooks/useWorkOrderOperations';
 import { useWorkOrderFilters } from '@/hooks/useWorkOrderFilters';
@@ -9,6 +9,7 @@ import WorkOrdersGrid from '@/components/admin/workorders/WorkOrdersGrid';
 import WorkOrdersTable from '@/components/admin/workorders/WorkOrdersTable';
 import WorkOrderSidePanel from '@/components/admin/workorders/WorkOrderSidePanel';
 import LoadingState from '@/components/ui/loading-state';
+import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminWorkOrders = () => {
   const {
@@ -69,6 +70,19 @@ const AdminWorkOrders = () => {
     setIsWorkOrderPanelOpen(false);
     setEditingWorkOrder(null);
   };
+
+  // State reset handler for sidebar navigation
+  const resetToDefaultState = useCallback(() => {
+    setIsWorkOrderPanelOpen(false);
+    setEditingWorkOrder(null);
+    setViewMode('grid');
+    setStatusFilter('all');
+    setPriorityFilter('all');
+    setSearchQuery('');
+  }, [setStatusFilter, setPriorityFilter, setSearchQuery]);
+
+  // Handle admin state reset when clicking same menu item
+  useAdminStateReset({ onReset: resetToDefaultState });
 
   if (loading) {
     return <LoadingState />;

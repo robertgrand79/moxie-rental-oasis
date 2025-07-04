@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import EnhancedPageForm from '@/components/EnhancedPageForm';
@@ -10,6 +10,7 @@ import { usePages } from '@/hooks/usePages';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import LoadingState from '@/components/ui/loading-state';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
+import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminPageManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -77,6 +78,16 @@ const AdminPageManagement = () => {
     setShowTemplateSelector(false);
     setEditingPage(null);
   };
+
+  // State reset handler for sidebar navigation
+  const resetToDefaultState = useCallback(() => {
+    setShowAddForm(false);
+    setShowTemplateSelector(false);
+    setEditingPage(null);
+  }, []);
+
+  // Handle admin state reset when clicking same menu item
+  useAdminStateReset({ onReset: resetToDefaultState });
 
   if (loading) {
     return <LoadingState variant="page" message="Loading your pages..." />;

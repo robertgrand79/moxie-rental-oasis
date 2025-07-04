@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
 import {
@@ -26,7 +26,24 @@ interface AdminSidebarSectionProps {
 
 const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  const handleItemClick = (item: MenuItem, event: React.MouseEvent) => {
+    const isActive = location.pathname === item.href;
+    
+    // If clicking the same active menu item, force a navigation reset
+    if (isActive) {
+      event.preventDefault();
+      // Add a timestamp to force a route change and component remount
+      const resetUrl = `${item.href}?reset=${Date.now()}`;
+      navigate(resetUrl, { replace: true });
+      // Immediately navigate back to clean URL to maintain clean history
+      setTimeout(() => {
+        navigate(item.href, { replace: true });
+      }, 10);
+    }
+  };
 
   return (
     <SidebarGroup>
@@ -46,7 +63,11 @@ const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
                   isActive={isActive}
                   className={isMobile ? 'min-h-[44px]' : ''}
                 >
-                  <Link to={item.href} className={`flex items-center space-x-3 ${isMobile ? 'px-3 py-3' : ''}`}>
+                  <Link 
+                    to={item.href} 
+                    className={`flex items-center space-x-3 ${isMobile ? 'px-3 py-3' : ''}`}
+                    onClick={(e) => handleItemClick(item, e)}
+                  >
                     <IconComponent className="h-5 w-5 text-gray-600" />
                     <span className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
                       {item.title}

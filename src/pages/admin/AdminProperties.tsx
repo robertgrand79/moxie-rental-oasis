@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { usePropertyForm } from '@/hooks/usePropertyForm';
 import { usePaginatedProperties } from '@/hooks/usePaginatedProperties';
@@ -12,6 +12,7 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import ImageCleanupButton from '@/components/admin/properties/ImageCleanupButton';
 import PropertyDiagnostics from '@/components/admin/PropertyDiagnostics';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminProperties = () => {
   const {
@@ -45,6 +46,15 @@ const AdminProperties = () => {
   };
   
   const isMobile = useIsMobile();
+
+  // State reset handler for sidebar navigation
+  const resetToDefaultState = useCallback(() => {
+    handleFormCancel(); // This resets showAddForm and editingProperty
+    goToPage(1); // Reset to first page
+  }, [handleFormCancel, goToPage]);
+
+  // Handle admin state reset when clicking same menu item
+  useAdminStateReset({ onReset: resetToDefaultState });
 
   if (loading && currentPage === 1) {
     return <LoadingState variant="page" message="Loading your properties..." />;

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useContractorOperations } from '@/hooks/useContractorOperations';
 import { useContractorFilters } from '@/hooks/useContractorFilters';
 import { useContractorStats } from '@/hooks/useContractorStats';
@@ -9,6 +9,7 @@ import ContractorsTable from '@/components/admin/contractors/ContractorsTable';
 import ContractorSidePanel from '@/components/admin/contractors/ContractorSidePanel';
 import LoadingState from '@/components/ui/loading-state';
 import { Contractor } from '@/hooks/useWorkOrderManagement';
+import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminContractors = () => {
   const {
@@ -56,6 +57,19 @@ const AdminContractors = () => {
     await handleSaveContractor(contractorData, editingContractor);
     handleCloseSidePanel();
   };
+
+  // State reset handler for sidebar navigation
+  const resetToDefaultState = useCallback(() => {
+    setIsSidePanelOpen(false);
+    setEditingContractor(null);
+    setViewMode('grid');
+    setStatusFilter('all');
+    setSpecialtyFilter('all');
+    setSearchQuery('');
+  }, [setStatusFilter, setSpecialtyFilter, setSearchQuery]);
+
+  // Handle admin state reset when clicking same menu item
+  useAdminStateReset({ onReset: resetToDefaultState });
 
   if (loading) {
     return <LoadingState />;

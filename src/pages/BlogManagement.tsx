@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { usePaginatedBlogPosts } from '@/hooks/usePaginatedBlogPosts';
 import { blogPostService } from '@/services/blogPostService';
@@ -11,6 +11,7 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import LoadingState from '@/components/ui/loading-state';
 import { BlogPost } from '@/types/blogPost';
 import { toast } from '@/hooks/use-toast';
+import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const BlogManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -31,6 +32,17 @@ const BlogManagement = () => {
     previousPage,
     refetch,
   } = usePaginatedBlogPosts(false); // Include drafts for admin
+
+  // State reset handler for sidebar navigation
+  const resetToDefaultState = useCallback(() => {
+    setShowAddForm(false);
+    setEditingPost(null);
+    setIsPublishing(false);
+    goToPage(1); // Reset to first page
+  }, [goToPage]);
+
+  // Handle admin state reset when clicking same menu item
+  useAdminStateReset({ onReset: resetToDefaultState });
 
   const handleAddPost = () => {
     setEditingPost(null);
