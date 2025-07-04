@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -88,6 +88,17 @@ const TestimonialsManager = () => {
   const handleDelete = async (id: string) => {
     await deleteTestimonial.mutateAsync(id);
   };
+
+  // Listen for reset event from navigation
+  useEffect(() => {
+    const handleReset = () => {
+      setIsDialogOpen(false);
+      resetForm();
+    };
+
+    window.addEventListener('resetTestimonialsManager', handleReset);
+    return () => window.removeEventListener('resetTestimonialsManager', handleReset);
+  }, []);
 
   if (isLoading) {
     return <TestimonialsLoadingState />;

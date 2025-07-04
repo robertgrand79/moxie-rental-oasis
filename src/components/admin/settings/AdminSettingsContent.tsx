@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SettingsSearch from './SettingsSearch';
 import SettingsCategoryGrid from './SettingsCategoryGrid';
 import SettingsContentArea from './SettingsContentArea';
@@ -68,6 +68,19 @@ const AdminSettingsContent = ({
     setSelectedSetting(settingKey);
     setDialogOpen(true);
   };
+
+  // Listen for reset event from navigation
+  useEffect(() => {
+    const handleReset = () => {
+      setSearchQuery('');
+      setActiveCategory('general');
+      setSelectedSetting(null);
+      setDialogOpen(false);
+    };
+
+    window.addEventListener('resetAdminSettings', handleReset);
+    return () => window.removeEventListener('resetAdminSettings', handleReset);
+  }, []);
 
   return (
     <SettingsInputHandlers

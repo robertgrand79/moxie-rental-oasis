@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,16 @@ import { useAIAnalytics } from '@/hooks/useAIAnalytics';
 
 const AIAnalyticsDashboard = () => {
   const { analytics, loading, refetch } = useAIAnalytics();
+
+  // Listen for reset event from navigation
+  useEffect(() => {
+    const handleReset = () => {
+      refetch();
+    };
+
+    window.addEventListener('resetAnalyticsDashboard', handleReset);
+    return () => window.removeEventListener('resetAnalyticsDashboard', handleReset);
+  }, [refetch]);
 
   if (loading) {
     return (

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLifestyleGalleryManager } from '@/hooks/useLifestyleGalleryManager';
 import { useLifestyleUrlParams } from '@/hooks/useLifestyleUrlParams';
 import LifestyleEditorLayout from './LifestyleEditorLayout';
@@ -21,6 +21,17 @@ const LifestyleManager = () => {
   } = useLifestyleGalleryManager();
 
   useLifestyleUrlParams(handleAddNew);
+
+  // Listen for reset event from navigation
+  useEffect(() => {
+    const handleReset = () => {
+      // Reset to default state
+      window.location.reload();
+    };
+
+    window.addEventListener('resetLifestyleManager', handleReset);
+    return () => window.removeEventListener('resetLifestyleManager', handleReset);
+  }, []);
 
   if (isLoading) {
     return (

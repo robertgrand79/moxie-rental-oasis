@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -23,6 +23,17 @@ const ImageMigrationTool = () => {
   } = useImageMigration();
 
   const migrationProgress = progress.total > 0 ? (progress.processed / progress.total) * 100 : 0;
+
+  // Listen for reset event from navigation
+  useEffect(() => {
+    const handleReset = () => {
+      // Reset to initial state if needed
+      // The migration tool itself doesn't need to reset much since it's stateless
+    };
+
+    window.addEventListener('resetImageOptimization', handleReset);
+    return () => window.removeEventListener('resetImageOptimization', handleReset);
+  }, []);
 
   return (
     <div className="space-y-6">

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { usePOIManager } from '@/hooks/usePOIManager';
 import { usePOIUrlParams } from '@/hooks/usePOIUrlParams';
 import POIEditorLayout from './POIEditorLayout';
@@ -20,6 +20,17 @@ const POIManager = () => {
   } = usePOIManager();
 
   usePOIUrlParams(handleAddNew);
+
+  // Listen for reset event from navigation
+  useEffect(() => {
+    const handleReset = () => {
+      // Reset to default state
+      window.location.reload();
+    };
+
+    window.addEventListener('resetPOIManager', handleReset);
+    return () => window.removeEventListener('resetPOIManager', handleReset);
+  }, []);
 
   if (isLoading) {
     return (

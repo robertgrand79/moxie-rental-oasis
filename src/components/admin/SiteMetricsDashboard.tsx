@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,6 +59,17 @@ const SiteMetricsDashboard = () => {
 
   const activeErrorCount = getActiveErrorCount();
   const criticalErrorCount = getCriticalErrorCount();
+
+  // Listen for reset event from navigation
+  useEffect(() => {
+    const handleReset = () => {
+      setIsErrorModalOpen(false);
+      refreshData();
+    };
+
+    window.addEventListener('resetSiteMetricsDashboard', handleReset);
+    return () => window.removeEventListener('resetSiteMetricsDashboard', handleReset);
+  }, [refreshData]);
 
   if (loading) {
     return <MetricsLoadingState />;

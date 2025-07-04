@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useEventsManager } from '@/hooks/useEventsManager';
 import { useEventsUrlParams } from '@/hooks/useEventsUrlParams';
 import EventsEditorLayout from './EventsEditorLayout';
@@ -20,6 +20,17 @@ const EventsManager = () => {
   } = useEventsManager();
 
   useEventsUrlParams(handleAddNew);
+
+  // Listen for reset event from navigation
+  useEffect(() => {
+    const handleReset = () => {
+      // Reset to default state - this will cause useEventsManager to refresh
+      window.location.reload();
+    };
+
+    window.addEventListener('resetEventsManager', handleReset);
+    return () => window.removeEventListener('resetEventsManager', handleReset);
+  }, []);
 
   if (isLoading) {
     return (
