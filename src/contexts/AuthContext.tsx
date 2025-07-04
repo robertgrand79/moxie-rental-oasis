@@ -192,6 +192,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('❌ Sign in error:', error);
     } else {
       console.log('✅ Sign in successful');
+      // Update last_login_at timestamp
+      try {
+        await supabase
+          .from('profiles')
+          .update({ last_login_at: new Date().toISOString() })
+          .eq('email', email);
+      } catch (loginUpdateError) {
+        console.warn('Failed to update last_login_at:', loginUpdateError);
+      }
     }
 
     return { error };

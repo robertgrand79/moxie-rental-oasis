@@ -99,11 +99,10 @@ export const useUserOperations = () => {
     }
   };
 
-  const deleteUser = async (userId: string) => {
+  const deactivateUser = async (userId: string) => {
     try {
       setLoading(true);
       
-      // For now, we'll just deactivate the user instead of deleting
       const { error } = await supabase
         .from('profiles')
         .update({ status: 'inactive' })
@@ -122,6 +121,36 @@ export const useUserOperations = () => {
       toast({
         title: 'Error',
         description: 'Failed to deactivate user',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteUser = async (userId: string) => {
+    try {
+      setLoading(true);
+      
+      // Use the edge function for actual deletion
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'User deleted successfully',
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete user',
         variant: 'destructive',
       });
       return false;
@@ -201,6 +230,7 @@ export const useUserOperations = () => {
     updateUserProfile,
     updateUserRole,
     deleteUser,
+    deactivateUser,
     inviteUser,
     bulkUpdateUserRoles,
     loading

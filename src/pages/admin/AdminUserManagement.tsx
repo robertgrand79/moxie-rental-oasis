@@ -24,6 +24,7 @@ import {
 import { useUserManagement } from '@/hooks/useUserManagement';
 import UserInviteModal from '@/components/admin/UserInviteModal';
 import UserProfileModal from '@/components/admin/UserProfileModal';
+import UserPermissionDiagnostics from '@/components/admin/UserPermissionDiagnostics';
 import { useAuth } from '@/contexts/AuthContext';
 
 const AdminUserManagement = () => {
@@ -40,6 +41,7 @@ const AdminUserManagement = () => {
     updateUserProfile,
     updateUserRole, 
     deleteUser, 
+    deactivateUser,
     inviteUser,
     searchUsers,
     bulkUpdateUserRoles
@@ -53,13 +55,24 @@ const AdminUserManagement = () => {
     setIsProfileModalOpen(true);
   };
 
+  const handleDeactivateUser = async (userId: string) => {
+    if (userId === currentUser?.id) {
+      alert('You cannot deactivate your own account');
+      return;
+    }
+    
+    if (confirm('Are you sure you want to deactivate this user? They will lose access but their data will be preserved.')) {
+      await deactivateUser(userId);
+    }
+  };
+
   const handleDeleteUser = async (userId: string) => {
     if (userId === currentUser?.id) {
       alert('You cannot delete your own account');
       return;
     }
     
-    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+    if (confirm('Are you sure you want to permanently delete this user? This action cannot be undone and will remove all their data.')) {
       await deleteUser(userId);
     }
   };
@@ -336,12 +349,19 @@ const AdminUserManagement = () => {
                             Toggle role
                           </DropdownMenuItem>
                           <DropdownMenuItem 
+                            onClick={() => handleDeactivateUser(user.id)}
+                            disabled={user.id === currentUser?.id}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Deactivate user
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
                             className="text-destructive"
                             onClick={() => handleDeleteUser(user.id)}
                             disabled={user.id === currentUser?.id}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete user
+                            Delete user permanently
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -352,6 +372,9 @@ const AdminUserManagement = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* User Permission Diagnostics */}
+        <UserPermissionDiagnostics />
       </div>
 
       <UserInviteModal

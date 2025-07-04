@@ -18,6 +18,7 @@ export const useUserManagement = () => {
     updateUserProfile,
     updateUserRole,
     deleteUser,
+    deactivateUser,
     inviteUser,
     bulkUpdateUserRoles
   } = useUserOperations();
@@ -36,6 +37,7 @@ export const useUserManagement = () => {
     updateUserProfile,
     updateUserRole,
     deleteUser,
+    deactivateUser,
     inviteUser,
     searchUsers,
     bulkUpdateUserRoles,
