@@ -420,9 +420,10 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("🚀 Sending emails via Resend...");
 
     const emailPromises = subscribers.map(async (subscriber, index) => {
-      console.log(`📧 Sending email ${index + 1}/${subscribers.length} to ${subscriber.email}`);
-      
-      const personalizedHtml = await createEmailTemplate(campaignId, subscriber.email);
+      try {
+        console.log(`📧 Sending email ${index + 1}/${subscribers.length} to ${subscriber.email}`);
+        
+        const personalizedHtml = await createEmailTemplate(campaignId, subscriber.email);
       const finalHtml = personalizedHtml.replace(
         "{{unsubscribe_url}}",
         `${Deno.env.get("SUPABASE_URL")}/functions/v1/unsubscribe-newsletter?email=${encodeURIComponent(subscriber.email)}`
