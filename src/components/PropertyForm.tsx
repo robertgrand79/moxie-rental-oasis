@@ -37,7 +37,9 @@ interface PropertyFormProps {
 const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSubmitting = false }: PropertyFormProps) => {
   const [photos, setPhotos] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>(initialData?.images || []);
-  const [featuredPhotos, setFeaturedPhotos] = useState<string[]>(initialData?.featured_photos || []);
+  const [featuredPhotos, setFeaturedPhotos] = useState<string[]>(
+    (initialData?.featured_photos || []).filter(url => !url.startsWith('blob:'))
+  );
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
   const { uploading } = usePhotoUpload();
 
