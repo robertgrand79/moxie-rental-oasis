@@ -23,7 +23,11 @@ const SiteHead = () => {
   const shouldLoadAnalytics = !isAdminPage || isMetricsPage;
   
   if (shouldLoadAnalytics) {
-    useGoogleAnalytics(settings.googleAnalyticsId || '');
+    // Only use regular GA loading for non-metrics pages
+    // Metrics page will use lazy loading for better performance
+    if (!isMetricsPage) {
+      useGoogleAnalytics(settings.googleAnalyticsId || '');
+    }
     
     useThirdPartyScripts(
       settings.googleTagManagerId || '',

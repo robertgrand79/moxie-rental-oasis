@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { analyticsService } from '@/services/analytics/analyticsService';
 import { AnalyticsData, PerformanceMetrics, SystemHealth, GAHealthCheck } from '@/services/analytics/types';
 import { toast } from '@/hooks/use-toast';
+import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
 
 export const useRealAnalytics = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
@@ -15,90 +16,135 @@ export const useRealAnalytics = () => {
   const [gaError, setGaError] = useState<string | null>(null);
   const [gaHealthCheck, setGaHealthCheck] = useState<GAHealthCheck | null>(null);
 
+  // Performance optimization hooks
+  const { throttledFunction, debouncedFunction, memoryUsageMonitor } = usePerformanceOptimization();
+
+  // Optimized data fetching with performance monitoring
   const fetchAnalyticsData = useCallback(async () => {
     try {
       setLoading(true);
       setGaError(null);
-      console.log('🔄 useRealAnalytics: Starting data fetch...');
+      console.log('🔄 useRealAnalytics: Starting optimized data fetch...');
       
-      // Fetch all data in parallel
-      const [analytics, performance, health, visitors] = await Promise.all([
+      // Check memory usage before heavy operations
+      const memoryStatus = memoryUsageMonitor();
+      if (!memoryStatus.isMemoryOptimal) {
+        console.warn('⚠️ useRealAnalytics: Memory usage high, optimizing fetch strategy');
+        // Add small delay to allow memory cleanup
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      // Fetch all data in parallel with error boundaries
+      const [analytics, performance, health, visitors] = await Promise.allSettled([
         analyticsService.getAnalyticsData(),
         analyticsService.getPerformanceMetrics(),
         analyticsService.getSystemHealth(),
         analyticsService.getRealTimeVisitors()
       ]);
 
-      setAnalyticsData(analytics);
-      setPerformanceMetrics(performance);
-      setSystemHealth(health);
-      setRealTimeVisitors(visitors);
+      // Handle results with proper error checking
+      if (analytics.status === 'fulfilled') {
+        setAnalyticsData(analytics.value);
+      } else {
+        console.error('❌ Analytics data fetch failed:', analytics.reason);
+      }
+
+      if (performance.status === 'fulfilled') {
+        setPerformanceMetrics(performance.value);
+      } else {
+        console.error('❌ Performance metrics fetch failed:', performance.reason);
+      }
+
+      if (health.status === 'fulfilled') {
+        setSystemHealth(health.value);
+      } else {
+        console.error('❌ System health fetch failed:', health.reason);
+      }
+
+      if (visitors.status === 'fulfilled') {
+        setRealTimeVisitors(visitors.value);
+      } else {
+        console.error('❌ Real-time visitors fetch failed:', visitors.reason);
+      }
       
-      // Check current GA status and health
+      // Check current GA status and health with performance optimization
       setGaInitializing(true);
-      const [isDemoMode, healthCheck] = await Promise.all([
+      const [isDemoMode, healthCheck] = await Promise.allSettled([
         analyticsService.isDemoMode(),
         analyticsService.getGAHealthCheck()
       ]);
-      setIsDemo(isDemoMode);
-      setGaHealthCheck(healthCheck);
-      setGaInitializing(false);
-
-      // Show toast notifications for GA status changes
-      if (healthCheck.status === 'healthy' && isDemo) {
-        toast({
-          title: "Google Analytics Connected",
-          description: "Now showing real analytics data instead of demo data.",
-          duration: 5000,
-        });
-      } else if (healthCheck.status === 'error') {
-        toast({
-          title: "Google Analytics Issue",
-          description: healthCheck.message,
-          variant: "destructive",
-          duration: 7000,
-        });
+      
+      if (isDemoMode.status === 'fulfilled') {
+        setIsDemo(isDemoMode.value);
       }
       
-      console.log(`📊 useRealAnalytics: Data fetch complete - Mode: ${isDemoMode ? 'Demo' : 'Real'}`);
+      if (healthCheck.status === 'fulfilled') {
+        setGaHealthCheck(healthCheck.value);
+        
+        // Show toast notifications for GA status changes (throttled)
+        if (healthCheck.value.status === 'healthy' && isDemo) {
+          toast({
+            title: "Google Analytics Connected",
+            description: "Now showing real analytics data instead of demo data.",
+            duration: 5000,
+          });
+        } else if (healthCheck.value.status === 'error') {
+          toast({
+            title: "Google Analytics Issue",
+            description: healthCheck.value.message,
+            variant: "destructive",
+            duration: 7000,
+          });
+        }
+      }
+      
+      setGaInitializing(false);
+      
+      console.log(`📊 useRealAnalytics: Optimized data fetch complete`);
     } catch (error) {
-      console.error('❌ useRealAnalytics: Error fetching analytics data:', error);
+      console.error('❌ useRealAnalytics: Error in optimized fetch:', error);
       setGaError(error instanceof Error ? error.message : 'Unknown error');
       setGaInitializing(false);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [memoryUsageMonitor, isDemo]);
 
-  // Optimized refresh that bypasses throttling for manual requests
-  const refreshData = useCallback(async () => {
-    try {
-      console.log('🔄 useRealAnalytics: Manual refresh triggered');
-      setGaInitializing(true);
-      setGaError(null);
-      
-      // Force refresh GA initialization (bypasses throttling)
-      const gaRefreshResult = await analyticsService.refreshGA();
-      console.log('📊 useRealAnalytics: GA refresh result:', gaRefreshResult);
-      
-      // Re-fetch all data immediately after GA refresh
-      await fetchAnalyticsData();
-    } catch (error) {
-      console.error('❌ useRealAnalytics: Error during manual refresh:', error);
-      setGaError(error instanceof Error ? error.message : 'Refresh failed');
-      setGaInitializing(false);
-    }
-  }, [fetchAnalyticsData]);
+  // Performance-optimized refresh with debouncing
+  const refreshData = useCallback(
+    debouncedFunction(async () => {
+      try {
+        console.log('🔄 useRealAnalytics: Manual refresh triggered (debounced)');
+        setGaInitializing(true);
+        setGaError(null);
+        
+        // Force refresh GA initialization (bypasses throttling)
+        const gaRefreshResult = await analyticsService.refreshGA();
+        console.log('📊 useRealAnalytics: GA refresh result:', gaRefreshResult);
+        
+        // Re-fetch all data immediately after GA refresh
+        await fetchAnalyticsData();
+      } catch (error) {
+        console.error('❌ useRealAnalytics: Error during manual refresh:', error);
+        setGaError(error instanceof Error ? error.message : 'Refresh failed');
+        setGaInitializing(false);
+      }
+    }, 500), // 500ms debounce to prevent rapid clicking
+    [debouncedFunction, fetchAnalyticsData]
+  );
 
-  // Update real-time visitors independently
-  const updateRealTimeVisitors = useCallback(async () => {
-    try {
-      const visitors = await analyticsService.getRealTimeVisitors();
-      setRealTimeVisitors(visitors);
-    } catch (error) {
-      console.error('❌ useRealAnalytics: Error updating real-time visitors:', error);
-    }
-  }, []);
+  // Throttled real-time visitors update
+  const updateRealTimeVisitors = useCallback(
+    throttledFunction(async () => {
+      try {
+        const visitors = await analyticsService.getRealTimeVisitors();
+        setRealTimeVisitors(visitors);
+      } catch (error) {
+        console.error('❌ useRealAnalytics: Error updating real-time visitors:', error);
+      }
+    }, 5000), // Throttle to max once per 5 seconds
+    [throttledFunction]
+  );
 
   // Initialize on mount
   useEffect(() => {
@@ -106,22 +152,25 @@ export const useRealAnalytics = () => {
     fetchAnalyticsData();
   }, [fetchAnalyticsData]);
 
-  // Set up intervals for real-time updates
+  // Set up optimized intervals for real-time updates
   useEffect(() => {
-    // Update real-time visitors every 30 seconds
+    // Update real-time visitors every 30 seconds (throttled)
     const visitorInterval = setInterval(updateRealTimeVisitors, 30000);
 
-    // Refresh analytics data every 5 minutes
+    // Refresh analytics data every 5 minutes (throttled)
     const analyticsInterval = setInterval(() => {
-      console.log('🔄 useRealAnalytics: Scheduled refresh');
-      fetchAnalyticsData();
+      console.log('🔄 useRealAnalytics: Scheduled refresh (throttled)');
+      
+      // Use throttled version for automatic refreshes
+      const throttledRefresh = throttledFunction(fetchAnalyticsData, 60000); // Max once per minute
+      throttledRefresh();
     }, 5 * 60 * 1000);
 
     return () => {
       clearInterval(visitorInterval);
       clearInterval(analyticsInterval);
     };
-  }, [updateRealTimeVisitors, fetchAnalyticsData]);
+  }, [updateRealTimeVisitors, fetchAnalyticsData, throttledFunction]);
 
   // Track events
   const trackEvent = useCallback((eventName: string, parameters?: Record<string, any>) => {

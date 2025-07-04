@@ -95,15 +95,24 @@ export class GoogleAnalyticsService {
     }
   }
 
-  // Simplified GA detection with cleaner error handling
-  private async waitForGtagWithEnhancedDetection(maxRetries = 20, initialDelay = 200): Promise<{ success: boolean; error?: string }> {
-    this.debugLog('🔍 Starting simplified GA script detection...', { maxRetries, gaId: this.gaId });
+  // Optimized GA detection with performance improvements
+  private async waitForGtagWithEnhancedDetection(maxRetries = 15, initialDelay = 150): Promise<{ success: boolean; error?: string }> {
+    this.debugLog('🔍 Starting optimized GA script detection...', { maxRetries, gaId: this.gaId });
     
     // Quick check if gtag is already available
     if (this.isGtagAvailable()) {
       this.debugLog('⚡ gtag already available');
       return { success: true };
     }
+
+    // Use requestIdleCallback for non-blocking detection when available
+    const scheduleCheck = (callback: () => void) => {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(callback, { timeout: 1000 });
+      } else {
+        setTimeout(callback, 0);
+      }
+    };
 
     // Set up event listener for script load notification
     const scriptLoadedPromise = new Promise<{ success: boolean; error?: string }>((resolve) => {
@@ -117,33 +126,40 @@ export class GoogleAnalyticsService {
       window.addEventListener('ga-script-loaded', this.scriptLoadListener);
     });
 
-    // Simplified polling with progressive delays
-    const pollingPromise = new Promise<{ success: boolean; error?: string }>(async (resolve) => {
-      for (let i = 0; i < maxRetries; i++) {
+    // Optimized polling with idle time scheduling
+    const pollingPromise = new Promise<{ success: boolean; error?: string }>((resolve) => {
+      let attemptCount = 0;
+      
+      const performCheck = () => {
+        if (attemptCount >= maxRetries) {
+          resolve({ success: false, error: 'GA script detection timeout after optimized polling' });
+          return;
+        }
+
         if (this.isGtagAvailable()) {
-          this.debugLog(`✅ gtag available on attempt ${i + 1}`);
+          this.debugLog(`✅ gtag available on optimized attempt ${attemptCount + 1}`);
           resolve({ success: true });
           return;
         }
 
-        // Check if script element exists but gtag isn't ready
-        const scriptExists = !!document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${this.gaId}"]`);
-        if (scriptExists && i > 5) {
-          this.debugLog(`📊 Script exists but gtag not ready (attempt ${i + 1})`);
-        }
+        attemptCount++;
+        
+        // Use progressive delays but cap them for responsiveness
+        const delay = Math.min(initialDelay * Math.pow(1.15, attemptCount), 800);
+        
+        scheduleCheck(() => {
+          setTimeout(performCheck, delay);
+        });
+      };
 
-        const delay = Math.min(initialDelay * Math.pow(1.1, i), 1000);
-        await this.sleep(delay);
-      }
-      
-      resolve({ success: false, error: 'GA script detection timeout' });
+      scheduleCheck(performCheck);
     });
 
-    // Overall timeout
+    // Reduced overall timeout for better performance
     const timeoutPromise = new Promise<{ success: boolean; error?: string }>((resolve) => {
       setTimeout(() => {
-        resolve({ success: false, error: 'GA initialization timeout (10 seconds)' });
-      }, 10000);
+        resolve({ success: false, error: 'GA initialization timeout (8 seconds)' });
+      }, 8000);
     });
 
     try {
