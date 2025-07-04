@@ -155,15 +155,23 @@ const EmailTestingCard = () => {
             <AlertDescription className={lastTestResult.success ? "text-green-800" : "text-red-800"}>
               {lastTestResult.success ? (
                 <div>
-                  <strong>✅ Test email sent successfully!</strong>
-                  <br />
-                  <span className="text-sm">
-                    Sent to: {lastTestResult.details?.to}
-                    <br />
-                    From: {lastTestResult.details?.fromName} &lt;{lastTestResult.details?.from}&gt;
-                    <br />
-                    Time: {new Date(lastTestResult.details?.timestamp).toLocaleString()}
-                  </span>
+          <strong>✅ Test email sent successfully!</strong>
+          <br />
+          <span className="text-sm">
+            Sent to: {lastTestResult.details?.to}
+            <br />
+            From: {lastTestResult.details?.fromName} &lt;{lastTestResult.details?.from}&gt;
+            <br />
+            Method: {lastTestResult.details?.method || 'resend_api'}
+            <br />
+            Time: {new Date(lastTestResult.details?.timestamp).toLocaleString()}
+            {lastTestResult.details?.note && (
+              <>
+                <br />
+                Note: {lastTestResult.details.note}
+              </>
+            )}
+          </span>
                 </div>
               ) : (
                 <div>
@@ -178,18 +186,18 @@ const EmailTestingCard = () => {
 
         <Alert className="border-blue-200 bg-blue-50">
           <AlertDescription className="text-blue-800">
-            <strong>💡 Testing Checklist:</strong>
+            <strong>📧 Email Configuration Options:</strong>
             <br />
             <span className="text-sm">
-              ✅ Resend API key configured
+              <strong>Option 1 (Recommended):</strong> Configure RESEND_API_KEY in Supabase secrets for full email functionality
               <br />
-              📧 Configure sender email in settings above
+              <strong>Option 2:</strong> Use your existing Resend-Supabase integration (basic functionality)
               <br />
-              🔍 Verify sender domain in Resend dashboard
+              ✅ Verify your sender email address in Resend dashboard
               <br />
-              🧪 Send test email to confirm setup
+              🔍 Ensure domain is verified for better deliverability
               <br />
-              📬 Test newsletter functionality
+              🧪 Test with both configurations to ensure reliability
             </span>
           </AlertDescription>
         </Alert>

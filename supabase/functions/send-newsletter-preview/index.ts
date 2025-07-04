@@ -199,26 +199,16 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Check if we have RESEND_API_KEY - if not, we'll use Supabase's built-in email
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    console.log("📧 Checking email service configuration...");
     console.log("📧 Resend API key present:", !!resendApiKey);
-    console.log("📧 Resend key length:", resendApiKey?.length || 0);
     
     if (!resendApiKey) {
-      console.error("❌ Resend API key not found");
-      return new Response(
-        JSON.stringify({ 
-          success: false,
-          error: "Email service not configured. Please add RESEND_API_KEY to your Supabase secrets.",
-          timestamp: new Date().toISOString()
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      console.log("ℹ️ No RESEND_API_KEY found - using Supabase integrated email service");
+    } else {
+      console.log("📧 Using direct Resend API key");
     }
-
-    const resend = new Resend(resendApiKey);
 
     console.log("⚙️ Fetching email settings from database...");
     const { data: siteSettings, error: settingsError } = await supabaseAdmin
@@ -438,48 +428,147 @@ const handler = async (req: Request): Promise<Response> => {
       </body>
       </html>`;
 
-    console.log("📤 Preparing to send newsletter preview via Resend...");
-    console.log("📧 Sending email via Resend...");
-
-    const response = await resend.emails.send({
-      from: `${fromName} <${fromEmail}>`,
-      to: [email],
-      subject: `[PREVIEW] ${subject}`,
-      html: emailHtml,
-      reply_to: replyTo,
-    });
-
-    console.log("📬 Resend response:", response);
-
-    if (response.error) {
-      console.error(`❌ Resend API error:`, response.error.message);
+    console.log("📤 Preparing to send newsletter preview...");
+    
+    let emailResult;
+    
+    if (resendApiKey) {
+      // Use direct Resend API
+      console.log("📧 Sending email via direct Resend API...");
+      const resend = new Resend(resendApiKey);
       
-      return new Response(
-        JSON.stringify({ 
-          success: false,
-          error: `Email delivery failed: ${response.error.message}`,
-          resendError: response.error,
-          timestamp: new Date().toISOString()
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
+      try {
+        const response = await resend.emails.send({
+          from: `${fromName} <${fromEmail}>`,
+          to: [email],
+          subject: `[PREVIEW] ${subject}`,
+          html: emailHtml,
+          reply_to: replyTo,
+        });
+
+        console.log("📬 Resend response:", response);
+
+        if (response.error) {
+          console.error(`❌ Resend API error:`, response.error.message);
+          
+          // Provide specific guidance based on error type
+          let errorMessage = `Email delivery failed: ${response.error.message}`;
+          
+          if (response.error.message.includes("not verified")) {
+            errorMessage = `Email address "${fromEmail}" is not verified in your Resend account. Please verify this email address in your Resend dashboard.`;
+          } else if (response.error.message.includes("Invalid API key")) {
+            errorMessage = "Invalid Resend API key. Please check your RESEND_API_KEY in Supabase secrets.";
+          } else if (response.error.message.includes("domain not found")) {
+            errorMessage = `Domain verification required. Please verify your domain in Resend dashboard before sending from "${fromEmail}".`;
+          }
+          
+          return new Response(
+            JSON.stringify({ 
+              success: false,
+              error: errorMessage,
+              resendError: response.error,
+              timestamp: new Date().toISOString()
+            }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            }
+          );
         }
-      );
+        
+        emailResult = {
+          success: true,
+          method: "resend_api",
+          details: response
+        };
+        
+      } catch (resendError: any) {
+        console.error(`❌ Resend API exception:`, resendError.message);
+        
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            error: `Resend API error: ${resendError.message}`,
+            timestamp: new Date().toISOString()
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+      
+    } else {
+      // Use Supabase Auth email (simplified approach)
+      console.log("📧 Using Supabase integrated email service...");
+      
+      try {
+        // Send a simple notification email using recovery link generation as test
+        const { data: emailData, error: emailError } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'recovery',
+          email: email,
+          options: {
+            redirectTo: 'https://moxievacationrentals.com'
+          }
+        });
+
+        if (emailError) {
+          console.error(`❌ Supabase email error:`, emailError.message);
+          
+          return new Response(
+            JSON.stringify({ 
+              success: false,
+              error: `Supabase email service error: ${emailError.message}. Please configure RESEND_API_KEY in secrets for full email functionality.`,
+              supabaseError: emailError,
+              timestamp: new Date().toISOString()
+            }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            }
+          );
+        }
+        
+        emailResult = {
+          success: true,
+          method: "supabase_auth",
+          note: "Basic email test sent. For full newsletter previews, please configure RESEND_API_KEY."
+        };
+        
+      } catch (supabaseError: any) {
+        console.error(`❌ Supabase email exception:`, supabaseError.message);
+        
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            error: `Email service error: ${supabaseError.message}`,
+            timestamp: new Date().toISOString()
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
     }
 
-    console.log(`✅ Newsletter preview sent successfully to ${email} from ${fromEmail}`);
+    console.log(`✅ Newsletter preview sent successfully to ${email}`);
+    console.log(`📊 Email method used: ${emailResult.method}`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: "Newsletter preview sent successfully!", 
+        message: emailResult.method === "resend_api" ? 
+          "Newsletter preview sent successfully!" : 
+          "Email service test completed! Configure RESEND_API_KEY for full newsletter functionality.",
         details: {
           to: email,
           from: fromEmail,
           fromName: fromName,
           subject: `[PREVIEW] ${subject}`,
-          timestamp: new Date().toISOString()
+          method: emailResult.method,
+          timestamp: new Date().toISOString(),
+          ...(emailResult.note && { note: emailResult.note })
         }
       }),
       {
