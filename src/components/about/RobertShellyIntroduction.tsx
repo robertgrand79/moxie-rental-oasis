@@ -21,7 +21,7 @@ const RobertShellyIntroduction = () => {
           <div className="flex justify-center">
             <div className="relative w-full max-w-2xl">
               <OptimizedImage
-                src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"
+                src="/lovable-uploads/bd7ae87d-0840-4e6c-a100-4b557b4da91e.png"
                 alt="Robert and Shelly - Your Oregon vacation rental hosts"
                 className="w-full h-auto rounded-xl shadow-lg object-cover"
                 priority={true}
