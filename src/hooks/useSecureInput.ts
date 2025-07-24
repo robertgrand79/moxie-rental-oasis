@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
-import { validateInput } from '@/utils/security';
+import { validateInput, sanitizeFormInput } from '@/utils/security';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ValidationRules {
   required?: boolean;
@@ -25,10 +26,12 @@ interface UseSecureInputReturn {
 
 export const useSecureInput = (
   initialValue: string = '',
-  rules: ValidationRules = {}
+  rules: ValidationRules = {},
+  fieldName?: string
 ): UseSecureInputReturn => {
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const validateValue = useCallback((val: string): string | null => {
     if (rules.required && !val.trim()) {
@@ -67,10 +70,15 @@ export const useSecureInput = (
   }, [rules]);
 
   const handleSetValue = useCallback((newValue: string) => {
-    setValue(newValue);
-    const validationError = validateValue(newValue);
+    // Sanitize input before setting value
+    const sanitizedValue = fieldName ? 
+      sanitizeFormInput(newValue, fieldName, user?.id) : 
+      newValue;
+    
+    setValue(sanitizedValue);
+    const validationError = validateValue(sanitizedValue);
     setError(validationError);
-  }, [validateValue]);
+  }, [validateValue, fieldName, user?.id]);
 
   const validate = useCallback((): boolean => {
     const validationError = validateValue(value);

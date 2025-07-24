@@ -1974,6 +1974,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      can_update_user_role: {
+        Args: { target_user_id: string; old_role: string; new_role: string }
+        Returns: boolean
+      }
       check_rate_limit: {
         Args: {
           operation_type: string
