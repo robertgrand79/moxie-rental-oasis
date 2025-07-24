@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, Calendar, User, Tag } from 'lucide-react';
+import SecureContentRenderer from '@/components/SecureContentRenderer';
 
 interface BlogPostVisualPreviewProps {
   title: string;
@@ -94,11 +95,9 @@ const BlogPostVisualPreview = ({
 
               {/* Article Body */}
               <div className="prose prose-lg max-w-none">
-                <div 
+                <SecureContentRenderer
+                  content={content || '<p style="color: #666; font-style: italic;">Start writing your blog post content...</p>'}
                   className="text-gray-800 leading-relaxed"
-                  dangerouslySetInnerHTML={{ 
-                    __html: content || '<p style="color: #666; font-style: italic;">Start writing your blog post content...</p>' 
-                  }}
                 />
               </div>
 

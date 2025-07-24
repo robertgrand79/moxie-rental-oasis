@@ -1,5 +1,6 @@
 
 import React from 'react';
+import SecureContentRenderer from '@/components/SecureContentRenderer';
 
 interface ImageCreditProps {
   credit: string;
@@ -8,16 +9,12 @@ interface ImageCreditProps {
 
 const ImageCredit = ({ credit, className = '' }: ImageCreditProps) => {
   if (!credit) return null;
-
+  
   return (
-    <div 
+    <SecureContentRenderer
+      content={credit}
       className={`text-xs text-muted-foreground mt-2 ${className}`}
-      dangerouslySetInnerHTML={{ __html: credit }}
-      style={{
-        fontSize: '0.75rem',
-        lineHeight: '1rem',
-        opacity: 0.7
-      }}
+      maxLength={500}
     />
   );
 };

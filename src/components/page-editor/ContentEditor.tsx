@@ -8,6 +8,7 @@ import ReactQuillEditor from '@/components/ReactQuillEditor';
 import { PageBuilder } from '@/components/page-builder/PageBuilder';
 import { detectContentType, shouldUseRichTextEditor, shouldUseVisualBuilder, ContentType } from '@/utils/contentTypeDetection';
 import { convertHTMLToCraftJS, convertCraftJSToHTML } from '@/utils/htmlToCraftJS';
+import SecureContentRenderer from '@/components/SecureContentRenderer';
 
 interface ContentEditorProps {
   content: string;
@@ -105,7 +106,7 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
         </div>
       </div>
       <div className="prose max-w-none">
-        <div dangerouslySetInnerHTML={{ __html: getPreviewContent() }} />
+        <SecureContentRenderer content={getPreviewContent()} className="prose max-w-none" />
       </div>
     </div>
   );

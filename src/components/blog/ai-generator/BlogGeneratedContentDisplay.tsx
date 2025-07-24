@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, X } from 'lucide-react';
+import SecureContentRenderer from '@/components/SecureContentRenderer';
 
 interface BlogGeneratedContentDisplayProps {
   generatedContent: string;
@@ -43,9 +44,10 @@ const BlogGeneratedContentDisplay = ({
       <CardContent className="space-y-4">
         <div className="bg-gray-50 p-4 rounded-lg">
           {selectedField === 'content' ? (
-            <div 
+            <SecureContentRenderer
+              content={generatedContent}
               className="prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: generatedContent }}
+              maxLength={50000}
             />
           ) : (
             <p className="text-sm whitespace-pre-wrap">{generatedContent}</p>
