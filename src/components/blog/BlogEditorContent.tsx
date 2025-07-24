@@ -8,6 +8,7 @@ import BlogAllFieldsGenerator from './ai-generator/BlogAllFieldsGenerator';
 import { ensureHTMLParagraphs } from '@/utils/contentFormatting';
 import { useBlogAIGeneration } from './ai-generator/useBlogAIGeneration';
 import { ExtendedBlogFormData } from '@/hooks/useBlogForm';
+import SecureContentRenderer from '@/components/SecureContentRenderer';
 
 interface BlogEditorContentProps {
   viewMode: 'editor' | 'preview' | 'ai';
@@ -122,16 +123,17 @@ const BlogEditorContent = ({
                 className="w-full h-64 object-cover rounded-lg"
               />
               {watchedValues.image_credit && (
-                <div 
+                <SecureContentRenderer
+                  content={watchedValues.image_credit || ''}
                   className="text-xs text-muted-foreground mt-2"
-                  dangerouslySetInnerHTML={{ __html: watchedValues.image_credit }}
+                  maxLength={500}
                 />
               )}
             </div>
           )}
-          <div 
+          <SecureContentRenderer
+            content={content || '<p>No content to preview yet...</p>'}
             className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground prose-code:text-foreground"
-            dangerouslySetInnerHTML={{ __html: content || '<p>No content to preview yet...</p>' }}
           />
         </div>
       )}

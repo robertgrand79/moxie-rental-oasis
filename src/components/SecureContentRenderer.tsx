@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { sanitizeHtml } from '@/utils/security';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SecureContentRendererProps {
   content: string;
@@ -14,14 +15,16 @@ const SecureContentRenderer: React.FC<SecureContentRendererProps> = ({
   className = '',
   maxLength = 10000
 }) => {
+  const { user } = useAuth();
+
   // Validate content length
   if (content.length > maxLength) {
     console.warn('Content exceeds maximum length, truncating...');
     content = content.substring(0, maxLength) + '...';
   }
 
-  // Sanitize the content
-  const sanitizedContent = sanitizeHtml(content);
+  // Sanitize the content with user context for logging
+  const sanitizedContent = sanitizeHtml(content, user?.id);
 
   return (
     <div 

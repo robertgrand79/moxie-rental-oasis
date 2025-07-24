@@ -1,8 +1,26 @@
 
 import DOMPurify from 'dompurify';
+import { logXSSAttempt, logInvalidInput } from './securityLogger';
 
-// Content Security and Sanitization
-export const sanitizeHtml = (html: string): string => {
+// Enhanced Content Security and Sanitization
+export const sanitizeHtml = (html: string, userId?: string): string => {
+  // Check for potential XSS attempts
+  const dangerousPatterns = [
+    /<script/i,
+    /javascript:/i,
+    /on\w+\s*=/i,
+    /<iframe/i,
+    /<object/i,
+    /<embed/i,
+    /eval\(/i,
+    /expression\(/i
+  ];
+
+  const hasDangerousContent = dangerousPatterns.some(pattern => pattern.test(html));
+  if (hasDangerousContent) {
+    logXSSAttempt(html, userId);
+  }
+
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'img', 'blockquote'],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target'],
@@ -22,7 +40,7 @@ export const isValidUrl = (url: string): boolean => {
   }
 };
 
-// Input Validation
+// Enhanced Input Validation and Sanitization
 export const validateInput = {
   email: (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -41,11 +59,61 @@ export const validateInput = {
   phoneNumber: (phone: string): boolean => {
     const phoneRegex = /^\+?[\d\s\-\(\)]{10,20}$/;
     return phoneRegex.test(phone);
+  },
+
+  // New validation methods
+  name: (name: string): boolean => {
+    const nameRegex = /^[a-zA-Z\s\-']{1,100}$/;
+    return nameRegex.test(name) && name.length <= 100;
+  },
+
+  message: (message: string): boolean => {
+    // Check for potential XSS
+    const dangerousPatterns = [
+      /<script/i,
+      /javascript:/i,
+      /on\w+\s*=/i
+    ];
+    
+    return !dangerousPatterns.some(pattern => pattern.test(message)) && 
+           message.length <= 5000 && 
+           message.trim().length >= 10;
   }
 };
 
+// Safe input sanitization for forms
+export const sanitizeFormInput = (input: string, field: string, userId?: string): string => {
+  // Remove potential XSS
+  let sanitized = input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  sanitized = sanitized.replace(/javascript:/gi, '');
+  sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+  
+  // Log suspicious input
+  if (input !== sanitized) {
+    logInvalidInput(field, input, userId);
+  }
+  
+  return sanitized.trim();
+};
+
 // Content Sanitization for Rich Text
-export const sanitizeRichTextContent = (content: string): string => {
+export const sanitizeRichTextContent = (content: string, userId?: string): string => {
+  // Enhanced XSS detection for rich text
+  const dangerousPatterns = [
+    /<script/i,
+    /javascript:/i,
+    /on\w+\s*=/i,
+    /<iframe/i,
+    /<object/i,
+    /<embed/i,
+    /data:text\/html/i
+  ];
+
+  const hasDangerousContent = dangerousPatterns.some(pattern => pattern.test(content));
+  if (hasDangerousContent) {
+    logXSSAttempt(content, userId);
+  }
+
   return DOMPurify.sanitize(content, {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'blockquote'],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'target'],

@@ -8,6 +8,7 @@ import { RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDefaultPages } from '@/data/defaultPages';
 import { toast } from '@/hooks/use-toast';
+import SecureContentRenderer from '@/components/SecureContentRenderer';
 
 const DynamicFAQ = () => {
   const { user } = useAuth();
@@ -109,9 +110,9 @@ const DynamicFAQ = () => {
             <p className="text-lg text-muted-foreground mb-8">{faqPage.meta_description}</p>
           )}
           
-          <div 
+          <SecureContentRenderer
+            content={faqPage.content || ''}
             className="prose max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-table:border-collapse prose-th:border prose-th:border-gray-300 prose-th:px-4 prose-th:py-2 prose-td:border prose-td:border-gray-300 prose-td:px-4 prose-td:py-2"
-            dangerouslySetInnerHTML={{ __html: faqPage.content || '' }}
           />
 
           <div className="mt-12 pt-8 border-t border-border">

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { validateInput, sanitizeFormInput } from '@/utils/security';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -29,11 +30,54 @@ const ContactForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.name || !formData.email || !formData.message) {
+    // Enhanced validation and sanitization
+    const sanitizedName = sanitizeFormInput(formData.name, 'name');
+    const sanitizedEmail = sanitizeFormInput(formData.email, 'email');
+    const sanitizedMessage = sanitizeFormInput(formData.message, 'message');
+    const sanitizedPhone = sanitizeFormInput(formData.phone, 'phone');
+    const sanitizedSubject = sanitizeFormInput(formData.subject, 'subject');
+
+    // Validate inputs
+    if (!sanitizedName || !sanitizedEmail || !sanitizedMessage) {
       toast({
         title: 'Missing Information',
         description: 'Please fill in all required fields.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!validateInput.email(sanitizedEmail)) {
+      toast({
+        title: 'Invalid Email',
+        description: 'Please enter a valid email address.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!validateInput.name(sanitizedName)) {
+      toast({
+        title: 'Invalid Name',
+        description: 'Name should contain only letters, spaces, hyphens, and apostrophes.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!validateInput.message(sanitizedMessage)) {
+      toast({
+        title: 'Invalid Message',
+        description: 'Message should be at least 10 characters and not contain harmful content.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (sanitizedPhone && !validateInput.phoneNumber(sanitizedPhone)) {
+      toast({
+        title: 'Invalid Phone Number',
+        description: 'Please enter a valid phone number.',
         variant: 'destructive'
       });
       return;
@@ -44,10 +88,10 @@ const ContactForm = () => {
     try {
       const { error } = await supabase.functions.invoke('send-contact-email', {
         body: {
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim() || undefined,
-          message: `Subject: ${formData.subject || 'General Inquiry'}\n\n${formData.message.trim()}`
+          name: sanitizedName,
+          email: sanitizedEmail,
+          phone: sanitizedPhone || undefined,
+          message: `Subject: ${sanitizedSubject || 'General Inquiry'}\n\n${sanitizedMessage}`
         }
       });
 

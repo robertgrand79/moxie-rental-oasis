@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import SimpleOptimizedImage from '@/components/ui/simple-optimized-image';
 import BlogPostFooter from '@/components/blog/BlogPostFooter';
+import SecureContentRenderer from '@/components/SecureContentRenderer';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -145,9 +146,10 @@ const BlogPost = () => {
             />
             {/* Image Credit */}
             {post.image_credit && (
-              <div 
+              <SecureContentRenderer
+                content={post.image_credit}
                 className="text-xs text-muted-foreground mt-2 px-2"
-                dangerouslySetInnerHTML={{ __html: post.image_credit }}
+                maxLength={500}
               />
             )}
           </div>
@@ -155,9 +157,9 @@ const BlogPost = () => {
 
         {/* Article Content */}
         <div className="bg-card rounded-lg p-8 shadow-sm border border-border">
-          <div 
+          <SecureContentRenderer
+            content={post.content}
             className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground prose-code:text-foreground"
-            dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </div>
 

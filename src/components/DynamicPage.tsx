@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import SecureContentRenderer from '@/components/SecureContentRenderer';
 
 interface PageData {
   id: string;
@@ -96,9 +97,9 @@ const DynamicPage = () => {
           <h1 className="text-4xl font-bold text-foreground mb-8">
             {page.title}
           </h1>
-          <div 
+          <SecureContentRenderer
+            content={page.content || ''}
             className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-blockquote:text-foreground prose-code:text-foreground"
-            dangerouslySetInnerHTML={{ __html: page.content || '' }}
           />
         </div>
       </div>
