@@ -116,16 +116,29 @@ export const getOptimizedImageUrl = (
 ): string => {
   if (!baseUrl) return baseUrl;
   
-  const { width, height, quality = 80, format = 'webp' } = options;
-  const url = new URL(baseUrl);
-  
-  // Add transformation parameters for Supabase storage
-  if (width) url.searchParams.set('width', width.toString());
-  if (height) url.searchParams.set('height', height.toString());
-  url.searchParams.set('quality', quality.toString());
-  url.searchParams.set('format', format);
-  
-  return url.toString();
+  // Check if the URL is relative or not a valid URL for optimization
+  try {
+    const url = new URL(baseUrl);
+    
+    // Only apply transformations to Supabase storage URLs
+    if (!url.hostname.includes('supabase')) {
+      return baseUrl;
+    }
+    
+    const { width, height, quality = 80, format = 'webp' } = options;
+    
+    // Add transformation parameters for Supabase storage
+    if (width) url.searchParams.set('width', width.toString());
+    if (height) url.searchParams.set('height', height.toString());
+    url.searchParams.set('quality', quality.toString());
+    url.searchParams.set('format', format);
+    
+    return url.toString();
+  } catch (error) {
+    // If URL construction fails (e.g., relative path), return the original URL
+    console.warn('⚠️ Could not optimize image URL, using original:', baseUrl);
+    return baseUrl;
+  }
 };
 
 // Preload critical images
