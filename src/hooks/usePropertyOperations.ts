@@ -3,11 +3,11 @@ import { Property } from '@/types/property';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { usePhotoUpload } from '@/hooks/usePhotoUpload';
+import { useOptimizedPhotoUpload } from '@/hooks/useOptimizedPhotoUpload';
 
 export const usePropertyOperations = () => {
   const { user } = useAuth();
-  const { deletePhoto, uploadPhotos } = usePhotoUpload();
+  const { deletePhoto, uploadOptimizedPhotos } = useOptimizedPhotoUpload();
 
   const addProperty = async (propertyData: any): Promise<Property | null> => {
     console.log('🏠 [ADD] Starting property creation...', { user: user?.id, hasData: !!propertyData });
@@ -31,7 +31,7 @@ export const usePropertyOperations = () => {
         const tempPropertyId = `temp-${Date.now()}`;
         
         try {
-          uploadedImages = await uploadPhotos(propertyData.photos, tempPropertyId);
+          uploadedImages = await uploadOptimizedPhotos(propertyData.photos, tempPropertyId);
           console.log('✅ [ADD] Photos uploaded successfully:', uploadedImages.length);
         } catch (uploadError) {
           console.warn('⚠️ [ADD] Photo upload failed, proceeding without images:', uploadError);
@@ -120,7 +120,7 @@ export const usePropertyOperations = () => {
         console.log('📸 [EDIT] Uploading new photos...', propertyData.photos.length);
         
         try {
-          uploadedImages = await uploadPhotos(propertyData.photos, propertyId);
+          uploadedImages = await uploadOptimizedPhotos(propertyData.photos, propertyId);
           console.log('✅ [EDIT] New photos uploaded successfully:', uploadedImages.length);
         } catch (uploadError) {
           console.error('❌ [EDIT] Photo upload failed:', uploadError);

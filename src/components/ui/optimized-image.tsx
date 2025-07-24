@@ -1,76 +1,44 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { Images, Loader2 } from 'lucide-react';
+import { getOptimizedImageUrl, supportsWebP } from '@/utils/imageOptimization';
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
-  responsiveSizes?: {
-    thumbnail?: string;
-    medium?: string;
-    large?: string;
-  };
+  className?: string;
+  fallbackIcon?: boolean;
+  priority?: boolean;
+  sizes?: string;
+  quality?: number;
   width?: number;
   height?: number;
-  priority?: boolean;
-  quality?: number;
-  className?: string;
-  fallback?: string;
-  showProgressiveLoading?: boolean;
-  aspectRatio?: 'square' | '16:9' | '4:3' | 'auto';
 }
 
 const OptimizedImage = ({ 
   src, 
   alt, 
-  responsiveSizes,
-  width, 
-  height, 
-  priority = false, 
-  quality = 80,
   className,
-  fallback,
-  showProgressiveLoading = true,
-  aspectRatio = 'auto',
+  fallbackIcon = true,
+  priority = false,
+  sizes,
+  quality = 80,
+  width,
+  height,
   ...props 
 }: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(priority);
-  const [blurDataUrl, setBlurDataUrl] = useState<string>('');
+  const [webpSupported, setWebpSupported] = useState<boolean | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Generate blur placeholder
+  // Check WebP support
   useEffect(() => {
-    if (!showProgressiveLoading) return;
-    
-    const generateBlurPlaceholder = async () => {
-      try {
-        // Create a tiny canvas for blur effect
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 10;
-        canvas.height = 10;
-        
-        if (ctx) {
-          // Create a simple gradient as placeholder
-          const gradient = ctx.createLinearGradient(0, 0, 10, 10);
-          gradient.addColorStop(0, '#f3f4f6');
-          gradient.addColorStop(1, '#e5e7eb');
-          ctx.fillStyle = gradient;
-          ctx.fillRect(0, 0, 10, 10);
-          
-          setBlurDataUrl(canvas.toDataURL());
-        }
-      } catch (error) {
-        console.log('Could not generate blur placeholder:', error);
-      }
-    };
+    supportsWebP().then(setWebpSupported);
+  }, []);
 
-    generateBlurPlaceholder();
-  }, [showProgressiveLoading]);
-
-  // Intersection Observer for lazy loading
+  // Intersection Observer for lazy loading (unless priority)
   useEffect(() => {
     if (priority || !imgRef.current) return;
 
@@ -81,132 +49,108 @@ const OptimizedImage = ({
           observer.disconnect();
         }
       },
-      { rootMargin: '50px' }
+      { rootMargin: '100px' } // Start loading 100px before entering viewport
     );
 
     observer.observe(imgRef.current);
     return () => observer.disconnect();
   }, [priority]);
 
-  // Generate responsive sources
-  const generateSrcSet = () => {
-    if (!responsiveSizes) return undefined;
-
-    const sources = [];
-    if (responsiveSizes.thumbnail) sources.push(`${responsiveSizes.thumbnail} 300w`);
-    if (responsiveSizes.medium) sources.push(`${responsiveSizes.medium} 768w`);
-    if (responsiveSizes.large) sources.push(`${responsiveSizes.large} 1200w`);
-    
-    return sources.length > 0 ? sources.join(', ') : undefined;
-  };
-
-  const generateSizes = () => {
-    return "(max-width: 300px) 300px, (max-width: 768px) 768px, 1200px";
-  };
-
-  const getAspectRatioClass = () => {
-    switch (aspectRatio) {
-      case 'square': return 'aspect-square';
-      case '16:9': return 'aspect-video';
-      case '4:3': return 'aspect-[4/3]';
-      default: return '';
-    }
-  };
+  // Reset states when src changes
+  useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+    if (priority) setIsInView(true);
+  }, [src, priority]);
 
   const handleLoad = () => {
     setIsLoaded(true);
+    setHasError(false);
   };
 
   const handleError = () => {
+    console.error('❌ Optimized image failed to load:', src);
     setHasError(true);
-    if (fallback) {
-      setIsLoaded(true);
-    }
+    setIsLoaded(false);
   };
 
-  const srcSet = generateSrcSet();
-  const sizesAttr = generateSizes();
+  // Don't render anything if no src provided
+  if (!src) {
+    return (
+      <div className={cn("relative overflow-hidden bg-gray-100 flex items-center justify-center", className)}>
+        {fallbackIcon && <Images className="h-8 w-8 text-gray-400" />}
+      </div>
+    );
+  }
+
+  // Generate optimized URL
+  const optimizedSrc = webpSupported !== null ? getOptimizedImageUrl(src, {
+    width,
+    height,
+    quality,
+    format: webpSupported ? 'webp' : 'jpeg'
+  }) : src;
+
+  // Generate srcSet for responsive images
+  const generateSrcSet = () => {
+    if (!width || webpSupported === null) return undefined;
+    
+    const format = webpSupported ? 'webp' : 'jpeg';
+    const breakpoints = [0.5, 1, 1.5, 2]; // Different density ratios
+    
+    return breakpoints
+      .map(ratio => {
+        const scaledWidth = Math.round(width * ratio);
+        const url = getOptimizedImageUrl(src, { width: scaledWidth, quality, format });
+        return `${url} ${ratio}x`;
+      })
+      .join(', ');
+  };
 
   return (
     <div 
       ref={imgRef}
-      className={cn(
-        "relative overflow-hidden",
-        getAspectRatioClass(),
-        className
-      )}
-      style={{ width, height }}
+      className={cn("relative overflow-hidden bg-gray-100", className)}
     >
-      {/* Blur placeholder */}
-      {showProgressiveLoading && blurDataUrl && !isLoaded && (
-        <div 
-          className="absolute inset-0 bg-cover bg-center blur-sm scale-110 transition-opacity duration-300"
-          style={{ 
-            backgroundImage: `url(${blurDataUrl})`,
-            width: width || '100%', 
-            height: height || '100%' 
-          }}
-        />
-      )}
-
-      {/* Loading placeholder without progressive loading */}
-      {!showProgressiveLoading && !isLoaded && !hasError && (
-        <div 
-          className="absolute inset-0 bg-gray-200 animate-pulse"
-          style={{ width, height }}
-        />
-      )}
-
-      {/* Actual image */}
-      {isInView && (
-        <picture>
-          {/* WebP source if available */}
-          {srcSet && (
-            <source 
-              srcSet={srcSet.replace(/\.(jpg|jpeg|png)/g, '.webp')} 
-              sizes={sizesAttr}
-              type="image/webp" 
-            />
-          )}
-          
-          <img
-            src={hasError && fallback ? fallback : (responsiveSizes?.large || src)}
-            srcSet={srcSet}
-            sizes={sizesAttr}
-            alt={alt}
-            width={width}
-            height={height}
-            onLoad={handleLoad}
-            onError={handleError}
-            className={cn(
-              "transition-opacity duration-500 w-full h-full object-cover",
-              isLoaded ? "opacity-100" : "opacity-0"
-            )}
-            loading={priority ? "eager" : "lazy"}
-            decoding="async"
-            {...props}
-          />
-        </picture>
+      {/* Loading placeholder */}
+      {!isLoaded && !hasError && isInView && (
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse flex items-center justify-center">
+          <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+        </div>
       )}
 
       {/* Error state */}
-      {hasError && !fallback && (
-        <div 
-          className="absolute inset-0 bg-gray-100 flex items-center justify-center text-gray-400 text-sm"
-          style={{ width, height }}
-        >
+      {hasError && fallbackIcon && (
+        <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-2xl mb-2">📷</div>
-            <div>Image unavailable</div>
+            <Images className="h-8 w-8 text-gray-400 mx-auto mb-1" />
+            <span className="text-xs text-gray-500">Image unavailable</span>
           </div>
         </div>
       )}
 
-      {/* Loading indicator */}
-      {!isLoaded && !hasError && isInView && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-        </div>
+      {/* Main image */}
+      {(isInView || priority) && (
+        <img
+          src={optimizedSrc}
+          srcSet={generateSrcSet()}
+          sizes={sizes}
+          alt={alt}
+          onLoad={handleLoad}
+          onError={handleError}
+          className={cn(
+            "w-full h-full object-cover transition-all duration-500",
+            isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"
+          )}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          {...props}
+        />
+      )}
+
+      {/* Blur-up placeholder */}
+      {!isLoaded && isInView && !hasError && (
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 opacity-50" />
       )}
     </div>
   );

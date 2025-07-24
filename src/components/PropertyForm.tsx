@@ -11,7 +11,7 @@ import PhotoUploadSection from './PropertyForm/PhotoUploadSection';
 import PropertyDetailsForm from './PropertyForm/PropertyDetailsForm';
 import BookingIntegrationSection from './PropertyForm/BookingIntegrationSection';
 import { PropertyFormData } from './PropertyForm/types';
-import { usePhotoUpload } from '@/hooks/usePhotoUpload';
+import { useOptimizedPhotoUpload } from '@/hooks/useOptimizedPhotoUpload';
 import { Loader2 } from 'lucide-react';
 
 const propertySchema = z.object({
@@ -41,7 +41,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
     (initialData?.featured_photos || []).filter(url => !url.startsWith('blob:'))
   );
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
-  const { uploading } = usePhotoUpload();
+  const { uploading, uploadProgress, optimizationStats } = useOptimizedPhotoUpload();
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -118,11 +118,45 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
             <BookingIntegrationSection form={form} disabled={isProcessing} />
 
             {isProcessing && (
-              <div className="flex items-center justify-center p-6 bg-gray-50 rounded-lg border">
-                <Loader2 className="h-5 w-5 animate-spin mr-3 text-primary" />
-                <span className="text-gray-700 font-medium">
-                  {uploading ? 'Uploading photos...' : 'Saving property...'}
-                </span>
+              <div className="space-y-4 p-6 bg-gray-50 rounded-lg border">
+                <div className="flex items-center justify-center">
+                  <Loader2 className="h-5 w-5 animate-spin mr-3 text-primary" />
+                  <span className="text-gray-700 font-medium">
+                    {uploading ? 'Optimizing & uploading photos...' : 'Saving property...'}
+                  </span>
+                </div>
+                
+                {/* Upload progress for individual files */}
+                {uploadProgress.length > 0 && (
+                  <div className="space-y-2">
+                    {uploadProgress.map((progress, index) => (
+                      <div key={progress.fileName} className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="truncate">{progress.fileName}</span>
+                          <span className="text-gray-500">
+                            {progress.optimizing ? 'Optimizing...' : 
+                             progress.uploading ? 'Uploading...' : 
+                             progress.progress === 100 ? 'Complete' : 'Pending'}
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${progress.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Optimization stats */}
+                {optimizationStats.totalSaved > 0 && (
+                  <div className="text-sm text-gray-600 text-center">
+                    💚 Saved {Math.round(optimizationStats.totalSaved / 1024)}KB 
+                    ({optimizationStats.averageReduction}% smaller files)
+                  </div>
+                )}
               </div>
             )}
 

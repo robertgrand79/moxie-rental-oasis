@@ -8,7 +8,8 @@ import { MapPin, Bed, Bath, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Property } from '@/types/property';
 import { generateAddressSlug } from '@/utils/addressSlug';
-import ThumbnailImage from '@/components/ui/thumbnail-image';
+import OptimizedImage from '@/components/ui/optimized-image';
+import ImagePreloader from '@/components/ui/image-preloader';
 
 interface PropertyListProps {
   properties: Property[];
@@ -69,8 +70,16 @@ const PropertyList = ({
     }
   };
 
+  // Collect first 6 property images for preloading
+  const priorityImages = safeProperties
+    .slice(0, 6)
+    .map(getBestImageUrl)
+    .filter((url): url is string => Boolean(url));
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <>
+      <ImagePreloader images={priorityImages} priority={true} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {safeProperties.map((property) => {
         // Additional safety check for individual property
         if (!property || !property.id) {
@@ -91,11 +100,16 @@ const PropertyList = ({
           >
             <div className="aspect-[4/3] relative overflow-hidden">
               {imageUrl ? (
-                <ThumbnailImage
+                <OptimizedImage
                   src={imageUrl}
                   alt={property.title || 'Property image'}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   fallbackIcon={true}
+                  width={400}
+                  height={300}
+                  priority={safeProperties.indexOf(property) < 6} // Prioritize first 6 images
+                  quality={85}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
               ) : (
                 <div className="w-full h-full bg-gray-100 flex items-center justify-center">
@@ -200,7 +214,8 @@ const PropertyList = ({
           </Card>
         );
       }).filter(Boolean)}
-    </div>
+      </div>
+    </>
   );
 };
 
