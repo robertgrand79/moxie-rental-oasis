@@ -1672,6 +1672,74 @@ export type Database = {
         }
         Relationships: []
       }
+      turno_property_mapping: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          property_id: string | null
+          property_name: string
+          turno_property_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          property_id?: string | null
+          property_name: string
+          turno_property_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          property_id?: string | null
+          property_name?: string
+          turno_property_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turno_property_mapping_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      turno_sync_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          sync_details: Json | null
+          sync_status: string
+          sync_type: string
+          turno_property_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sync_details?: Json | null
+          sync_status: string
+          sync_type: string
+          turno_property_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sync_details?: Json | null
+          sync_status?: string
+          sync_type?: string
+          turno_property_id?: string | null
+        }
+        Relationships: []
+      }
       user_audit_logs: {
         Row: {
           action: string
@@ -1878,10 +1946,14 @@ export type Database = {
           requires_permits: boolean | null
           scope_of_work: string | null
           sent_at: string | null
+          source: string
           special_instructions: string | null
           status: string
           task_id: string | null
           title: string
+          turno_problem_id: string | null
+          turno_property_id: string | null
+          turno_sync_status: string | null
           updated_at: string
           work_order_number: string
         }
@@ -1906,10 +1978,14 @@ export type Database = {
           requires_permits?: boolean | null
           scope_of_work?: string | null
           sent_at?: string | null
+          source?: string
           special_instructions?: string | null
           status?: string
           task_id?: string | null
           title: string
+          turno_problem_id?: string | null
+          turno_property_id?: string | null
+          turno_sync_status?: string | null
           updated_at?: string
           work_order_number: string
         }
@@ -1934,10 +2010,14 @@ export type Database = {
           requires_permits?: boolean | null
           scope_of_work?: string | null
           sent_at?: string | null
+          source?: string
           special_instructions?: string | null
           status?: string
           task_id?: string | null
           title?: string
+          turno_problem_id?: string | null
+          turno_property_id?: string | null
+          turno_sync_status?: string | null
           updated_at?: string
           work_order_number?: string
         }
