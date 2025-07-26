@@ -11,6 +11,7 @@ import PropertyListContainer from '@/components/admin/properties/PropertyListCon
 import PaginationControls from '@/components/ui/pagination-controls';
 import ImageCleanupButton from '@/components/admin/properties/ImageCleanupButton';
 import PropertyDiagnostics from '@/components/admin/PropertyDiagnostics';
+import TurnoMappingManager from '@/components/admin/properties/TurnoMappingManager';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
@@ -107,6 +108,11 @@ const AdminProperties = () => {
               onDelete={deleteProperty}
               onAddProperty={handleAddProperty}
             />
+
+            {/* Turno Integration Section */}
+            {totalCount > 0 && (
+              <TurnoMappingManager properties={properties} />
+            )}
 
             <PaginationControls
               currentPage={currentPage}
