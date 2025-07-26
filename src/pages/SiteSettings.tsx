@@ -127,18 +127,7 @@ const SiteSettings = () => {
             </TabsContent>
 
             <TabsContent value="seo">
-              <SEOSettingsTab
-                seoData={{
-                  siteTitle: settings.siteTitle,
-                  metaDescription: settings.metaDescription,
-                  ogTitle: settings.ogTitle,
-                  ogDescription: settings.ogDescription,
-                  ogImage: settings.ogImage,
-                  favicon: settings.favicon
-                }}
-                setSeoData={() => {}}
-                onSave={handleSaveSeoSettings}
-              />
+              <SEOSettingsTab />
             </TabsContent>
 
             <TabsContent value="analytics">

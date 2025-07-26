@@ -101,11 +101,7 @@ const SEOAnalyticsTab = ({
           </TabsList>
 
           <TabsContent value="seo">
-            <SEOSettingsTab
-              seoData={seoData}
-              setSeoData={setSeoData}
-              onSave={handleSaveSeoSettings}
-            />
+            <SEOSettingsTab />
           </TabsContent>
 
           <TabsContent value="analytics">

@@ -95,17 +95,7 @@ const SettingsDialog = ({
       case 'design-branding':
         return <DesignBrandingTab />;
       case 'seo-settings':
-        return (
-          <SEOSettingsTab
-            seoData={seoData}
-            setSeoData={setSeoData}
-            onSave={async () => {
-              await updateSetting('siteTitle', seoData.siteTitle);
-              await updateSetting('metaDescription', seoData.metaDescription);
-              setDialogOpen(false);
-            }}
-          />
-        );
+        return <SEOSettingsTab />;
       case 'analytics-settings':
         return (
           <AnalyticsSettingsTab

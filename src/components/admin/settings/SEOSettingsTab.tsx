@@ -6,6 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Save } from 'lucide-react';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
+import SEOImageUpload from './SEOImageUpload';
+import SEOPreview from './SEOPreview';
 
 interface SEOData {
   siteTitle: string;
@@ -16,22 +19,48 @@ interface SEOData {
   favicon: string;
 }
 
-interface SEOSettingsTabProps {
-  seoData: SEOData;
-  setSeoData: (data: SEOData) => void;
-  onSave: () => void;
-}
+const SEOSettingsTab = () => {
+  const { settings, saveSetting } = useSimplifiedSiteSettings();
+  const [seoData, setSeoData] = React.useState<SEOData>({
+    siteTitle: '',
+    metaDescription: '',
+    ogTitle: '',
+    ogDescription: '',
+    ogImage: '',
+    favicon: ''
+  });
 
-const SEOSettingsTab = ({ seoData, setSeoData, onSave }: SEOSettingsTabProps) => {
+  // Load existing settings when component mounts or settings change
+  React.useEffect(() => {
+    if (settings) {
+      setSeoData({
+        siteTitle: settings.siteTitle || '',
+        metaDescription: settings.metaDescription || '',
+        ogTitle: settings.ogTitle || '',
+        ogDescription: settings.ogDescription || '',
+        ogImage: settings.ogImage || '',
+        favicon: settings.favicon || ''
+      });
+    }
+  }, [settings]);
+
+  const handleSave = async () => {
+    const promises = Object.entries(seoData).map(([key, value]) => 
+      saveSetting(key, value)
+    );
+    await Promise.all(promises);
+  };
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>SEO & Meta Tags</CardTitle>
-        <CardDescription>
-          Control your site's search engine optimization and social media appearance
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <div className="grid gap-6 lg:grid-cols-2">
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>SEO & Meta Tags</CardTitle>
+            <CardDescription>
+              Control your site's search engine optimization and social media appearance
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
         <div>
           <Label htmlFor="siteTitle">Site Title (Browser Tab)</Label>
           <Input
@@ -74,32 +103,57 @@ const SEOSettingsTab = ({ seoData, setSeoData, onSave }: SEOSettingsTabProps) =>
           />
         </div>
 
-        <div>
-          <Label htmlFor="ogImage">Open Graph Image URL</Label>
-          <Input
-            id="ogImage"
-            value={seoData.ogImage}
-            onChange={(e) => setSeoData({ ...seoData, ogImage: e.target.value })}
-            placeholder="https://example.com/image.jpg"
-          />
-        </div>
+            <div className="space-y-3">
+              <Label htmlFor="ogImage">Open Graph Image</Label>
+              <Input
+                id="ogImage"
+                value={seoData.ogImage}
+                onChange={(e) => setSeoData({ ...seoData, ogImage: e.target.value })}
+                placeholder="https://example.com/image.jpg or upload below"
+              />
+              <SEOImageUpload
+                imageUrl={seoData.ogImage}
+                onImageChange={(url) => setSeoData({ ...seoData, ogImage: url })}
+                type="og"
+                label="Open Graph Image"
+              />
+            </div>
 
-        <div>
-          <Label htmlFor="favicon">Favicon URL</Label>
-          <Input
-            id="favicon"
-            value={seoData.favicon}
-            onChange={(e) => setSeoData({ ...seoData, favicon: e.target.value })}
-            placeholder="/lovable-uploads/your-favicon.png"
-          />
-        </div>
+            <div className="space-y-3">
+              <Label htmlFor="favicon">Favicon</Label>
+              <Input
+                id="favicon"
+                value={seoData.favicon}
+                onChange={(e) => setSeoData({ ...seoData, favicon: e.target.value })}
+                placeholder="/lovable-uploads/your-favicon.png or upload below"
+              />
+              <SEOImageUpload
+                imageUrl={seoData.favicon}
+                onImageChange={(url) => setSeoData({ ...seoData, favicon: url })}
+                type="favicon"
+                label="Favicon"
+              />
+            </div>
 
-        <Button onClick={onSave} className="w-full">
-          <Save className="h-4 w-4 mr-2" />
-          Save SEO Settings
-        </Button>
-      </CardContent>
-    </Card>
+            <Button onClick={handleSave} className="w-full">
+              <Save className="h-4 w-4 mr-2" />
+              Save SEO Settings
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div>
+        <SEOPreview
+          siteTitle={seoData.siteTitle}
+          metaDescription={seoData.metaDescription}
+          ogTitle={seoData.ogTitle}
+          ogDescription={seoData.ogDescription}
+          ogImage={seoData.ogImage}
+          favicon={seoData.favicon}
+        />
+      </div>
+    </div>
   );
 };
 
