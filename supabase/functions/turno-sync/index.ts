@@ -43,27 +43,22 @@ const testTurnoApiConnection = async (token: string, secret: string, partnerId?:
     console.log('🔍 Testing Turno API connection...');
     console.log('🔧 Using Partner ID:', partnerId ? `${partnerId.substring(0, 8)}...` : 'Not provided');
     
-    // Create basic auth header with token and secret
-    const authString = btoa(`${token}:${secret}`);
-    
-    // Prepare headers with Partner ID
+    // Use only Partner ID header - no Basic Auth needed according to API example
     const headers: Record<string, string> = {
-      'Authorization': `Basic ${authString}`,
-      'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
     
-    // Add Partner ID header if provided
+    // Add Partner ID header if provided (required for authentication)
     if (partnerId) {
-      headers['X-Partner-ID'] = partnerId;
-      headers['Partner-ID'] = partnerId; // Try both formats
+      headers['TBNB-Partner-ID'] = partnerId;
+    } else {
+      console.warn('⚠️ No Partner ID provided - this may cause authentication issues');
     }
     
     console.log('🔧 Request headers:', Object.keys(headers).join(', '));
     
-    // Test with a simple API call to verify authentication
-    // According to Turno docs, we'll try the properties endpoint first
-    const testResponse = await fetch('https://api.turnoverbnb.com/v1/properties', {
+    // Test with properties endpoint using v2 API
+    const testResponse = await fetch('https://api.turnoverbnb.com/v2/properties', {
       method: 'GET',
       headers,
     });
@@ -116,21 +111,16 @@ const fetchTurnoProperties = async (token: string, secret: string, partnerId?: s
   try {
     console.log('🏠 Fetching properties from Turno API...');
     
-    const authString = btoa(`${token}:${secret}`);
-    
-    // Prepare headers with Partner ID
+    // Use only Partner ID header - no Basic Auth needed
     const headers: Record<string, string> = {
-      'Authorization': `Basic ${authString}`,
-      'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
     
     if (partnerId) {
-      headers['X-Partner-ID'] = partnerId;
-      headers['Partner-ID'] = partnerId;
+      headers['TBNB-Partner-ID'] = partnerId;
     }
     
-    const response = await fetch('https://api.turnoverbnb.com/v1/properties', {
+    const response = await fetch('https://api.turnoverbnb.com/v2/properties', {
       method: 'GET',
       headers,
     });
@@ -162,23 +152,19 @@ const fetchTurnoProblems = async (token: string, secret: string, partnerId?: str
   try {
     console.log('🔧 Fetching problems from Turno API...');
     
-    const authString = btoa(`${token}:${secret}`);
-    let url = 'https://api.turnoverbnb.com/v1/problems';
+    let url = 'https://api.turnoverbnb.com/v2/problems';
     
     if (since) {
       url += `?updated_since=${since}`;
     }
     
-    // Prepare headers with Partner ID
+    // Use only Partner ID header - no Basic Auth needed
     const headers: Record<string, string> = {
-      'Authorization': `Basic ${authString}`,
-      'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
     
     if (partnerId) {
-      headers['X-Partner-ID'] = partnerId;
-      headers['Partner-ID'] = partnerId;
+      headers['TBNB-Partner-ID'] = partnerId;
     }
     
     const response = await fetch(url, {
@@ -340,20 +326,16 @@ const syncStatusToTurno = async (supabase: any, token: string, secret: string, p
     }
 
     // Update Turno problem status
-    const authString = btoa(`${token}:${secret}`);
-    
     const headers: Record<string, string> = {
-      'Authorization': `Basic ${authString}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
     
     if (partnerId) {
-      headers['X-Partner-ID'] = partnerId;
-      headers['Partner-ID'] = partnerId;
+      headers['TBNB-Partner-ID'] = partnerId;
     }
     
-    const response = await fetch(`https://api.turnoverbnb.com/v1/problems/${workOrder.turno_problem_id}`, {
+    const response = await fetch(`https://api.turnoverbnb.com/v2/problems/${workOrder.turno_problem_id}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({
@@ -412,8 +394,6 @@ const syncProblemsFromTurno = async (supabase: any, token: string, secret: strin
   console.log('🔄 Syncing problems from Turno...');
   
   try {
-    const authString = btoa(`${token}:${secret}`);
-    
     // Fetch recent problems from Turno (last 24 hours for updates, all for bulk import)
     const since = createWorkOrders ? null : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const problemsResult = await fetchTurnoProblems(token, secret, partnerId, since);
