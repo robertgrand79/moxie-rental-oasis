@@ -198,11 +198,16 @@ const fetchTurnoProperties = async (token: string, secret: string, partnerId?: s
 const fetchTurnoProblems = async (token: string, secret: string, partnerId?: string, since?: string): Promise<TurnoApiResponse> => {
   try {
     console.log('🔧 Fetching problems from Turno API...');
+    console.log('🔧 Using Token ID:', token ? `${token.substring(0, 8)}...` : 'Not provided');
+    console.log('🔧 Using Secret Key:', secret ? `${secret.substring(0, 8)}...` : 'Not provided');
     
     let url = 'https://api.turnoverbnb.com/v2/problems';
     
     if (since) {
       url += `?updated_since=${since}`;
+      console.log('🕐 Fetching problems since:', since);
+    } else {
+      console.log('📥 Fetching all problems');
     }
     
     // Try Bearer token authentication first
@@ -215,6 +220,8 @@ const fetchTurnoProblems = async (token: string, secret: string, partnerId?: str
     if (partnerId) {
       headers['TBNB-Partner-ID'] = partnerId;
     }
+    
+    console.log('🔧 Request headers (Bearer):', Object.keys(headers).join(', '));
     
     let response = await fetch(url, {
       method: 'GET',
@@ -488,15 +495,30 @@ const syncProblemsFromTurno = async (supabase: any, token: string, secret: strin
   console.log('🔄 Syncing problems from Turno...');
   
   try {
+    console.log('🔄 Syncing problems from Turno...');
+    
     // Fetch recent problems from Turno (last 24 hours for updates, all for bulk import)
     const since = createWorkOrders ? null : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const problemsResult = await fetchTurnoProblems(token, secret, partnerId, since);
     
+    console.log('📋 Problems API result:', { success: problemsResult.success, hasData: !!problemsResult.data });
+    
     if (!problemsResult.success) {
-      throw new Error(problemsResult.error);
+      console.error('❌ Failed to fetch problems from Turno:', problemsResult.error);
+      throw new Error(`Failed to fetch problems: ${problemsResult.error}`);
     }
 
-    const problems = problemsResult.data?.data || [];
+    // Safely handle problems data with proper validation
+    const problemsData = problemsResult.data;
+    if (!problemsData || typeof problemsData !== 'object') {
+      console.error('❌ Invalid problems data structure:', problemsData);
+      throw new Error('Invalid response structure from Turno API');
+    }
+
+    const problems = Array.isArray(problemsData.data) ? problemsData.data : 
+                    Array.isArray(problemsData) ? problemsData : [];
+    
+    console.log(`✅ Found ${problems.length} problems in Turno`);
     let syncedCount = 0;
     let conflictCount = 0;
     let createdCount = 0;
