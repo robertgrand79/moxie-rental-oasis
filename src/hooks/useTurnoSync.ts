@@ -56,19 +56,25 @@ export const useTurnoSync = () => {
   };
 
   // Sync recent problems from Turno
-  const syncProblemsFromTurno = async (): Promise<SyncResult> => {
+  const syncProblemsFromTurno = async (createWorkOrders = false): Promise<SyncResult> => {
     try {
       setSyncStatus(prev => ({ ...prev, isLoading: true }));
 
-      const { data, error } = await supabase.functions.invoke('turno-sync/sync-problems');
+      const { data, error } = await supabase.functions.invoke('turno-sync/sync-problems', {
+        body: { createWorkOrders }
+      });
 
       if (error) throw error;
 
-      const result = data as SyncResult;
+      const result = data as SyncResult & { created?: number };
+      
+      const message = createWorkOrders 
+        ? `Created ${result.created || 0} work orders from Turno problems. ${result.conflicts || 0} conflicts detected.`
+        : `Updated ${result.synced || 0} work orders from Turno. ${result.conflicts || 0} conflicts detected.`;
       
       toast({
         title: 'Sync Complete',
-        description: `Updated ${result.synced || 0} work orders from Turno. ${result.conflicts || 0} conflicts detected.`,
+        description: message,
       });
 
       setSyncStatus(prev => ({ 
@@ -83,6 +89,41 @@ export const useTurnoSync = () => {
       toast({
         title: 'Sync Failed',
         description: error.message || 'Failed to sync problems from Turno',
+        variant: 'destructive',
+      });
+      return { success: false, error: error.message };
+    } finally {
+      setSyncStatus(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  // Bulk import all Turno problems as work orders
+  const importProblemsAsWorkOrders = async (): Promise<SyncResult> => {
+    try {
+      setSyncStatus(prev => ({ ...prev, isLoading: true }));
+
+      const { data, error } = await supabase.functions.invoke('turno-sync/import-problems');
+
+      if (error) throw error;
+
+      const result = data as SyncResult & { created?: number };
+      
+      toast({
+        title: 'Import Complete',
+        description: `Created ${result.created || 0} work orders from ${result.total || 0} Turno problems.`,
+      });
+
+      setSyncStatus(prev => ({ 
+        ...prev, 
+        lastSyncAt: new Date().toISOString()
+      }));
+
+      return result;
+    } catch (error: any) {
+      console.error('Error importing problems from Turno:', error);
+      toast({
+        title: 'Import Failed',
+        description: error.message || 'Failed to import problems from Turno',
         variant: 'destructive',
       });
       return { success: false, error: error.message };
@@ -213,6 +254,7 @@ export const useTurnoSync = () => {
     syncStatus,
     syncWorkOrderToTurno,
     syncProblemsFromTurno,
+    importProblemsAsWorkOrders,
     performFullSync,
     getSyncLogs,
     toggleStatusOverride,

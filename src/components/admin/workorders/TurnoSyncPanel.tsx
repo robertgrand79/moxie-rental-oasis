@@ -19,6 +19,7 @@ const TurnoSyncPanel = () => {
   const { 
     syncStatus, 
     syncProblemsFromTurno, 
+    importProblemsAsWorkOrders,
     performFullSync, 
     checkSyncConflicts 
   } = useTurnoSync();
@@ -35,7 +36,12 @@ const TurnoSyncPanel = () => {
   };
 
   const handleSyncProblems = async () => {
-    await syncProblemsFromTurno();
+    await syncProblemsFromTurno(false);
+    await loadConflicts();
+  };
+
+  const handleImportProblems = async () => {
+    await importProblemsAsWorkOrders();
     await loadConflicts();
   };
 
@@ -135,6 +141,16 @@ const TurnoSyncPanel = () => {
               >
                 <RefreshCw className={`h-4 w-4 ${syncStatus.isLoading ? 'animate-spin' : ''}`} />
                 Sync from Turno
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={handleImportProblems}
+                disabled={syncStatus.isLoading}
+                className="flex items-center gap-2"
+              >
+                <RotateCw className={`h-4 w-4 ${syncStatus.isLoading ? 'animate-spin' : ''}`} />
+                Import as Work Orders
               </Button>
               
               <Button 

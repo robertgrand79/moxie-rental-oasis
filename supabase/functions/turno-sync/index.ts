@@ -138,13 +138,18 @@ const fetchTurnoProperties = async (token: string, secret: string): Promise<Turn
   }
 };
 
-const fetchTurnoProblems = async (token: string, secret: string): Promise<TurnoApiResponse> => {
+const fetchTurnoProblems = async (token: string, secret: string, since?: string): Promise<TurnoApiResponse> => {
   try {
     console.log('🔧 Fetching problems from Turno API...');
     
     const authString = btoa(`${token}:${secret}`);
+    let url = 'https://api.turnoverbnb.com/v1/problems';
     
-    const response = await fetch('https://api.turnoverbnb.com/v1/problems', {
+    if (since) {
+      url += `?updated_since=${since}`;
+    }
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Authorization': `Basic ${authString}`,
@@ -174,6 +179,110 @@ const fetchTurnoProblems = async (token: string, secret: string): Promise<TurnoA
       error: `Failed to fetch problems: ${error.message}`
     };
   }
+};
+
+// Create work order from Turno problem
+const createWorkOrderFromProblem = async (supabase: any, problem: any, propertyMapping: any, contractors: any[]) => {
+  console.log(`🔄 Creating work order from Turno problem ${problem.id}...`);
+  
+  try {
+    // Determine priority based on problem severity/type
+    const priority = determinePriorityFromProblem(problem);
+    
+    // Find best contractor match
+    const assignedContractor = findBestContractorMatch(problem, contractors);
+    
+    // Generate work order data
+    const workOrderData = {
+      title: problem.title || `Problem at ${propertyMapping?.property_name || 'Property'}`,
+      description: problem.description || problem.notes || 'Issue reported via Turno',
+      status: 'draft',
+      priority: priority,
+      property_id: propertyMapping?.property_id,
+      contractor_id: assignedContractor?.id,
+      turno_problem_id: problem.id,
+      turno_property_id: problem.property_id,
+      source: 'turno',
+      turno_sync_status: 'synced',
+      last_turno_sync_at: new Date().toISOString(),
+      turno_last_modified: problem.updated_at || problem.created_at,
+      scope_of_work: generateScopeFromProblem(problem),
+      special_instructions: problem.notes || 'Automatically created from Turno problem'
+    };
+
+    // Get authenticated user for created_by
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('role', 'admin')
+      .limit(1);
+    
+    if (!profiles || profiles.length === 0) {
+      throw new Error('No admin user found to assign as creator');
+    }
+
+    workOrderData.created_by = profiles[0].id;
+
+    // Create work order
+    const { data, error } = await supabase
+      .from('work_orders')
+      .insert([workOrderData])
+      .select(`
+        *,
+        property:properties(*),
+        contractor:contractors(*)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    console.log(`✅ Created work order ${data.work_order_number} from Turno problem ${problem.id}`);
+    return data;
+
+  } catch (error) {
+    console.error(`❌ Failed to create work order from problem ${problem.id}:`, error);
+    throw error;
+  }
+};
+
+// Helper functions for work order creation
+const determinePriorityFromProblem = (problem: any): string => {
+  const description = (problem.description || problem.title || '').toLowerCase();
+  const urgentKeywords = ['emergency', 'urgent', 'leak', 'flood', 'electrical', 'gas', 'fire', 'security'];
+  const highKeywords = ['broken', 'not working', 'repair', 'replace', 'hvac', 'plumbing'];
+  
+  if (urgentKeywords.some(keyword => description.includes(keyword))) {
+    return 'urgent';
+  } else if (highKeywords.some(keyword => description.includes(keyword))) {
+    return 'high';
+  }
+  
+  return 'medium';
+};
+
+const findBestContractorMatch = (problem: any, contractors: any[]): any => {
+  if (!contractors || contractors.length === 0) return null;
+  
+  const description = (problem.description || problem.title || '').toLowerCase();
+  
+  // Try to match based on specialties
+  for (const contractor of contractors) {
+    if (contractor.specialties && Array.isArray(contractor.specialties)) {
+      for (const specialty of contractor.specialties) {
+        if (description.includes(specialty.toLowerCase())) {
+          return contractor;
+        }
+      }
+    }
+  }
+  
+  // Return first active contractor as fallback
+  return contractors.find(c => c.is_active) || contractors[0];
+};
+
+const generateScopeFromProblem = (problem: any): string => {
+  const baseScope = problem.description || problem.title || 'Address reported issue';
+  return `${baseScope}\n\nOriginal Turno Problem ID: ${problem.id}`;
 };
 
 // Sync work order status to Turno
@@ -262,33 +371,36 @@ const syncStatusToTurno = async (supabase: any, token: string, secret: string, w
   }
 };
 
-// Sync problems from Turno to work orders
-const syncProblemsFromTurno = async (supabase: any, token: string, secret: string) => {
+// Enhanced sync problems from Turno with work order creation
+const syncProblemsFromTurno = async (supabase: any, token: string, secret: string, createWorkOrders = false) => {
   console.log('🔄 Syncing problems from Turno...');
   
   try {
     const authString = btoa(`${token}:${secret}`);
     
-    // Fetch recent problems from Turno (last 24 hours)
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const response = await fetch(`https://api.turnoverbnb.com/v1/problems?updated_since=${since}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${authString}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Turno API error: ${response.status} ${response.statusText} - ${errorText}`);
+    // Fetch recent problems from Turno (last 24 hours for updates, all for bulk import)
+    const since = createWorkOrders ? null : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const problemsResult = await fetchTurnoProblems(token, secret, since);
+    
+    if (!problemsResult.success) {
+      throw new Error(problemsResult.error);
     }
 
-    const problemsData = await response.json();
-    const problems = problemsData.data || [];
+    const problems = problemsResult.data?.data || [];
     let syncedCount = 0;
     let conflictCount = 0;
+    let createdCount = 0;
+
+    // Get property mappings and contractors for work order creation
+    const { data: mappings } = await supabase
+      .from('turno_property_mapping')
+      .select('*')
+      .eq('is_active', true);
+
+    const { data: contractors } = await supabase
+      .from('contractors')
+      .select('*')
+      .eq('is_active', true);
 
     for (const problem of problems) {
       try {
@@ -297,7 +409,7 @@ const syncProblemsFromTurno = async (supabase: any, token: string, secret: strin
           .from('work_orders')
           .select('*')
           .eq('turno_problem_id', problem.id)
-          .single();
+          .maybeSingle();
 
         if (existingWO) {
           // Update existing work order if status changed
@@ -349,14 +461,35 @@ const syncProblemsFromTurno = async (supabase: any, token: string, secret: strin
               console.log(`⚠️ Status conflict detected for work order ${existingWO.id}`);
             }
           }
+        } else if (createWorkOrders) {
+          // Create new work order from Turno problem
+          const propertyMapping = mappings?.find(m => m.turno_property_id === problem.property_id);
+          
+          if (propertyMapping) {
+            try {
+              await createWorkOrderFromProblem(supabase, problem, propertyMapping, contractors || []);
+              createdCount++;
+              console.log(`✅ Created work order from Turno problem ${problem.id}`);
+            } catch (createError) {
+              console.error(`❌ Failed to create work order from problem ${problem.id}:`, createError);
+            }
+          } else {
+            console.log(`⚠️ No property mapping found for Turno property ${problem.property_id}`);
+          }
         }
       } catch (error) {
         console.error(`❌ Error processing Turno problem ${problem.id}:`, error);
       }
     }
 
-    console.log(`✅ Sync complete: ${syncedCount} updated, ${conflictCount} conflicts`);
-    return { success: true, synced: syncedCount, conflicts: conflictCount, total: problems.length };
+    console.log(`✅ Sync complete: ${syncedCount} updated, ${conflictCount} conflicts, ${createdCount} created`);
+    return { 
+      success: true, 
+      synced: syncedCount, 
+      conflicts: conflictCount, 
+      created: createdCount,
+      total: problems.length 
+    };
 
   } catch (error) {
     console.error('❌ Failed to sync problems from Turno:', error);
@@ -410,7 +543,17 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Sync all recent problems from Turno
       if (url.pathname.endsWith('/sync-problems')) {
-        const result = await syncProblemsFromTurno(supabaseClient, turnoApiToken, turnoApiSecret);
+        const { createWorkOrders = false } = requestBody;
+        const result = await syncProblemsFromTurno(supabaseClient, turnoApiToken, turnoApiSecret, createWorkOrders);
+        return new Response(JSON.stringify(result), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+
+      // Bulk import Turno problems as work orders
+      if (url.pathname.endsWith('/import-problems')) {
+        const result = await syncProblemsFromTurno(supabaseClient, turnoApiToken, turnoApiSecret, true);
         return new Response(JSON.stringify(result), {
           status: 200,
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
@@ -419,7 +562,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Full bidirectional sync
       if (url.pathname.endsWith('/sync-full')) {
-        const problemsResult = await syncProblemsFromTurno(supabaseClient, turnoApiToken, turnoApiSecret);
+        const problemsResult = await syncProblemsFromTurno(supabaseClient, turnoApiToken, turnoApiSecret, false);
         
         // Sync pending work orders to Turno
         const { data: pendingWorkOrders } = await supabaseClient
