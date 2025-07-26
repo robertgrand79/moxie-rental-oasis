@@ -1712,33 +1712,53 @@ export type Database = {
       }
       turno_sync_log: {
         Row: {
-          created_at: string
+          conflict_resolution: string | null
+          created_at: string | null
           error_message: string | null
           id: string
+          status_after: string | null
+          status_before: string | null
           sync_details: Json | null
+          sync_direction: string
           sync_status: string
-          sync_type: string
-          turno_property_id: string | null
+          turno_api_response: Json | null
+          work_order_id: string
         }
         Insert: {
-          created_at?: string
+          conflict_resolution?: string | null
+          created_at?: string | null
           error_message?: string | null
           id?: string
+          status_after?: string | null
+          status_before?: string | null
           sync_details?: Json | null
+          sync_direction: string
           sync_status: string
-          sync_type: string
-          turno_property_id?: string | null
+          turno_api_response?: Json | null
+          work_order_id: string
         }
         Update: {
-          created_at?: string
+          conflict_resolution?: string | null
+          created_at?: string | null
           error_message?: string | null
           id?: string
+          status_after?: string | null
+          status_before?: string | null
           sync_details?: Json | null
+          sync_direction?: string
           sync_status?: string
-          sync_type?: string
-          turno_property_id?: string | null
+          turno_api_response?: Json | null
+          work_order_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "turno_sync_log_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_audit_logs: {
         Row: {
@@ -1941,6 +1961,7 @@ export type Database = {
           estimated_cost: number | null
           id: string
           invoice_attachments: string[] | null
+          last_turno_sync_at: string | null
           priority: string
           property_id: string | null
           requires_permits: boolean | null
@@ -1949,10 +1970,13 @@ export type Database = {
           source: string
           special_instructions: string | null
           status: string
+          sync_conflict_reason: string | null
           task_id: string | null
           title: string
+          turno_last_modified: string | null
           turno_problem_id: string | null
           turno_property_id: string | null
+          turno_status_override: boolean | null
           turno_sync_status: string | null
           updated_at: string
           work_order_number: string
@@ -1973,6 +1997,7 @@ export type Database = {
           estimated_cost?: number | null
           id?: string
           invoice_attachments?: string[] | null
+          last_turno_sync_at?: string | null
           priority?: string
           property_id?: string | null
           requires_permits?: boolean | null
@@ -1981,10 +2006,13 @@ export type Database = {
           source?: string
           special_instructions?: string | null
           status?: string
+          sync_conflict_reason?: string | null
           task_id?: string | null
           title: string
+          turno_last_modified?: string | null
           turno_problem_id?: string | null
           turno_property_id?: string | null
+          turno_status_override?: boolean | null
           turno_sync_status?: string | null
           updated_at?: string
           work_order_number: string
@@ -2005,6 +2033,7 @@ export type Database = {
           estimated_cost?: number | null
           id?: string
           invoice_attachments?: string[] | null
+          last_turno_sync_at?: string | null
           priority?: string
           property_id?: string | null
           requires_permits?: boolean | null
@@ -2013,10 +2042,13 @@ export type Database = {
           source?: string
           special_instructions?: string | null
           status?: string
+          sync_conflict_reason?: string | null
           task_id?: string | null
           title?: string
+          turno_last_modified?: string | null
           turno_problem_id?: string | null
           turno_property_id?: string | null
+          turno_status_override?: boolean | null
           turno_sync_status?: string | null
           updated_at?: string
           work_order_number?: string

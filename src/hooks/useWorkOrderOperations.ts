@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useWorkOrderManagement, WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { useWorkOrderEmail } from '@/hooks/useWorkOrderEmail';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useWorkOrderOperations = () => {
   const {
@@ -72,6 +73,20 @@ export const useWorkOrderOperations = () => {
       }
       
       await updateWorkOrder(workOrderId, updateData);
+      
+      // Auto-sync to Turno if the work order is linked and not overridden
+      const workOrder = workOrders.find(wo => wo.id === workOrderId);
+      if (workOrder?.turno_problem_id && !workOrder.turno_status_override) {
+        try {
+          await supabase.functions.invoke('turno-sync/sync-status', {
+            body: { workOrderId }
+          });
+        } catch (syncError) {
+          console.warn('Failed to auto-sync to Turno:', syncError);
+          // Don't fail the status update if sync fails
+        }
+      }
+      
       toast({
         title: 'Success',
         description: 'Status updated successfully',
