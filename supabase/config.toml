@@ -44,6 +44,9 @@ verify_jwt = false
 [functions.hospitable-sync]
 verify_jwt = false
 
+[functions.turno-sync]
+verify_jwt = false
+
 [functions.send-sms]
 verify_jwt = false
 
