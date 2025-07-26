@@ -117,15 +117,15 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
       let isSetupError = false;
       
       if (error.message) {
-        if (error.message.includes("SENDGRID_API_KEY") || error.message.includes("Email service not configured")) {
-          errorMessage = "SendGrid API key is not configured.";
+        if (error.message.includes("RESEND_API_KEY") || error.message.includes("Email service not configured")) {
+          errorMessage = "Resend API key is not configured.";
           isSetupError = true;
         } else if (error.message.includes("Authentication") || error.message.includes("log in")) {
           errorMessage = "Please log in again to send preview emails.";
         } else if (error.message.includes("Admin access required")) {
           errorMessage = "Admin access is required to send newsletter previews.";
-        } else if (error.message.includes("Email delivery failed") || error.message.includes("SendGrid")) {
-          errorMessage = "Email delivery failed. Please check your SendGrid configuration.";
+        } else if (error.message.includes("Email delivery failed") || error.message.includes("Resend")) {
+          errorMessage = "Email delivery failed. Please check your Resend configuration.";
           isSetupError = true;
         } else if (error.message.includes("Invalid JSON") || error.message.includes("request body")) {
           errorMessage = "Request formatting error. Please try again or contact support.";
@@ -176,10 +176,10 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open('https://app.sendgrid.com/settings/api_keys', '_blank')}
+                  onClick={() => window.open('https://resend.com/api-keys', '_blank')}
                 >
                   <ExternalLink className="h-3 w-3 mr-1" />
-                  Get SendGrid API Key
+                  Get Resend API Key
                 </Button>
                 <Button
                   variant="outline"
@@ -286,9 +286,9 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
             <span className="text-sm">
               • Check your spam/junk folder if you don't see the email
               <br />
-              • Ensure your SendGrid API key is configured in Supabase secrets
+              • Ensure your Resend API key is configured in Supabase secrets
               <br />
-              • Verify that your sender email is verified in SendGrid
+              • Verify that your sender email is verified in Resend
               <br />
               • Make sure you're logged in as an admin user
               <br />

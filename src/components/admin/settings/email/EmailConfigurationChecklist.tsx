@@ -13,7 +13,7 @@ const EmailConfigurationChecklist = ({ emailSetupVerified }: EmailConfigurationC
       <ul className="space-y-2 text-sm text-gray-700">
         <li className="flex items-center">
           <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-          SendGrid account created
+          Resend account created
         </li>
         <li className="flex items-center">
           <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
@@ -25,7 +25,7 @@ const EmailConfigurationChecklist = ({ emailSetupVerified }: EmailConfigurationC
           ) : (
             <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
           )}
-          Domain moxievacationrentals.com verified in SendGrid
+          Domain moxievacationrentals.com verified in Resend
         </li>
         <li className="flex items-center">
           {emailSetupVerified ? (
@@ -38,7 +38,7 @@ const EmailConfigurationChecklist = ({ emailSetupVerified }: EmailConfigurationC
       </ul>
       <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
         <p className="text-yellow-800">
-          <strong>Important:</strong> Emails will only be delivered reliably once your domain is verified in SendGrid. 
+          <strong>Important:</strong> Emails will only be delivered reliably once your domain is verified in Resend. 
           Unverified domains may result in emails being blocked or marked as spam.
         </p>
       </div>

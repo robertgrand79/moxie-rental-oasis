@@ -112,7 +112,7 @@ const NewsletterManager = () => {
         errorMessage = "Please ensure both subject and content are provided.";
       } else if (error.message?.includes("No active subscribers")) {
         errorMessage = "There are no active subscribers to send to.";
-      } else if (error.message?.includes("SendGrid")) {
+      } else if (error.message?.includes("Resend")) {
         errorMessage = "Email delivery service error. Please check your configuration.";
       } else if (error.message?.includes("Admin access required")) {
         errorMessage = "You need administrator privileges to send newsletters.";

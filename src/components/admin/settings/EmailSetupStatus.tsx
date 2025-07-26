@@ -25,7 +25,7 @@ const EmailSetupStatus = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      // Test if SendGrid function is accessible
+      // Test if Resend function is accessible
       try {
         const { error: functionError } = await supabase.functions.invoke('send-newsletter-preview', {
           body: { test: true }
@@ -33,13 +33,13 @@ const EmailSetupStatus = () => {
         
         return {
           emailSettings: settingsMap,
-          sendGridConfigured: !functionError?.message?.includes('SENDGRID_API_KEY'),
+          resendConfigured: !functionError?.message?.includes('RESEND_API_KEY'),
           functionAccessible: true
         };
       } catch (error) {
         return {
           emailSettings: settingsMap,
-          sendGridConfigured: false,
+          resendConfigured: false,
           functionAccessible: false
         };
       }
@@ -60,7 +60,7 @@ const EmailSetupStatus = () => {
   }
 
   const hasEmailSettings = emailSettings?.emailSettings?.emailFromAddress;
-  const sendGridConfigured = emailSettings?.sendGridConfigured;
+  const resendConfigured = emailSettings?.resendConfigured;
   const functionAccessible = emailSettings?.functionAccessible;
 
   const getStatusBadge = (isConfigured: boolean) => (
@@ -93,14 +93,14 @@ const EmailSetupStatus = () => {
 
           <div className="flex items-center justify-between p-3 border rounded-lg">
             <div className="flex items-center">
-              {sendGridConfigured ? (
+              {resendConfigured ? (
                 <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
               ) : (
                 <AlertCircle className="h-4 w-4 text-red-600 mr-2" />
               )}
-              <span className="text-sm font-medium">SendGrid API</span>
+              <span className="text-sm font-medium">Resend API</span>
             </div>
-            {getStatusBadge(sendGridConfigured)}
+            {getStatusBadge(resendConfigured)}
           </div>
 
           <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -116,28 +116,28 @@ const EmailSetupStatus = () => {
           </div>
         </div>
 
-        {(!hasEmailSettings || !sendGridConfigured) && (
+        {(!hasEmailSettings || !resendConfigured) && (
           <Alert className="border-yellow-200 bg-yellow-50">
             <AlertCircle className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-yellow-800">
               <strong>Email service setup required:</strong>
               <div className="mt-2 space-y-2">
-                {!sendGridConfigured && (
+                {!resendConfigured && (
                   <div>
-                    <p className="text-sm">1. SendGrid API Key is missing</p>
+                    <p className="text-sm">1. Resend API Key is missing</p>
                     <div className="flex gap-2 mt-1">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open('https://sendgrid.com/solutions/email-api/', '_blank')}
+                        onClick={() => window.open('https://resend.com/', '_blank')}
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
-                        Get SendGrid Account
+                        Get Resend Account
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open('https://app.sendgrid.com/settings/api_keys', '_blank')}
+                        onClick={() => window.open('https://resend.com/api-keys', '_blank')}
                       >
                         <Settings className="h-3 w-3 mr-1" />
                         Create API Key
@@ -153,7 +153,7 @@ const EmailSetupStatus = () => {
           </Alert>
         )}
 
-        {hasEmailSettings && sendGridConfigured && functionAccessible && (
+        {hasEmailSettings && resendConfigured && functionAccessible && (
           <Alert className="border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">

@@ -74,7 +74,7 @@ export const createSettingsCategories = (siteData: any, seoData: any, analyticsD
     settings: [
       { 
         name: 'Email Services', 
-        description: 'SendGrid for newsletters and transactional emails', 
+        description: 'Resend for newsletters and transactional emails',
         status: emailSetupVerified ? 'configured' : 'needs-setup',
         key: 'email-services'
       },
