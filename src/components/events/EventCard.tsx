@@ -30,19 +30,35 @@ const EventCard = ({ event }: EventCardProps) => {
     return format(startDate, 'MMM d, yyyy');
   };
 
+  // Check if event is in the past
+  const isPastEvent = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const eventDate = new Date(event.event_date);
+    eventDate.setHours(0, 0, 0, 0);
+    return eventDate < today;
+  };
+
+  const isEventPast = isPastEvent();
+
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 bg-white">
+    <Card className={`group overflow-hidden hover:shadow-lg transition-all duration-300 bg-white ${isEventPast ? 'opacity-75' : ''}`}>
       {event.image_url && (
         <div className="relative overflow-hidden">
           <OptimizedImage
             src={event.image_url}
             alt={event.title}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+            className={`w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300 ${isEventPast ? 'grayscale-[30%]' : ''}`}
           />
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 left-4 flex gap-2">
             <Badge variant="secondary" className="bg-white/90 text-gray-900">
               {categoryLabels[event.category as keyof typeof categoryLabels] || event.category}
             </Badge>
+            {isEventPast && (
+              <Badge variant="outline" className="bg-white/90 text-gray-600 border-gray-300">
+                Past Event
+              </Badge>
+            )}
           </div>
           {event.is_featured && (
             <div className="absolute top-4 right-4">
@@ -53,9 +69,16 @@ const EventCard = ({ event }: EventCardProps) => {
       )}
       
       <CardContent className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-          {event.title}
-        </h3>
+        <div className="flex items-start justify-between mb-2">
+          <h3 className={`font-semibold group-hover:text-blue-600 transition-colors ${isEventPast ? 'text-gray-600' : 'text-gray-900'}`}>
+            {event.title}
+          </h3>
+          {isEventPast && !event.image_url && (
+            <Badge variant="outline" className="text-gray-600 border-gray-300 ml-2">
+              Past Event
+            </Badge>
+          )}
+        </div>
 
         {event.description && (
           <p className="text-gray-600 text-sm mb-3 line-clamp-3">
@@ -95,7 +118,8 @@ const EventCard = ({ event }: EventCardProps) => {
         </div>
 
         <div className="flex space-x-2">
-          {event.ticket_url && (
+          {/* Hide ticket button for past events */}
+          {event.ticket_url && !isEventPast && (
             <Button size="sm" className="flex-1" asChild>
               <a
                 href={event.ticket_url}
@@ -108,7 +132,12 @@ const EventCard = ({ event }: EventCardProps) => {
             </Button>
           )}
           {event.website_url && (
-            <Button size="sm" variant="outline" className="flex-1" asChild>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className={`${event.ticket_url && !isEventPast ? 'flex-1' : 'w-full'}`} 
+              asChild
+            >
               <a
                 href={event.website_url}
                 target="_blank"

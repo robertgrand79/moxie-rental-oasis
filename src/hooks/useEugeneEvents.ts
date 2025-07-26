@@ -27,12 +27,12 @@ export interface EugeneEvent {
   updated_at: string;
 }
 
-export const useEugeneEvents = () => {
+export const useEugeneEvents = (timeFilter: string = 'all', categoryFilter: string = 'all') => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { triggerAutoSync } = useAutoSync({ enabled: true, debounceMs: 2000 });
 
-  const { data: events = [], isLoading, error } = useQuery({
+  const { data: allEvents = [], isLoading, error } = useQuery({
     queryKey: ['eugene-events'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -43,6 +43,30 @@ export const useEugeneEvents = () => {
       if (error) throw error;
       return data as EugeneEvent[];
     }
+  });
+
+  // Filter events based on time and category
+  const events = allEvents.filter(event => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const eventDate = new Date(event.event_date);
+    eventDate.setHours(0, 0, 0, 0);
+
+    // Time filtering
+    let timeMatch = true;
+    if (timeFilter === 'upcoming') {
+      timeMatch = eventDate >= today;
+    } else if (timeFilter === 'past') {
+      timeMatch = eventDate < today;
+    }
+
+    // Category filtering
+    let categoryMatch = true;
+    if (categoryFilter !== 'all') {
+      categoryMatch = event.category === categoryFilter;
+    }
+
+    return timeMatch && categoryMatch;
   });
 
   const createEvent = useMutation({
