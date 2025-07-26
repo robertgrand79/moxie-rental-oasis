@@ -41,27 +41,52 @@ const validateApiCredentials = (token: string, secret: string): boolean => {
 const testTurnoApiConnection = async (token: string, secret: string, partnerId?: string): Promise<TurnoApiResponse> => {
   try {
     console.log('🔍 Testing Turno API connection...');
+    console.log('🔧 Using Token ID:', token ? `${token.substring(0, 8)}...` : 'Not provided');
+    console.log('🔧 Using Secret Key:', secret ? `${secret.substring(0, 8)}...` : 'Not provided');
     console.log('🔧 Using Partner ID:', partnerId ? `${partnerId.substring(0, 8)}...` : 'Not provided');
     
-    // Use only Partner ID header - no Basic Auth needed according to API example
-    const headers: Record<string, string> = {
+    // Try Bearer token authentication first (using Secret Key as Bearer token)
+    console.log('🔄 Attempting Bearer token authentication...');
+    let headers: Record<string, string> = {
+      'Authorization': `Bearer ${secret}`,
+      'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
     
-    // Add Partner ID header if provided (required for authentication)
+    // Add Partner ID header if provided
     if (partnerId) {
       headers['TBNB-Partner-ID'] = partnerId;
-    } else {
-      console.warn('⚠️ No Partner ID provided - this may cause authentication issues');
     }
     
-    console.log('🔧 Request headers:', Object.keys(headers).join(', '));
+    console.log('🔧 Request headers (Bearer):', Object.keys(headers).join(', '));
     
     // Test with properties endpoint using v2 API
-    const testResponse = await fetch('https://api.turnoverbnb.com/v2/properties', {
+    let testResponse = await fetch('https://api.turnoverbnb.com/v2/properties', {
       method: 'GET',
       headers,
     });
+
+    // If Bearer fails, try Basic Auth with Token ID:Secret Key
+    if (!testResponse.ok && testResponse.status === 401) {
+      console.log('🔄 Bearer token failed, trying Basic Auth...');
+      const authString = btoa(`${token}:${secret}`);
+      headers = {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      
+      if (partnerId) {
+        headers['TBNB-Partner-ID'] = partnerId;
+      }
+      
+      console.log('🔧 Request headers (Basic):', Object.keys(headers).join(', '));
+      
+      testResponse = await fetch('https://api.turnoverbnb.com/v2/properties', {
+        method: 'GET',
+        headers,
+      });
+    }
 
     if (!testResponse.ok) {
       const errorText = await testResponse.text();
@@ -111,8 +136,10 @@ const fetchTurnoProperties = async (token: string, secret: string, partnerId?: s
   try {
     console.log('🏠 Fetching properties from Turno API...');
     
-    // Use only Partner ID header - no Basic Auth needed
-    const headers: Record<string, string> = {
+    // Try Bearer token authentication first
+    let headers: Record<string, string> = {
+      'Authorization': `Bearer ${secret}`,
+      'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
     
@@ -120,10 +147,30 @@ const fetchTurnoProperties = async (token: string, secret: string, partnerId?: s
       headers['TBNB-Partner-ID'] = partnerId;
     }
     
-    const response = await fetch('https://api.turnoverbnb.com/v2/properties', {
+    let response = await fetch('https://api.turnoverbnb.com/v2/properties', {
       method: 'GET',
       headers,
     });
+
+    // If Bearer fails, try Basic Auth
+    if (!response.ok && response.status === 401) {
+      console.log('🔄 Bearer failed for properties, trying Basic Auth...');
+      const authString = btoa(`${token}:${secret}`);
+      headers = {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      
+      if (partnerId) {
+        headers['TBNB-Partner-ID'] = partnerId;
+      }
+      
+      response = await fetch('https://api.turnoverbnb.com/v2/properties', {
+        method: 'GET',
+        headers,
+      });
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -158,8 +205,10 @@ const fetchTurnoProblems = async (token: string, secret: string, partnerId?: str
       url += `?updated_since=${since}`;
     }
     
-    // Use only Partner ID header - no Basic Auth needed
-    const headers: Record<string, string> = {
+    // Try Bearer token authentication first
+    let headers: Record<string, string> = {
+      'Authorization': `Bearer ${secret}`,
+      'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
     
@@ -167,10 +216,30 @@ const fetchTurnoProblems = async (token: string, secret: string, partnerId?: str
       headers['TBNB-Partner-ID'] = partnerId;
     }
     
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       method: 'GET',
       headers,
     });
+
+    // If Bearer fails, try Basic Auth
+    if (!response.ok && response.status === 401) {
+      console.log('🔄 Bearer failed for problems, trying Basic Auth...');
+      const authString = btoa(`${token}:${secret}`);
+      headers = {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      
+      if (partnerId) {
+        headers['TBNB-Partner-ID'] = partnerId;
+      }
+      
+      response = await fetch(url, {
+        method: 'GET',
+        headers,
+      });
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -325,8 +394,9 @@ const syncStatusToTurno = async (supabase: any, token: string, secret: string, p
       throw new Error(`No Turno status mapping for work order status: ${workOrder.status}`);
     }
 
-    // Update Turno problem status
-    const headers: Record<string, string> = {
+    // Update Turno problem status - try Bearer first, then Basic Auth
+    let headers: Record<string, string> = {
+      'Authorization': `Bearer ${secret}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
@@ -335,7 +405,7 @@ const syncStatusToTurno = async (supabase: any, token: string, secret: string, p
       headers['TBNB-Partner-ID'] = partnerId;
     }
     
-    const response = await fetch(`https://api.turnoverbnb.com/v2/problems/${workOrder.turno_problem_id}`, {
+    let response = await fetch(`https://api.turnoverbnb.com/v2/problems/${workOrder.turno_problem_id}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({
@@ -343,6 +413,30 @@ const syncStatusToTurno = async (supabase: any, token: string, secret: string, p
         notes: `Status updated via work order #${workOrder.work_order_number}`
       })
     });
+
+    // If Bearer fails, try Basic Auth
+    if (!response.ok && response.status === 401) {
+      console.log('🔄 Bearer failed for status sync, trying Basic Auth...');
+      const authString = btoa(`${token}:${secret}`);
+      headers = {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      
+      if (partnerId) {
+        headers['TBNB-Partner-ID'] = partnerId;
+      }
+      
+      response = await fetch(`https://api.turnoverbnb.com/v2/problems/${workOrder.turno_problem_id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          status: turnoStatus,
+          notes: `Status updated via work order #${workOrder.work_order_number}`
+        })
+      });
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
