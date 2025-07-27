@@ -490,7 +490,7 @@ const syncStatusToTurno = async (supabase: any, token: string, secret: string, p
   }
 };
 
-// Enhanced sync problems from Turno with work order creation
+// Enhanced sync problems from Turno with new turno_problems table
 const syncProblemsFromTurno = async (supabase: any, token: string, secret: string, partnerId: string, createWorkOrders = false) => {
   console.log('🔄 Syncing problems from Turno...');
   
@@ -523,7 +523,7 @@ const syncProblemsFromTurno = async (supabase: any, token: string, secret: strin
     let conflictCount = 0;
     let createdCount = 0;
 
-    // Get property mappings and contractors for work order creation
+    // Get property mappings for future work order creation
     const { data: mappings } = await supabase
       .from('turno_property_mapping')
       .select('*')
@@ -536,81 +536,80 @@ const syncProblemsFromTurno = async (supabase: any, token: string, secret: strin
 
     for (const problem of problems) {
       try {
-        // Check if we have a work order for this problem
-        const { data: existingWO } = await supabase
-          .from('work_orders')
+        // Check if we already have this problem in our database
+        const { data: existingProblem } = await supabase
+          .from('turno_problems')
           .select('*')
           .eq('turno_problem_id', problem.id)
           .maybeSingle();
 
-        if (existingWO) {
-          // Update existing work order if status changed
-          const workOrderStatus = STATUS_MAPPING.turnoToWorkOrder[problem.status as keyof typeof STATUS_MAPPING.turnoToWorkOrder];
-          
-          if (workOrderStatus && existingWO.status !== workOrderStatus) {
-            // Check for conflicts (manual override)
-            if (existingWO.turno_status_override) {
-              console.log(`⚠️ Skipping sync for WO ${existingWO.id} - manual override active`);
-              continue;
-            }
+        // Get property mapping for property data
+        const propertyMapping = mappings?.find(m => m.turno_property_id === problem.property_id);
 
-            // Check timestamps to determine which is more recent
-            const turnoModified = new Date(problem.updated_at || problem.created_at);
-            const woModified = new Date(existingWO.updated_at);
-
-            if (turnoModified > woModified) {
-              // Turno is more recent, update work order
-              await supabase.from('work_orders')
-                .update({
-                  status: workOrderStatus,
-                  last_turno_sync_at: new Date().toISOString(),
-                  turno_last_modified: problem.updated_at,
-                  sync_conflict_reason: null
-                })
-                .eq('id', existingWO.id);
-
-              // Log sync
-              await supabase.from('turno_sync_log').insert({
-                work_order_id: existingWO.id,
-                sync_direction: 'from_turno',
-                sync_status: 'success',
-                status_before: existingWO.status,
-                status_after: workOrderStatus,
-                sync_details: { turno_problem: problem }
-              });
-
-              syncedCount++;
-              console.log(`✅ Updated work order ${existingWO.id} from Turno problem ${problem.id}`);
-            } else {
-              // Work order is more recent, potential conflict
-              conflictCount++;
-              await supabase.from('work_orders')
-                .update({
-                  sync_conflict_reason: `Status conflict: WO(${existingWO.status}) vs Turno(${problem.status})`
-                })
-                .eq('id', existingWO.id);
-
-              console.log(`⚠️ Status conflict detected for work order ${existingWO.id}`);
-            }
+        // Prepare problem data for upsert
+        const problemData = {
+          turno_problem_id: problem.id,
+          turno_property_id: problem.property_id,
+          title: problem.title || 'Untitled Problem',
+          description: problem.description || problem.notes,
+          status: problem.status || 'open',
+          priority: determinePriorityFromProblem(problem),
+          category: problem.category || 'general',
+          room_location: problem.room_location || problem.location,
+          reporter_name: problem.reporter_name,
+          reporter_email: problem.reporter_email,
+          reporter_phone: problem.reporter_phone,
+          property_address: propertyMapping?.property_name || problem.property_address,
+          turno_created_at: problem.created_at,
+          turno_updated_at: problem.updated_at,
+          sync_status: 'synced',
+          last_sync_at: new Date().toISOString(),
+          metadata: {
+            turno_raw_data: problem,
+            property_mapping_id: propertyMapping?.id
           }
-        } else if (createWorkOrders) {
-          // Create new work order from Turno problem
-          const propertyMapping = mappings?.find(m => m.turno_property_id === problem.property_id);
-          
-          if (propertyMapping) {
-            try {
-              await createWorkOrderFromProblem(supabase, problem, propertyMapping, contractors || []);
-              createdCount++;
-              console.log(`✅ Created work order from Turno problem ${problem.id}`);
-            } catch (createError) {
-              console.error(`❌ Failed to create work order from problem ${problem.id}:`, createError);
-            }
+        };
+
+        if (existingProblem) {
+          // Update existing problem
+          const { error } = await supabase
+            .from('turno_problems')
+            .update(problemData)
+            .eq('id', existingProblem.id);
+
+          if (error) {
+            console.error(`❌ Failed to update problem ${problem.id}:`, error);
           } else {
-            console.log(`⚠️ No property mapping found for Turno property ${problem.property_id}`);
+            syncedCount++;
+            console.log(`✅ Updated problem ${problem.id}`);
+          }
+        } else {
+          // Create new problem
+          const { error } = await supabase
+            .from('turno_problems')
+            .insert([problemData]);
+
+          if (error) {
+            console.error(`❌ Failed to create problem ${problem.id}:`, error);
+          } else {
+            createdCount++;
+            console.log(`✅ Created new problem ${problem.id}`);
           }
         }
+
+        // If createWorkOrders is true, also create work orders for new problems
+        if (createWorkOrders && !existingProblem && propertyMapping) {
+          try {
+            await createWorkOrderFromProblem(supabase, problem, propertyMapping, contractors || []);
+            console.log(`✅ Created work order from Turno problem ${problem.id}`);
+          } catch (createError) {
+            console.error(`❌ Failed to create work order from problem ${problem.id}:`, createError);
+          }
+        }
+
       } catch (error) {
         console.error(`❌ Error processing Turno problem ${problem.id}:`, error);
+        conflictCount++;
       }
     }
 

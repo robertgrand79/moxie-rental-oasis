@@ -12,6 +12,13 @@ import { formatDistanceToNow } from 'date-fns';
 interface TurnoProblemsTableProps {
   problems: TurnoProblem[];
   loading: boolean;
+  onCreateWorkOrder?: (problemId: string) => void;
+  onLinkWorkOrder?: (problemId: string) => void;
+  onUnlinkWorkOrder?: (problemId: string) => void;
+  onDeleteProblems?: (problemIds: string[]) => Promise<void>;
+  onBulkCreateWorkOrders?: (problemIds: string[]) => Promise<void>;
+  onBulkStatusUpdate?: (problemIds: string[], status: string) => Promise<void>;
+  onBulkExport?: (problemIds: string[]) => void;
 }
 
 const TurnoProblemsTable = ({ problems, loading }: TurnoProblemsTableProps) => {
