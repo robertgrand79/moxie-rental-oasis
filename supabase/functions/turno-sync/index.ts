@@ -748,7 +748,19 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Handle different sync endpoints
     if (req.method === 'POST') {
-      const requestBody = await req.json();
+      let requestBody;
+      try {
+        requestBody = await req.json();
+      } catch (parseError) {
+        console.error('❌ JSON parse error:', parseError);
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'Invalid JSON in request body' 
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
       
       // Sync specific work order status to Turno
       if (url.pathname.endsWith('/sync-status')) {
