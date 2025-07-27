@@ -127,12 +127,12 @@ const AdminTurnoProblems = () => {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Status</label>
-                  <Select value={filters.status || ''} onValueChange={(value) => updateFilters({ status: value || undefined })}>
+                  <Select value={filters.status || 'all'} onValueChange={(value) => updateFilters({ status: value === 'all' ? undefined : value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All statuses</SelectItem>
+                      <SelectItem value="all">All statuses</SelectItem>
                       <SelectItem value="open">Open</SelectItem>
                       <SelectItem value="in_progress">In Progress</SelectItem>
                       <SelectItem value="resolved">Resolved</SelectItem>
@@ -143,12 +143,12 @@ const AdminTurnoProblems = () => {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Priority</label>
-                  <Select value={filters.priority || ''} onValueChange={(value) => updateFilters({ priority: value || undefined })}>
+                  <Select value={filters.priority || 'all'} onValueChange={(value) => updateFilters({ priority: value === 'all' ? undefined : value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="All priorities" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All priorities</SelectItem>
+                      <SelectItem value="all">All priorities</SelectItem>
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
@@ -160,14 +160,14 @@ const AdminTurnoProblems = () => {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Work Order</label>
                   <Select 
-                    value={filters.has_work_order === undefined ? '' : filters.has_work_order.toString()} 
-                    onValueChange={(value) => updateFilters({ has_work_order: value === '' ? undefined : value === 'true' })}
+                    value={filters.has_work_order === undefined ? 'all' : filters.has_work_order.toString()} 
+                    onValueChange={(value) => updateFilters({ has_work_order: value === 'all' ? undefined : value === 'true' })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="All problems" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All problems</SelectItem>
+                      <SelectItem value="all">All problems</SelectItem>
                       <SelectItem value="true">With work order</SelectItem>
                       <SelectItem value="false">Without work order</SelectItem>
                     </SelectContent>
