@@ -269,6 +269,27 @@ const fetchTurnoProblems = async (token: string, secret: string, partnerId?: str
     let problemsData;
     try {
       problemsData = JSON.parse(responseText);
+      
+      // Log the structure to understand what we're getting
+      console.log('📋 Problems API result structure:', {
+        hasData: !!problemsData.data,
+        dataType: Array.isArray(problemsData.data) ? 'array' : typeof problemsData.data,
+        dataLength: Array.isArray(problemsData.data) ? problemsData.data.length : 'not array',
+        keys: Object.keys(problemsData || {}),
+        firstItemKeys: problemsData.data && problemsData.data[0] ? Object.keys(problemsData.data[0]) : 'no items'
+      });
+      
+      // Check if we actually have problems in the expected format
+      if (!problemsData.data || !Array.isArray(problemsData.data)) {
+        console.log('⚠️ API response does not contain expected data array');
+        console.log('📄 Full response structure:', JSON.stringify(problemsData, null, 2));
+        return {
+          success: true,
+          data: { data: [] },
+          message: 'No problems found (unexpected response format)'
+        };
+      }
+      
     } catch (parseError) {
       console.error('❌ JSON parse error:', parseError);
       console.error('Raw response that failed to parse:', responseText);
@@ -648,10 +669,60 @@ const syncProblemsFromTurno = async (supabase: any, token: string, secret: strin
   }
 };
 
+// Helper function to create sync log entry
+const createSyncLog = async (supabase: any, syncType: string, metadata: any = {}) => {
+  try {
+    const { data, error } = await supabase
+      .from('turno_sync_log')
+      .insert({
+        sync_type: syncType,
+        status: 'pending',
+        metadata
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Failed to create sync log:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Exception creating sync log:', error);
+    return null;
+  }
+};
+
+// Helper function to update sync log entry
+const updateSyncLog = async (supabase: any, logId: string, updates: any) => {
+  try {
+    if (!logId) return;
+    
+    const { error } = await supabase
+      .from('turno_sync_log')
+      .update({
+        ...updates,
+        completed_at: new Date().toISOString(),
+        duration_ms: updates.duration_ms || 0
+      })
+      .eq('id', logId);
+    
+    if (error) {
+      console.error('Failed to update sync log:', error);
+    }
+  } catch (error) {
+    console.error('Exception updating sync log:', error);
+  }
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
+  let syncLog: any = null;
 
   try {
     const url = new URL(req.url);

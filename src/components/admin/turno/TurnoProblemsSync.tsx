@@ -7,6 +7,7 @@ import { useTurnoSync } from '@/hooks/useTurnoSync';
 import { RefreshCw, RotateCw, ArrowLeftRight, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { TurnoPropertyTestButton } from './TurnoPropertyTestButton';
+import { TurnoSyncHistory } from './TurnoSyncHistory';
 
 interface TurnoProblemsSync {
   onSyncComplete?: () => void;
@@ -228,11 +229,7 @@ const TurnoProblemsSync = ({ onSyncComplete }: TurnoProblemsSync) => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Clock className="h-12 w-12 mx-auto mb-4" />
-                    <p>Sync history will be displayed here</p>
-                    <p className="text-sm mt-2">Check back after performing sync operations</p>
-                  </div>
+                  <TurnoSyncHistory />
                 </CardContent>
               </Card>
             </TabsContent>
