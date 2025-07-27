@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTurnoSync } from '@/hooks/useTurnoSync';
 import { RefreshCw, RotateCw, ArrowLeftRight, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { TurnoPropertyTestButton } from './TurnoPropertyTestButton';
 
 interface TurnoProblemsSync {
   onSyncComplete?: () => void;
@@ -144,6 +145,18 @@ const TurnoProblemsSync = ({ onSyncComplete }: TurnoProblemsSync) => {
             </TabsContent>
 
             <TabsContent value="actions" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">API Testing & Setup</CardTitle>
+                  <CardDescription>
+                    Test your Turno API credentials and fetch properties for mapping
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TurnoPropertyTestButton />
+                </CardContent>
+              </Card>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>

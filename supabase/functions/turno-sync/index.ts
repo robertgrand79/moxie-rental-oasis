@@ -251,10 +251,30 @@ const fetchTurnoProblems = async (token: string, secret: string, partnerId?: str
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`❌ Problems API error: ${response.status} ${response.statusText}`, errorText);
-      throw new Error(`Problems API error: ${response.status} ${response.statusText}`);
+      throw new Error(`Problems API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
-    const problemsData = await response.json();
+    const responseText = await response.text();
+    console.log('📄 Raw API response:', responseText.substring(0, 200) + '...');
+    
+    if (!responseText.trim()) {
+      console.log('⚠️ Empty response from Turno API');
+      return {
+        success: true,
+        data: { data: [] },
+        message: 'No problems found (empty response)'
+      };
+    }
+
+    let problemsData;
+    try {
+      problemsData = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('❌ JSON parse error:', parseError);
+      console.error('Raw response that failed to parse:', responseText);
+      throw new Error(`Invalid JSON response from Turno API: ${parseError.message}`);
+    }
+
     console.log(`✅ Found ${problemsData.data?.length || 0} problems in Turno`);
     
     return {
@@ -766,10 +786,25 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error('❌ Turno sync error:', error);
     
+    // Enhanced error logging
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      turnoApiToken: turnoApiToken ? `${turnoApiToken.substring(0, 8)}...` : 'missing',
+      turnoApiSecret: turnoApiSecret ? `${turnoApiSecret.substring(0, 8)}...` : 'missing',
+      turnoPartnerId: turnoPartnerId ? `${turnoPartnerId.substring(0, 8)}...` : 'missing'
+    });
+    
     return new Response(JSON.stringify({ 
       success: false, 
       error: error.message,
-      message: 'Turno sync operation failed'
+      message: 'Turno sync operation failed',
+      debug: {
+        errorType: error.name,
+        hasCredentials: !!(turnoApiToken && turnoApiSecret),
+        hasPartnerId: !!turnoPartnerId
+      }
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
