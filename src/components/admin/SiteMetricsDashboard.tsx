@@ -63,15 +63,25 @@ const SiteMetricsDashboard = () => {
   const activeErrorCount = getActiveErrorCount();
   const criticalErrorCount = getCriticalErrorCount();
 
-  // Listen for reset event from navigation
+  // Listen for reset and refresh events
   useEffect(() => {
     const handleReset = () => {
       setIsErrorModalOpen(false);
       refreshData();
     };
 
+    const handleRefresh = () => {
+      console.log('🔄 SiteMetricsDashboard: Refresh event received after GA script load');
+      refreshData();
+    };
+
     window.addEventListener('resetSiteMetricsDashboard', handleReset);
-    return () => window.removeEventListener('resetSiteMetricsDashboard', handleReset);
+    window.addEventListener('refreshSiteMetrics', handleRefresh);
+    
+    return () => {
+      window.removeEventListener('resetSiteMetricsDashboard', handleReset);
+      window.removeEventListener('refreshSiteMetrics', handleRefresh);
+    };
   }, [refreshData]);
 
   if (loading) {

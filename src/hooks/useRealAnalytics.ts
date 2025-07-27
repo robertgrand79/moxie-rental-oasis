@@ -1,10 +1,8 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { analyticsService } from '@/services/analytics/analyticsService';
 import { AnalyticsData, PerformanceMetrics, SystemHealth, GAHealthCheck } from '@/services/analytics/types';
 import { toast } from '@/hooks/use-toast';
-import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
-import { useSiteMetricsOptimization } from '@/hooks/useSiteMetricsOptimization';
 
 export const useRealAnalytics = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
@@ -17,59 +15,75 @@ export const useRealAnalytics = () => {
   const [gaError, setGaError] = useState<string | null>(null);
   const [gaHealthCheck, setGaHealthCheck] = useState<GAHealthCheck | null>(null);
 
-  // Performance optimization hooks
-  const { throttledFunction, debouncedFunction, memoryUsageMonitor } = usePerformanceOptimization();
-  const { optimizePerformance } = useSiteMetricsOptimization();
+  // Simple throttling and debouncing without external hooks
+  const throttleMap = useMemo(() => new Map(), []);
+  const debounceMap = useMemo(() => new Map(), []);
 
-  // Optimized data fetching with performance monitoring
+  const createThrottledFunction = useCallback((fn: Function, delay: number) => {
+    return (...args: any[]) => {
+      const key = fn.toString();
+      if (!throttleMap.has(key)) {
+        throttleMap.set(key, true);
+        fn(...args);
+        setTimeout(() => throttleMap.delete(key), delay);
+      }
+    };
+  }, [throttleMap]);
+
+  const createDebouncedFunction = useCallback((fn: Function, delay: number) => {
+    return (...args: any[]) => {
+      const key = fn.toString();
+      if (debounceMap.has(key)) {
+        clearTimeout(debounceMap.get(key));
+      }
+      const timeoutId = setTimeout(() => {
+        fn(...args);
+        debounceMap.delete(key);
+      }, delay);
+      debounceMap.set(key, timeoutId);
+    };
+  }, [debounceMap]);
+
+  // Simplified data fetching
   const fetchAnalyticsData = useCallback(async () => {
     try {
       setLoading(true);
       setGaError(null);
-      console.log('🔄 useRealAnalytics: Starting optimized data fetch...');
+      console.log('🔄 useRealAnalytics: Starting data fetch...');
       
-      // Check memory usage before heavy operations
-      const memoryStatus = memoryUsageMonitor();
-      if (!memoryStatus.isMemoryOptimal) {
-        console.warn('⚠️ useRealAnalytics: Memory usage high, optimizing fetch strategy');
-        // Add small delay to allow memory cleanup
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      
-      // Fetch all data in parallel with error boundaries
-      const [analytics, performance, health, visitors] = await Promise.allSettled([
+      // Fetch all data in parallel with timeout
+      const dataPromises = [
         analyticsService.getAnalyticsData(),
         analyticsService.getPerformanceMetrics(),
         analyticsService.getSystemHealth(),
         analyticsService.getRealTimeVisitors()
-      ]);
+      ];
 
-      // Handle results with proper error checking
-      if (analytics.status === 'fulfilled') {
-        setAnalyticsData(analytics.value);
-      } else {
-        console.error('❌ Analytics data fetch failed:', analytics.reason);
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Data fetch timeout')), 10000)
+      );
+
+      const results = await Promise.race([
+        Promise.allSettled(dataPromises),
+        timeoutPromise
+      ]) as PromiseSettledResult<any>[];
+
+      // Handle results
+      if (results[0]?.status === 'fulfilled') {
+        setAnalyticsData(results[0].value);
       }
-
-      if (performance.status === 'fulfilled') {
-        setPerformanceMetrics(performance.value);
-      } else {
-        console.error('❌ Performance metrics fetch failed:', performance.reason);
+      if (results[1]?.status === 'fulfilled') {
+        setPerformanceMetrics(results[1].value);
       }
-
-      if (health.status === 'fulfilled') {
-        setSystemHealth(health.value);
-      } else {
-        console.error('❌ System health fetch failed:', health.reason);
+      if (results[2]?.status === 'fulfilled') {
+        setSystemHealth(results[2].value);
       }
-
-      if (visitors.status === 'fulfilled') {
-        setRealTimeVisitors(visitors.value);
-      } else {
-        console.error('❌ Real-time visitors fetch failed:', visitors.reason);
+      if (results[3]?.status === 'fulfilled') {
+        setRealTimeVisitors(results[3].value);
       }
       
-      // Check current GA status and health with performance optimization
+      // Check GA status
       setGaInitializing(true);
       const [isDemoMode, healthCheck] = await Promise.allSettled([
         analyticsService.isDemoMode(),
@@ -77,103 +91,95 @@ export const useRealAnalytics = () => {
       ]);
       
       if (isDemoMode.status === 'fulfilled') {
-        setIsDemo(isDemoMode.value);
+        const demoMode = isDemoMode.value;
+        setIsDemo(demoMode);
+        
+        // Only show toast once per session
+        if (!demoMode && isDemo && !sessionStorage.getItem('ga-connected-shown')) {
+          toast({
+            title: "Google Analytics Connected",
+            description: "Now showing real analytics data.",
+            duration: 3000,
+          });
+          sessionStorage.setItem('ga-connected-shown', 'true');
+        }
       }
       
       if (healthCheck.status === 'fulfilled') {
         setGaHealthCheck(healthCheck.value);
-        
-        // Show toast notifications for GA status changes (throttled)
-        if (healthCheck.value.status === 'healthy' && isDemo) {
-          toast({
-            title: "Google Analytics Connected",
-            description: "Now showing real analytics data instead of demo data.",
-            duration: 5000,
-          });
-        } else if (healthCheck.value.status === 'error') {
-          toast({
-            title: "Google Analytics Issue",
-            description: healthCheck.value.message,
-            variant: "destructive",
-            duration: 7000,
-          });
-        }
       }
       
       setGaInitializing(false);
-      
-      console.log(`📊 useRealAnalytics: Optimized data fetch complete`);
+      console.log('✅ useRealAnalytics: Data fetch complete');
     } catch (error) {
-      console.error('❌ useRealAnalytics: Error in optimized fetch:', error);
+      console.error('❌ useRealAnalytics: Error fetching data:', error);
       setGaError(error instanceof Error ? error.message : 'Unknown error');
       setGaInitializing(false);
     } finally {
       setLoading(false);
     }
-  }, [memoryUsageMonitor, isDemo]);
+  }, [isDemo]);
 
-  // Performance-optimized refresh with debouncing
+  // Debounced refresh to prevent rapid clicking
   const refreshData = useCallback(
-    debouncedFunction(async () => {
+    createDebouncedFunction(async () => {
       try {
-        console.log('🔄 useRealAnalytics: Manual refresh triggered (debounced)');
+        console.log('🔄 useRealAnalytics: Manual refresh triggered');
         setGaInitializing(true);
         setGaError(null);
         
-        // Force refresh GA initialization (bypasses throttling)
+        // Force refresh GA initialization
         const gaRefreshResult = await analyticsService.refreshGA();
         console.log('📊 useRealAnalytics: GA refresh result:', gaRefreshResult);
         
-        // Re-fetch all data immediately after GA refresh
+        // Re-fetch all data
         await fetchAnalyticsData();
       } catch (error) {
         console.error('❌ useRealAnalytics: Error during manual refresh:', error);
         setGaError(error instanceof Error ? error.message : 'Refresh failed');
         setGaInitializing(false);
       }
-    }, 500), // 500ms debounce to prevent rapid clicking
-    [debouncedFunction, fetchAnalyticsData]
+    }, 500),
+    [createDebouncedFunction, fetchAnalyticsData]
   );
 
   // Throttled real-time visitors update
   const updateRealTimeVisitors = useCallback(
-    throttledFunction(async () => {
+    createThrottledFunction(async () => {
       try {
         const visitors = await analyticsService.getRealTimeVisitors();
         setRealTimeVisitors(visitors);
       } catch (error) {
         console.error('❌ useRealAnalytics: Error updating real-time visitors:', error);
       }
-    }, 5000), // Throttle to max once per 5 seconds
-    [throttledFunction]
+    }, 5000),
+    [createThrottledFunction]
   );
 
-  // Initialize on mount with optimization
+  // Initialize on mount
   useEffect(() => {
-    console.log('🔄 useRealAnalytics: Initializing with optimization...');
-    optimizePerformance();
+    console.log('🔄 useRealAnalytics: Initializing...');
     fetchAnalyticsData();
-  }, [fetchAnalyticsData, optimizePerformance]);
+  }, []); // Remove dependencies to prevent re-initialization
 
-  // Set up optimized intervals for real-time updates
+  // Set up intervals for real-time updates
   useEffect(() => {
-    // Update real-time visitors every 30 seconds (throttled)
-    const visitorInterval = setInterval(updateRealTimeVisitors, 30000);
+    // Update real-time visitors every 30 seconds
+    const visitorInterval = setInterval(() => {
+      updateRealTimeVisitors();
+    }, 30000);
 
-    // Refresh analytics data every 5 minutes (throttled)
+    // Refresh analytics data every 5 minutes
     const analyticsInterval = setInterval(() => {
-      console.log('🔄 useRealAnalytics: Scheduled refresh (throttled)');
-      
-      // Use throttled version for automatic refreshes
-      const throttledRefresh = throttledFunction(fetchAnalyticsData, 60000); // Max once per minute
-      throttledRefresh();
+      console.log('🔄 useRealAnalytics: Scheduled refresh');
+      fetchAnalyticsData();
     }, 5 * 60 * 1000);
 
     return () => {
       clearInterval(visitorInterval);
       clearInterval(analyticsInterval);
     };
-  }, [updateRealTimeVisitors, fetchAnalyticsData, throttledFunction]);
+  }, []); // Remove dependencies to prevent recreation
 
   // Track events
   const trackEvent = useCallback((eventName: string, parameters?: Record<string, any>) => {

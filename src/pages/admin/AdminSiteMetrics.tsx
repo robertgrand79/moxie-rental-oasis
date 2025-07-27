@@ -11,10 +11,14 @@ const AdminSiteMetrics = () => {
   
   // Lazy load Google Analytics only for this page
   const { cleanupGAResources } = useLazyGoogleAnalytics({
-    enabled: true,
+    enabled: !!(settings.googleAnalyticsId && settings.googleAnalyticsId.trim()),
     googleAnalyticsId: settings.googleAnalyticsId || '',
     onScriptLoad: () => {
-      console.log('📊 AdminSiteMetrics: GA script loaded lazily');
+      console.log('📊 AdminSiteMetrics: GA script loaded successfully');
+      // Trigger a refresh of analytics data after script loads
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('refreshSiteMetrics'));
+      }, 1000);
     },
     onScriptError: (error) => {
       console.error('❌ AdminSiteMetrics: GA script loading error:', error);
