@@ -56,6 +56,9 @@ verify_jwt = false
 [functions.turno-sync-properties]
 verify_jwt = false
 
+[functions.acknowledge-work-order]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323

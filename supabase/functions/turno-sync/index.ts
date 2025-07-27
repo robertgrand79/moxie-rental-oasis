@@ -759,18 +759,28 @@ const handler = async (req: Request): Promise<Response> => {
     }
     
     if (req.method === 'POST') {
-      let requestBody;
-      try {
-        requestBody = await req.json();
-      } catch (parseError) {
-        console.error('❌ JSON parse error:', parseError);
-        return new Response(JSON.stringify({ 
-          success: false, 
-          error: 'Invalid JSON in request body' 
-        }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        });
+      let requestBody = {};
+      
+      // Only try to parse JSON if there's content in the request
+      const contentLength = req.headers.get('content-length');
+      const hasContent = contentLength && parseInt(contentLength) > 0;
+      
+      if (hasContent) {
+        try {
+          const text = await req.text();
+          if (text.trim()) {
+            requestBody = JSON.parse(text);
+          }
+        } catch (parseError) {
+          console.error('❌ JSON parse error:', parseError);
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: 'Invalid JSON in request body' 
+          }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
       }
       
       // Sync specific work order status to Turno

@@ -40,7 +40,7 @@ export const TurnoPropertyTestButton = () => {
     try {
       setIsLoading(true);
       
-      const { data, error } = await supabase.functions.invoke('turno-sync/properties');
+      const { data, error } = await supabase.functions.invoke('turno-sync-properties');
       
       if (error) throw error;
       
