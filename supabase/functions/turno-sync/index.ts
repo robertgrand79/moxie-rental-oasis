@@ -497,8 +497,8 @@ const syncProblemsFromTurno = async (supabase: any, token: string, secret: strin
   try {
     console.log('🔄 Syncing problems from Turno...');
     
-    // Fetch recent problems from Turno (last 24 hours for updates, all for bulk import)
-    const since = createWorkOrders ? null : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    // Fetch recent problems from Turno (last 7 days for updates, all for bulk import)
+    const since = createWorkOrders ? null : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const problemsResult = await fetchTurnoProblems(token, secret, partnerId, since);
     
     console.log('📋 Problems API result:', { success: problemsResult.success, hasData: !!problemsResult.data });

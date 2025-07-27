@@ -141,6 +141,7 @@ const TurnoSyncPanel = () => {
               >
                 <RefreshCw className={`h-4 w-4 ${syncStatus.isLoading ? 'animate-spin' : ''}`} />
                 Sync from Turno
+                <span className="text-xs opacity-70 ml-1">(7 days)</span>
               </Button>
               
               <Button 
@@ -150,7 +151,7 @@ const TurnoSyncPanel = () => {
                 className="flex items-center gap-2"
               >
                 <RotateCw className={`h-4 w-4 ${syncStatus.isLoading ? 'animate-spin' : ''}`} />
-                Import as Work Orders
+                Full Sync (All Problems)
               </Button>
               
               <Button 
