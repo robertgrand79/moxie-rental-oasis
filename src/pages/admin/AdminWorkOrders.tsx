@@ -9,7 +9,7 @@ import WorkOrdersGrid from '@/components/admin/workorders/WorkOrdersGrid';
 import WorkOrdersTable from '@/components/admin/workorders/WorkOrdersTable';
 import WorkOrderSidePanel from '@/components/admin/workorders/WorkOrderSidePanel';
 import LoadingState from '@/components/ui/loading-state';
-import TurnoSyncPanel from '@/components/admin/workorders/TurnoSyncPanel';
+
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminWorkOrders = () => {
@@ -107,8 +107,6 @@ const AdminWorkOrders = () => {
         onRefresh={refreshData}
       />
 
-      {/* Turno Sync Panel */}
-      <TurnoSyncPanel />
 
       {viewMode === 'grid' ? (
         <WorkOrdersGrid

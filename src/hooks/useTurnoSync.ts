@@ -199,31 +199,10 @@ export const useTurnoSync = () => {
   // Toggle manual status override for a work order
   const toggleStatusOverride = async (workOrderId: string, override: boolean) => {
     try {
-      const { error } = await supabase
-        .from('work_orders')
-        .update({ 
-          turno_status_override: override,
-          sync_conflict_reason: override ? 'Manual override enabled' : null
-        })
-        .eq('id', workOrderId);
-
-      if (error) throw error;
-
-      toast({
-        title: override ? 'Override Enabled' : 'Override Disabled',
-        description: override 
-          ? 'This work order will not sync status changes from Turno'
-          : 'This work order will resume automatic sync with Turno',
-      });
-
-      return true;
+      // Note: This function is deprecated since Turno integration was removed from work orders
+      console.warn('toggleStatusOverride called but Turno integration has been removed');
+      return false;
     } catch (error: any) {
-      console.error('Error toggling status override:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update sync override setting',
-        variant: 'destructive',
-      });
       return false;
     }
   };
@@ -231,19 +210,8 @@ export const useTurnoSync = () => {
   // Check work orders with sync conflicts
   const checkSyncConflicts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('work_orders')
-        .select('id, work_order_number, title, sync_conflict_reason')
-        .not('sync_conflict_reason', 'is', null);
-
-      if (error) throw error;
-      
-      setSyncStatus(prev => ({ 
-        ...prev, 
-        conflicts: data?.length || 0 
-      }));
-
-      return data || [];
+      // Note: Sync conflicts are now managed in Turno Problems section
+      return [];
     } catch (error) {
       console.error('Error checking sync conflicts:', error);
       return [];

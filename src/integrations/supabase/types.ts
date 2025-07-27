@@ -2041,7 +2041,6 @@ export type Database = {
           estimated_cost: number | null
           id: string
           invoice_attachments: string[] | null
-          last_turno_sync_at: string | null
           priority: string
           property_id: string | null
           requires_permits: boolean | null
@@ -2050,14 +2049,10 @@ export type Database = {
           source: string
           special_instructions: string | null
           status: string
-          sync_conflict_reason: string | null
           task_id: string | null
           title: string
           turno_last_modified: string | null
-          turno_problem_id: string | null
           turno_property_id: string | null
-          turno_status_override: boolean | null
-          turno_sync_status: string | null
           updated_at: string
           work_order_number: string
         }
@@ -2077,7 +2072,6 @@ export type Database = {
           estimated_cost?: number | null
           id?: string
           invoice_attachments?: string[] | null
-          last_turno_sync_at?: string | null
           priority?: string
           property_id?: string | null
           requires_permits?: boolean | null
@@ -2086,14 +2080,10 @@ export type Database = {
           source?: string
           special_instructions?: string | null
           status?: string
-          sync_conflict_reason?: string | null
           task_id?: string | null
           title: string
           turno_last_modified?: string | null
-          turno_problem_id?: string | null
           turno_property_id?: string | null
-          turno_status_override?: boolean | null
-          turno_sync_status?: string | null
           updated_at?: string
           work_order_number: string
         }
@@ -2113,7 +2103,6 @@ export type Database = {
           estimated_cost?: number | null
           id?: string
           invoice_attachments?: string[] | null
-          last_turno_sync_at?: string | null
           priority?: string
           property_id?: string | null
           requires_permits?: boolean | null
@@ -2122,14 +2111,10 @@ export type Database = {
           source?: string
           special_instructions?: string | null
           status?: string
-          sync_conflict_reason?: string | null
           task_id?: string | null
           title?: string
           turno_last_modified?: string | null
-          turno_problem_id?: string | null
           turno_property_id?: string | null
-          turno_status_override?: boolean | null
-          turno_sync_status?: string | null
           updated_at?: string
           work_order_number?: string
         }

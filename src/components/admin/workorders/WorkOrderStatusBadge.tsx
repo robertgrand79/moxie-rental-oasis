@@ -2,13 +2,11 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
-import TurnoSyncStatusBadge from './TurnoSyncStatusBadge';
-import { WorkOrder } from '@/hooks/useWorkOrderManagement';
+
+
 
 interface WorkOrderStatusBadgeProps {
   status: string;
-  workOrder?: WorkOrder;
-  showTurnoSync?: boolean;
 }
 
 const statusColors = {
@@ -35,17 +33,12 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-const WorkOrderStatusBadge = ({ status, workOrder, showTurnoSync = false }: WorkOrderStatusBadgeProps) => {
+const WorkOrderStatusBadge = ({ status }: WorkOrderStatusBadgeProps) => {
   return (
-    <div className="flex items-center gap-2">
-      <Badge className={`${statusColors[status as keyof typeof statusColors]} flex items-center gap-1 w-fit`}>
-        {getStatusIcon(status)}
-        {status.replace('_', ' ')}
-      </Badge>
-      {showTurnoSync && workOrder && (
-        <TurnoSyncStatusBadge workOrder={workOrder} showActions={false} />
-      )}
-    </div>
+    <Badge className={`${statusColors[status as keyof typeof statusColors]} flex items-center gap-1 w-fit`}>
+      {getStatusIcon(status)}
+      {status.replace('_', ' ')}
+    </Badge>
   );
 };
 

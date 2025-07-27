@@ -28,15 +28,6 @@ export interface WorkOrder {
   created_by: string;
   created_at: string;
   updated_at: string;
-  // Turno sync fields
-  turno_problem_id?: string;
-  turno_property_id?: string;
-  turno_sync_status?: string;
-  last_turno_sync_at?: string;
-  turno_status_override?: boolean;
-  sync_conflict_reason?: string;
-  turno_last_modified?: string;
-  source?: string;
   property?: {
     id: string;
     title: string;
