@@ -92,6 +92,8 @@ const fetchTurnoProperties = async (token: string, secret: string, partnerId?: s
 };
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log('🚀 Turno Properties function called:', req.method, req.url);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -110,6 +112,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Turno API credentials not configured');
     }
 
+    console.log('🔧 Using configured Turno credentials');
+
     // Fetch properties from Turno
     const propertiesResult = await fetchTurnoProperties(turnoApiToken, turnoApiSecret, turnoPartnerId);
     
@@ -119,6 +123,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Cache properties in database
     const properties = Array.isArray(propertiesResult.data?.data) ? propertiesResult.data.data : [];
+    
+    console.log(`📊 Caching ${properties.length} properties to database...`);
     
     for (const property of properties) {
       try {
@@ -136,6 +142,8 @@ const handler = async (req: Request): Promise<Response> => {
         console.error(`Failed to cache property ${property.id}:`, error);
       }
     }
+
+    console.log('✅ Properties sync completed successfully');
 
     return new Response(JSON.stringify({
       success: true,
