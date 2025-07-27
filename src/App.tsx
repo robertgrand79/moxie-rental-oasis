@@ -47,6 +47,7 @@ import AdminProfile from './pages/AdminProfile';
 import PublicLayout from './components/layouts/PublicLayout';
 import AdminImageOptimization from './pages/admin/AdminImageOptimization';
 import AdminNavigationTesting from './pages/admin/AdminNavigationTesting';
+import AdminTurnoProblems from './pages/admin/AdminTurnoProblems';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -102,6 +103,7 @@ function App() {
                   <Route path="testimonials" element={<AdminTestimonials />} />
                   <Route path="work-orders" element={<AdminWorkOrders />} />
                   <Route path="contractors" element={<AdminContractors />} />
+                  <Route path="turno-problems" element={<AdminTurnoProblems />} />
                   <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="metrics" element={<AdminSiteMetrics />} />
                   <Route path="metrics-testing" element={<AdminSiteMetricsTesting />} />

@@ -18,6 +18,7 @@ import {
   Settings,
   Database,
   TestTube,
+  AlertTriangle,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -87,6 +88,12 @@ export const adminMenuItems = [
         href: '/admin/contractors',
         icon: HardHat,
         description: 'Manage contractors and service providers'
+      },
+      {
+        title: 'Turno Problems',
+        href: '/admin/turno-problems',
+        icon: AlertTriangle,
+        description: 'Manage problems from Turno field service'
       }
     ]
   },

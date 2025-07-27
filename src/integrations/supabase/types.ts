@@ -1672,6 +1672,86 @@ export type Database = {
         }
         Relationships: []
       }
+      turno_problems: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          last_sync_at: string
+          linked_work_order_id: string | null
+          metadata: Json | null
+          priority: string
+          property_address: string | null
+          reporter_email: string | null
+          reporter_name: string | null
+          reporter_phone: string | null
+          room_location: string | null
+          status: string
+          sync_status: string
+          title: string
+          turno_created_at: string | null
+          turno_problem_id: string
+          turno_property_id: string
+          turno_updated_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_sync_at?: string
+          linked_work_order_id?: string | null
+          metadata?: Json | null
+          priority?: string
+          property_address?: string | null
+          reporter_email?: string | null
+          reporter_name?: string | null
+          reporter_phone?: string | null
+          room_location?: string | null
+          status?: string
+          sync_status?: string
+          title: string
+          turno_created_at?: string | null
+          turno_problem_id: string
+          turno_property_id: string
+          turno_updated_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_sync_at?: string
+          linked_work_order_id?: string | null
+          metadata?: Json | null
+          priority?: string
+          property_address?: string | null
+          reporter_email?: string | null
+          reporter_name?: string | null
+          reporter_phone?: string | null
+          room_location?: string | null
+          status?: string
+          sync_status?: string
+          title?: string
+          turno_created_at?: string | null
+          turno_problem_id?: string
+          turno_property_id?: string
+          turno_updated_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_turno_problems_work_order"
+            columns: ["linked_work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       turno_property_mapping: {
         Row: {
           created_at: string
