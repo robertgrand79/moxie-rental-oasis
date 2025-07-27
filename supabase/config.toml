@@ -53,7 +53,7 @@ verify_jwt = false
 [functions.send-newsletter-sms]
 verify_jwt = false
 
-[functions.acknowledge-work-order]
+[functions.turno-sync-properties]
 verify_jwt = false
 
 [edge-runtime]
