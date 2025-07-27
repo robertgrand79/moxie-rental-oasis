@@ -2172,6 +2172,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      turno_sync_properties: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       user_has_permission: {
         Args: { user_id: string; permission_key: string }
         Returns: boolean
