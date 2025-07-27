@@ -15,14 +15,14 @@ export const useTurnoProperties = () => {
       console.log('🏠 Fetching Turno properties from API...');
       setSyncing(true);
       
-      const { data, error } = await supabase.functions.invoke('turno-sync');
+      const { data, error } = await supabase.functions.invoke('turno-sync-properties');
       
       if (error) {
         throw error;
       }
 
-      if (data?.success && data?.data?.properties) {
-        const properties = data.data.properties.sample || [];
+      if (data?.success && data?.properties) {
+        const properties = data.properties || [];
         setTurnoProperties(properties);
         
         // Cache properties in database

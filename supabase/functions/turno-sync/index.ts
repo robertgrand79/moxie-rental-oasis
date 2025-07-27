@@ -746,7 +746,18 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Invalid Turno API credentials format');
     }
 
-    // Handle different sync endpoints
+    // Handle different sync endpoints based on pathname and method
+    if (url.pathname.endsWith('/properties')) {
+      // Properties endpoint - delegate to properties function
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Properties endpoint should be called via turno-sync/properties function'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
+    }
+    
     if (req.method === 'POST') {
       let requestBody;
       try {
