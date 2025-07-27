@@ -37,7 +37,7 @@ const AdminQuickStats = ({ properties, blogPosts, pages, events }: AdminQuickSta
       value: blogPosts.length,
       icon: BookOpen,
       color: 'text-green-600',
-      href: '/blog-management',
+      href: '/admin/blog',
       actionText: 'Write Post'
     },
     {

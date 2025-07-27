@@ -33,7 +33,7 @@ const AdminQuickActions = () => {
       title: 'Add Blog Post',
       description: 'Create new blog content',
       icon: <FileText className="h-4 w-4" />,
-      action: () => navigate('/admin/blog-posts?action=create'),
+      action: () => navigate('/admin/blog?action=create'),
       variant: 'outline' as const,
     },
     {

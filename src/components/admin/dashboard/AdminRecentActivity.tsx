@@ -31,7 +31,7 @@ const AdminRecentActivity = ({ blogPosts }: AdminRecentActivityProps) => {
             Recent Blog Posts
           </CardTitle>
           <Button asChild size="sm" variant="outline">
-            <Link to="/admin/blog-management">View All</Link>
+            <Link to="/admin/blog">View All</Link>
           </Button>
         </div>
       </CardHeader>
@@ -58,7 +58,7 @@ const AdminRecentActivity = ({ blogPosts }: AdminRecentActivityProps) => {
             <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-300" />
             <p>No blog posts yet</p>
             <Button asChild size="sm" className="mt-2">
-              <Link to="/admin/blog-management">Create Your First Post</Link>
+              <Link to="/admin/blog">Create Your First Post</Link>
             </Button>
           </div>
         )}

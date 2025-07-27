@@ -55,9 +55,9 @@ const AdminContentStatsGrid = ({
       count: blogPosts.length,
       icon: BookOpen,
       color: 'text-green-600',
-      href: '/admin/blog-posts',
+      href: '/admin/blog',
       actionText: 'Write Post',
-      actionHref: '/admin/blog-posts?action=add',
+      actionHref: '/admin/blog?action=add',
       additionalStats: [
         {
           label: 'Published',

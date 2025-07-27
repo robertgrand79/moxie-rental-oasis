@@ -40,7 +40,7 @@ const adminNavItems = [
   { name: 'Testimonials', href: '/admin/testimonials', icon: Star },
   { name: 'Pages', href: '/admin/pages', icon: FileText },
   { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
-  { name: 'Blog Posts', href: '/admin/blog-posts', icon: BookOpen },
+  { name: 'Blog Posts', href: '/admin/blog', icon: BookOpen },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Site Metrics', href: '/admin/site-metrics', icon: BarChart3 },
   { name: 'Roles & Permissions', href: '/admin/roles-permissions', icon: Users },

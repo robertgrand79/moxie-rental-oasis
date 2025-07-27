@@ -24,7 +24,7 @@ const AdminQuickActionsEnhanced = () => {
       key: 'write-post',
       icon: BookOpen,
       label: 'Write Blog Post',
-      path: '/admin/blog-posts?action=add'
+      path: '/admin/blog?action=add'
     },
     {
       key: 'create-page',
