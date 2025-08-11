@@ -306,6 +306,45 @@ export type Database = {
         }
         Relationships: []
       }
+      community_updates: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          image_url: string | null
+          is_pinned: boolean
+          publish_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          image_url?: string | null
+          is_pinned?: boolean
+          publish_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          image_url?: string | null
+          is_pinned?: boolean
+          publish_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_approval_items: {
         Row: {
           content: string
@@ -978,6 +1017,77 @@ export type Database = {
           },
         ]
       }
+      office_rentals: {
+        Row: {
+          company_name: string | null
+          contract_signed_at: string | null
+          created_at: string
+          email: string
+          end_date: string | null
+          id: string
+          monthly_price: number | null
+          name: string
+          notes: string | null
+          office_space_id: string
+          phone: string | null
+          rental_type: string
+          start_date: string | null
+          status: string | null
+          stripe_payment_intent_id: string | null
+          total_amount: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          contract_signed_at?: string | null
+          created_at?: string
+          email: string
+          end_date?: string | null
+          id?: string
+          monthly_price?: number | null
+          name: string
+          notes?: string | null
+          office_space_id: string
+          phone?: string | null
+          rental_type?: string
+          start_date?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          contract_signed_at?: string | null
+          created_at?: string
+          email?: string
+          end_date?: string | null
+          id?: string
+          monthly_price?: number | null
+          name?: string
+          notes?: string | null
+          office_space_id?: string
+          phone?: string | null
+          rental_type?: string
+          start_date?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_rentals_office_space_id_fkey"
+            columns: ["office_space_id"]
+            isOneToOne: false
+            referencedRelation: "office_spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       office_spaces: {
         Row: {
           amenities: string[] | null
@@ -1089,7 +1199,7 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           id: string
           is_published: boolean
           meta_description: string | null
@@ -1100,7 +1210,7 @@ export type Database = {
         Insert: {
           content?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           id?: string
           is_published?: boolean
           meta_description?: string | null
@@ -1111,7 +1221,7 @@ export type Database = {
         Update: {
           content?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           id?: string
           is_published?: boolean
           meta_description?: string | null
@@ -1119,7 +1229,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permission_audit_logs: {
         Row: {
@@ -1672,6 +1790,51 @@ export type Database = {
         }
         Relationships: []
       }
+      tour_requests: {
+        Row: {
+          created_at: string
+          email: string
+          first_preferred_date: string
+          first_preferred_time: string
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+          second_preferred_date: string | null
+          second_preferred_time: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_preferred_date: string
+          first_preferred_time: string
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+          second_preferred_date?: string | null
+          second_preferred_time?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_preferred_date?: string
+          first_preferred_time?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+          second_preferred_date?: string | null
+          second_preferred_time?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       turno_problems: {
         Row: {
           category: string | null
@@ -2171,6 +2334,10 @@ export type Database = {
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      refresh_office_space_availability: {
+        Args: { p_office_space_id: string }
+        Returns: undefined
       }
       turno_sync_properties: {
         Args: Record<PropertyKey, never>

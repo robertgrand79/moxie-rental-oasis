@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Testimonial } from '@/hooks/useTestimonials';
+import GuestPhotoUpload from './GuestPhotoUpload';
 
 interface TestimonialFormData {
   guest_name: string;
@@ -71,15 +72,10 @@ const TestimonialForm = ({
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="guest_avatar_url">Guest Photo URL</Label>
-          <Input
-            id="guest_avatar_url"
-            value={formData.guest_avatar_url}
-            onChange={(e) => setFormData(prev => ({ ...prev, guest_avatar_url: e.target.value }))}
-            placeholder="https://images.unsplash.com/photo-..."
-          />
-        </div>
+        <GuestPhotoUpload
+          currentPhotoUrl={formData.guest_avatar_url}
+          onPhotoChange={(url) => setFormData(prev => ({ ...prev, guest_avatar_url: url }))}
+        />
 
         <div>
           <Label htmlFor="review_text">Review Text</Label>
