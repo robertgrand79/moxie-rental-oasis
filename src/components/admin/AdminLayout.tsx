@@ -23,9 +23,6 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <header className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white ${isMobile ? 'px-3' : ''}`}>
               <SidebarTrigger className="-ml-1" />
               <div className="flex items-center justify-between w-full">
-                <h1 className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
-                  Moxie Command
-                </h1>
                 <Button variant="outline" size={isMobile ? "sm" : "sm"} asChild className={isMobile ? 'min-h-[44px]' : ''}>
                   <Link to="/" className="flex items-center gap-2">
                     <ArrowLeft className="h-4 w-4" />
