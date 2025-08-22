@@ -18,18 +18,21 @@ const AdminSidebar = () => {
       <SidebarHeader>
         <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
           <div className="flex items-center gap-3">
-            {/* Site Logo - replace with actual logo when available */}
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">M</span>
-            </div>
-            <div className="flex flex-col">
-              <h2 className={`font-bold text-gray-900 ${isMobile ? 'text-base' : 'text-lg'} leading-tight`}>
-                Moxie
-              </h2>
-              <span className={`text-gray-600 ${isMobile ? 'text-xs' : 'text-sm'} leading-tight`}>
-                Command Center
-              </span>
-            </div>
+            {/* Site Logo - conditionally render logo or fallback to site name */}
+            {/* TODO: Replace with actual logo URL from site settings when available */}
+            {false ? ( // Change to check for actual logo URL
+              <img 
+                src="/path/to/logo.png" 
+                alt="Site Logo" 
+                className={`${isMobile ? 'h-8' : 'h-10'} w-auto`}
+              />
+            ) : (
+              <div className="flex items-center">
+                <h2 className={`font-bold text-gray-900 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                  Moxie
+                </h2>
+              </div>
+            )}
           </div>
         </div>
       </SidebarHeader>
