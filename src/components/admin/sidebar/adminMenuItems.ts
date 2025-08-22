@@ -30,18 +30,6 @@ export const adminMenuItems = [
         href: '/admin',
         icon: BarChart3,
         description: 'Main admin dashboard with analytics'
-      },
-      {
-        title: 'Site Metrics',
-        href: '/admin/metrics',
-        icon: TrendingUp,
-        description: 'Performance metrics and Core Web Vitals'
-      },
-      {
-        title: 'Metrics Testing',
-        href: '/admin/metrics-testing',
-        icon: TestTube,
-        description: 'Test and validate Site Metrics functionality'
       }
     ]
   },
@@ -130,12 +118,6 @@ export const adminMenuItems = [
     title: 'Advanced Features',
     items: [
       {
-        title: 'Image Optimization',
-        href: '/admin/image-optimization',
-        icon: Image,
-        description: 'Advanced image optimization analytics and tools'
-      },
-      {
         title: 'Analytics',
         href: '/admin/analytics',
         icon: BarChart,
@@ -159,16 +141,16 @@ export const adminMenuItems = [
     title: 'System',
     items: [
       {
+        title: 'System Administration',
+        href: '/admin/system-administration',
+        icon: Wrench,
+        description: 'Comprehensive system metrics, testing, and optimization'
+      },
+      {
         title: 'Site Settings',
         href: '/admin/settings',
         icon: Settings,
         description: 'Configure site settings and preferences'
-      },
-      {
-        title: 'Navigation Testing',
-        href: '/admin/navigation-testing',
-        icon: TestTube,
-        description: 'Test and validate navigation reset system'
       },
       {
         title: 'Sample Data',

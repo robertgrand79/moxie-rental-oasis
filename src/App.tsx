@@ -40,13 +40,10 @@ import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminWorkOrders from './pages/admin/AdminWorkOrders';
 import AdminContractors from './pages/admin/AdminContractors';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
-import AdminSiteMetrics from './pages/admin/AdminSiteMetrics';
-import AdminSiteMetricsTesting from './pages/admin/AdminSiteMetricsTesting';
 import SampleDataManagement from './pages/SampleDataManagement';
 import AdminProfile from './pages/AdminProfile';
 import PublicLayout from './components/layouts/PublicLayout';
-import AdminImageOptimization from './pages/admin/AdminImageOptimization';
-import AdminNavigationTesting from './pages/admin/AdminNavigationTesting';
+import AdminSystemAdministration from './pages/admin/AdminSystemAdministration';
 import AdminTurnoProblems from './pages/admin/AdminTurnoProblems';
 
 // Create a client for React Query
@@ -105,11 +102,8 @@ function App() {
                   <Route path="contractors" element={<AdminContractors />} />
                   <Route path="turno-problems" element={<AdminTurnoProblems />} />
                   <Route path="analytics" element={<AdminAnalytics />} />
-                  <Route path="metrics" element={<AdminSiteMetrics />} />
-                  <Route path="metrics-testing" element={<AdminSiteMetricsTesting />} />
+                  <Route path="system-administration" element={<AdminSystemAdministration />} />
                   <Route path="sample-data" element={<SampleDataManagement />} />
-                  <Route path="navigation-testing" element={<AdminNavigationTesting />} />
-                  <Route path="image-optimization" element={<AdminImageOptimization />} />
                   <Route path="profile" element={<AdminProfile />} />
                 </Route>
 
