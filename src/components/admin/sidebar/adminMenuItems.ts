@@ -151,12 +151,6 @@ export const adminMenuItems = [
         href: '/admin/settings',
         icon: Settings,
         description: 'Configure site settings and preferences'
-      },
-      {
-        title: 'Sample Data',
-        href: '/admin/sample-data',
-        icon: Database,
-        description: 'Manage sample data for development'
       }
     ]
   }

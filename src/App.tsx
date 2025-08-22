@@ -40,7 +40,7 @@ import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminWorkOrders from './pages/admin/AdminWorkOrders';
 import AdminContractors from './pages/admin/AdminContractors';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
-import SampleDataManagement from './pages/SampleDataManagement';
+
 import AdminProfile from './pages/AdminProfile';
 import PublicLayout from './components/layouts/PublicLayout';
 import AdminSystemAdministration from './pages/admin/AdminSystemAdministration';
@@ -103,7 +103,6 @@ function App() {
                   <Route path="turno-problems" element={<AdminTurnoProblems />} />
                   <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="system-administration" element={<AdminSystemAdministration />} />
-                  <Route path="sample-data" element={<SampleDataManagement />} />
                   <Route path="profile" element={<AdminProfile />} />
                 </Route>
 
