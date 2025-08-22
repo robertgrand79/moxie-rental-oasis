@@ -17,9 +17,20 @@ const AdminSidebar = () => {
     <Sidebar>
       <SidebarHeader>
         <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
-          <h2 className={`font-bold text-gray-900 ${isMobile ? 'text-lg' : 'text-xl'}`}>
-            Moxie Command
-          </h2>
+          <div className="flex items-center gap-3">
+            {/* Site Logo - replace with actual logo when available */}
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">M</span>
+            </div>
+            <div className="flex flex-col">
+              <h2 className={`font-bold text-gray-900 ${isMobile ? 'text-base' : 'text-lg'} leading-tight`}>
+                Moxie
+              </h2>
+              <span className={`text-gray-600 ${isMobile ? 'text-xs' : 'text-sm'} leading-tight`}>
+                Command Center
+              </span>
+            </div>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
