@@ -23,8 +23,14 @@ const EnhancedAdminDashboard = () => {
   const { subscriberCount } = useNewsletterStats();
 
   return (
-    <div className="space-y-8">{/* Enhanced Content Stats Grid */}
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20">
+    <div className="space-y-8">
+      {/* Recent Activity */}
+      <div className="animate-fade-in">
+        <AdminRecentActivity blogPosts={blogPosts} />
+      </div>
+
+      {/* Enhanced Content Stats Grid */}
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20 animate-fade-in" style={{ animationDelay: '200ms' }}>
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Content Overview</h2>
           <p className="text-gray-600">Manage all your content and view quick stats at a glance</p>
@@ -38,11 +44,6 @@ const EnhancedAdminDashboard = () => {
           testimonials={testimonials}
           subscriberCount={subscriberCount}
         />
-      </div>
-
-      {/* Recent Activity */}
-      <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-        <AdminRecentActivity blogPosts={blogPosts} />
       </div>
     </div>
   );
