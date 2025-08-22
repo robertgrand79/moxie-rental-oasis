@@ -51,7 +51,7 @@ export const useTurnoProperties = () => {
 
   const cacheTurnoProperties = async (properties: TurnoProperty[]) => {
     try {
-      // Update existing mappings with latest property data
+      // Update existing mappings with latest property data, preserving is_active status
       for (const property of properties) {
         const { error } = await supabase
           .from('turno_property_mapping')
@@ -61,7 +61,7 @@ export const useTurnoProperties = () => {
             is_active: false
           }, {
             onConflict: 'turno_property_id',
-            ignoreDuplicates: false
+            ignoreDuplicates: true // Don't override existing records, only insert new ones
           });
 
         if (error) {
