@@ -43,15 +43,6 @@ const AdminSidebarFooter = () => {
             </span>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size={isMobile ? "sm" : "sm"}
-          onClick={handleSignOut}
-          className={`w-full border-gray-300 text-gray-700 hover:bg-gray-50 ${isMobile ? 'min-h-[44px] text-xs' : ''}`}
-        >
-          <LogOut className="h-4 w-4 mr-2 text-icon-gray" />
-          Sign Out
-        </Button>
       </div>
     </SidebarFooter>
   );
