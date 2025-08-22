@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Users, Settings, FileText, Calendar, Camera, MapPin } from 'lucide-react';
+import { Plus, Users, FileText, Calendar, Camera, MapPin } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useNavigate } from 'react-router-dom';
@@ -21,13 +21,6 @@ const AdminQuickActions = () => {
       icon: <Users className="h-4 w-4" />,
       action: () => navigate('/admin/users'),
       variant: 'default' as const,
-    },
-    {
-      title: 'Site Settings',
-      description: 'Configure website settings',
-      icon: <Settings className="h-4 w-4" />,
-      action: () => navigate('/admin/settings'),
-      variant: 'secondary' as const,
     },
     {
       title: 'Add Blog Post',
