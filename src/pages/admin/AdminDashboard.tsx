@@ -6,8 +6,8 @@ import ContentStatsDashboard from '@/components/admin/ContentStatsDashboard';
 const AdminDashboard = () => {
   return (
     <div className="space-y-8">
-      <EnhancedAdminDashboard />
       <ContentStatsDashboard />
+      <EnhancedAdminDashboard />
     </div>
   );
 };
