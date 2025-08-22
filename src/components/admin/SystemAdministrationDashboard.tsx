@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, TestTube, Image, Wrench } from 'lucide-react';
-import SiteMetricsDashboard from './SiteMetricsDashboard';
+import { TestTube, Image, Wrench } from 'lucide-react';
 import SiteMetricsTestingDashboard from './SiteMetricsTestingDashboard';
 import NavigationResetTester from './testing/NavigationResetTester';
 import ImageOptimizationDashboard from './ImageOptimizationDashboard';
 import SystemDiagnosticsDashboard from './SystemDiagnosticsDashboard';
 
 const SystemAdministrationDashboard = () => {
-  const [activeTab, setActiveTab] = useState('metrics');
+  const [activeTab, setActiveTab] = useState('testing');
 
   // Listen for reset event from navigation
   useEffect(() => {
     const handleReset = () => {
-      // Reset to metrics tab and trigger refresh for active tab
-      setActiveTab('metrics');
-      window.dispatchEvent(new CustomEvent('resetSiteMetricsDashboard'));
+      // Reset to testing tab
+      setActiveTab('testing');
     };
 
     window.addEventListener('resetSystemAdministration', handleReset);
@@ -34,12 +32,7 @@ const SystemAdministrationDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="metrics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            <span className="hidden sm:inline">Site Metrics & Analytics</span>
-            <span className="sm:hidden">Metrics</span>
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="testing" className="flex items-center gap-2">
             <TestTube className="h-4 w-4" />
             <span className="hidden sm:inline">Testing & Validation</span>
@@ -56,16 +49,6 @@ const SystemAdministrationDashboard = () => {
             <span className="sm:hidden">System</span>
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="metrics" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Site Metrics & Analytics</h2>
-            <p className="text-muted-foreground mb-6">
-              Monitor your website's performance, uptime, and user experience metrics
-            </p>
-            <SiteMetricsDashboard />
-          </div>
-        </TabsContent>
 
         <TabsContent value="testing" className="space-y-6">
           <div>

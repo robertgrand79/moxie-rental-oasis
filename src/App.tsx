@@ -38,7 +38,7 @@ import AdminLifestyle from './pages/admin/AdminLifestyle';
 import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminWorkOrders from './pages/admin/AdminWorkOrders';
 import AdminContractors from './pages/admin/AdminContractors';
-import AdminAnalytics from './pages/admin/AdminAnalytics';
+import AdminUnifiedAnalytics from './pages/admin/AdminUnifiedAnalytics';
 
 import AdminProfile from './pages/AdminProfile';
 import PublicLayout from './components/layouts/PublicLayout';
@@ -99,7 +99,7 @@ function App() {
                   <Route path="work-orders" element={<AdminWorkOrders />} />
                   <Route path="contractors" element={<AdminContractors />} />
                   <Route path="turno-problems" element={<AdminTurnoProblems />} />
-                  <Route path="analytics" element={<AdminAnalytics />} />
+                  <Route path="analytics" element={<AdminUnifiedAnalytics />} />
                   <Route path="system-administration" element={<AdminSystemAdministration />} />
                   <Route path="profile" element={<AdminProfile />} />
                 </Route>

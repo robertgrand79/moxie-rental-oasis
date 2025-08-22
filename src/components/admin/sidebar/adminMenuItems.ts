@@ -118,10 +118,10 @@ export const adminMenuItems = [
     title: 'Advanced Features',
     items: [
       {
-        title: 'Analytics',
+        title: 'Analytics & Insights',
         href: '/admin/analytics',
         icon: BarChart,
-        description: 'Advanced analytics and insights'
+        description: 'Comprehensive analytics covering content, site health, marketing, and real-time monitoring'
       },
       {
         title: 'User & Access Management',
@@ -138,7 +138,7 @@ export const adminMenuItems = [
         title: 'System Administration',
         href: '/admin/system-administration',
         icon: Wrench,
-        description: 'Comprehensive system metrics, testing, and optimization'
+        description: 'System testing, optimization, and technical diagnostics'
       },
       {
         title: 'Site Settings',
