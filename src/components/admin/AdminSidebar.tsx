@@ -22,11 +22,18 @@ const AdminSidebar = () => {
           <div className="flex items-center gap-3">
             {/* Site Logo - conditionally render logo or fallback to site name */}
             {settings.siteLogo ? (
-              <img 
-                src={settings.siteLogo} 
-                alt="Site Logo" 
-                className={`${isMobile ? 'h-8' : 'h-10'} w-auto max-w-[150px] object-contain`}
-              />
+              <div className="flex items-center">
+                <img 
+                  src={settings.siteLogo} 
+                  alt="Site Logo" 
+                  className={`${isMobile ? 'h-8' : 'h-10'} w-auto max-w-[150px] object-contain`}
+                  onError={(e) => {
+                    console.log('Logo failed to load:', settings.siteLogo);
+                    // Hide the image if it fails to load and show fallback
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
             ) : (
               <div className="flex items-center">
                 <h2 className={`font-bold text-gray-900 ${isMobile ? 'text-lg' : 'text-xl'}`}>
