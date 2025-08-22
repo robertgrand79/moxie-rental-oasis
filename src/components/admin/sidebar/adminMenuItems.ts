@@ -111,7 +111,12 @@ export const adminMenuItems = [
         href: '/admin/turno-problems',
         icon: AlertTriangle,
         description: 'Manage problems from Turno field service'
-      },
+      }
+    ]
+  },
+  {
+    title: 'Settings & Analytics',
+    items: [
       {
         title: 'Analytics & Insights',
         href: '/admin/analytics',
