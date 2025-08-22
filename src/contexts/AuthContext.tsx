@@ -2,9 +2,19 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: string;
+  avatar_url: string | null;
+  updated_at: string;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  profile: Profile | null;
   loading: boolean;
   roleLoading: boolean;
   userRole: string | null;
@@ -27,6 +37,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [roleLoading, setRoleLoading] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -42,15 +53,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setTimeout(() => reject(new Error('Role fetch timeout')), timeoutMs);
       });
 
-      // Create the actual fetch promise
+      // Create the actual fetch promise - get full profile data
       const fetchPromise = supabase
         .from('profiles')
-        .select('role')
+        .select('*')
         .eq('id', userId)
         .single();
 
       // Race the timeout against the fetch
-      const { data: profile, error } = await Promise.race([
+      const { data: profileData, error } = await Promise.race([
         fetchPromise,
         timeoutPromise
       ]) as any;
@@ -60,20 +71,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Fallback to user role on error
         setUserRole('user');
         setIsAdmin(false);
+        setProfile(null);
         return;
       }
 
-      const role = profile?.role || 'user';
+      const role = profileData?.role || 'user';
       console.log('✅ User role fetched successfully:', role);
       
       setUserRole(role);
       setIsAdmin(role === 'admin');
+      setProfile(profileData);
       
     } catch (error) {
       console.error('💥 Role fetch failed or timed out:', error);
       // Always fallback to user role if anything goes wrong
       setUserRole('user');
       setIsAdmin(false);
+      setProfile(null);
     } finally {
       console.log('🏁 Role loading complete');
       setRoleLoading(false);
@@ -101,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('👤 No user, clearing role state');
           setUserRole(null);
           setIsAdmin(false);
+          setProfile(null);
           setRoleLoading(false);
         }
         
@@ -141,6 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Ensure we always stop loading even on error
         setUserRole('user');
         setIsAdmin(false);
+        setProfile(null);
         setRoleLoading(false);
       } finally {
         setLoading(false);
@@ -214,6 +230,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!error) {
       setUserRole(null);
       setIsAdmin(false);
+      setProfile(null);
       setRoleLoading(false);
       console.log('✅ Sign out successful');
     } else {
@@ -226,6 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     user,
     session,
+    profile,
     loading,
     roleLoading,
     userRole,
