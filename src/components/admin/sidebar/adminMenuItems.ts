@@ -115,7 +115,7 @@ export const adminMenuItems = [
     ]
   },
   {
-    title: 'Advanced Features',
+    title: 'Advanced & System',
     items: [
       {
         title: 'Analytics & Insights',
@@ -128,16 +128,11 @@ export const adminMenuItems = [
         href: '/admin/user-access-management',
         icon: Users,
         description: 'Manage users, roles, permissions, and access control'
-      }
-    ]
-  },
-  {
-    title: 'System',
-    items: [
+      },
       {
         title: 'System Administration',
         href: '/admin/system-administration',
-        icon: Wrench,
+        icon: Database,
         description: 'System testing, optimization, and technical diagnostics'
       },
       {
