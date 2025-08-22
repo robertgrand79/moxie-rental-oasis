@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -74,6 +74,45 @@ export type Database = {
           id?: string
           metric_type?: string
           metric_value?: Json
+        }
+        Relationships: []
+      }
+      api_status: {
+        Row: {
+          created_at: string
+          fallback_enabled: boolean
+          id: string
+          is_enabled: boolean
+          last_checked_at: string | null
+          last_error: string | null
+          last_success_details: Json | null
+          service_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fallback_enabled?: boolean
+          id?: string
+          is_enabled?: boolean
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_success_details?: Json | null
+          service_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fallback_enabled?: boolean
+          id?: string
+          is_enabled?: boolean
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_success_details?: Json | null
+          service_name?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -198,6 +237,8 @@ export type Database = {
         Row: {
           booking_date: string
           booking_type: string
+          contact_name: string | null
+          contact_phone: string | null
           created_at: string
           end_time: string
           id: string
@@ -211,6 +252,8 @@ export type Database = {
         Insert: {
           booking_date: string
           booking_type?: string
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           end_time: string
           id?: string
@@ -224,6 +267,8 @@ export type Database = {
         Update: {
           booking_date?: string
           booking_type?: string
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           end_time?: string
           id?: string
@@ -308,6 +353,7 @@ export type Database = {
       }
       community_updates: {
         Row: {
+          archived_at: string | null
           content: string
           created_at: string
           created_by: string
@@ -320,6 +366,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           content: string
           created_at?: string
           created_by: string
@@ -332,6 +379,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           content?: string
           created_at?: string
           created_by?: string
@@ -342,6 +390,48 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      configuration_audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          device_id: string | null
+          id: string
+          ip_address: string | null
+          new_config: Json | null
+          old_config: Json | null
+          performed_by: string | null
+          property_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          device_id?: string | null
+          id?: string
+          ip_address?: string | null
+          new_config?: Json | null
+          old_config?: Json | null
+          performed_by?: string | null
+          property_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          device_id?: string | null
+          id?: string
+          ip_address?: string | null
+          new_config?: Json | null
+          old_config?: Json | null
+          performed_by?: string | null
+          property_id?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -435,6 +525,60 @@ export type Database = {
           rating?: number | null
           specialties?: string[] | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      device_configurations: {
+        Row: {
+          configuration_data: Json | null
+          created_at: string | null
+          device_id: string
+          device_name: string | null
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          is_locked: boolean | null
+          last_active: string | null
+          last_health_check: string | null
+          property_id: string
+          registered_at: string | null
+          status: string | null
+          updated_at: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          configuration_data?: Json | null
+          created_at?: string | null
+          device_id: string
+          device_name?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          is_locked?: boolean | null
+          last_active?: string | null
+          last_health_check?: string | null
+          property_id: string
+          registered_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          configuration_data?: Json | null
+          created_at?: string | null
+          device_id?: string
+          device_name?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          is_locked?: boolean | null
+          last_active?: string | null
+          last_health_check?: string | null
+          property_id?: string
+          registered_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -635,6 +779,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      guests: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          is_primary_guest: boolean
+          last_name: string
+          phone: string | null
+          reservation_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          is_primary_guest?: boolean
+          last_name: string
+          phone?: string | null
+          reservation_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          is_primary_guest?: boolean
+          last_name?: string
+          phone?: string | null
+          reservation_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guests_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       image_optimization_settings: {
         Row: {
@@ -977,35 +1165,47 @@ export type Database = {
         Row: {
           assigned_at: string
           assigned_by: string | null
+          assignment_type: string
           created_at: string
+          guest_email: string | null
+          guest_name: string | null
+          guest_phone: string | null
           id: string
           notes: string | null
           office_space_id: string
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           assigned_at?: string
           assigned_by?: string | null
+          assignment_type?: string
           created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           notes?: string | null
           office_space_id: string
           status?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           assigned_at?: string
           assigned_by?: string | null
+          assignment_type?: string
           created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           notes?: string | null
           office_space_id?: string
           status?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1350,6 +1550,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          company_name: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -1357,12 +1558,14 @@ export type Database = {
           last_login_at: string | null
           onboarding_completed: boolean
           permissions: Json | null
+          phone: string | null
           role: string
           status: string
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          company_name?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -1370,12 +1573,14 @@ export type Database = {
           last_login_at?: string | null
           onboarding_completed?: boolean
           permissions?: Json | null
+          phone?: string | null
           role?: string
           status?: string
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          company_name?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
@@ -1383,6 +1588,7 @@ export type Database = {
           last_login_at?: string | null
           onboarding_completed?: boolean
           permissions?: Json | null
+          phone?: string | null
           role?: string
           status?: string
           updated_at?: string
@@ -1440,6 +1646,7 @@ export type Database = {
           display_order: number | null
           featured_photos: string[] | null
           hospitable_booking_url: string | null
+          hospitable_property_id: string | null
           id: string
           image_url: string | null
           images: string[] | null
@@ -1460,6 +1667,7 @@ export type Database = {
           display_order?: number | null
           featured_photos?: string[] | null
           hospitable_booking_url?: string | null
+          hospitable_property_id?: string | null
           id?: string
           image_url?: string | null
           images?: string[] | null
@@ -1480,6 +1688,7 @@ export type Database = {
           display_order?: number | null
           featured_photos?: string[] | null
           hospitable_booking_url?: string | null
+          hospitable_property_id?: string | null
           id?: string
           image_url?: string | null
           images?: string[] | null
@@ -1490,6 +1699,120 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      property_access_details: {
+        Row: {
+          check_in_instructions: string | null
+          created_at: string
+          door_code: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          id: string
+          personal_message: string | null
+          property_id: string
+          updated_at: string
+          wifi_name: string | null
+          wifi_password: string | null
+        }
+        Insert: {
+          check_in_instructions?: string | null
+          created_at?: string
+          door_code?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          id?: string
+          personal_message?: string | null
+          property_id: string
+          updated_at?: string
+          wifi_name?: string | null
+          wifi_password?: string | null
+        }
+        Update: {
+          check_in_instructions?: string | null
+          created_at?: string
+          door_code?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          id?: string
+          personal_message?: string | null
+          property_id?: string
+          updated_at?: string
+          wifi_name?: string | null
+          wifi_password?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_access_details_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_access_details_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservations: {
+        Row: {
+          check_in_date: string
+          check_out_date: string
+          confirmation_code: string
+          created_at: string
+          created_by: string
+          id: string
+          property_id: string
+          special_instructions: string | null
+          status: string
+          total_guests: number
+          updated_at: string
+        }
+        Insert: {
+          check_in_date: string
+          check_out_date: string
+          confirmation_code: string
+          created_at?: string
+          created_by: string
+          id?: string
+          property_id: string
+          special_instructions?: string | null
+          status?: string
+          total_guests?: number
+          updated_at?: string
+        }
+        Update: {
+          check_in_date?: string
+          check_out_date?: string
+          confirmation_code?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          property_id?: string
+          special_instructions?: string | null
+          status?: string
+          total_guests?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
@@ -1544,6 +1867,45 @@ export type Database = {
           },
         ]
       }
+      setup_tokens: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          device_limit: number | null
+          expires_at: string
+          id: string
+          is_used: boolean | null
+          property_id: string
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          device_limit?: number | null
+          expires_at: string
+          id?: string
+          is_used?: boolean | null
+          property_id: string
+          token: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          device_limit?: number | null
+          expires_at?: string
+          id?: string
+          is_used?: boolean | null
+          property_id?: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           created_at: string
@@ -1568,6 +1930,42 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      social_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_order: number
+          icon_name: string
+          id: string
+          is_active: boolean
+          platform: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          icon_name: string
+          id?: string
+          is_active?: boolean
+          platform: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          icon_name?: string
+          id?: string
+          is_active?: boolean
+          platform?: string
+          updated_at?: string
+          url?: string
         }
         Relationships: []
       }
@@ -1735,6 +2133,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -1949,6 +2354,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turno_property_mapping_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -2297,6 +2709,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "work_orders_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "work_orders_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
@@ -2307,22 +2726,88 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      property_listings: {
+        Row: {
+          amenities: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          cover_image_url: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          featured_photos: string[] | null
+          hospitable_booking_url: string | null
+          hospitable_property_id: string | null
+          id: string | null
+          image_url: string | null
+          images: string[] | null
+          location: string | null
+          max_guests: number | null
+          price_per_night: number | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amenities?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          featured_photos?: string[] | null
+          hospitable_booking_url?: string | null
+          hospitable_property_id?: string | null
+          id?: string | null
+          image_url?: string | null
+          images?: string[] | null
+          location?: string | null
+          max_guests?: number | null
+          price_per_night?: number | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amenities?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          featured_photos?: string[] | null
+          hospitable_booking_url?: string | null
+          hospitable_property_id?: string | null
+          id?: string | null
+          image_url?: string | null
+          images?: string[] | null
+          location?: string | null
+          max_guests?: number | null
+          price_per_night?: number | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      archive_old_community_updates: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       can_manage_users: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
       can_update_user_role: {
-        Args: { target_user_id: string; old_role: string; new_role: string }
+        Args: { new_role: string; old_role: string; target_user_id: string }
         Returns: boolean
       }
       check_rate_limit: {
         Args: {
-          operation_type: string
           identifier: string
           max_requests?: number
+          operation_type: string
           window_minutes?: number
         }
         Returns: boolean
@@ -2344,11 +2829,11 @@ export type Database = {
         Returns: undefined
       }
       user_has_permission: {
-        Args: { user_id: string; permission_key: string }
+        Args: { permission_key: string; user_id: string }
         Returns: boolean
       }
       user_has_role: {
-        Args: { user_id: string; role_name: string }
+        Args: { role_name: string; user_id: string }
         Returns: boolean
       }
     }
