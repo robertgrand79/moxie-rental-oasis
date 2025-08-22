@@ -57,35 +57,6 @@ export const adminMenuItems = [
     ]
   },
   {
-    title: 'Property & Booking',
-    items: [
-      {
-        title: 'Properties',
-        href: '/admin/properties',
-        icon: Home,
-        description: 'Manage rental properties'
-      },
-      {
-        title: 'Work Orders',
-        href: '/admin/work-orders',
-        icon: Wrench,
-        description: 'Property maintenance and work orders'
-      },
-      {
-        title: 'Contractors',
-        href: '/admin/contractors',
-        icon: HardHat,
-        description: 'Manage contractors and service providers'
-      },
-      {
-        title: 'Turno Problems',
-        href: '/admin/turno-problems',
-        icon: AlertTriangle,
-        description: 'Manage problems from Turno field service'
-      }
-    ]
-  },
-  {
     title: 'Local Content',
     items: [
       {
@@ -111,6 +82,35 @@ export const adminMenuItems = [
         href: '/admin/testimonials',
         icon: Star,
         description: 'Guest reviews and testimonials'
+      }
+    ]
+  },
+  {
+    title: 'Property & Booking',
+    items: [
+      {
+        title: 'Properties',
+        href: '/admin/properties',
+        icon: Home,
+        description: 'Manage rental properties'
+      },
+      {
+        title: 'Work Orders',
+        href: '/admin/work-orders',
+        icon: Wrench,
+        description: 'Property maintenance and work orders'
+      },
+      {
+        title: 'Contractors',
+        href: '/admin/contractors',
+        icon: HardHat,
+        description: 'Manage contractors and service providers'
+      },
+      {
+        title: 'Turno Problems',
+        href: '/admin/turno-problems',
+        icon: AlertTriangle,
+        description: 'Manage problems from Turno field service'
       }
     ]
   },
