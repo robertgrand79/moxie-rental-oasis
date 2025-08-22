@@ -22,14 +22,6 @@ const SystemAdministrationDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">System Administration</h1>
-          <p className="text-muted-foreground">
-            Monitor, test, and optimize your entire system infrastructure
-          </p>
-        </div>
-      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
@@ -50,45 +42,17 @@ const SystemAdministrationDashboard = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="testing" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Testing & Validation</h2>
-            <p className="text-muted-foreground mb-6">
-              Comprehensive testing suite for system functionality and performance validation
-            </p>
-            
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Site Metrics Testing</h3>
-                <SiteMetricsTestingDashboard />
-              </div>
-              
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Navigation Reset Testing</h3>
-                <NavigationResetTester />
-              </div>
-            </div>
-          </div>
+        <TabsContent value="testing" className="space-y-8">
+          <SiteMetricsTestingDashboard />
+          <NavigationResetTester />
         </TabsContent>
 
-        <TabsContent value="optimization" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Image Optimization</h2>
-            <p className="text-muted-foreground mb-6">
-              Advanced image optimization analytics, tools, and performance monitoring
-            </p>
-            <ImageOptimizationDashboard />
-          </div>
+        <TabsContent value="optimization">
+          <ImageOptimizationDashboard />
         </TabsContent>
 
-        <TabsContent value="diagnostics" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">System Diagnostics</h2>
-            <p className="text-muted-foreground mb-6">
-              Comprehensive system health monitoring and performance diagnostics
-            </p>
-            <SystemDiagnosticsDashboard />
-          </div>
+        <TabsContent value="diagnostics">
+          <SystemDiagnosticsDashboard />
         </TabsContent>
       </Tabs>
     </div>
