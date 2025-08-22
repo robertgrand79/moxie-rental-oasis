@@ -2146,6 +2146,7 @@ export type Database = {
       }
       testimonials: {
         Row: {
+          content: string | null
           created_at: string
           created_by: string
           display_order: number | null
@@ -2155,13 +2156,16 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_featured: boolean | null
+          property_id: string | null
           property_name: string | null
           rating: number
           review_text: string
+          status: string | null
           stay_date: string | null
           updated_at: string
         }
         Insert: {
+          content?: string | null
           created_at?: string
           created_by: string
           display_order?: number | null
@@ -2171,13 +2175,16 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
+          property_id?: string | null
           property_name?: string | null
           rating?: number
           review_text: string
+          status?: string | null
           stay_date?: string | null
           updated_at?: string
         }
         Update: {
+          content?: string | null
           created_at?: string
           created_by?: string
           display_order?: number | null
@@ -2187,9 +2194,11 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
+          property_id?: string | null
           property_name?: string | null
           rating?: number
           review_text?: string
+          status?: string | null
           stay_date?: string | null
           updated_at?: string
         }

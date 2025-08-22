@@ -6,18 +6,38 @@ import { useToast } from '@/hooks/use-toast';
 export interface Testimonial {
   id: string;
   guest_name: string;
-  guest_location: string;
-  guest_avatar_url: string;
+  guest_location?: string;
+  guest_avatar_url?: string;
   rating: number;
-  review_text: string;
-  property_name: string;
-  stay_date: string;
-  is_featured: boolean;
-  display_order: number;
-  is_active: boolean;
+  review_text?: string; // For backward compatibility
+  content?: string; // New field
+  property_id?: string;
+  property_name?: string;
+  stay_date?: string;
+  is_featured?: boolean;
+  display_order?: number;
+  is_active?: boolean;
+  status?: string;
   created_by: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface CreateTestimonialData {
+  guest_name: string;
+  guest_location?: string;
+  guest_avatar_url?: string;
+  rating: number;
+  content?: string;
+  review_text?: string; // For backward compatibility
+  property_id?: string;
+  property_name?: string;
+  stay_date?: string;
+  is_featured?: boolean;
+  display_order?: number;
+  is_active?: boolean;
+  status?: string;
+  created_by: string;
 }
 
 export const useTestimonials = () => {
@@ -27,21 +47,33 @@ export const useTestimonials = () => {
   const { data: testimonials = [], isLoading, error } = useQuery({
     queryKey: ['testimonials'],
     queryFn: async () => {
+      console.log('🔄 Fetching testimonials...');
       const { data, error } = await supabase
         .from('testimonials')
         .select('*')
         .order('display_order', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching testimonials:', error);
+        throw error;
+      }
+      console.log('✅ Testimonials fetched:', data?.length || 0, 'items');
       return data as Testimonial[];
     }
   });
 
   const createTestimonial = useMutation({
-    mutationFn: async (testimonial: Omit<Testimonial, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (testimonial: CreateTestimonialData) => {
+      // Ensure we have either content or review_text
+      const insertData = {
+        ...testimonial,
+        content: testimonial.content || testimonial.review_text,
+        review_text: testimonial.review_text || testimonial.content
+      };
+      
       const { data, error } = await supabase
         .from('testimonials')
-        .insert([testimonial])
+        .insert(insertData)
         .select()
         .single();
       

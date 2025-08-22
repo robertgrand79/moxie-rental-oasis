@@ -10,11 +10,12 @@ export const usePropertyFetch = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchProperties = async () => {
-    console.log('Fetching properties...');
+    console.log('🔄 usePropertyFetch - Starting to fetch properties...');
     setLoading(true);
     setError(null);
     
     try {
+      console.log('🔄 usePropertyFetch - Calling Supabase...');
       const { data, error } = await supabase
         .from('properties')
         .select('*')
@@ -22,33 +23,41 @@ export const usePropertyFetch = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching properties:', error);
+        console.error('❌ usePropertyFetch - Supabase error:', error);
+        console.error('❌ usePropertyFetch - Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         setError(error.message);
         toast({
           title: 'Error',
-          description: 'Failed to fetch properties.',
+          description: `Failed to fetch properties: ${error.message}`,
           variant: 'destructive'
         });
         // Set empty array on error to prevent undefined
         setProperties([]);
       } else {
-        console.log('Fetched properties:', data);
+        console.log('✅ usePropertyFetch - Success! Fetched properties:', data?.length || 0, 'items');
+        console.log('✅ usePropertyFetch - First property sample:', data?.[0]);
         // Ensure we always have an array, even if data is null
         const safeProperties = Array.isArray(data) ? data : [];
         setProperties(safeProperties);
       }
     } catch (error) {
-      console.error('Error in fetchProperties:', error);
+      console.error('❌ usePropertyFetch - Catch block error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setError(errorMessage);
       toast({
         title: 'Error',
-        description: 'Failed to fetch properties.',
+        description: `Failed to fetch properties: ${errorMessage}`,
         variant: 'destructive'
       });
       // Set empty array on error to prevent undefined
       setProperties([]);
     } finally {
+      console.log('🏁 usePropertyFetch - Finished (loading set to false)');
       setLoading(false);
     }
   };
