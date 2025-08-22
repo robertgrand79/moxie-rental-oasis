@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Users, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 const AdminWelcomeSection = () => {
   const { user } = useAuth();
@@ -30,13 +30,6 @@ const AdminWelcomeSection = () => {
           </div>
           
           <div className="flex flex-wrap gap-3">
-            <EnhancedButton
-              onClick={() => handleNavigation('/admin/users')}
-              variant="secondary"
-              icon={<Users className="h-4 w-4" />}
-            >
-              Users
-            </EnhancedButton>
           </div>
         </div>
         
