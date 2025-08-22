@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { PointOfInterest } from '@/hooks/usePointsOfInterest';
 import { useAuth } from '@/contexts/AuthContext';
 import POIFormFields, { POIFormData } from './POIFormFields';
@@ -53,25 +53,29 @@ const POIInlineEditor = ({
           onCategoryChange={handleCategoryChange}
         />
 
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button 
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t">
+          <EnhancedButton 
             type="button" 
             variant="outline" 
             onClick={onCancel}
             disabled={isSubmitting}
             size="sm"
+            className="min-h-[44px] sm:min-h-auto"
           >
             <X className="h-4 w-4 mr-1" />
             Cancel
-          </Button>
-          <Button 
+          </EnhancedButton>
+          <EnhancedButton 
             type="submit"
+            variant="gradient"
             disabled={isSubmitting}
+            loading={isSubmitting}
             size="sm"
+            className="min-h-[44px] sm:min-h-auto"
           >
             <Save className="h-4 w-4 mr-1" />
             {isSubmitting ? 'Saving...' : 'Save Changes'}
-          </Button>
+          </EnhancedButton>
         </div>
       </form>
     </div>

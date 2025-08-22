@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
-import { Button } from '@/components/ui/button';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -75,14 +75,16 @@ const BasicSiteInformation = ({ localData, onInputChange, onSave, saving }: Basi
             className="mt-1"
           />
         </div>
-        <Button
+        <EnhancedButton
           onClick={onSave}
           disabled={saving['siteName'] || saving['siteLogo'] || saving['tagline'] || saving['description']}
-          className="w-full"
+          variant="gradient"
+          loading={saving['siteName'] || saving['siteLogo'] || saving['tagline'] || saving['description']}
+          className="w-full min-h-[44px] sm:min-h-auto"
         >
           <Save className="h-4 w-4 mr-2" />
-          {saving['siteName'] || saving['siteLogo'] || saving['tagline'] || saving['description'] ? 'Saving...' : 'Save Basic Information'}
-        </Button>
+          Save Basic Information
+        </EnhancedButton>
       </EnhancedCardContent>
     </EnhancedCard>
   );

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AdminLayoutProps {
@@ -23,13 +23,18 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <header className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white ${isMobile ? 'px-3' : ''}`}>
               <SidebarTrigger className="-ml-1" />
               <div className="flex items-center justify-between w-full">
-                <Button variant="outline" size={isMobile ? "sm" : "sm"} asChild className={isMobile ? 'min-h-[44px]' : ''}>
+                <EnhancedButton 
+                  variant="outline" 
+                  size={isMobile ? "sm" : "default"} 
+                  asChild 
+                  className={isMobile ? 'min-h-[44px]' : ''}
+                >
                   <Link to="/" className="flex items-center gap-2">
                     <ArrowLeft className="h-4 w-4" />
                     <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
                     <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
                   </Link>
-                </Button>
+                </EnhancedButton>
               </div>
             </header>
             <main className={`flex-1 overflow-auto ${isMobile ? 'p-4' : 'p-8'}`}>

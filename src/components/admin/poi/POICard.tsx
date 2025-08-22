@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, ExternalLink, Sparkles, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -89,18 +89,18 @@ const POICard = ({
 
                 {poi.website_url && (
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" asChild>
+                    <EnhancedButton size="sm" variant="outline" asChild className="min-h-[44px] sm:min-h-auto">
                       <a href={poi.website_url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="h-3 w-3 mr-1" />
                         Website
                       </a>
-                    </Button>
+                    </EnhancedButton>
                   </div>
                 )}
               </div>
 
               <div className="flex items-center space-x-2 ml-4">
-                <Button
+                <EnhancedButton
                   size="sm"
                   variant="outline"
                   onClick={(e) => {
@@ -108,33 +108,36 @@ const POICard = ({
                     onEnhance(poi);
                   }}
                   disabled={isEnhancing && enhancingId === poi.id}
+                  className="min-h-[44px] sm:min-h-auto"
                 >
                   {isEnhancing && enhancingId === poi.id ? (
                     <Sparkles className="h-4 w-4 animate-spin" />
                   ) : (
                     <Sparkles className="h-4 w-4" />
                   )}
-                </Button>
-                <Button
+                </EnhancedButton>
+                <EnhancedButton
                   size="sm"
                   variant="outline"
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit(poi);
                   }}
+                  className="min-h-[44px] sm:min-h-auto"
                 >
                   <Edit className="h-4 w-4" />
-                </Button>
-                <Button
+                </EnhancedButton>
+                <EnhancedButton
                   size="sm"
-                  variant="outline"
+                  variant="destructive"
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(poi.id);
                   }}
+                  className="min-h-[44px] sm:min-h-auto"
                 >
                   <Trash2 className="h-4 w-4" />
-                </Button>
+                </EnhancedButton>
                 {isEditing ? (
                   <ChevronUp className="h-4 w-4 text-muted-foreground" />
                 ) : (

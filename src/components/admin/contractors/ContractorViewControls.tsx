@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { 
   Grid3X3, 
   Table,
@@ -30,29 +30,35 @@ const ContractorViewControls = ({
 }: ContractorViewControlsProps) => {
   return (
     <div className="flex items-center gap-2">
-      <div className="flex items-center bg-gray-100 rounded-lg p-1">
-        <Button
+      <div className="flex items-center bg-muted/10 rounded-lg p-1">
+        <EnhancedButton
           variant={viewMode === 'grid' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => onViewModeChange('grid')}
+          className="min-h-[44px] sm:min-h-auto"
         >
           <Grid3X3 className="h-4 w-4" />
-        </Button>
-        <Button
+        </EnhancedButton>
+        <EnhancedButton
           variant={viewMode === 'table' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => onViewModeChange('table')}
+          className="min-h-[44px] sm:min-h-auto"
         >
           <Table className="h-4 w-4" />
-        </Button>
+        </EnhancedButton>
       </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
+          <EnhancedButton 
+            variant="outline" 
+            size="sm"
+            className="min-h-[44px] sm:min-h-auto"
+          >
             <SortAsc className="h-4 w-4 mr-2" />
-            Actions
-          </Button>
+            <span className="hidden sm:inline">Actions</span>
+          </EnhancedButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>

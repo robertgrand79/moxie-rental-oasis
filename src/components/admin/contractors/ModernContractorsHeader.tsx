@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Plus } from 'lucide-react';
 import ContractorStatsCards from './ContractorStatsCards';
 import ContractorSearchFilters from './ContractorSearchFilters';
@@ -47,10 +47,15 @@ const ModernContractorsHeader = ({
           <h1 className="text-3xl font-bold text-gray-900">Contractors</h1>
           <p className="text-gray-600 mt-1">Manage your contractor network</p>
         </div>
-        <Button onClick={onCreateContractor} size="lg" className="shadow-lg">
+        <EnhancedButton 
+          onClick={onCreateContractor} 
+          size="lg" 
+          variant="gradient"
+          className="min-h-[44px] sm:min-h-auto"
+        >
           <Plus className="h-5 w-5 mr-2" />
           Add Contractor
-        </Button>
+        </EnhancedButton>
       </div>
 
       {/* Stats Cards */}

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
-import { Button } from '@/components/ui/button';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -103,14 +103,16 @@ const HeroSectionSettings = ({ localData, onInputChange, onSave, saving }: HeroS
             className="mt-1"
           />
         </div>
-        <Button
+        <EnhancedButton
           onClick={onSave}
           disabled={saving['heroTitle'] || saving['heroDescription'] || saving['heroBackgroundImage']}
-          className="w-full"
+          variant="gradient"
+          loading={saving['heroTitle'] || saving['heroDescription'] || saving['heroBackgroundImage']}
+          className="w-full min-h-[44px] sm:min-h-auto"
         >
           <Save className="h-4 w-4 mr-2" />
-          {saving['heroTitle'] || saving['heroDescription'] || saving['heroBackgroundImage'] ? 'Saving...' : 'Save Hero Section'}
-        </Button>
+          Save Hero Section
+        </EnhancedButton>
       </EnhancedCardContent>
     </EnhancedCard>
   );

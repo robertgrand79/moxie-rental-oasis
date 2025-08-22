@@ -128,15 +128,16 @@ const WorkOrderSidePanel = ({
   return (
     <div className="fixed inset-0 z-50 flex">
       <div className="flex-1 bg-black/20" onClick={onClose} />
-      <div className="w-full max-w-2xl bg-white shadow-2xl transform transition-transform duration-300 ease-out">
-        <div className="h-full flex flex-col">
+      <div className="w-full max-w-2xl bg-white shadow-2xl transform transition-transform duration-300 ease-out overflow-hidden sm:max-w-2xl">
+        <div className="h-full flex flex-col max-h-screen">
           <WorkOrderFormHeader
             isEditing={isEditing}
             workOrder={workOrder}
             onClose={onClose}
           />
 
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6"
+                style={{ maxHeight: 'calc(100vh - 200px)' }}>
             <WorkOrderBasicFields
               formData={formData}
               setFormData={setFormData}
@@ -187,10 +188,12 @@ const WorkOrderSidePanel = ({
               </>
             )}
 
-            <WorkOrderFormActions
-              isEditing={isEditing}
-              onClose={onClose}
-            />
+            <div className="pb-4">
+              <WorkOrderFormActions
+                isEditing={isEditing}
+                onClose={onClose}
+              />
+            </div>
           </form>
         </div>
       </div>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Edit, Mail, Phone } from 'lucide-react';
 import { Contractor } from '@/hooks/useWorkOrderManagement';
 
@@ -14,44 +14,44 @@ const ContractorCardFooter = ({
   onEdit,
 }: ContractorCardFooterProps) => {
   return (
-    <div className="flex items-center justify-between w-full">
-      <Button 
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between w-full gap-2">
+      <EnhancedButton 
         variant="outline" 
         size="sm" 
         onClick={() => onEdit(contractor)}
-        className="flex items-center gap-1"
+        className="flex items-center gap-1 min-h-[44px] sm:min-h-auto"
       >
         <Edit className="h-3 w-3" />
         Edit
-      </Button>
+      </EnhancedButton>
       
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         {contractor.email && (
-          <Button 
+          <EnhancedButton 
             variant="outline" 
             size="sm" 
             asChild
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 min-h-[44px] sm:min-h-auto"
           >
             <a href={`mailto:${contractor.email}`}>
               <Mail className="h-3 w-3" />
-              Email
+              <span className="hidden sm:inline">Email</span>
             </a>
-          </Button>
+          </EnhancedButton>
         )}
         
         {contractor.phone && (
-          <Button 
+          <EnhancedButton 
             variant="outline" 
             size="sm" 
             asChild
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 min-h-[44px] sm:min-h-auto"
           >
             <a href={`tel:${contractor.phone}`}>
               <Phone className="h-3 w-3" />
-              Call
+              <span className="hidden sm:inline">Call</span>
             </a>
-          </Button>
+          </EnhancedButton>
         )}
       </div>
     </div>
