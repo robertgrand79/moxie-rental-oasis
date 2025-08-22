@@ -3,7 +3,17 @@ export interface TurnoProperty {
   name?: string;
   alias?: string;  // Turno API uses alias as property name
   title?: string;
-  address?: string;
+  address?: string | {
+    latitude?: number;
+    longitude?: number;
+    first_line?: string;
+    second_line?: string;
+    zip_code?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    formatted_address?: string;
+  };
   city?: string;
   state?: string;
   country?: string;

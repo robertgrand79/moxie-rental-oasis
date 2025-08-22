@@ -41,7 +41,9 @@ const TurnoMappingModal = ({
     return turnoProperties.filter(tp => {
       // Handle different possible property name fields
       const name = tp.name || tp.alias || tp.title || '';
-      const address = tp.address || '';
+      const address = typeof tp.address === 'string' 
+        ? tp.address 
+        : tp.address?.formatted_address || tp.address?.first_line || '';
       const city = tp.city || '';
       
       return name.toLowerCase().includes(lowercaseSearch) ||
@@ -60,7 +62,10 @@ const TurnoMappingModal = ({
       .map(tp => {
         let score = 0;
         const turnoName = (tp.name || tp.alias || tp.title || '').toLowerCase();
-        const turnoAddress = `${tp.address || ''} ${tp.city || ''}`.toLowerCase();
+        const turnoAddress = typeof tp.address === 'string' 
+          ? tp.address 
+          : tp.address?.formatted_address || tp.address?.first_line || '';
+        const turnoAddressLower = `${turnoAddress} ${tp.city || ''}`.toLowerCase();
         
         // Name similarity
         if (turnoName.includes(propertyName) || propertyName.includes(turnoName)) {
@@ -165,7 +170,9 @@ const TurnoMappingModal = ({
                           </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                             <MapPin className="h-3 w-3" />
-                            {tp.address}, {tp.city}
+                            {typeof tp.address === 'string' 
+                              ? `${tp.address}, ${tp.city || ''}` 
+                              : `${tp.address?.formatted_address || tp.address?.first_line || ''}, ${tp.city || ''}`}
                           </div>
                           {tp.cleaner && (
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
@@ -232,7 +239,9 @@ const TurnoMappingModal = ({
                             {tp.address && (
                               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                                 <MapPin className="h-3 w-3" />
-                                {tp.address}, {tp.city}
+                                {typeof tp.address === 'string' 
+                                  ? `${tp.address}, ${tp.city || ''}` 
+                                  : `${tp.address?.formatted_address || tp.address?.first_line || ''}, ${tp.city || ''}`}
                               </div>
                             )}
                             {tp.cleaner && (
