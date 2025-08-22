@@ -139,83 +139,61 @@ export const useSiteMetricsTestSuite = (): SiteMetricsTestSuite => {
   const testGAInitialization = async (): Promise<TestResult> => {
     console.log('🧪 Starting GA Initialization test...');
     try {
-      // Timeout protection for window object access
-      const timeoutPromise = new Promise<TestResult>((resolve) => {
-        setTimeout(() => {
-          resolve(createTestResult(
-            'GA Initialization',
-            'fail',
-            'Test timed out while checking GA initialization',
-            { timeout: true }
-          ));
-        }, 3000);
-      });
-
-      const testPromise = new Promise<TestResult>((resolve) => {
-        try {
-          // Safe window object access
-          const windowObj = typeof window !== 'undefined' ? window : {};
-          
-          // Check for GA global object with safe access
-          const hasGtagFunction = typeof (windowObj as any).gtag === 'function';
-          const hasGAGlobal = typeof (windowObj as any).ga !== 'undefined';
-          const hasDataLayer = Array.isArray((windowObj as any).dataLayer);
-          
-          // Check for GA measurement ID in page
-          let hasGAScript = false;
-          try {
-            const gaScripts = document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]');
-            hasGAScript = gaScripts.length > 0;
-          } catch (scriptError) {
-            console.warn('Failed to query GA scripts:', scriptError);
-          }
-          
-          const gaFeatures = {
-            gtagFunction: hasGtagFunction,
-            gaGlobal: hasGAGlobal,
-            dataLayer: hasDataLayer,
-            scriptLoaded: hasGAScript
-          };
-          
-          const activeFeatures = Object.values(gaFeatures).filter(Boolean).length;
-          console.log(`📊 GA features detected: ${activeFeatures}/4`, gaFeatures);
-          
-          if (activeFeatures >= 2) {
-            resolve(createTestResult(
-              'GA Initialization',
-              'pass',
-              `GA properly initialized (${activeFeatures}/4 features detected)`,
-              gaFeatures
-            ));
-          } else if (activeFeatures >= 1) {
-            resolve(createTestResult(
-              'GA Initialization',
-              'warning',
-              `GA partially initialized (${activeFeatures}/4 features detected)`,
-              gaFeatures
-            ));
-          } else {
-            resolve(createTestResult(
-              'GA Initialization',
-              'pending',
-              'GA not yet initialized (may be loading)',
-              gaFeatures
-            ));
-          }
-        } catch (error) {
-          console.error('Error in GA initialization check:', error);
-          resolve(createTestResult(
-            'GA Initialization',
-            'fail',
-            'Error checking GA initialization',
-            { error: error instanceof Error ? error.message : 'Unknown error' }
-          ));
-        }
-      });
-
-      const result = await Promise.race([testPromise, timeoutPromise]);
-      console.log(`${result.status === 'pass' ? '✅' : result.status === 'warning' ? '⚠️' : '❌'} GA Initialization test completed`);
-      return result;
+      // Safe window object access
+      const windowObj = typeof window !== 'undefined' ? window : {};
+      
+      // Check for GA global object with safe access
+      const hasGtagFunction = typeof (windowObj as any).gtag === 'function';
+      const hasGAGlobal = typeof (windowObj as any).ga !== 'undefined';
+      const hasDataLayer = Array.isArray((windowObj as any).dataLayer);
+      
+      // Check for GA measurement ID in page
+      let hasGAScript = false;
+      try {
+        const gaScripts = document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]');
+        hasGAScript = gaScripts.length > 0;
+      } catch (scriptError) {
+        console.warn('Failed to query GA scripts:', scriptError);
+      }
+      
+      const gaFeatures = {
+        gtagFunction: hasGtagFunction,
+        gaGlobal: hasGAGlobal,
+        dataLayer: hasDataLayer,
+        scriptLoaded: hasGAScript
+      };
+      
+      const activeFeatures = Object.values(gaFeatures).filter(Boolean).length;
+      console.log(`📊 GA features detected: ${activeFeatures}/4`, gaFeatures);
+      
+      if (activeFeatures >= 2) {
+        const result = createTestResult(
+          'GA Initialization',
+          'pass',
+          `GA properly initialized (${activeFeatures}/4 features detected)`,
+          gaFeatures
+        );
+        console.log('✅ GA Initialization test passed');
+        return result;
+      } else if (activeFeatures >= 1) {
+        const result = createTestResult(
+          'GA Initialization',
+          'warning',
+          `GA partially initialized (${activeFeatures}/4 features detected)`,
+          gaFeatures
+        );
+        console.log('⚠️ GA Initialization test warning');
+        return result;
+      } else {
+        const result = createTestResult(
+          'GA Initialization',
+          'pending',
+          'GA not yet initialized (may be loading)',
+          gaFeatures
+        );
+        console.log('❌ GA Initialization test pending');
+        return result;
+      }
     } catch (error) {
       console.error('❌ GA Initialization test failed:', error);
       return createTestResult(
@@ -516,22 +494,7 @@ export const useSiteMetricsTestSuite = (): SiteMetricsTestSuite => {
     for (const test of tests) {
       try {
         console.log(`▶️ Running test: ${test.name}`);
-        
-        // Add timeout protection for each test
-        const testPromise = test.fn();
-        const timeoutPromise = new Promise<TestResult>((resolve) => {
-          setTimeout(() => {
-            console.warn(`⏰ Test '${test.name}' timed out`);
-            resolve(createTestResult(
-              test.name,
-              'fail',
-              'Test timed out after 5 seconds',
-              { timeout: true }
-            ));
-          }, 5000);
-        });
-        
-        const result = await Promise.race([testPromise, timeoutPromise]);
+        const result = await test.fn();
         results.push(result);
         console.log(`✓ Completed test: ${test.name} - ${result.status}`);
       } catch (error) {
@@ -575,21 +538,7 @@ export const useSiteMetricsTestSuite = (): SiteMetricsTestSuite => {
     }
     
     try {
-      // Add timeout protection
-      const testPromise = testFunction();
-      const timeoutPromise = new Promise<TestResult>((resolve) => {
-        setTimeout(() => {
-          console.warn(`⏰ Specific test '${testName}' timed out`);
-          resolve(createTestResult(
-            testName,
-            'fail',
-            'Test timed out after 5 seconds',
-            { timeout: true }
-          ));
-        }, 5000);
-      });
-      
-      const result = await Promise.race([testPromise, timeoutPromise]);
+      const result = await testFunction();
       console.log(`✓ Specific test completed: ${testName} - ${result.status}`);
       
       // Update test results
