@@ -38,11 +38,16 @@ const TurnoMappingModal = ({
     if (!searchTerm) return turnoProperties;
     
     const lowercaseSearch = searchTerm.toLowerCase();
-    return turnoProperties.filter(tp => 
-      tp.name.toLowerCase().includes(lowercaseSearch) ||
-      tp.address?.toLowerCase().includes(lowercaseSearch) ||
-      tp.city?.toLowerCase().includes(lowercaseSearch)
-    );
+    return turnoProperties.filter(tp => {
+      // Handle different possible property name fields
+      const name = tp.name || tp.alias || tp.title || '';
+      const address = tp.address || '';
+      const city = tp.city || '';
+      
+      return name.toLowerCase().includes(lowercaseSearch) ||
+        address.toLowerCase().includes(lowercaseSearch) ||
+        city.toLowerCase().includes(lowercaseSearch);
+    });
   }, [turnoProperties, searchTerm]);
 
   const suggestedMappings = useMemo(() => {
@@ -54,7 +59,7 @@ const TurnoMappingModal = ({
     return turnoProperties
       .map(tp => {
         let score = 0;
-        const turnoName = tp.name.toLowerCase();
+        const turnoName = (tp.name || tp.alias || tp.title || '').toLowerCase();
         const turnoAddress = `${tp.address || ''} ${tp.city || ''}`.toLowerCase();
         
         // Name similarity
@@ -153,7 +158,7 @@ const TurnoMappingModal = ({
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <h5 className="font-medium text-sm">{tp.name}</h5>
+                            <h5 className="font-medium text-sm">{tp.name || tp.alias || tp.title || 'Unnamed Property'}</h5>
                             {isPropertyMapped(tp.id) && (
                               <Badge variant="secondary" className="text-xs">Already Mapped</Badge>
                             )}
@@ -219,7 +224,7 @@ const TurnoMappingModal = ({
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <h5 className="font-medium text-sm">{tp.name}</h5>
+                              <h5 className="font-medium text-sm">{tp.name || tp.alias || tp.title || 'Unnamed Property'}</h5>
                               {isPropertyMapped(tp.id) && (
                                 <Badge variant="secondary" className="text-xs">Mapped</Badge>
                               )}
@@ -261,7 +266,7 @@ const TurnoMappingModal = ({
                 <span>maps to</span>
                 <Link2 className="h-4 w-4" />
               </div>
-              <span>{selectedTurnoProperty.name}</span>
+              <span>{selectedTurnoProperty.name || selectedTurnoProperty.alias || selectedTurnoProperty.title || 'Unnamed Property'}</span>
             </div>
           </div>
         )}

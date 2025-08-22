@@ -136,7 +136,7 @@ const handler = async (req: Request): Promise<Response> => {
           .from('turno_property_mapping')
           .upsert({
             turno_property_id: property.id,
-            property_name: property.name || property.title || property.alias || `Property ${property.id}`,
+            property_name: property.name || property.alias || property.title || `Property ${property.id}`,
             is_active: false // Will be activated when user maps to internal property
           }, {
             onConflict: 'turno_property_id',

@@ -1,12 +1,16 @@
 export interface TurnoProperty {
   id: string;
-  name: string;
+  name?: string;
+  alias?: string;  // Turno API uses alias as property name
+  title?: string;
   address?: string;
   city?: string;
   state?: string;
   country?: string;
   postal_code?: string;
   timezone?: string;
+  external_property_id?: string | null;
+  image_full_url?: string;
   cleaner?: {
     id: string;
     name: string;
