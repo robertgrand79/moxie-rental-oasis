@@ -75,12 +75,12 @@ const fetchTurnoProperties = async (token: string, secret: string, partnerId?: s
       throw new Error(`Invalid JSON response from Turno Properties API: ${parseError.message}`);
     }
 
-    console.log(`✅ Found ${propertiesData.data?.length || 0} properties in Turno`);
+    console.log(`✅ Found ${propertiesData.data?.items?.length || propertiesData.data?.length || 0} properties in Turno`);
     
     return {
       success: true,
       data: propertiesData,
-      message: `Successfully fetched ${propertiesData.data?.length || 0} properties`
+      message: `Successfully fetched ${propertiesData.data?.items?.length || propertiesData.data?.length || 0} properties`
     };
   } catch (error) {
     console.error('❌ Error fetching Turno properties:', error);
@@ -121,8 +121,12 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(propertiesResult.error);
     }
 
-    // Cache properties in database
-    const properties = Array.isArray(propertiesResult.data?.data) ? propertiesResult.data.data : [];
+    // Cache properties in database - handle both data.items and data.data structures
+    const properties = Array.isArray(propertiesResult.data?.data?.items) 
+      ? propertiesResult.data.data.items 
+      : Array.isArray(propertiesResult.data?.data) 
+        ? propertiesResult.data.data 
+        : [];
     
     console.log(`📊 Caching ${properties.length} properties to database...`);
     
