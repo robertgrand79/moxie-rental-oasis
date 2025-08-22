@@ -13,6 +13,11 @@ export const usePOIManager = () => {
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPOI, setEditingPOI] = useState<PointOfInterest | null>(null);
+  
+  // Inline editing state
+  const [editingInlineId, setEditingInlineId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<POIFormData | null>(null);
+  const [isSubmittingInline, setIsSubmittingInline] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [enhancingId, setEnhancingId] = useState<string | null>(null);
 
@@ -143,6 +148,73 @@ export const usePOIManager = () => {
     ].slice(0, 3);
   };
 
+  // Inline editing handlers
+  const handleToggleInlineEdit = (poi: PointOfInterest) => {
+    if (editingInlineId === poi.id) {
+      // Close inline editing
+      setEditingInlineId(null);
+      setEditFormData(null);
+    } else {
+      // Open inline editing
+      setEditingInlineId(poi.id);
+      
+      // Initialize form data with POI values
+      const formData: POIFormData = {
+        name: poi.name,
+        description: poi.description || '',
+        address: poi.address || '',
+        latitude: poi.latitude || 0,
+        longitude: poi.longitude || 0,
+        category: poi.category || '',
+        phone: poi.phone || '',
+        website_url: poi.website_url || '',
+        image_url: poi.image_url || '',
+        rating: poi.rating || 0,
+        price_level: poi.price_level || 1,
+        distance_from_properties: poi.distance_from_properties || 0,
+        driving_time: poi.driving_time || 0,
+        walking_time: poi.walking_time || 0,
+        is_featured: poi.is_featured || false,
+        is_active: poi.is_active !== false,
+        display_order: poi.display_order || 0,
+        status: poi.status || 'draft',
+        created_by: poi.created_by || user?.id || ''
+      };
+      
+      setEditFormData(formData);
+    }
+  };
+
+  const handleSubmitInlineEdit = async (formData: POIFormData & { created_by: string }) => {
+    if (!editingInlineId) return;
+    
+    setIsSubmittingInline(true);
+    try {
+      await updatePointOfInterest.mutateAsync({
+        id: editingInlineId,
+        ...formData
+      });
+      
+      // Close inline editing on success
+      setEditingInlineId(null);
+      setEditFormData(null);
+      
+      toast({
+        title: "Success",
+        description: "Point of interest updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error updating POI:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update point of interest. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingInline(false);
+    }
+  };
+
   return {
     pointsOfInterest,
     isLoading,
@@ -157,6 +229,13 @@ export const usePOIManager = () => {
     handleDelete,
     handleEnhanceItem,
     handleAddNew,
-    getSuggestions
+    getSuggestions,
+    // Inline editing
+    editingInlineId,
+    handleToggleInlineEdit,
+    editFormData,
+    setEditFormData,
+    handleSubmitInlineEdit,
+    isSubmittingInline
   };
 };

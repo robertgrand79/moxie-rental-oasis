@@ -12,6 +12,14 @@ interface POIGridProps {
   isEnhancing: boolean;
   enhancingId: string | null;
   getSuggestions: (item: PointOfInterest) => any[];
+  // Inline editing props
+  editingInlineId: string | null;
+  onToggleInlineEdit: (poi: PointOfInterest) => void;
+  editFormData: any;
+  setEditFormData: (data: any) => void;
+  onSubmitInlineEdit: (data: any) => Promise<void>;
+  categories: Array<{ value: string; label: string }>;
+  isSubmittingInline: boolean;
 }
 
 const POIGrid = ({
@@ -21,7 +29,14 @@ const POIGrid = ({
   onEnhance,
   isEnhancing,
   enhancingId,
-  getSuggestions
+  getSuggestions,
+  editingInlineId,
+  onToggleInlineEdit,
+  editFormData,
+  setEditFormData,
+  onSubmitInlineEdit,
+  categories,
+  isSubmittingInline
 }: POIGridProps) => {
   if (pointsOfInterest.length === 0) {
     return (
@@ -45,6 +60,13 @@ const POIGrid = ({
           isEnhancing={isEnhancing}
           enhancingId={enhancingId}
           suggestions={getSuggestions(poi)}
+          isEditing={editingInlineId === poi.id}
+          onToggleEdit={onToggleInlineEdit}
+          editFormData={editingInlineId === poi.id ? editFormData : null}
+          setEditFormData={setEditFormData}
+          onSubmitInlineEdit={onSubmitInlineEdit}
+          categories={categories}
+          isSubmitting={isSubmittingInline}
         />
       ))}
     </div>
