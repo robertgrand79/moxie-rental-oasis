@@ -124,16 +124,10 @@ export const adminMenuItems = [
         description: 'Advanced analytics and insights'
       },
       {
-        title: 'User Management',
-        href: '/admin/users',
+        title: 'User & Access Management',
+        href: '/admin/user-access-management',
         icon: Users,
-        description: 'Manage users and permissions'
-      },
-      {
-        title: 'Roles & Permissions',
-        href: '/admin/roles',
-        icon: Shield,
-        description: 'Role-based access control'
+        description: 'Manage users, roles, permissions, and access control'
       }
     ]
   },

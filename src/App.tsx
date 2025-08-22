@@ -30,8 +30,7 @@ import BlogManagement from './pages/BlogManagement';
 import AdminProperties from './pages/admin/AdminProperties';
 import AdminPageManagement from './pages/admin/AdminPageManagement';
 import AdminSiteSettingsRedesigned from './pages/admin/AdminSiteSettingsRedesigned';
-import AdminUserManagement from './pages/admin/AdminUserManagement';
-import AdminRolesPermissions from './pages/admin/AdminRolesPermissions';
+import AdminUserAccessManagement from './pages/admin/AdminUserAccessManagement';
 import AdminNewsletterManagement from './pages/admin/AdminNewsletterManagement';
 import AdminEvents from './pages/admin/AdminEvents';
 import AdminPOI from './pages/admin/AdminPOI';
@@ -91,8 +90,7 @@ function App() {
                   <Route path="properties" element={<AdminProperties />} />
                   <Route path="pages" element={<AdminPageManagement />} />
                   <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
-                  <Route path="users" element={<AdminUserManagement />} />
-                  <Route path="roles" element={<AdminRolesPermissions />} />
+                  <Route path="user-access-management" element={<AdminUserAccessManagement />} />
                   <Route path="newsletter" element={<AdminNewsletterManagement />} />
                   <Route path="events" element={<AdminEvents />} />
                   <Route path="poi" element={<AdminPOI />} />
