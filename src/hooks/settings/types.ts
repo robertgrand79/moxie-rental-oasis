@@ -11,6 +11,7 @@ export interface SiteSetting {
 export interface SettingsState {
   // Basic site information
   siteName: string;
+  siteLogo: string;
   tagline: string;
   description: string;
   

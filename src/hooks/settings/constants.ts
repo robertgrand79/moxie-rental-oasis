@@ -3,6 +3,7 @@ import { SettingsState } from './types';
 
 export const defaultSettings: SettingsState = {
   siteName: 'Moxie Vacation Rentals',
+  siteLogo: '',
   tagline: 'Your perfect getaway is just a click away.',
   description: 'Discover amazing vacation rental properties in prime locations.',
   heroTitle: 'Your Home Away From Home',

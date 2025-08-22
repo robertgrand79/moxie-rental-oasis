@@ -9,9 +9,11 @@ import AdminSidebarSection from './sidebar/AdminSidebarSection';
 import AdminSidebarFooter from './sidebar/AdminSidebarFooter';
 import { adminMenuItems } from './sidebar/adminMenuItems';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
 const AdminSidebar = () => {
   const isMobile = useIsMobile();
+  const { settings } = useSimplifiedSiteSettings();
 
   return (
     <Sidebar>
@@ -19,17 +21,16 @@ const AdminSidebar = () => {
         <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
           <div className="flex items-center gap-3">
             {/* Site Logo - conditionally render logo or fallback to site name */}
-            {/* TODO: Replace with actual logo URL from site settings when available */}
-            {false ? ( // Change to check for actual logo URL
+            {settings.siteLogo ? (
               <img 
-                src="/path/to/logo.png" 
+                src={settings.siteLogo} 
                 alt="Site Logo" 
-                className={`${isMobile ? 'h-8' : 'h-10'} w-auto`}
+                className={`${isMobile ? 'h-8' : 'h-10'} w-auto max-w-[150px] object-contain`}
               />
             ) : (
               <div className="flex items-center">
                 <h2 className={`font-bold text-gray-900 ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                  Moxie
+                  {settings.siteName || 'Moxie'}
                 </h2>
               </div>
             )}

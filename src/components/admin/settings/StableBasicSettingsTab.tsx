@@ -12,6 +12,7 @@ const StableBasicSettingsTab = () => {
   
   const [localData, setLocalData] = React.useState({
     siteName: settings.siteName || '',
+    siteLogo: settings.siteLogo || '',
     tagline: settings.tagline || '',
     description: settings.description || '',
     heroTitle: settings.heroTitle || '',
@@ -35,6 +36,7 @@ const StableBasicSettingsTab = () => {
   React.useEffect(() => {
     setLocalData({
       siteName: settings.siteName || '',
+      siteLogo: settings.siteLogo || '',
       tagline: settings.tagline || '',
       description: settings.description || '',
       heroTitle: settings.heroTitle || '',
@@ -78,6 +80,7 @@ const StableBasicSettingsTab = () => {
       <BasicSiteInformation
         localData={{
           siteName: localData.siteName,
+          siteLogo: localData.siteLogo,
           tagline: localData.tagline,
           description: localData.description
         }}

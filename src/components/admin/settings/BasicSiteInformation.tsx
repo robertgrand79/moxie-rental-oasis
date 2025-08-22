@@ -10,6 +10,7 @@ import { Save, Globe } from 'lucide-react';
 interface BasicSiteInformationProps {
   localData: {
     siteName: string;
+    siteLogo: string;
     tagline: string;
     description: string;
   };
@@ -42,6 +43,19 @@ const BasicSiteInformation = ({ localData, onInputChange, onSave, saving }: Basi
           />
         </div>
         <div>
+          <Label htmlFor="siteLogo">Site Logo URL</Label>
+          <Input
+            id="siteLogo"
+            value={localData.siteLogo}
+            onChange={(e) => onInputChange('siteLogo', e.target.value)}
+            placeholder="https://example.com/logo.png"
+            className="mt-1"
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Enter a URL to your logo image. This will be displayed in the admin sidebar.
+          </p>
+        </div>
+        <div>
           <Label htmlFor="tagline">Tagline *</Label>
           <Input
             id="tagline"
@@ -63,11 +77,11 @@ const BasicSiteInformation = ({ localData, onInputChange, onSave, saving }: Basi
         </div>
         <Button
           onClick={onSave}
-          disabled={saving['siteName'] || saving['tagline'] || saving['description']}
+          disabled={saving['siteName'] || saving['siteLogo'] || saving['tagline'] || saving['description']}
           className="w-full"
         >
           <Save className="h-4 w-4 mr-2" />
-          {saving['siteName'] || saving['tagline'] || saving['description'] ? 'Saving...' : 'Save Basic Information'}
+          {saving['siteName'] || saving['siteLogo'] || saving['tagline'] || saving['description'] ? 'Saving...' : 'Save Basic Information'}
         </Button>
       </EnhancedCardContent>
     </EnhancedCard>
