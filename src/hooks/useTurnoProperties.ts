@@ -23,6 +23,7 @@ export const useTurnoProperties = () => {
 
       if (data?.success && data?.properties) {
         const properties = data.properties || [];
+        console.log('📋 Turno properties received:', properties.length, properties);
         setTurnoProperties(properties);
         
         // Cache properties in database
@@ -32,6 +33,9 @@ export const useTurnoProperties = () => {
           title: 'Success',
           description: `Fetched ${properties.length} properties from Turno`,
         });
+      } else {
+        console.log('⚠️ No properties data in response:', data);
+        setTurnoProperties([]);
       }
     } catch (error) {
       console.error('Error fetching Turno properties:', error);
@@ -80,6 +84,7 @@ export const useTurnoProperties = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log('📊 Fetched mappings:', data?.length || 0, data);
       setMappings(data || []);
     } catch (error) {
       console.error('Error fetching mappings:', error);

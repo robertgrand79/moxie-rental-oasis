@@ -206,7 +206,11 @@ const TurnoMappingManager = ({ properties }: TurnoMappingManagerProps) => {
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => handleCreateMapping(property)}
+                    onClick={() => {
+                      console.log('🔍 Map to Turno clicked. Turno properties:', turnoProperties.length, turnoProperties);
+                      console.log('🔍 Unmapped properties:', getUnmappedProperties().length);
+                      handleCreateMapping(property);
+                    }}
                     disabled={turnoProperties.length === 0}
                   >
                     <Plus className="h-4 w-4 mr-2" />
