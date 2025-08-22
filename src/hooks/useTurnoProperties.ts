@@ -57,7 +57,7 @@ export const useTurnoProperties = () => {
           .from('turno_property_mapping')
           .upsert({
             turno_property_id: property.id,
-            property_name: property.name,
+            property_name: property.name || property.alias || property.title || `Property ${property.id}`,
             is_active: false
           }, {
             onConflict: 'turno_property_id',
@@ -98,11 +98,15 @@ export const useTurnoProperties = () => {
 
   const createMapping = async (propertyId: string, turnoPropertyId: string) => {
     try {
+      console.log('🔄 Creating mapping:', { propertyId, turnoPropertyId });
+      
       // Get Turno property details
       const turnoProperty = turnoProperties.find(p => p.id === turnoPropertyId);
       if (!turnoProperty) {
         throw new Error('Turno property not found');
       }
+
+      console.log('📋 Found Turno property:', turnoProperty);
 
       const { data, error } = await supabase
         .from('turno_property_mapping')
@@ -114,8 +118,14 @@ export const useTurnoProperties = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error:', error);
+        throw error;
+      }
 
+      console.log('✅ Mapping created successfully:', data);
+
+      console.log('🔄 Refreshing mappings list...');
       await fetchMappings();
       
       toast({

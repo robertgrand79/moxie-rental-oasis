@@ -61,6 +61,14 @@ const TurnoMappingManager = ({ properties }: TurnoMappingManagerProps) => {
   const unmappedCount = getUnmappedProperties().length;
   const totalTurnoProperties = turnoProperties.length;
 
+  console.log('🔍 TurnoMappingManager state:', {
+    mappings: mappings.length,
+    mappedCount,
+    unmappedCount,
+    totalTurnoProperties,
+    mappingsData: mappings
+  });
+
   return (
     <div className="space-y-6">
       {/* Header with stats */}
