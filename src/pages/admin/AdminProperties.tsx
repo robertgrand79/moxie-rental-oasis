@@ -9,7 +9,7 @@ import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import PropertyFormContainer from '@/components/admin/properties/PropertyFormContainer';
 import PropertyListContainer from '@/components/admin/properties/PropertyListContainer';
 import PaginationControls from '@/components/ui/pagination-controls';
-import ImageCleanupButton from '@/components/admin/properties/ImageCleanupButton';
+
 import PropertyDiagnostics from '@/components/admin/PropertyDiagnostics';
 import TurnoMappingManager from '@/components/admin/properties/TurnoMappingManager';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -63,8 +63,7 @@ const AdminProperties = () => {
 
   const pageActions = !showAddForm ? (
     <div className="flex gap-2 flex-wrap">
-      <ImageCleanupButton />
-      <EnhancedButton 
+      <EnhancedButton
         onClick={handleAddProperty} 
         variant="gradient"
         icon={<Plus className="h-4 w-4" />}
