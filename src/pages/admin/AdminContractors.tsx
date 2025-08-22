@@ -76,7 +76,7 @@ const AdminContractors = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 px-4 py-6 max-w-full overflow-hidden">
       <ModernContractorsHeader
         totalContractors={stats.totalContractors}
         activeContractors={stats.activeContractors}
