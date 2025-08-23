@@ -17,12 +17,10 @@ interface WextractorReview {
 }
 
 interface WextractorResponse {
-  success: boolean;
-  data: {
-    reviews: WextractorReview[];
-    total_reviews: number;
+  totals: {
+    review_count: number;
   };
-  error?: string;
+  reviews: WextractorReview[];
 }
 
 serve(async (req) => {
@@ -61,6 +59,15 @@ serve(async (req) => {
 
     console.log(`📍 Found property: ${property.title}, URL: ${property.airbnb_listing_url}`)
 
+    // Extract Airbnb property ID from URL
+    const airbnbIdMatch = property.airbnb_listing_url.match(/\/rooms\/(\d+)|\/h\/([^\/\?]+)/);
+    if (!airbnbIdMatch) {
+      throw new Error('Could not extract property ID from Airbnb URL. URL should contain /rooms/{id} or /h/{id}')
+    }
+    
+    const airbnbId = airbnbIdMatch[1] || airbnbIdMatch[2];
+    console.log(`🔍 Extracted Airbnb ID: ${airbnbId}`)
+
     // Update sync metadata to indicate sync started
     const { error: syncStartError } = await supabase
       .from('sync_metadata')
@@ -79,37 +86,54 @@ serve(async (req) => {
       console.error('❌ Failed to update sync metadata:', syncStartError)
     }
 
-    // Call Wextractor API to fetch reviews
+    // Fetch reviews with pagination (Wextractor returns 10 reviews per request)
     console.log('🌐 Calling Wextractor API...')
-    const wextractorResponse = await fetch('https://api.wextractor.com/v1/airbnb/reviews', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${wextractorApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: property.airbnb_listing_url,
-        limit: 100 // Fetch up to 100 most recent reviews
+    const allReviews: WextractorReview[] = []
+    let offset = 0
+    let totalReviews = 0
+    const maxReviews = 100 // Limit to prevent excessive API calls
+
+    do {
+      const wextractorUrl = new URL('https://wextractor.com/api/v1/reviews/airbnb')
+      wextractorUrl.searchParams.set('auth_token', wextractorApiKey)
+      wextractorUrl.searchParams.set('id', airbnbId)
+      wextractorUrl.searchParams.set('offset', offset.toString())
+
+      console.log(`📥 Fetching reviews with offset ${offset}...`)
+      
+      const wextractorResponse = await fetch(wextractorUrl.toString(), {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        }
       })
-    })
 
-    if (!wextractorResponse.ok) {
-      throw new Error(`Wextractor API error: ${wextractorResponse.status} ${wextractorResponse.statusText}`)
-    }
+      if (!wextractorResponse.ok) {
+        throw new Error(`Wextractor API error: ${wextractorResponse.status} ${wextractorResponse.statusText}`)
+      }
 
-    const reviewsData: WextractorResponse = await wextractorResponse.json()
-    
-    if (!reviewsData.success) {
-      throw new Error(`Wextractor error: ${reviewsData.error}`)
-    }
+      const reviewsData: WextractorResponse = await wextractorResponse.json()
+      
+      if (offset === 0) {
+        totalReviews = reviewsData.totals.review_count
+        console.log(`📊 Total reviews available: ${totalReviews}`)
+      }
 
-    console.log(`📊 Found ${reviewsData.data.reviews.length} reviews from Wextractor`)
+      allReviews.push(...reviewsData.reviews)
+      offset += 10 // Wextractor returns 10 reviews per page
+      
+      // Stop if we've reached our limit or if we got fewer than 10 reviews (last page)
+      if (allReviews.length >= maxReviews || reviewsData.reviews.length < 10) {
+        break
+      }
+    } while (offset < totalReviews)
+
+    console.log(`📊 Retrieved ${allReviews.length} reviews from Wextractor`)
 
     let newReviewsCount = 0
-    const reviews = reviewsData.data.reviews || []
 
     // Process each review
-    for (const review of reviews) {
+    for (const review of allReviews) {
       try {
         // Check if review already exists
         const { data: existingReview } = await supabase
@@ -167,7 +191,7 @@ serve(async (req) => {
         sync_type: 'airbnb_reviews',
         last_sync_at: new Date().toISOString(),
         sync_status: 'completed',
-        total_reviews_found: reviews.length,
+        total_reviews_found: allReviews.length,
         new_reviews_imported: newReviewsCount,
         error_message: null,
         updated_at: new Date().toISOString()
@@ -180,15 +204,15 @@ serve(async (req) => {
       console.error('❌ Failed to update sync completion metadata:', syncCompleteError)
     }
 
-    console.log(`🎉 Sync completed! Imported ${newReviewsCount} new reviews out of ${reviews.length} total`)
+    console.log(`🎉 Sync completed! Imported ${newReviewsCount} new reviews out of ${allReviews.length} total`)
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Successfully synced ${newReviewsCount} new reviews from ${reviews.length} total reviews found`,
+        message: `Successfully synced ${newReviewsCount} new reviews from ${allReviews.length} total reviews found`,
         data: {
           property_id,
-          total_reviews_found: reviews.length,
+          total_reviews_found: allReviews.length,
           new_reviews_imported: newReviewsCount
         }
       }),
