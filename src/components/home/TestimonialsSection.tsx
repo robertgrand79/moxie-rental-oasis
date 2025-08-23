@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import TestimonialCard from '@/components/ui/testimonial-card';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Testimonial {
@@ -21,20 +22,40 @@ interface Testimonial {
 }
 
 const TestimonialsSection = () => {
-  const { data: testimonials = [], isLoading } = useQuery({
-    queryKey: ['testimonials-featured'],
+  const [page, setPage] = useState(0);
+  const [allTestimonials, setAllTestimonials] = useState<Testimonial[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const pageSize = 6;
+
+  const { data: testimonialResult, isLoading, isFetching } = useQuery({
+    queryKey: ['testimonials-featured', page],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('testimonials')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('is_active', true)
         .order('display_order', { ascending: true })
-        .limit(6);
+        .range(page * pageSize, (page + 1) * pageSize - 1);
       
       if (error) throw error;
-      return data as Testimonial[];
+      
+      return { data: data as Testimonial[], count: count || 0 };
     }
   });
+
+  useEffect(() => {
+    if (testimonialResult) {
+      const totalItems = testimonialResult.count || 0;
+      const currentlyLoaded = (page + 1) * pageSize;
+      setHasMore(currentlyLoaded < totalItems);
+
+      if (page === 0) {
+        setAllTestimonials(testimonialResult.data);
+      } else {
+        setAllTestimonials(prev => [...prev, ...testimonialResult.data]);
+      }
+    }
+  }, [testimonialResult, page, pageSize]);
 
   if (isLoading) {
     return (
@@ -56,9 +77,17 @@ const TestimonialsSection = () => {
     );
   }
 
-  if (testimonials.length === 0) {
+  const loadMore = () => {
+    if (!isFetching && hasMore) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  if (!isLoading && allTestimonials.length === 0) {
     return null;
   }
+
+  const displayTestimonials = allTestimonials.length > 0 ? allTestimonials : (testimonialResult?.data || []);
 
   return (
     <section className="py-16 bg-background">
@@ -71,7 +100,7 @@ const TestimonialsSection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {testimonials.map((testimonial) => (
+          {displayTestimonials.map((testimonial) => (
             <TestimonialCard
               key={testimonial.id}
               testimonial={testimonial}
@@ -79,10 +108,24 @@ const TestimonialsSection = () => {
           ))}
         </div>
 
-        {testimonials.length > 6 && (
+        {hasMore && (
           <div className="text-center mt-8">
+            <Button
+              onClick={loadMore}
+              disabled={isFetching}
+              variant="outline"
+              size="lg"
+              className="min-w-32"
+            >
+              {isFetching ? 'Loading...' : 'Load More Reviews'}
+            </Button>
+          </div>
+        )}
+
+        {displayTestimonials.length > 0 && (
+          <div className="text-center mt-4">
             <p className="text-muted-foreground text-sm">
-              Showing {testimonials.length} featured reviews
+              Showing {displayTestimonials.length} reviews
             </p>
           </div>
         )}
