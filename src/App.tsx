@@ -104,9 +104,6 @@ function App() {
                   <Route path="profile" element={<AdminProfile />} />
                 </Route>
 
-                {/* Standalone dashboard route */}
-                <Route path="/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Router>
