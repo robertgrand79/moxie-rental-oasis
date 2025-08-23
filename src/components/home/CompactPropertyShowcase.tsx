@@ -28,16 +28,16 @@ const CompactPropertyShowcase = () => {
           </div>
           
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {Array.from({ length: 4 }).map((_, index) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {Array.from({ length: 5 }).map((_, index) => (
                 <PropertyCardSkeleton key={index} />
               ))}
             </div>
           ) : properties.length > 0 ? (
             <>
-              {/* Properties Grid - Limit to 4 for cleaner layout */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-                {properties.slice(0, 4).map((property) => {
+              {/* Properties Grid - Show 5 properties for optimal display */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-12">
+                {properties.slice(0, 5).map((property) => {
                   // Generate clean address slug without property ID
                   const addressSlug = generateAddressSlug(property.location);
                   
