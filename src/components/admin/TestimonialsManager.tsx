@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import TestimonialForm from './testimonials/TestimonialForm';
 import TestimonialsList from './testimonials/TestimonialsList';
 import TestimonialsLoadingState from './testimonials/TestimonialsLoadingState';
-import AirbnbSyncManager from './AirbnbSyncManager';
+
 
 const TestimonialsManager = () => {
   const { testimonials, isLoading, createTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
@@ -110,8 +110,6 @@ const TestimonialsManager = () => {
 
   return (
     <div className="space-y-6">
-      <AirbnbSyncManager />
-      
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
