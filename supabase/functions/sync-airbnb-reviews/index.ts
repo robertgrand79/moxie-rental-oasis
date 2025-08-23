@@ -49,6 +49,14 @@ serve(async (req) => {
     console.log('🔑 WEXTRACTOR_API_KEY present:', wextractorApiKey ? 'Yes' : 'No')
     console.log('🔑 WEXTRACTOR_API_KEY length:', wextractorApiKey ? wextractorApiKey.length : 0)
     
+    // Debug: List all environment variables that start with common prefixes
+    console.log('🔍 Debugging environment variables:')
+    for (const [key, value] of Object.entries(Deno.env.toObject())) {
+      if (key.includes('WEXTRACTOR') || key.includes('API') || key.includes('KEY')) {
+        console.log(`🔑 Found env var: ${key} = ${value ? 'SET' : 'NOT_SET'} (length: ${value?.length || 0})`)
+      }
+    }
+    
     if (!wextractorApiKey) {
       console.error('❌ WEXTRACTOR_API_KEY environment variable is not set')
       return new Response(
