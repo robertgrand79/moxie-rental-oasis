@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Loader2, Shield, Phone, MessageCircle, CheckCircle } from 'lucide-react';
 import { Property } from '@/types/property';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
+import { usePostMessageHandler } from '@/hooks/usePostMessageHandler';
 
 interface IntegratedBookingSectionProps {
   property: Property;
@@ -13,6 +14,9 @@ const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) =
   const [isLoading, setIsLoading] = useState(true);
   const [popupBlocked, setPopupBlocked] = useState(false);
   const { settings, loading: settingsLoading } = useSimplifiedSiteSettings();
+
+  // Handle cross-origin postMessage communication
+  usePostMessageHandler();
   
   const hasBookingUrl = property.hospitable_booking_url && property.hospitable_booking_url.trim() !== '';
   
@@ -174,9 +178,9 @@ const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) =
             src={property.hospitable_booking_url}
             className="w-full h-full border-0"
             title={`Book ${property.title} - Moxie Vacation Rentals`}
-            allow="payment; camera; microphone; geolocation; popups"
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation allow-modals"
-            referrerPolicy="no-referrer-when-downgrade"
+            allow="payment; camera; microphone; geolocation; fullscreen; autoplay"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation allow-modals allow-downloads"
+            referrerPolicy="strict-origin-when-cross-origin"
             onLoad={handleIframeLoad}
             onError={() => setIsLoading(false)}
           />

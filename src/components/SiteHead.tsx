@@ -6,6 +6,7 @@ import { useHeroImagePreload } from '@/hooks/useHeroImagePreload';
 import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
 import { useThirdPartyScripts } from '@/hooks/useThirdPartyScripts';
 import { useLocation } from 'react-router-dom';
+import SecurityProvider from '@/components/SecurityProvider';
 
 const SiteHead = () => {
   const { settings } = useStableSiteSettings();
@@ -38,7 +39,11 @@ const SiteHead = () => {
     );
   }
 
-  return null;
+  return (
+    <SecurityProvider>
+      {null}
+    </SecurityProvider>
+  );
 };
 
 export default SiteHead;

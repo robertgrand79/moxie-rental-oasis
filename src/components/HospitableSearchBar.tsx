@@ -1,24 +1,19 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
+import { useHospitableScriptLoader } from '@/hooks/useHospitableScriptLoader';
+import { usePostMessageHandler } from '@/hooks/usePostMessageHandler';
 
 const HospitableSearchBar = () => {
-  useEffect(() => {
-    // Load Hospitable script
-    const script = document.createElement('script');
-    script.src = 'https://widget.hospitable.com/js/booking-widget.js';
-    script.async = true;
-    document.head.appendChild(script);
+  // Handle cross-origin postMessage communication
+  usePostMessageHandler();
 
-    return () => {
-      // Cleanup script on unmount
-      const existingScript = document.querySelector('script[src="https://widget.hospitable.com/js/booking-widget.js"]');
-      if (existingScript) {
-        existingScript.remove();
-      }
-    };
-  }, []);
+  // Load Hospitable script with proper error handling
+  const { isLoaded } = useHospitableScriptLoader({
+    onLoad: () => console.debug('Hospitable search widget loaded'),
+    onError: (error) => console.warn('Hospitable script failed to load:', error)
+  });
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto -mt-4 sm:-mt-8 relative z-10">

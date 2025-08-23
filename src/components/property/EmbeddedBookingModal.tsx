@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, X, Loader2 } from 'lucide-react';
+import { usePostMessageHandler } from '@/hooks/usePostMessageHandler';
 
 interface EmbeddedBookingModalProps {
   isOpen: boolean;
@@ -14,13 +15,21 @@ interface EmbeddedBookingModalProps {
 const EmbeddedBookingModal = ({ isOpen, onClose, bookingUrl, propertyTitle }: EmbeddedBookingModalProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
+  // Handle cross-origin postMessage communication
+  usePostMessageHandler();
+
   const handleExternalFallback = () => {
-    window.open(bookingUrl, '_blank');
+    window.open(bookingUrl, '_blank', 'noopener,noreferrer');
     onClose();
   };
 
   const handleIframeLoad = () => {
     setIsLoading(false);
+  };
+
+  const handleIframeError = () => {
+    setIsLoading(false);
+    console.warn('Booking iframe failed to load');
   };
 
   return (
@@ -67,9 +76,11 @@ const EmbeddedBookingModal = ({ isOpen, onClose, bookingUrl, propertyTitle }: Em
             src={bookingUrl}
             className="w-full h-full border-0"
             title={`Book ${propertyTitle}`}
-            allow="payment; camera; microphone; geolocation"
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+            allow="payment; camera; microphone; geolocation; fullscreen; autoplay"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation allow-modals allow-downloads"
+            referrerPolicy="strict-origin-when-cross-origin"
             onLoad={handleIframeLoad}
+            onError={handleIframeError}
           />
         </div>
       </DialogContent>
