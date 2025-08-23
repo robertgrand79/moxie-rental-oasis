@@ -106,14 +106,27 @@ serve(async (req) => {
     const maxReviews = 100 // Limit to prevent excessive API calls
 
     do {
+      // Based on Wextractor documentation, they expect 'id' parameter with just the identifier
       const wextractorUrl = new URL('https://wextractor.com/api/v1/reviews/airbnb')
       wextractorUrl.searchParams.set('auth_token', wextractorApiKey)
-      wextractorUrl.searchParams.set('id', airbnbId)
       wextractorUrl.searchParams.set('offset', offset.toString())
+      
+      // Extract just the identifier part based on URL type
+      let justId: string
+      const roomsMatch = property.airbnb_listing_url.match(/\/rooms\/(\d+)/);
+      if (roomsMatch) {
+        justId = roomsMatch[1]; // For /rooms/ URLs, use numeric ID
+      } else {
+        const hostMatch = property.airbnb_listing_url.match(/\/h\/([^\/\?]+)/);
+        justId = hostMatch ? hostMatch[1] : ''; // For /h/ URLs, use host name
+      }
+      
+      wextractorUrl.searchParams.set('id', justId)
 
       console.log(`📥 Fetching reviews with offset ${offset}...`)
       console.log(`🌐 Wextractor URL: ${wextractorUrl.toString()}`)
-      console.log(`🔑 Using Airbnb ID: ${airbnbId}`)
+      console.log(`🔑 Using Airbnb ID: ${justId}`)
+      console.log(`🔗 Original URL: ${property.airbnb_listing_url}`)
       
       const wextractorResponse = await fetch(wextractorUrl.toString(), {
         method: 'GET',
