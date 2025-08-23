@@ -38,6 +38,28 @@ const BookingIntegrationSection = ({ form, disabled = false }: BookingIntegratio
         )}
       />
 
+      {/* Airbnb Listing Integration */}
+      <FormField
+        control={form.control}
+        name="airbnbListingUrl"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Airbnb Listing URL (Optional)</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="https://www.airbnb.com/rooms/12345678"
+                disabled={disabled}
+                {...field} 
+              />
+            </FormControl>
+            <FormDescription>
+              Enter the Airbnb listing URL for this property. This will be used to sync guest reviews automatically.
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       {/* Booking Preview - Only show if there's a valid URL */}
       {hasValidUrl && (
         <div className="space-y-2">
