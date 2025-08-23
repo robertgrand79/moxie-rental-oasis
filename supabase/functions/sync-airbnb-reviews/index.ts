@@ -43,7 +43,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const wextractorApiKey = Deno.env.get('WEXTRACTOR_API_KEY')
     
-    console.log('🔧 Environment variables check:')
+    console.log('🔧 Environment variables check (v2):')
     console.log('🔑 SUPABASE_URL present:', supabaseUrl ? 'Yes' : 'No')
     console.log('🔑 SUPABASE_SERVICE_ROLE_KEY present:', supabaseKey ? 'Yes' : 'No')
     console.log('🔑 WEXTRACTOR_API_KEY present:', wextractorApiKey ? 'Yes' : 'No')
