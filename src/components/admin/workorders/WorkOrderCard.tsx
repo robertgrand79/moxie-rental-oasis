@@ -90,12 +90,12 @@ const WorkOrderCard = ({
 
       <EnhancedCardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="outline" className="font-mono text-xs">
+          <div className="flex-1 min-w-0 mr-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <Badge variant="outline" className="font-mono text-xs flex-shrink-0">
                 {workOrder.work_order_number}
               </Badge>
-              <Badge className={priorityColors[workOrder.priority as keyof typeof priorityColors]}>
+              <Badge className={`${priorityColors[workOrder.priority as keyof typeof priorityColors]} flex-shrink-0`}>
                 {getPriorityIcon(workOrder.priority)}
                 <span className="ml-1 capitalize">{workOrder.priority}</span>
               </Badge>
