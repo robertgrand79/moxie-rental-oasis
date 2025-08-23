@@ -30,8 +30,10 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  let property_id: string
   try {
-    const { property_id } = await req.json()
+    const body = await req.json()
+    property_id = body.property_id
     
     if (!property_id) {
       throw new Error('Property ID is required')
@@ -208,7 +210,7 @@ serve(async (req) => {
       await supabase
         .from('sync_metadata')
         .upsert({
-          property_id: (await req.json())?.property_id,
+          property_id: property_id,
           sync_type: 'airbnb_reviews',
           sync_status: 'error',
           error_message: error.message,
