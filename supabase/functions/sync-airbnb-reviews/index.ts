@@ -40,7 +40,27 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const wextractorApiKey = Deno.env.get('WEXTRACTOR_API_KEY')!
+    const wextractorApiKey = Deno.env.get('WEXTRACTOR_API_KEY')
+    
+    console.log('🔧 Environment variables check:')
+    console.log('🔑 SUPABASE_URL present:', supabaseUrl ? 'Yes' : 'No')
+    console.log('🔑 SUPABASE_SERVICE_ROLE_KEY present:', supabaseKey ? 'Yes' : 'No')
+    console.log('🔑 WEXTRACTOR_API_KEY present:', wextractorApiKey ? 'Yes' : 'No')
+    console.log('🔑 WEXTRACTOR_API_KEY length:', wextractorApiKey ? wextractorApiKey.length : 0)
+    
+    if (!wextractorApiKey) {
+      console.error('❌ WEXTRACTOR_API_KEY environment variable is not set')
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'WEXTRACTOR_API_KEY not configured' 
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
     
     const supabase = createClient(supabaseUrl, supabaseKey)
 
