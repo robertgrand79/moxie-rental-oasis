@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import TestimonialForm from './testimonials/TestimonialForm';
 import TestimonialsList from './testimonials/TestimonialsList';
 import TestimonialsLoadingState from './testimonials/TestimonialsLoadingState';
+import AirbnbSyncManager from './AirbnbSyncManager';
 
 const TestimonialsManager = () => {
   const { testimonials, isLoading, createTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
@@ -108,41 +109,45 @@ const TestimonialsManager = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Customer Testimonials</CardTitle>
-            <CardDescription>
-              Manage guest reviews and testimonials displayed on your homepage
-            </CardDescription>
+    <div className="space-y-6">
+      <AirbnbSyncManager />
+      
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Customer Testimonials</CardTitle>
+              <CardDescription>
+                Manage guest reviews and testimonials displayed on your homepage
+              </CardDescription>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => {resetForm(); setIsDialogOpen(true)}}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Testimonial
+                </Button>
+              </DialogTrigger>
+              <TestimonialForm
+                isOpen={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                editingTestimonial={editingTestimonial}
+                formData={formData}
+                setFormData={setFormData}
+                onSubmit={handleSubmit}
+              />
+            </Dialog>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => {resetForm(); setIsDialogOpen(true)}}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Testimonial
-              </Button>
-            </DialogTrigger>
-            <TestimonialForm
-              isOpen={isDialogOpen}
-              onOpenChange={setIsDialogOpen}
-              editingTestimonial={editingTestimonial}
-              formData={formData}
-              setFormData={setFormData}
-              onSubmit={handleSubmit}
-            />
-          </Dialog>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <TestimonialsList
-          testimonials={testimonials}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent>
+          <TestimonialsList
+            testimonials={testimonials}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

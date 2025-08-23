@@ -59,6 +59,9 @@ verify_jwt = false
 [functions.acknowledge-work-order]
 verify_jwt = false
 
+[functions.sync-airbnb-reviews]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323

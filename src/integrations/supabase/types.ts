@@ -1636,6 +1636,7 @@ export type Database = {
       }
       properties: {
         Row: {
+          airbnb_listing_url: string | null
           amenities: string | null
           bathrooms: number
           bedrooms: number
@@ -1657,6 +1658,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          airbnb_listing_url?: string | null
           amenities?: string | null
           bathrooms: number
           bedrooms: number
@@ -1678,6 +1680,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          airbnb_listing_url?: string | null
           amenities?: string | null
           bathrooms?: number
           bedrooms?: number
@@ -2005,6 +2008,60 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_metadata: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          last_sync_at: string | null
+          new_reviews_imported: number | null
+          property_id: string
+          sync_status: string
+          sync_type: string
+          total_reviews_found: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_sync_at?: string | null
+          new_reviews_imported?: number | null
+          property_id: string
+          sync_status?: string
+          sync_type?: string
+          total_reviews_found?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_sync_at?: string | null
+          new_reviews_imported?: number | null
+          property_id?: string
+          sync_status?: string
+          sync_type?: string
+          total_reviews_found?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_metadata_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_metadata_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_permissions: {
         Row: {
           category: string
@@ -2151,6 +2208,7 @@ export type Database = {
           created_at: string
           created_by: string
           display_order: number | null
+          external_review_id: string | null
           guest_avatar_url: string | null
           guest_location: string | null
           guest_name: string
@@ -2171,6 +2229,7 @@ export type Database = {
           created_at?: string
           created_by: string
           display_order?: number | null
+          external_review_id?: string | null
           guest_avatar_url?: string | null
           guest_location?: string | null
           guest_name: string
@@ -2191,6 +2250,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           display_order?: number | null
+          external_review_id?: string | null
           guest_avatar_url?: string | null
           guest_location?: string | null
           guest_name?: string

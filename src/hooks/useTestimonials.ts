@@ -19,6 +19,7 @@ export interface Testimonial {
   is_active?: boolean;
   status?: string;
   booking_platform?: string;
+  external_review_id?: string; // New field for deduplication
   created_by: string;
   created_at: string;
   updated_at: string;
