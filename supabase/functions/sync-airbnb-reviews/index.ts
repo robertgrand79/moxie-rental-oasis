@@ -126,11 +126,13 @@ serve(async (req) => {
       
       if (!wextractorResponse.ok) {
         const errorText = await wextractorResponse.text()
-        console.log(`❌ Wextractor error response: ${errorText}`)
-        throw new Error(`Wextractor API error: ${wextractorResponse.status} ${wextractorResponse.statusText}`)
+        console.log(`❌ Wextractor error response body: ${errorText}`)
+        console.log(`❌ Wextractor error headers: ${JSON.stringify(Object.fromEntries(wextractorResponse.headers.entries()))}`)
+        throw new Error(`Wextractor API error: ${wextractorResponse.status} ${wextractorResponse.statusText} - Response: ${errorText}`)
       }
 
       const reviewsData: WextractorResponse = await wextractorResponse.json()
+      console.log(`📊 Wextractor response data: ${JSON.stringify(reviewsData, null, 2)}`)
       
       if (offset === 0) {
         totalReviews = reviewsData.totals.review_count
