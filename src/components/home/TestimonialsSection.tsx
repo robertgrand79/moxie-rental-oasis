@@ -34,6 +34,7 @@ const TestimonialsSection = () => {
         .from('testimonials')
         .select('*', { count: 'exact' })
         .eq('is_active', true)
+        .order('created_at', { ascending: false })
         .order('display_order', { ascending: true })
         .range(page * pageSize, (page + 1) * pageSize - 1);
       
