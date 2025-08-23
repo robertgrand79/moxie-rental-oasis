@@ -100,6 +100,8 @@ serve(async (req) => {
       wextractorUrl.searchParams.set('offset', offset.toString())
 
       console.log(`📥 Fetching reviews with offset ${offset}...`)
+      console.log(`🌐 Wextractor URL: ${wextractorUrl.toString()}`)
+      console.log(`🔑 Using Airbnb ID: ${airbnbId}`)
       
       const wextractorResponse = await fetch(wextractorUrl.toString(), {
         method: 'GET',
@@ -108,7 +110,11 @@ serve(async (req) => {
         }
       })
 
+      console.log(`📡 Wextractor response status: ${wextractorResponse.status}`)
+      
       if (!wextractorResponse.ok) {
+        const errorText = await wextractorResponse.text()
+        console.log(`❌ Wextractor error response: ${errorText}`)
         throw new Error(`Wextractor API error: ${wextractorResponse.status} ${wextractorResponse.statusText}`)
       }
 
