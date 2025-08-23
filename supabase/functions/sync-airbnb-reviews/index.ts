@@ -131,22 +131,34 @@ serve(async (req) => {
       wextractorUrl.searchParams.set('auth_token', wextractorApiKey)
       wextractorUrl.searchParams.set('offset', offset.toString())
       
-      // Extract just the identifier part based on URL type
+      // Extract the correct ID format based on Wextractor API documentation
       let justId: string
       const roomsMatch = property.airbnb_listing_url.match(/\/rooms\/(\d+)/);
       if (roomsMatch) {
-        justId = roomsMatch[1]; // For /rooms/ URLs, use numeric ID
+        // For /rooms/ URLs like https://www.airbnb.com/rooms/30748041, use just the numeric ID
+        justId = roomsMatch[1];
+        console.log(`🏠 Room type detected, using ID: ${justId}`)
       } else {
+        // For /h/ URLs, this format is not well documented by Wextractor - try the full URL
+        console.log(`⚠️ Host URL detected - this may not be supported by Wextractor API`)
         const hostMatch = property.airbnb_listing_url.match(/\/h\/([^\/\?]+)/);
-        justId = hostMatch ? hostMatch[1] : ''; // For /h/ URLs, use host name
+        justId = hostMatch ? hostMatch[1] : '';
+        
+        if (!justId) {
+          throw new Error(`Could not extract Airbnb ID from URL: ${property.airbnb_listing_url}`)
+        }
       }
       
       wextractorUrl.searchParams.set('id', justId)
+      
+      // Add type parameter for rooms (default)
+      wextractorUrl.searchParams.set('type', 'room')
 
       console.log(`📥 Fetching reviews with offset ${offset}...`)
       console.log(`🌐 Wextractor URL: ${wextractorUrl.toString()}`)
       console.log(`🔑 Using Airbnb ID: ${justId}`)
       console.log(`🔗 Original URL: ${property.airbnb_listing_url}`)
+      console.log(`🔐 Auth token length: ${wextractorApiKey ? wextractorApiKey.length : 0}`)
       
       const wextractorResponse = await fetch(wextractorUrl.toString(), {
         method: 'GET',
