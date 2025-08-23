@@ -2146,6 +2146,7 @@ export type Database = {
       }
       testimonials: {
         Row: {
+          booking_platform: string | null
           content: string | null
           created_at: string
           created_by: string
@@ -2165,6 +2166,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          booking_platform?: string | null
           content?: string | null
           created_at?: string
           created_by: string
@@ -2184,6 +2186,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          booking_platform?: string | null
           content?: string | null
           created_at?: string
           created_by?: string

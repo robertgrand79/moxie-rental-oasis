@@ -18,6 +18,7 @@ export interface Testimonial {
   display_order?: number;
   is_active?: boolean;
   status?: string;
+  booking_platform?: string;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -37,6 +38,7 @@ export interface CreateTestimonialData {
   display_order?: number;
   is_active?: boolean;
   status?: string;
+  booking_platform?: string;
   created_by: string;
 }
 

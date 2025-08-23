@@ -25,7 +25,8 @@ const TestimonialsManager = () => {
     stay_date: '',
     is_featured: false,
     display_order: 0,
-    is_active: true
+    is_active: true,
+    booking_platform: ''
   });
 
   const resetForm = () => {
@@ -39,7 +40,8 @@ const TestimonialsManager = () => {
       stay_date: '',
       is_featured: false,
       display_order: 0,
-      is_active: true
+      is_active: true,
+      booking_platform: ''
     });
     setEditingTestimonial(null);
   };
@@ -56,7 +58,8 @@ const TestimonialsManager = () => {
       stay_date: testimonial.stay_date || '',
       is_featured: testimonial.is_featured,
       display_order: testimonial.display_order,
-      is_active: testimonial.is_active
+      is_active: testimonial.is_active,
+      booking_platform: testimonial.booking_platform || ''
     });
     setIsDialogOpen(true);
   };

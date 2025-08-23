@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Testimonial } from '@/hooks/useTestimonials';
 import GuestPhotoUpload from './GuestPhotoUpload';
 
@@ -20,6 +21,7 @@ interface TestimonialFormData {
   is_featured: boolean;
   display_order: number;
   is_active: boolean;
+  booking_platform: string;
 }
 
 interface TestimonialFormProps {
@@ -39,6 +41,38 @@ const TestimonialForm = ({
   setFormData, 
   onSubmit 
 }: TestimonialFormProps) => {
+  
+  const handlePlatformChange = (platform: string) => {
+    if (formData.booking_platform === platform) {
+      // If same platform clicked, clear it
+      setFormData(prev => ({ 
+        ...prev, 
+        booking_platform: '',
+        guest_avatar_url: ''
+      }));
+    } else {
+      // Set new platform and corresponding logo
+      let logoUrl = '';
+      switch (platform) {
+        case 'direct':
+          logoUrl = '/moxie-logo.png';
+          break;
+        case 'airbnb':
+          logoUrl = '/airbnb-logo.png';
+          break;
+        case 'vrbo':
+          logoUrl = '/vrbo-logo.png';
+          break;
+      }
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        booking_platform: platform,
+        guest_avatar_url: logoUrl
+      }));
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -72,9 +106,47 @@ const TestimonialForm = ({
           </div>
         </div>
 
+        <div>
+          <Label>Booking Platform</Label>
+          <div className="flex flex-wrap gap-4 mt-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="direct"
+                checked={formData.booking_platform === 'direct'}
+                onCheckedChange={() => handlePlatformChange('direct')}
+              />
+              <Label htmlFor="direct" className="text-sm font-normal">Direct Booking</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="airbnb"
+                checked={formData.booking_platform === 'airbnb'}
+                onCheckedChange={() => handlePlatformChange('airbnb')}
+              />
+              <Label htmlFor="airbnb" className="text-sm font-normal">Airbnb</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="vrbo"
+                checked={formData.booking_platform === 'vrbo'}
+                onCheckedChange={() => handlePlatformChange('vrbo')}
+              />
+              <Label htmlFor="vrbo" className="text-sm font-normal">VRBO</Label>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Selecting a platform will automatically set the platform logo as the guest photo
+          </p>
+        </div>
+
         <GuestPhotoUpload
           currentPhotoUrl={formData.guest_avatar_url}
-          onPhotoChange={(url) => setFormData(prev => ({ ...prev, guest_avatar_url: url }))}
+          onPhotoChange={(url) => setFormData(prev => ({ 
+            ...prev, 
+            guest_avatar_url: url,
+            booking_platform: url ? '' : prev.booking_platform // Clear platform if manual photo set
+          }))}
+          disabled={!!formData.booking_platform}
         />
 
         <div>
