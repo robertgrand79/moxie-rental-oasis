@@ -60,13 +60,25 @@ serve(async (req) => {
     console.log(`📍 Found property: ${property.title}, URL: ${property.airbnb_listing_url}`)
 
     // Extract Airbnb property ID from URL
-    const airbnbIdMatch = property.airbnb_listing_url.match(/\/rooms\/(\d+)|\/h\/([^\/\?]+)/);
-    if (!airbnbIdMatch) {
-      throw new Error('Could not extract property ID from Airbnb URL. URL should contain /rooms/{id} or /h/{id}')
+    let airbnbId: string
+    
+    // Handle /rooms/ URLs (numeric IDs)
+    const roomsMatch = property.airbnb_listing_url.match(/\/rooms\/(\d+)/);
+    if (roomsMatch) {
+      airbnbId = roomsMatch[1];
+    } 
+    // Handle /h/ URLs (host URLs - use the host name)
+    else {
+      const hostMatch = property.airbnb_listing_url.match(/\/h\/([^\/\?]+)/);
+      if (hostMatch) {
+        airbnbId = hostMatch[1];
+      } else {
+        throw new Error('Could not extract property ID from Airbnb URL. URL should contain /rooms/{id} or /h/{host-name}')
+      }
     }
     
-    const airbnbId = airbnbIdMatch[1] || airbnbIdMatch[2];
     console.log(`🔍 Extracted Airbnb ID: ${airbnbId}`)
+    console.log(`🔗 Original URL: ${property.airbnb_listing_url}`)
 
     // Update sync metadata to indicate sync started
     const { error: syncStartError } = await supabase
