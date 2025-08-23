@@ -59,25 +59,25 @@ serve(async (req) => {
 
     console.log(`📍 Found property: ${property.title}, URL: ${property.airbnb_listing_url}`)
 
-    // Extract Airbnb property ID from URL
+    // Extract Airbnb partial URL for Wextractor
     let airbnbId: string
     
-    // Handle /rooms/ URLs (numeric IDs)
+    // Handle /rooms/ URLs (create partial URL like "airbnb.com/rooms/123456")
     const roomsMatch = property.airbnb_listing_url.match(/\/rooms\/(\d+)/);
     if (roomsMatch) {
-      airbnbId = roomsMatch[1];
+      airbnbId = `airbnb.com/rooms/${roomsMatch[1]}`;
     } 
-    // Handle /h/ URLs (host URLs - use the host name)
+    // Handle /h/ URLs (create partial URL like "airbnb.com/h/hostname")
     else {
       const hostMatch = property.airbnb_listing_url.match(/\/h\/([^\/\?]+)/);
       if (hostMatch) {
-        airbnbId = hostMatch[1];
+        airbnbId = `airbnb.com/h/${hostMatch[1]}`;
       } else {
         throw new Error('Could not extract property ID from Airbnb URL. URL should contain /rooms/{id} or /h/{host-name}')
       }
     }
     
-    console.log(`🔍 Extracted Airbnb ID: ${airbnbId}`)
+    console.log(`🔍 Extracted Airbnb partial URL: ${airbnbId}`)
     console.log(`🔗 Original URL: ${property.airbnb_listing_url}`)
 
     // Update sync metadata to indicate sync started
