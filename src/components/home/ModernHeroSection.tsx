@@ -13,7 +13,7 @@ const ModernHeroSection = () => {
 
   if (isLoading) {
     return (
-      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900">
         <div className="animate-pulse text-white text-center">
           <div className="h-16 bg-white/20 rounded-lg w-96 mx-auto mb-4"></div>
           <div className="h-8 bg-white/20 rounded-lg w-64 mx-auto"></div>

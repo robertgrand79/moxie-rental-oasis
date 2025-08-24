@@ -15,8 +15,8 @@ const SiteHead = () => {
 
   const { isHomePage } = useSiteMetaTags(settings);
 
-  // Only preload hero image on home page
-  useHeroImagePreload(heroSettings.heroBackgroundImage, isHomePage);
+  // Skip hero image preload since ModernHeroSection uses AnimatedBackground
+  // useHeroImagePreload(heroSettings.heroBackgroundImage, isHomePage);
   
   // Load analytics on non-admin pages, except specifically allow on /admin/metrics and /admin/analytics
   const isAdminPage = location.pathname.startsWith('/admin');
