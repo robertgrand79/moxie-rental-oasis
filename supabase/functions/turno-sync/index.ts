@@ -758,7 +758,6 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
     
-    
     if (req.method === 'POST') {
       let requestBody: any = {};
       
@@ -786,6 +785,8 @@ const handler = async (req: Request): Promise<Response> => {
       
       // Handle actions based on request body action parameter
       const { action } = requestBody;
+      
+      console.log('🎯 Action requested:', action);
       
       // Sync specific work order status to Turno
       if (action === 'sync-status') {
@@ -896,6 +897,11 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error('❌ Turno sync error:', error);
+    
+    // Get credentials for debugging (safely handle undefined case)
+    const turnoApiToken = Deno.env.get('TURNO_API_TOKEN');
+    const turnoApiSecret = Deno.env.get('TURNO_API_SECRET');
+    const turnoPartnerId = Deno.env.get('TURNO_PARTNER_ID');
     
     // Enhanced error logging
     console.error('Error details:', {
