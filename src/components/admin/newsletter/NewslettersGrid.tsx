@@ -10,6 +10,7 @@ interface Newsletter {
   id: string;
   subject: string;
   content: string;
+  cover_image_url?: string;
   sent_at: string | null;
   recipient_count: number;
   blog_post_id: string | null;
@@ -71,6 +72,15 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, deleting }: Newsletter
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {newsletters.map((newsletter) => (
           <Card key={newsletter.id} className="hover:shadow-md transition-shadow">
+            {newsletter.cover_image_url && (
+              <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                <img
+                  src={newsletter.cover_image_url}
+                  alt={newsletter.subject}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">

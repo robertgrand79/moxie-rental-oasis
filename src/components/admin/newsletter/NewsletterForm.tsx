@@ -12,6 +12,7 @@ import { Send, Save, Loader2, Plus } from 'lucide-react';
 import ReactQuillEditor from '../../ReactQuillEditor';
 import ContentPicker, { SelectedContent } from './ContentPicker';
 import { generateContentTemplate } from './ContentTemplateGenerator';
+import ImageUpload from './ImageUpload';
 import { BlogPost } from '@/types/blogPost';
 import { EugeneEvent } from '@/hooks/useEugeneEvents';
 import { Place } from '@/hooks/usePlaces';
@@ -80,7 +81,10 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     if (newsletter) {
       form.setValue('subject', newsletter.subject);
       form.setValue('content', newsletter.content);
+      form.setValue('cover_image_url', newsletter.cover_image_url || '');
       setContent(newsletter.content);
+      setCoverImageUrl(newsletter.cover_image_url || '');
+      
       
       if (newsletter.linked_content) {
         const content = newsletter.linked_content as any;
@@ -117,6 +121,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
       const newsletterData = {
         subject: data.subject,
         content: content,
+        cover_image_url: coverImageUrl || null,
         linked_content: JSON.parse(JSON.stringify(selectedContent)),
         recipient_count: 0,
       };
@@ -175,6 +180,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
         body: {
           subject: data.subject,
           content: content,
+          coverImageUrl: coverImageUrl,
           linkedContent: selectedContent,
           campaignId: isEdit ? newsletter.id : undefined,
         }
@@ -220,6 +226,16 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     return selectedContent.blog_posts.length + selectedContent.events.length + selectedContent.places.length;
   };
 
+  const handleImageChange = (url: string) => {
+    setCoverImageUrl(url);
+    form.setValue('cover_image_url', url);
+  };
+
+  const handleImageRemove = () => {
+    setCoverImageUrl('');
+    form.setValue('cover_image_url', '');
+  };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[95vh] w-[95vw] p-0">
@@ -250,6 +266,16 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                   </FormItem>
                 )}
               />
+
+              <div className="space-y-2">
+                <FormLabel>Newsletter Cover Image (Optional)</FormLabel>
+                <ImageUpload
+                  currentImageUrl={coverImageUrl}
+                  onImageChange={handleImageChange}
+                  onImageRemove={handleImageRemove}
+                  disabled={isLoading || isSaving}
+                />
+              </div>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -309,7 +335,16 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
               <div className="flex gap-3 pt-4">
                 <Button 
                   variant="outline"
-                  onClick={form.handleSubmit(onSaveDraft)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('🔄 Save Draft button clicked');
+                    console.log('🔄 isFormValid:', isFormValid);
+                    console.log('🔄 isSaving:', isSaving);
+                    console.log('🔄 isLoading:', isLoading);
+                    console.log('🔄 currentSubject:', form.watch('subject'));
+                    console.log('🔄 content:', content);
+                    form.handleSubmit(onSaveDraft)();
+                  }}
                   disabled={!isFormValid || isSaving || isLoading}
                   className="flex-1"
                 >

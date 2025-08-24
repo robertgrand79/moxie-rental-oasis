@@ -17,6 +17,7 @@ interface Newsletter {
   id: string;
   subject: string;
   content: string;
+  cover_image_url?: string;
   sent_at: string | null;
   recipient_count: number;
   blog_post_id: string | null;
@@ -68,6 +69,7 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, deleting }: Newsle
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Cover</TableHead>
               <TableHead>Subject</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Recipients</TableHead>
@@ -78,6 +80,19 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, deleting }: Newsle
           <TableBody>
             {newsletters.map((newsletter) => (
               <TableRow key={newsletter.id}>
+                <TableCell className="w-16">
+                  {newsletter.cover_image_url ? (
+                    <img
+                      src={newsletter.cover_image_url}
+                      alt={newsletter.subject}
+                      className="w-12 h-8 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-12 h-8 bg-muted rounded flex items-center justify-center">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell className="font-medium max-w-xs">
                   <div className="truncate">{newsletter.subject}</div>
                 </TableCell>

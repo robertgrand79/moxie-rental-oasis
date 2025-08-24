@@ -1035,6 +1035,7 @@ export type Database = {
           bounce_rate: number | null
           click_rate: number | null
           content: string
+          cover_image_url: string | null
           created_at: string
           id: string
           linked_content: Json | null
@@ -1052,6 +1053,7 @@ export type Database = {
           bounce_rate?: number | null
           click_rate?: number | null
           content: string
+          cover_image_url?: string | null
           created_at?: string
           id?: string
           linked_content?: Json | null
@@ -1069,6 +1071,7 @@ export type Database = {
           bounce_rate?: number | null
           click_rate?: number | null
           content?: string
+          cover_image_url?: string | null
           created_at?: string
           id?: string
           linked_content?: Json | null
