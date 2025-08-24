@@ -35,11 +35,8 @@ const NewsletterPreviewModal = ({ campaign, open, onClose }: NewsletterPreviewMo
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>Newsletter Preview</span>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+          <DialogTitle>
+            Newsletter Preview
           </DialogTitle>
         </DialogHeader>
         
