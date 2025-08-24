@@ -79,11 +79,10 @@ const EventsManager = () => {
                 <TabsTrigger 
                   key={category.value} 
                   value={category.value}
-                  className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm min-h-[3rem] sm:min-h-[2.5rem]"
+                  className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 text-xs sm:text-sm min-h-[2.5rem] sm:min-h-[2.5rem]"
                 >
-                  <category.icon className="h-4 w-4 flex-shrink-0" />
+                  <category.icon className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
                   <span className="hidden sm:inline">{category.label}</span>
-                  <span className="sm:hidden text-[10px] leading-tight text-center">{category.shortLabel}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
