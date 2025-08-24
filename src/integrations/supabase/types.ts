@@ -596,6 +596,7 @@ export type Database = {
           is_featured: boolean | null
           is_recurring: boolean | null
           location: string | null
+          place_id: string | null
           price_range: string | null
           recurrence_pattern: string | null
           status: string
@@ -619,6 +620,7 @@ export type Database = {
           is_featured?: boolean | null
           is_recurring?: boolean | null
           location?: string | null
+          place_id?: string | null
           price_range?: string | null
           recurrence_pattern?: string | null
           status?: string
@@ -642,6 +644,7 @@ export type Database = {
           is_featured?: boolean | null
           is_recurring?: boolean | null
           location?: string | null
+          place_id?: string | null
           price_range?: string | null
           recurrence_pattern?: string | null
           status?: string
@@ -652,7 +655,15 @@ export type Database = {
           updated_at?: string
           website_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "eugene_events_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       google_calendar_events: {
         Row: {
@@ -1469,6 +1480,84 @@ export type Database = {
           target_id?: string
           target_name?: string | null
           target_type?: string
+        }
+        Relationships: []
+      }
+      places: {
+        Row: {
+          activity_type: string | null
+          address: string | null
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          display_order: number | null
+          id: string
+          image_url: string | null
+          images: string[] | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          latitude: number | null
+          location_text: string | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          price_level: number | null
+          rating: number | null
+          status: string
+          subcategory: string | null
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          activity_type?: string | null
+          address?: string | null
+          category: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          images?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          location_text?: string | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          price_level?: number | null
+          rating?: number | null
+          status?: string
+          subcategory?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          activity_type?: string | null
+          address?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          images?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          location_text?: string | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          price_level?: number | null
+          rating?: number | null
+          status?: string
+          subcategory?: string | null
+          updated_at?: string
+          website_url?: string | null
         }
         Relationships: []
       }

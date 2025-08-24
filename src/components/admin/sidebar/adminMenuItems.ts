@@ -66,16 +66,10 @@ export const adminMenuItems = [
         description: 'Manage local Eugene events'
       },
       {
-        title: 'Points of Interest',
-        href: '/admin/poi',
+        title: 'Places',
+        href: '/admin/places',
         icon: MapPin,
-        description: 'Manage local attractions and places'
-      },
-      {
-        title: 'Lifestyle Gallery',
-        href: '/admin/lifestyle',
-        icon: Camera,
-        description: 'Manage lifestyle and activity images'
+        description: 'Manage restaurants, attractions, activities, and local places'
       },
       {
         title: 'Testimonials',

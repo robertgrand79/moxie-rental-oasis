@@ -33,8 +33,7 @@ import AdminSiteSettingsRedesigned from './pages/admin/AdminSiteSettingsRedesign
 import AdminUserAccessManagement from './pages/admin/AdminUserAccessManagement';
 import AdminNewsletterManagement from './pages/admin/AdminNewsletterManagement';
 import AdminEvents from './pages/admin/AdminEvents';
-import AdminPOI from './pages/admin/AdminPOI';
-import AdminLifestyle from './pages/admin/AdminLifestyle';
+import AdminPlaces from './pages/admin/AdminPlaces';
 import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminWorkOrders from './pages/admin/AdminWorkOrders';
 import AdminContractors from './pages/admin/AdminContractors';
@@ -93,8 +92,7 @@ function App() {
                   <Route path="user-access-management" element={<AdminUserAccessManagement />} />
                   <Route path="newsletter" element={<AdminNewsletterManagement />} />
                   <Route path="events" element={<AdminEvents />} />
-                  <Route path="poi" element={<AdminPOI />} />
-                  <Route path="lifestyle" element={<AdminLifestyle />} />
+                  <Route path="places" element={<AdminPlaces />} />
                   <Route path="testimonials" element={<AdminTestimonials />} />
                   <Route path="work-orders" element={<AdminWorkOrders />} />
                   <Route path="contractors" element={<AdminContractors />} />
