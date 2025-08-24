@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Home, Building } from 'lucide-react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { useTestimonials, Testimonial } from '@/hooks/useTestimonials';
+import { useProperties } from '@/hooks/useProperties';
 import { useAuth } from '@/contexts/AuthContext';
 import TestimonialForm from './testimonials/TestimonialForm';
 import TestimonialsList from './testimonials/TestimonialsList';
@@ -15,9 +17,11 @@ import TestimonialsLoadingState from './testimonials/TestimonialsLoadingState';
 
 const TestimonialsManager = () => {
   const { testimonials, isLoading, createTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
+  const { properties } = useProperties();
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<string>('all');
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [formData, setFormData] = useState({
     guest_name: '',
@@ -99,6 +103,39 @@ const TestimonialsManager = () => {
     await deleteTestimonial.mutateAsync(id);
   };
 
+  // Get unique properties for tabs using the actual properties data
+  const getPropertyTabs = () => {
+    const tabs = [
+      { value: 'all', label: 'All Properties', icon: Home }
+    ];
+    
+    // Add tabs for properties that have testimonials
+    properties.forEach(property => {
+      const hasTestimonials = testimonials.some(t => t.property_id === property.id);
+      if (hasTestimonials) {
+        tabs.push({
+          value: property.id,
+          label: property.title,
+          icon: Building
+        });
+      }
+    });
+    
+    return tabs;
+  };
+
+  const getTestimonialCount = (propertyId: string) => {
+    if (propertyId === 'all') return testimonials.length;
+    return testimonials.filter(t => t.property_id === propertyId).length;
+  };
+
+  // Filter testimonials based on selected property
+  const filteredTestimonials = selectedProperty === 'all' 
+    ? testimonials 
+    : testimonials.filter(testimonial => testimonial.property_id === selectedProperty);
+
+  const propertyTabs = getPropertyTabs();
+
 
   // Listen for reset event from navigation
   useEffect(() => {
@@ -146,19 +183,46 @@ const TestimonialsManager = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {view === 'grid' ? (
-            <TestimonialsGrid 
-              testimonials={testimonials} 
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ) : (
-            <TestimonialsList
-              testimonials={testimonials}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          )}
+          <Tabs value={selectedProperty} onValueChange={setSelectedProperty}>
+            <TabsList className="grid w-full h-auto" style={{ gridTemplateColumns: `repeat(${Math.min(propertyTabs.length, 6)}, 1fr)` }}>
+              {propertyTabs.map((property) => (
+                <TabsTrigger 
+                  key={property.value} 
+                  value={property.value}
+                  className="flex items-center justify-center gap-2 px-2 py-3 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground"
+                >
+                  <property.icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden lg:inline whitespace-nowrap">
+                    {property.label}
+                    <span className="ml-1 text-xs opacity-70">
+                      ({getTestimonialCount(property.value)})
+                    </span>
+                  </span>
+                  <span className="lg:hidden text-xs opacity-70">
+                    {getTestimonialCount(property.value)}
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {propertyTabs.map((property) => (
+              <TabsContent key={property.value} value={property.value} className="mt-6">
+                {view === 'grid' ? (
+                  <TestimonialsGrid 
+                    testimonials={filteredTestimonials} 
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ) : (
+                  <TestimonialsList
+                    testimonials={filteredTestimonials}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                )}
+              </TabsContent>
+            ))}
+          </Tabs>
         </CardContent>
       </Card>
     </div>

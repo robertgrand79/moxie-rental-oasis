@@ -73,6 +73,8 @@ export const useTestimonials = () => {
 
   const createTestimonial = useMutation({
     mutationFn: async (testimonial: CreateTestimonialData) => {
+      console.log('Creating testimonial with data:', testimonial);
+      
       // Ensure we have either content or review_text
       const insertData = {
         ...testimonial,
@@ -86,7 +88,11 @@ export const useTestimonials = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating testimonial:', error);
+        throw error;
+      }
+      console.log('Testimonial created successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -107,6 +113,8 @@ export const useTestimonials = () => {
 
   const updateTestimonial = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Testimonial> & { id: string }) => {
+      console.log('Updating testimonial with data:', { id, updates });
+      
       const { data, error } = await supabase
         .from('testimonials')
         .update(updates)
@@ -114,7 +122,11 @@ export const useTestimonials = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating testimonial:', error);
+        throw error;
+      }
+      console.log('Testimonial updated successfully:', data);
       return data;
     },
     onSuccess: () => {
