@@ -184,7 +184,6 @@ const TestimonialForm = ({
                   <SelectValue placeholder="Select a property" />
                 </SelectTrigger>
                 <SelectContent className="z-50 bg-popover">
-                  <SelectItem value="">No property selected</SelectItem>
                   {properties.map((property) => (
                     <SelectItem key={property.id} value={property.id}>
                       {property.title}
