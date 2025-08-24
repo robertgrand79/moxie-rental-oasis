@@ -1,10 +1,7 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import BlogEditorHeader from './blog/BlogEditorHeader';
-import BlogEditorContent from './blog/BlogEditorContent';
-import { ensureHTMLParagraphs } from '@/utils/contentFormatting';
+import BlogEditorWithPreview from './blog/BlogEditorWithPreview';
 import { BlogPost } from '@/types/blogPost';
 import { ExtendedBlogFormData } from '@/hooks/useBlogForm';
 
@@ -21,59 +18,8 @@ interface BlogEditorLayoutProps {
   lastSaved?: Date | null;
 }
 
-const BlogEditorLayout = ({
-  form,
-  content,
-  setContent,
-  uploadedImage,
-  setUploadedImage,
-  onSubmit,
-  isEditing,
-  onCancel,
-  autoSavedPost,
-  lastSaved
-}: BlogEditorLayoutProps) => {
-  const [viewMode, setViewMode] = useState<'editor' | 'preview' | 'ai'>('editor');
-
-  const handleAIContentGenerated = (field: 'title' | 'excerpt' | 'content', generatedContent: string) => {
-    if (field === 'title') {
-      form.setValue('title', generatedContent);
-    } else if (field === 'excerpt') {
-      form.setValue('excerpt', generatedContent);
-    } else if (field === 'content') {
-      // Convert plain text with line breaks to proper HTML paragraphs
-      const formattedContent = ensureHTMLParagraphs(generatedContent);
-      setContent(formattedContent);
-      form.setValue('content', formattedContent);
-    }
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <BlogEditorHeader
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          autoSavedPost={autoSavedPost}
-          lastSaved={lastSaved}
-        />
-      </CardHeader>
-      <CardContent>
-        <BlogEditorContent
-          viewMode={viewMode}
-          form={form}
-          content={content}
-          setContent={setContent}
-          uploadedImage={uploadedImage}
-          setUploadedImage={setUploadedImage}
-          onSubmit={onSubmit}
-          isEditing={isEditing}
-          onCancel={onCancel}
-          onAIContentGenerated={handleAIContentGenerated}
-        />
-      </CardContent>
-    </Card>
-  );
+const BlogEditorLayout = (props: BlogEditorLayoutProps) => {
+  return <BlogEditorWithPreview {...props} />;
 };
 
 export default BlogEditorLayout;
