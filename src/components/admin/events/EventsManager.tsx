@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Calendar, Music, Trees, UtensilsCrossed, Palette, Trophy, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,13 +18,13 @@ const EventsManager = () => {
   const [view, setView] = useState<'grid' | 'list'>('grid');
 
   const categories = [
-    { value: 'all', label: 'All Events' },
-    { value: 'entertainment', label: 'Entertainment' },
-    { value: 'outdoor', label: 'Outdoor' },
-    { value: 'dining', label: 'Dining' },
-    { value: 'culture', label: 'Culture' },
-    { value: 'sports', label: 'Sports' },
-    { value: 'community', label: 'Community' },
+    { value: 'all', label: 'All Events', icon: Calendar, shortLabel: 'All' },
+    { value: 'entertainment', label: 'Entertainment', icon: Music, shortLabel: 'Shows' },
+    { value: 'outdoor', label: 'Outdoor', icon: Trees, shortLabel: 'Outdoor' },
+    { value: 'dining', label: 'Dining', icon: UtensilsCrossed, shortLabel: 'Food' },
+    { value: 'culture', label: 'Culture', icon: Palette, shortLabel: 'Culture' },
+    { value: 'sports', label: 'Sports', icon: Trophy, shortLabel: 'Sports' },
+    { value: 'community', label: 'Community', icon: Users, shortLabel: 'Community' },
   ];
 
   const filteredEvents = selectedCategory === 'all' 
@@ -74,10 +74,16 @@ const EventsManager = () => {
         </CardHeader>
         <CardContent>
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-7 h-auto p-1">
               {categories.map((category) => (
-                <TabsTrigger key={category.value} value={category.value}>
-                  {category.label}
+                <TabsTrigger 
+                  key={category.value} 
+                  value={category.value}
+                  className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm min-h-[3rem] sm:min-h-[2.5rem]"
+                >
+                  <category.icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">{category.label}</span>
+                  <span className="sm:hidden text-[10px] leading-tight text-center">{category.shortLabel}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
