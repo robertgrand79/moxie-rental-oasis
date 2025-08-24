@@ -4,9 +4,8 @@ import { TrendingUp, Users, Settings, History, Zap } from 'lucide-react';
 import StreamlinedNewsletterEditor from './StreamlinedNewsletterEditor';
 import NewsletterSubscribersList from './NewsletterSubscribersList';
 import NewsletterStatsCards from '@/components/admin/newsletter/NewsletterStatsCards';
-import NewsletterCampaignsTable from '@/components/admin/newsletter/NewsletterCampaignsTable';
 import NewsletterOverview from '@/components/NewsletterOverview';
-import NewslettersGrid from '@/components/admin/newsletter/NewslettersGrid';
+import NewsletterManagementView from '@/components/admin/newsletter/NewsletterManagementView';
 import NewsletterAnalyticsTab from '@/components/admin/newsletter/NewsletterAnalyticsTab';
 import HospitableSyncCard from '@/components/admin/newsletter/HospitableSyncCard';
 import NewsletterSMSCard from '../NewsletterSMSCard';
@@ -78,19 +77,8 @@ const NewsletterManagementTabs = () => {
         <NewsletterSubscribersList />
       </TabsContent>
 
-      <TabsContent value="history" className="space-y-6">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-semibold text-foreground">Newsletter History</h2>
-          <p className="text-muted-foreground">View and manage your sent newsletters</p>
-        </div>
-        
-        <NewsletterStatsCards
-          sentCampaigns={sentCampaigns.length}
-          avgRecipients={avgRecipients}
-          subscriberCount={subscriberCount}
-        />
-
-        <NewslettersGrid
+      <TabsContent value="history" className="space-y-0">
+        <NewsletterManagementView
           newsletters={campaigns}
           deleting={deleting}
           onEdit={() => {}}
