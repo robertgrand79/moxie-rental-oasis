@@ -9,9 +9,9 @@ const Contact = () => {
     <div className="min-h-screen">
       <ContactHero />
       <div className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 gap-12">
-          <ContactForm />
+        <div className="space-y-12">
           <ContactInfo />
+          <ContactForm />
         </div>
       </div>
     </div>
