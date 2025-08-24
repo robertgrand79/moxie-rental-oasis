@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,9 +30,9 @@ const ContactInfo = () => {
       }, {} as Record<string, any>) || {};
 
       const finalSettings = {
-        contactEmail: settingsMap.contactEmail || 'gabby@moxievacationrental.com',
+        contactEmail: settingsMap.contactEmail || 'team@moxievacationrentals.com',
         phone: settingsMap.phone || '+1 541-255-1698',
-        address: settingsMap.address || '2472 Willamette St Eugene OR 97405'
+        address: settingsMap.address || '2472 Willamette St\nEugene OR 97405'
       };
 
       console.log('✅ ContactInfo: Final settings:', finalSettings);
@@ -45,53 +44,64 @@ const ContactInfo = () => {
   });
 
   const currentSettings = settings || {
-    contactEmail: 'gabby@moxievacationrental.com',
+    contactEmail: 'team@moxievacationrentals.com',
     phone: '+1 541-255-1698',
-    address: '2472 Willamette St Eugene OR 97405'
+    address: '2472 Willamette St\nEugene OR 97405'
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Contact Information</CardTitle>
-          <CardDescription>
-            Get in touch with us. We're here to help!
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4 text-center">
-            <div className="flex flex-col items-center space-y-2">
-              <Phone className="h-5 w-5 text-primary" />
-              <span className="font-medium">Phone</span>
-              <span className="text-gray-600">{currentSettings.phone}</span>
-            </div>
-            
-            <div className="flex flex-col items-center space-y-2">
-              <Mail className="h-5 w-5 text-primary" />
-              <span className="font-medium">Email</span>
-              <span className="text-gray-600">{currentSettings.contactEmail}</span>
-            </div>
-            
-            <div className="flex flex-col items-center space-y-2">
-              <MapPin className="h-5 w-5 text-primary" />
-              <span className="font-medium">Address</span>
-              <span className="text-gray-600 text-center">
-                {currentSettings.address}
-              </span>
-            </div>
-            
-            <div className="flex flex-col items-center space-y-2">
-              <Clock className="h-5 w-5 text-primary" />
-              <span className="font-medium">Business Hours</span>
-              <span className="text-gray-600 text-center">
-                Monday - Friday: 9:00 AM - 6:00 PM<br />
-                Saturday - Sunday: 10:00 AM - 4:00 PM
-              </span>
-            </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 py-16">
+      {/* Visit Us */}
+      <div className="text-center">
+        <div className="flex justify-center mb-4">
+          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+            <MapPin className="h-6 w-6 text-blue-600" />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-3">Visit Us</h3>
+        <p className="text-muted-foreground whitespace-pre-line">
+          {currentSettings.address}
+        </p>
+      </div>
+
+      {/* Call Us */}
+      <div className="text-center">
+        <div className="flex justify-center mb-4">
+          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+            <Phone className="h-6 w-6 text-green-600" />
+          </div>
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-3">Call Us</h3>
+        <p className="text-muted-foreground">
+          {currentSettings.phone}
+        </p>
+      </div>
+
+      {/* Email Us */}
+      <div className="text-center">
+        <div className="flex justify-center mb-4">
+          <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+            <Mail className="h-6 w-6 text-orange-600" />
+          </div>
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-3">Email Us</h3>
+        <p className="text-muted-foreground">
+          {currentSettings.contactEmail}
+        </p>
+      </div>
+
+      {/* Support */}
+      <div className="text-center">
+        <div className="flex justify-center mb-4">
+          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+            <Clock className="h-6 w-6 text-purple-600" />
+          </div>
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-3">Support</h3>
+        <p className="text-muted-foreground">
+          24/7 Guest Support
+        </p>
+      </div>
     </div>
   );
 };
