@@ -13,6 +13,7 @@ import ReactQuillEditor from '../../ReactQuillEditor';
 import ContentPicker, { SelectedContent } from './ContentPicker';
 import { generateContentTemplate } from './ContentTemplateGenerator';
 import ImageUpload from './ImageUpload';
+import TestEmailPanel from './TestEmailPanel';
 import { BlogPost } from '@/types/blogPost';
 import { EugeneEvent } from '@/hooks/useEugeneEvents';
 import { Place } from '@/hooks/usePlaces';
@@ -297,14 +298,14 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[95vh] w-[95vw] p-0">
-        <DialogHeader className="p-6 pb-0">
+      <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] p-0 flex flex-col">
+        <DialogHeader className="p-6 pb-4 border-b border-border flex-shrink-0">
             <DialogTitle className="text-xl">
               {isEdit ? 'Edit Newsletter' : 'Create Newsletter'}
             </DialogTitle>
         </DialogHeader>
         
-        <div className="p-6 pt-0 overflow-y-auto max-h-[85vh]">
+        <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-6">
           <Form {...form}>
             <div className="space-y-6">
               <FormField
@@ -362,12 +363,14 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
 
               <div className="space-y-2">
                 <FormLabel>Newsletter Content</FormLabel>
-                <ReactQuillEditor
-                  content={content}
-                  onChange={setContent}
-                  placeholder="Write your newsletter content here..."
-                  className="min-h-[400px]"
-                />
+                <div className="border border-border rounded-lg overflow-hidden bg-background">
+                  <ReactQuillEditor
+                    content={content}
+                    onChange={setContent}
+                    placeholder="Write your newsletter content here..."
+                    className="min-h-[500px]"
+                  />
+                </div>
               </div>
 
               {/* Status alerts */}
@@ -391,16 +394,18 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                 </Alert>
               )}
 
+              {/* Test Email Section */}
+              {isFormValid && (
+                <TestEmailPanel
+                  testEmail={testEmail}
+                  setTestEmail={setTestEmail}
+                  onSendTest={handleSendTestEmail}
+                  isSending={isSendingTest}
+                  disabled={isLoading || isSaving}
+                />
+              )}
+
               <div className="flex gap-3 pt-4">
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowTestEmail(!showTestEmail)}
-                  disabled={isLoading || isSaving || isSendingTest}
-                  className="flex-shrink-0"
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  {showTestEmail ? 'Cancel Test' : 'Send Test'}
-                </Button>
                 
                 <Button
                   variant="outline"
@@ -449,42 +454,6 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                 </Button>
               </div>
 
-              {/* Test Email Section */}
-              {showTestEmail && (
-                <div className="p-4 border border-border rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-sm">Send Test Preview</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      type="email"
-                      placeholder="Enter email address for test..."
-                      value={testEmail}
-                      onChange={(e) => setTestEmail(e.target.value)}
-                      disabled={isSendingTest}
-                      className="flex-1"
-                    />
-                    <Button
-                      onClick={handleSendTestEmail}
-                      disabled={!testEmail || isSendingTest}
-                      size="sm"
-                    >
-                      {isSendingTest ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        'Send Test'
-                      )}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    This will send a preview of your newsletter to the specified email address.
-                  </p>
-                </div>
-              )}
             </div>
           </Form>
         </div>
