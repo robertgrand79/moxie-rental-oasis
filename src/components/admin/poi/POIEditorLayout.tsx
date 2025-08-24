@@ -24,13 +24,6 @@ interface POIEditorLayoutProps {
   isEnhancing: boolean;
   enhancingId: string | null;
   getSuggestions: (item: PointOfInterest) => any[];
-  // Inline editing props
-  editingInlineId: string | null;
-  onToggleInlineEdit: (poi: PointOfInterest) => void;
-  editFormData: any;
-  setEditFormData: (data: any) => void;
-  onSubmitInlineEdit: (data: any) => Promise<void>;
-  isSubmittingInline: boolean;
 }
 
 const POIEditorLayout = ({
@@ -43,13 +36,7 @@ const POIEditorLayout = ({
   onEnhance,
   isEnhancing,
   enhancingId,
-  getSuggestions,
-  editingInlineId,
-  onToggleInlineEdit,
-  editFormData,
-  setEditFormData,
-  onSubmitInlineEdit,
-  isSubmittingInline
+  getSuggestions
 }: POIEditorLayoutProps) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('list');
@@ -253,14 +240,7 @@ const POIEditorLayout = ({
               onEnhance={onEnhance}
               isEnhancing={isEnhancing}
               enhancingId={enhancingId}
-              getSuggestions={getSuggestions}
-              editingInlineId={editingInlineId}
-              onToggleInlineEdit={onToggleInlineEdit}
-              editFormData={editFormData}
-              setEditFormData={setEditFormData}
-              onSubmitInlineEdit={onSubmitInlineEdit}
-              categories={categories}
-              isSubmittingInline={isSubmittingInline}
+                    getSuggestions={getSuggestions}
             />
             <div className="mt-4">
               <Button onClick={handleAddNew}>

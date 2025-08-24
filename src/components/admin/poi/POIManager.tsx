@@ -16,13 +16,7 @@ const POIManager = () => {
     handleAddNew,
     getSuggestions,
     isEnhancing,
-    enhancingId,
-    editingInlineId,
-    handleToggleInlineEdit,
-    editFormData,
-    setEditFormData,
-    handleSubmitInlineEdit,
-    isSubmittingInline
+    enhancingId
   } = usePOIManager();
 
   usePOIUrlParams(handleAddNew);
@@ -60,12 +54,6 @@ const POIManager = () => {
       isEnhancing={isEnhancing}
       enhancingId={enhancingId}
       getSuggestions={getSuggestions}
-      editingInlineId={editingInlineId}
-      onToggleInlineEdit={handleToggleInlineEdit}
-      editFormData={editFormData}
-      setEditFormData={setEditFormData}
-      onSubmitInlineEdit={handleSubmitInlineEdit}
-      isSubmittingInline={isSubmittingInline}
     />
   );
 };
