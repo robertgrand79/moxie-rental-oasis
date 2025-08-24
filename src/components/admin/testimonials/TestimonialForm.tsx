@@ -169,20 +169,22 @@ const TestimonialForm = ({
             <div>
               <Label htmlFor="property_id">Property</Label>
               <Select 
-                value={formData.property_id} 
+                value={formData.property_id || ""} 
                 onValueChange={(value) => {
+                  console.log('Property selected:', value);
                   const selectedProperty = properties.find(p => p.id === value);
                   setFormData(prev => ({ 
                     ...prev, 
-                    property_id: value,
-                    property_name: selectedProperty?.title || ''
+                    property_id: value || "",
+                    property_name: selectedProperty?.title || ""
                   }))
                 }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a property" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50 bg-popover">
+                  <SelectItem value="">No property selected</SelectItem>
                   {properties.map((property) => (
                     <SelectItem key={property.id} value={property.id}>
                       {property.title}

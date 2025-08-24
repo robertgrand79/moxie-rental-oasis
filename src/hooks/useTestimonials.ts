@@ -75,16 +75,19 @@ export const useTestimonials = () => {
     mutationFn: async (testimonial: CreateTestimonialData) => {
       console.log('Creating testimonial with data:', testimonial);
       
-      // Ensure we have either content or review_text
-      const insertData = {
+      // Clean up the data - convert empty property_id to null
+      const cleanData = {
         ...testimonial,
+        property_id: testimonial.property_id && testimonial.property_id.trim() !== '' ? testimonial.property_id : null,
         content: testimonial.content || testimonial.review_text,
         review_text: testimonial.review_text || testimonial.content
       };
       
+      console.log('Cleaned data for insertion:', cleanData);
+      
       const { data, error } = await supabase
         .from('testimonials')
-        .insert(insertData)
+        .insert(cleanData)
         .select()
         .single();
       
@@ -115,9 +118,17 @@ export const useTestimonials = () => {
     mutationFn: async ({ id, ...updates }: Partial<Testimonial> & { id: string }) => {
       console.log('Updating testimonial with data:', { id, updates });
       
+      // Clean up the data - convert empty property_id to null
+      const cleanUpdates = {
+        ...updates,
+        property_id: updates.property_id && updates.property_id.trim() !== '' ? updates.property_id : null
+      };
+      
+      console.log('Cleaned updates for database:', cleanUpdates);
+      
       const { data, error } = await supabase
         .from('testimonials')
-        .update(updates)
+        .update(cleanUpdates)
         .eq('id', id)
         .select()
         .single();
