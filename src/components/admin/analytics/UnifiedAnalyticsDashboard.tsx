@@ -5,6 +5,7 @@ import ContentPerformanceTab from './ContentPerformanceTab';
 import SiteHealthTab from './SiteHealthTab';
 import MarketingEngagementTab from './MarketingEngagementTab';
 import RealTimeMonitoringTab from './RealTimeMonitoringTab';
+import AnalyticsStatusIndicator from './AnalyticsStatusIndicator';
 
 const UnifiedAnalyticsDashboard = () => {
   const [activeTab, setActiveTab] = useState('content');
@@ -23,6 +24,8 @@ const UnifiedAnalyticsDashboard = () => {
 
   return (
     <div className="space-y-6">
+      <AnalyticsStatusIndicator />
+      
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="w-full overflow-x-auto">
           <TabsList className="inline-flex h-12 items-center justify-start rounded-xl bg-background/60 backdrop-blur-sm p-1 shadow-sm border min-w-full">

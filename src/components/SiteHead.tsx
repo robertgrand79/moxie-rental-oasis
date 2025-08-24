@@ -18,15 +18,16 @@ const SiteHead = () => {
   // Only preload hero image on home page
   useHeroImagePreload(heroSettings.heroBackgroundImage, isHomePage);
   
-  // Load analytics on non-admin pages, except specifically allow on /admin/metrics
+  // Load analytics on non-admin pages, except specifically allow on /admin/metrics and /admin/analytics
   const isAdminPage = location.pathname.startsWith('/admin');
   const isMetricsPage = location.pathname === '/admin/metrics';
-  const shouldLoadAnalytics = !isAdminPage || isMetricsPage;
+  const isAnalyticsPage = location.pathname === '/admin/analytics';
+  const shouldLoadAnalytics = !isAdminPage || isMetricsPage || isAnalyticsPage;
   
   if (shouldLoadAnalytics) {
-    // Only use regular GA loading for non-metrics pages
-    // Metrics page will use lazy loading for better performance
-    if (!isMetricsPage) {
+    // Only use regular GA loading for non-metrics and non-analytics pages
+    // Metrics and analytics pages will use lazy loading for better performance
+    if (!isMetricsPage && !isAnalyticsPage) {
       useGoogleAnalytics(settings.googleAnalyticsId || '');
     }
     
