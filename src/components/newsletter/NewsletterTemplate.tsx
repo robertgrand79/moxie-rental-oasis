@@ -10,13 +10,84 @@ interface NewsletterSection {
   buttonUrl?: string;
 }
 
+interface HeaderConfig {
+  title: string;
+  subtitle: string;
+  background_gradient: {
+    from: string;
+    to: string;
+  };
+  text_color: string;
+  logo_url: string;
+}
+
+interface FooterConfig {
+  company_name: string;
+  tagline: string;
+  contact_info: {
+    email: string;
+    location: string;
+  };
+  links: Array<{
+    text: string;
+    url: string;
+  }>;
+  legal_links: Array<{
+    text: string;
+    url: string;
+  }>;
+  social_media: {
+    facebook: string;
+    instagram: string;
+    twitter: string;
+  };
+}
+
 interface NewsletterTemplateProps {
   subject: string;
   sections: NewsletterSection[];
   preheader?: string;
+  headerConfig?: HeaderConfig;
+  footerConfig?: FooterConfig;
 }
 
-const NewsletterTemplate = ({ subject, sections, preheader }: NewsletterTemplateProps) => {
+const NewsletterTemplate = ({ subject, sections, preheader, headerConfig, footerConfig }: NewsletterTemplateProps) => {
+  // Default configurations that match the site's hero section
+  const defaultHeaderConfig: HeaderConfig = {
+    title: 'Moxie Vacation Rentals',
+    subtitle: 'Your Home Base for Living Like a Local in Eugene',
+    background_gradient: {
+      from: 'hsl(220, 8%, 85%)',
+      to: 'hsl(220, 3%, 97%)'
+    },
+    text_color: 'hsl(222.2, 47.4%, 11.2%)',
+    logo_url: ''
+  };
+
+  const defaultFooterConfig: FooterConfig = {
+    company_name: 'Moxie Vacation Rentals',
+    tagline: 'Your Home Base for Living Like a Local in Eugene',
+    contact_info: {
+      email: 'contact@moxievacationrentals.com',
+      location: 'Eugene, Oregon'
+    },
+    links: [
+      { text: 'Visit Our Website', url: '#' },
+      { text: 'View Properties', url: '#' }
+    ],
+    legal_links: [
+      { text: 'Unsubscribe', url: '#' },
+      { text: 'Update Preferences', url: '#' }
+    ],
+    social_media: {
+      facebook: '',
+      instagram: '',
+      twitter: ''
+    }
+  };
+
+  const currentHeaderConfig = headerConfig || defaultHeaderConfig;
+  const currentFooterConfig = footerConfig || defaultFooterConfig;
   const generateNewsletterHTML = () => {
     return `
 <!DOCTYPE html>
@@ -30,8 +101,13 @@ const NewsletterTemplate = ({ subject, sections, preheader }: NewsletterTemplate
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; }
         
-        /* Moxie Brand Colors - Updated to match website */
-        .gradient-bg { background: linear-gradient(135deg, hsl(220, 8%, 85%) 0%, hsl(220, 3%, 97%) 100%); }
+        /* Dynamic header and footer styles based on configuration */
+        .custom-header-bg { 
+          background: linear-gradient(135deg, ${currentHeaderConfig.background_gradient.from}, ${currentHeaderConfig.background_gradient.to}); 
+        }
+        .custom-header-text { 
+          color: ${currentHeaderConfig.text_color}; 
+        }
         .gradient-accent { background: linear-gradient(135deg, hsl(220, 6%, 88%) 0%, hsl(220, 4%, 96%) 100%); }
         .text-primary { color: hsl(222.2, 47.4%, 11.2%); }
         .text-secondary { color: hsl(215.4, 16.3%, 46.9%); }
@@ -86,6 +162,23 @@ const NewsletterTemplate = ({ subject, sections, preheader }: NewsletterTemplate
 <body>
     <div class="container">
         ${preheader ? `<div style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">${preheader}</div>` : ''}
+        
+        <!-- Custom Newsletter Header -->
+        <div class="custom-header-bg hero-section">
+            <div class="custom-header-text" style="text-align: center;">
+                ${currentHeaderConfig.logo_url ? `
+                <div style="margin-bottom: 24px;">
+                    <img src="${currentHeaderConfig.logo_url}" alt="${currentHeaderConfig.title}" style="max-height: 80px; width: auto; display: inline-block;">
+                </div>
+                ` : ''}
+                <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 16px; line-height: 1.2; color: ${currentHeaderConfig.text_color};">
+                    ${currentHeaderConfig.title}
+                </h1>
+                <p style="font-size: 18px; opacity: 0.9; margin-bottom: 24px; color: ${currentHeaderConfig.text_color};">
+                    ${currentHeaderConfig.subtitle}
+                </p>
+            </div>
+        </div>
         
         ${sections.map(section => {
           switch (section.type) {
@@ -151,19 +244,38 @@ const NewsletterTemplate = ({ subject, sections, preheader }: NewsletterTemplate
           }
         }).join('')}
         
+        <!-- Custom Newsletter Footer -->
         <div class="footer-section">
             <div style="text-align: center; color: hsl(215.4, 16.3%, 46.9%); font-size: 14px;">
-                <p style="margin-bottom: 16px;"><strong>Moxie Vacation Rentals</strong></p>
-                <p style="margin-bottom: 12px;">Your Home Base for Living Like a Local in Eugene</p>
-                <p style="margin-bottom: 16px;">Eugene, Oregon | contact@moxievacationrentals.com</p>
-                <div style="margin-bottom: 16px;">
-                    <a href="#" style="color: hsl(217, 91%, 60%); text-decoration: none; margin: 0 8px;">Visit Our Website</a>
-                    <a href="#" style="color: hsl(217, 91%, 60%); text-decoration: none; margin: 0 8px;">View Properties</a>
-                </div>
-                <p style="font-size: 12px; color: hsl(215.4, 16.3%, 46.9%);">
-                    <a href="#" style="color: hsl(215.4, 16.3%, 46.9%); text-decoration: none;">Unsubscribe</a> | 
-                    <a href="#" style="color: hsl(215.4, 16.3%, 46.9%); text-decoration: none; margin-left: 8px;">Update Preferences</a>
+                <p style="margin-bottom: 16px;"><strong>${currentFooterConfig.company_name}</strong></p>
+                <p style="margin-bottom: 12px;">${currentFooterConfig.tagline}</p>
+                <p style="margin-bottom: 16px;">
+                    ${currentFooterConfig.contact_info.location} | ${currentFooterConfig.contact_info.email}
                 </p>
+                
+                ${currentFooterConfig.links.length > 0 ? `
+                <div style="margin-bottom: 16px;">
+                    ${currentFooterConfig.links.map(link => 
+                      `<a href="${link.url}" style="color: hsl(217, 91%, 60%); text-decoration: none; margin: 0 8px;">${link.text}</a>`
+                    ).join('')}
+                </div>
+                ` : ''}
+                
+                ${(currentFooterConfig.social_media.facebook || currentFooterConfig.social_media.instagram || currentFooterConfig.social_media.twitter) ? `
+                <div style="margin-bottom: 16px;">
+                    ${currentFooterConfig.social_media.facebook ? `<a href="${currentFooterConfig.social_media.facebook}" style="color: hsl(217, 91%, 60%); text-decoration: none; margin: 0 8px;">Facebook</a>` : ''}
+                    ${currentFooterConfig.social_media.instagram ? `<a href="${currentFooterConfig.social_media.instagram}" style="color: hsl(217, 91%, 60%); text-decoration: none; margin: 0 8px;">Instagram</a>` : ''}
+                    ${currentFooterConfig.social_media.twitter ? `<a href="${currentFooterConfig.social_media.twitter}" style="color: hsl(217, 91%, 60%); text-decoration: none; margin: 0 8px;">Twitter</a>` : ''}
+                </div>
+                ` : ''}
+                
+                ${currentFooterConfig.legal_links.length > 0 ? `
+                <p style="font-size: 12px; color: hsl(215.4, 16.3%, 46.9%);">
+                    ${currentFooterConfig.legal_links.map((link, index) => 
+                      `<a href="${link.url}" style="color: hsl(215.4, 16.3%, 46.9%); text-decoration: none;">${link.text}</a>${index < currentFooterConfig.legal_links.length - 1 ? ' | ' : ''}`
+                    ).join('')}
+                </p>
+                ` : ''}
             </div>
         </div>
     </div>

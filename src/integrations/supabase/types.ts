@@ -1037,6 +1037,8 @@ export type Database = {
           content: string
           cover_image_url: string | null
           created_at: string
+          footer_config: Json | null
+          header_config: Json | null
           id: string
           linked_content: Json | null
           open_rate: number | null
@@ -1055,6 +1057,8 @@ export type Database = {
           content: string
           cover_image_url?: string | null
           created_at?: string
+          footer_config?: Json | null
+          header_config?: Json | null
           id?: string
           linked_content?: Json | null
           open_rate?: number | null
@@ -1073,6 +1077,8 @@ export type Database = {
           content?: string
           cover_image_url?: string | null
           created_at?: string
+          footer_config?: Json | null
+          header_config?: Json | null
           id?: string
           linked_content?: Json | null
           open_rate?: number | null

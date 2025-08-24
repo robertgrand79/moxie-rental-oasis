@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Send, Save, Loader2, Plus, Mail } from 'lucide-react';
-import TipTapNewsletterEditor from './TipTapNewsletterEditor';
+import NewsletterEditorTabs from './NewsletterEditorTabs';
 import ContentPicker, { SelectedContent } from './ContentPicker';
 import { generateContentTemplate } from './ContentTemplateGenerator';
 import ImageUpload from './ImageUpload';
@@ -17,13 +17,7 @@ import TestEmailPanel from './TestEmailPanel';
 import { BlogPost } from '@/types/blogPost';
 import { EugeneEvent } from '@/hooks/useEugeneEvents';
 import { Place } from '@/hooks/usePlaces';
-
-interface NewsletterFormData {
-  subject: string;
-  content: string;
-  cover_image_url?: string;
-  linked_content?: SelectedContent;
-}
+import { HeaderConfig, FooterConfig, NewsletterFormData } from './types';
 
 interface Newsletter {
   id: string;
@@ -34,6 +28,8 @@ interface Newsletter {
   recipient_count: number;
   blog_post_id: string | null;
   linked_content?: SelectedContent;
+  header_config?: HeaderConfig;
+  footer_config?: FooterConfig;
   created_at: string;
   updated_at: string;
 }
@@ -53,6 +49,45 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   const [showContentPicker, setShowContentPicker] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState(newsletter?.cover_image_url || '');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  
+  // Default header and footer configurations
+  const [headerConfig, setHeaderConfig] = useState<HeaderConfig>(() => 
+    newsletter?.header_config || {
+      title: 'Moxie Vacation Rentals',
+      subtitle: 'Your Home Base for Living Like a Local in Eugene',
+      background_gradient: {
+        from: 'hsl(220, 8%, 85%)',
+        to: 'hsl(220, 3%, 97%)'
+      },
+      text_color: 'hsl(222.2, 47.4%, 11.2%)',
+      logo_url: ''
+    }
+  );
+  
+  const [footerConfig, setFooterConfig] = useState<FooterConfig>(() =>
+    newsletter?.footer_config || {
+      company_name: 'Moxie Vacation Rentals',
+      tagline: 'Your Home Base for Living Like a Local in Eugene',
+      contact_info: {
+        email: 'contact@moxievacationrentals.com',
+        location: 'Eugene, Oregon'
+      },
+      links: [
+        { text: 'Visit Our Website', url: '#' },
+        { text: 'View Properties', url: '#' }
+      ],
+      legal_links: [
+        { text: 'Unsubscribe', url: '#' },
+        { text: 'Update Preferences', url: '#' }
+      ],
+      social_media: {
+        facebook: '',
+        instagram: '',
+        twitter: ''
+      }
+    }
+  );
+  
   const [selectedContent, setSelectedContent] = useState<SelectedContent>(() => {
     if (newsletter?.linked_content) {
       const content = newsletter.linked_content as any;
@@ -136,6 +171,8 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
         content: content,
         cover_image_url: coverImageUrl || null,
         linked_content: JSON.parse(JSON.stringify(selectedContent)),
+        header_config: JSON.parse(JSON.stringify(headerConfig)),
+        footer_config: JSON.parse(JSON.stringify(footerConfig)),
         recipient_count: 0,
       };
 
@@ -195,6 +232,8 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
           content: content,
           coverImageUrl: coverImageUrl,
           linkedContent: selectedContent,
+          headerConfig: headerConfig,
+          footerConfig: footerConfig,
           campaignId: isEdit ? newsletter.id : undefined,
         }
       });
@@ -379,15 +418,15 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
               </div>
 
               <div className="space-y-2">
-                <FormLabel>Newsletter Content</FormLabel>
-                <div className="border border-border rounded-lg overflow-hidden bg-background">
-                  <TipTapNewsletterEditor
-                    content={content}
-                    onChange={setContent}
-                    placeholder="Write your newsletter content here..."
-                    className="min-h-[500px]"
-                  />
-                </div>
+                <FormLabel>Newsletter Editor</FormLabel>
+                <NewsletterEditorTabs
+                  content={content}
+                  onContentChange={setContent}
+                  headerConfig={headerConfig}
+                  onHeaderConfigChange={setHeaderConfig}
+                  footerConfig={footerConfig}
+                  onFooterConfigChange={setFooterConfig}
+                />
               </div>
 
               {/* Status alerts */}

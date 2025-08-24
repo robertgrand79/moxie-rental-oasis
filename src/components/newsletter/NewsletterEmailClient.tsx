@@ -1,6 +1,7 @@
 
 import React from 'react';
 import NewsletterTemplate from './NewsletterTemplate';
+import { HeaderConfig, FooterConfig } from '@/components/admin/newsletter/types';
 
 interface NewsletterSection {
   type: 'hero' | 'content' | 'property' | 'events' | 'cta' | 'image';
@@ -16,9 +17,11 @@ interface NewsletterEmailClientProps {
   preheader?: string;
   sections: NewsletterSection[];
   viewMode: 'desktop' | 'mobile';
+  headerConfig?: HeaderConfig;
+  footerConfig?: FooterConfig;
 }
 
-const NewsletterEmailClient = ({ subject, preheader, sections, viewMode }: NewsletterEmailClientProps) => {
+const NewsletterEmailClient = ({ subject, preheader, sections, viewMode, headerConfig, footerConfig }: NewsletterEmailClientProps) => {
   return (
     <div className="border rounded-lg overflow-hidden bg-gray-50">
       {/* Email Client Header */}
@@ -48,6 +51,8 @@ const NewsletterEmailClient = ({ subject, preheader, sections, viewMode }: Newsl
             subject={subject}
             sections={sections}
             preheader={preheader}
+            headerConfig={headerConfig}
+            footerConfig={footerConfig}
           />
         </div>
       </div>
