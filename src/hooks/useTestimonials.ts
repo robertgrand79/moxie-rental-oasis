@@ -51,15 +51,10 @@ export const useTestimonials = () => {
     queryKey: ['testimonials'],
     queryFn: async () => {
       console.log('🔄 Fetching testimonials...');
+      // First, get testimonials without the join
       const { data, error } = await supabase
         .from('testimonials')
-        .select(`
-          *,
-          properties (
-            id,
-            title
-          )
-        `)
+        .select('*')
         .order('display_order', { ascending: true });
       
       if (error) {
