@@ -19,6 +19,7 @@ import { Place } from '@/hooks/usePlaces';
 interface NewsletterFormData {
   subject: string;
   content: string;
+  cover_image_url?: string;
   linked_content?: SelectedContent;
 }
 
@@ -26,6 +27,7 @@ interface Newsletter {
   id: string;
   subject: string;
   content: string;
+  cover_image_url?: string;
   sent_at: string | null;
   recipient_count: number;
   blog_post_id: string | null;
@@ -44,6 +46,8 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [content, setContent] = useState(newsletter?.content || '');
   const [showContentPicker, setShowContentPicker] = useState(false);
+  const [coverImageUrl, setCoverImageUrl] = useState(newsletter?.cover_image_url || '');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [selectedContent, setSelectedContent] = useState<SelectedContent>(() => {
     if (newsletter?.linked_content) {
       const content = newsletter.linked_content as any;
@@ -62,6 +66,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     defaultValues: {
       subject: newsletter?.subject || '',
       content: newsletter?.content || '',
+      cover_image_url: newsletter?.cover_image_url || '',
       linked_content: newsletter?.linked_content || { blog_posts: [], events: [], places: [] },
     },
   });
@@ -91,7 +96,12 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   }, [newsletter, form]);
 
   const onSaveDraft = async (data: NewsletterFormData) => {
+    console.log('🔄 Save draft called with data:', data);
+    console.log('🔄 Current content:', content);
+    console.log('🔄 Current selectedContent:', selectedContent);
+    
     if (!data.subject || !content) {
+      console.warn('⚠️ Missing required fields for save draft');
       showToast({
         title: "Missing Information",
         description: "Please provide both a subject and content for the newsletter.",
@@ -101,6 +111,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     }
 
     setIsSaving(true);
+    console.log('🔄 Starting save draft process...');
 
     try {
       const newsletterData = {
