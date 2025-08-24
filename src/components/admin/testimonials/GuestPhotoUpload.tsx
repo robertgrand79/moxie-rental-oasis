@@ -83,10 +83,13 @@ const GuestPhotoUpload = ({ currentPhotoUrl, onPhotoChange, disabled }: GuestPho
               className="w-16 h-16 rounded-full object-cover"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = '';
                 target.style.display = 'none';
+                target.parentElement?.querySelector('.fallback-icon')?.classList.remove('hidden');
               }}
             />
+            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center hidden fallback-icon">
+              <User className="h-8 w-8 text-gray-400" />
+            </div>
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Current photo</p>
               <p className="text-xs text-muted-foreground truncate">{currentPhotoUrl}</p>

@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, Edit, Trash2, User } from 'lucide-react';
 import { Testimonial } from '@/hooks/useTestimonials';
-import OptimizedImage from '@/components/ui/optimized-image';
 
 interface TestimonialCardProps {
   testimonial: Testimonial;
@@ -17,16 +16,20 @@ const TestimonialCard = ({ testimonial, onEdit, onDelete }: TestimonialCardProps
     <div className="flex items-start space-x-4 p-4 border rounded-lg">
       <div className="flex-shrink-0">
         {testimonial.guest_avatar_url ? (
-          <OptimizedImage
+          <img
             src={testimonial.guest_avatar_url}
             alt={testimonial.guest_name}
             className="w-12 h-12 rounded-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.parentElement?.querySelector('.fallback-avatar')?.classList.remove('hidden');
+            }}
           />
-        ) : (
-          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-            <User className="h-6 w-6 text-gray-400" />
-          </div>
-        )}
+        ) : null}
+        <div className={`w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center ${testimonial.guest_avatar_url ? 'hidden fallback-avatar' : ''}`}>
+          <User className="h-6 w-6 text-gray-400" />
+        </div>
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-2">

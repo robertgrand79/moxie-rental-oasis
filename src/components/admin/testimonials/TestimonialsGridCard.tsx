@@ -38,7 +38,13 @@ const TestimonialsGridCard = ({ testimonial, onEdit, onDelete }: TestimonialsGri
       <CardHeader className="pb-3">
         <div className="flex items-center space-x-3">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={testimonial.guest_avatar_url} />
+            <AvatarImage 
+              src={testimonial.guest_avatar_url} 
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
             <AvatarFallback className="bg-primary/10 text-primary font-medium">
               {getInitials(testimonial.guest_name)}
             </AvatarFallback>
