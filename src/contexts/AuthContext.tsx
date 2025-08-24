@@ -52,60 +52,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [authRetryCount, setAuthRetryCount] = useState(0);
+  const [roleRetriesMap, setRoleRetriesMap] = useState<Map<string, number>>(new Map());
   
   const databaseStatus = useDatabase();
 
-  const fetchUserRoleWithTimeout = async (userId: string, timeoutMs: number = 10000, retryCount = 0) => {
+  const fetchUserRoleWithTimeout = async (userId: string, timeoutMs: number = 5000, retryCount = 0) => {
+    // Prevent duplicate simultaneous fetches for the same user
+    const currentRetries = roleRetriesMap.get(userId) || 0;
+    if (currentRetries > 0) {
+      console.log('🔄 Role fetch already in progress for user:', userId, 'skipping duplicate');
+      return;
+    }
+
     console.log('🔍 Starting role fetch for user:', userId, `(attempt ${retryCount + 1})`);
     setRoleLoading(true);
     
+    // Track this user's retry attempt
+    setRoleRetriesMap(prev => new Map(prev.set(userId, retryCount + 1)));
+    
     try {
-      // Check database connection first
-      if (!databaseStatus.isConnected && !databaseStatus.isChecking) {
-        console.warn('⚠️ Database not connected, retrying connection...');
+      // Shorter timeout and simpler database check
+      if (!databaseStatus.isConnected && retryCount === 0) {
+        console.warn('⚠️ Database not connected, attempting to connect...');
         databaseStatus.checkConnection();
-        throw new Error('Database connection unavailable');
       }
 
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Role fetch timeout')), timeoutMs);
-      });
-
-      // Create the actual fetch promise - get full profile data
-      const fetchPromise = supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      // Race the timeout against the fetch
+      // Create the fetch promise with a reasonable timeout
       const { data: profileData, error } = await Promise.race([
-        fetchPromise,
-        timeoutPromise
-      ]) as any;
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single(),
+        new Promise<any>((_, reject) => 
+          setTimeout(() => reject(new Error('Role fetch timeout')), timeoutMs)
+        )
+      ]);
 
       if (error) {
         console.error('❌ Error fetching user profile:', error);
-        
-        // Retry logic for certain errors
-        if (retryCount < 2 && (
-          error.message.includes('timeout') || 
-          error.message.includes('connection') ||
-          error.message.includes('network')
-        )) {
-          console.log('🔄 Retrying role fetch...');
-          setTimeout(() => {
-            fetchUserRoleWithTimeout(userId, timeoutMs, retryCount + 1);
-          }, 1000 * (retryCount + 1)); // Exponential backoff
-          return;
-        }
-        
-        // Fallback to user role on error
-        setUserRole('user');
-        setIsAdmin(false);
-        setProfile(null);
-        return;
+        throw error;
       }
 
       const role = profileData?.role || 'user';
@@ -115,26 +101,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAdmin(role === 'admin');
       setProfile(profileData);
       
+      // Clear retry tracking on success
+      setRoleRetriesMap(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(userId);
+        return newMap;
+      });
+      
     } catch (error) {
       console.error('💥 Role fetch failed or timed out:', error);
       
-      // Retry logic for connection errors
-      if (retryCount < 2 && error instanceof Error && (
+      // Only retry on first attempt and for connection-related errors
+      if (retryCount === 0 && error instanceof Error && (
         error.message.includes('timeout') || 
         error.message.includes('connection') ||
-        error.message.includes('Database connection unavailable')
+        error.message.includes('network')
       )) {
         console.log('🔄 Retrying role fetch due to connection issue...');
+        
+        // Schedule single retry after delay
         setTimeout(() => {
-          fetchUserRoleWithTimeout(userId, timeoutMs, retryCount + 1);
-        }, 2000 * (retryCount + 1)); // Exponential backoff
+          fetchUserRoleWithTimeout(userId, timeoutMs, 1);
+        }, 2000);
         return;
       }
       
-      // Always fallback to user role if anything goes wrong
+      // After max retries or non-connection errors, fallback to user role
+      console.log('🚨 Max retries reached or permanent error, defaulting to user role');
       setUserRole('user');
       setIsAdmin(false);
       setProfile(null);
+      
+      // Clear retry tracking
+      setRoleRetriesMap(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(userId);
+        return newMap;
+      });
     } finally {
       console.log('🏁 Role loading complete');
       setRoleLoading(false);
