@@ -7,7 +7,7 @@ import MarketingEngagementTab from './MarketingEngagementTab';
 import RealTimeMonitoringTab from './RealTimeMonitoringTab';
 import AnalyticsStatusIndicator from './AnalyticsStatusIndicator';
 import SecurityStatusIndicator from './SecurityStatusIndicator';
-import SecurityDefinerAudit from './SecurityDefinerAudit';
+import SecurityDefinerStatus from './SecurityDefinerStatus';
 
 const UnifiedAnalyticsDashboard = () => {
   const [activeTab, setActiveTab] = useState('content');
@@ -28,7 +28,7 @@ const UnifiedAnalyticsDashboard = () => {
     <div className="space-y-6">
       <AnalyticsStatusIndicator />
       <SecurityStatusIndicator />
-      <SecurityDefinerAudit />
+      <SecurityDefinerStatus />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="w-full overflow-x-auto">
