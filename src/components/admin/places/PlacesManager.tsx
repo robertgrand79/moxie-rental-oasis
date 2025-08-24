@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, MapPin, UtensilsCrossed, Trees, Music, ShoppingBag, Bed, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,13 +17,13 @@ const PlacesManager = () => {
   const [view, setView] = useState<'grid' | 'list'>('grid');
 
   const categories = [
-    { value: 'all', label: 'All Places' },
-    { value: 'dining', label: 'Dining' },
-    { value: 'outdoor', label: 'Outdoor' },
-    { value: 'entertainment', label: 'Entertainment' },
-    { value: 'shopping', label: 'Shopping' },
-    { value: 'accommodation', label: 'Accommodation' },
-    { value: 'lifestyle', label: 'Lifestyle' },
+    { value: 'all', label: 'All Places', icon: MapPin },
+    { value: 'dining', label: 'Dining', icon: UtensilsCrossed },
+    { value: 'outdoor', label: 'Outdoor', icon: Trees },
+    { value: 'entertainment', label: 'Entertainment', icon: Music },
+    { value: 'shopping', label: 'Shopping', icon: ShoppingBag },
+    { value: 'accommodation', label: 'Accommodation', icon: Bed },
+    { value: 'lifestyle', label: 'Lifestyle', icon: Heart },
   ];
 
   const filteredPlaces = selectedCategory === 'all' 
@@ -73,10 +73,15 @@ const PlacesManager = () => {
         </CardHeader>
         <CardContent>
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-7 h-auto">
               {categories.map((category) => (
-                <TabsTrigger key={category.value} value={category.value}>
-                  {category.label}
+                <TabsTrigger 
+                  key={category.value} 
+                  value={category.value}
+                  className="flex items-center justify-center gap-2 px-2 py-3 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground"
+                >
+                  <category.icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden lg:inline whitespace-nowrap">{category.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
