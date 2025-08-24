@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, X, Loader2 } from 'lucide-react';
 import { usePostMessageHandler } from '@/hooks/usePostMessageHandler';
@@ -35,6 +36,12 @@ const EmbeddedBookingModal = ({ isOpen, onClose, bookingUrl, propertyTitle }: Em
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl w-full h-[90vh] p-0 gap-0">
+        <DialogHeader>
+          <VisuallyHidden>
+            <DialogTitle>Property Booking</DialogTitle>
+            <DialogDescription>Book this property through our integrated booking system</DialogDescription>
+          </VisuallyHidden>
+        </DialogHeader>
         {/* Minimal Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-white/95 backdrop-blur-sm">
           <div className="flex items-center gap-3">

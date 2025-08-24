@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
@@ -59,6 +60,11 @@ const PropertyPhotoModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl w-full h-[90vh] p-0 overflow-hidden">
+        <DialogHeader>
+          <VisuallyHidden>
+            <DialogTitle>Property Photo Gallery - Image {currentIndex + 1} of {images.length}</DialogTitle>
+          </VisuallyHidden>
+        </DialogHeader>
         <div className="relative w-full h-full bg-black">
           {/* Close button */}
           <Button
