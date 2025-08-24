@@ -60,8 +60,8 @@ const POICard = ({
           <div className="p-4 cursor-pointer hover:bg-muted/5 transition-colors">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
               <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                  <h4 className="font-semibold text-lg truncate">{poi.name}</h4>
+                <div className="flex flex-col gap-2 mb-2">
+                  <h4 className="font-semibold text-lg break-words leading-tight">{poi.name}</h4>
                   <div className="flex flex-wrap gap-1 flex-shrink-0">
                     {poi.is_featured && (
                       <Badge className="bg-blue-600 text-white text-xs">Featured</Badge>
@@ -75,18 +75,18 @@ const POICard = ({
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-muted-foreground mb-2">
+                <div className="flex flex-col gap-2 text-sm text-muted-foreground mb-2">
                   <Badge variant="secondary" className="text-xs w-fit">
                     {poi.category}
                   </Badge>
-                  <div className="flex items-center min-w-0">
-                    <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                    <span className="truncate">{poi.address}</span>
+                  <div className="flex items-start min-w-0">
+                    <MapPin className="h-4 w-4 mr-1 flex-shrink-0 mt-0.5" />
+                    <span className="break-words leading-tight">{poi.address}</span>
                   </div>
                 </div>
 
                 {poi.description && (
-                  <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{poi.description}</p>
+                  <p className="text-muted-foreground text-sm mb-3 break-words leading-relaxed">{poi.description}</p>
                 )}
 
                 {poi.website_url && (
