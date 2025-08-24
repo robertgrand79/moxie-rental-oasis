@@ -1,27 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
+import Underline from '@tiptap/extension-underline';
+import { Table } from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
+import Color from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
+import Subscript from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript';
+import History from '@tiptap/extension-history';
+import Youtube from '@tiptap/extension-youtube';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ColorPicker } from './ColorPicker';
 import { 
   Bold, 
   Italic, 
-  Underline, 
+  Underline as UnderlineIcon,
+  Strikethrough,
   AlignLeft, 
   AlignCenter, 
   AlignRight,
+  AlignJustify,
   List,
   ListOrdered,
   Quote,
   Image as ImageIcon,
   Link as LinkIcon,
-  Table,
+  Table as TableIcon,
   Square,
   Minus,
-  Plus
+  Plus,
+  Undo,
+  Redo,
+  Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon,
+  Youtube as YoutubeIcon,
+  Palette,
+  Heading1,
+  Heading2,
+  Heading3,
+  Heading4,
+  RotateCcw,
+  Trash2,
+  Type
 } from 'lucide-react';
 import { Separator as UISeparator } from '@/components/ui/separator';
 
@@ -38,13 +66,28 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
   placeholder = "Start creating your newsletter content...",
   className = ""
 }) => {
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3, 4],
         },
+        history: false, // We'll use the History extension instead
       }),
+      History,
+      Underline,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      TextStyle,
+      Color,
+      Subscript,
+      Superscript,
       Image.configure({
         HTMLAttributes: {
           class: 'newsletter-image',
@@ -58,6 +101,13 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
+      }),
+      Youtube.configure({
+        controls: false,
+        nocookie: true,
+        HTMLAttributes: {
+          class: 'newsletter-video',
+        },
       }),
       Placeholder.configure({
         placeholder,
@@ -92,6 +142,49 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
     }
   };
 
+  const addYoutubeVideo = () => {
+    const url = window.prompt('Enter YouTube URL:');
+    if (url) {
+      editor.commands.setYoutubeVideo({
+        src: url,
+        width: 640,
+        height: 480,
+      });
+    }
+  };
+
+  const insertAdvancedTable = () => {
+    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+  };
+
+  const deleteTable = () => {
+    editor.chain().focus().deleteTable().run();
+  };
+
+  const addTableRow = () => {
+    editor.chain().focus().addRowAfter().run();
+  };
+
+  const addTableColumn = () => {
+    editor.chain().focus().addColumnAfter().run();
+  };
+
+  const deleteTableRow = () => {
+    editor.chain().focus().deleteRow().run();
+  };
+
+  const deleteTableColumn = () => {
+    editor.chain().focus().deleteColumn().run();
+  };
+
+  const setTextColor = (color: string) => {
+    editor.chain().focus().setColor(color).run();
+  };
+
+  const clearFormatting = () => {
+    editor.chain().focus().clearNodes().unsetAllMarks().run();
+  };
+
   const insertSpacer = () => {
     editor.chain().focus().insertContent('<div class="newsletter-spacer" style="height: 24px; margin: 16px 0;"></div>').run();
   };
@@ -112,9 +205,9 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
     ).run();
   };
 
-  const insertTable = () => {
+  const insertMultiColumnLayout = () => {
     editor.chain().focus().insertContent(
-      '<table style="width: 100%; border-collapse: collapse; margin: 16px 0;"><tr><th style="border: 1px solid #d1d5db; padding: 8px; background-color: #f9fafb;">Header 1</th><th style="border: 1px solid #d1d5db; padding: 8px; background-color: #f9fafb;">Header 2</th></tr><tr><td style="border: 1px solid #d1d5db; padding: 8px;">Cell 1</td><td style="border: 1px solid #d1d5db; padding: 8px;">Cell 2</td></tr></table>'
+      '<div class="newsletter-columns" style="display: flex; gap: 16px; margin: 24px 0;"><div style="flex: 1; padding: 16px; border: 1px solid #e5e7eb; border-radius: 4px;"><p>Column 1 content...</p></div><div style="flex: 1; padding: 16px; border: 1px solid #e5e7eb; border-radius: 4px;"><p>Column 2 content...</p></div></div>'
     ).run();
   };
 
@@ -123,6 +216,62 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
       {/* Toolbar */}
       <div className="sticky top-0 z-10 bg-background border-b border-border p-3">
         <div className="flex flex-wrap gap-2 items-center">
+          {/* History Controls */}
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => editor.chain().focus().undo().run()}
+              disabled={!editor.can().undo()}
+            >
+              <Undo className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => editor.chain().focus().redo().run()}
+              disabled={!editor.can().redo()}
+            >
+              <Redo className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <UISeparator orientation="vertical" className="h-6" />
+
+          {/* Headings */}
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant={editor.isActive('heading', { level: 1 }) ? 'default' : 'outline'}
+              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            >
+              <Heading1 className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={editor.isActive('heading', { level: 2 }) ? 'default' : 'outline'}
+              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            >
+              <Heading2 className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={editor.isActive('heading', { level: 3 }) ? 'default' : 'outline'}
+              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            >
+              <Heading3 className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={editor.isActive('heading', { level: 4 }) ? 'default' : 'outline'}
+              onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+            >
+              <Heading4 className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <UISeparator orientation="vertical" className="h-6" />
+
           {/* Text Formatting */}
           <div className="flex gap-1">
             <Button
@@ -138,6 +287,52 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
               onClick={() => editor.chain().focus().toggleItalic().run()}
             >
               <Italic className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={editor.isActive('underline') ? 'default' : 'outline'}
+              onClick={() => editor.chain().focus().toggleUnderline().run()}
+            >
+              <UnderlineIcon className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={editor.isActive('strike') ? 'default' : 'outline'}
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+            >
+              <Strikethrough className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={editor.isActive('subscript') ? 'default' : 'outline'}
+              onClick={() => editor.chain().focus().toggleSubscript().run()}
+            >
+              <SubscriptIcon className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={editor.isActive('superscript') ? 'default' : 'outline'}
+              onClick={() => editor.chain().focus().toggleSuperscript().run()}
+            >
+              <SuperscriptIcon className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <UISeparator orientation="vertical" className="h-6" />
+
+          {/* Colors */}
+          <div className="flex gap-1">
+            <ColorPicker
+              color={editor.getAttributes('textStyle').color}
+              onChange={setTextColor}
+              icon={<Palette className="h-4 w-4" />}
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={clearFormatting}
+            >
+              <RotateCcw className="h-4 w-4" />
             </Button>
           </div>
 
@@ -165,6 +360,13 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
               onClick={() => editor.chain().focus().setTextAlign('right').run()}
             >
               <AlignRight className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={editor.isActive({ textAlign: 'justify' }) ? 'default' : 'outline'}
+              onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+            >
+              <AlignJustify className="h-4 w-4" />
             </Button>
           </div>
 
@@ -216,10 +418,68 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
             <Button
               size="sm"
               variant="outline"
-              onClick={insertTable}
+              onClick={addYoutubeVideo}
             >
-              <Table className="h-4 w-4" />
+              <YoutubeIcon className="h-4 w-4" />
             </Button>
+          </div>
+
+          <UISeparator orientation="vertical" className="h-6" />
+
+          {/* Table Controls */}
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={insertAdvancedTable}
+              title="Insert Table"
+            >
+              <TableIcon className="h-4 w-4" />
+            </Button>
+            {editor.isActive('table') && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={addTableRow}
+                  title="Add Row"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={addTableColumn}
+                  title="Add Column"
+                >
+                  <Plus className="h-3 w-3 rotate-90" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={deleteTableRow}
+                  title="Delete Row"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={deleteTableColumn}
+                  title="Delete Column"
+                >
+                  <Trash2 className="h-3 w-3 rotate-90" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={deleteTable}
+                  title="Delete Table"
+                >
+                  <TableIcon className="h-4 w-4 text-destructive" />
+                </Button>
+              </>
+            )}
           </div>
 
           <UISeparator orientation="vertical" className="h-6" />
@@ -258,6 +518,15 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
               className="text-xs px-2"
             >
               CTA
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={insertMultiColumnLayout}
+              title="Add Columns"
+              className="text-xs px-2"
+            >
+              Cols
             </Button>
           </div>
         </div>
