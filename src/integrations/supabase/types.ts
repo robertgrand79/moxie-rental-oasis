@@ -1037,6 +1037,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          linked_content: Json | null
           open_rate: number | null
           recipient_count: number | null
           sent_at: string | null
@@ -1053,6 +1054,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          linked_content?: Json | null
           open_rate?: number | null
           recipient_count?: number | null
           sent_at?: string | null
@@ -1069,6 +1071,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          linked_content?: Json | null
           open_rate?: number | null
           recipient_count?: number | null
           sent_at?: string | null

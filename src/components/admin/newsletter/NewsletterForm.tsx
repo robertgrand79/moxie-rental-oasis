@@ -2,21 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useForm } from 'react-hook-form';
-import { useBlogPosts } from '@/hooks/useBlogPosts';
 import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Send, Save, Loader2, X } from 'lucide-react';
+import { Send, Save, Loader2, Plus } from 'lucide-react';
 import ReactQuillEditor from '../../ReactQuillEditor';
+import ContentPicker, { SelectedContent } from './ContentPicker';
+import { generateContentTemplate } from './ContentTemplateGenerator';
+import { BlogPost } from '@/types/blogPost';
+import { EugeneEvent } from '@/hooks/useEugeneEvents';
+import { Place } from '@/hooks/usePlaces';
 
 interface NewsletterFormData {
   subject: string;
   content: string;
-  blogPostId?: string;
+  linked_content?: SelectedContent;
 }
 
 interface Newsletter {
@@ -26,6 +29,7 @@ interface Newsletter {
   sent_at: string | null;
   recipient_count: number;
   blog_post_id: string | null;
+  linked_content?: SelectedContent;
   created_at: string;
   updated_at: string;
 }
@@ -39,30 +43,50 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [content, setContent] = useState(newsletter?.content || '');
+  const [showContentPicker, setShowContentPicker] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<SelectedContent>(() => {
+    if (newsletter?.linked_content) {
+      const content = newsletter.linked_content as any;
+      return {
+        blog_posts: content.blog_posts || [],
+        events: content.events || [],
+        places: content.places || []
+      };
+    }
+    return { blog_posts: [], events: [], places: [] };
+  });
   const { toast: showToast } = useToast();
-  const { blogPosts, loading: blogPostsLoading } = useBlogPosts();
   const { subscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
   
   const form = useForm<NewsletterFormData>({
     defaultValues: {
       subject: newsletter?.subject || '',
       content: newsletter?.content || '',
-      blogPostId: newsletter?.blog_post_id || 'none',
+      linked_content: newsletter?.linked_content || { blog_posts: [], events: [], places: [] },
     },
   });
 
   const currentSubject = form.watch('subject');
   const isFormValid = currentSubject?.trim() && content?.trim();
   const canSend = isFormValid && subscriberCount && subscriberCount > 0;
-  const publishedBlogPosts = blogPosts.filter(post => post.status === 'published');
   const isEdit = !!newsletter;
 
   useEffect(() => {
     if (newsletter) {
       form.setValue('subject', newsletter.subject);
       form.setValue('content', newsletter.content);
-      form.setValue('blogPostId', newsletter.blog_post_id || 'none');
       setContent(newsletter.content);
+      
+      if (newsletter.linked_content) {
+        const content = newsletter.linked_content as any;
+        const parsedContent = {
+          blog_posts: content.blog_posts || [],
+          events: content.events || [],
+          places: content.places || []
+        };
+        form.setValue('linked_content', parsedContent);
+        setSelectedContent(parsedContent);
+      }
     }
   }, [newsletter, form]);
 
@@ -82,7 +106,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
       const newsletterData = {
         subject: data.subject,
         content: content,
-        blog_post_id: data.blogPostId === 'none' ? null : data.blogPostId,
+        linked_content: JSON.parse(JSON.stringify(selectedContent)),
         recipient_count: 0,
       };
 
@@ -140,7 +164,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
         body: {
           subject: data.subject,
           content: content,
-          blogPostId: data.blogPostId === 'none' ? undefined : data.blogPostId,
+          linkedContent: selectedContent,
           campaignId: isEdit ? newsletter.id : undefined,
         }
       });
@@ -167,6 +191,22 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleContentImport = (contentType: 'blog_posts' | 'events' | 'places', items: (BlogPost | EugeneEvent | Place)[]) => {
+    const template = generateContentTemplate(contentType, items);
+    const currentContent = content || '';
+    const newContent = currentContent + (currentContent ? '\n\n' : '') + template;
+    setContent(newContent);
+    
+    showToast({
+      title: "Content Imported",
+      description: `${items.length} ${contentType.replace('_', ' ')} imported to newsletter.`,
+    });
+  };
+
+  const getTotalSelectedItems = () => {
+    return selectedContent.blog_posts.length + selectedContent.events.length + selectedContent.places.length;
   };
 
   return (
@@ -200,41 +240,29 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="blogPostId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Link to Blog Post (Optional)</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value} 
-                      disabled={isLoading || isSaving}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={
-                            blogPostsLoading 
-                              ? "Loading blog posts..." 
-                              : publishedBlogPosts.length === 0 
-                                ? "No published blog posts available"
-                                : "Select a blog post (optional)"
-                          } />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        {publishedBlogPosts.map((post) => (
-                          <SelectItem key={post.id} value={post.slug}>
-                            {post.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <FormLabel>Content Library</FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowContentPicker(!showContentPicker)}
+                    disabled={isLoading || isSaving}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Content ({getTotalSelectedItems()})
+                  </Button>
+                </div>
+                
+                {showContentPicker && (
+                  <ContentPicker
+                    selectedContent={selectedContent}
+                    onContentChange={setSelectedContent}
+                    onImportContent={handleContentImport}
+                  />
                 )}
-              />
+              </div>
 
               <div className="space-y-2">
                 <FormLabel>Newsletter Content</FormLabel>
