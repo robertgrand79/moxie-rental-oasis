@@ -48,7 +48,7 @@ export const useUserFetch = () => {
         .from('profiles')
         .select(`
           *,
-          user_roles!user_roles_user_id_fkey(
+          user_roles!fk_user_roles_user_id(
             role:system_roles!user_roles_role_id_fkey(name)
           )
         `)
