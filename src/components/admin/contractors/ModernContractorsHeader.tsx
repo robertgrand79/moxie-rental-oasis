@@ -50,8 +50,8 @@ const ModernContractorsHeader = ({
         <EnhancedButton 
           onClick={onCreateContractor} 
           size="lg" 
-          variant="gradient"
-          className="min-h-[44px] sm:min-h-auto"
+          variant="outline"
+          className="min-h-[44px] sm:min-h-auto bg-gray-900 hover:bg-gray-800 text-white border-gray-900"
         >
           <Plus className="h-5 w-5 mr-2" />
           Add Contractor
