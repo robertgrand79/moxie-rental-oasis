@@ -7,7 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Testimonial } from '@/hooks/useTestimonials';
+import { useProperties } from '@/hooks/useProperties';
 import GuestPhotoUpload from './GuestPhotoUpload';
 
 interface TestimonialFormData {
@@ -16,6 +18,7 @@ interface TestimonialFormData {
   guest_avatar_url: string;
   rating: number;
   review_text: string;
+  property_id: string;
   property_name: string;
   stay_date: string;
   is_featured: boolean;
@@ -41,6 +44,7 @@ const TestimonialForm = ({
   setFormData, 
   onSubmit 
 }: TestimonialFormProps) => {
+  const { properties } = useProperties();
   
   const handlePlatformChange = (platform: string) => {
     if (formData.booking_platform === platform) {
@@ -163,13 +167,29 @@ const TestimonialForm = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="property_name">Property Name</Label>
-              <Input
-                id="property_name"
-                value={formData.property_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, property_name: e.target.value }))}
-                placeholder="Downtown Loft"
-              />
+              <Label htmlFor="property_id">Property</Label>
+              <Select 
+                value={formData.property_id} 
+                onValueChange={(value) => {
+                  const selectedProperty = properties.find(p => p.id === value);
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    property_id: value,
+                    property_name: selectedProperty?.title || ''
+                  }))
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a property" />
+                </SelectTrigger>
+                <SelectContent>
+                  {properties.map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {property.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="stay_date">Stay Date</Label>

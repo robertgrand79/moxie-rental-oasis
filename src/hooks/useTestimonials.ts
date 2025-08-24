@@ -53,7 +53,13 @@ export const useTestimonials = () => {
       console.log('🔄 Fetching testimonials...');
       const { data, error } = await supabase
         .from('testimonials')
-        .select('*')
+        .select(`
+          *,
+          properties (
+            id,
+            title
+          )
+        `)
         .order('display_order', { ascending: true });
       
       if (error) {
