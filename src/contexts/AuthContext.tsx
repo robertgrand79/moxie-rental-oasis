@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useDatabase } from '@/hooks/useDatabase';
 
 interface Profile {
   id: string;
@@ -22,6 +23,14 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
+  databaseStatus: {
+    isConnected: boolean;
+    isChecking: boolean;
+    error: string | null;
+    retry: () => void;
+    canRetry: boolean;
+  };
+  retryAuth: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,12 +51,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [roleLoading, setRoleLoading] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [authRetryCount, setAuthRetryCount] = useState(0);
+  
+  const databaseStatus = useDatabase();
 
-  const fetchUserRoleWithTimeout = async (userId: string, timeoutMs: number = 5000) => {
-    console.log('🔍 Starting role fetch for user:', userId);
+  const fetchUserRoleWithTimeout = async (userId: string, timeoutMs: number = 10000, retryCount = 0) => {
+    console.log('🔍 Starting role fetch for user:', userId, `(attempt ${retryCount + 1})`);
     setRoleLoading(true);
     
     try {
+      // Check database connection first
+      if (!databaseStatus.isConnected && !databaseStatus.isChecking) {
+        console.warn('⚠️ Database not connected, retrying connection...');
+        databaseStatus.checkConnection();
+        throw new Error('Database connection unavailable');
+      }
+
       // Create a timeout promise
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Role fetch timeout')), timeoutMs);
@@ -68,6 +87,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('❌ Error fetching user profile:', error);
+        
+        // Retry logic for certain errors
+        if (retryCount < 2 && (
+          error.message.includes('timeout') || 
+          error.message.includes('connection') ||
+          error.message.includes('network')
+        )) {
+          console.log('🔄 Retrying role fetch...');
+          setTimeout(() => {
+            fetchUserRoleWithTimeout(userId, timeoutMs, retryCount + 1);
+          }, 1000 * (retryCount + 1)); // Exponential backoff
+          return;
+        }
+        
         // Fallback to user role on error
         setUserRole('user');
         setIsAdmin(false);
@@ -84,6 +117,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error) {
       console.error('💥 Role fetch failed or timed out:', error);
+      
+      // Retry logic for connection errors
+      if (retryCount < 2 && error instanceof Error && (
+        error.message.includes('timeout') || 
+        error.message.includes('connection') ||
+        error.message.includes('Database connection unavailable')
+      )) {
+        console.log('🔄 Retrying role fetch due to connection issue...');
+        setTimeout(() => {
+          fetchUserRoleWithTimeout(userId, timeoutMs, retryCount + 1);
+        }, 2000 * (retryCount + 1)); // Exponential backoff
+        return;
+      }
+      
       // Always fallback to user role if anything goes wrong
       setUserRole('user');
       setIsAdmin(false);
@@ -174,40 +221,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, fullName: string) => {
     console.log('📝 Attempting sign up for:', email);
     
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName
-        }
+    try {
+      // Check database connection before attempting sign up
+      if (!databaseStatus.isConnected && !databaseStatus.isChecking) {
+        console.warn('⚠️ Database not connected, checking connection...');
+        await databaseStatus.checkConnection();
       }
-    });
 
-    if (error) {
-      console.error('❌ Sign up error:', error);
-    } else {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: fullName
+          }
+        }
+      });
+
+      if (error) {
+        console.error('❌ Sign up error:', error);
+        return { error };
+      }
+
       console.log('✅ Sign up successful');
+      return { error: null };
+    } catch (error) {
+      console.error('💥 Unexpected sign up error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      return { error: { message: errorMessage } };
     }
-
-    return { error };
   };
 
   const signIn = async (email: string, password: string) => {
     console.log('🔑 Attempting sign in for:', email);
     
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    try {
+      // Check database connection before attempting sign in
+      if (!databaseStatus.isConnected && !databaseStatus.isChecking) {
+        console.warn('⚠️ Database not connected, checking connection...');
+        await databaseStatus.checkConnection();
+      }
 
-    if (error) {
-      console.error('❌ Sign in error:', error);
-    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        console.error('❌ Sign in error:', error);
+        // Add more specific error context
+        if (error.message.includes('Invalid login credentials')) {
+          return { error: { ...error, message: 'Invalid email or password. Please check your credentials.' } };
+        }
+        return { error };
+      }
+
       console.log('✅ Sign in successful');
+      
       // Update last_login_at timestamp
       try {
         await supabase
@@ -217,9 +290,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (loginUpdateError) {
         console.warn('Failed to update last_login_at:', loginUpdateError);
       }
-    }
 
-    return { error };
+      return { error: null };
+    } catch (error) {
+      console.error('💥 Unexpected sign in error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      return { error: { message: errorMessage } };
+    }
   };
 
   const signOut = async () => {
@@ -240,6 +317,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
+  const retryAuth = () => {
+    if (authRetryCount < 3) {
+      console.log('🔄 Retrying authentication...', authRetryCount + 1);
+      setAuthRetryCount(prev => prev + 1);
+      
+      // Retry getting the session
+      supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (error) {
+          console.error('❌ Auth retry failed:', error);
+          return;
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          setTimeout(() => {
+            fetchUserRoleWithTimeout(session.user.id);
+          }, 0);
+        }
+      });
+    }
+  };
+
   const value = {
     user,
     session,
@@ -250,7 +351,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAdmin,
     signUp,
     signIn,
-    signOut
+    signOut,
+    databaseStatus: {
+      isConnected: databaseStatus.isConnected,
+      isChecking: databaseStatus.isChecking,
+      error: databaseStatus.error,
+      retry: databaseStatus.retry,
+      canRetry: databaseStatus.canRetry
+    },
+    retryAuth
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

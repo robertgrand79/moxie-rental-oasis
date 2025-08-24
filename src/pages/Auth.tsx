@@ -8,13 +8,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { AlertTriangle, Database, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
   const [debugInfo, setDebugInfo] = useState('');
-  const { signIn, signUp, user, isAdmin, loading, roleLoading } = useAuth();
+  const { signIn, signUp, user, isAdmin, loading, roleLoading, databaseStatus, retryAuth } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,6 +26,8 @@ const Auth = () => {
       Loading: ${loading}
       Role Loading: ${roleLoading}
       Is Admin: ${isAdmin}
+      Database Connected: ${databaseStatus.isConnected}
+      Database Error: ${databaseStatus.error || 'None'}
       Current Time: ${new Date().toLocaleTimeString()}
     `;
     setDebugInfo(info);
@@ -53,7 +57,7 @@ const Auth = () => {
         navigate('/', { replace: true });
       }
     }
-  }, [user, isAdmin, loading, roleLoading, navigate]);
+  }, [user, isAdmin, loading, roleLoading, navigate, databaseStatus]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,6 +154,35 @@ const Auth = () => {
               <p className="text-sm text-muted-foreground">
                 {loading ? 'Authenticating...' : 'Loading your profile...'}
               </p>
+              
+              {/* Database status indicator */}
+              <div className="flex items-center justify-center gap-2 mt-3">
+                {databaseStatus.isConnected ? (
+                  <div className="flex items-center gap-1 text-green-600">
+                    <Database className="w-4 h-4" />
+                    <span className="text-xs">Connected</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-red-600">
+                    <Database className="w-4 h-4" />
+                    <span className="text-xs">Disconnected</span>
+                  </div>
+                )}
+              </div>
+
+              {!databaseStatus.isConnected && databaseStatus.canRetry && (
+                <Button 
+                  onClick={databaseStatus.retry} 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-3"
+                  disabled={databaseStatus.isChecking}
+                >
+                  <RefreshCw className={`w-3 h-3 mr-1 ${databaseStatus.isChecking ? 'animate-spin' : ''}`} />
+                  Retry Connection
+                </Button>
+              )}
+              
               {process.env.NODE_ENV === 'development' && (
                 <Alert className="mt-4">
                   <AlertDescription>
@@ -165,13 +198,52 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-900">Welcome</CardTitle>
-          <CardDescription>Sign in to access your account</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <ErrorBoundary>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-gray-900">Welcome</CardTitle>
+            <CardDescription>Sign in to access your account</CardDescription>
+            
+            {/* Database connection status */}
+            <div className="flex items-center justify-center gap-2 mt-2">
+              {databaseStatus.isConnected ? (
+                <div className="flex items-center gap-1 text-green-600">
+                  <Wifi className="w-4 h-4" />
+                  <span className="text-xs">Database Connected</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-red-600">
+                  <WifiOff className="w-4 h-4" />
+                  <span className="text-xs">Database Disconnected</span>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            
+            {/* Database error alert */}
+            {!databaseStatus.isConnected && databaseStatus.error && (
+              <Alert className="mb-4 border-orange-200 bg-orange-50">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800">
+                  <p className="font-medium mb-1">Database Connection Issue</p>
+                  <p className="text-sm">{databaseStatus.error}</p>
+                  {databaseStatus.canRetry && (
+                    <Button 
+                      onClick={databaseStatus.retry} 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2"
+                      disabled={databaseStatus.isChecking}
+                    >
+                      <RefreshCw className={`w-3 h-3 mr-1 ${databaseStatus.isChecking ? 'animate-spin' : ''}`} />
+                      Retry Connection
+                    </Button>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
@@ -202,7 +274,11 @@ const Auth = () => {
                     disabled={isLoading}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={isLoading || (!databaseStatus.isConnected && !databaseStatus.isChecking)}
+                >
                   {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
               </form>
@@ -244,7 +320,11 @@ const Auth = () => {
                     minLength={6}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={isLoading || (!databaseStatus.isConnected && !databaseStatus.isChecking)}
+                >
                   {isLoading ? 'Creating Account...' : 'Create Account'}
                 </Button>
               </form>
@@ -265,6 +345,7 @@ const Auth = () => {
         </CardContent>
       </Card>
     </div>
+    </ErrorBoundary>
   );
 };
 
