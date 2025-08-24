@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, FileText, Eye, Archive } from 'lucide-react';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePages } from '@/hooks/usePages';
@@ -74,13 +74,13 @@ const PagesManager = () => {
             </div>
             <div className="flex items-center gap-2">
               <PagesViewToggle view={view} onViewChange={setView} />
-              <EnhancedButton 
+              <Button 
                 onClick={handleAddNew}
-                variant="gradient"
-                icon={<Plus className="h-4 w-4" />}
+                className="bg-gray-900 hover:bg-gray-800 text-white"
               >
+                <Plus className="h-4 w-4 mr-2" />
                 Add Page
-              </EnhancedButton>
+              </Button>
             </div>
           </div>
         </CardHeader>
