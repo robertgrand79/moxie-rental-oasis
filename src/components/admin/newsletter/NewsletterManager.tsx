@@ -93,6 +93,7 @@ const NewsletterManager = () => {
                   newsletters={filteredNewsletters}
                   onEdit={handleEdit}
                   onDelete={deleteCampaign}
+                  onCreateNew={handleAddNew}
                   deleting={deleting}
                 />
               ) : (
@@ -100,6 +101,7 @@ const NewsletterManager = () => {
                   newsletters={filteredNewsletters}
                   onEdit={handleEdit}
                   onDelete={deleteCampaign}
+                  onCreateNew={handleAddNew}
                   deleting={deleting}
                 />
               )}

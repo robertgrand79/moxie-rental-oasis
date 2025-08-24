@@ -22,10 +22,11 @@ interface NewslettersGridProps {
   newsletters: Newsletter[];
   onEdit: (newsletter: Newsletter) => void;
   onDelete: (id: string) => void;
+  onCreateNew: () => void;
   deleting: string | null;
 }
 
-const NewslettersGrid = ({ newsletters, onEdit, onDelete, deleting }: NewslettersGridProps) => {
+const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, deleting }: NewslettersGridProps) => {
   const [previewNewsletter, setPreviewNewsletter] = useState<Newsletter | null>(null);
   const [deleteNewsletter, setDeleteNewsletter] = useState<Newsletter | null>(null);
 
@@ -59,7 +60,7 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, deleting }: Newsletter
         <p className="text-muted-foreground mb-4">
           Get started by creating your first newsletter campaign.
         </p>
-        <Button onClick={() => {}}>
+        <Button onClick={onCreateNew}>
           <Send className="h-4 w-4 mr-2" />
           Create Newsletter
         </Button>

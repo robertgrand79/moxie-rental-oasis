@@ -29,10 +29,11 @@ interface NewslettersListViewProps {
   newsletters: Newsletter[];
   onEdit: (newsletter: Newsletter) => void;
   onDelete: (id: string) => void;
+  onCreateNew: () => void;
   deleting: string | null;
 }
 
-const NewslettersListView = ({ newsletters, onEdit, onDelete, deleting }: NewslettersListViewProps) => {
+const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, deleting }: NewslettersListViewProps) => {
   const [previewNewsletter, setPreviewNewsletter] = useState<Newsletter | null>(null);
   const [deleteNewsletter, setDeleteNewsletter] = useState<Newsletter | null>(null);
 
@@ -59,6 +60,10 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, deleting }: Newsle
         <p className="text-muted-foreground mb-4">
           Get started by creating your first newsletter campaign.
         </p>
+        <Button onClick={onCreateNew}>
+          <Mail className="h-4 w-4 mr-2" />
+          Create Newsletter
+        </Button>
       </div>
     );
   }
