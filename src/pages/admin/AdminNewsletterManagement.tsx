@@ -1,7 +1,7 @@
 
 import React, { useCallback } from 'react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
-import NewsletterManager from '@/components/admin/newsletter/NewsletterManager';
+import NewsletterManagementTabs from '@/components/newsletter/NewsletterManagementTabs';
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminNewsletterManagement = () => {
@@ -21,7 +21,7 @@ const AdminNewsletterManagement = () => {
       description="Create, send, and manage your newsletter campaigns"
     >
       <div className="p-6">
-        <NewsletterManager />
+        <NewsletterManagementTabs />
       </div>
     </AdminPageWrapper>
   );
