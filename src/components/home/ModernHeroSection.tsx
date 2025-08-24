@@ -4,10 +4,12 @@ import { ArrowRight, MapPin, Star, Users, Calendar, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useHeroSettings } from './hooks/useHeroSettings';
+import { useRatingMetrics } from '@/hooks/useRatingMetrics';
 import AnimatedBackground from './ModernHeroBackground';
 
 const ModernHeroSection = () => {
   const { settings, isLoading } = useHeroSettings();
+  const { metrics, isLoading: isRatingLoading } = useRatingMetrics();
 
   if (isLoading) {
     return (
@@ -56,7 +58,9 @@ const ModernHeroSection = () => {
             {/* Stats Row */}
             <div className="flex justify-center items-center gap-12 py-6">
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-white mb-1">4.9</div>
+                <div className="text-3xl lg:text-4xl font-bold text-white mb-1">
+                  {metrics && !isRatingLoading ? metrics.formattedRating : '5.0'}
+                </div>
                 <div className="flex items-center justify-center gap-1 mb-2">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-accent text-accent" />
@@ -66,7 +70,12 @@ const ModernHeroSection = () => {
               </div>
               
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-white mb-1">150+</div>
+                <div className="text-3xl lg:text-4xl font-bold text-white mb-1">
+                  {metrics && !isRatingLoading 
+                    ? `${metrics.totalReviews >= 100 ? `${Math.floor(metrics.totalReviews / 10) * 10}+` : `${metrics.totalReviews}+`}`
+                    : '90+'
+                  }
+                </div>
                 <div className="flex items-center justify-center mb-2">
                   <Users className="w-5 h-5 text-accent" />
                 </div>
