@@ -215,9 +215,17 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   };
 
   const handleContentImport = (contentType: 'blog_posts' | 'events' | 'places', items: (BlogPost | EugeneEvent | Place)[]) => {
+    console.log('🔄 handleContentImport called with:', { contentType, itemCount: items.length, items });
+    
     const template = generateContentTemplate(contentType, items);
+    console.log('🔄 Generated template:', template);
+    
     const currentContent = content || '';
     const newContent = currentContent + (currentContent ? '\n\n' : '') + template;
+    
+    console.log('🔄 Current content length:', currentContent.length);
+    console.log('🔄 New content length:', newContent.length);
+    
     setContent(newContent);
     
     showToast({

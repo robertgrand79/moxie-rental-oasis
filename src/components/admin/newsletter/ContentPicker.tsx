@@ -55,21 +55,36 @@ const ContentPicker = ({ selectedContent, onContentChange, onImportContent }: Co
   };
 
   const handleImportSelected = () => {
+    console.log('🔄 Import Selected clicked');
+    console.log('🔄 Active tab:', activeTab);
+    console.log('🔄 Selected content:', selectedContent);
+    
     const contentType = activeTab as 'blog_posts' | 'events' | 'places';
     const selectedIds = selectedContent[contentType];
+    
+    console.log('🔄 Content type:', contentType);
+    console.log('🔄 Selected IDs:', selectedIds);
     
     let items: (BlogPost | EugeneEvent | Place)[] = [];
     
     if (contentType === 'blog_posts') {
       items = publishedBlogPosts.filter(post => selectedIds.includes(post.slug));
+      console.log('🔄 Available blog posts:', publishedBlogPosts.map(p => ({ slug: p.slug, title: p.title })));
     } else if (contentType === 'events') {
       items = activeEvents.filter(event => selectedIds.includes(event.id));
+      console.log('🔄 Available events:', activeEvents.map(e => ({ id: e.id, title: e.title })));
     } else if (contentType === 'places') {
       items = publishedPlaces.filter(place => selectedIds.includes(place.id));
+      console.log('🔄 Available places:', publishedPlaces.map(p => ({ id: p.id, name: p.name })));
     }
     
+    console.log('🔄 Filtered items to import:', items);
+    
     if (items.length > 0) {
+      console.log('🔄 Calling onImportContent with:', { contentType, items });
       onImportContent(contentType, items);
+    } else {
+      console.warn('⚠️ No items to import');
     }
   };
 
