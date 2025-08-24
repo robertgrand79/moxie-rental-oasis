@@ -1,8 +1,8 @@
 import React from 'react';
-import NewsletterSecurityAudit from './NewsletterSecurityAudit';
+import ComprehensiveSecurityAudit from './NewsletterSecurityAudit';
 
 const SecurityStatusIndicator = () => {
-  return <NewsletterSecurityAudit />;
+  return <ComprehensiveSecurityAudit />;
 };
 
 export default SecurityStatusIndicator;
