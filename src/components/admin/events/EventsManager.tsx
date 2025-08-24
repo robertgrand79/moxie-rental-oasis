@@ -74,15 +74,15 @@ const EventsManager = () => {
         </CardHeader>
         <CardContent>
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="grid w-full grid-cols-7 h-auto p-1">
+            <TabsList className="grid w-full grid-cols-7 h-auto">
               {categories.map((category) => (
                 <TabsTrigger 
                   key={category.value} 
                   value={category.value}
-                  className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 text-xs sm:text-sm min-h-[2.5rem] sm:min-h-[2.5rem]"
+                  className="flex items-center justify-center gap-2 px-2 py-3 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground"
                 >
-                  <category.icon className="h-4 w-4 sm:h-4 sm:w-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">{category.label}</span>
+                  <category.icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden lg:inline whitespace-nowrap">{category.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
