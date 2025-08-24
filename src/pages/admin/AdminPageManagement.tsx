@@ -96,7 +96,8 @@ const AdminPageManagement = () => {
   const pageActions = (!showAddForm && !showTemplateSelector) ? (
     <EnhancedButton 
       onClick={handleAddPage} 
-      variant="gradient"
+      variant="outline"
+      className="bg-gray-900 hover:bg-gray-800 text-white border-gray-900"
       icon={<Plus className="h-4 w-4" />}
     >
       Add Page
