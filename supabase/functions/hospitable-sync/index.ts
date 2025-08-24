@@ -39,45 +39,67 @@ const testApiConnection = async (apiKey: string): Promise<{ success: boolean; er
   try {
     console.log('🔍 Testing Hospitable API connection...');
     
-    // Test with a simple API call to verify authentication
-    const testResponse = await fetch('https://api.hospitable.com/v1/properties', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    });
+    // Hospitable API uses different authentication - try multiple endpoints and methods
+    const testEndpoints = [
+      'https://api.hospitable.com/v1/me',
+      'https://api.hospitable.com/v1/account',
+      'https://api.hospitable.com/v1/properties'
+    ];
 
-    if (!testResponse.ok) {
-      const errorText = await testResponse.text();
-      console.error(`❌ API test failed: ${testResponse.status} ${testResponse.statusText}`, errorText);
-      
-      if (testResponse.status === 401) {
-        return {
-          success: false,
-          error: 'Invalid API key. Please check your Hospitable API key in the Supabase dashboard.'
-        };
-      } else if (testResponse.status === 403) {
-        return {
-          success: false,
-          error: 'API key lacks required permissions. Please ensure your Hospitable API key has read access to bookings.'
-        };
-      } else if (testResponse.status === 429) {
-        return {
-          success: false,
-          error: 'Rate limit exceeded. Please try again in a few minutes.'
-        };
-      } else {
-        return {
-          success: false,
-          error: `API error: ${testResponse.status} ${testResponse.statusText}`
-        };
+    let lastError = '';
+    
+    for (const endpoint of testEndpoints) {
+      try {
+        console.log(`🔍 Testing endpoint: ${endpoint}`);
+        
+        // Try Bearer token authentication first
+        const testResponse = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+
+        if (testResponse.ok) {
+          console.log('✅ API connection test successful with Bearer token');
+          return { success: true };
+        }
+
+        const errorText = await testResponse.text();
+        console.log(`⚠️ ${endpoint} failed with Bearer: ${testResponse.status} ${testResponse.statusText}`, errorText);
+        lastError = errorText;
+
+        // If Bearer fails, try API key in header
+        const testResponse2 = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            'X-API-Key': apiKey,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+
+        if (testResponse2.ok) {
+          console.log('✅ API connection test successful with X-API-Key');
+          return { success: true };
+        }
+
+        const errorText2 = await testResponse2.text();
+        console.log(`⚠️ ${endpoint} failed with X-API-Key: ${testResponse2.status} ${testResponse2.statusText}`, errorText2);
+        
+      } catch (endpointError) {
+        console.log(`⚠️ ${endpoint} connection failed:`, endpointError.message);
       }
     }
 
-    console.log('✅ API connection test successful');
-    return { success: true };
+    // If all endpoints failed, return error
+    return {
+      success: false,
+      error: `All API endpoints failed. Last error: ${lastError}. Please verify your Hospitable API key is valid and has the required permissions.`
+    };
+
   } catch (error) {
     console.error('❌ API connection test failed:', error);
     return {
@@ -122,30 +144,69 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('📋 Fetching bookings from Hospitable API...');
 
-    // Fetch bookings from Hospitable API with improved error handling
-    const bookingsResponse = await fetch('https://api.hospitable.com/v1/bookings', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${hospitableApiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!bookingsResponse.ok) {
-      const errorText = await bookingsResponse.text();
-      console.error(`❌ Bookings API error: ${bookingsResponse.status} ${bookingsResponse.statusText}`, errorText);
+    // Try both authentication methods based on what worked in the test
+    let bookingsResponse;
+    let authMethod = '';
+    
+    // Try Bearer token first
+    try {
+      bookingsResponse = await fetch('https://api.hospitable.com/v1/bookings', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${hospitableApiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
       
-      if (bookingsResponse.status === 401) {
-        throw new Error('Authentication failed. Your Hospitable API key may have expired or been revoked. Please generate a new API key.');
-      } else if (bookingsResponse.status === 403) {
-        throw new Error('Access denied. Your API key doesn\'t have permission to access bookings data.');
-      } else if (bookingsResponse.status === 429) {
-        throw new Error('Rate limit exceeded. Please wait a few minutes before trying again.');
-      } else {
-        throw new Error(`Hospitable API error: ${bookingsResponse.status} ${bookingsResponse.statusText}. ${errorText}`);
+      if (bookingsResponse.ok) {
+        authMethod = 'Bearer';
+      }
+    } catch (error) {
+      console.log('⚠️ Bearer token method failed, trying X-API-Key...');
+    }
+
+    // If Bearer failed, try X-API-Key
+    if (!bookingsResponse || !bookingsResponse.ok) {
+      try {
+        bookingsResponse = await fetch('https://api.hospitable.com/v1/bookings', {
+          method: 'GET',
+          headers: {
+            'X-API-Key': hospitableApiKey,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+        
+        if (bookingsResponse.ok) {
+          authMethod = 'X-API-Key';
+        }
+      } catch (error) {
+        console.log('⚠️ X-API-Key method also failed');
       }
     }
+
+    if (!bookingsResponse || !bookingsResponse.ok) {
+      const errorText = bookingsResponse ? await bookingsResponse.text() : 'No response received';
+      const status = bookingsResponse?.status || 0;
+      const statusText = bookingsResponse?.statusText || 'Unknown error';
+      
+      console.error(`❌ Bookings API error: ${status} ${statusText}`, errorText);
+      
+      if (status === 401) {
+        throw new Error('Authentication failed. Your Hospitable API key may have expired or been revoked. Please generate a new API key from your Hospitable dashboard.');
+      } else if (status === 403) {
+        throw new Error('Access denied. Your API key doesn\'t have permission to access bookings data. Please check your API key permissions in Hospitable.');
+      } else if (status === 404) {
+        throw new Error('Bookings endpoint not found. The Hospitable API may have changed or your account may not have access to bookings.');
+      } else if (status === 429) {
+        throw new Error('Rate limit exceeded. Please wait a few minutes before trying again.');
+      } else {
+        throw new Error(`Hospitable API error: ${status} ${statusText}. ${errorText}`);
+      }
+    }
+
+    console.log(`✅ Successfully authenticated using ${authMethod} method`);
 
     const bookingsData = await bookingsResponse.json();
     const bookings: HospitableBooking[] = bookingsData.data || bookingsData || [];
