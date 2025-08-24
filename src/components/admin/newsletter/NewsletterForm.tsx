@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Send, Save, Loader2, Plus, Mail } from 'lucide-react';
-import ReactQuillEditor from '../../ReactQuillEditor';
+import TipTapNewsletterEditor from './TipTapNewsletterEditor';
 import ContentPicker, { SelectedContent } from './ContentPicker';
 import { generateContentTemplate } from './ContentTemplateGenerator';
 import ImageUpload from './ImageUpload';
@@ -364,7 +364,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
               <div className="space-y-2">
                 <FormLabel>Newsletter Content</FormLabel>
                 <div className="border border-border rounded-lg overflow-hidden bg-background">
-                  <ReactQuillEditor
+                  <TipTapNewsletterEditor
                     content={content}
                     onChange={setContent}
                     placeholder="Write your newsletter content here..."
