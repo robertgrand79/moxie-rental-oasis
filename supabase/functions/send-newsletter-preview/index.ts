@@ -9,9 +9,15 @@ const corsHeaders = {
 };
 
 interface PreviewRequest {
-  email: string;
+  testEmail: string;
   subject: string;
   content: string;
+  coverImageUrl?: string;
+  linkedContent?: {
+    blog_posts: string[];
+    events: string[];
+    places: string[];
+  };
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -151,25 +157,26 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, subject, content }: PreviewRequest = requestBody;
+    const { testEmail, subject, content, coverImageUrl, linkedContent }: PreviewRequest = requestBody;
 
     console.log("📊 Newsletter data validation:");
-    console.log("- Email:", email ? `"${email}"` : "MISSING");
+    console.log("- Test Email:", testEmail ? `"${testEmail}"` : "MISSING");
     console.log("- Subject:", subject ? `"${subject}" (${subject.length} chars)` : "MISSING");
     console.log("- Content:", content ? `${content.length} characters` : "MISSING");
+    console.log("- Cover Image:", coverImageUrl ? "Yes" : "No");
 
-    if (!email || !subject || !content) {
+    if (!testEmail || !subject || !content) {
       console.error("❌ Missing required fields:", { 
-        email: !!email, 
+        testEmail: !!testEmail, 
         subject: !!subject, 
         content: !!content 
       });
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: "Email, subject, and content are required",
+          error: "Test email, subject, and content are required",
           missingFields: {
-            email: !email,
+            testEmail: !testEmail,
             subject: !subject,
             content: !content
           },
@@ -183,13 +190,13 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      console.error("❌ Invalid email format:", email);
+    if (!emailRegex.test(testEmail)) {
+      console.error("❌ Invalid email format:", testEmail);
       return new Response(
         JSON.stringify({ 
           success: false,
           error: "Please enter a valid email address",
-          providedEmail: email,
+          providedEmail: testEmail,
           timestamp: new Date().toISOString()
         }),
         {
@@ -394,6 +401,12 @@ const handler = async (req: Request): Promise<Response> => {
                   📧 NEWSLETTER PREVIEW - This is exactly what subscribers will receive
               </div>
               
+              ${coverImageUrl ? `
+              <div style="width: 100%; overflow: hidden;">
+                  <img src="${coverImageUrl}" alt="Newsletter Cover" style="width: 100%; height: 200px; object-fit: cover; display: block;">
+              </div>
+              ` : ''}
+              
               <div class="header">
                   <div class="header-content">
                       <h1>${siteName}</h1>
@@ -440,7 +453,7 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         const response = await resend.emails.send({
           from: `${fromName} <${fromEmail}>`,
-          to: [email],
+          to: [testEmail],
           subject: `[PREVIEW] ${subject}`,
           html: emailHtml,
           reply_to: replyTo,
@@ -506,7 +519,7 @@ const handler = async (req: Request): Promise<Response> => {
         // Send a simple notification email using recovery link generation as test
         const { data: emailData, error: emailError } = await supabaseAdmin.auth.admin.generateLink({
           type: 'recovery',
-          email: email,
+          email: testEmail,
           options: {
             redirectTo: 'https://moxievacationrentals.com'
           }
@@ -552,7 +565,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    console.log(`✅ Newsletter preview sent successfully to ${email}`);
+    console.log(`✅ Newsletter preview sent successfully to ${testEmail}`);
     console.log(`📊 Email method used: ${emailResult.method}`);
 
     return new Response(
@@ -562,7 +575,7 @@ const handler = async (req: Request): Promise<Response> => {
           "Newsletter preview sent successfully!" : 
           "Email service test completed! Configure RESEND_API_KEY for full newsletter functionality.",
         details: {
-          to: email,
+          to: testEmail,
           from: fromEmail,
           fromName: fromName,
           subject: `[PREVIEW] ${subject}`,

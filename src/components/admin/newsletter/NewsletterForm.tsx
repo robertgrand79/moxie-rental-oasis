@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Send, Save, Loader2, Plus } from 'lucide-react';
+import { Send, Save, Loader2, Plus, Mail } from 'lucide-react';
 import ReactQuillEditor from '../../ReactQuillEditor';
 import ContentPicker, { SelectedContent } from './ContentPicker';
 import { generateContentTemplate } from './ContentTemplateGenerator';
@@ -45,6 +45,9 @@ interface NewsletterFormProps {
 const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [testEmail, setTestEmail] = useState('');
+  const [showTestEmail, setShowTestEmail] = useState(false);
   const [content, setContent] = useState(newsletter?.content || '');
   const [showContentPicker, setShowContentPicker] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState(newsletter?.cover_image_url || '');
@@ -236,6 +239,62 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     form.setValue('cover_image_url', '');
   };
 
+  const handleSendTestEmail = async () => {
+    if (!testEmail || !testEmail.includes('@')) {
+      showToast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!form.watch('subject') || !content) {
+      showToast({
+        title: "Missing Content",
+        description: "Please provide both a subject and content before sending a test.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingTest(true);
+
+    try {
+      const { data: result, error } = await supabase.functions.invoke('send-newsletter-preview', {
+        body: {
+          testEmail: testEmail,
+          subject: form.watch('subject'),
+          content: content,
+          coverImageUrl: coverImageUrl,
+          linkedContent: selectedContent,
+        }
+      });
+
+      if (error) throw error;
+
+      if (result?.success) {
+        showToast({
+          title: "Test Email Sent! ✉️",
+          description: `Preview sent successfully to ${testEmail}`,
+        });
+        setShowTestEmail(false);
+        setTestEmail('');
+      } else {
+        throw new Error(result?.error || "Failed to send test email");
+      }
+    } catch (error: any) {
+      console.error('Error sending test email:', error);
+      showToast({
+        title: "Send Failed",
+        description: error.message || "Failed to send test email.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[95vh] w-[95vw] p-0">
@@ -335,6 +394,16 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
               <div className="flex gap-3 pt-4">
                 <Button 
                   variant="outline"
+                  onClick={() => setShowTestEmail(!showTestEmail)}
+                  disabled={isLoading || isSaving || isSendingTest}
+                  className="flex-shrink-0"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  {showTestEmail ? 'Cancel Test' : 'Send Test'}
+                </Button>
+                
+                <Button
+                  variant="outline"
                   onClick={(e) => {
                     e.preventDefault();
                     console.log('🔄 Save Draft button clicked');
@@ -379,6 +448,43 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                   )}
                 </Button>
               </div>
+
+              {/* Test Email Section */}
+              {showTestEmail && (
+                <div className="p-4 border border-border rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-sm">Send Test Preview</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder="Enter email address for test..."
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      disabled={isSendingTest}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={handleSendTestEmail}
+                      disabled={!testEmail || isSendingTest}
+                      size="sm"
+                    >
+                      {isSendingTest ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        'Send Test'
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    This will send a preview of your newsletter to the specified email address.
+                  </p>
+                </div>
+              )}
             </div>
           </Form>
         </div>
