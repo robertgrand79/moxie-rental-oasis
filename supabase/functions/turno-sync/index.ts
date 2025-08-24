@@ -758,8 +758,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
     
+    
     if (req.method === 'POST') {
-      let requestBody = {};
+      let requestBody: any = {};
       
       // Only try to parse JSON if there's content in the request
       const contentLength = req.headers.get('content-length');
@@ -783,8 +784,11 @@ const handler = async (req: Request): Promise<Response> => {
         }
       }
       
+      // Handle actions based on request body action parameter
+      const { action } = requestBody;
+      
       // Sync specific work order status to Turno
-      if (url.pathname.endsWith('/sync-status')) {
+      if (action === 'sync-status') {
         const { workOrderId } = requestBody;
         if (!workOrderId) {
           return new Response(JSON.stringify({ success: false, error: 'workOrderId required' }), {
@@ -801,7 +805,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       // Sync all recent problems from Turno
-      if (url.pathname.endsWith('/sync-problems')) {
+      if (action === 'sync-problems') {
         const { createWorkOrders = false } = requestBody;
         const result = await syncProblemsFromTurno(supabaseClient, turnoApiToken, turnoApiSecret, turnoPartnerId, createWorkOrders);
         return new Response(JSON.stringify(result), {
@@ -811,7 +815,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       // Bulk import Turno problems as work orders
-      if (url.pathname.endsWith('/import-problems')) {
+      if (action === 'import-problems') {
         const result = await syncProblemsFromTurno(supabaseClient, turnoApiToken, turnoApiSecret, turnoPartnerId, true);
         return new Response(JSON.stringify(result), {
           status: 200,
@@ -820,7 +824,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       // Full bidirectional sync
-      if (url.pathname.endsWith('/sync-full')) {
+      if (action === 'sync-full') {
         const problemsResult = await syncProblemsFromTurno(supabaseClient, turnoApiToken, turnoApiSecret, turnoPartnerId, false);
         
         // Sync pending work orders to Turno
@@ -849,6 +853,8 @@ const handler = async (req: Request): Promise<Response> => {
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
       }
+      
+      // If no valid action provided, fall through to default behavior
     }
 
     // Default: API connectivity test (existing functionality)

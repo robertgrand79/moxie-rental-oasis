@@ -30,8 +30,8 @@ export const useTurnoSync = () => {
     try {
       setSyncStatus(prev => ({ ...prev, isLoading: true }));
 
-      const { data, error } = await supabase.functions.invoke('turno-sync/sync-status', {
-        body: { workOrderId }
+      const { data, error } = await supabase.functions.invoke('turno-sync', {
+        body: { action: 'sync-status', workOrderId }
       });
 
       if (error) throw error;
@@ -60,8 +60,8 @@ export const useTurnoSync = () => {
     try {
       setSyncStatus(prev => ({ ...prev, isLoading: true }));
 
-      const { data, error } = await supabase.functions.invoke('turno-sync/sync-problems', {
-        body: { createWorkOrders }
+      const { data, error } = await supabase.functions.invoke('turno-sync', {
+        body: { action: 'sync-problems', createWorkOrders }
       });
 
       if (error) throw error;
@@ -102,7 +102,9 @@ export const useTurnoSync = () => {
     try {
       setSyncStatus(prev => ({ ...prev, isLoading: true }));
 
-      const { data, error } = await supabase.functions.invoke('turno-sync/import-problems');
+      const { data, error } = await supabase.functions.invoke('turno-sync', {
+        body: { action: 'import-problems' }
+      });
 
       if (error) throw error;
 
@@ -137,7 +139,9 @@ export const useTurnoSync = () => {
     try {
       setSyncStatus(prev => ({ ...prev, isLoading: true }));
 
-      const { data, error } = await supabase.functions.invoke('turno-sync/sync-full');
+      const { data, error } = await supabase.functions.invoke('turno-sync', {
+        body: { action: 'sync-full' }
+      });
 
       if (error) throw error;
 
