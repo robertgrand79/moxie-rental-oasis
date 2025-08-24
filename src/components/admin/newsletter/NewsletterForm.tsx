@@ -18,6 +18,7 @@ import { BlogPost } from '@/types/blogPost';
 import { EugeneEvent } from '@/hooks/useEugeneEvents';
 import { Place } from '@/hooks/usePlaces';
 import { HeaderConfig, FooterConfig, NewsletterFormData } from './types';
+import { useGlobalNewsletterSettings } from '@/hooks/useGlobalNewsletterSettings';
 
 interface Newsletter {
   id: string;
@@ -50,43 +51,6 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   const [coverImageUrl, setCoverImageUrl] = useState(newsletter?.cover_image_url || '');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   
-  // Default header and footer configurations
-  const [headerConfig, setHeaderConfig] = useState<HeaderConfig>(() => 
-    newsletter?.header_config || {
-      title: 'Moxie Vacation Rentals',
-      subtitle: 'Your Home Base for Living Like a Local in Eugene',
-      background_gradient: {
-        from: 'hsl(220, 8%, 85%)',
-        to: 'hsl(220, 3%, 97%)'
-      },
-      text_color: 'hsl(222.2, 47.4%, 11.2%)',
-      logo_url: ''
-    }
-  );
-  
-  const [footerConfig, setFooterConfig] = useState<FooterConfig>(() =>
-    newsletter?.footer_config || {
-      company_name: 'Moxie Vacation Rentals',
-      tagline: 'Your Home Base for Living Like a Local in Eugene',
-      contact_info: {
-        email: 'contact@moxievacationrentals.com',
-        location: 'Eugene, Oregon'
-      },
-      links: [
-        { text: 'Visit Our Website', url: '#' },
-        { text: 'View Properties', url: '#' }
-      ],
-      legal_links: [
-        { text: 'Unsubscribe', url: '#' },
-        { text: 'Update Preferences', url: '#' }
-      ],
-      social_media: {
-        facebook: '',
-        instagram: '',
-        twitter: ''
-      }
-    }
-  );
   
   const [selectedContent, setSelectedContent] = useState<SelectedContent>(() => {
     if (newsletter?.linked_content) {
@@ -101,6 +65,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   });
   const { toast: showToast } = useToast();
   const { subscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
+  const { settings: globalSettings } = useGlobalNewsletterSettings();
   
   const form = useForm<NewsletterFormData>({
     defaultValues: {
@@ -171,8 +136,6 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
         content: content,
         cover_image_url: coverImageUrl || null,
         linked_content: JSON.parse(JSON.stringify(selectedContent)),
-        header_config: JSON.parse(JSON.stringify(headerConfig)),
-        footer_config: JSON.parse(JSON.stringify(footerConfig)),
         recipient_count: 0,
       };
 
@@ -232,8 +195,6 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
           content: content,
           coverImageUrl: coverImageUrl,
           linkedContent: selectedContent,
-          headerConfig: headerConfig,
-          footerConfig: footerConfig,
           campaignId: isEdit ? newsletter.id : undefined,
         }
       });
@@ -418,14 +379,15 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
               </div>
 
               <div className="space-y-2">
-                <FormLabel>Newsletter Editor</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Newsletter Content</FormLabel>
+                  <p className="text-xs text-muted-foreground">
+                    Header & footer configured in Settings tab
+                  </p>
+                </div>
                 <NewsletterEditorTabs
                   content={content}
                   onContentChange={setContent}
-                  headerConfig={headerConfig}
-                  onHeaderConfigChange={setHeaderConfig}
-                  footerConfig={footerConfig}
-                  onFooterConfigChange={setFooterConfig}
                 />
               </div>
 

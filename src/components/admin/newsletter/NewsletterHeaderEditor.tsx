@@ -20,13 +20,11 @@ interface HeaderConfig {
 
 interface NewsletterHeaderEditorProps {
   headerConfig: HeaderConfig;
-  onHeaderConfigChange: (config: HeaderConfig) => void;
+  onHeaderConfigChange: (config: HeaderConfig) => void | Promise<boolean>;
+  disabled?: boolean;
 }
 
-const NewsletterHeaderEditor = ({ 
-  headerConfig, 
-  onHeaderConfigChange 
-}: NewsletterHeaderEditorProps) => {
+const NewsletterHeaderEditor = ({ headerConfig, onHeaderConfigChange, disabled = false }: NewsletterHeaderEditorProps) => {
   
   const handleInputChange = (field: keyof HeaderConfig, value: any) => {
     onHeaderConfigChange({

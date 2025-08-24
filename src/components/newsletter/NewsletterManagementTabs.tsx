@@ -8,6 +8,7 @@ import NewsletterCampaignsTable from '@/components/admin/newsletter/NewsletterCa
 import NewsletterAnalyticsTab from '@/components/admin/newsletter/NewsletterAnalyticsTab';
 import HospitableSyncCard from '@/components/admin/newsletter/HospitableSyncCard';
 import NewsletterSMSCard from '../NewsletterSMSCard';
+import GlobalNewsletterSettings from '@/components/admin/newsletter/GlobalNewsletterSettings';
 import { useNewsletterCampaigns } from '@/hooks/useNewsletterCampaigns';
 import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 
@@ -99,27 +100,31 @@ const NewsletterManagementTabs = () => {
       <TabsContent value="settings" className="space-y-6">
         <div className="space-y-1">
           <h2 className="text-2xl font-semibold text-foreground">Newsletter Settings</h2>
-          <p className="text-muted-foreground">Configure integrations, SMS, and other newsletter settings</p>
+          <p className="text-muted-foreground">Configure branding, integrations, and other newsletter settings</p>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Guest Contact Integration</h3>
-              <p className="text-muted-foreground mb-4">
-                Automatically import guest contact information from your booking platforms.
-              </p>
-              <HospitableSyncCard />
-            </div>
-          </div>
+        <div className="space-y-6">
+          <GlobalNewsletterSettings />
           
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">SMS Notifications</h3>
-              <p className="text-muted-foreground mb-4">
-                Set up SMS notifications for your newsletter campaigns.
-              </p>
-              <NewsletterSMSCard />
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Guest Contact Integration</h3>
+                <p className="text-muted-foreground mb-4">
+                  Automatically import guest contact information from your booking platforms.
+                </p>
+                <HospitableSyncCard />
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">SMS Notifications</h3>
+                <p className="text-muted-foreground mb-4">
+                  Set up SMS notifications for your newsletter campaigns.
+                </p>
+                <NewsletterSMSCard />
+              </div>
             </div>
           </div>
         </div>

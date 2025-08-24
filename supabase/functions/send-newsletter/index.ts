@@ -8,10 +8,11 @@ const corsHeaders = {
 };
 
 interface NewsletterRequest {
-  blogPostId?: string;
   subject: string;
   content: string;
-  previewText?: string;
+  coverImageUrl?: string;
+  linkedContent?: any;
+  campaignId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -91,12 +92,14 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Invalid JSON in request body");
     }
 
-    const { blogPostId, subject, content, previewText }: NewsletterRequest = requestBody;
+    const { subject, content, coverImageUrl, linkedContent, campaignId }: NewsletterRequest = requestBody;
 
     console.log("📊 Newsletter data validation:");
     console.log("- Subject:", subject ? `"${subject}" (${subject.length} chars)` : "MISSING");
     console.log("- Content:", content ? `${content.length} characters` : "MISSING");
-    console.log("- BlogPostId:", blogPostId || "None");
+    console.log("- Cover Image:", coverImageUrl || "None");
+    console.log("- Linked Content:", linkedContent ? JSON.stringify(linkedContent) : "None");
+    console.log("- Campaign ID:", campaignId || "None");
 
     if (!subject || !content) {
       console.error("❌ Missing required fields - Subject:", !!subject, "Content:", !!content);
@@ -130,14 +133,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`📬 Found ${subscribers.length} active subscribers`);
 
-    // Fetch all email and contact settings from site_settings
+    // Fetch all email, contact, and newsletter settings from site_settings
     console.log("⚙️ Fetching site settings...");
     const { data: siteSettings, error: settingsError } = await supabaseAdmin
       .from("site_settings")
       .select("key, value")
       .in("key", [
         "emailFromAddress", "emailFromName", "emailReplyTo", 
-        "siteName", "contactEmail", "phone", "address", "socialMedia"
+        "siteName", "contactEmail", "phone", "address", "socialMedia",
+        "newsletter_header_config", "newsletter_footer_config"
       ]);
 
     if (settingsError) {
@@ -146,13 +150,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Convert settings array to object with proper parsing
     const settings = siteSettings?.reduce((acc, setting) => {
-      if (setting.key === 'socialMedia') {
+      if (setting.key === 'socialMedia' || setting.key === 'newsletter_header_config' || setting.key === 'newsletter_footer_config') {
         try {
           acc[setting.key] = typeof setting.value === 'string' 
             ? JSON.parse(setting.value) 
             : setting.value;
         } catch (parseError) {
-          console.warn(`Failed to parse socialMedia setting:`, parseError);
+          console.warn(`Failed to parse ${setting.key} setting:`, parseError);
           acc[setting.key] = setting.value;
         }
       } else {
@@ -162,6 +166,40 @@ const handler = async (req: Request): Promise<Response> => {
     }, {} as Record<string, any>) || {};
 
     console.log("📋 Site settings loaded:", Object.keys(settings));
+
+    // Get newsletter branding configurations
+    const headerConfig = settings.newsletter_header_config || {
+      title: 'Moxie Vacation Rentals',
+      subtitle: 'Your Home Base for Living Like a Local in Eugene',
+      background_gradient: {
+        from: 'hsl(220, 8%, 85%)',
+        to: 'hsl(220, 3%, 97%)'
+      },
+      text_color: 'hsl(222.2, 47.4%, 11.2%)',
+      logo_url: ''
+    };
+
+    const footerConfig = settings.newsletter_footer_config || {
+      company_name: 'Moxie Vacation Rentals',
+      tagline: 'Your Home Base for Living Like a Local in Eugene',
+      contact_info: {
+        email: 'contact@moxievacationrentals.com',
+        location: 'Eugene, Oregon'
+      },
+      links: [
+        { text: 'Visit Our Website', url: '#' },
+        { text: 'View Properties', url: '#' }
+      ],
+      legal_links: [
+        { text: 'Unsubscribe', url: '#' },
+        { text: 'Update Preferences', url: '#' }
+      ],
+      social_media: {
+        facebook: '',
+        instagram: '',
+        twitter: ''
+      }
+    };
 
     // Use configured settings with fallbacks
     const siteName = settings.siteName || "Moxie Vacation Rentals";
@@ -188,9 +226,10 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: campaign, error: campaignError } = await supabaseAdmin
       .from("newsletter_campaigns")
       .insert({
-        blog_post_id: blogPostId,
         subject,
         content,
+        cover_image_url: coverImageUrl,
+        linked_content: linkedContent,
         sent_at: new Date().toISOString(),
         recipient_count: subscribers.length,
       })
@@ -265,7 +304,7 @@ const handler = async (req: Request): Promise<Response> => {
                   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
               }
               .header { 
-                  background: linear-gradient(135deg, hsl(220, 8%, 85%) 0%, hsl(220, 3%, 97%) 100%);
+                  background: linear-gradient(135deg, ${headerConfig.background_gradient?.from || 'hsl(220, 8%, 85%)'} 0%, ${headerConfig.background_gradient?.to || 'hsl(220, 3%, 97%)'} 100%);
                   position: relative;
                   overflow: hidden;
                   padding: 40px 30px; 
@@ -372,8 +411,9 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div class="header">
                   <div class="header-content">
-                      <h1>${siteName}</h1>
-                      <p>Your Home Base for Living Like a Local in Eugene</p>
+                      ${headerConfig.logo_url ? `<img src="${headerConfig.logo_url}" alt="${headerConfig.title}" style="max-height: 50px; margin-bottom: 16px;" />` : ''}
+                      <h1 style="color: ${headerConfig.text_color};">${headerConfig.title}</h1>
+                      <p style="color: ${headerConfig.text_color}; opacity: 0.8;">${headerConfig.subtitle}</p>
                   </div>
               </div>
               
@@ -383,21 +423,18 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <div class="footer">
-                  <p><strong>${siteName}</strong></p>
-                  <p>Your Home Base for Living Like a Local in Eugene</p>
-                  <p>${address} | ${contactEmail}</p>
+                  <p><strong>${footerConfig.company_name}</strong></p>
+                  <p>${footerConfig.tagline}</p>
+                  <p>${footerConfig.contact_info?.location || address} | ${footerConfig.contact_info?.email || contactEmail}</p>
                   ${phone ? `<p>Phone: ${phone}</p>` : ''}
                   <div class="social-links">
-                      <a href="https://moxievacationrentals.com">Visit Our Website</a>
-                      <a href="https://moxievacationrentals.com">View Properties</a>
-                      ${socialMedia?.facebook ? `<a href="${socialMedia.facebook}">Facebook</a>` : ''}
-                      ${socialMedia?.instagram ? `<a href="${socialMedia.instagram}">Instagram</a>` : ''}
-                      ${socialMedia?.twitter ? `<a href="${socialMedia.twitter}">Twitter</a>` : ''}
-                      ${socialMedia?.googlePlaces ? `<a href="${socialMedia.googlePlaces}">Find Us</a>` : ''}
+                      ${footerConfig.links?.map(link => `<a href="${link.url}">${link.text}</a>`).join('') || ''}
+                      ${footerConfig.social_media?.facebook ? `<a href="${footerConfig.social_media.facebook}">Facebook</a>` : ''}
+                      ${footerConfig.social_media?.instagram ? `<a href="${footerConfig.social_media.instagram}">Instagram</a>` : ''}
+                      ${footerConfig.social_media?.twitter ? `<a href="${footerConfig.social_media.twitter}">Twitter</a>` : ''}
                   </div>
                   <p style="font-size: 12px;">
-                      <a href="{{unsubscribe_url}}">Unsubscribe</a> | 
-                      <a href="https://moxievacationrentals.com" style="margin-left: 8px;">Update Preferences</a>
+                      ${footerConfig.legal_links?.map(link => `<a href="${link.url === '#' ? '{{unsubscribe_url}}' : link.url}">${link.text}</a>`).join(' | ') || '<a href="{{unsubscribe_url}}">Unsubscribe</a>'}
                   </p>
               </div>
               

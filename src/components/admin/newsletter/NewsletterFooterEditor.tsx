@@ -29,13 +29,11 @@ interface FooterConfig {
 
 interface NewsletterFooterEditorProps {
   footerConfig: FooterConfig;
-  onFooterConfigChange: (config: FooterConfig) => void;
+  onFooterConfigChange: (config: FooterConfig) => void | Promise<boolean>;
+  disabled?: boolean;
 }
 
-const NewsletterFooterEditor = ({ 
-  footerConfig, 
-  onFooterConfigChange 
-}: NewsletterFooterEditorProps) => {
+const NewsletterFooterEditor = ({ footerConfig, onFooterConfigChange, disabled = false }: NewsletterFooterEditorProps) => {
   
   const handleInputChange = (field: keyof FooterConfig, value: any) => {
     onFooterConfigChange({
