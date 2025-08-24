@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePlaces, Place } from '@/hooks/usePlaces';
 import PlacesGrid from './PlacesGrid';
+import PlacesListView from './PlacesListView';
+import PlacesViewToggle from './PlacesViewToggle';
 import PlaceForm from './PlaceForm';
 
 const PlacesManager = () => {
@@ -12,6 +14,7 @@ const PlacesManager = () => {
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [view, setView] = useState<'grid' | 'list'>('grid');
 
   const categories = [
     { value: 'all', label: 'All Places' },
@@ -60,10 +63,13 @@ const PlacesManager = () => {
               Manage all your places including restaurants, attractions, activities, and more
             </p>
           </div>
-          <Button onClick={handleAddNew} className="flex items-center space-x-2">
-            <Plus className="h-4 w-4" />
-            <span>Add Place</span>
-          </Button>
+          <div className="flex items-center space-x-3">
+            <PlacesViewToggle view={view} onViewChange={setView} />
+            <Button onClick={handleAddNew} className="flex items-center space-x-2">
+              <Plus className="h-4 w-4" />
+              <span>Add Place</span>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -77,10 +83,11 @@ const PlacesManager = () => {
 
             {categories.map((category) => (
               <TabsContent key={category.value} value={category.value} className="mt-6">
-                <PlacesGrid 
-                  places={filteredPlaces} 
-                  onEdit={handleEdit}
-                />
+                {view === 'grid' ? (
+                  <PlacesGrid places={filteredPlaces} onEdit={handleEdit} />
+                ) : (
+                  <PlacesListView places={filteredPlaces} onEdit={handleEdit} />
+                )}
               </TabsContent>
             ))}
           </Tabs>
