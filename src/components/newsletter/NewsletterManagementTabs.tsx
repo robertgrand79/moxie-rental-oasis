@@ -5,6 +5,8 @@ import StreamlinedNewsletterEditor from './StreamlinedNewsletterEditor';
 import NewsletterSubscribersList from './NewsletterSubscribersList';
 import NewsletterStatsCards from '@/components/admin/newsletter/NewsletterStatsCards';
 import NewsletterCampaignsTable from '@/components/admin/newsletter/NewsletterCampaignsTable';
+import NewsletterOverview from '@/components/NewsletterOverview';
+import NewslettersGrid from '@/components/admin/newsletter/NewslettersGrid';
 import NewsletterAnalyticsTab from '@/components/admin/newsletter/NewsletterAnalyticsTab';
 import HospitableSyncCard from '@/components/admin/newsletter/HospitableSyncCard';
 import NewsletterSMSCard from '../NewsletterSMSCard';
@@ -57,7 +59,14 @@ const NewsletterManagementTabs = () => {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="create" className="space-y-0">
+      <TabsContent value="create" className="space-y-6">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-semibold text-foreground">Newsletter Overview</h2>
+          <p className="text-muted-foreground">Monitor your newsletter performance and create new campaigns</p>
+        </div>
+        
+        <NewsletterOverview subscriberCount={subscriberCount} />
+        
         <StreamlinedNewsletterEditor />
       </TabsContent>
 
@@ -81,11 +90,12 @@ const NewsletterManagementTabs = () => {
           subscriberCount={subscriberCount}
         />
 
-        <NewsletterCampaignsTable
-          campaigns={campaigns}
-          loading={campaignsLoading}
+        <NewslettersGrid
+          newsletters={campaigns}
           deleting={deleting}
+          onEdit={() => {}}
           onDelete={deleteCampaign}
+          onCreateNew={() => setActiveTab("create")}
         />
       </TabsContent>
 
