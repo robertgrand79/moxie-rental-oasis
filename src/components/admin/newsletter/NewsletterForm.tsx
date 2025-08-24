@@ -47,7 +47,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     defaultValues: {
       subject: newsletter?.subject || '',
       content: newsletter?.content || '',
-      blogPostId: newsletter?.blog_post_id || '',
+      blogPostId: newsletter?.blog_post_id || 'none',
     },
   });
 
@@ -61,7 +61,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     if (newsletter) {
       form.setValue('subject', newsletter.subject);
       form.setValue('content', newsletter.content);
-      form.setValue('blogPostId', newsletter.blog_post_id || '');
+      form.setValue('blogPostId', newsletter.blog_post_id || 'none');
       setContent(newsletter.content);
     }
   }, [newsletter, form]);
@@ -82,7 +82,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
       const newsletterData = {
         subject: data.subject,
         content: content,
-        blog_post_id: data.blogPostId || null,
+        blog_post_id: data.blogPostId === 'none' ? null : data.blogPostId,
         recipient_count: 0,
       };
 
@@ -140,7 +140,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
         body: {
           subject: data.subject,
           content: content,
-          blogPostId: data.blogPostId || undefined,
+          blogPostId: data.blogPostId === 'none' ? undefined : data.blogPostId,
           campaignId: isEdit ? newsletter.id : undefined,
         }
       });
@@ -228,7 +228,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
                         {publishedBlogPosts.map((post) => (
                           <SelectItem key={post.id} value={post.slug}>
                             {post.title}
