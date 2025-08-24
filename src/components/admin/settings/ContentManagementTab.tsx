@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, Camera, MapPin, Calendar } from 'lucide-react';
 import TestimonialsManager from '@/components/admin/TestimonialsManager';
 import PlacesManager from '@/components/admin/places/PlacesManager';
-import EugeneEventsManager from '@/components/admin/EugeneEventsManager';
+import EventsManager from '@/components/admin/events/EventsManager';
 
 const ContentManagementTab = () => {
   return (
@@ -42,7 +42,7 @@ const ContentManagementTab = () => {
           </TabsContent>
 
           <TabsContent value="events">
-            <EugeneEventsManager />
+            <EventsManager />
           </TabsContent>
         </Tabs>
       </EnhancedCardContent>

@@ -60,10 +60,10 @@ export const adminMenuItems = [
     title: 'Local Content',
     items: [
       {
-        title: 'Eugene Events',
+        title: 'Events',
         href: '/admin/events',
         icon: Calendar,
-        description: 'Manage local Eugene events'
+        description: 'Manage local events and activities'
       },
       {
         title: 'Places',

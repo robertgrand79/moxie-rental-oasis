@@ -1,36 +1,50 @@
 
-import React, { useEffect } from 'react';
-import { useEventsManager } from '@/hooks/useEventsManager';
-import { useEventsUrlParams } from '@/hooks/useEventsUrlParams';
-import EventsEditorLayout from './EventsEditorLayout';
+import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useEvents, Event } from '@/hooks/useEvents';
+import EventsGrid from './EventsGrid';
+import EventsListView from './EventsListView';
+import EventsViewToggle from './EventsViewToggle';
+import EventForm from './EventForm';
 
 const EventsManager = () => {
-  const {
-    events,
-    isLoading,
-    categories,
-    handleSubmit,
-    handleEdit,
-    handleDelete,
-    handleEnhanceItem,
-    handleAddNew,
-    getSuggestions,
-    enhancingId,
-    isEnhancing
-  } = useEventsManager();
+  const { events, isLoading } = useEvents();
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [view, setView] = useState<'grid' | 'list'>('grid');
 
-  useEventsUrlParams(handleAddNew);
+  const categories = [
+    { value: 'all', label: 'All Events' },
+    { value: 'entertainment', label: 'Entertainment' },
+    { value: 'outdoor', label: 'Outdoor' },
+    { value: 'dining', label: 'Dining' },
+    { value: 'culture', label: 'Culture' },
+    { value: 'sports', label: 'Sports' },
+    { value: 'community', label: 'Community' },
+  ];
 
-  // Listen for reset event from navigation
-  useEffect(() => {
-    const handleReset = () => {
-      // Reset to default state - this will cause useEventsManager to refresh
-      window.location.reload();
-    };
+  const filteredEvents = selectedCategory === 'all' 
+    ? events 
+    : events.filter(event => event.category === selectedCategory);
 
-    window.addEventListener('resetEventsManager', handleReset);
-    return () => window.removeEventListener('resetEventsManager', handleReset);
-  }, []);
+  const handleEdit = (event: Event) => {
+    setEditingEvent(event);
+    setIsFormOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setEditingEvent(null);
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingEvent(null);
+  };
 
   if (isLoading) {
     return (
@@ -41,18 +55,53 @@ const EventsManager = () => {
   }
 
   return (
-    <EventsEditorLayout
-      events={events}
-      categories={categories}
-      isLoading={isLoading}
-      onSubmit={handleSubmit}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      onEnhance={handleEnhanceItem}
-      isEnhancing={isEnhancing}
-      enhancingId={enhancingId}
-      getSuggestions={getSuggestions}
-    />
+    <div className="p-6 space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Events Management</CardTitle>
+            <p className="text-muted-foreground mt-1">
+              Manage all local events, festivals, and community activities
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <EventsViewToggle view={view} onViewChange={setView} />
+            <Button onClick={handleAddNew} className="flex items-center space-x-2">
+              <Plus className="h-4 w-4" />
+              <span>Add Event</span>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+            <TabsList className="grid w-full grid-cols-7">
+              {categories.map((category) => (
+                <TabsTrigger key={category.value} value={category.value}>
+                  {category.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {categories.map((category) => (
+              <TabsContent key={category.value} value={category.value} className="mt-6">
+                {view === 'grid' ? (
+                  <EventsGrid events={filteredEvents} onEdit={handleEdit} />
+                ) : (
+                  <EventsListView events={filteredEvents} onEdit={handleEdit} />
+                )}
+              </TabsContent>
+            ))}
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {isFormOpen && (
+        <EventForm
+          event={editingEvent}
+          onClose={handleCloseForm}
+        />
+      )}
+    </div>
   );
 };
 
