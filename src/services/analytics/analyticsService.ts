@@ -164,8 +164,10 @@ class AnalyticsService {
   // Check if currently using demo data
   async isDemoMode(): Promise<boolean> {
     try {
+      // Force a fresh status check instead of using cached status
+      await this.initializeGA();
       const status = this.googleAnalytics.getInitializationStatus();
-      const isDemo = !status.gaInitialized || !status.hasGtag;
+      const isDemo = !status.gaInitialized || !status.hasGtag || !status.gaId;
       console.log('📊 Analytics Service: Demo mode check:', { isDemo, status });
       return isDemo;
     } catch (error) {
