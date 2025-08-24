@@ -173,14 +173,9 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[95vh] w-[95vw] p-0">
         <DialogHeader className="p-6 pb-0">
-          <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">
               {isEdit ? 'Edit Newsletter' : 'Create Newsletter'}
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
         </DialogHeader>
         
         <div className="p-6 pt-0 overflow-y-auto max-h-[85vh]">
