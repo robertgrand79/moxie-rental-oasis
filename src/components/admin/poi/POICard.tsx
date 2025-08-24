@@ -58,29 +58,31 @@ const POICard = ({
       }`}>
         <CollapsibleTrigger asChild>
           <div className="p-4 cursor-pointer hover:bg-muted/5 transition-colors">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-semibold text-lg">{poi.name}</h4>
-                  <div className="flex gap-1">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                  <h4 className="font-semibold text-lg truncate">{poi.name}</h4>
+                  <div className="flex flex-wrap gap-1 flex-shrink-0">
                     {poi.is_featured && (
-                      <Badge className="bg-blue-600 text-white">Featured</Badge>
+                      <Badge className="bg-blue-600 text-white text-xs">Featured</Badge>
                     )}
-                    <Badge variant={poi.status === 'published' ? 'default' : 'secondary'}>
+                    <Badge variant={poi.status === 'published' ? 'default' : 'secondary'} className="text-xs">
                       {poi.status}
                     </Badge>
                     {!poi.is_active && (
-                      <Badge variant="outline">Inactive</Badge>
+                      <Badge variant="outline" className="text-xs">Inactive</Badge>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center text-sm text-muted-foreground mb-2">
-                  <Badge variant="secondary" className="mr-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-muted-foreground mb-2">
+                  <Badge variant="secondary" className="text-xs w-fit">
                     {poi.category}
                   </Badge>
-                  <MapPin className="h-4 w-4 mr-1" />
-                  <span>{poi.address}</span>
+                  <div className="flex items-center min-w-0">
+                    <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                    <span className="truncate">{poi.address}</span>
+                  </div>
                 </div>
 
                 {poi.description && (
@@ -99,7 +101,7 @@ const POICard = ({
                 )}
               </div>
 
-              <div className="flex items-center space-x-2 ml-4">
+              <div className="flex items-center space-x-2 sm:ml-4 flex-shrink-0">
                 <EnhancedButton
                   size="sm"
                   variant="outline"

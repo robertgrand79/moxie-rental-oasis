@@ -226,7 +226,7 @@ const POIFormFields = ({
         </Select>
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         <div className="flex items-center space-x-2">
           <Switch
             id="is_featured"
@@ -252,6 +252,7 @@ const POIFormFields = ({
             type="number"
             value={formData.display_order}
             onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+            className="w-full"
           />
         </div>
       </div>
