@@ -77,6 +77,15 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   });
 
   const currentSubject = form.watch('subject');
+  const currentContent = form.watch('content');
+  
+  // Update form content field when local content state changes
+  useEffect(() => {
+    if (content !== currentContent) {
+      form.setValue('content', content);
+    }
+  }, [content, currentContent, form]);
+  
   const isFormValid = currentSubject?.trim() && content?.trim();
   const canSend = isFormValid && subscriberCount && subscriberCount > 0;
   const isEdit = !!newsletter;
