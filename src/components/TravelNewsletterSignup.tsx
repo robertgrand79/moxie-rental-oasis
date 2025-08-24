@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import EnhancedNewsletterForm from './newsletter/EnhancedNewsletterForm';
+import StreamlinedNewsletterForm from './newsletter/StreamlinedNewsletterForm';
 import NewsletterSuccess from './newsletter/NewsletterSuccess';
 import { NewsletterFormData } from './newsletter/types';
 
@@ -59,7 +59,7 @@ const TravelNewsletterSignup = () => {
     return <NewsletterSuccess userName={subscribedUserName} />;
   }
 
-  return <EnhancedNewsletterForm onSubmit={handleSubmit} isLoading={isLoading} />;
+  return <StreamlinedNewsletterForm onSubmit={handleSubmit} isLoading={isLoading} />;
 };
 
 export default TravelNewsletterSignup;
