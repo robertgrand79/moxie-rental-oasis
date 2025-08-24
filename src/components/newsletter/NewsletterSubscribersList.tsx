@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import {
   Users, 
   Search, 
   Download, 
+  Upload,
   Mail, 
   MessageSquare,
   Calendar,
@@ -43,6 +44,8 @@ const NewsletterSubscribersList = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSubscriber, setEditingSubscriber] = useState<EnhancedSubscriber | null>(null);
   const [deletingSubscriber, setDeletingSubscriber] = useState<EnhancedSubscriber | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const { 
@@ -83,6 +86,102 @@ const NewsletterSubscribersList = () => {
 
     return matchesSearch && matchesActiveFilter && matchesChannelFilter;
   }) || [];
+
+  // Import functionality
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      toast({
+        title: "Invalid file format",
+        description: "Please select a CSV file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const text = await file.text();
+      const lines = text.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      
+      // Expected headers: email, name, phone (optional)
+      const emailIndex = headers.findIndex(h => h.includes('email'));
+      const nameIndex = headers.findIndex(h => h.includes('name'));
+      const phoneIndex = headers.findIndex(h => h.includes('phone'));
+      
+      if (emailIndex === -1) {
+        throw new Error('CSV must contain an email column');
+      }
+
+      const importPromises = [];
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+        const email = values[emailIndex]?.trim();
+        const name = values[nameIndex]?.trim() || email.split('@')[0];
+        const phone = phoneIndex >= 0 ? values[phoneIndex]?.trim() : '';
+        
+        if (!email || !email.includes('@')) {
+          errorCount++;
+          continue;
+        }
+
+        const subscriberData = {
+          email,
+          name,
+          phone: phone || '',
+          emailOptIn: true,
+          smsOptIn: !!phone,
+          communicationPreferences: {
+            frequency: 'weekly' as const,
+            preferredTime: 'morning' as const
+          },
+          contactSource: 'csv_import' as const
+        };
+
+        importPromises.push(
+          addSubscriber(subscriberData).then(() => {
+            successCount++;
+          }).catch(() => {
+            errorCount++;
+          })
+        );
+      }
+
+      await Promise.allSettled(importPromises);
+      
+      toast({
+        title: "Import completed",
+        description: `Successfully imported ${successCount} subscribers. ${errorCount > 0 ? `${errorCount} errors.` : ''}`,
+      });
+
+      refetch();
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: "Import failed",
+        description: error instanceof Error ? error.message : "Please check your CSV format.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   const handleExportSubscribers = () => {
     if (!subscribers || subscribers.length === 0) {
@@ -166,11 +265,27 @@ const NewsletterSubscribersList = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 Add Contact
               </Button>
+              <Button 
+                onClick={handleImportClick} 
+                variant="outline" 
+                size="sm"
+                disabled={isImporting}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {isImporting ? 'Importing...' : 'Import CSV'}
+              </Button>
               <Button onClick={handleExportSubscribers} variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
               </Button>
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFileImport}
+              className="hidden"
+            />
           </div>
         </CardHeader>
         <CardContent>
