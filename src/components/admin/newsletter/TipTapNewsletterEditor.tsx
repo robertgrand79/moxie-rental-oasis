@@ -14,7 +14,6 @@ import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
-import History from '@tiptap/extension-history';
 import Youtube from '@tiptap/extension-youtube';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,9 +73,7 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
         heading: {
           levels: [1, 2, 3, 4],
         },
-        history: false, // We'll use the History extension instead
       }),
-      History,
       Underline,
       Table.configure({
         resizable: true,
