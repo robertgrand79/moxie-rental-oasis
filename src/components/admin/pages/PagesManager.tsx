@@ -76,7 +76,7 @@ const PagesManager = () => {
               <PagesViewToggle view={view} onViewChange={setView} />
               <Button 
                 onClick={handleAddNew}
-                className="bg-gray-900 hover:bg-gray-800 text-white"
+                className="bg-gray-200 hover:bg-gray-300 text-gray-900 border-0"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Page
