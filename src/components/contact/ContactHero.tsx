@@ -63,15 +63,7 @@ const ContactHero = () => {
           </p>
           
           {/* Quick Contact Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-background/10 backdrop-blur-sm rounded-lg p-6 text-center">
-              <div className="bg-background/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
-                <MapPin className="h-6 w-6 text-icon-blue" />
-              </div>
-              <h3 className="font-semibold mb-2">Visit Us</h3>
-              <p className="text-sm text-muted-foreground">{currentSettings.address}</p>
-            </div>
-            
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
             <div className="bg-background/10 backdrop-blur-sm rounded-lg p-6 text-center">
               <div className="bg-background/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
                 <Phone className="h-6 w-6 text-icon-emerald" />
