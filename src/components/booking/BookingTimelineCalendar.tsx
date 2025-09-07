@@ -144,13 +144,15 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
   }, [allReservations, availabilityBlocks]);
 
   const getBookingForPropertyAndDate = (propertyId: string, date: Date) => {
-    return bookingBlocks.find(booking => 
-      booking.propertyId === propertyId &&
-      isWithinInterval(date, {
-        start: parseISO(booking.checkIn),
-        end: parseISO(booking.checkOut)
-      })
-    );
+    return bookingBlocks.find(booking => {
+      if (booking.propertyId !== propertyId) return false;
+      
+      const checkInDate = parseISO(booking.checkIn);
+      const checkOutDate = parseISO(booking.checkOut);
+      
+      // Check if the date falls within the booking range (inclusive of check-in, exclusive of check-out)
+      return date >= checkInDate && date < checkOutDate;
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -199,7 +201,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     }
 
     const isCheckInDay = isSameDay(day.date, parseISO(booking.checkIn));
-    const isCheckOutDay = isSameDay(day.date, parseISO(booking.checkOut));
+    const isCheckOutDay = isSameDay(day.date, addDays(parseISO(booking.checkOut), -1)); // Show until the day before checkout
     
     return (
       <Popover>
