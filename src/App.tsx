@@ -41,6 +41,9 @@ import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminWorkOrders from './pages/admin/AdminWorkOrders';
 import AdminContractors from './pages/admin/AdminContractors';
 import AdminUnifiedAnalytics from './pages/admin/AdminUnifiedAnalytics';
+import HostAnalyticsPage from '@/pages/admin/HostAnalyticsPage';
+import HostBookingsPage from '@/pages/admin/HostBookingsPage';
+import HostCommunicationPage from '@/pages/admin/HostCommunicationPage';
 
 import AdminProfile from './pages/AdminProfile';
 import PublicLayout from './components/layouts/PublicLayout';
@@ -106,6 +109,9 @@ function App() {
                   <Route path="turno-problems" element={<AdminTurnoProblems />} />
                   <Route path="analytics" element={<AdminUnifiedAnalytics />} />
                   <Route path="system-administration" element={<AdminSystemAdministration />} />
+                  <Route path="host/analytics" element={<HostAnalyticsPage />} />
+                  <Route path="host/bookings" element={<HostBookingsPage />} />
+                  <Route path="host/communication" element={<HostCommunicationPage />} />
                   <Route path="profile" element={<AdminProfile />} />
                 </Route>
 

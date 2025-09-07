@@ -80,6 +80,29 @@ export const adminMenuItems = [
     ]
   },
   {
+    title: 'Host Management',
+    items: [
+      {
+        title: 'Property Analytics',
+        href: '/admin/host/analytics',
+        icon: TrendingUp,
+        description: 'Revenue tracking, occupancy rates, and performance metrics'
+      },
+      {
+        title: 'Booking Management',
+        href: '/admin/host/bookings',
+        icon: Calendar,
+        description: 'Manage reservations, cleaning coordination, and work orders'
+      },
+      {
+        title: 'Guest Communication',
+        href: '/admin/host/communication',
+        icon: Mail,
+        description: 'Send messages and manage guest correspondence'
+      }
+    ]
+  },
+  {
     title: 'Property & Booking',
     items: [
       {
