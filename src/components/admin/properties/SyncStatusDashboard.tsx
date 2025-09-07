@@ -21,13 +21,13 @@ const SyncStatusDashboard = ({ property }: SyncStatusDashboardProps) => {
   };
 
   const activeReservations = reservations?.filter(r => 
-    ['confirmed', 'active'].includes(r.status)
+    ['confirmed', 'active'].includes(r.booking_status)
   ) || [];
 
   const upcomingReservations = reservations?.filter(r => {
     const checkIn = new Date(r.check_in_date);
     const now = new Date();
-    return checkIn > now && r.status === 'confirmed';
+    return checkIn > now && r.booking_status === 'confirmed';
   }) || [];
 
   const currentPricing = pricing?.find(p => 
@@ -79,7 +79,7 @@ const SyncStatusDashboard = ({ property }: SyncStatusDashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {activeReservations.reduce((sum, r) => sum + (r.total_guests || 1), 0)}
+              {activeReservations.reduce((sum, r) => sum + (r.guest_count || 1), 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               Current occupancy
@@ -166,7 +166,7 @@ const SyncStatusDashboard = ({ property }: SyncStatusDashboardProps) => {
                     </p>
                   </div>
                   <Badge variant="outline">
-                    {reservation.status}
+                    {reservation.booking_status}
                   </Badge>
                 </div>
               )) || (

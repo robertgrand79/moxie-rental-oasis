@@ -93,12 +93,12 @@ const ReservationManagement = ({ property }: ReservationManagementProps) => {
                     <div>
                       <h4 className="font-medium">{reservation.guest_name}</h4>
                       <p className="text-sm text-muted-foreground">
-                        Confirmation: {reservation.confirmation_code}
+                        Confirmation: {reservation.id.slice(-8).toUpperCase()}
                       </p>
                     </div>
                   </div>
-                  <Badge variant={getStatusBadgeVariant(reservation.status)}>
-                    {reservation.status}
+                  <Badge variant={getStatusBadgeVariant(reservation.booking_status)}>
+                    {reservation.booking_status}
                   </Badge>
                 </div>
 
@@ -123,7 +123,7 @@ const ReservationManagement = ({ property }: ReservationManagementProps) => {
                     <User className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="font-medium">Guests</p>
-                      <p>{reservation.total_guests || 1}</p>
+                      <p>{reservation.guest_count || 1}</p>
                     </div>
                   </div>
 
@@ -154,7 +154,7 @@ const ReservationManagement = ({ property }: ReservationManagementProps) => {
                 </div>
 
                 <div className="flex gap-2 pt-3 border-t">
-                  {reservation.status === 'pending' && (
+                  {reservation.booking_status === 'pending' && (
                     <>
                       <Button
                         size="sm"
@@ -174,7 +174,7 @@ const ReservationManagement = ({ property }: ReservationManagementProps) => {
                     </>
                   )}
                   
-                  {reservation.status === 'confirmed' && (
+                  {reservation.booking_status === 'confirmed' && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -185,7 +185,7 @@ const ReservationManagement = ({ property }: ReservationManagementProps) => {
                     </Button>
                   )}
                   
-                  {reservation.status === 'active' && (
+                  {reservation.booking_status === 'active' && (
                     <Button
                       size="sm"
                       variant="outline"

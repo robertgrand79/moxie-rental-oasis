@@ -47,6 +47,7 @@ import HostCommunicationPage from '@/pages/admin/HostCommunicationPage';
 import GuestPortalPage from '@/pages/guest/GuestPortalPage';
 import CheckinPage from '@/pages/guest/CheckinPage';
 import GuidebookPage from '@/pages/guest/GuidebookPage';
+import BookingTimelinePage from '@/pages/admin/BookingTimelinePage';
 
 import AdminProfile from './pages/AdminProfile';
 import PublicLayout from './components/layouts/PublicLayout';
@@ -117,6 +118,7 @@ function App() {
                   <Route path="system-administration" element={<AdminSystemAdministration />} />
                   <Route path="host/analytics" element={<HostAnalyticsPage />} />
                   <Route path="host/bookings" element={<HostBookingsPage />} />
+                  <Route path="calendar" element={<BookingTimelinePage />} />
                   <Route path="host/communication" element={<HostCommunicationPage />} />
                   <Route path="profile" element={<AdminProfile />} />
                 </Route>

@@ -2,19 +2,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DynamicPricing, AvailabilityBlock, ExternalCalendar } from '@/types/booking';
 
-// Reservations
+// Reservations - Updated to use property_reservations table
 export const useReservations = (propertyId?: string, status?: string) => {
   return useQuery({
-    queryKey: ['reservations', propertyId, status],
+    queryKey: ['property-reservations', propertyId, status],
     queryFn: async () => {
-      let query = supabase.from('reservations').select('*');
+      let query = supabase.from('property_reservations').select('*');
       
       if (propertyId) {
         query = query.eq('property_id', propertyId);
       }
       
       if (status) {
-        query = query.eq('status', status);
+        query = query.eq('booking_status', status);
       }
       
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -31,7 +31,7 @@ export const useCreateReservation = () => {
   return useMutation({
     mutationFn: async (reservation: any) => {
       const { data, error } = await supabase
-        .from('reservations')
+        .from('property_reservations')
         .insert(reservation)
         .select()
         .single();
@@ -40,7 +40,7 @@ export const useCreateReservation = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      queryClient.invalidateQueries({ queryKey: ['property-reservations'] });
     }
   });
 };
@@ -51,7 +51,7 @@ export const useUpdateReservation = () => {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
       const { data, error } = await supabase
-        .from('reservations')
+        .from('property_reservations')
         .update(updates)
         .eq('id', id)
         .select()
@@ -61,7 +61,7 @@ export const useUpdateReservation = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      queryClient.invalidateQueries({ queryKey: ['property-reservations'] });
     }
   });
 };

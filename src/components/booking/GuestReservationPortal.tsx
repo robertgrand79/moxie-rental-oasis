@@ -31,7 +31,7 @@ const GuestReservationPortal = ({ onReservationFound }: GuestReservationPortalPr
     setTimeout(() => {
       const reservation = allReservations?.find(r => {
         if (searchType === 'confirmation') {
-          return r.confirmation_code.toLowerCase() === searchQuery.toLowerCase();
+          return r.id.slice(-8).toUpperCase() === searchQuery.toUpperCase();
         } else {
           return r.guest_email.toLowerCase() === searchQuery.toLowerCase();
         }
