@@ -116,6 +116,66 @@ export type Database = {
         }
         Relationships: []
       }
+      availability_blocks: {
+        Row: {
+          block_type: string
+          created_at: string
+          end_date: string
+          external_booking_id: string | null
+          guest_count: number | null
+          id: string
+          notes: string | null
+          property_id: string
+          source_platform: string | null
+          start_date: string
+          sync_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          block_type: string
+          created_at?: string
+          end_date: string
+          external_booking_id?: string | null
+          guest_count?: number | null
+          id?: string
+          notes?: string | null
+          property_id: string
+          source_platform?: string | null
+          start_date: string
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          block_type?: string
+          created_at?: string
+          end_date?: string
+          external_booking_id?: string | null
+          guest_count?: number | null
+          id?: string
+          notes?: string | null
+          property_id?: string
+          source_platform?: string | null
+          start_date?: string
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_blocks_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_blocks_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           activity_type: string | null
@@ -582,6 +642,69 @@ export type Database = {
         }
         Relationships: []
       }
+      dynamic_pricing: {
+        Row: {
+          base_price: number
+          created_at: string
+          date: string
+          final_price: number
+          id: string
+          manual_override_price: number | null
+          market_demand: string | null
+          occupancy_rate: number | null
+          pricelabs_price: number | null
+          pricing_source: string
+          property_id: string
+          special_events: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          base_price: number
+          created_at?: string
+          date: string
+          final_price: number
+          id?: string
+          manual_override_price?: number | null
+          market_demand?: string | null
+          occupancy_rate?: number | null
+          pricelabs_price?: number | null
+          pricing_source?: string
+          property_id: string
+          special_events?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          date?: string
+          final_price?: number
+          id?: string
+          manual_override_price?: number | null
+          market_demand?: string | null
+          occupancy_rate?: number | null
+          pricelabs_price?: number | null
+          pricing_source?: string
+          property_id?: string
+          special_events?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dynamic_pricing_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dynamic_pricing_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eugene_events: {
         Row: {
           category: string | null
@@ -661,6 +784,66 @@ export type Database = {
             columns: ["place_id"]
             isOneToOne: false
             referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_calendars: {
+        Row: {
+          api_credentials: Json | null
+          calendar_url: string | null
+          created_at: string
+          external_property_id: string
+          id: string
+          last_sync_at: string | null
+          platform: string
+          property_id: string
+          sync_enabled: boolean
+          sync_errors: string[] | null
+          sync_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_credentials?: Json | null
+          calendar_url?: string | null
+          created_at?: string
+          external_property_id: string
+          id?: string
+          last_sync_at?: string | null
+          platform: string
+          property_id: string
+          sync_enabled?: boolean
+          sync_errors?: string[] | null
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_credentials?: Json | null
+          calendar_url?: string | null
+          created_at?: string
+          external_property_id?: string
+          id?: string
+          last_sync_at?: string | null
+          platform?: string
+          property_id?: string
+          sync_enabled?: boolean
+          sync_errors?: string[] | null
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_calendars_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_calendars_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -1648,6 +1831,63 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_rules: {
+        Row: {
+          adjustment_type: string
+          adjustment_value: number
+          conditions: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          priority: number | null
+          property_id: string
+          rule_name: string
+          rule_type: string
+          updated_at: string
+        }
+        Insert: {
+          adjustment_type: string
+          adjustment_value: number
+          conditions: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          priority?: number | null
+          property_id: string
+          rule_name: string
+          rule_type: string
+          updated_at?: string
+        }
+        Update: {
+          adjustment_type?: string
+          adjustment_value?: number
+          conditions?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          priority?: number | null
+          property_id?: string
+          rule_name?: string
+          rule_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_rules_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_rules_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1893,41 +2133,86 @@ export type Database = {
       }
       reservations: {
         Row: {
+          base_price: number | null
+          cancellation_policy: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
           check_in_date: string
           check_out_date: string
+          cleaning_fee: number | null
           confirmation_code: string
           created_at: string
           created_by: string
+          external_booking_id: string | null
+          external_platform: string | null
+          guest_email: string | null
+          guest_name: string | null
+          guest_phone: string | null
           id: string
+          payment_status: string | null
           property_id: string
+          service_fee: number | null
           special_instructions: string | null
           status: string
+          stripe_payment_intent_id: string | null
+          taxes: number | null
+          total_amount: number | null
           total_guests: number
           updated_at: string
         }
         Insert: {
+          base_price?: number | null
+          cancellation_policy?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           check_in_date: string
           check_out_date: string
+          cleaning_fee?: number | null
           confirmation_code: string
           created_at?: string
           created_by: string
+          external_booking_id?: string | null
+          external_platform?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
+          payment_status?: string | null
           property_id: string
+          service_fee?: number | null
           special_instructions?: string | null
           status?: string
+          stripe_payment_intent_id?: string | null
+          taxes?: number | null
+          total_amount?: number | null
           total_guests?: number
           updated_at?: string
         }
         Update: {
+          base_price?: number | null
+          cancellation_policy?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           check_in_date?: string
           check_out_date?: string
+          cleaning_fee?: number | null
           confirmation_code?: string
           created_at?: string
           created_by?: string
+          external_booking_id?: string | null
+          external_platform?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
+          payment_status?: string | null
           property_id?: string
+          service_fee?: number | null
           special_instructions?: string | null
           status?: string
+          stripe_payment_intent_id?: string | null
+          taxes?: number | null
+          total_amount?: number | null
           total_guests?: number
           updated_at?: string
         }
@@ -2177,6 +2462,60 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      sync_logs: {
+        Row: {
+          created_at: string
+          data_synced: Json | null
+          error_details: Json | null
+          execution_time_ms: number | null
+          id: string
+          message: string | null
+          platform: string
+          property_id: string | null
+          status: string
+          sync_type: string
+        }
+        Insert: {
+          created_at?: string
+          data_synced?: Json | null
+          error_details?: Json | null
+          execution_time_ms?: number | null
+          id?: string
+          message?: string | null
+          platform: string
+          property_id?: string | null
+          status: string
+          sync_type: string
+        }
+        Update: {
+          created_at?: string
+          data_synced?: Json | null
+          error_details?: Json | null
+          execution_time_ms?: number | null
+          id?: string
+          message?: string | null
+          platform?: string
+          property_id?: string | null
+          status?: string
+          sync_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_logs_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_logs_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sync_metadata: {
         Row: {
