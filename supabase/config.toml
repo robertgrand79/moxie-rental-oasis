@@ -56,10 +56,10 @@ verify_jwt = false
 [functions.turno-sync-properties]
 verify_jwt = false
 
-[functions.turno-sync-test]
+[functions.pricelabs-sync]
 verify_jwt = false
 
-[functions.acknowledge-work-order]
+[functions.booking-webhook]
 verify_jwt = false
 
 
