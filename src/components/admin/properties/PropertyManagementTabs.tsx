@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Property } from '@/types/property';
-import { Building, Calendar, DollarSign, Settings } from 'lucide-react';
+import { Building, Calendar, MapPin } from 'lucide-react';
 import BookingIntegrationManager from './BookingIntegrationManager';
 import CalendarSyncManager from './CalendarSyncManager';
 
@@ -13,29 +14,45 @@ const PropertyManagementTabs = ({ property }: PropertyManagementTabsProps) => {
   const [activeTab, setActiveTab] = useState('details');
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="details" className="flex items-center gap-2">
-          <Building className="h-4 w-4" />
-          Property Details
-        </TabsTrigger>
-        <TabsTrigger value="booking" className="flex items-center gap-2">
-          <Calendar className="h-4 w-4" />
-          Booking Management
-        </TabsTrigger>
-      </TabsList>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Building className="h-5 w-5" />
+          {property.title}
+        </CardTitle>
+        {property.location && (
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4" />
+            {property.location}
+          </div>
+        )}
+      </CardHeader>
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details" className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              Property Details
+            </TabsTrigger>
+            <TabsTrigger value="booking" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Booking Management
+            </TabsTrigger>
+          </TabsList>
 
-      <TabsContent value="details" className="space-y-6">
-        <div className="text-center py-8 text-muted-foreground">
-          Property details and editing interface will appear here
-        </div>
-      </TabsContent>
+          <TabsContent value="details" className="space-y-6 mt-6">
+            <div className="text-center py-8 text-muted-foreground">
+              Property details and editing interface will appear here
+            </div>
+          </TabsContent>
 
-      <TabsContent value="booking" className="space-y-6">
-        <CalendarSyncManager property={property} />
-        <BookingIntegrationManager property={property} />
-      </TabsContent>
-    </Tabs>
+          <TabsContent value="booking" className="space-y-6 mt-6">
+            <CalendarSyncManager property={property} />
+            <BookingIntegrationManager property={property} />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
 
