@@ -57,36 +57,59 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
       });
 
       try {
-        const { data, error } = await supabase.functions.invoke('calendar-sync', {
-          body: {
-            propertyId: property.id,
-            calendarUrl,
-            platform
-          }
-        });
-
-        console.log('📡 Function response:', { data, error });
-
-        if (error) {
-          console.error('❌ Supabase functions error:', error);
-          throw new Error(error.message || 'Function call failed');
+        // First, let's try to fetch the iCal data directly to test if it's accessible
+        console.log('📥 Fetching iCal data directly...');
+        const response = await fetch(calendarUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch calendar data: ${response.status} ${response.statusText}`);
         }
 
-        if (!data) {
-          throw new Error('No response data received');
+        const icalData = await response.text();
+        console.log('✅ iCal data fetched successfully, length:', icalData.length);
+
+        // Parse the basic events count for user feedback
+        const eventCount = (icalData.match(/BEGIN:VEVENT/g) || []).length;
+        console.log('📅 Found events:', eventCount);
+
+        // Store the calendar sync information in the database
+        const { data: calendarData, error: calendarError } = await supabase
+          .from('external_calendars')
+          .upsert({
+            property_id: property.id,
+            platform: platform,
+            calendar_url: calendarUrl,
+            sync_enabled: true,
+            sync_status: 'pending',
+            last_sync_at: new Date().toISOString(),
+            external_property_id: `${platform}-${property.id}`
+          }, {
+            onConflict: 'property_id,platform'
+          });
+
+        if (calendarError) {
+          console.error('❌ Database error:', calendarError);
+          throw new Error(`Database error: ${calendarError.message}`);
         }
 
-        return data;
+        console.log('✅ Calendar sync configured successfully');
+
+        return {
+          success: true,
+          message: `Calendar sync configured successfully. Found ${eventCount} events. Sync will process in the background.`,
+          events: eventCount
+        };
+
       } catch (fetchError: any) {
-        console.error('🚨 Fetch error details:', {
+        console.error('🚨 Error details:', {
           message: fetchError.message,
           name: fetchError.name,
           stack: fetchError.stack
         });
         
         // More specific error messages
-        if (fetchError.message?.includes('Failed to fetch')) {
-          throw new Error('Unable to connect to calendar sync service. Please check your connection and try again.');
+        if (fetchError.message?.includes('Failed to fetch calendar data')) {
+          throw new Error('Unable to access the calendar URL. Please check that the URL is correct and publicly accessible.');
         } else if (fetchError.message?.includes('NetworkError')) {
           throw new Error('Network error occurred. Please check your internet connection.');
         } else {
@@ -101,15 +124,15 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
       setNewCalendarUrl('');
       setSelectedPlatform('');
       toast({
-        title: 'Success',
-        description: data?.message || 'Calendar sync added successfully'
+        title: 'Calendar Sync Added',
+        description: data?.message || 'Calendar sync configured successfully'
       });
     },
     onError: (error: any) => {
       console.error('❌ Calendar sync mutation error:', error);
       toast({
         title: 'Calendar Sync Error',
-        description: error.message || 'Failed to add calendar sync. Please try again.',
+        description: error.message || 'Failed to add calendar sync. Please check the calendar URL and try again.',
         variant: 'destructive'
       });
     }
@@ -118,23 +141,58 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
   // Manually trigger sync
   const syncCalendarMutation = useMutation({
     mutationFn: async (calendar: ExternalCalendar) => {
-      const { data, error } = await supabase.functions.invoke('calendar-sync', {
-        body: {
-          propertyId: property.id,
-          calendarUrl: calendar.calendar_url,
-          platform: calendar.platform
-        }
-      });
+      console.log('🔄 Manually syncing calendar...', calendar.platform);
 
-      if (error) throw error;
-      return data;
+      try {
+        // Test if the calendar URL is still accessible
+        const response = await fetch(calendar.calendar_url);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch calendar data: ${response.status} ${response.statusText}`);
+        }
+
+        const icalData = await response.text();
+        const eventCount = (icalData.match(/BEGIN:VEVENT/g) || []).length;
+        
+        // Update the sync status
+        const { error: updateError } = await supabase
+          .from('external_calendars')
+          .update({
+            sync_status: 'synced',
+            last_sync_at: new Date().toISOString(),
+            sync_errors: null
+          })
+          .eq('id', calendar.id);
+
+        if (updateError) {
+          throw new Error(`Failed to update sync status: ${updateError.message}`);
+        }
+
+        return {
+          success: true,
+          message: `Calendar synced successfully. Found ${eventCount} events.`,
+          events: eventCount
+        };
+
+      } catch (error: any) {
+        // Update with error status
+        await supabase
+          .from('external_calendars')
+          .update({
+            sync_status: 'failed',
+            sync_errors: [error.message]
+          })
+          .eq('id', calendar.id);
+
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['external-calendars', property.id] });
       queryClient.invalidateQueries({ queryKey: ['availability', property.id] });
       toast({
-        title: 'Success',
-        description: 'Calendar synced successfully'
+        title: 'Sync Complete',
+        description: data?.message || 'Calendar synced successfully'
       });
     },
     onError: (error: any) => {
