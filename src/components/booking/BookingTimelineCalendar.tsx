@@ -147,12 +147,24 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     return bookingBlocks.find(booking => {
       if (booking.propertyId !== propertyId) return false;
       
-      const checkInDate = new Date(booking.checkIn + 'T00:00:00');
-      const checkOutDate = new Date(booking.checkOut + 'T00:00:00');
-      const currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const checkInDate = new Date(booking.checkIn);
+      const checkOutDate = new Date(booking.checkOut);
+      
+      // Normalize dates to remove time component for comparison
+      const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const normalizedCheckIn = new Date(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate());
+      const normalizedCheckOut = new Date(checkOutDate.getFullYear(), checkOutDate.getMonth(), checkOutDate.getDate());
+      
+      // Debug logging
+      console.log('Checking booking for date:', normalizedDate.toISOString().split('T')[0], 
+                  'check-in:', normalizedCheckIn.toISOString().split('T')[0], 
+                  'check-out:', normalizedCheckOut.toISOString().split('T')[0],
+                  'guest:', booking.guestName);
       
       // Check if the date falls within the booking range (inclusive of check-in, exclusive of check-out)
-      return currentDate >= checkInDate && currentDate < checkOutDate;
+      const result = normalizedDate >= normalizedCheckIn && normalizedDate < normalizedCheckOut;
+      console.log('Date match result:', result);
+      return result;
     });
   };
 
@@ -201,8 +213,8 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
       );
     }
 
-    const isCheckInDay = isSameDay(day.date, new Date(booking.checkIn + 'T00:00:00'));
-    const isCheckOutDay = isSameDay(day.date, addDays(new Date(booking.checkOut + 'T00:00:00'), -1));
+    const isCheckInDay = isSameDay(day.date, new Date(booking.checkIn));
+    const isCheckOutDay = isSameDay(day.date, addDays(new Date(booking.checkOut), -1));
     
     return (
       <Popover>
@@ -276,7 +288,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 <span className="text-sm">
-                  {format(new Date(booking.checkIn + 'T00:00:00'), 'MMM d')} - {format(new Date(booking.checkOut + 'T00:00:00'), 'MMM d, yyyy')}
+                  {format(new Date(booking.checkIn), 'MMM d')} - {format(new Date(booking.checkOut), 'MMM d, yyyy')}
                 </span>
               </div>
               
