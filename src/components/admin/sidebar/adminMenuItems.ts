@@ -95,6 +95,12 @@ export const adminMenuItems = [
         description: 'Manage reservations, cleaning coordination, and work orders'
       },
       {
+        title: 'Calendar Timeline',
+        href: '/admin/calendar',
+        icon: Calendar,
+        description: 'Visual timeline view of all property bookings and availability'
+      },
+      {
         title: 'Guest Communication',
         href: '/admin/host/communication',
         icon: Mail,
