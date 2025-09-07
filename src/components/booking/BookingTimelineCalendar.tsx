@@ -147,11 +147,12 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     return bookingBlocks.find(booking => {
       if (booking.propertyId !== propertyId) return false;
       
-      const checkInDate = parseISO(booking.checkIn);
-      const checkOutDate = parseISO(booking.checkOut);
+      const checkInDate = new Date(booking.checkIn + 'T00:00:00');
+      const checkOutDate = new Date(booking.checkOut + 'T00:00:00');
+      const currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       
       // Check if the date falls within the booking range (inclusive of check-in, exclusive of check-out)
-      return date >= checkInDate && date < checkOutDate;
+      return currentDate >= checkInDate && currentDate < checkOutDate;
     });
   };
 
@@ -200,8 +201,8 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
       );
     }
 
-    const isCheckInDay = isSameDay(day.date, parseISO(booking.checkIn));
-    const isCheckOutDay = isSameDay(day.date, addDays(parseISO(booking.checkOut), -1)); // Show until the day before checkout
+    const isCheckInDay = isSameDay(day.date, new Date(booking.checkIn + 'T00:00:00'));
+    const isCheckOutDay = isSameDay(day.date, addDays(new Date(booking.checkOut + 'T00:00:00'), -1));
     
     return (
       <Popover>
@@ -275,7 +276,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 <span className="text-sm">
-                  {format(parseISO(booking.checkIn), 'MMM d')} - {format(parseISO(booking.checkOut), 'MMM d, yyyy')}
+                  {format(new Date(booking.checkIn + 'T00:00:00'), 'MMM d')} - {format(new Date(booking.checkOut + 'T00:00:00'), 'MMM d, yyyy')}
                 </span>
               </div>
               
