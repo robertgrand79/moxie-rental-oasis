@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Property } from '@/types/property';
 import { Calendar, DollarSign, Settings, Activity, RefreshCw, ExternalLink } from 'lucide-react';
-import { PricingCalendar } from '@/components/booking/PricingCalendar';
 import { ReservationList } from '@/components/booking/ReservationList';
+import { PricingCalendar } from '@/components/booking/PricingCalendar';
 import IntegrationSettings from './IntegrationSettings';
 import SyncStatusDashboard from './SyncStatusDashboard';
 

@@ -2,9 +2,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, Trash2, MapPin, Bed, Bath, Users } from 'lucide-react';
+import { Edit, Trash2, MapPin, Bed, Bath, Users, Calendar } from 'lucide-react';
 import { Property } from '@/types/property';
 import ThumbnailImage from '@/components/ui/thumbnail-image';
+import { Link } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +60,12 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
         </div>
 
         <div className="flex gap-2 justify-end">
+          <Link to={`/booking/${property.id}`}>
+            <Button variant="default" size="sm">
+              <Calendar className="h-4 w-4 mr-2" />
+              Book Now
+            </Button>
+          </Link>
           <Button 
             variant="outline" 
             size="sm"

@@ -4,6 +4,7 @@ import { Bed, Bath, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { Property } from '@/types/property';
 import { Button } from '@/components/ui/button';
 import AmenityIcon from './AmenityIcon';
+import EnhancedBookingCard from './EnhancedBookingCard';
 
 interface PropertyDetailsProps {
   property: Property;
@@ -30,67 +31,76 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
   const hasMoreAmenities = amenitiesArray.length > AMENITIES_LIMIT;
 
   return (
-    <div className="lg:col-span-2">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-foreground mb-4">About this property</h2>
-        <p className="text-muted-foreground text-lg leading-relaxed">{property.description}</p>
-      </div>
-
-      {/* Property Details */}
-      <div className="grid grid-cols-3 gap-6 mb-8">
-        <div className="text-center p-4 bg-muted/50 rounded-lg border hover:shadow-md transition-shadow duration-200">
-          <Bed className="h-8 w-8 mx-auto mb-2 text-icon-purple" />
-          <div className="font-semibold text-foreground">{property.bedrooms}</div>
-          <div className="text-sm text-muted-foreground">Bedrooms</div>
-        </div>
-        <div className="text-center p-4 bg-muted/50 rounded-lg border hover:shadow-md transition-shadow duration-200">
-          <Bath className="h-8 w-8 mx-auto mb-2 text-icon-blue" />
-          <div className="font-semibold text-foreground">{property.bathrooms}</div>
-          <div className="text-sm text-muted-foreground">Bathrooms</div>
-        </div>
-        <div className="text-center p-4 bg-muted/50 rounded-lg border hover:shadow-md transition-shadow duration-200">
-          <Users className="h-8 w-8 mx-auto mb-2 text-icon-emerald" />
-          <div className="font-semibold text-foreground">{property.max_guests}</div>
-          <div className="text-sm text-muted-foreground">Guests</div>
-        </div>
-      </div>
-
-      {/* Amenities */}
-      {amenitiesArray.length > 0 && (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-2">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Amenities</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-            {displayedAmenities.map((amenity, index) => (
-              <div key={index} className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg border hover:shadow-md hover:bg-muted/70 transition-all duration-200">
-                <AmenityIcon amenity={amenity} />
-                <span className="text-muted-foreground hover:text-foreground transition-colors duration-200">{amenity}</span>
-              </div>
-            ))}
-          </div>
-          
-          {hasMoreAmenities && (
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                onClick={() => setShowAllAmenities(!showAllAmenities)}
-                className="flex items-center gap-2"
-              >
-                {showAllAmenities ? (
-                  <>
-                    <ChevronUp className="h-4 w-4" />
-                    Show Less Amenities
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-4 w-4" />
-                    Show All Amenities ({amenitiesArray.length})
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
+          <h2 className="text-2xl font-bold text-foreground mb-4">About this property</h2>
+          <p className="text-muted-foreground text-lg leading-relaxed">{property.description}</p>
         </div>
-      )}
+
+        {/* Property Details */}
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          <div className="text-center p-4 bg-muted/50 rounded-lg border hover:shadow-md transition-shadow duration-200">
+            <Bed className="h-8 w-8 mx-auto mb-2 text-icon-purple" />
+            <div className="font-semibold text-foreground">{property.bedrooms}</div>
+            <div className="text-sm text-muted-foreground">Bedrooms</div>
+          </div>
+          <div className="text-center p-4 bg-muted/50 rounded-lg border hover:shadow-md transition-shadow duration-200">
+            <Bath className="h-8 w-8 mx-auto mb-2 text-icon-blue" />
+            <div className="font-semibold text-foreground">{property.bathrooms}</div>
+            <div className="text-sm text-muted-foreground">Bathrooms</div>
+          </div>
+          <div className="text-center p-4 bg-muted/50 rounded-lg border hover:shadow-md transition-shadow duration-200">
+            <Users className="h-8 w-8 mx-auto mb-2 text-icon-emerald" />
+            <div className="font-semibold text-foreground">{property.max_guests}</div>
+            <div className="text-sm text-muted-foreground">Guests</div>
+          </div>
+        </div>
+
+        {/* Amenities */}
+        {amenitiesArray.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Amenities</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+              {displayedAmenities.map((amenity, index) => (
+                <div key={index} className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg border hover:shadow-md hover:bg-muted/70 transition-all duration-200">
+                  <AmenityIcon amenity={amenity} />
+                  <span className="text-muted-foreground hover:text-foreground transition-colors duration-200">{amenity}</span>
+                </div>
+              ))}
+            </div>
+            
+            {hasMoreAmenities && (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAllAmenities(!showAllAmenities)}
+                  className="flex items-center gap-2"
+                >
+                  {showAllAmenities ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      Show Less Amenities
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      Show All Amenities ({amenitiesArray.length})
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Enhanced Booking Card */}
+      <div className="lg:col-span-1">
+        <div className="sticky top-20">
+          <EnhancedBookingCard property={property} variant="card" showAvailability={true} />
+        </div>
+      </div>
     </div>
   );
 };

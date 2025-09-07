@@ -28,6 +28,7 @@ import AdminLayoutWrapper from './components/layouts/AdminLayoutWrapper';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import BlogManagement from './pages/BlogManagement';
 import AdminProperties from './pages/admin/AdminProperties';
+import BookingPage from './pages/BookingPage';
 import AdminPageManagement from './pages/admin/AdminPageManagement';
 import AdminSiteSettingsRedesigned from './pages/admin/AdminSiteSettingsRedesigned';
 import AdminUserAccessManagement from './pages/admin/AdminUserAccessManagement';
@@ -80,6 +81,7 @@ function App() {
                   <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/listings" element={<Listings />} />
+                  <Route path="/booking/:propertyId" element={<BookingPage />} />
                   <Route path="/:slug" element={<DynamicPage />} />
                 </Route>
 
