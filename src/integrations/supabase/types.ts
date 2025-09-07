@@ -974,6 +974,50 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_communications: {
+        Row: {
+          created_at: string
+          delivery_status: string | null
+          id: string
+          message_content: string
+          message_type: string
+          reservation_id: string
+          scheduled_for: string | null
+          sent_at: string | null
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_status?: string | null
+          id?: string
+          message_content: string
+          message_type: string
+          reservation_id: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          delivery_status?: string | null
+          id?: string
+          message_content?: string
+          message_type?: string
+          reservation_id?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_communications_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "property_reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guests: {
         Row: {
           created_at: string
@@ -2100,6 +2144,114 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      property_analytics: {
+        Row: {
+          average_daily_rate: number | null
+          booking_count: number | null
+          cleaning_costs: number | null
+          created_at: string
+          date: string
+          guest_count: number | null
+          id: string
+          maintenance_costs: number | null
+          occupancy_rate: number | null
+          property_id: string
+          revenue: number | null
+        }
+        Insert: {
+          average_daily_rate?: number | null
+          booking_count?: number | null
+          cleaning_costs?: number | null
+          created_at?: string
+          date: string
+          guest_count?: number | null
+          id?: string
+          maintenance_costs?: number | null
+          occupancy_rate?: number | null
+          property_id: string
+          revenue?: number | null
+        }
+        Update: {
+          average_daily_rate?: number | null
+          booking_count?: number | null
+          cleaning_costs?: number | null
+          created_at?: string
+          date?: string
+          guest_count?: number | null
+          id?: string
+          maintenance_costs?: number | null
+          occupancy_rate?: number | null
+          property_id?: string
+          revenue?: number | null
+        }
+        Relationships: []
+      }
+      property_reservations: {
+        Row: {
+          booking_status: string
+          check_in_date: string
+          check_in_instructions: string | null
+          check_out_date: string
+          cleaning_status: string | null
+          cleaning_work_order_id: string | null
+          created_at: string
+          guest_count: number
+          guest_email: string
+          guest_name: string
+          guest_phone: string | null
+          id: string
+          property_id: string
+          source_platform: string | null
+          special_requests: string | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          booking_status?: string
+          check_in_date: string
+          check_in_instructions?: string | null
+          check_out_date: string
+          cleaning_status?: string | null
+          cleaning_work_order_id?: string | null
+          created_at?: string
+          guest_count?: number
+          guest_email: string
+          guest_name: string
+          guest_phone?: string | null
+          id?: string
+          property_id: string
+          source_platform?: string | null
+          special_requests?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          booking_status?: string
+          check_in_date?: string
+          check_in_instructions?: string | null
+          check_out_date?: string
+          cleaning_status?: string | null
+          cleaning_work_order_id?: string | null
+          created_at?: string
+          guest_count?: number
+          guest_email?: string
+          guest_name?: string
+          guest_phone?: string | null
+          id?: string
+          property_id?: string
+          source_platform?: string | null
+          special_requests?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       rate_limits: {
         Row: {
