@@ -44,6 +44,9 @@ import AdminUnifiedAnalytics from './pages/admin/AdminUnifiedAnalytics';
 import HostAnalyticsPage from '@/pages/admin/HostAnalyticsPage';
 import HostBookingsPage from '@/pages/admin/HostBookingsPage';
 import HostCommunicationPage from '@/pages/admin/HostCommunicationPage';
+import GuestPortalPage from '@/pages/guest/GuestPortalPage';
+import CheckinPage from '@/pages/guest/CheckinPage';
+import GuidebookPage from '@/pages/guest/GuidebookPage';
 
 import AdminProfile from './pages/AdminProfile';
 import PublicLayout from './components/layouts/PublicLayout';
@@ -89,6 +92,9 @@ function App() {
                 <Route path="/booking/:propertyId" element={<BookingPage />} />
                 <Route path="/booking-success" element={<BookingSuccessPage />} />
                 <Route path="/booking-cancelled" element={<BookingCancelledPage />} />
+                <Route path="/guest/portal" element={<GuestPortalPage />} />
+                <Route path="/guest/checkin/:reservationId" element={<CheckinPage />} />
+                <Route path="/guest/guidebook/:propertyId" element={<GuidebookPage />} />
                 <Route path="/:slug" element={<DynamicPage />} />
               </Route>
 
