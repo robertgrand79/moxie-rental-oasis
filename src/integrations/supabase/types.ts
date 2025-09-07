@@ -1018,6 +1018,197 @@ export type Database = {
           },
         ]
       }
+      guest_notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          guest_profile_id: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: string
+          reservation_id: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          title: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          guest_profile_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type: string
+          reservation_id?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          title: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          guest_profile_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: string
+          reservation_id?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_notifications_guest_profile_id_fkey"
+            columns: ["guest_profile_id"]
+            isOneToOne: false
+            referencedRelation: "guest_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_notifications_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "property_reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_profiles: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          loyalty_points: number | null
+          notification_settings: Json | null
+          phone: string | null
+          preferences: Json | null
+          profile_image_url: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          loyalty_points?: number | null
+          notification_settings?: Json | null
+          phone?: string | null
+          preferences?: Json | null
+          profile_image_url?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          loyalty_points?: number | null
+          notification_settings?: Json | null
+          phone?: string | null
+          preferences?: Json | null
+          profile_image_url?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      guest_support_chats: {
+        Row: {
+          created_at: string
+          guest_profile_id: string | null
+          id: string
+          priority: string | null
+          reservation_id: string | null
+          status: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          guest_profile_id?: string | null
+          id?: string
+          priority?: string | null
+          reservation_id?: string | null
+          status?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          guest_profile_id?: string | null
+          id?: string
+          priority?: string | null
+          reservation_id?: string | null
+          status?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_support_chats_guest_profile_id_fkey"
+            columns: ["guest_profile_id"]
+            isOneToOne: false
+            referencedRelation: "guest_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_support_chats_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "property_reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_support_messages: {
+        Row: {
+          attachment_url: string | null
+          chat_id: string
+          created_at: string
+          id: string
+          message_content: string
+          message_type: string | null
+          sender_id: string | null
+          sender_type: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          chat_id: string
+          created_at?: string
+          id?: string
+          message_content: string
+          message_type?: string | null
+          sender_id?: string | null
+          sender_type: string
+        }
+        Update: {
+          attachment_url?: string | null
+          chat_id?: string
+          created_at?: string
+          id?: string
+          message_content?: string
+          message_type?: string | null
+          sender_id?: string | null
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_support_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "guest_support_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guests: {
         Row: {
           created_at: string
@@ -2184,6 +2375,36 @@ export type Database = {
           occupancy_rate?: number | null
           property_id?: string
           revenue?: number | null
+        }
+        Relationships: []
+      }
+      property_guidebooks: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          is_active: boolean | null
+          property_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          property_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          property_id?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
