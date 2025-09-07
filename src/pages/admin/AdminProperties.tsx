@@ -12,6 +12,7 @@ import PaginationControls from '@/components/ui/pagination-controls';
 
 import PropertyDiagnostics from '@/components/admin/PropertyDiagnostics';
 import TurnoMappingManager from '@/components/admin/properties/TurnoMappingManager';
+import PropertyManagementTabs from '@/components/admin/properties/PropertyManagementTabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
@@ -107,6 +108,16 @@ const AdminProperties = () => {
               onDelete={deleteProperty}
               onAddProperty={handleAddProperty}
             />
+
+            {/* Enhanced Property Management with Booking Integration */}
+            {totalCount > 0 && properties.length > 0 && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold">Property Management</h3>
+                {properties.map((property) => (
+                  <PropertyManagementTabs key={property.id} property={property} />
+                ))}
+              </div>
+            )}
 
             {/* Turno Integration Section */}
             {totalCount > 0 && (
