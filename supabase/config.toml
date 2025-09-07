@@ -65,6 +65,8 @@ verify_jwt = false
 [functions.calendar-sync]
 verify_jwt = false
 
+[functions.calendar-export]
+verify_jwt = false
 
 [edge-runtime]
 enabled = true

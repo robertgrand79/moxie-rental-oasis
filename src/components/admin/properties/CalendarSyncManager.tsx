@@ -392,10 +392,40 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                 <li>Check that you copied the complete URL including any parameters</li>
               </ul>
             </div>
-            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-              <p className="text-blue-800 text-xs">
-                <strong>💡 Tip:</strong> Test your calendar URL by opening it in a new browser tab - 
-                it should download a .ics file or show calendar data.
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-blue-800 text-sm font-medium mb-2">
+                📤 Your Calendar Export URL (Give this to Airbnb/VRBO):
+              </p>
+              <div className="bg-white p-2 rounded border font-mono text-xs break-all mb-2">
+                https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id={property.id}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const url = `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}`;
+                    navigator.clipboard.writeText(url);
+                    toast({ title: 'Copied!', description: 'Calendar export URL copied to clipboard' });
+                  }}
+                >
+                  Copy URL
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const url = `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}`;
+                    window.open(url, '_blank');
+                  }}
+                >
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  Test URL
+                </Button>
+              </div>
+              <p className="text-blue-700 text-xs mt-2">
+                This URL provides your bookings in iCal format so Airbnb can import them and avoid double bookings.
+                Use "Copy URL" to get the link, then paste it in Airbnb's calendar import settings.
               </p>
             </div>
           </div>
