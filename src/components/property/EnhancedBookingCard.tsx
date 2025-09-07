@@ -23,7 +23,7 @@ const EnhancedBookingCard = ({
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('book');
 
-  const hasBookingUrl = !!property.hospitable_booking_url;
+  const hasBookingUrl = true; // Always available with internal system
 
   const handleBookingComplete = (reservationId: string) => {
     setIsBookingModalOpen(false);
@@ -42,29 +42,13 @@ const EnhancedBookingCard = ({
   };
 
   const renderBookingButton = () => {
-    if (hasBookingUrl) {
-      return (
-        <Button 
-          onClick={() => setIsBookingModalOpen(true)}
-          className="w-full h-12 text-lg font-semibold"
-        >
-          Check Availability & Book
-        </Button>
-      );
-    }
-
     return (
-      <div className="space-y-3">
-        <Button 
-          disabled 
-          className="w-full h-12 text-lg font-semibold"
-        >
-          Booking Coming Soon
-        </Button>
-        <p className="text-center text-sm text-muted-foreground">
-          Direct booking will be available soon. Contact us for reservations.
-        </p>
-      </div>
+      <Button 
+        onClick={() => setIsBookingModalOpen(true)}
+        className="w-full h-12 text-lg font-semibold"
+      >
+        Check Availability & Book
+      </Button>
     );
   };
 
