@@ -29,6 +29,8 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import BlogManagement from './pages/BlogManagement';
 import AdminProperties from './pages/admin/AdminProperties';
 import BookingPage from './pages/BookingPage';
+import BookingSuccessPage from './pages/BookingSuccessPage';
+import BookingCancelledPage from './pages/BookingCancelledPage';
 import AdminPageManagement from './pages/admin/AdminPageManagement';
 import AdminSiteSettingsRedesigned from './pages/admin/AdminSiteSettingsRedesigned';
 import AdminUserAccessManagement from './pages/admin/AdminUserAccessManagement';
@@ -81,9 +83,11 @@ function App() {
                   <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/listings" element={<Listings />} />
-                  <Route path="/booking/:propertyId" element={<BookingPage />} />
-                  <Route path="/:slug" element={<DynamicPage />} />
-                </Route>
+                <Route path="/booking/:propertyId" element={<BookingPage />} />
+                <Route path="/booking-success" element={<BookingSuccessPage />} />
+                <Route path="/booking-cancelled" element={<BookingCancelledPage />} />
+                <Route path="/:slug" element={<DynamicPage />} />
+              </Route>
 
                 <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
                   <Route index element={<AdminDashboard />} />

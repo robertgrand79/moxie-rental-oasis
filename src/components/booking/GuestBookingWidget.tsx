@@ -11,6 +11,7 @@ import { Calendar, Users, DollarSign, Shield, Clock, CheckCircle } from 'lucide-
 import { BookingCalendar } from './BookingCalendar';
 import { format, differenceInDays, addDays, isBefore } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GuestBookingWidgetProps {
   property: Property;
@@ -72,40 +73,73 @@ const GuestBookingWidget = ({ property, onBookingComplete }: GuestBookingWidgetP
     setStep('review');
   };
 
-  const handleConfirmBooking = () => {
-    if (!selectedDates) return;
+  const handleConfirmBooking = async () => {
+    if (!selectedDates || !property) return;
+    
+    try {
+      const totalAmount = calculateTotalPrice();
+      
+      // First create the reservation
+      const reservationData = {
+        property_id: property.id,
+        guest_name: bookingForm.guestName,
+        guest_email: bookingForm.guestEmail,
+        guest_phone: bookingForm.guestPhone,
+        check_in_date: selectedDates.start,
+        check_out_date: selectedDates.end,
+        guest_count: bookingForm.guestCount,
+        total_amount: totalAmount,
+        booking_status: 'pending' as const,
+        payment_status: 'pending' as const,
+        special_requests: bookingForm.specialRequests,
+        confirmation_code: Math.random().toString(36).substring(2, 15),
+        created_by: 'guest'
+      };
 
-    const reservationData = {
-      property_id: property.id,
-      guest_name: bookingForm.guestName,
-      guest_email: bookingForm.guestEmail,
-      guest_phone: bookingForm.guestPhone,
-      check_in_date: selectedDates.start,
-      check_out_date: selectedDates.end,
-      total_guests: bookingForm.guestCount,
-      total_amount: calculateTotalPrice(),
-      special_requests: bookingForm.specialRequests,
-      confirmation_code: `BK${Date.now().toString().slice(-6)}`,
-      status: 'pending'
-    };
+      // Use the mutation to create reservation with Promise
+      const reservation = await new Promise((resolve, reject) => {
+        createReservation(reservationData, {
+          onSuccess: (data) => resolve(data),
+          onError: (error) => reject(error)
+        });
+      });
 
-    createReservation(reservationData, {
-      onSuccess: (data) => {
+      // Create Stripe checkout session
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          reservationId: (reservation as any).id,
+          guestEmail: bookingForm.guestEmail,
+          totalAmount: totalAmount,
+          propertyTitle: property.title,
+          checkInDate: selectedDates.start,
+          checkOutDate: selectedDates.end
+        }
+      });
+
+      if (checkoutError) {
+        console.error('Checkout error:', checkoutError);
+        throw new Error('Failed to create payment session');
+      }
+
+      // Redirect to Stripe Checkout
+      if (checkoutData?.url) {
+        window.open(checkoutData.url, '_blank');
         setStep('complete');
         toast({
-          title: "Booking Submitted",
-          description: "Your booking request has been submitted successfully!",
+          title: "Redirecting to Payment",
+          description: "Opening Stripe checkout in a new tab...",
         });
-        onBookingComplete?.(data.id);
-      },
-      onError: () => {
-        toast({
-          title: "Booking Failed",
-          description: "There was an error submitting your booking. Please try again.",
-          variant: "destructive",
-        });
+      } else {
+        throw new Error('No checkout URL received');
       }
-    });
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      toast({
+        title: 'Booking Error',
+        description: 'There was an error processing your booking. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const renderDateSelection = () => (
