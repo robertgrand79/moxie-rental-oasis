@@ -374,51 +374,50 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
           </div>
 
           <div className="text-sm text-muted-foreground">
-            <p><strong>📋 Step-by-step instructions to get calendar URLs:</strong></p>
+            <div className="p-3 bg-red-50 border border-red-200 rounded mb-4">
+              <p className="text-red-800 text-sm font-medium">❌ Current URL Issue</p>
+              <p className="text-red-700 text-xs mt-1">
+                The URL <code>https://www.airbnb.com/calendar/ical/26231199.ics?s=d70a448ac86b1322a060d9db4d8500d9</code> 
+                is returning a 404 error. This typically means:
+              </p>
+              <ul className="list-disc list-inside mt-1 text-red-700 text-xs space-y-1">
+                <li>The URL has expired or been revoked by Airbnb</li>
+                <li>The listing (ID: 26231199) may not be active or was removed</li>
+                <li>You need to generate a fresh export URL from Airbnb</li>
+              </ul>
+            </div>
+            
+            <p><strong>📋 How to get a fresh Airbnb calendar URL:</strong></p>
             <div className="mt-3 space-y-4">
               <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                <p className="text-blue-800 text-sm font-medium mb-2">🏠 Airbnb:</p>
+                <p className="text-blue-800 text-sm font-medium mb-2">🏠 Airbnb Steps:</p>
                 <ol className="list-decimal list-inside text-blue-700 text-xs space-y-1">
-                  <li>Go to your Airbnb Host account</li>
-                  <li>Navigate to <strong>Calendar</strong> in the main menu</li>
-                  <li>Click <strong>"Sync calendars"</strong> or <strong>"Import calendar"</strong></li>
-                  <li>Look for <strong>"Export calendar"</strong> option</li>
-                  <li>Copy the URL that starts with <code>https://www.airbnb.com/calendar/ical/</code></li>
-                  <li>⚠️ Make sure the listing is <strong>active and published</strong></li>
+                  <li>Go to your <strong>Airbnb Host Dashboard</strong></li>
+                  <li>Select the specific listing you want to sync</li>
+                  <li>Go to <strong>Calendar</strong> for that listing</li>
+                  <li>Click <strong>"Sync calendars"</strong> or <strong>"Import/Export"</strong></li>
+                  <li>Find <strong>"Export calendar"</strong> and generate a new URL</li>
+                  <li>⚠️ Ensure the listing is <strong>active and accepting bookings</strong></li>
                 </ol>
               </div>
               
               <div className="p-3 bg-green-50 border border-green-200 rounded">
-                <p className="text-green-800 text-sm font-medium mb-2">🏖️ VRBO:</p>
+                <p className="text-green-800 text-sm font-medium mb-2">✅ Test Your URL:</p>
                 <ol className="list-decimal list-inside text-green-700 text-xs space-y-1">
-                  <li>Log into your VRBO Owner Dashboard</li>
-                  <li>Go to <strong>Calendar</strong> section</li>
-                  <li>Click <strong>"Calendar feeds"</strong> or <strong>"Sync calendars"</strong></li>
-                  <li>Find the <strong>"Export"</strong> or <strong>"iCal URL"</strong> option</li>
-                  <li>Copy the provided iCal link</li>
+                  <li>Copy the new Airbnb export URL</li>
+                  <li>Paste it in a browser tab - it should download a .ics file</li>
+                  <li>If it downloads successfully, the URL is working</li>
+                  <li>Then try adding it here in the calendar sync</li>
                 </ol>
               </div>
               
-              <div className="p-3 bg-purple-50 border border-purple-200 rounded">
-                <p className="text-purple-800 text-sm font-medium mb-2">🛏️ Booking.com:</p>
-                <ol className="list-decimal list-inside text-purple-700 text-xs space-y-1">
-                  <li>Access your Booking.com Partner Hub</li>
-                  <li>Navigate to <strong>Calendar</strong></li>
-                  <li>Look for <strong>"Export calendar"</strong> or <strong>"Sync"</strong></li>
-                  <li>Copy the iCal export link</li>
-                </ol>
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+                <p className="text-yellow-800 text-sm font-medium mb-2">🧪 Or Try Demo Mode:</p>
+                <p className="text-yellow-700 text-xs">
+                  Select "Demo Mode (Test)" from the platform dropdown above to test the calendar sync functionality 
+                  without needing a real iCal URL.
+                </p>
               </div>
-            </div>
-            
-            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded">
-              <p className="text-red-800 text-sm font-medium">🚨 Troubleshooting 404 Errors:</p>
-              <ul className="list-disc list-inside mt-1 text-red-700 text-xs space-y-1">
-                <li><strong>URL expired:</strong> Airbnb URLs can expire - generate a new one</li>
-                <li><strong>Listing not active:</strong> Make sure your property is published and active</li>
-                <li><strong>Wrong URL:</strong> Use the "Export" URL, not the "Import" URL</li>
-                <li><strong>Missing parameters:</strong> Copy the complete URL including the ?s= parameter</li>
-                <li><strong>Test in browser:</strong> Paste the URL in a new browser tab - it should download a .ics file</li>
-              </ul>
             </div>
             <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
               <p className="text-blue-800 text-sm font-medium mb-2">
