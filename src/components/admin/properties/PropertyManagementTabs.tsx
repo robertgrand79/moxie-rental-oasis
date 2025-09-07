@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Property } from '@/types/property';
 import { Building, Calendar, DollarSign, Settings } from 'lucide-react';
 import BookingIntegrationManager from './BookingIntegrationManager';
+import CalendarSyncManager from './CalendarSyncManager';
 
 interface PropertyManagementTabsProps {
   property: Property;
@@ -31,6 +32,7 @@ const PropertyManagementTabs = ({ property }: PropertyManagementTabsProps) => {
       </TabsContent>
 
       <TabsContent value="booking" className="space-y-6">
+        <CalendarSyncManager property={property} />
         <BookingIntegrationManager property={property} />
       </TabsContent>
     </Tabs>
