@@ -82,6 +82,13 @@ serve(async (req) => {
     const eventCount = (icalData.match(/BEGIN:VEVENT/g) || []).length
     console.log('📅 Found events:', eventCount)
 
+    // Parse and store individual events
+    if (eventCount > 0) {
+      console.log('🔄 Parsing and storing events...')
+      await parseAndStoreEvents(supabase, icalData, propertyId, platform)
+      console.log('✅ Events stored successfully')
+    }
+
     // Validate that it's actually iCal data
     if (!icalData.includes('BEGIN:VCALENDAR')) {
       throw new Error('Invalid iCal data received - not a valid calendar format')
@@ -148,3 +155,91 @@ serve(async (req) => {
     )
   }
 })
+
+// Function to parse iCal data and store events
+async function parseAndStoreEvents(supabase: any, icalData: string, propertyId: string, platform: string) {
+  const events = []
+  const lines = icalData.split('\n')
+  let currentEvent: any = null
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+    
+    if (line === 'BEGIN:VEVENT') {
+      currentEvent = {}
+    } else if (line === 'END:VEVENT' && currentEvent) {
+      if (currentEvent.dtstart && currentEvent.dtend) {
+        events.push({
+          property_id: propertyId,
+          block_type: 'booked',
+          start_date: formatDate(currentEvent.dtstart),
+          end_date: formatDate(currentEvent.dtend),
+          notes: currentEvent.summary || 'External Booking',
+          external_booking_id: currentEvent.uid || `${platform}-${Date.now()}`,
+          source_platform: platform,
+          guest_count: 1,
+          sync_status: 'synced'
+        })
+      }
+      currentEvent = null
+    } else if (currentEvent && line.includes(':')) {
+      const [key, ...valueParts] = line.split(':')
+      const value = valueParts.join(':')
+      
+      switch (key) {
+        case 'DTSTART;VALUE=DATE':
+        case 'DTSTART':
+          currentEvent.dtstart = value
+          break
+        case 'DTEND;VALUE=DATE':
+        case 'DTEND':
+          currentEvent.dtend = value
+          break
+        case 'SUMMARY':
+          currentEvent.summary = value
+          break
+        case 'UID':
+          currentEvent.uid = value
+          break
+      }
+    }
+  }
+  
+  // Remove existing events for this property/platform combination
+  const { error: deleteError } = await supabase
+    .from('availability_blocks')
+    .delete()
+    .eq('property_id', propertyId)
+    .eq('source_platform', platform)
+  
+  if (deleteError) {
+    console.error('❌ Error deleting old events:', deleteError)
+  }
+  
+  // Insert new events
+  if (events.length > 0) {
+    const { error: insertError } = await supabase
+      .from('availability_blocks')
+      .insert(events)
+    
+    if (insertError) {
+      console.error('❌ Error inserting events:', insertError)
+      throw new Error(`Failed to store events: ${insertError.message}`)
+    }
+    
+    console.log(`✅ Inserted ${events.length} events into availability_blocks`)
+  }
+}
+
+// Function to format date strings
+function formatDate(dateStr: string): string {
+  // Handle different date formats from iCal
+  if (dateStr.length === 8) {
+    // YYYYMMDD format
+    return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`
+  } else if (dateStr.includes('T')) {
+    // ISO format with time
+    return dateStr.slice(0, 10) // Just take the date part
+  }
+  return dateStr
+}
