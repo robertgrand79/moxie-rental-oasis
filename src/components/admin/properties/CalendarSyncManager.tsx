@@ -50,31 +50,66 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
   // Add new calendar sync
   const addCalendarMutation = useMutation({
     mutationFn: async ({ platform, calendarUrl }: { platform: string; calendarUrl: string }) => {
-      const { data, error } = await supabase.functions.invoke('calendar-sync', {
-        body: {
-          propertyId: property.id,
-          calendarUrl,
-          platform
-        }
+      console.log('🔄 Starting calendar sync request...', { 
+        propertyId: property.id, 
+        platform, 
+        calendarUrl: calendarUrl.substring(0, 50) + '...' 
       });
 
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase.functions.invoke('calendar-sync', {
+          body: {
+            propertyId: property.id,
+            calendarUrl,
+            platform
+          }
+        });
+
+        console.log('📡 Function response:', { data, error });
+
+        if (error) {
+          console.error('❌ Supabase functions error:', error);
+          throw new Error(error.message || 'Function call failed');
+        }
+
+        if (!data) {
+          throw new Error('No response data received');
+        }
+
+        return data;
+      } catch (fetchError: any) {
+        console.error('🚨 Fetch error details:', {
+          message: fetchError.message,
+          name: fetchError.name,
+          stack: fetchError.stack
+        });
+        
+        // More specific error messages
+        if (fetchError.message?.includes('Failed to fetch')) {
+          throw new Error('Unable to connect to calendar sync service. Please check your connection and try again.');
+        } else if (fetchError.message?.includes('NetworkError')) {
+          throw new Error('Network error occurred. Please check your internet connection.');
+        } else {
+          throw fetchError;
+        }
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('✅ Calendar sync successful:', data);
       queryClient.invalidateQueries({ queryKey: ['external-calendars', property.id] });
       queryClient.invalidateQueries({ queryKey: ['availability', property.id] });
       setNewCalendarUrl('');
       setSelectedPlatform('');
       toast({
         title: 'Success',
-        description: 'Calendar sync added successfully'
+        description: data?.message || 'Calendar sync added successfully'
       });
     },
     onError: (error: any) => {
+      console.error('❌ Calendar sync mutation error:', error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to add calendar sync',
+        title: 'Calendar Sync Error',
+        description: error.message || 'Failed to add calendar sync. Please try again.',
         variant: 'destructive'
       });
     }
@@ -112,15 +147,32 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
   });
 
   const handleAddCalendar = () => {
+    console.log('🚀 Add calendar button clicked', { selectedPlatform, calendarUrl: newCalendarUrl?.substring(0, 50) + '...' });
+    
     if (!selectedPlatform || !newCalendarUrl) {
+      console.warn('⚠️ Missing required fields', { selectedPlatform, hasCalendarUrl: !!newCalendarUrl });
       toast({
-        title: 'Error',
+        title: 'Missing Information',
         description: 'Please select a platform and enter a calendar URL',
         variant: 'destructive'
       });
       return;
     }
 
+    // Validate URL format
+    try {
+      new URL(newCalendarUrl);
+    } catch (urlError) {
+      console.error('❌ Invalid URL format:', newCalendarUrl);
+      toast({
+        title: 'Invalid URL',
+        description: 'Please enter a valid calendar URL',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    console.log('✅ Starting calendar sync mutation...');
     addCalendarMutation.mutate({
       platform: selectedPlatform,
       calendarUrl: newCalendarUrl
