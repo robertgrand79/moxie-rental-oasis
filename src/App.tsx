@@ -87,6 +87,7 @@ function App() {
 
                 <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
                   <Route index element={<AdminDashboard />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="blog" element={<BlogManagement />} />
                   <Route path="properties" element={<AdminProperties />} />
                   <Route path="pages" element={<AdminPageManagement />} />
