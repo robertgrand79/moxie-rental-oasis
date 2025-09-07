@@ -341,10 +341,28 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
           <div className="text-sm text-muted-foreground">
             <p><strong>How to get calendar URLs:</strong></p>
             <ul className="list-disc list-inside mt-2 space-y-1">
-              <li><strong>Airbnb:</strong> Host Dashboard → Calendar → Export calendar</li>
-              <li><strong>VRBO:</strong> Property Manager → Calendar → Calendar feeds</li>
-              <li><strong>Booking.com:</strong> Extranet → Calendar → Export</li>
+              <li><strong>Airbnb:</strong> Host Dashboard → Calendar → Export calendar → Copy the "Export calendar" link</li>
+              <li><strong>VRBO:</strong> Owner Dashboard → Calendar → Calendar feeds → Copy iCal URL</li>
+              <li><strong>Booking.com:</strong> Partner Hub → Calendar → Export calendar → Copy iCal link</li>
             </ul>
+            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+              <p className="text-yellow-800 text-sm">
+                <strong>⚠️ Important:</strong> The calendar URL you're using appears to return a 404 error. 
+                This typically means:
+              </p>
+              <ul className="list-disc list-inside mt-1 text-yellow-700 text-xs space-y-1">
+                <li>The URL has expired or been revoked</li>
+                <li>You need to generate a new calendar export link</li>
+                <li>The listing may not be active</li>
+                <li>Check that you copied the complete URL including any parameters</li>
+              </ul>
+            </div>
+            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-blue-800 text-xs">
+                <strong>💡 Tip:</strong> Test your calendar URL by opening it in a new browser tab - 
+                it should download a .ics file or show calendar data.
+              </p>
+            </div>
           </div>
         </div>
 
