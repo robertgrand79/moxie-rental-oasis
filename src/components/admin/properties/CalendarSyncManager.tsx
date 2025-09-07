@@ -57,6 +57,40 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
       });
 
       try {
+        // Special handling for demo mode
+        if (platform === 'demo') {
+          console.log('🧪 Demo mode activated - simulating successful calendar sync');
+          
+          // Simulate a successful calendar with mock data
+          const mockEventCount = 12;
+          
+          // Store the demo calendar sync in the database
+          const { data: calendarData, error: calendarError } = await supabase
+            .from('external_calendars')
+            .upsert({
+              property_id: property.id,
+              platform: 'demo',
+              calendar_url: 'demo://mock-calendar-for-testing',
+              sync_enabled: true,
+              sync_status: 'synced',
+              last_sync_at: new Date().toISOString(),
+              external_property_id: `demo-${property.id}`
+            }, {
+              onConflict: 'property_id,platform'
+            });
+
+          if (calendarError) {
+            console.error('❌ Database error:', calendarError);
+            throw new Error(`Database error: ${calendarError.message}`);
+          }
+
+          return {
+            success: true,
+            message: `✅ Demo calendar sync completed! Found ${mockEventCount} sample bookings. This demonstrates how calendar sync would work with a real iCal URL.`,
+            events: mockEventCount
+          };
+        }
+
         // First, let's try to fetch the iCal data directly to test if it's accessible
         console.log('📥 Fetching iCal data directly...');
         const response = await fetch(calendarUrl);
@@ -311,6 +345,7 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                   <SelectItem value="vrbo">VRBO</SelectItem>
                   <SelectItem value="booking_com">Booking.com</SelectItem>
                   <SelectItem value="hospitable">Hospitable</SelectItem>
+                  <SelectItem value="demo">🧪 Demo Mode (Test)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -320,7 +355,7 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
               <div className="flex gap-2">
                 <Input
                   id="calendar-url"
-                  placeholder="https://www.airbnb.com/calendar/ical/..."
+                  placeholder={selectedPlatform === 'demo' ? 'Demo mode - any text works for testing' : 'https://www.airbnb.com/calendar/ical/...'}
                   value={newCalendarUrl}
                   onChange={(e) => setNewCalendarUrl(e.target.value)}
                 />
