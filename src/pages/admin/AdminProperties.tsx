@@ -3,7 +3,7 @@ import React, { useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { usePropertyForm } from '@/hooks/usePropertyForm';
 import { usePaginatedProperties } from '@/hooks/usePaginatedProperties';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
+import { Button } from '@/components/ui/button';
 import LoadingState from '@/components/ui/loading-state';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import PropertyFormContainer from '@/components/admin/properties/PropertyFormContainer';
@@ -64,15 +64,14 @@ const AdminProperties = () => {
 
   const pageActions = !showAddForm ? (
     <div className="flex gap-2 flex-wrap">
-      <EnhancedButton
+      <Button
         onClick={handleAddProperty} 
-        variant="gradient"
-        icon={<Plus className="h-4 w-4" />}
         disabled={isSubmitting}
         className={`${isMobile ? 'w-full min-h-[44px] px-4 py-3' : 'px-6 py-3'}`}
       >
+        <Plus className="h-4 w-4 mr-2" />
         Add Property
-      </EnhancedButton>
+      </Button>
     </div>
   ) : null;
 
