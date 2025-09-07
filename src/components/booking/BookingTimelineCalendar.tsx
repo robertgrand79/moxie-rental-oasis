@@ -10,7 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Plus, Filter, ChevronLeft, ChevronRight, Calendar, DollarSign, Users, Home, Activity } from 'lucide-react';
 import { useProperties } from '@/hooks/useProperties';
-import { useReservations, useDynamicPricing } from '@/hooks/useBookingData';
+import { useReservations, useDynamicPricing, useAvailability } from '@/hooks/useBookingData';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { format, addDays, startOfWeek, endOfWeek, isWithinInterval, parseISO, isSameDay } from 'date-fns';
 import { Property } from '@/types/property';
 import { cn } from '@/lib/utils';
@@ -55,8 +57,22 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { properties = [] } = useProperties();
-  // Update hook call
+  // Update hook call to include availability blocks as reservations
   const { data: allReservations = [] } = useReservations();
+  
+  // Fetch all availability blocks for all properties
+  const { data: availabilityBlocks = [] } = useQuery({
+    queryKey: ['all-availability-blocks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('availability_blocks')
+        .select('*')
+        .order('start_date', { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   // Generate timeline days
   const timelineDays = useMemo(() => {
@@ -91,9 +107,9 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     return properties.filter(p => selectedProperties.includes(p.id));
   }, [properties, selectedProperties]);
 
-  // Convert reservations to booking blocks
+  // Convert reservations and availability blocks to booking blocks
   const bookingBlocks = useMemo(() => {
-    return allReservations.map(reservation => ({
+    const reservationBlocks = allReservations.map(reservation => ({
       id: reservation.id,
       propertyId: reservation.property_id,
       guestName: reservation.guest_name,
@@ -105,8 +121,27 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
       status: reservation.booking_status,
       cleaningStatus: reservation.cleaning_status,
       guestAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${reservation.guest_name}`
-    })) as BookingBlock[];
-  }, [allReservations]);
+    }));
+
+    // Convert availability blocks (from synced calendars) to booking blocks
+    const availabilityBookingBlocks = availabilityBlocks
+      .filter(block => block.block_type === 'booked')
+      .map(block => ({
+        id: `availability-${block.id}`,
+        propertyId: block.property_id,
+        guestName: block.notes || 'External Booking',
+        guestEmail: block.external_booking_id || 'external@booking.com',
+        checkIn: block.start_date,
+        checkOut: block.end_date,
+        guestCount: block.guest_count || 1,
+        totalAmount: undefined,
+        status: 'confirmed',
+        cleaningStatus: undefined,
+        guestAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${block.notes || 'External'}`
+      }));
+
+    return [...reservationBlocks, ...availabilityBookingBlocks] as BookingBlock[];
+  }, [allReservations, availabilityBlocks]);
 
   const getBookingForPropertyAndDate = (propertyId: string, date: Date) => {
     return bookingBlocks.find(booking => 
