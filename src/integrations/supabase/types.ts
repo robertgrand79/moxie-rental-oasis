@@ -588,11 +588,79 @@ export type Database = {
         }
         Relationships: []
       }
+      device_automations: {
+        Row: {
+          actions: Json | null
+          automation_name: string
+          automation_type: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          property_id: string | null
+          target_devices: string[] | null
+          trigger_conditions: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          actions?: Json | null
+          automation_name: string
+          automation_type: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          property_id?: string | null
+          target_devices?: string[] | null
+          trigger_conditions?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          actions?: Json | null
+          automation_name?: string
+          automation_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          property_id?: string | null
+          target_devices?: string[] | null
+          trigger_conditions?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_automations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_automations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_automations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       device_configurations: {
         Row: {
+          battery_level: number | null
           configuration_data: Json | null
+          connectivity_status: string | null
           created_at: string | null
+          device_brand: string | null
           device_id: string
+          device_model: string | null
           device_name: string | null
           device_type: string | null
           id: string
@@ -600,16 +668,23 @@ export type Database = {
           is_locked: boolean | null
           last_active: string | null
           last_health_check: string | null
+          last_seam_sync: string | null
           property_id: string
           registered_at: string | null
+          seam_device_id: string | null
+          seam_workspace_id: string | null
           status: string | null
           updated_at: string | null
           user_agent: string | null
         }
         Insert: {
+          battery_level?: number | null
           configuration_data?: Json | null
+          connectivity_status?: string | null
           created_at?: string | null
+          device_brand?: string | null
           device_id: string
+          device_model?: string | null
           device_name?: string | null
           device_type?: string | null
           id?: string
@@ -617,16 +692,23 @@ export type Database = {
           is_locked?: boolean | null
           last_active?: string | null
           last_health_check?: string | null
+          last_seam_sync?: string | null
           property_id: string
           registered_at?: string | null
+          seam_device_id?: string | null
+          seam_workspace_id?: string | null
           status?: string | null
           updated_at?: string | null
           user_agent?: string | null
         }
         Update: {
+          battery_level?: number | null
           configuration_data?: Json | null
+          connectivity_status?: string | null
           created_at?: string | null
+          device_brand?: string | null
           device_id?: string
+          device_model?: string | null
           device_name?: string | null
           device_type?: string | null
           id?: string
@@ -634,13 +716,135 @@ export type Database = {
           is_locked?: boolean | null
           last_active?: string | null
           last_health_check?: string | null
+          last_seam_sync?: string | null
           property_id?: string
           registered_at?: string | null
+          seam_device_id?: string | null
+          seam_workspace_id?: string | null
           status?: string | null
           updated_at?: string | null
           user_agent?: string | null
         }
         Relationships: []
+      }
+      device_events: {
+        Row: {
+          access_code_id: string | null
+          created_at: string | null
+          device_id: string | null
+          event_data: Json | null
+          event_source: string | null
+          event_type: string
+          id: string
+          occurred_at: string | null
+          triggered_by: string | null
+        }
+        Insert: {
+          access_code_id?: string | null
+          created_at?: string | null
+          device_id?: string | null
+          event_data?: Json | null
+          event_source?: string | null
+          event_type: string
+          id?: string
+          occurred_at?: string | null
+          triggered_by?: string | null
+        }
+        Update: {
+          access_code_id?: string | null
+          created_at?: string | null
+          device_id?: string | null
+          event_data?: Json | null
+          event_source?: string | null
+          event_type?: string
+          id?: string
+          occurred_at?: string | null
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_events_access_code_id_fkey"
+            columns: ["access_code_id"]
+            isOneToOne: false
+            referencedRelation: "seam_access_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_events_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "seam_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_events_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      device_maintenance_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          device_id: string | null
+          id: string
+          is_resolved: boolean | null
+          message: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string | null
+          work_order_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          device_id?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          message: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          work_order_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          device_id?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          message?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          work_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_maintenance_alerts_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "seam_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_maintenance_alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_maintenance_alerts_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dynamic_pricing: {
         Row: {
@@ -2655,6 +2859,224 @@ export type Database = {
             columns: ["role_id"]
             isOneToOne: false
             referencedRelation: "system_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seam_access_codes: {
+        Row: {
+          access_type: string | null
+          code_name: string
+          code_value: string | null
+          created_at: string | null
+          created_by: string | null
+          device_id: string | null
+          ends_at: string | null
+          id: string
+          is_active: boolean | null
+          max_usage_count: number | null
+          reservation_id: string | null
+          seam_access_code_id: string
+          starts_at: string | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          access_type?: string | null
+          code_name: string
+          code_value?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          device_id?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_usage_count?: number | null
+          reservation_id?: string | null
+          seam_access_code_id: string
+          starts_at?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          access_type?: string | null
+          code_name?: string
+          code_value?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          device_id?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_usage_count?: number | null
+          reservation_id?: string | null
+          seam_access_code_id?: string
+          starts_at?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seam_access_codes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seam_access_codes_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "seam_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seam_access_codes_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "property_reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seam_devices: {
+        Row: {
+          battery_level: number | null
+          battery_status: string | null
+          capabilities: Json | null
+          created_at: string | null
+          current_state: Json | null
+          device_brand: string
+          device_model: string | null
+          device_name: string
+          device_properties: Json | null
+          device_type: string
+          firmware_version: string | null
+          id: string
+          is_online: boolean | null
+          last_seen_at: string | null
+          location: string | null
+          property_id: string | null
+          seam_device_id: string
+          updated_at: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          battery_level?: number | null
+          battery_status?: string | null
+          capabilities?: Json | null
+          created_at?: string | null
+          current_state?: Json | null
+          device_brand: string
+          device_model?: string | null
+          device_name: string
+          device_properties?: Json | null
+          device_type: string
+          firmware_version?: string | null
+          id?: string
+          is_online?: boolean | null
+          last_seen_at?: string | null
+          location?: string | null
+          property_id?: string | null
+          seam_device_id: string
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          battery_level?: number | null
+          battery_status?: string | null
+          capabilities?: Json | null
+          created_at?: string | null
+          current_state?: Json | null
+          device_brand?: string
+          device_model?: string | null
+          device_name?: string
+          device_properties?: Json | null
+          device_type?: string
+          firmware_version?: string | null
+          id?: string
+          is_online?: boolean | null
+          last_seen_at?: string | null
+          location?: string | null
+          property_id?: string | null
+          seam_device_id?: string
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seam_devices_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seam_devices_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seam_devices_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "seam_workspaces"
+            referencedColumns: ["workspace_id"]
+          },
+        ]
+      }
+      seam_workspaces: {
+        Row: {
+          api_key_configured: boolean | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          property_id: string | null
+          sync_status: string | null
+          updated_at: string | null
+          workspace_id: string
+          workspace_name: string
+        }
+        Insert: {
+          api_key_configured?: boolean | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          property_id?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+          workspace_id: string
+          workspace_name: string
+        }
+        Update: {
+          api_key_configured?: boolean | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          property_id?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+          workspace_id?: string
+          workspace_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seam_workspaces_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seam_workspaces_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]

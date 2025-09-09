@@ -9,6 +9,7 @@ import { ReservationList } from '@/components/booking/ReservationList';
 import { PricingCalendar } from '@/components/booking/PricingCalendar';
 import IntegrationSettings from './IntegrationSettings';
 import SyncStatusDashboard from './SyncStatusDashboard';
+import { SmartHomeManager } from '@/components/smart-home/SmartHomeManager';
 
 interface BookingIntegrationManagerProps {
   property: Property;
@@ -52,7 +53,7 @@ const BookingIntegrationManager = ({ property }: BookingIntegrationManagerProps)
       
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Overview
@@ -64,6 +65,10 @@ const BookingIntegrationManager = ({ property }: BookingIntegrationManagerProps)
             <TabsTrigger value="pricing" className="flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
               Pricing
+            </TabsTrigger>
+            <TabsTrigger value="smart-home" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Smart Home
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -81,6 +86,10 @@ const BookingIntegrationManager = ({ property }: BookingIntegrationManagerProps)
 
           <TabsContent value="pricing" className="space-y-6">
             <PricingCalendar propertyId={property.id} />
+          </TabsContent>
+
+          <TabsContent value="smart-home" className="space-y-6">
+            <SmartHomeManager property={property} />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
