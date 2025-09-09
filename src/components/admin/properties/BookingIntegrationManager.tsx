@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Property } from '@/types/property';
-import { Calendar, DollarSign, Settings, Activity, RefreshCw, ExternalLink } from 'lucide-react';
+import { Calendar, DollarSign, Settings, Activity, RefreshCw, ExternalLink, Home } from 'lucide-react';
 import { ReservationList } from '@/components/booking/ReservationList';
 import { PricingCalendar } from '@/components/booking/PricingCalendar';
 import IntegrationSettings from './IntegrationSettings';
@@ -67,7 +67,7 @@ const BookingIntegrationManager = ({ property }: BookingIntegrationManagerProps)
               Pricing
             </TabsTrigger>
             <TabsTrigger value="smart-home" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
+              <Home className="h-4 w-4" />
               Smart Home
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
@@ -78,6 +78,28 @@ const BookingIntegrationManager = ({ property }: BookingIntegrationManagerProps)
 
           <TabsContent value="overview" className="space-y-6">
             <SyncStatusDashboard property={property} />
+            
+            {/* Smart Home Integration Quick Access */}
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-blue-900">
+                  <Home className="h-5 w-5 text-blue-600" />
+                  Smart Home Integration
+                </CardTitle>
+                <CardDescription className="text-blue-700">
+                  Connect Seam.co to manage smart locks, thermostats, and access codes for your property
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Button 
+                  onClick={() => setActiveTab('smart-home')}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Home className="h-4 w-4 mr-2" />
+                  Setup Smart Home Integration
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="reservations" className="space-y-6">
