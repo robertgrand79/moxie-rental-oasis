@@ -17,7 +17,11 @@ const PropertyPage = () => {
   const { addressSlug } = useParams<{ addressSlug: string }>();
   const { properties, loading } = useProperties();
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState("about");
+  
+  // Check URL for tab parameter
+  const searchParams = new URLSearchParams(window.location.search);
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam === 'booking' ? 'booking' : 'about');
 
   console.log('PropertyPage - Current addressSlug from URL:', addressSlug);
   console.log('PropertyPage - Available properties:', properties.length);

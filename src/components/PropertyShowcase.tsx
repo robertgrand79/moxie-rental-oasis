@@ -91,7 +91,7 @@ const PropertyShowcase = () => {
                           View Details
                         </Button>
                       </Link>
-                      <Link to={`/property/${addressSlug}`} className="flex-1">
+                      <Link to={`/property/${addressSlug}?tab=booking`} className="flex-1">
                         <Button size="sm" className="w-full">
                           Book Now
                         </Button>
