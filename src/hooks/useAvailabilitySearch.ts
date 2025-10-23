@@ -13,23 +13,24 @@ interface PropertiesAvailabilityResult {
 }
 
 export const useAvailabilitySearch = (params: AvailabilityParams, enabled: boolean = true) => {
-  return useQuery({
+  type Block = { start_date: string; end_date: string; source_platform?: string };
+  return useQuery<{ isAvailable: boolean; conflicts: Block[]}>({
     queryKey: ['property-availability', params.propertyId, params.checkInDate, params.checkOutDate],
-    queryFn: async () => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<{ isAvailable: boolean; conflicts: Block[] }> => {
+      const { data, error } = await (supabase as any)
         .from('availability_blocks')
-        .select('id, start_date, end_date, source_platform')
+        .select('start_date, end_date, source_platform')
         .eq('property_id', params.propertyId)
         .eq('block_type', 'booked');
 
       if (error) throw error;
 
-      const conflicts = (data || []).filter(block => {
+      const checkIn = new Date(params.checkInDate);
+      const checkOut = new Date(params.checkOutDate);
+
+      const conflicts: Block[] = (data || []).filter((block: Block) => {
         const blockStart = new Date(block.start_date);
         const blockEnd = new Date(block.end_date);
-        const checkIn = new Date(params.checkInDate);
-        const checkOut = new Date(params.checkOutDate);
-
         return (
           (blockStart >= checkIn && blockStart < checkOut) ||
           (blockEnd > checkIn && blockEnd <= checkOut) ||
