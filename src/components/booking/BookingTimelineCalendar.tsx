@@ -147,27 +147,17 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
   }, [allReservations, availabilityBlocks]);
 
   const getBookingForPropertyAndDate = (propertyId: string, date: Date) => {
+    const dayStr = format(date, 'yyyy-MM-dd');
     return bookingBlocks.find(booking => {
       if (booking.propertyId !== propertyId) return false;
-      
-      const checkInDate = new Date(booking.checkIn);
-      const checkOutDate = new Date(booking.checkOut);
-      
-      // Normalize dates to remove time component for comparison
-      const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const normalizedCheckIn = new Date(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate());
-      const normalizedCheckOut = new Date(checkOutDate.getFullYear(), checkOutDate.getMonth(), checkOutDate.getDate());
-      
-      // Debug logging
-      console.log('Checking booking for date:', normalizedDate.toISOString().split('T')[0], 
-                  'check-in:', normalizedCheckIn.toISOString().split('T')[0], 
-                  'check-out:', normalizedCheckOut.toISOString().split('T')[0],
-                  'guest:', booking.guestName);
-      
-      // Check if the date falls within the booking range (inclusive of check-in, exclusive of check-out)
-      const result = normalizedDate >= normalizedCheckIn && normalizedDate < normalizedCheckOut;
-      console.log('Date match result:', result);
-      return result;
+
+      const checkInStr = booking.checkIn?.slice(0, 10);
+      const checkOutStr = booking.checkOut?.slice(0, 10);
+
+      if (!checkInStr || !checkOutStr) return false;
+
+      // Compare as ISO date strings to avoid timezone issues
+      return dayStr >= checkInStr && dayStr < checkOutStr; // inclusive of check-in, exclusive of check-out
     });
   };
 
@@ -175,10 +165,10 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     switch (status) {
       case 'confirmed': return 'bg-emerald-500 hover:bg-emerald-600';
       case 'pending': return 'bg-amber-500 hover:bg-amber-600';
-      case 'cancelled': return 'bg-red-500 hover:bg-red-600';
-      case 'active': return 'bg-blue-500 hover:bg-blue-600';
-      case 'completed': return 'bg-gray-500 hover:bg-gray-600';
-      default: return 'bg-gray-400 hover:bg-gray-500';
+      case 'cancelled': return 'bg-destructive hover:bg-destructive/90';
+      case 'active': return 'bg-primary hover:bg-primary/90';
+      case 'completed': return 'bg-muted-foreground hover:bg-muted-foreground/90';
+      default: return 'bg-border hover:bg-border/80';
     }
   };
 
@@ -255,8 +245,9 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
       );
     }
 
-    const isCheckInDay = isSameDay(day.date, new Date(booking.checkIn));
-    const isCheckOutDay = isSameDay(day.date, addDays(new Date(booking.checkOut), -1));
+    const dayStr = format(day.date, 'yyyy-MM-dd');
+    const isCheckInDay = dayStr === booking.checkIn.slice(0, 10);
+    const isCheckOutDay = format(addDays(day.date, 1), 'yyyy-MM-dd') === booking.checkOut.slice(0, 10);
     
     return (
       <Popover>
