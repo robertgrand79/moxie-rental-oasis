@@ -146,6 +146,32 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     return [...reservationBlocks, ...availabilityBookingBlocks] as BookingBlock[];
   }, [allReservations, availabilityBlocks]);
 
+  // Auto-jump to the nearest upcoming booking if current range has none
+  const autoJumpedRef = useRef(false);
+  useEffect(() => {
+    if (autoJumpedRef.current) return;
+    if (!bookingBlocks.length || !timelineDays.length) return;
+
+    const rangeStartStr = format(timelineDays[0].date, 'yyyy-MM-dd');
+    const rangeEndPlusOneStr = format(addDays(timelineDays[timelineDays.length - 1].date, 1), 'yyyy-MM-dd');
+
+    const hasInRange = bookingBlocks.some(b => {
+      const inStr = b.checkIn.slice(0, 10);
+      const outStr = b.checkOut.slice(0, 10);
+      return inStr < rangeEndPlusOneStr && outStr > rangeStartStr;
+    });
+
+    if (!hasInRange) {
+      const earliestCheckInStr = bookingBlocks
+        .map(b => b.checkIn.slice(0, 10))
+        .sort()[0];
+      if (earliestCheckInStr) {
+        setCurrentWeek(new Date(earliestCheckInStr));
+        autoJumpedRef.current = true;
+      }
+    }
+  }, [bookingBlocks, timelineDays]);
+
   const getBookingForPropertyAndDate = (propertyId: string, date: Date) => {
     const dayStr = format(date, 'yyyy-MM-dd');
     return bookingBlocks.find(booking => {
@@ -235,7 +261,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     if (!booking) {
       return (
         <div 
-          className="h-16 border-r border-border/30 hover:bg-accent/20 cursor-pointer relative group"
+          className="h-20 border-r border-border/30 hover:bg-accent/20 cursor-pointer relative group"
           onClick={() => onAddBooking?.(property.id, format(day.date, 'yyyy-MM-dd'))}
         >
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -253,7 +279,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
       <Popover>
         <PopoverTrigger asChild>
           <div className={cn(
-            "h-16 border-r border-border/30 cursor-pointer relative overflow-hidden",
+            "h-20 border-r border-border/30 cursor-pointer relative overflow-hidden",
             getStatusColor(booking.status),
             "text-white"
           )}>
@@ -510,7 +536,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
                 return (
                   <div 
                     key={property.id}
-                    className="h-16 border-b border-border/30 flex items-center gap-3 px-4 hover:bg-accent/20"
+                    className="h-20 py-2 border-b border-border/30 flex items-start gap-3 px-4 hover:bg-accent/20"
                   >
                     <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0">
                       {property.image_url ? (
