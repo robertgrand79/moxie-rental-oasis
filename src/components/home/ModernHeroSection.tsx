@@ -56,7 +56,7 @@ const ModernHeroSection = () => {
             </div>
 
             {/* Stats Row */}
-            <div className="flex justify-center items-center gap-12 py-6">
+            <div className="flex justify-center items-center gap-12 py-4">
               <div className="text-center">
                 <div className="text-3xl lg:text-4xl font-bold text-white mb-1">
                   {metrics && !isRatingLoading ? metrics.formattedRating : '5.0'}
@@ -98,7 +98,7 @@ const ModernHeroSection = () => {
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
               <Button 
                 asChild
                 size="lg" 
