@@ -23,7 +23,7 @@ const Index = () => {
         <ModernHeroSection />
         
         {/* Search Bar Section - Overlapping Hero */}
-        <section className="relative -mt-12 z-30">
+        <section className="relative mt-8 z-30">
           <div className="container mx-auto px-4">
             <MainSearchBar />
           </div>
