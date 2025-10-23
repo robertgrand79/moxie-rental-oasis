@@ -7,6 +7,11 @@ interface AvailabilityParams {
   checkOutDate: string;
 }
 
+interface PropertiesAvailabilityResult {
+  availableProperties: Array<{ id: string; title: string }>;
+  unavailablePropertyIds: string[];
+}
+
 export const useAvailabilitySearch = (params: AvailabilityParams, enabled: boolean = true) => {
   return useQuery({
     queryKey: ['property-availability', params.propertyId, params.checkInDate, params.checkOutDate],
@@ -40,29 +45,32 @@ export const useAvailabilitySearch = (params: AvailabilityParams, enabled: boole
 };
 
 export const usePropertiesAvailability = (checkInDate: string, checkOutDate: string, enabled = true) => {
-  return useQuery<{ availableProperties: Array<{ id: string; title: string }>; unavailablePropertyIds: string[] }>({
+  return useQuery<PropertiesAvailabilityResult>({
     queryKey: ['properties-availability', checkInDate, checkOutDate],
-    queryFn: async () => {
-      const { data: properties, error: propsError } = await supabase
+    queryFn: async (): Promise<PropertiesAvailabilityResult> => {
+      const propertiesResponse = await (supabase as any)
         .from('properties')
         .select('id, title')
         .eq('is_active', true);
 
-      if (propsError) throw propsError;
+      if (propertiesResponse.error) throw propertiesResponse.error;
 
-      const { data: blocks, error: blocksError } = await supabase
+      const blocksResponse = await (supabase as any)
         .from('availability_blocks')
         .select('property_id, start_date, end_date')
         .eq('block_type', 'booked');
 
-      if (blocksError) throw blocksError;
+      if (blocksResponse.error) throw blocksResponse.error;
+
+      const properties = (propertiesResponse.data || []) as Array<{ id: string; title: string }>;
+      const blocks = (blocksResponse.data || []) as Array<{ property_id: string; start_date: string; end_date: string }>;
 
       const checkIn = new Date(checkInDate);
       const checkOut = new Date(checkOutDate);
 
       const unavailableIds = new Set<string>();
       
-      (blocks || []).forEach(block => {
+      blocks.forEach(block => {
         const blockStart = new Date(block.start_date);
         const blockEnd = new Date(block.end_date);
         if (
@@ -75,7 +83,7 @@ export const usePropertiesAvailability = (checkInDate: string, checkOutDate: str
       });
       
       return {
-        availableProperties: (properties || []).filter(p => !unavailableIds.has(p.id)),
+        availableProperties: properties.filter(p => !unavailableIds.has(p.id)),
         unavailablePropertyIds: Array.from(unavailableIds),
       };
     },
