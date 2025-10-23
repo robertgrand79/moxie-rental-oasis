@@ -62,16 +62,16 @@ export const DateSelectionStep = ({
       </div>
 
       <div className="flex flex-wrap gap-2 justify-center">
-        <Badge variant="outline" className="text-xs">
-          <div className="w-2 h-2 bg-muted rounded-full mr-1" />
+        <Badge variant="outline" className="text-xs gap-2">
+          <div className="w-3 h-3 border border-muted-foreground/30 rounded-sm" />
           Available
         </Badge>
-        <Badge variant="secondary" className="text-xs">
-          <div className="w-2 h-2 bg-primary rounded-full mr-1" />
+        <Badge variant="secondary" className="text-xs gap-2">
+          <div className="w-3 h-3 bg-primary rounded-sm" />
           Selected
         </Badge>
-        <Badge variant="destructive" className="text-xs">
-          <div className="w-2 h-2 bg-destructive rounded-full mr-1" />
+        <Badge variant="outline" className="text-xs gap-2">
+          <div className="w-3 h-3 relative overflow-hidden rounded-sm border border-muted-foreground/30 before:content-[''] before:absolute before:inset-0 before:bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,hsl(var(--muted-foreground))_2px,hsl(var(--muted-foreground))_3px)] before:opacity-30" />
           Unavailable
         </Badge>
       </div>
