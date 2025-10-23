@@ -54,7 +54,8 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     pricing: false
   });
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const { properties = [] } = useProperties();
   // Update hook call to include availability blocks as reservations
@@ -172,6 +173,27 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     }
   }, [bookingBlocks, timelineDays]);
 
+  // Sync horizontal scroll between header and content
+  useEffect(() => {
+    const header = headerRef.current;
+    const content = contentRef.current;
+    if (!header || !content) return;
+
+    const onContentScroll = () => {
+      header.scrollLeft = content.scrollLeft;
+    };
+    const onHeaderScroll = () => {
+      content.scrollLeft = header.scrollLeft;
+    };
+
+    content.addEventListener('scroll', onContentScroll);
+    header.addEventListener('scroll', onHeaderScroll);
+    return () => {
+      content.removeEventListener('scroll', onContentScroll);
+      header.removeEventListener('scroll', onHeaderScroll);
+    };
+  }, []);
+
   const getBookingForPropertyAndDate = (propertyId: string, date: Date) => {
     const dayStr = format(date, 'yyyy-MM-dd');
     return bookingBlocks.find(booking => {
@@ -261,7 +283,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     if (!booking) {
       return (
         <div 
-          className="h-20 border-r border-border/30 hover:bg-accent/20 cursor-pointer relative group"
+          className="h-24 min-w-[120px] w-[120px] flex-shrink-0 border-r border-border/30 hover:bg-accent/20 cursor-pointer relative group"
           onClick={() => onAddBooking?.(property.id, format(day.date, 'yyyy-MM-dd'))}
         >
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -279,7 +301,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
       <Popover>
         <PopoverTrigger asChild>
           <div className={cn(
-            "h-20 border-r border-border/30 cursor-pointer relative overflow-hidden",
+            "h-24 min-w-[120px] w-[120px] flex-shrink-0 border-r border-border/30 cursor-pointer relative overflow-hidden",
             getStatusColor(booking.status),
             "text-white"
           )}>
@@ -536,7 +558,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
                 return (
                   <div 
                     key={property.id}
-                    className="h-20 py-2 border-b border-border/30 flex items-start gap-3 px-4 hover:bg-accent/20"
+                    className="h-24 py-4 border-b border-border/30 flex items-start gap-4 px-4 hover:bg-accent/20"
                   >
                     <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0">
                       {property.image_url ? (
@@ -614,29 +636,31 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
           {/* Timeline grid */}
           <div className="flex-1 overflow-hidden">
             {/* Timeline header */}
-            <div className="h-16 border-b border-border/30 flex bg-muted/50" ref={scrollRef}>
-              {timelineDays.map(day => (
-                <div 
-                  key={day.date.toISOString()}
-                  className={cn(
-                    "min-w-[120px] border-r border-border/30 flex flex-col items-center justify-center",
-                    day.isToday && "bg-primary/10",
-                    day.isWeekend && "bg-muted/80"
-                  )}
-                >
-                  <span className="text-xs text-muted-foreground">{day.dayOfWeek}</span>
-                  <span className={cn(
-                    "text-sm font-medium",
-                    day.isToday && "text-primary font-bold"
-                  )}>
-                    {day.dayNumber}
-                  </span>
-                </div>
-              ))}
+            <div ref={headerRef} className="h-16 border-b border-border/30 bg-muted/50 overflow-x-auto">
+              <div className="flex w-max">
+                {timelineDays.map(day => (
+                  <div 
+                    key={day.date.toISOString()}
+                    className={cn(
+                      "min-w-[120px] w-[120px] flex-shrink-0 border-r border-border/30 flex flex-col items-center justify-center",
+                      day.isToday && "bg-primary/10",
+                      day.isWeekend && "bg-muted/80"
+                    )}
+                  >
+                    <span className="text-xs text-muted-foreground">{day.dayOfWeek}</span>
+                    <span className={cn(
+                      "text-sm font-medium",
+                      day.isToday && "text-primary font-bold"
+                    )}>
+                      {day.dayNumber}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Timeline content */}
-            <ScrollArea className="h-[calc(600px-64px)]">
+            <div ref={contentRef} className="h-[calc(600px-64px)] overflow-auto">
               {filteredProperties.map(property => (
                 <div key={property.id} className="flex border-b border-border/30">
                   {timelineDays.map(day => (
@@ -648,7 +672,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
                   ))}
                 </div>
               ))}
-            </ScrollArea>
+            </div>
           </div>
         </div>
       </CardContent>
