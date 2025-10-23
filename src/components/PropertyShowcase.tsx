@@ -87,20 +87,15 @@ const PropertyShowcase = () => {
 
                     <div className="flex flex-col sm:flex-row gap-3">
                       <Link to={`/property/${addressSlug}`} className="flex-1">
-                        <Button size="sm" className="w-full">
+                        <Button size="sm" variant="outline" className="w-full">
                           View Details
                         </Button>
                       </Link>
-                      {property.hospitable_booking_url && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => window.open(property.hospitable_booking_url, '_blank')}
-                        >
+                      <Link to={`/property/${addressSlug}`} className="flex-1">
+                        <Button size="sm" className="w-full">
                           Book Now
                         </Button>
-                      )}
+                      </Link>
                     </div>
                   </CardContent>
                 </Card>
