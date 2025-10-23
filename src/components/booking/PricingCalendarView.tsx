@@ -3,7 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter, Eye, Layers as LayersIcon, Users as UsersIcon, Plus, Home, Cloud, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter, Eye, Layers as LayersIcon, Users as UsersIcon, Plus, Home, Cloud, AlertCircle, RefreshCw } from 'lucide-react';
+import { usePriceLabsSync } from '@/hooks/usePriceLabsSync';
 import { useProperties } from '@/hooks/useProperties';
 import { useReservations, useDynamicPricing } from '@/hooks/useBookingData';
 import { useQuery } from '@tanstack/react-query';
@@ -57,6 +58,7 @@ export const PricingCalendarView: React.FC<PricingCalendarViewProps> = ({ onAddB
   const scrollRef = useRef<HTMLDivElement>(null);
   const { properties = [] } = useProperties();
   const { data: allReservations = [] } = useReservations();
+  const { syncPricing, isSyncing } = usePriceLabsSync();
 
   // Fetch availability blocks
   const { data: availabilityBlocks = [] } = useQuery({
@@ -364,6 +366,18 @@ export const PricingCalendarView: React.FC<PricingCalendarViewProps> = ({ onAddB
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Sync PriceLabs Button */}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => syncPricing({})}
+            disabled={isSyncing}
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync PriceLabs'}
+          </Button>
+
           {/* Property Filter */}
           <Popover>
             <PopoverTrigger asChild>
