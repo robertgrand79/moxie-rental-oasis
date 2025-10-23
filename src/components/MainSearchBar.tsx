@@ -35,13 +35,13 @@ const MainSearchBar = () => {
   };
 
   return (
-    <Card className="p-6 shadow-xl bg-card/95 backdrop-blur-sm">
-      <div className="flex flex-col md:flex-row gap-4 items-end">
+    <Card className="p-4 md:p-6 shadow-xl bg-card/95 backdrop-blur-sm">
+      <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch md:items-end">
         {/* Location */}
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-1.5 md:space-y-2 w-full">
           <label className="text-sm font-medium">Location</label>
           <Select value={location} onValueChange={setLocation}>
-            <SelectTrigger>
+            <SelectTrigger className="h-11">
               <SelectValue placeholder="Select location" />
             </SelectTrigger>
             <SelectContent>
@@ -53,22 +53,24 @@ const MainSearchBar = () => {
         </div>
 
         {/* Check-in Date */}
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-1.5 md:space-y-2 w-full">
           <label className="text-sm font-medium">Check-in</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  'w-full justify-start text-left font-normal',
+                  'w-full justify-start text-left font-normal h-11',
                   !checkIn && 'text-muted-foreground'
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {checkIn ? format(checkIn, 'PPP') : 'Select date'}
+                <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                <span className="truncate">
+                  {checkIn ? format(checkIn, 'MMM dd, yyyy') : 'Select date'}
+                </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
                 selected={checkIn}
@@ -81,22 +83,24 @@ const MainSearchBar = () => {
         </div>
 
         {/* Check-out Date */}
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-1.5 md:space-y-2 w-full">
           <label className="text-sm font-medium">Check-out</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  'w-full justify-start text-left font-normal',
+                  'w-full justify-start text-left font-normal h-11',
                   !checkOut && 'text-muted-foreground'
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {checkOut ? format(checkOut, 'PPP') : 'Select date'}
+                <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                <span className="truncate">
+                  {checkOut ? format(checkOut, 'MMM dd, yyyy') : 'Select date'}
+                </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
                 selected={checkOut}
@@ -112,10 +116,10 @@ const MainSearchBar = () => {
         </div>
 
         {/* Guests */}
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-1.5 md:space-y-2 w-full">
           <label className="text-sm font-medium">Guests</label>
           <Select value={guests} onValueChange={setGuests}>
-            <SelectTrigger>
+            <SelectTrigger className="h-11">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -136,7 +140,7 @@ const MainSearchBar = () => {
           onClick={handleSearch}
           size="lg"
           disabled={!checkIn || !checkOut}
-          className="md:min-w-[120px]"
+          className="w-full md:w-auto md:min-w-[120px] h-11"
         >
           <Search className="h-4 w-4 mr-2" />
           Search
