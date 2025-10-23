@@ -8,16 +8,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CalendarIcon, Search, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const MainSearchBar = () => {
   const navigate = useNavigate();
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState<string>('2');
-  const [location, setLocation] = useState<string>('all');
 
   const handleSearch = () => {
     if (!checkIn || !checkOut) {
+      toast.error('Please select both check-in and check-out dates');
+      return;
+    }
+
+    if (checkOut <= checkIn) {
+      toast.error('Check-out must be after check-in');
       return;
     }
 
@@ -27,31 +33,13 @@ const MainSearchBar = () => {
       guests: guests,
     });
 
-    if (location !== 'all') {
-      params.append('location', location);
-    }
-
-    navigate(`/search-results?${params.toString()}`);
+    navigate(`/search?${params.toString()}`);
   };
 
   return (
     <Card className="p-4 md:p-6 shadow-xl bg-card/95 backdrop-blur-sm">
       <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch md:items-end">
-        {/* Location */}
-        <div className="flex-1 space-y-1.5 md:space-y-2 w-full">
-          <label className="text-sm font-medium">Location</label>
-          <Select value={location} onValueChange={setLocation}>
-            <SelectTrigger className="h-11">
-              <SelectValue placeholder="Select location" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              <SelectItem value="Eugene">Eugene</SelectItem>
-              <SelectItem value="Springfield">Springfield</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
+        {/* Check-in Date */}
         {/* Check-in Date */}
         <div className="flex-1 space-y-1.5 md:space-y-2 w-full">
           <label className="text-sm font-medium">Check-in</label>

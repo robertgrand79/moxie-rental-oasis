@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Calendar, Users, MapPin } from 'lucide-react';
+import { Search, Calendar, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const InternalSearchBar = () => {
-  const [location, setLocation] = useState('');
   const [checkin, setCheckin] = useState('');
   const [checkout, setCheckout] = useState('');
   const [guests, setGuests] = useState('1');
   const navigate = useNavigate();
 
   const handleSearch = () => {
+    if (!checkin || !checkout) {
+      toast.error('Please select both check-in and check-out dates');
+      return;
+    }
+    if (checkout <= checkin) {
+      toast.error('Check-out must be after check-in');
+      return;
+    }
+
     const params = new URLSearchParams();
-    if (location) params.set('location', location);
     if (checkin) params.set('checkin', checkin);
     if (checkout) params.set('checkout', checkout);
     if (guests) params.set('guests', guests);
@@ -27,20 +35,7 @@ const InternalSearchBar = () => {
         <p className="text-gray-600 text-sm sm:text-base">Search and book your ideal vacation rental</p>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            Location
-          </label>
-          <input 
-            type="text" 
-            placeholder="Where are you going?"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-          />
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 items-end">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
             <Calendar className="h-4 w-4" />
