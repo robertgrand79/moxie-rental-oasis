@@ -10,6 +10,8 @@ const InternalSearchBar = () => {
   const [guests, setGuests] = useState('1');
   const navigate = useNavigate();
 
+  const isInvalid = !checkin || !checkout || checkout <= checkin;
+
   const handleSearch = () => {
     if (!checkin || !checkout) {
       toast.error('Please select both check-in and check-out dates');
@@ -82,7 +84,7 @@ const InternalSearchBar = () => {
         </div>
       </div>
       <div className="mt-4 sm:mt-6 text-center">
-        <Button size="lg" onClick={handleSearch} className="px-6 sm:px-8 w-full sm:w-auto">
+        <Button size="lg" onClick={handleSearch} disabled={isInvalid} className="px-6 sm:px-8 w-full sm:w-auto">
           <Search className="h-4 w-4 mr-2" />
           Search Properties
         </Button>

@@ -127,7 +127,7 @@ const MainSearchBar = () => {
         <Button 
           onClick={handleSearch}
           size="lg"
-          disabled={!checkIn || !checkOut}
+          disabled={!checkIn || !checkOut || (checkIn && checkOut && checkOut <= checkIn)}
           className="w-full md:w-auto md:min-w-[120px] h-11"
         >
           <Search className="h-4 w-4 mr-2" />

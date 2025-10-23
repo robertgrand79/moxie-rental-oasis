@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import ChatWidget from '@/components/chat/ChatWidget';
 import PublicSidebar from '@/components/navbar/PublicSidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/sonner';
 
 const PublicLayout = () => {
   return (
@@ -20,6 +21,7 @@ const PublicLayout = () => {
             </main>
             <Footer />
             <ChatWidget />
+            <Toaster position="top-center" richColors />
           </SidebarInset>
         </div>
       </SidebarProvider>
