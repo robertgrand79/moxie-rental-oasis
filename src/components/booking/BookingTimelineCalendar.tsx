@@ -8,9 +8,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Filter, ChevronLeft, ChevronRight, Calendar, DollarSign, Users, Home, Activity } from 'lucide-react';
+import { Plus, Filter, ChevronLeft, ChevronRight, Calendar, DollarSign, Users, Home, Activity, Cloud, CloudOff, Clock } from 'lucide-react';
 import { useProperties } from '@/hooks/useProperties';
-import { useReservations, useDynamicPricing, useAvailability } from '@/hooks/useBookingData';
+import { useReservations, useDynamicPricing, useAvailability, useExternalCalendars } from '@/hooks/useBookingData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, addDays, startOfWeek, endOfWeek, isWithinInterval, parseISO, isSameDay } from 'date-fns';
@@ -59,6 +59,9 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
   const { properties = [] } = useProperties();
   // Update hook call to include availability blocks as reservations
   const { data: allReservations = [] } = useReservations();
+  
+  // Fetch external calendar sync info for all properties
+  const { data: externalCalendars = [] } = useExternalCalendars();
   
   // Fetch all availability blocks for all properties
   const { data: availabilityBlocks = [] } = useQuery({
@@ -195,6 +198,45 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     } else {
       setSelectedProperties(prev => prev.filter(id => id !== propertyId));
     }
+  };
+
+  // Calculate stats per property
+  const getPropertyStats = (propertyId: string) => {
+    const externalBookingCount = availabilityBlocks.filter(
+      block => block.property_id === propertyId && block.block_type === 'booked'
+    ).length;
+    
+    const directBookingCount = allReservations.filter(
+      reservation => reservation.property_id === propertyId
+    ).length;
+    
+    const propertyCalendars = externalCalendars.filter(
+      cal => cal.property_id === propertyId && cal.sync_enabled
+    );
+    
+    const lastSyncTime = propertyCalendars.length > 0
+      ? propertyCalendars.reduce((latest, cal) => {
+          const syncTime = cal.last_sync_at ? new Date(cal.last_sync_at) : new Date(0);
+          return syncTime > latest ? syncTime : latest;
+        }, new Date(0))
+      : null;
+    
+    const syncStatus = propertyCalendars.length === 0 
+      ? 'none' 
+      : propertyCalendars.some(cal => cal.sync_status === 'failed')
+      ? 'failed'
+      : propertyCalendars.some(cal => cal.sync_status === 'syncing')
+      ? 'syncing'
+      : 'synced';
+    
+    return {
+      externalBookingCount,
+      directBookingCount,
+      totalBookingCount: externalBookingCount + directBookingCount,
+      lastSyncTime,
+      syncStatus,
+      hasExternalSync: propertyCalendars.length > 0
+    };
   };
 
   const BookingBlockCell = ({ property, day }: { property: Property; day: TimelineDay }) => {
@@ -471,31 +513,84 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
             </div>
             
             <ScrollArea className="h-[calc(600px-64px)]">
-              {filteredProperties.map(property => (
-                <div 
-                  key={property.id}
-                  className="h-16 border-b border-border/30 flex items-center gap-3 px-4 hover:bg-accent/20"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                    {property.image_url ? (
-                      <img 
-                        src={property.image_url} 
-                        alt={property.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
-                        <Home className="h-4 w-4 text-primary" />
+              {filteredProperties.map(property => {
+                const stats = getPropertyStats(property.id);
+                
+                return (
+                  <div 
+                    key={property.id}
+                    className="h-16 border-b border-border/30 flex items-center gap-3 px-4 hover:bg-accent/20"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                      {property.image_url ? (
+                        <img 
+                          src={property.image_url} 
+                          alt={property.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                          <Home className="h-4 w-4 text-primary" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-medium truncate">{property.title}</h4>
+                        {stats.hasExternalSync && (
+                          <div className="flex items-center gap-1">
+                            {stats.syncStatus === 'synced' && (
+                              <div title="Sync enabled">
+                                <Cloud className="h-3 w-3 text-emerald-500" />
+                              </div>
+                            )}
+                            {stats.syncStatus === 'failed' && (
+                              <div title="Sync failed">
+                                <CloudOff className="h-3 w-3 text-destructive" />
+                              </div>
+                            )}
+                            {stats.syncStatus === 'syncing' && (
+                              <div title="Syncing...">
+                                <Cloud className="h-3 w-3 text-amber-500 animate-pulse" />
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    )}
+                      
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{property.location}</span>
+                        {stats.externalBookingCount > 0 && (
+                          <>
+                            <span>•</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                              {stats.externalBookingCount} ext
+                            </span>
+                          </>
+                        )}
+                        {stats.directBookingCount > 0 && (
+                          <>
+                            <span>•</span>
+                            <span className="text-primary font-medium">
+                              {stats.directBookingCount} direct
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      
+                      {stats.lastSyncTime && stats.lastSyncTime.getTime() > 0 && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                          <Clock className="h-3 w-3" />
+                          <span>
+                            Last sync: {format(stats.lastSyncTime, 'MMM d, h:mm a')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium truncate">{property.title}</h4>
-                    <p className="text-xs text-muted-foreground truncate">{property.location}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </ScrollArea>
           </div>
 
