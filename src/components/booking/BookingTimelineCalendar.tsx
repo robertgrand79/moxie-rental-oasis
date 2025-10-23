@@ -29,6 +29,7 @@ interface BookingBlock {
   status: string;
   cleaningStatus?: string;
   guestAvatar?: string;
+  sourcePlatform?: string;
 }
 
 interface TimelineDay {
@@ -124,7 +125,8 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
       totalAmount: reservation.total_amount,
       status: reservation.booking_status,
       cleaningStatus: reservation.cleaning_status,
-      guestAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${reservation.guest_name}`
+      guestAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${reservation.guest_name}`,
+      sourcePlatform: 'direct'
     }));
 
     // Convert availability blocks (from synced calendars) to booking blocks
@@ -141,7 +143,8 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
         totalAmount: undefined,
         status: 'confirmed',
         cleaningStatus: undefined,
-        guestAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${block.notes || 'External'}`
+        guestAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${block.notes || 'External'}`,
+        sourcePlatform: block.source_platform
       }));
 
     return [...reservationBlocks, ...availabilityBookingBlocks] as BookingBlock[];
@@ -209,7 +212,19 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, sourcePlatform?: string) => {
+    // Platform-based colors take priority
+    if (sourcePlatform === 'airbnb') {
+      return 'bg-red-500 hover:bg-red-600';
+    }
+    if (sourcePlatform === 'vrbo') {
+      return 'bg-blue-500 hover:bg-blue-600';
+    }
+    if (sourcePlatform === 'direct') {
+      return 'bg-emerald-500 hover:bg-emerald-600';
+    }
+    
+    // Fallback to status-based colors for bookings without platform info
     switch (status) {
       case 'confirmed': return 'bg-emerald-500 hover:bg-emerald-600';
       case 'pending': return 'bg-amber-500 hover:bg-amber-600';
@@ -302,7 +317,7 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
         <PopoverTrigger asChild>
           <div className={cn(
             "h-24 min-w-[120px] w-[120px] flex-shrink-0 border-r border-border/30 cursor-pointer relative overflow-hidden",
-            getStatusColor(booking.status),
+            getStatusColor(booking.status, booking.sourcePlatform),
             "text-white"
           )}>
             <div className="absolute inset-0 p-1 flex flex-col justify-center">
