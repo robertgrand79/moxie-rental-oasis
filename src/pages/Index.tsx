@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ModernHeroSection from '@/components/home/ModernHeroSection';
+import MainSearchBar from '@/components/MainSearchBar';
 import CompactPropertyShowcase from '@/components/home/CompactPropertyShowcase';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
 import WhyMoxieSection from '@/components/home/WhyMoxieSection';
@@ -20,6 +21,14 @@ const Index = () => {
     <BackgroundWrapper>
       <main>
         <ModernHeroSection />
+        
+        {/* Search Bar Section - Overlapping Hero */}
+        <section className="relative -mt-24 z-30">
+          <div className="container mx-auto px-4">
+            <MainSearchBar />
+          </div>
+        </section>
+        
         <CompactPropertyShowcase />
         <TestimonialsSection />
         <SocialProofSection />
