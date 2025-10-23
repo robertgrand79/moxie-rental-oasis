@@ -167,13 +167,6 @@ export type Database = {
             referencedRelation: "properties"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "availability_blocks_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
-            referencedColumns: ["id"]
-          },
         ]
       }
       blog_posts: {
@@ -292,6 +285,51 @@ export type Database = {
           website_url?: string | null
         }
         Relationships: []
+      }
+      booking_charges: {
+        Row: {
+          amount: number
+          charge_name: string
+          charge_type: string
+          created_at: string | null
+          id: string
+          reservation_id: string
+          tax_rate_id: string | null
+        }
+        Insert: {
+          amount: number
+          charge_name: string
+          charge_type: string
+          created_at?: string | null
+          id?: string
+          reservation_id: string
+          tax_rate_id?: string | null
+        }
+        Update: {
+          amount?: number
+          charge_name?: string
+          charge_type?: string
+          created_at?: string | null
+          id?: string
+          reservation_id?: string
+          tax_rate_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_charges_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_charges_tax_rate_id_fkey"
+            columns: ["tax_rate_id"]
+            isOneToOne: false
+            referencedRelation: "tax_rates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bookings: {
         Row: {
@@ -643,13 +681,6 @@ export type Database = {
             referencedRelation: "properties"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "device_automations_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
-            referencedColumns: ["id"]
-          },
         ]
       }
       device_configurations: {
@@ -900,13 +931,6 @@ export type Database = {
             referencedRelation: "properties"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "dynamic_pricing_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
-            referencedColumns: ["id"]
-          },
         ]
       }
       eugene_events: {
@@ -1041,13 +1065,6 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "external_calendars_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -2318,13 +2335,6 @@ export type Database = {
             referencedRelation: "properties"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "pricing_rules_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
-            referencedColumns: ["id"]
-          },
         ]
       }
       profiles: {
@@ -2420,13 +2430,14 @@ export type Database = {
           amenities: string | null
           bathrooms: number
           bedrooms: number
+          city: string | null
+          cleaning_fee: number | null
           cover_image_url: string | null
           created_at: string
           created_by: string
           description: string
           display_order: number | null
           featured_photos: string[] | null
-          hospitable_booking_url: string | null
           hospitable_property_id: string | null
           id: string
           image_url: string | null
@@ -2434,6 +2445,7 @@ export type Database = {
           location: string
           max_guests: number
           price_per_night: number | null
+          service_fee_percentage: number | null
           title: string
           updated_at: string
         }
@@ -2442,13 +2454,14 @@ export type Database = {
           amenities?: string | null
           bathrooms: number
           bedrooms: number
+          city?: string | null
+          cleaning_fee?: number | null
           cover_image_url?: string | null
           created_at?: string
           created_by: string
           description: string
           display_order?: number | null
           featured_photos?: string[] | null
-          hospitable_booking_url?: string | null
           hospitable_property_id?: string | null
           id?: string
           image_url?: string | null
@@ -2456,6 +2469,7 @@ export type Database = {
           location: string
           max_guests: number
           price_per_night?: number | null
+          service_fee_percentage?: number | null
           title: string
           updated_at?: string
         }
@@ -2464,13 +2478,14 @@ export type Database = {
           amenities?: string | null
           bathrooms?: number
           bedrooms?: number
+          city?: string | null
+          cleaning_fee?: number | null
           cover_image_url?: string | null
           created_at?: string
           created_by?: string
           description?: string
           display_order?: number | null
           featured_photos?: string[] | null
-          hospitable_booking_url?: string | null
           hospitable_property_id?: string | null
           id?: string
           image_url?: string | null
@@ -2478,6 +2493,7 @@ export type Database = {
           location?: string
           max_guests?: number
           price_per_night?: number | null
+          service_fee_percentage?: number | null
           title?: string
           updated_at?: string
         }
@@ -2529,13 +2545,6 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: true
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "property_access_details_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: true
-            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -2678,6 +2687,48 @@ export type Database = {
         }
         Relationships: []
       }
+      property_tax_assignments: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          property_id: string
+          tax_rate_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          property_id: string
+          tax_rate_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          property_id?: string
+          tax_rate_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_tax_assignments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_tax_assignments_tax_rate_id_fkey"
+            columns: ["tax_rate_id"]
+            isOneToOne: false
+            referencedRelation: "tax_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limits: {
         Row: {
           created_at: string | null
@@ -2799,13 +2850,6 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reservations_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -3012,13 +3056,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "seam_devices_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "seam_devices_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
@@ -3070,13 +3107,6 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "seam_workspaces_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -3303,13 +3333,6 @@ export type Database = {
             referencedRelation: "properties"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "sync_logs_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
-            referencedColumns: ["id"]
-          },
         ]
       }
       sync_metadata: {
@@ -3355,13 +3378,6 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sync_metadata_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -3496,14 +3512,46 @@ export type Database = {
             referencedRelation: "properties"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "tasks_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
-            referencedColumns: ["id"]
-          },
         ]
+      }
+      tax_rates: {
+        Row: {
+          created_at: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          is_active: boolean | null
+          jurisdiction: string
+          jurisdiction_type: string
+          tax_name: string
+          tax_rate: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          is_active?: boolean | null
+          jurisdiction: string
+          jurisdiction_type: string
+          tax_name: string
+          tax_rate: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          is_active?: boolean | null
+          jurisdiction?: string
+          jurisdiction_type?: string
+          tax_name?: string
+          tax_rate?: number
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       testimonials: {
         Row: {
@@ -3730,13 +3778,6 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "turno_property_mapping_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -4085,13 +4126,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "work_orders_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "property_listings"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "work_orders_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
@@ -4102,79 +4136,11 @@ export type Database = {
       }
     }
     Views: {
-      property_listings: {
-        Row: {
-          amenities: string | null
-          bathrooms: number | null
-          bedrooms: number | null
-          cover_image_url: string | null
-          created_at: string | null
-          description: string | null
-          display_order: number | null
-          featured_photos: string[] | null
-          hospitable_booking_url: string | null
-          hospitable_property_id: string | null
-          id: string | null
-          image_url: string | null
-          images: string[] | null
-          location: string | null
-          max_guests: number | null
-          price_per_night: number | null
-          title: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          amenities?: string | null
-          bathrooms?: number | null
-          bedrooms?: number | null
-          cover_image_url?: string | null
-          created_at?: string | null
-          description?: string | null
-          display_order?: number | null
-          featured_photos?: string[] | null
-          hospitable_booking_url?: string | null
-          hospitable_property_id?: string | null
-          id?: string | null
-          image_url?: string | null
-          images?: string[] | null
-          location?: string | null
-          max_guests?: number | null
-          price_per_night?: number | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          amenities?: string | null
-          bathrooms?: number | null
-          bedrooms?: number | null
-          cover_image_url?: string | null
-          created_at?: string | null
-          description?: string | null
-          display_order?: number | null
-          featured_photos?: string[] | null
-          hospitable_booking_url?: string | null
-          hospitable_property_id?: string | null
-          id?: string | null
-          image_url?: string | null
-          images?: string[] | null
-          location?: string | null
-          max_guests?: number | null
-          price_per_night?: number | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      archive_old_community_updates: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      can_manage_users: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      archive_old_community_updates: { Args: never; Returns: undefined }
+      can_manage_users: { Args: never; Returns: boolean }
       can_update_user_role: {
         Args: { new_role: string; old_role: string; target_user_id: string }
         Returns: boolean
@@ -4188,22 +4154,28 @@ export type Database = {
         }
         Returns: boolean
       }
-      generate_work_order_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
+      create_reservation_with_lock: {
+        Args: {
+          p_check_in: string
+          p_check_out: string
+          p_guest_count: number
+          p_guest_email: string
+          p_guest_name: string
+          p_guest_phone: string
+          p_payment_status: string
+          p_property_id: string
+          p_stripe_session_id: string
+          p_total_amount: number
+        }
+        Returns: Json
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      generate_work_order_number: { Args: never; Returns: string }
+      is_admin: { Args: never; Returns: boolean }
       refresh_office_space_availability: {
         Args: { p_office_space_id: string }
         Returns: undefined
       }
-      turno_sync_properties: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      turno_sync_properties: { Args: never; Returns: undefined }
       user_has_permission: {
         Args: { permission_key: string; user_id: string }
         Returns: boolean

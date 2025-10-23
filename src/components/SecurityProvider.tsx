@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { usePostMessageHandler } from '@/hooks/usePostMessageHandler';
 import { addSecurityHeaders } from '@/utils/enhancedSecurity';
 
 interface SecurityProviderProps {
@@ -7,8 +6,6 @@ interface SecurityProviderProps {
 }
 
 const SecurityProvider = ({ children }: SecurityProviderProps) => {
-  // Initialize global postMessage handler
-  usePostMessageHandler();
 
   useEffect(() => {
     // Add enhanced security headers

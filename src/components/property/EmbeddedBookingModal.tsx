@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, X, Loader2 } from 'lucide-react';
-import { usePostMessageHandler } from '@/hooks/usePostMessageHandler';
 
 interface EmbeddedBookingModalProps {
   isOpen: boolean;
@@ -15,9 +14,6 @@ interface EmbeddedBookingModalProps {
 
 const EmbeddedBookingModal = ({ isOpen, onClose, bookingUrl, propertyTitle }: EmbeddedBookingModalProps) => {
   const [isLoading, setIsLoading] = useState(true);
-
-  // Handle cross-origin postMessage communication
-  usePostMessageHandler();
 
   const handleExternalFallback = () => {
     window.open(bookingUrl, '_blank', 'noopener,noreferrer');
