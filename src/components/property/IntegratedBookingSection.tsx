@@ -9,20 +9,17 @@ interface IntegratedBookingSectionProps {
 
 const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) => {
   const handleBookingComplete = (reservationId: string) => {
-    // Handle successful booking
     console.log('Booking completed:', reservationId);
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-[80vh]">
-      <div className="bg-white border-b border-gray-200 p-6">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900">Complete Your Reservation</h2>
-          <p className="text-gray-600">Secure booking powered by Moxie Vacation Rentals</p>
+    <div className="bg-muted/30 min-h-screen">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8 text-center space-y-2">
+          <h1 className="text-3xl font-bold">Complete Your Reservation</h1>
+          <p className="text-muted-foreground">Secure booking powered by Moxie Vacation Rentals</p>
         </div>
-      </div>
-      
-      <div className="p-6">
+        
         <GuestBookingWidget 
           property={property} 
           onBookingComplete={handleBookingComplete}
