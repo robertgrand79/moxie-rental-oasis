@@ -14,6 +14,7 @@ export interface Property {
   featured_photos?: string[]; // Array of up to 10 selected photos for display
   hospitable_booking_url?: string;
   airbnb_listing_url?: string; // New field for Airbnb integration
+  pricelabs_listing_id?: string; // PriceLabs integration
   amenities?: string;
   display_order?: number; // New field for custom ordering
   created_at?: string;
