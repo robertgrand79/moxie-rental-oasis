@@ -6,13 +6,17 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Property } from '@/types/property';
 import PhotoUploadSection from './PropertyForm/PhotoUploadSection';
 import PropertyDetailsForm from './PropertyForm/PropertyDetailsForm';
 import BookingIntegrationSection from './PropertyForm/BookingIntegrationSection';
 import { PropertyFormData } from './PropertyForm/types';
 import { useOptimizedPhotoUpload } from '@/hooks/useOptimizedPhotoUpload';
-import { Loader2 } from 'lucide-react';
+import { Loader2, FileText, Image, Calendar, Home, Wrench } from 'lucide-react';
+import BookingIntegrationManager from '@/components/admin/properties/BookingIntegrationManager';
+import TurnoPropertyMapping from './PropertyForm/TurnoPropertyMapping';
+import { SmartHomeManager } from '@/components/smart-home/SmartHomeManager';
 
 const propertySchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -89,6 +93,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
   };
 
   const isProcessing = isSubmitting || uploading;
+  const [activeTab, setActiveTab] = useState('details');
 
   return (
     <Card className="w-full max-w-5xl mx-auto">
@@ -97,27 +102,71 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
           {isEditing ? 'Edit Property' : 'Add New Property'}
         </CardTitle>
         <CardDescription className="text-gray-600">
-          {isEditing ? 'Update your vacation rental listing details' : 'Create a new vacation rental listing with photos and booking integration'}
+          {isEditing ? 'Update your vacation rental listing with all details and integrations' : 'Create a new vacation rental listing with photos and integrations'}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-            <PhotoUploadSection
-              photos={photos}
-              onPhotosChange={setPhotos}
-              isEditing={isEditing}
-              existingImages={existingImages}
-              onExistingImagesReorder={handleExistingImagesReorder}
-              featuredPhotos={featuredPhotos}
-              onFeaturedPhotosChange={setFeaturedPhotos}
-              onDeletedImagesChange={setDeletedImages}
-              disabled={isProcessing}
-            />
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="details" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Details
+                </TabsTrigger>
+                <TabsTrigger value="photos" className="flex items-center gap-2">
+                  <Image className="h-4 w-4" />
+                  Photos
+                </TabsTrigger>
+                <TabsTrigger value="booking" className="flex items-center gap-2" disabled={!isEditing}>
+                  <Calendar className="h-4 w-4" />
+                  Booking
+                </TabsTrigger>
+                <TabsTrigger value="smart-home" className="flex items-center gap-2" disabled={!isEditing}>
+                  <Home className="h-4 w-4" />
+                  Smart Home
+                </TabsTrigger>
+                <TabsTrigger value="turno" className="flex items-center gap-2" disabled={!isEditing}>
+                  <Wrench className="h-4 w-4" />
+                  Turno
+                </TabsTrigger>
+              </TabsList>
 
-            <PropertyDetailsForm form={form} disabled={isProcessing} />
+              <TabsContent value="details" className="space-y-6 mt-6">
+                <PropertyDetailsForm form={form} disabled={isProcessing} />
+                <BookingIntegrationSection form={form} disabled={isProcessing} />
+              </TabsContent>
 
-            <BookingIntegrationSection form={form} disabled={isProcessing} />
+              <TabsContent value="photos" className="space-y-6 mt-6">
+                <PhotoUploadSection
+                  photos={photos}
+                  onPhotosChange={setPhotos}
+                  isEditing={isEditing}
+                  existingImages={existingImages}
+                  onExistingImagesReorder={handleExistingImagesReorder}
+                  featuredPhotos={featuredPhotos}
+                  onFeaturedPhotosChange={setFeaturedPhotos}
+                  onDeletedImagesChange={setDeletedImages}
+                  disabled={isProcessing}
+                />
+              </TabsContent>
+
+              {isEditing && initialData && (
+                <>
+                  <TabsContent value="booking" className="space-y-6 mt-6">
+                    <BookingIntegrationManager property={initialData as Property} />
+                  </TabsContent>
+
+                  <TabsContent value="smart-home" className="space-y-6 mt-6">
+                    <SmartHomeManager property={initialData as Property} />
+                  </TabsContent>
+
+                  <TabsContent value="turno" className="space-y-6 mt-6">
+                    <TurnoPropertyMapping property={initialData as Property} />
+                  </TabsContent>
+                </>
+              )}
+            </Tabs>
 
             {isProcessing && (
               <div className="space-y-4 p-6 bg-gray-50 rounded-lg border">
