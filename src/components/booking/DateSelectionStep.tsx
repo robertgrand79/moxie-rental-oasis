@@ -71,7 +71,7 @@ export const DateSelectionStep = ({
           Selected
         </Badge>
         <Badge variant="outline" className="text-xs gap-2">
-          <div className="w-3 h-3 relative overflow-hidden rounded-sm border border-muted-foreground/30 before:content-[''] before:absolute before:inset-0 before:bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,hsl(var(--muted-foreground))_2px,hsl(var(--muted-foreground))_3px)] before:opacity-30" />
+          <div className="w-3 h-3 relative overflow-hidden rounded-sm bg-muted before:content-[''] before:absolute before:inset-0 before:bg-[repeating-linear-gradient(45deg,transparent,transparent_3px,hsl(var(--destructive))_3px,hsl(var(--destructive))_4px)] before:opacity-40" />
           Unavailable
         </Badge>
       </div>
