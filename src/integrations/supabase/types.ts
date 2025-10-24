@@ -2445,6 +2445,7 @@ export type Database = {
           location: string
           max_guests: number
           price_per_night: number | null
+          pricelabs_listing_id: string | null
           service_fee_percentage: number | null
           title: string
           updated_at: string
@@ -2469,6 +2470,7 @@ export type Database = {
           location: string
           max_guests: number
           price_per_night?: number | null
+          pricelabs_listing_id?: string | null
           service_fee_percentage?: number | null
           title: string
           updated_at?: string
@@ -2493,6 +2495,7 @@ export type Database = {
           location?: string
           max_guests?: number
           price_per_night?: number | null
+          pricelabs_listing_id?: string | null
           service_fee_percentage?: number | null
           title?: string
           updated_at?: string

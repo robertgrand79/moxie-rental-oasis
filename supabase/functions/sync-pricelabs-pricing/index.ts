@@ -39,11 +39,14 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { property_id, start_date, end_date } = body;
 
-    // Fetch properties from database
-    let query = supabase.from('properties').select('id, title');
+    // Fetch properties from database with PriceLabs listing IDs
+    let query = supabase.from('properties').select('id, title, pricelabs_listing_id');
     
     if (property_id) {
       query = query.eq('id', property_id);
+    } else {
+      // Only fetch properties that have a PriceLabs listing ID configured
+      query = query.not('pricelabs_listing_id', 'is', null);
     }
 
     const { data: properties, error: propertiesError } = await query;
@@ -55,7 +58,10 @@ Deno.serve(async (req) => {
 
     if (!properties || properties.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No properties found' }),
+        JSON.stringify({ 
+          error: 'No properties found with PriceLabs listing IDs configured',
+          message: 'Please configure PriceLabs listing IDs for your properties in the admin settings'
+        }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -70,9 +76,21 @@ Deno.serve(async (req) => {
       try {
         console.log(`Fetching pricing for property: ${property.title} (${property.id})`);
 
-        // Build PriceLabs API URL
+        // Skip if no PriceLabs listing ID configured
+        if (!property.pricelabs_listing_id) {
+          console.log(`Skipping ${property.title}: No PriceLabs listing ID configured`);
+          syncResults.push({
+            property_id: property.id,
+            property_title: property.title,
+            success: false,
+            error: 'No PriceLabs listing ID configured'
+          });
+          continue;
+        }
+
+        // Build PriceLabs API URL using the configured listing ID
         const priceLabsUrl = new URL('https://api.pricelabs.co/v1/listings/prices');
-        priceLabsUrl.searchParams.append('listing_id', property.id);
+        priceLabsUrl.searchParams.append('listing_id', property.pricelabs_listing_id);
         
         if (start_date) {
           priceLabsUrl.searchParams.append('start_date', start_date);

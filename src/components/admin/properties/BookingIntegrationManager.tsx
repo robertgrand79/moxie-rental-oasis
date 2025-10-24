@@ -10,6 +10,7 @@ import { PricingCalendar } from '@/components/booking/PricingCalendar';
 import IntegrationSettings from './IntegrationSettings';
 import SyncStatusDashboard from './SyncStatusDashboard';
 import { SmartHomeManager } from '@/components/smart-home/SmartHomeManager';
+import { PriceLabsSettings } from '@/components/admin/settings/PriceLabsSettings';
 
 interface BookingIntegrationManagerProps {
   property: Property;
@@ -115,6 +116,7 @@ const BookingIntegrationManager = ({ property }: BookingIntegrationManagerProps)
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
+            <PriceLabsSettings />
             <IntegrationSettings property={property} />
           </TabsContent>
         </Tabs>
