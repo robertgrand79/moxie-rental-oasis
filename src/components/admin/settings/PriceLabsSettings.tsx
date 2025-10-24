@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, RefreshCw, Link as LinkIcon } from 'lucide-react';
 
 interface Property {
   id: string;
@@ -14,9 +14,16 @@ interface Property {
   pricelabs_listing_id: string | null;
 }
 
+interface PriceLabsListing {
+  id: string;
+  name: string;
+  nickname?: string;
+}
+
 export const PriceLabsSettings = () => {
   const queryClient = useQueryClient();
   const [priceLabsIds, setPriceLabsIds] = useState<Record<string, string>>({});
+  const [priceLabsListings, setPriceLabsListings] = useState<PriceLabsListing[]>([]);
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ['properties-pricelabs'],
@@ -38,6 +45,28 @@ export const PriceLabsSettings = () => {
       setPriceLabsIds(initialIds);
       
       return data as Property[];
+    }
+  });
+
+  const fetchPriceLabsMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('fetch-pricelabs-listings');
+      if (error) throw error;
+      return data.listings as PriceLabsListing[];
+    },
+    onSuccess: (listings) => {
+      setPriceLabsListings(listings);
+      toast({
+        title: 'Success',
+        description: `Fetched ${listings.length} PriceLabs listings`
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to fetch PriceLabs listings: ${error.message}`,
+        variant: 'destructive'
+      });
     }
   });
 
@@ -66,10 +95,11 @@ export const PriceLabsSettings = () => {
     }
   });
 
-  const handleSave = (propertyId: string) => {
+  const handleSave = (propertyId: string, priceLabsId?: string) => {
+    const idToSave = priceLabsId || priceLabsIds[propertyId] || '';
     updateMutation.mutate({
       propertyId,
-      priceLabsId: priceLabsIds[propertyId] || ''
+      priceLabsId: idToSave
     });
   };
 
@@ -86,42 +116,78 @@ export const PriceLabsSettings = () => {
       <CardHeader>
         <CardTitle>PriceLabs Integration</CardTitle>
         <CardDescription>
-          Map each property to its PriceLabs listing ID to enable dynamic pricing sync
+          Match your properties with PriceLabs listings to enable dynamic pricing sync
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {properties?.map((property) => (
-          <div key={property.id} className="flex items-end gap-4">
-            <div className="flex-1">
-              <Label htmlFor={`pricelabs-${property.id}`}>
-                {property.title}
-              </Label>
-              <Input
-                id={`pricelabs-${property.id}`}
-                placeholder="PriceLabs Listing ID"
-                value={priceLabsIds[property.id] || ''}
-                onChange={(e) => setPriceLabsIds(prev => ({
-                  ...prev,
-                  [property.id]: e.target.value
-                }))}
-              />
+      <CardContent className="space-y-6">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {priceLabsListings.length > 0 
+              ? `${priceLabsListings.length} PriceLabs listings loaded` 
+              : 'Load your PriceLabs listings to match with properties'}
+          </p>
+          <Button
+            onClick={() => fetchPriceLabsMutation.mutate()}
+            disabled={fetchPriceLabsMutation.isPending}
+            variant="outline"
+            size="sm"
+          >
+            {fetchPriceLabsMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            {priceLabsListings.length > 0 ? 'Refresh' : 'Load PriceLabs Listings'}
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          {properties?.map((property) => (
+            <div key={property.id} className="flex items-center gap-4 p-4 border rounded-lg">
+              <div className="flex-1">
+                <Label htmlFor={`pricelabs-${property.id}`} className="font-medium">
+                  {property.title}
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {property.pricelabs_listing_id 
+                    ? `Mapped to: ${priceLabsListings.find(l => l.id === property.pricelabs_listing_id)?.name || property.pricelabs_listing_id}`
+                    : 'Not mapped'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={priceLabsIds[property.id] || property.pricelabs_listing_id || ''}
+                  onValueChange={(value) => {
+                    setPriceLabsIds(prev => ({
+                      ...prev,
+                      [property.id]: value
+                    }));
+                    handleSave(property.id, value);
+                  }}
+                  disabled={priceLabsListings.length === 0}
+                >
+                  <SelectTrigger className="w-[300px]">
+                    <SelectValue placeholder="Select PriceLabs listing..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {priceLabsListings.map((listing) => (
+                      <SelectItem key={listing.id} value={listing.id}>
+                        {listing.name || listing.nickname || listing.id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <LinkIcon className="h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
-            <Button
-              onClick={() => handleSave(property.id)}
-              disabled={updateMutation.isPending}
-              size="sm"
-            >
-              {updateMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save
-                </>
-              )}
-            </Button>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        {properties?.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            No properties found. Add properties first to configure PriceLabs integration.
+          </p>
+        )}
       </CardContent>
     </Card>
   );
