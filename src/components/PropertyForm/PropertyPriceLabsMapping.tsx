@@ -50,7 +50,7 @@ export const PropertyPriceLabsMapping: React.FC<PropertyPriceLabsMappingProps> =
     mutationFn: async (priceLabsId: string) => {
       const { error } = await supabase
         .from('properties')
-        .update({ pricelabs_listing_id: priceLabsId || null })
+        .update({ pricelabs_listing_id: priceLabsId === 'none' ? null : priceLabsId })
         .eq('id', property.id);
       
       if (error) throw error;
@@ -126,7 +126,7 @@ export const PropertyPriceLabsMapping: React.FC<PropertyPriceLabsMappingProps> =
         <div className="space-y-2">
           <Label htmlFor="pricelabs-listing">PriceLabs Listing</Label>
           <Select
-            value={selectedListingId}
+            value={selectedListingId || 'none'}
             onValueChange={handleMappingChange}
             disabled={priceLabsListings.length === 0 || updateMutation.isPending}
           >
@@ -134,7 +134,7 @@ export const PropertyPriceLabsMapping: React.FC<PropertyPriceLabsMappingProps> =
               <SelectValue placeholder="Select PriceLabs listing..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">
+              <SelectItem value="none">
                 <span className="text-muted-foreground">None (Remove mapping)</span>
               </SelectItem>
               {priceLabsListings.map((listing) => (
