@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface PropertyReviewMetrics {
   avgRating: number;
@@ -31,6 +31,12 @@ const REVIEWS_PER_PAGE = 6;
 export const usePropertyReviews = (propertyId: string) => {
   const [page, setPage] = useState(1);
   const [allReviews, setAllReviews] = useState<Review[]>([]);
+
+  // Reset when property changes
+  useEffect(() => {
+    setPage(1);
+    setAllReviews([]);
+  }, [propertyId]);
 
   // Fetch reviews for current page
   const { data: reviewsData, isLoading: reviewsLoading } = useQuery({
@@ -101,15 +107,17 @@ export const usePropertyReviews = (propertyId: string) => {
   });
 
   // Update all reviews when new page data arrives
-  if (reviewsData && reviewsData.length > 0) {
-    const newIds = new Set(reviewsData.map(r => r.id));
-    const existingIds = new Set(allReviews.map(r => r.id));
-    const hasNewReviews = reviewsData.some(r => !existingIds.has(r.id));
-    
-    if (hasNewReviews) {
-      setAllReviews(prev => [...prev, ...reviewsData.filter(r => !existingIds.has(r.id))]);
+  useEffect(() => {
+    if (reviewsData && reviewsData.length > 0) {
+      const newIds = new Set(reviewsData.map(r => r.id));
+      const existingIds = new Set(allReviews.map(r => r.id));
+      const hasNewReviews = reviewsData.some(r => !existingIds.has(r.id));
+      
+      if (hasNewReviews) {
+        setAllReviews(prev => [...prev, ...reviewsData.filter(r => !existingIds.has(r.id))]);
+      }
     }
-  }
+  }, [reviewsData]);
 
   const hasMore = reviewsData && reviewsData.length === REVIEWS_PER_PAGE;
 
