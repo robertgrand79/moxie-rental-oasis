@@ -127,7 +127,7 @@ const TestimonialsManager = () => {
 
   const getTestimonialCount = (propertyId: string) => {
     if (propertyId === 'all') return testimonials.length;
-    if (propertyId === 'airbnb') return testimonials.filter(t => t.booking_platform === 'Airbnb').length;
+    if (propertyId === 'airbnb') return testimonials.filter(t => t.booking_platform?.toLowerCase() === 'airbnb').length;
     return testimonials.filter(t => t.property_id === propertyId).length;
   };
 
@@ -135,7 +135,7 @@ const TestimonialsManager = () => {
   const filteredTestimonials = selectedProperty === 'all' 
     ? testimonials 
     : selectedProperty === 'airbnb'
-    ? testimonials.filter(testimonial => testimonial.booking_platform === 'Airbnb')
+    ? testimonials.filter(testimonial => testimonial.booking_platform?.toLowerCase() === 'airbnb')
     : testimonials.filter(testimonial => testimonial.property_id === selectedProperty);
 
   const propertyTabs = getPropertyTabs();
