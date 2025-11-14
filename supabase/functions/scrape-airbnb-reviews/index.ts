@@ -55,6 +55,20 @@ serve(async (req) => {
       listingUrl = property.airbnb_listing_url;
     }
 
+    // Validate that we have a targetPropertyId - critical for proper data association
+    if (!targetPropertyId) {
+      console.error('No property ID provided or determined');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Property ID is required',
+          details: 'Reviews must be associated with a property. Please provide a propertyId in your request.'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Syncing reviews for property ID: ${targetPropertyId}`);
+
     console.log(`Starting Airbnb scrape for URL: ${listingUrl}`);
 
     // Validate URL format - must be a listing URL, not a host profile URL
@@ -120,7 +134,7 @@ serve(async (req) => {
       .from('testimonials')
       .select('external_review_id')
       .eq('property_id', targetPropertyId)
-      .eq('booking_platform', 'Airbnb')
+      .ilike('booking_platform', 'airbnb')
       .not('external_review_id', 'is', null);
 
     const existingIds = new Set(existingReviews?.map(r => r.external_review_id) || []);
