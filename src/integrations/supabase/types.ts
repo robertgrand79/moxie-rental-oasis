@@ -756,7 +756,15 @@ export type Database = {
           updated_at?: string | null
           user_agent?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "device_configurations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       device_events: {
         Row: {
@@ -2438,6 +2446,7 @@ export type Database = {
           description: string
           display_order: number | null
           featured_photos: string[] | null
+          hospitable_booking_url: string | null
           hospitable_property_id: string | null
           id: string
           image_url: string | null
@@ -2463,6 +2472,7 @@ export type Database = {
           description: string
           display_order?: number | null
           featured_photos?: string[] | null
+          hospitable_booking_url?: string | null
           hospitable_property_id?: string | null
           id?: string
           image_url?: string | null
@@ -2488,6 +2498,7 @@ export type Database = {
           description?: string
           display_order?: number | null
           featured_photos?: string[] | null
+          hospitable_booking_url?: string | null
           hospitable_property_id?: string | null
           id?: string
           image_url?: string | null

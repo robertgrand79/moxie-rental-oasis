@@ -126,7 +126,30 @@ export const useEnhancedPropertyDeletion = () => {
       const photoDeleteResult = await deletePropertyPhotos(propertyToDelete);
       console.log('✅ [DELETE] Photo deletion result:', photoDeleteResult);
 
-      // Step 2: Delete the property from the database
+      // Step 2: Delete related work orders
+      console.log('🔨 [DELETE] Deleting related work orders...');
+      const { error: workOrderError } = await supabase
+        .from('work_orders')
+        .delete()
+        .eq('property_id', propertyId);
+
+      if (workOrderError) {
+        console.warn('⚠️ [DELETE] Work order deletion warning:', workOrderError);
+        // Don't fail the entire operation, just log it
+      }
+
+      // Step 3: Delete related reservations
+      console.log('📅 [DELETE] Deleting related reservations...');
+      const { error: reservationError } = await supabase
+        .from('reservations')
+        .delete()
+        .eq('property_id', propertyId);
+
+      if (reservationError) {
+        console.warn('⚠️ [DELETE] Reservation deletion warning:', reservationError);
+      }
+
+      // Step 4: Delete the property from the database
       console.log('💾 [DELETE] Deleting property from database...');
       const { error } = await supabase
         .from('properties')
@@ -146,7 +169,7 @@ export const useEnhancedPropertyDeletion = () => {
 
       console.log('✅ [DELETE] Property deleted from database successfully');
 
-      // Step 3: Delete the corresponding property page
+      // Step 5: Delete the corresponding property page
       const pageDeleted = await deletePropertyPage(propertyToDelete);
       
       // Provide detailed feedback
