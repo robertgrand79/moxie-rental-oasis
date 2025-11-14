@@ -57,19 +57,20 @@ serve(async (req) => {
 
     console.log(`Starting Airbnb scrape for URL: ${listingUrl}`);
 
-    // Call Apify Airbnb Scraper
-    const apifyResponse = await fetch('https://api.apify.com/v2/acts/dtrungtin~airbnb-scraper/run-sync-get-dataset-items', {
+    // Call Apify Airbnb Reviews Scraper (tri_angle)
+    const apifyResponse = await fetch('https://api.apify.com/v2/acts/tri_angle~airbnb-reviews-scraper/run-sync-get-dataset-items', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apifyApiKey}`,
       },
       body: JSON.stringify({
-        startUrls: [{ url: listingUrl }],
-        maxListings: 1,
-        includeReviews: true,
+        startUrls: [listingUrl],
         maxReviews: 100,
-        proxyConfiguration: { useApifyProxy: true },
+        proxy: {
+          useApifyProxy: true,
+          apifyProxyGroups: ['RESIDENTIAL']
+        }
       }),
     });
 
@@ -85,9 +86,8 @@ serve(async (req) => {
     const apifyData = await apifyResponse.json();
     console.log('Apify response received:', JSON.stringify(apifyData).substring(0, 500));
 
-    // Extract reviews from Apify response
-    const listing = apifyData[0];
-    if (!listing || !listing.reviews) {
+    // Extract reviews from Apify response (reviews are returned directly)
+    if (!apifyData || apifyData.length === 0) {
       return new Response(
         JSON.stringify({ 
           success: true, 
@@ -99,7 +99,7 @@ serve(async (req) => {
       );
     }
 
-    const reviews = listing.reviews || [];
+    const reviews = apifyData;
     console.log(`Found ${reviews.length} reviews`);
 
     // Get existing review IDs to prevent duplicates
@@ -114,18 +114,19 @@ serve(async (req) => {
 
     // Prepare new reviews for insertion
     const newReviews = reviews
-      .filter((review: any) => !existingIds.has(review.id))
+      .filter((review: any) => !existingIds.has(review.id || review.reviewId))
       .map((review: any) => ({
         property_id: targetPropertyId,
-        guest_name: review.author?.firstName || review.author?.name || 'Airbnb Guest',
-        guest_location: review.author?.location || null,
-        guest_avatar_url: review.author?.pictureUrl || review.author?.thumbnailUrl || null,
+        guest_name: review.reviewerName || review.author?.name || review.author?.firstName || 'Airbnb Guest',
+        guest_location: review.reviewerLocation || review.author?.location || null,
+        guest_avatar_url: review.reviewerProfilePicture || review.author?.pictureUrl || review.author?.thumbnailUrl || null,
         rating: review.rating || 5,
-        review_text: review.comments || review.comment || '',
-        stay_date: review.createdAt ? new Date(review.createdAt).toISOString() : new Date().toISOString(),
+        review_text: review.comment || review.text || review.comments || '',
+        stay_date: review.date ? new Date(review.date).toISOString() : 
+                  (review.createdAt ? new Date(review.createdAt).toISOString() : new Date().toISOString()),
         booking_platform: 'Airbnb',
-        external_review_id: review.id,
-        is_active: true, // Auto-display
+        external_review_id: review.id || review.reviewId,
+        is_active: true,
         is_featured: false,
         display_order: 0,
       }));
