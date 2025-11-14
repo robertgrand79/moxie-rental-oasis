@@ -57,6 +57,19 @@ serve(async (req) => {
 
     console.log(`Starting Airbnb scrape for URL: ${listingUrl}`);
 
+    // Validate URL format - must be a listing URL, not a host profile URL
+    if (!listingUrl.includes('/rooms/') && !listingUrl.includes('/listings/')) {
+      console.error('Invalid URL format. Expected listing URL like https://www.airbnb.com/rooms/12345678');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid Airbnb URL format', 
+          details: 'Please use an individual listing URL (e.g., https://www.airbnb.com/rooms/12345678) instead of a host profile URL (e.g., https://www.airbnb.com/h/username). You can find the listing URL by visiting your property on Airbnb.',
+          receivedUrl: listingUrl
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Call Apify Airbnb Reviews Scraper (tri_angle)
     const apifyResponse = await fetch('https://api.apify.com/v2/acts/tri_angle~airbnb-reviews-scraper/run-sync-get-dataset-items', {
       method: 'POST',
