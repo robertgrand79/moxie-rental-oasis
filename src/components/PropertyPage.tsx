@@ -10,6 +10,7 @@ import PhotoSpotlight from '@/components/property/PhotoSpotlight';
 import MobileBookingBar from '@/components/property/MobileBookingBar';
 import QuickInfoSection from '@/components/property/QuickInfoSection';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
+import PropertyReviewsSection from '@/components/property/PropertyReviewsSection';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -138,6 +139,9 @@ const PropertyPage = () => {
 
       {/* Amenities Section - Enhanced with new colors and 12-item layout */}
       <AmenitiesSection amenities={property.amenities} />
+
+      {/* Guest Reviews Section */}
+      <PropertyReviewsSection propertyId={property.id} />
 
       {/* Mobile Booking Bar - Updated to use new booking flow */}
       {isMobile && <MobileBookingBar property={property} onBookingClick={handleBookingClick} />}
