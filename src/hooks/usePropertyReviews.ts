@@ -42,6 +42,7 @@ export const usePropertyReviews = (propertyId: string) => {
   const { data: reviewsData, isLoading: reviewsLoading } = useQuery({
     queryKey: ['property-reviews', propertyId, page],
     queryFn: async () => {
+      console.log('🔍 Fetching reviews for property:', propertyId, 'page:', page);
       const from = (page - 1) * REVIEWS_PER_PAGE;
       const to = from + REVIEWS_PER_PAGE - 1;
 
@@ -53,7 +54,11 @@ export const usePropertyReviews = (propertyId: string) => {
         .order('created_at', { ascending: false })
         .range(from, to);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching reviews:', error);
+        throw error;
+      }
+      console.log('✅ Reviews data received:', data?.length || 0, 'reviews');
       return data || [];
     },
   });
@@ -62,16 +67,21 @@ export const usePropertyReviews = (propertyId: string) => {
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['property-review-metrics', propertyId],
     queryFn: async () => {
+      console.log('📊 Fetching review metrics for property:', propertyId);
       const { data, error } = await supabase
         .from('testimonials')
         .select('rating')
         .eq('property_id', propertyId)
         .eq('is_active', true);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching metrics:', error);
+        throw error;
+      }
 
       const reviews = data || [];
       const totalReviews = reviews.length;
+      console.log('📈 Total reviews found:', totalReviews);
       
       if (totalReviews === 0) {
         return {
@@ -94,7 +104,7 @@ export const usePropertyReviews = (propertyId: string) => {
       const twoStar = reviews.filter(r => r.rating === 2).length;
       const oneStar = reviews.filter(r => r.rating === 1).length;
 
-      return {
+      const metricsResult = {
         avgRating,
         totalReviews,
         fiveStar,
@@ -103,6 +113,9 @@ export const usePropertyReviews = (propertyId: string) => {
         twoStar,
         oneStar,
       } as PropertyReviewMetrics;
+      
+      console.log('📊 Metrics calculated:', metricsResult);
+      return metricsResult;
     },
   });
 

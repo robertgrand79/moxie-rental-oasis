@@ -13,6 +13,13 @@ interface PropertyReviewsSectionProps {
 const PropertyReviewsSection = ({ propertyId }: PropertyReviewsSectionProps) => {
   const { reviews, metrics, isLoading, loadMore, hasMore } = usePropertyReviews(propertyId);
 
+  console.log('🎨 PropertyReviewsSection render:', {
+    propertyId,
+    reviewsCount: reviews.length,
+    metrics,
+    isLoading
+  });
+
   if (isLoading && reviews.length === 0) {
     return (
       <section className="py-16 bg-muted/30">
@@ -24,7 +31,17 @@ const PropertyReviewsSection = ({ propertyId }: PropertyReviewsSectionProps) => 
   }
 
   if (!metrics || metrics.totalReviews === 0) {
-    return null; // Don't show section if no reviews
+    return (
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
+              No reviews yet. Be the first to review this property!
+            </p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   const getRatingPercentage = (count: number) => {
