@@ -6,6 +6,7 @@ import { Edit, Trash2, MapPin, Bed, Bath, Users, Calendar } from 'lucide-react';
 import { Property } from '@/types/property';
 import ThumbnailImage from '@/components/ui/thumbnail-image';
 import { Link } from 'react-router-dom';
+import AirbnbReviewSync from '@/components/admin/AirbnbReviewSync';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +59,15 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
             {property.max_guests} guests
           </div>
         </div>
+
+        {property.airbnb_listing_url && (
+          <div className="mb-4">
+            <AirbnbReviewSync 
+              propertyId={property.id}
+              airbnbUrl={property.airbnb_listing_url}
+            />
+          </div>
+        )}
 
         <div className="flex gap-2 justify-end">
           <Link to={`/booking/${property.id}`}>

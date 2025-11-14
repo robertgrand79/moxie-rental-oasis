@@ -106,7 +106,8 @@ const TestimonialsManager = () => {
   // Get unique properties for tabs using the actual properties data
   const getPropertyTabs = () => {
     const tabs = [
-      { value: 'all', label: 'All Properties', icon: Home }
+      { value: 'all', label: 'All Properties', icon: Home },
+      { value: 'airbnb', label: 'Airbnb Reviews', icon: Building }
     ];
     
     // Add tabs for properties that have testimonials
@@ -126,12 +127,15 @@ const TestimonialsManager = () => {
 
   const getTestimonialCount = (propertyId: string) => {
     if (propertyId === 'all') return testimonials.length;
+    if (propertyId === 'airbnb') return testimonials.filter(t => t.booking_platform === 'Airbnb').length;
     return testimonials.filter(t => t.property_id === propertyId).length;
   };
 
   // Filter testimonials based on selected property
   const filteredTestimonials = selectedProperty === 'all' 
     ? testimonials 
+    : selectedProperty === 'airbnb'
+    ? testimonials.filter(testimonial => testimonial.booking_platform === 'Airbnb')
     : testimonials.filter(testimonial => testimonial.property_id === selectedProperty);
 
   const propertyTabs = getPropertyTabs();
