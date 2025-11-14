@@ -11,6 +11,7 @@ import IntegrationSettings from './IntegrationSettings';
 import SyncStatusDashboard from './SyncStatusDashboard';
 import { SmartHomeManager } from '@/components/smart-home/SmartHomeManager';
 import { PropertyPriceLabsMapping } from '@/components/PropertyForm/PropertyPriceLabsMapping';
+import AirbnbReviewSync from '@/components/admin/AirbnbReviewSync';
 
 interface BookingIntegrationManagerProps {
   property: Property;
@@ -34,7 +35,7 @@ const BookingIntegrationManager = ({ property }: BookingIntegrationManagerProps)
               Manage reservations, pricing, and integrations for {property.title}
             </CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3 flex-wrap justify-end">
             <Badge variant={hasIntegrations ? "default" : "secondary"}>
               {hasIntegrations ? "Integrated" : "Setup Required"}
             </Badge>
@@ -42,11 +43,17 @@ const BookingIntegrationManager = ({ property }: BookingIntegrationManagerProps)
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(property.hospitable_booking_url, '_blank')}
+                onClick={() => window.open(property.hospitable_booking_url as string, '_blank')}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 View Widget
               </Button>
+            )}
+            {property.airbnb_listing_url && (
+              <AirbnbReviewSync
+                propertyId={property.id}
+                airbnbUrl={property.airbnb_listing_url as string}
+              />
             )}
           </div>
         </div>
