@@ -10,6 +10,9 @@ import AnalyticsSettingsTab from '@/components/admin/settings/AnalyticsSettingsT
 import MapsSettingsTab from '@/components/admin/settings/MapsSettingsTab';
 import EmailServicesTab from '@/components/admin/settings/EmailServicesTab';
 import AdvancedSettingsTab from '@/components/admin/settings/AdvancedSettingsTab';
+import TestimonialsManager from '@/components/admin/TestimonialsManager';
+import PointsOfInterestManager from '@/components/admin/PointsOfInterestManager';
+import EugeneEventsManager from '@/components/admin/EugeneEventsManager';
 
 interface SettingsDialogProps {
   dialogOpen: boolean;
@@ -147,6 +150,12 @@ const SettingsDialog = ({
             updateSetting={updateSetting}
           />
         );
+      case 'content-testimonials':
+        return <TestimonialsManager />;
+      case 'content-places':
+        return <PointsOfInterestManager />;
+      case 'content-events':
+        return <EugeneEventsManager />;
       default:
         return <div>Select a setting to configure</div>;
     }

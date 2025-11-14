@@ -1,5 +1,5 @@
 
-import { Settings, Palette, Globe, Code } from 'lucide-react';
+import { Settings, Palette, Globe, Code, FileText } from 'lucide-react';
 
 export const createSettingsCategories = (siteData: any, seoData: any, analyticsData: any, mapboxToken: string, emailSetupVerified: boolean = false) => [
   {
@@ -26,6 +26,33 @@ export const createSettingsCategories = (siteData: any, seoData: any, analyticsD
         description: 'Phone, email, address, and social media', 
         status: siteData.contactEmail ? 'configured' : 'needs-setup',
         key: 'contact-info'
+      }
+    ]
+  },
+  {
+    id: 'content',
+    title: 'Content & Media',
+    description: 'Manage testimonials, places, and events',
+    icon: FileText,
+    color: 'bg-pink-100 text-pink-700',
+    settings: [
+      { 
+        name: 'Testimonials & Reviews', 
+        description: 'Manage customer reviews and testimonials', 
+        status: 'configured',
+        key: 'content-testimonials'
+      },
+      { 
+        name: 'Places & POI', 
+        description: 'Points of interest and locations', 
+        status: 'configured',
+        key: 'content-places'
+      },
+      { 
+        name: 'Events Calendar', 
+        description: 'Upcoming events and activities', 
+        status: 'configured',
+        key: 'content-events'
       }
     ]
   },
