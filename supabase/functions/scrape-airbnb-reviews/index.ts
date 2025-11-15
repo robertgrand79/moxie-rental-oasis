@@ -166,6 +166,7 @@ serve(async (req) => {
         is_active: true,
         is_featured: false,
         display_order: 0,
+        created_by: '00000000-0000-0000-0000-000000000000', // System import identifier
       }));
 
     let importedCount = 0;
