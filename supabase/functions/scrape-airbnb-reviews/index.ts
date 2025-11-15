@@ -93,7 +93,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         startUrls: [listingUrl],
-        maxReviews: 100,
+        maxReviews: 1000,
         proxy: {
           useApifyProxy: true,
           apifyProxyGroups: ['RESIDENTIAL']
