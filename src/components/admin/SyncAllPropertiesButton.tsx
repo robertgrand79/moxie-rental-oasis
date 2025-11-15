@@ -87,14 +87,23 @@ const SyncAllPropertiesButton = () => {
                     : 'bg-red-50 border-red-200'
                 }`}
               >
-                <div className="font-medium">{result.propertyName}</div>
+                <div className="font-mono text-xs text-muted-foreground mb-2">{result.propertyId}</div>
                 {result.success ? (
-                  <div className="text-sm text-muted-foreground mt-1">
+                  <div className="text-sm text-muted-foreground">
                     Found {result.reviewsFound} reviews, imported {result.reviewsImported} new reviews
                   </div>
                 ) : (
-                  <div className="text-sm text-red-600 mt-1">
-                    Error: {result.error}
+                  <div className="text-sm">
+                    <div className="text-red-600 font-medium mb-2">Error: {result.error}</div>
+                    <div className="text-muted-foreground text-xs">
+                      <p className="mb-1">Update the Airbnb URL to use a listing URL format:</p>
+                      <code className="block bg-background px-2 py-1 rounded text-xs">
+                        https://www.airbnb.com/rooms/12345678
+                      </code>
+                      <p className="mt-2 text-xs">
+                        Visit your property page on Airbnb and copy the URL from the browser address bar.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
