@@ -59,11 +59,30 @@ serve(async (req) => {
 
         if (error) {
           console.error(`Error syncing property ${property.id}:`, error);
+          
+          // Try to extract detailed error message from the response
+          let errorMessage = error.message;
+          let errorDetails = null;
+          
+          if (error.context?.body) {
+            try {
+              const reader = error.context.body.getReader();
+              const { value } = await reader.read();
+              const text = new TextDecoder().decode(value);
+              const errorData = JSON.parse(text);
+              errorMessage = errorData.error || errorMessage;
+              errorDetails = errorData.details || null;
+            } catch (e) {
+              console.error('Failed to parse error response:', e);
+            }
+          }
+          
           results.push({
             propertyId: property.id,
             propertyName: property.id,
             success: false,
-            error: error.message
+            error: errorMessage,
+            details: errorDetails
           });
         } else {
           console.log(`Successfully synced ${data?.reviewsImported || 0} reviews for property ${property.id}`);

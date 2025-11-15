@@ -92,7 +92,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${apifyApiKey}`,
       },
       body: JSON.stringify({
-        startUrls: [listingUrl],
+        startUrls: [{ url: listingUrl }],
         maxReviews: 1000,
         proxy: {
           useApifyProxy: true,
@@ -104,8 +104,18 @@ serve(async (req) => {
     if (!apifyResponse.ok) {
       const errorText = await apifyResponse.text();
       console.error('Apify API error:', errorText);
+      let apifyError;
+      try {
+        apifyError = JSON.parse(errorText);
+      } catch {
+        apifyError = { error: errorText };
+      }
       return new Response(
-        JSON.stringify({ error: 'Failed to scrape Airbnb reviews', details: errorText }),
+        JSON.stringify({ 
+          error: 'Apify scraper failed', 
+          details: apifyError?.error?.message || apifyError?.error || errorText,
+          receivedUrl: listingUrl
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
