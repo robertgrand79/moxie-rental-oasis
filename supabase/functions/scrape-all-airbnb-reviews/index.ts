@@ -21,7 +21,7 @@ serve(async (req) => {
     // Get all properties with Airbnb listing URLs
     const { data: properties, error: propertiesError } = await supabase
       .from('properties')
-      .select('id, name, airbnb_listing_url')
+      .select('id, airbnb_listing_url')
       .not('airbnb_listing_url', 'is', null);
 
     if (propertiesError) {
@@ -47,7 +47,7 @@ serve(async (req) => {
 
     // Sync each property sequentially to avoid rate limits
     for (const property of properties) {
-      console.log(`Syncing reviews for property: ${property.name} (${property.id})`);
+      console.log(`Syncing reviews for property ID: ${property.id}`);
       
       try {
         const { data, error } = await supabase.functions.invoke('scrape-airbnb-reviews', {
@@ -58,18 +58,18 @@ serve(async (req) => {
         });
 
         if (error) {
-          console.error(`Error syncing property ${property.name}:`, error);
+          console.error(`Error syncing property ${property.id}:`, error);
           results.push({
             propertyId: property.id,
-            propertyName: property.name,
+            propertyName: property.id,
             success: false,
             error: error.message
           });
         } else {
-          console.log(`Successfully synced ${data?.reviewsImported || 0} reviews for ${property.name}`);
+          console.log(`Successfully synced ${data?.reviewsImported || 0} reviews for property ${property.id}`);
           results.push({
             propertyId: property.id,
-            propertyName: property.name,
+            propertyName: property.id,
             success: true,
             reviewsFound: data?.reviewsFound || 0,
             reviewsImported: data?.reviewsImported || 0
@@ -80,10 +80,10 @@ serve(async (req) => {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
       } catch (error: any) {
-        console.error(`Exception syncing property ${property.name}:`, error);
+        console.error(`Exception syncing property ${property.id}:`, error);
         results.push({
           propertyId: property.id,
-          propertyName: property.name,
+          propertyName: property.id,
           success: false,
           error: error.message
         });
