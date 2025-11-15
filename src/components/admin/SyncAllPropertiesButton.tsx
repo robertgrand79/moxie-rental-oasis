@@ -18,6 +18,7 @@ interface SyncResult {
   reviewsFound?: number;
   reviewsImported?: number;
   error?: string;
+  details?: string;
 }
 
 const SyncAllPropertiesButton = () => {
@@ -95,8 +96,13 @@ const SyncAllPropertiesButton = () => {
                 ) : (
                   <div className="text-sm">
                     <div className="text-red-600 font-medium mb-2">Error: {result.error}</div>
+                    {result.details && (
+                      <div className="text-muted-foreground text-xs mb-2">
+                        {result.details}
+                      </div>
+                    )}
                     <div className="text-muted-foreground text-xs">
-                      <p className="mb-1">Update the Airbnb URL to use a listing URL format:</p>
+                      <p className="mb-1">Make sure the Airbnb URL uses a listing URL format:</p>
                       <code className="block bg-background px-2 py-1 rounded text-xs">
                         https://www.airbnb.com/rooms/12345678
                       </code>
