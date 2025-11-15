@@ -13,6 +13,7 @@ import TestimonialsList from './testimonials/TestimonialsList';
 import TestimonialsGrid from './testimonials/TestimonialsGrid';
 import TestimonialsViewToggle from './testimonials/TestimonialsViewToggle';
 import TestimonialsLoadingState from './testimonials/TestimonialsLoadingState';
+import SyncAllPropertiesButton from './SyncAllPropertiesButton';
 
 
 const TestimonialsManager = () => {
@@ -167,6 +168,7 @@ const TestimonialsManager = () => {
             </CardDescription>
           </div>
           <div className="flex items-center space-x-3">
+            <SyncAllPropertiesButton />
             <TestimonialsViewToggle view={view} onViewChange={setView} />
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
