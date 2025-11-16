@@ -44,7 +44,7 @@ const BookingSuccessPage = () => {
 
         // Fetch reservation details
         const { data: reservationData, error: reservationError } = await supabase
-          .from('reservations')
+          .from('property_reservations')
           .select('*')
           .eq('id', reservationId)
           .single();

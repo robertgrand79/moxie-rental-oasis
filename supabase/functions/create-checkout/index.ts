@@ -76,10 +76,10 @@ serve(async (req) => {
 
     // Update reservation with payment session
     const { error: updateError } = await supabaseClient
-      .from("reservations")
+      .from("property_reservations")
       .update({ 
         payment_status: "pending",
-        platform_data: { stripe_session_id: session.id }
+        stripe_session_id: session.id
       })
       .eq("id", reservationId);
 
