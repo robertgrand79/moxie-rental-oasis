@@ -54,7 +54,7 @@ serve(async (req) => {
 
     // Update reservation
     const { error: updateError } = await supabaseClient
-      .from("reservations")
+      .from("property_reservations")
       .update({ 
         payment_status: paymentStatus,
         booking_status: bookingStatus,

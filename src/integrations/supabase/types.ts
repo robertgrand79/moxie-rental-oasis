@@ -2688,11 +2688,13 @@ export type Database = {
           cleaning_status: string | null
           cleaning_work_order_id: string | null
           created_at: string
+          currency: string | null
           guest_count: number
           guest_email: string
           guest_name: string
           guest_phone: string | null
           id: string
+          payment_status: string | null
           property_id: string
           source_platform: string | null
           special_requests: string | null
@@ -2709,11 +2711,13 @@ export type Database = {
           cleaning_status?: string | null
           cleaning_work_order_id?: string | null
           created_at?: string
+          currency?: string | null
           guest_count?: number
           guest_email: string
           guest_name: string
           guest_phone?: string | null
           id?: string
+          payment_status?: string | null
           property_id: string
           source_platform?: string | null
           special_requests?: string | null
@@ -2730,11 +2734,13 @@ export type Database = {
           cleaning_status?: string | null
           cleaning_work_order_id?: string | null
           created_at?: string
+          currency?: string | null
           guest_count?: number
           guest_email?: string
           guest_name?: string
           guest_phone?: string | null
           id?: string
+          payment_status?: string | null
           property_id?: string
           source_platform?: string | null
           special_requests?: string | null
@@ -2820,6 +2826,7 @@ export type Database = {
       reservations: {
         Row: {
           base_price: number | null
+          booking_status: string
           cancellation_policy: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
@@ -2831,6 +2838,7 @@ export type Database = {
           created_by: string
           external_booking_id: string | null
           external_platform: string | null
+          guest_count: number
           guest_email: string | null
           guest_name: string | null
           guest_phone: string | null
@@ -2839,15 +2847,15 @@ export type Database = {
           property_id: string
           service_fee: number | null
           special_instructions: string | null
-          status: string
           stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
           taxes: number | null
           total_amount: number | null
-          total_guests: number
           updated_at: string
         }
         Insert: {
           base_price?: number | null
+          booking_status?: string
           cancellation_policy?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -2859,6 +2867,7 @@ export type Database = {
           created_by: string
           external_booking_id?: string | null
           external_platform?: string | null
+          guest_count?: number
           guest_email?: string | null
           guest_name?: string | null
           guest_phone?: string | null
@@ -2867,15 +2876,15 @@ export type Database = {
           property_id: string
           service_fee?: number | null
           special_instructions?: string | null
-          status?: string
           stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           taxes?: number | null
           total_amount?: number | null
-          total_guests?: number
           updated_at?: string
         }
         Update: {
           base_price?: number | null
+          booking_status?: string
           cancellation_policy?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -2887,6 +2896,7 @@ export type Database = {
           created_by?: string
           external_booking_id?: string | null
           external_platform?: string | null
+          guest_count?: number
           guest_email?: string | null
           guest_name?: string | null
           guest_phone?: string | null
@@ -2895,11 +2905,10 @@ export type Database = {
           property_id?: string
           service_fee?: number | null
           special_instructions?: string | null
-          status?: string
           stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           taxes?: number | null
           total_amount?: number | null
-          total_guests?: number
           updated_at?: string
         }
         Relationships: [
