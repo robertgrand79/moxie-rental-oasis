@@ -30,14 +30,53 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { reservationId, guestEmail, totalAmount, propertyTitle, checkInDate, checkOutDate } = await req.json();
-    logStep("Request data received", { reservationId, guestEmail, totalAmount, propertyTitle });
+    const { reservationId, propertyId, guestEmail, totalAmount, propertyTitle, checkInDate, checkOutDate } = await req.json();
+    logStep("Request data received", { reservationId, propertyId, guestEmail, totalAmount, propertyTitle });
 
     if (!reservationId || !guestEmail || !totalAmount || !propertyTitle) {
       throw new Error("Missing required fields");
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+    // Determine which Stripe key to use
+    let activeStripeKey = stripeKey;
+    let stripeAccountId = null;
+    
+    if (propertyId) {
+      // Check if property has its own Stripe configuration
+      const { data: property, error: propError } = await supabaseClient
+        .from('properties')
+        .select('stripe_secret_key, stripe_account_id, organization_id')
+        .eq('id', propertyId)
+        .single();
+
+      if (propError) {
+        logStep("Error fetching property", propError);
+      } else if (property?.stripe_secret_key) {
+        // Use property-specific Stripe account
+        activeStripeKey = property.stripe_secret_key;
+        stripeAccountId = property.stripe_account_id;
+        logStep("Using property-specific Stripe account", { stripeAccountId });
+      } else if (property?.organization_id) {
+        // Check if organization has Stripe configuration
+        const { data: org, error: orgError } = await supabaseClient
+          .from('organizations')
+          .select('stripe_secret_key, stripe_account_id')
+          .eq('id', property.organization_id)
+          .single();
+
+        if (!orgError && org?.stripe_secret_key) {
+          activeStripeKey = org.stripe_secret_key;
+          stripeAccountId = org.stripe_account_id;
+          logStep("Using organization-wide Stripe account", { stripeAccountId });
+        }
+      }
+    }
+
+    if (!activeStripeKey) {
+      throw new Error("Stripe not configured for this property or organization");
+    }
+
+    const stripe = new Stripe(activeStripeKey, { apiVersion: "2023-10-16" });
     
     // Check if customer exists
     const customers = await stripe.customers.list({ email: guestEmail, limit: 1 });
@@ -69,6 +108,8 @@ serve(async (req) => {
       cancel_url: `${req.headers.get("origin")}/booking-cancelled?reservation_id=${reservationId}`,
       metadata: {
         reservationId: reservationId,
+        propertyId: propertyId || '',
+        stripeAccountId: stripeAccountId || '',
       },
     });
 
@@ -79,7 +120,8 @@ serve(async (req) => {
       .from("property_reservations")
       .update({ 
         payment_status: "pending",
-        stripe_session_id: session.id
+        stripe_session_id: session.id,
+        stripe_account_id: stripeAccountId
       })
       .eq("id", reservationId);
 
