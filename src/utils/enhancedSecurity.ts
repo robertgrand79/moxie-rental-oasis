@@ -35,21 +35,17 @@ export const addSecurityHeaders = (): void => {
   cspMeta.content = `
     default-src 'self';
     script-src 'self' 'unsafe-inline' 'unsafe-eval' 
-      https://*.hospitable.com 
       https://*.googletagmanager.com 
       https://*.google-analytics.com 
       https://*.stripe.com;
     connect-src 'self' 
       https://*.supabase.co 
-      https://*.hospitable.com 
       https://*.google-analytics.com 
       https://*.stripe.com;
     frame-src 'self' 
-      https://*.hospitable.com 
       https://*.stripe.com;
     img-src 'self' data: blob:
       https://*.supabase.co
-      https://*.hospitable.com 
       https://*.googletagmanager.com 
       https://*.google-analytics.com;
     style-src 'self' 'unsafe-inline' 

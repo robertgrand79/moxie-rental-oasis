@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Property } from '@/types/property';
-import { Calendar, DollarSign, Settings, Activity, RefreshCw, ExternalLink, Home } from 'lucide-react';
+import { Calendar, DollarSign, Settings, Activity, Home } from 'lucide-react';
 import { ReservationList } from '@/components/booking/ReservationList';
 import { PricingCalendar } from '@/components/booking/PricingCalendar';
 import IntegrationSettings from './IntegrationSettings';
@@ -20,7 +20,7 @@ interface BookingIntegrationManagerProps {
 const BookingIntegrationManager = ({ property }: BookingIntegrationManagerProps) => {
   const [activeTab, setActiveTab] = useState('overview');
 
-  const hasIntegrations = !!(property.hospitable_booking_url || property.airbnb_listing_url);
+  const hasIntegrations = !!property.airbnb_listing_url;
 
   return (
     <Card className="w-full">
@@ -39,16 +39,6 @@ const BookingIntegrationManager = ({ property }: BookingIntegrationManagerProps)
             <Badge variant={hasIntegrations ? "default" : "secondary"}>
               {hasIntegrations ? "Integrated" : "Setup Required"}
             </Badge>
-            {property.hospitable_booking_url && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(property.hospitable_booking_url as string, '_blank')}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View Widget
-              </Button>
-            )}
             {property.airbnb_listing_url && (
               <AirbnbReviewSync
                 propertyId={property.id}

@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Phone, MessageCircle } from 'lucide-react';
 import { Property } from '@/types/property';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { generateAddressSlug } from '@/utils/addressSlug';
+import { useNavigate } from 'react-router-dom';
 
 interface MobileBookingBarProps {
   property: Property;
@@ -13,14 +15,17 @@ interface MobileBookingBarProps {
 const MobileBookingBar = ({ property, onBookingClick }: MobileBookingBarProps) => {
   const [isVisible, setIsVisible] = useState(true);
   const isMobile = useIsMobile();
-  
-  const hasBookingUrl = property.hospitable_booking_url && property.hospitable_booking_url.trim() !== '';
+  const navigate = useNavigate();
 
   if (!isMobile) return null;
 
   const handleBookNow = () => {
     if (onBookingClick) {
       onBookingClick();
+    } else {
+      // Navigate to direct booking page
+      const slug = generateAddressSlug(property.location);
+      navigate(`/book/${slug}`);
     }
   };
 
@@ -57,22 +62,12 @@ const MobileBookingBar = ({ property, onBookingClick }: MobileBookingBarProps) =
           </Button>
           
           {/* Main Booking Button */}
-          {hasBookingUrl ? (
-            <Button 
-              onClick={handleBookNow}
-              className="bg-primary hover:bg-primary/90 px-6"
-            >
-              Book Now
-            </Button>
-          ) : (
-            <Button 
-              variant="outline"
-              disabled
-              className="px-6"
-            >
-              Coming Soon
-            </Button>
-          )}
+          <Button 
+            onClick={handleBookNow}
+            className="bg-primary hover:bg-primary/90 px-6"
+          >
+            Book Now
+          </Button>
         </div>
       </div>
     </div>
