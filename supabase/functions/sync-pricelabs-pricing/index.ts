@@ -14,7 +14,7 @@ interface PriceLabsListing {
   recommended_base_price: number;
 }
 
-interface DailyPrice {
+interface ListingPrice {
   date: string;
   price: number;
   min_stay?: number;
@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { property_id, organization_id } = body;
 
-    console.log('Starting PriceLabs sync with daily calendar prices...');
+    console.log('Starting PriceLabs sync with POST /v1/listing_prices endpoint...');
 
     // Determine API key to use
     let priceLabsApiKey: string | null = null;
@@ -80,14 +80,8 @@ Deno.serve(async (req) => {
     }
 
     const listingsData = await listingsResponse.json();
-    console.log('Full listings API response structure:', JSON.stringify(listingsData).substring(0, 2000));
     const priceLabsListings: PriceLabsListing[] = listingsData.listings || [];
     console.log(`Fetched ${priceLabsListings.length} PriceLabs listings`);
-    
-    // Log first listing's full structure to see what data is available
-    if (priceLabsListings.length > 0) {
-      console.log('First listing full structure:', JSON.stringify(priceLabsListings[0]));
-    }
 
     // Create a map for quick lookup
     const listingMap = new Map<string, PriceLabsListing>();
@@ -139,69 +133,52 @@ Deno.serve(async (req) => {
 
         console.log(`Fetching daily prices for ${property.title} (${property.pricelabs_listing_id})...`);
 
-        // Fetch daily pricing from /v1/getpricing endpoint (POST request)
+        // Fetch daily pricing using POST /v1/listing_prices endpoint
         const dailyPrices: Record<string, number> = {};
         const minStays: Record<string, number> = {};
         let pricesFromApi = 0;
 
-        const pricingResponse = await fetch(
-          `https://api.pricelabs.co/v1/getpricing`,
-          {
-            method: 'POST',
-            headers: {
-              'X-API-Key': priceLabsApiKey,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              listing_ids: [property.pricelabs_listing_id]
-            }),
-          }
-        );
+        const pricingResponse = await fetch('https://api.pricelabs.co/v1/listing_prices', {
+          method: 'POST',
+          headers: {
+            'X-API-Key': priceLabsApiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            listing_id: property.pricelabs_listing_id,
+            number_of_months: 12
+          }),
+        });
 
         if (pricingResponse.ok) {
           const pricingData = await pricingResponse.json();
-          console.log(`getpricing response for ${property.title}:`, JSON.stringify(pricingData).substring(0, 1000));
+          console.log(`listing_prices response for ${property.title}:`, JSON.stringify(pricingData).substring(0, 1500));
 
-          // Parse pricing data - the response format is { listings: [{ id, prices: [{date, price, min_stay}] }] }
-          if (pricingData.listings && Array.isArray(pricingData.listings)) {
-            for (const listing of pricingData.listings) {
-              if (listing.id === property.pricelabs_listing_id && listing.prices) {
-                for (const priceEntry of listing.prices) {
-                  if (priceEntry.date && priceEntry.price) {
-                    dailyPrices[priceEntry.date] = priceEntry.price;
-                    if (priceEntry.min_stay) {
-                      minStays[priceEntry.date] = priceEntry.min_stay;
-                    }
-                  }
-                }
-              }
-            }
-          } else if (pricingData.prices && Array.isArray(pricingData.prices)) {
-            // Alternative format: { prices: [{date, price, min_stay}] }
-            for (const item of pricingData.prices) {
-              if (item.date && item.price) {
-                dailyPrices[item.date] = item.price;
-                if (item.min_stay) {
-                  minStays[item.date] = item.min_stay;
-                }
-              }
-            }
+          // Parse the response - expected format: { prices: [{date, price, min_stay}] } or array directly
+          let pricesArray: ListingPrice[] = [];
+          
+          if (pricingData.prices && Array.isArray(pricingData.prices)) {
+            pricesArray = pricingData.prices;
           } else if (Array.isArray(pricingData)) {
-            // Format: [{date, price, min_stay}, ...]
-            for (const item of pricingData) {
-              if (item.date && item.price) {
-                dailyPrices[item.date] = item.price;
-                if (item.min_stay) {
-                  minStays[item.date] = item.min_stay;
-                }
+            pricesArray = pricingData;
+          } else if (pricingData.data && Array.isArray(pricingData.data)) {
+            pricesArray = pricingData.data;
+          }
+
+          for (const item of pricesArray) {
+            if (item.date && item.price) {
+              dailyPrices[item.date] = item.price;
+              if (item.min_stay) {
+                minStays[item.date] = item.min_stay;
               }
             }
           }
+          
           pricesFromApi = Object.keys(dailyPrices).length;
-          console.log(`Got ${pricesFromApi} daily prices from getpricing endpoint`);
+          console.log(`Got ${pricesFromApi} daily prices from listing_prices endpoint`);
         } else {
           const errorText = await pricingResponse.text();
-          console.log(`getpricing endpoint returned ${pricingResponse.status}: ${errorText}`);
+          console.log(`listing_prices endpoint returned ${pricingResponse.status}: ${errorText}`);
         }
 
         // Build pricing records for the next 365 days
@@ -234,15 +211,6 @@ Deno.serve(async (req) => {
         }
 
         console.log(`${property.title}: ${pricesFromApi} from API, ${pricesFromFallback} from fallback ($${fallbackPrice})`);
-
-        // Log sample prices for Dec 18-21 verification
-        const sampleDates = ['2025-12-18', '2025-12-19', '2025-12-20', '2025-12-21'];
-        for (const sampleDate of sampleDates) {
-          const record = pricingRecords.find(r => r.date === sampleDate);
-          if (record) {
-            console.log(`  ${sampleDate}: $${record.final_price}`);
-          }
-        }
 
         // Upsert in batches
         const batchSize = 100;
