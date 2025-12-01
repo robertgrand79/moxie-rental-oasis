@@ -957,7 +957,6 @@ export type Database = {
           created_at: string
           date: string
           final_price: number
-          hospitable_price: number | null
           id: string
           manual_override_price: number | null
           market_demand: string | null
@@ -973,7 +972,6 @@ export type Database = {
           created_at?: string
           date: string
           final_price: number
-          hospitable_price?: number | null
           id?: string
           manual_override_price?: number | null
           market_demand?: string | null
@@ -989,7 +987,6 @@ export type Database = {
           created_at?: string
           date?: string
           final_price?: number
-          hospitable_price?: number | null
           id?: string
           manual_override_price?: number | null
           market_demand?: string | null
@@ -2683,7 +2680,6 @@ export type Database = {
           description: string
           display_order: number | null
           featured_photos: string[] | null
-          hospitable_property_id: string | null
           id: string
           image_url: string | null
           images: string[] | null
@@ -2713,7 +2709,6 @@ export type Database = {
           description: string
           display_order?: number | null
           featured_photos?: string[] | null
-          hospitable_property_id?: string | null
           id?: string
           image_url?: string | null
           images?: string[] | null
@@ -2743,7 +2738,6 @@ export type Database = {
           description?: string
           display_order?: number | null
           featured_photos?: string[] | null
-          hospitable_property_id?: string | null
           id?: string
           image_url?: string | null
           images?: string[] | null

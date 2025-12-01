@@ -23,9 +23,6 @@ serve(async (req) => {
     console.log(`Received webhook from ${platform}:`, event_type);
 
     switch (platform) {
-      case 'hospitable':
-        await handleHospitableWebhook(event_type, data);
-        break;
       case 'vrbo':
         await handleVrboWebhook(event_type, data);
         break;
@@ -48,23 +45,6 @@ serve(async (req) => {
     });
   }
 });
-
-async function handleHospitableWebhook(eventType: string, data: any) {
-  console.log('Handling Hospitable webhook:', eventType);
-
-  switch (eventType) {
-    case 'reservation.created':
-    case 'reservation.updated':
-      await syncReservation(data, 'hospitable');
-      break;
-    case 'reservation.cancelled':
-      await cancelReservation(data.reservation_id, 'hospitable');
-      break;
-    case 'availability.updated':
-      await syncAvailability(data, 'hospitable');
-      break;
-  }
-}
 
 async function handleVrboWebhook(eventType: string, data: any) {
   console.log('Handling VRBO webhook:', eventType);
@@ -232,14 +212,7 @@ async function syncAvailability(data: any, platform: string) {
 }
 
 function mapBookingStatus(status: string, platform: string): string {
-  const statusMappings = {
-    hospitable: {
-      'confirmed': 'confirmed',
-      'pending': 'pending',
-      'cancelled': 'cancelled',
-      'checked_in': 'active',
-      'checked_out': 'completed'
-    },
+  const statusMappings: Record<string, Record<string, string>> = {
     vrbo: {
       'booked': 'confirmed',
       'pending': 'pending',
