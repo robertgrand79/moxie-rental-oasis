@@ -48,7 +48,6 @@ export const usePropertyOperations = () => {
         bathrooms: propertyData.bathrooms,
         max_guests: propertyData.maxGuests, // Form field: maxGuests → DB field: max_guests
         price_per_night: propertyData.pricePerNight, // Form field: pricePerNight → DB field: price_per_night
-        hospitable_booking_url: propertyData.hospitableBookingUrl || null, // Form field: hospitableBookingUrl → DB field: hospitable_booking_url
         airbnb_listing_url: propertyData.airbnbListingUrl || null, // Form field: airbnbListingUrl → DB field: airbnb_listing_url
         amenities: propertyData.amenities || null,
         images: uploadedImages,
@@ -152,7 +151,6 @@ export const usePropertyOperations = () => {
         bathrooms: propertyData.bathrooms,
         max_guests: propertyData.maxGuests,
         price_per_night: propertyData.pricePerNight,
-        hospitable_booking_url: propertyData.hospitableBookingUrl || null,
         airbnb_listing_url: propertyData.airbnbListingUrl || null,
         amenities: propertyData.amenities || null,
         images: allImages,

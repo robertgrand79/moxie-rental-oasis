@@ -14,8 +14,7 @@ export const propertyData: Record<string, PropertyData> = {
     imageUrl: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80',
     amenities: ['WiFi', 'Kitchen', 'Parking', 'TV', 'Washer/Dryer'],
     rating: 4.8,
-    reviews: 24,
-    hospitableBookingUrl: 'https://booking.hospitable.com/widget/9f173de9-769e-4b7b-b861-57ccb4ab07c2/harris-st'
+    reviews: 24
   },
   'kincaid-st': {
     id: 'kincaid-st',
@@ -29,8 +28,7 @@ export const propertyData: Record<string, PropertyData> = {
     imageUrl: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80',
     amenities: ['WiFi', 'Kitchen', 'Parking', 'TV', 'Air Conditioning'],
     rating: 4.9,
-    reviews: 18,
-    hospitableBookingUrl: 'https://booking.hospitable.com/widget/9f173de9-769e-4b7b-b861-57ccb4ab07c2/kincaid-st'
+    reviews: 18
   },
   'w-10th-house': {
     id: 'w-10th-house',
@@ -44,8 +42,7 @@ export const propertyData: Record<string, PropertyData> = {
     imageUrl: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80',
     amenities: ['WiFi', 'Kitchen', 'Parking', 'TV', 'Patio'],
     rating: 4.7,
-    reviews: 31,
-    hospitableBookingUrl: 'https://booking.hospitable.com/widget/9f173de9-769e-4b7b-b861-57ccb4ab07c2/w-10th-house'
+    reviews: 31
   },
   'w-10th-studio': {
     id: 'w-10th-studio',
@@ -59,8 +56,7 @@ export const propertyData: Record<string, PropertyData> = {
     imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
     amenities: ['WiFi', 'Kitchenette', 'TV', 'Air Conditioning'],
     rating: 4.6,
-    reviews: 15,
-    hospitableBookingUrl: 'https://booking.hospitable.com/widget/9f173de9-769e-4b7b-b861-57ccb4ab07c2/w-10th-studio'
+    reviews: 15
   },
   'woodlawn-ave': {
     id: 'woodlawn-ave',
@@ -74,7 +70,6 @@ export const propertyData: Record<string, PropertyData> = {
     imageUrl: 'https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=800&q=80',
     amenities: ['WiFi', 'Kitchen', 'Parking', 'TV', 'Garden', 'Fireplace'],
     rating: 4.8,
-    reviews: 27,
-    hospitableBookingUrl: 'https://booking.hospitable.com/widget/9f173de9-769e-4b7b-b861-57ccb4ab07c2/woodlawn-ave'
+    reviews: 27
   }
 };

@@ -7,7 +7,6 @@ export interface PropertyFormData {
   bathrooms: number;
   maxGuests: number;
   pricePerNight: number;
-  hospitableBookingUrl?: string;
   airbnbListingUrl?: string;
   amenities?: string;
   displayOrder?: number; // New field for custom ordering
