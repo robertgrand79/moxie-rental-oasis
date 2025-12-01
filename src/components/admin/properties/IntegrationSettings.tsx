@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Property } from '@/types/property';
@@ -13,7 +12,6 @@ import { Settings, ExternalLink, Webhook, Key } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const integrationSchema = z.object({
-  hospitableBookingUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   airbnbListingUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   priceLabsPropertyId: z.string().optional(),
   autoSyncEnabled: z.boolean().default(true),
@@ -35,7 +33,6 @@ const IntegrationSettings = ({ property }: IntegrationSettingsProps) => {
   const form = useForm<IntegrationFormData>({
     resolver: zodResolver(integrationSchema),
     defaultValues: {
-      hospitableBookingUrl: property.hospitable_booking_url || '',
       airbnbListingUrl: property.airbnb_listing_url || '',
       priceLabsPropertyId: '',
       autoSyncEnabled: true,
@@ -79,26 +76,6 @@ const IntegrationSettings = ({ property }: IntegrationSettingsProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <FormField
-              control={form.control}
-              name="hospitableBookingUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Hospitable Booking Widget URL</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="https://booking.hospitable.com/widget/your-widget-id/property-id"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    The full URL to your Hospitable booking widget for this property
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="airbnbListingUrl"

@@ -27,7 +27,6 @@ const propertySchema = z.object({
   bathrooms: z.number().min(1, 'At least 1 bathroom required'),
   maxGuests: z.number().min(1, 'At least 1 guest capacity required'),
   pricePerNight: z.number().min(1, 'Price must be greater than 0'),
-  hospitableBookingUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   airbnbListingUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   amenities: z.string().optional(),
 });
@@ -59,7 +58,6 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
       bathrooms: initialData?.bathrooms || 1,
       maxGuests: initialData?.max_guests || 2,
       pricePerNight: initialData?.price_per_night || 100,
-      hospitableBookingUrl: initialData?.hospitable_booking_url || '',
       airbnbListingUrl: initialData?.airbnb_listing_url || '',
       amenities: initialData?.amenities || '',
     },

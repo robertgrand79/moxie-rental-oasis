@@ -273,7 +273,6 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                   <SelectItem value="airbnb">Airbnb</SelectItem>
                   <SelectItem value="vrbo">VRBO</SelectItem>
                   <SelectItem value="booking_com">Booking.com</SelectItem>
-                  <SelectItem value="hospitable">Hospitable</SelectItem>
                   <SelectItem value="demo">🧪 Demo Mode (Test)</SelectItem>
                 </SelectContent>
               </Select>

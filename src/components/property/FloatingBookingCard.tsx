@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Star, Users, Wifi, Car } from 'lucide-react';
 import { Property } from '@/types/property';
+import { generateAddressSlug } from '@/utils/addressSlug';
+import { useNavigate } from 'react-router-dom';
 
 interface FloatingBookingCardProps {
   property: Property;
@@ -12,6 +14,7 @@ interface FloatingBookingCardProps {
 const FloatingBookingCard = ({ property, onBookingClick }: FloatingBookingCardProps) => {
   const [scrollY, setScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,14 +29,16 @@ const FloatingBookingCard = ({ property, onBookingClick }: FloatingBookingCardPr
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const hasBookingUrl = property.hospitable_booking_url && property.hospitable_booking_url.trim() !== '';
-
   // Calculate transform for smooth following behavior
   const transform = `translateY(${Math.min(scrollY * 0.1, 100)}px)`;
 
   const handleBookNow = () => {
     if (onBookingClick) {
       onBookingClick();
+    } else {
+      // Navigate to direct booking page
+      const slug = generateAddressSlug(property.location);
+      navigate(`/book/${slug}`);
     }
   };
 
@@ -77,48 +82,31 @@ const FloatingBookingCard = ({ property, onBookingClick }: FloatingBookingCardPr
             </div>
           </div>
 
-          {hasBookingUrl ? (
-            <>
-              <Button 
-                className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90 shadow-lg"
-                onClick={handleBookNow}
-              >
-                Check Availability
-              </Button>
-              <p className="text-sm text-muted-foreground text-center">
-                Secure booking with instant confirmation
-              </p>
-              
-              {/* Booking Benefits */}
-              <div className="space-y-2 pt-2 border-t border-border">
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  Instant booking confirmation
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  24/7 customer support
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  Flexible cancellation
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-4">
-                Booking information will be available soon
-              </p>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                disabled
-              >
-                Booking Coming Soon
-              </Button>
+          <Button 
+            className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-gradient-from to-gradient-accent-from hover:from-gradient-from/90 hover:to-gradient-accent-from/90 shadow-lg"
+            onClick={handleBookNow}
+          >
+            Check Availability
+          </Button>
+          <p className="text-sm text-muted-foreground text-center">
+            Secure booking with instant confirmation
+          </p>
+          
+          {/* Booking Benefits */}
+          <div className="space-y-2 pt-2 border-t border-border">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              Instant booking confirmation
             </div>
-          )}
+            <div className="flex items-center text-sm text-muted-foreground">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              24/7 customer support
+            </div>
+            <div className="flex items-center text-sm text-muted-foreground">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              Flexible cancellation
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

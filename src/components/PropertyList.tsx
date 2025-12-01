@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { Trash2, Edit3, ExternalLink, Loader2 } from 'lucide-react';
+import { Trash2, Edit3, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { MapPin, Bed, Bath, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Property } from '@/types/property';
@@ -169,19 +168,6 @@ const PropertyList = ({
                       View Details
                     </Button>
                   </Link>
-                )}
-                
-                {property.hospitable_booking_url && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className={!showActions ? "flex-1" : "flex-1"}
-                    onClick={() => window.open(property.hospitable_booking_url, '_blank')}
-                    disabled={isDeleting}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Book Now
-                  </Button>
                 )}
                 
                 {showActions && (
