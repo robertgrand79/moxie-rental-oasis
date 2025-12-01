@@ -16,6 +16,60 @@ interface HospitableCalendarResponse {
   data: CalendarDay[];
 }
 
+async function fetchCalendarData(
+  hospitableId: string,
+  hospitableApiKey: string,
+  startDate: string,
+  endDate: string
+): Promise<{ data: CalendarDay[] | null; endpoint: string; error?: string }> {
+  // Try different endpoint formats - Hospitable API uses listings endpoint
+  const endpoints = [
+    `https://api.hospitable.com/v2/listings/${hospitableId}/calendar?start_date=${startDate}&end_date=${endDate}`,
+    `https://api.hospitable.com/v2/properties/${hospitableId}/calendar?start_date=${startDate}&end_date=${endDate}`,
+    `https://api.hospitable.com/calendar/${hospitableId}?start_date=${startDate}&end_date=${endDate}`,
+  ];
+
+  for (const url of endpoints) {
+    console.log(`Trying endpoint: ${url}`);
+    
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${hospitableApiKey}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`Success with endpoint: ${url}`);
+        console.log(`Response structure:`, JSON.stringify(Object.keys(data)));
+        
+        // Handle different response formats
+        let calendarData: CalendarDay[] = [];
+        if (data.data && Array.isArray(data.data)) {
+          calendarData = data.data;
+        } else if (Array.isArray(data)) {
+          calendarData = data;
+        } else if (data.calendar && Array.isArray(data.calendar)) {
+          calendarData = data.calendar;
+        } else if (data.days && Array.isArray(data.days)) {
+          calendarData = data.days;
+        }
+        
+        return { data: calendarData, endpoint: url };
+      } else {
+        const errorText = await response.text();
+        console.log(`Endpoint ${url} returned ${response.status}: ${errorText.substring(0, 200)}`);
+      }
+    } catch (error) {
+      console.log(`Endpoint ${url} failed: ${error.message}`);
+    }
+  }
+
+  return { data: null, endpoint: '', error: 'All endpoints failed' };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -36,7 +90,82 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { property_ids, organization_id } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const { property_ids, organization_id, test_connection } = body;
+
+    // Handle test connection request
+    if (test_connection) {
+      console.log('Testing Hospitable API connection...');
+      
+      try {
+        // Test by fetching properties/listings from Hospitable
+        const testEndpoints = [
+          'https://api.hospitable.com/v2/listings',
+          'https://api.hospitable.com/v2/properties',
+        ];
+        
+        let successfulEndpoint = null;
+        let responseData = null;
+        
+        for (const url of testEndpoints) {
+          console.log(`Testing endpoint: ${url}`);
+          const response = await fetch(url, {
+            headers: {
+              'Authorization': `Bearer ${hospitableApiKey}`,
+              'Accept': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            responseData = await response.json();
+            successfulEndpoint = url;
+            console.log(`Success with: ${url}`);
+            break;
+          } else {
+            const errorText = await response.text();
+            console.log(`${url} returned ${response.status}: ${errorText.substring(0, 200)}`);
+          }
+        }
+        
+        if (successfulEndpoint && responseData) {
+          // Extract listing/property IDs from response
+          const items = responseData.data || responseData || [];
+          const listings = Array.isArray(items) ? items.map((item: any) => ({
+            id: item.id,
+            name: item.name || item.title || item.nickname || 'Unknown',
+            platform: item.platform || 'unknown',
+          })) : [];
+          
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: 'Hospitable API connection successful',
+              endpoint: successfulEndpoint,
+              listings_count: listings.length,
+              listings: listings.slice(0, 10), // Return first 10 for preview
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Could not connect to Hospitable API. Please verify your API key.',
+            }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch (testError) {
+        console.error('Test connection error:', testError);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `Connection test failed: ${testError.message}`,
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     console.log('Starting Hospitable pricing sync', { property_ids, organization_id });
 
@@ -82,49 +211,42 @@ Deno.serve(async (req) => {
 
     for (const property of properties) {
       try {
-        console.log(`Syncing pricing for property: ${property.title} (${property.hospitable_property_id})`);
+        console.log(`Syncing pricing for property: ${property.title} (Hospitable ID: ${property.hospitable_property_id})`);
 
-        // Fetch calendar data from Hospitable API
-        const calendarUrl = `https://api.hospitable.com/v2/properties/${property.hospitable_property_id}/calendar_days?start_date=${startDate}&end_date=${endDate}`;
-        
-        console.log(`Fetching calendar from: ${calendarUrl}`);
+        const { data: calendarData, endpoint, error: calendarError } = await fetchCalendarData(
+          property.hospitable_property_id,
+          hospitableApiKey,
+          startDate,
+          endDate
+        );
 
-        const response = await fetch(calendarUrl, {
-          headers: {
-            'Authorization': `Bearer ${hospitableApiKey}`,
-            'Accept': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Hospitable API error for ${property.title}:`, response.status, errorText);
+        if (calendarError || !calendarData) {
+          console.error(`Failed to fetch calendar for ${property.title}: ${calendarError}`);
           results.push({
             property_id: property.id,
             property_title: property.title,
+            hospitable_id: property.hospitable_property_id,
             success: false,
-            error: `API error: ${response.status} - ${errorText}`
+            error: calendarError || 'No calendar data returned'
           });
           continue;
         }
 
-        const calendarData: HospitableCalendarResponse = await response.json();
-        
-        if (!calendarData.data || calendarData.data.length === 0) {
-          console.log(`No calendar data returned for ${property.title}`);
+        console.log(`Received ${calendarData.length} calendar days from ${endpoint}`);
+
+        if (calendarData.length === 0) {
           results.push({
             property_id: property.id,
             property_title: property.title,
+            hospitable_id: property.hospitable_property_id,
             success: false,
             error: 'No calendar data returned'
           });
           continue;
         }
 
-        console.log(`Received ${calendarData.data.length} calendar days for ${property.title}`);
-
         // Transform calendar data to pricing records
-        const pricingRecords = calendarData.data
+        const pricingRecords = calendarData
           .filter(day => day.price && day.price > 0)
           .map(day => ({
             property_id: property.id,
@@ -140,6 +262,7 @@ Deno.serve(async (req) => {
           results.push({
             property_id: property.id,
             property_title: property.title,
+            hospitable_id: property.hospitable_property_id,
             success: false,
             error: 'No valid pricing data'
           });
@@ -173,8 +296,10 @@ Deno.serve(async (req) => {
         results.push({
           property_id: property.id,
           property_title: property.title,
+          hospitable_id: property.hospitable_property_id,
           success: true,
-          prices_synced: totalUpserted
+          prices_synced: totalUpserted,
+          endpoint_used: endpoint
         });
 
       } catch (propertyError) {
@@ -182,6 +307,7 @@ Deno.serve(async (req) => {
         results.push({
           property_id: property.id,
           property_title: property.title,
+          hospitable_id: property.hospitable_property_id,
           success: false,
           error: propertyError.message
         });
