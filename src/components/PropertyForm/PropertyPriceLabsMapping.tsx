@@ -97,6 +97,7 @@ export const PropertyPriceLabsMapping: React.FC<PropertyPriceLabsMappingProps> =
               : 'Load your PriceLabs listings to map this property'}
           </p>
           <Button
+            type="button"
             onClick={() => fetchPriceLabsMutation.mutate()}
             disabled={fetchPriceLabsMutation.isPending}
             variant="outline"
