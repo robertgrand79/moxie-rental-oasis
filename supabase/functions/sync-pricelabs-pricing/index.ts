@@ -5,13 +5,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface PriceLabsListingInfo {
+interface PriceLabsListing {
   id: string;
   name: string;
   base: number;
   min: number;
   max: number | null;
   recommended_base_price: number;
+  // Potential daily pricing fields
+  pricing?: Record<string, number | { price: number }>;
+  dates?: Record<string, number | { price: number }>;
+  calendar?: Record<string, number | { price: number }>;
 }
 
 Deno.serve(async (req) => {
@@ -27,7 +31,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { property_id, organization_id } = body;
 
-    console.log('Starting PriceLabs sync...');
+    console.log('Starting PriceLabs sync with daily calendar prices...');
 
     // Determine API key to use
     let priceLabsApiKey: string | null = null;
@@ -59,8 +63,8 @@ Deno.serve(async (req) => {
       throw new Error('PRICELABS_API_KEY not configured');
     }
 
-    // Fetch all listings from PriceLabs to get current pricing
-    console.log('Fetching PriceLabs listings with current pricing...');
+    // Fetch all listings with pricing data from PriceLabs
+    console.log('Fetching PriceLabs listings...');
     const listingsResponse = await fetch('https://api.pricelabs.co/v1/listings', {
       method: 'GET',
       headers: {
@@ -74,12 +78,25 @@ Deno.serve(async (req) => {
     }
 
     const listingsData = await listingsResponse.json();
-    const priceLabsListings: PriceLabsListingInfo[] = listingsData.listings || [];
+    const priceLabsListings: PriceLabsListing[] = listingsData.listings || [];
     console.log(`Fetched ${priceLabsListings.length} PriceLabs listings`);
+    
+    // Log the structure of first listing to understand available data
+    if (priceLabsListings.length > 0) {
+      const sampleListing = priceLabsListings[0];
+      console.log('Sample listing structure:', JSON.stringify({
+        id: sampleListing.id,
+        name: sampleListing.name,
+        keys: Object.keys(sampleListing),
+        hasPricing: !!sampleListing.pricing,
+        hasDates: !!sampleListing.dates,
+        hasCalendar: !!sampleListing.calendar,
+      }));
+    }
 
     // Create a map for quick lookup
-    const listingPriceMap = new Map<string, PriceLabsListingInfo>();
-    priceLabsListings.forEach(l => listingPriceMap.set(l.id, l));
+    const listingMap = new Map<string, PriceLabsListing>();
+    priceLabsListings.forEach(l => listingMap.set(l.id, l));
 
     // Fetch properties from database
     let query = supabase.from('properties').select('id, title, pricelabs_listing_id, price_per_night');
@@ -105,11 +122,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Syncing pricing for ${properties.length} properties`);
+    console.log(`Syncing daily pricing for ${properties.length} properties`);
 
     let totalPricesUpdated = 0;
     const syncResults = [];
-    const today = new Date();
 
     for (const property of properties) {
       try {
@@ -123,10 +139,9 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Get the listing info from PriceLabs
-        const listingInfo = listingPriceMap.get(property.pricelabs_listing_id);
+        const listing = listingMap.get(property.pricelabs_listing_id);
         
-        if (!listingInfo) {
+        if (!listing) {
           console.log(`PriceLabs listing ${property.pricelabs_listing_id} not found for ${property.title}`);
           syncResults.push({
             property_id: property.id,
@@ -137,25 +152,101 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        console.log(`Found PriceLabs data for ${property.title}: base=$${listingInfo.base}, recommended=$${listingInfo.recommended_base_price}`);
+        console.log(`Processing ${property.title} - listing keys: ${Object.keys(listing).join(', ')}`);
 
-        // Create pricing records for the next 365 days using the recommended base price
-        const pricingRecords = [];
-        const basePrice = listingInfo.recommended_base_price || listingInfo.base || property.price_per_night || 100;
+        // Try to fetch daily pricing from the getpricing endpoint
+        console.log(`Fetching daily pricing for ${property.title} (${property.pricelabs_listing_id})...`);
         
+        // Try the getpricing endpoint with query parameters
+        const pricingResponse = await fetch(
+          `https://api.pricelabs.co/v1/getpricing?listing_id=${property.pricelabs_listing_id}`,
+          {
+            method: 'GET',
+            headers: {
+              'X-API-Key': priceLabsApiKey,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        let dailyPrices: Record<string, number> = {};
+        let pricesFromApi = 0;
+
+        if (pricingResponse.ok) {
+          const pricingData = await pricingResponse.json();
+          console.log(`Pricing API response for ${property.title}:`, JSON.stringify(pricingData).substring(0, 1000));
+          
+          // Parse pricing data - handle various possible formats
+          if (pricingData.pricing) {
+            dailyPrices = parsePricingData(pricingData.pricing);
+          } else if (pricingData.dates) {
+            dailyPrices = parsePricingData(pricingData.dates);
+          } else if (pricingData.prices) {
+            dailyPrices = parsePricingData(pricingData.prices);
+          } else if (Array.isArray(pricingData)) {
+            // Handle array format [{date: "2025-12-18", price: 900}, ...]
+            for (const item of pricingData) {
+              if (item.date && item.price) {
+                dailyPrices[item.date] = item.price;
+              }
+            }
+          }
+          pricesFromApi = Object.keys(dailyPrices).length;
+        } else {
+          const errorText = await pricingResponse.text();
+          console.log(`getpricing endpoint returned ${pricingResponse.status}: ${errorText}`);
+          
+          // Check if listing object contains pricing data directly
+          if (listing.pricing) {
+            dailyPrices = parsePricingData(listing.pricing);
+            pricesFromApi = Object.keys(dailyPrices).length;
+            console.log(`Found ${pricesFromApi} prices in listing.pricing`);
+          } else if (listing.dates) {
+            dailyPrices = parsePricingData(listing.dates);
+            pricesFromApi = Object.keys(dailyPrices).length;
+            console.log(`Found ${pricesFromApi} prices in listing.dates`);
+          }
+        }
+
+        // Build pricing records for the next 365 days
+        const pricingRecords = [];
+        const fallbackPrice = listing.recommended_base_price || listing.base || property.price_per_night || 100;
+        let pricesFromFallback = 0;
+
+        const today = new Date();
         for (let i = 0; i < 365; i++) {
           const date = new Date(today);
           date.setDate(date.getDate() + i);
           const dateStr = date.toISOString().split('T')[0];
           
+          // Use daily price if available, otherwise use fallback
+          let finalPrice: number;
+          if (dailyPrices[dateStr]) {
+            finalPrice = dailyPrices[dateStr];
+          } else {
+            finalPrice = fallbackPrice;
+            pricesFromFallback++;
+          }
+          
           pricingRecords.push({
             property_id: property.id,
             date: dateStr,
-            base_price: basePrice,
-            pricelabs_price: basePrice,
-            final_price: basePrice,
+            base_price: fallbackPrice,
+            pricelabs_price: finalPrice,
+            final_price: finalPrice,
             pricing_source: 'pricelabs',
           });
+        }
+
+        console.log(`${property.title}: ${pricesFromApi} from API, ${pricesFromFallback} from fallback ($${fallbackPrice})`);
+
+        // Log sample prices for verification
+        const sampleDates = ['2025-12-18', '2025-12-19', '2025-12-20', '2025-12-21'];
+        for (const sampleDate of sampleDates) {
+          const record = pricingRecords.find(r => r.date === sampleDate);
+          if (record) {
+            console.log(`  ${sampleDate}: $${record.final_price}`);
+          }
         }
 
         // Upsert in batches
@@ -183,14 +274,16 @@ Deno.serve(async (req) => {
             error: 'Error upserting pricing records'
           });
         } else {
-          console.log(`Synced ${pricingRecords.length} prices for ${property.title} at $${basePrice}/night`);
+          console.log(`Synced ${pricingRecords.length} prices for ${property.title}`);
           totalPricesUpdated += pricingRecords.length;
           syncResults.push({
             property_id: property.id,
             property_title: property.title,
             success: true,
             prices_synced: pricingRecords.length,
-            base_price: basePrice
+            prices_from_api: pricesFromApi,
+            prices_from_fallback: pricesFromFallback,
+            base_price_used: fallbackPrice
           });
         }
       } catch (propertyError) {
@@ -209,7 +302,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Synced pricing for ${properties.length} properties`,
+        message: `Synced daily pricing for ${properties.length} properties`,
         total_prices_updated: totalPricesUpdated,
         results: syncResults,
       }),
@@ -223,3 +316,27 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+// Helper function to parse pricing data in various formats
+function parsePricingData(data: any): Record<string, number> {
+  const prices: Record<string, number> = {};
+  
+  if (!data) return prices;
+  
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value === 'number') {
+      prices[key] = value;
+    } else if (typeof value === 'object' && value !== null) {
+      const priceObj = value as any;
+      if (priceObj.price) {
+        prices[key] = priceObj.price;
+      } else if (priceObj.rate) {
+        prices[key] = priceObj.rate;
+      } else if (priceObj.final_price) {
+        prices[key] = priceObj.final_price;
+      }
+    }
+  }
+  
+  return prices;
+}
