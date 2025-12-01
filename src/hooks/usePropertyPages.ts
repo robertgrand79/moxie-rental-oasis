@@ -39,7 +39,7 @@ ${property.amenities}` : ''}
 ## Book Your Stay
 Ready to experience this amazing property? Book now through our secure booking system.
 
-[Book Now](${property.hospitable_booking_url || '#'})
+[Book Now](/book/${slug})
 
 ---
 

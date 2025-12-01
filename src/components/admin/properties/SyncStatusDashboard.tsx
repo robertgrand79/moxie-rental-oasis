@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Property } from '@/types/property';
 import { useReservations, useDynamicPricing, useSyncPriceLabs } from '@/hooks/useBookingData';
-import { RefreshCw, Calendar, DollarSign, Users, AlertTriangle, CheckCircle } from 'lucide-react';
+import { RefreshCw, Calendar, DollarSign, Users, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface SyncStatusDashboardProps {
@@ -35,7 +35,6 @@ const SyncStatusDashboard = ({ property }: SyncStatusDashboardProps) => {
   );
 
   const integrationStatus = {
-    hospitable: !!property.hospitable_booking_url,
     pricelabs: !!currentPricing,
     airbnb: !!property.airbnb_listing_url
   };
@@ -100,17 +99,7 @@ const SyncStatusDashboard = ({ property }: SyncStatusDashboardProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-2">
-                <CheckCircle className={`h-4 w-4 ${integrationStatus.hospitable ? 'text-green-500' : 'text-gray-400'}`} />
-                <span className="font-medium">Hospitable</span>
-              </div>
-              <Badge variant={integrationStatus.hospitable ? "default" : "secondary"}>
-                {integrationStatus.hospitable ? "Connected" : "Not Setup"}
-              </Badge>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center gap-2">
                 <CheckCircle className={`h-4 w-4 ${integrationStatus.pricelabs ? 'text-green-500' : 'text-gray-400'}`} />

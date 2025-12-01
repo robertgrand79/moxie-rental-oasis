@@ -12,5 +12,4 @@ export interface PropertyData {
   amenities: string[];
   rating: number;
   reviews: number;
-  hospitableBookingUrl?: string;
 }

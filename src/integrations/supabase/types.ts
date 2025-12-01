@@ -2680,7 +2680,6 @@ export type Database = {
           description: string
           display_order: number | null
           featured_photos: string[] | null
-          hospitable_booking_url: string | null
           hospitable_property_id: string | null
           id: string
           image_url: string | null
@@ -2711,7 +2710,6 @@ export type Database = {
           description: string
           display_order?: number | null
           featured_photos?: string[] | null
-          hospitable_booking_url?: string | null
           hospitable_property_id?: string | null
           id?: string
           image_url?: string | null
@@ -2742,7 +2740,6 @@ export type Database = {
           description?: string
           display_order?: number | null
           featured_photos?: string[] | null
-          hospitable_booking_url?: string | null
           hospitable_property_id?: string | null
           id?: string
           image_url?: string | null

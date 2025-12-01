@@ -55,7 +55,7 @@ export interface AvailabilityBlock {
 export interface ExternalCalendar {
   id: string;
   property_id: string;
-  platform: 'hospitable' | 'vrbo' | 'airbnb' | 'booking_com';
+  platform: 'vrbo' | 'airbnb' | 'booking_com';
   external_property_id: string;
   calendar_url?: string;
   sync_enabled: boolean;
