@@ -6,13 +6,15 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, RefreshCw, Link as LinkIcon, CheckCircle2, XCircle, DollarSign } from 'lucide-react';
+import { Loader2, RefreshCw, CheckCircle2, XCircle, DollarSign, Home } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 interface Property {
   id: string;
   title: string;
   pricelabs_listing_id: string | null;
+  hospitable_property_id: string | null;
 }
 
 interface PriceLabsListing {
@@ -31,7 +33,7 @@ export const PriceLabsSettings = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('properties')
-        .select('id, title, pricelabs_listing_id')
+        .select('id, title, pricelabs_listing_id, hospitable_property_id')
         .order('title');
       
       if (error) throw error;
@@ -121,6 +123,35 @@ export const PriceLabsSettings = () => {
     }
   });
 
+  // Hospitable sync mutation
+  const hospitableSyncMutation = useMutation({
+    mutationFn: async (propertyIds?: string[]) => {
+      const { data, error } = await supabase.functions.invoke('sync-hospitable-pricing', {
+        body: { property_ids: propertyIds }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['properties-pricelabs'] });
+      queryClient.invalidateQueries({ queryKey: ['dynamic-pricing'] });
+      const successCount = data?.results?.filter((r: any) => r.success)?.length || 0;
+      const totalCount = data?.results?.length || 0;
+      const totalPrices = data?.total_prices_updated || 0;
+      toast({
+        title: 'Hospitable Sync Complete',
+        description: `Synced ${successCount}/${totalCount} properties (${totalPrices} prices)`
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Hospitable Sync Failed',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+
   const handleSave = (propertyId: string, priceLabsId?: string) => {
     const idToSave = priceLabsId || priceLabsIds[propertyId] || '';
     updateMutation.mutate({
@@ -142,12 +173,30 @@ export const PriceLabsSettings = () => {
     syncMutation.mutate(mappedPropertyIds);
   };
 
+  const handleHospitableSyncAll = () => {
+    const hospitablePropertyIds = properties?.filter(p => p.hospitable_property_id)?.map(p => p.id);
+    if (!hospitablePropertyIds?.length) {
+      toast({
+        title: 'No Properties to Sync',
+        description: 'No properties have Hospitable IDs configured',
+        variant: 'destructive'
+      });
+      return;
+    }
+    hospitableSyncMutation.mutate(hospitablePropertyIds);
+  };
+
   const handleSyncProperty = (propertyId: string) => {
     syncMutation.mutate([propertyId]);
   };
 
+  const handleHospitableSyncProperty = (propertyId: string) => {
+    hospitableSyncMutation.mutate([propertyId]);
+  };
+
   const mappedCount = properties?.filter(p => p.pricelabs_listing_id)?.length || 0;
   const unmappedCount = (properties?.length || 0) - mappedCount;
+  const hospitableMappedCount = properties?.filter(p => p.hospitable_property_id)?.length || 0;
 
   if (isLoading) {
     return (
@@ -159,15 +208,54 @@ export const PriceLabsSettings = () => {
 
   return (
     <div className="space-y-6">
-      {/* Status Overview */}
+      {/* Hospitable Sync Card - Primary pricing source */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Home className="h-5 w-5" />
+            Hospitable Pricing Sync
+          </CardTitle>
+          <CardDescription>
+            Sync dynamic pricing from Hospitable (receives prices from PriceLabs)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4 mb-6">
+            <Badge variant="default" className="bg-success/20 text-success hover:bg-success/30">
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              {hospitableMappedCount} Properties with Hospitable ID
+            </Badge>
+          </div>
+
+          <Button
+            onClick={handleHospitableSyncAll}
+            disabled={hospitableSyncMutation.isPending || hospitableMappedCount === 0}
+          >
+            {hospitableSyncMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            Sync Prices from Hospitable ({hospitableMappedCount})
+          </Button>
+
+          <p className="text-sm text-muted-foreground mt-4">
+            This fetches daily prices from Hospitable calendar for the next 365 days
+          </p>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* PriceLabs Status Overview */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            PriceLabs Overview
+            PriceLabs Mapping (Future Direct Integration)
           </CardTitle>
           <CardDescription>
-            Connect your properties to PriceLabs listings for automated dynamic pricing
+            Map properties to PriceLabs listings for future direct API access
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -203,13 +291,14 @@ export const PriceLabsSettings = () => {
             <Button
               onClick={handleSyncAll}
               disabled={syncMutation.isPending || mappedCount === 0}
+              variant="outline"
             >
               {syncMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (
                 <DollarSign className="h-4 w-4 mr-2" />
               )}
-              Sync All Prices ({mappedCount})
+              Sync from PriceLabs ({mappedCount})
             </Button>
           </div>
 
@@ -258,6 +347,23 @@ export const PriceLabsSettings = () => {
                       : 'Not mapped'}
                   </p>
                 </div>
+                {/* Hospitable sync button */}
+                {property.hospitable_property_id && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleHospitableSyncProperty(property.id)}
+                    disabled={hospitableSyncMutation.isPending}
+                    title="Sync from Hospitable"
+                  >
+                    {hospitableSyncMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Home className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Select
                     value={priceLabsIds[property.id] || property.pricelabs_listing_id || 'none'}
