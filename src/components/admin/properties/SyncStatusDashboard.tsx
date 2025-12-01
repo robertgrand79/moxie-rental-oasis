@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Property } from '@/types/property';
-import { useReservations, useDynamicPricing, useSyncPriceLabs } from '@/hooks/useBookingData';
+import { useReservations, useDynamicPricing } from '@/hooks/useBookingData';
+import { usePriceLabsSync } from '@/hooks/usePriceLabsSync';
 import { RefreshCw, Calendar, DollarSign, Users, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -14,10 +15,10 @@ interface SyncStatusDashboardProps {
 const SyncStatusDashboard = ({ property }: SyncStatusDashboardProps) => {
   const { data: reservations, isLoading: reservationsLoading } = useReservations(property.id);
   const { data: pricing, isLoading: pricingLoading } = useDynamicPricing(property.id);
-  const { mutate: syncPriceLabs, isPending: syncing } = useSyncPriceLabs();
+  const { syncPricing, isSyncing } = usePriceLabsSync();
 
   const handleSyncPriceLabs = () => {
-    syncPriceLabs();
+    syncPricing({ property_id: property.id });
   };
 
   const activeReservations = reservations?.filter(r => 
@@ -123,11 +124,12 @@ const SyncStatusDashboard = ({ property }: SyncStatusDashboardProps) => {
 
           <div className="flex gap-2 pt-4">
             <Button 
+              type="button"
               onClick={handleSyncPriceLabs}
-              disabled={syncing}
+              disabled={isSyncing}
               variant="outline"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
               Sync PriceLabs
             </Button>
           </div>

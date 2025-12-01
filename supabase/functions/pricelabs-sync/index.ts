@@ -13,14 +13,6 @@ const pricelabsApiKey = Deno.env.get('PRICELABS_API_KEY')!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-interface PricingData {
-  property_id: string;
-  date: string;
-  price: number;
-  minimum_stay: number;
-  available: boolean;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -29,26 +21,25 @@ serve(async (req) => {
   try {
     console.log('Starting PriceLabs sync...');
 
-    // Get all properties that need pricing sync
+    // Get all properties that need pricing sync - use correct column name
     const { data: properties, error: propertiesError } = await supabase
       .from('properties')
-      .select('id, title, external_property_ids')
-      .eq('is_active', true);
+      .select('id, title, pricelabs_listing_id, price_per_night')
+      .eq('is_active', true)
+      .not('pricelabs_listing_id', 'is', null);
 
     if (propertiesError) {
       console.error('Error fetching properties:', propertiesError);
       throw propertiesError;
     }
 
-    console.log(`Found ${properties?.length || 0} properties to sync`);
+    console.log(`Found ${properties?.length || 0} properties with PriceLabs mappings to sync`);
 
     const syncResults = [];
 
     for (const property of properties || []) {
       try {
-        // Get PriceLabs property ID from external_property_ids
-        const externalIds = property.external_property_ids || {};
-        const pricelabsPropertyId = externalIds.pricelabs;
+        const pricelabsPropertyId = property.pricelabs_listing_id;
 
         if (!pricelabsPropertyId) {
           console.log(`Skipping property ${property.id} - no PriceLabs ID configured`);
@@ -68,6 +59,12 @@ serve(async (req) => {
 
         if (!pricelabsResponse.ok) {
           console.error(`PriceLabs API error for property ${property.id}:`, pricelabsResponse.status);
+          syncResults.push({
+            property_id: property.id,
+            property_title: property.title,
+            status: 'error',
+            error: `PriceLabs API returned ${pricelabsResponse.status}`
+          });
           continue;
         }
 
@@ -104,17 +101,29 @@ serve(async (req) => {
 
           if (pricingError) {
             console.error(`Error updating pricing for property ${property.id}:`, pricingError);
+            syncResults.push({
+              property_id: property.id,
+              property_title: property.title,
+              status: 'error',
+              error: pricingError.message
+            });
           } else {
             console.log(`Updated ${pricingEntries.length} pricing entries for property ${property.id}`);
+            syncResults.push({
+              property_id: property.id,
+              property_title: property.title,
+              entries_synced: pricingEntries.length,
+              status: 'success'
+            });
           }
+        } else {
+          syncResults.push({
+            property_id: property.id,
+            property_title: property.title,
+            entries_synced: 0,
+            status: 'success'
+          });
         }
-
-        syncResults.push({
-          property_id: property.id,
-          property_title: property.title,
-          entries_synced: pricingEntries.length,
-          status: 'success'
-        });
 
       } catch (error) {
         console.error(`Error syncing property ${property.id}:`, error);
@@ -127,26 +136,11 @@ serve(async (req) => {
       }
     }
 
-    // Log sync completion
-    const { error: logError } = await supabase
-      .from('sync_logs')
-      .insert({
-        platform: 'pricelabs',
-        sync_type: 'pricing',
-        status: 'completed',
-        details: {
-          properties_processed: syncResults.length,
-          successful_syncs: syncResults.filter(r => r.status === 'success').length,
-          failed_syncs: syncResults.filter(r => r.status === 'error').length,
-          sync_results: syncResults
-        }
-      });
-
-    if (logError) {
-      console.error('Error logging sync results:', logError);
-    }
-
-    console.log('PriceLabs sync completed');
+    console.log('PriceLabs sync completed', { 
+      total: syncResults.length,
+      successful: syncResults.filter(r => r.status === 'success').length,
+      failed: syncResults.filter(r => r.status === 'error').length
+    });
 
     return new Response(JSON.stringify({
       success: true,
@@ -158,17 +152,6 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('PriceLabs sync error:', error);
-    
-    // Log sync failure
-    await supabase
-      .from('sync_logs')
-      .insert({
-        platform: 'pricelabs',
-        sync_type: 'pricing',
-        status: 'failed',
-        error_message: error.message,
-        details: { error: error.message }
-      });
 
     return new Response(JSON.stringify({
       success: false,

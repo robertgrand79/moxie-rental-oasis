@@ -177,13 +177,15 @@ export const useExternalCalendars = (propertyId?: string) => {
   });
 };
 
-// Sync functions
+// Sync functions - use sync-pricelabs-pricing edge function
 export const useSyncPriceLabs = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('pricelabs-sync');
+    mutationFn: async (params?: { property_id?: string }) => {
+      const { data, error } = await supabase.functions.invoke('sync-pricelabs-pricing', {
+        body: params || {}
+      });
       
       if (error) throw error;
       return data;
