@@ -59,6 +59,15 @@ verify_jwt = false
 [functions.pricelabs-sync]
 verify_jwt = false
 
+[functions.sync-pricelabs-pricing]
+verify_jwt = false
+
+[functions.fetch-pricelabs-listings]
+verify_jwt = false
+
+[functions.pricelabs-cron-sync]
+verify_jwt = false
+
 [functions.booking-webhook]
 verify_jwt = false
 
