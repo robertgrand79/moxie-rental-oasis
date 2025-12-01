@@ -957,6 +957,7 @@ export type Database = {
           created_at: string
           date: string
           final_price: number
+          hospitable_price: number | null
           id: string
           manual_override_price: number | null
           market_demand: string | null
@@ -972,6 +973,7 @@ export type Database = {
           created_at?: string
           date: string
           final_price: number
+          hospitable_price?: number | null
           id?: string
           manual_override_price?: number | null
           market_demand?: string | null
@@ -987,6 +989,7 @@ export type Database = {
           created_at?: string
           date?: string
           final_price?: number
+          hospitable_price?: number | null
           id?: string
           manual_override_price?: number | null
           market_demand?: string | null
