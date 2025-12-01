@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     // Fetch properties with hospitable_property_id
     let query = supabase
       .from('properties')
-      .select('id, title, hospitable_property_id, base_price')
+      .select('id, title, hospitable_property_id, nightly_rate')
       .not('hospitable_property_id', 'is', null);
 
     if (property_ids && property_ids.length > 0) {
@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
           .map(day => ({
             property_id: property.id,
             date: day.date,
-            base_price: property.base_price || day.price,
+            base_price: property.nightly_rate || day.price,
             hospitable_price: day.price,
             final_price: day.price,
             pricing_source: 'hospitable',
