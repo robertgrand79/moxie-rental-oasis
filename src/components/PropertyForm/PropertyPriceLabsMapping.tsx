@@ -56,7 +56,7 @@ export const PropertyPriceLabsMapping: React.FC<PropertyPriceLabsMappingProps> =
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['properties-pricelabs'] });
       toast({
         title: 'Success',
         description: 'PriceLabs listing mapped successfully'
