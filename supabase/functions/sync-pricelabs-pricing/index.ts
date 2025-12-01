@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            listing_id: property.pricelabs_listing_id,
+            listings: [property.pricelabs_listing_id],
             number_of_months: 12
           }),
         });
