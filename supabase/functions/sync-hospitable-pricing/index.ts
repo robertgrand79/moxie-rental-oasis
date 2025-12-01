@@ -12,17 +12,13 @@ interface CalendarDay {
   available?: boolean;
 }
 
-interface HospitableCalendarResponse {
-  data: CalendarDay[];
-}
-
 async function fetchCalendarData(
   hospitableId: string,
   hospitableApiKey: string,
   startDate: string,
   endDate: string
 ): Promise<{ data: CalendarDay[] | null; endpoint: string; error?: string }> {
-  // Try different endpoint formats - Hospitable API uses listings endpoint
+  // Hospitable API uses numeric IDs, try different endpoint formats
   const endpoints = [
     `https://api.hospitable.com/v2/listings/${hospitableId}/calendar?start_date=${startDate}&end_date=${endDate}`,
     `https://api.hospitable.com/v2/properties/${hospitableId}/calendar?start_date=${startDate}&end_date=${endDate}`,
@@ -116,6 +112,8 @@ Deno.serve(async (req) => {
             },
           });
           
+          console.log(`Response status: ${response.status}`);
+          
           if (response.ok) {
             responseData = await response.json();
             successfulEndpoint = url;
@@ -123,7 +121,7 @@ Deno.serve(async (req) => {
             break;
           } else {
             const errorText = await response.text();
-            console.log(`${url} returned ${response.status}: ${errorText.substring(0, 200)}`);
+            console.log(`${url} returned ${response.status}: ${errorText.substring(0, 500)}`);
           }
         }
         
@@ -169,10 +167,10 @@ Deno.serve(async (req) => {
 
     console.log('Starting Hospitable pricing sync', { property_ids, organization_id });
 
-    // Fetch properties with hospitable_property_id
+    // Fetch properties - include pricelabs_listing_id as it may contain numeric Hospitable ID
     let query = supabase
       .from('properties')
-      .select('id, title, hospitable_property_id, price_per_night')
+      .select('id, title, hospitable_property_id, pricelabs_listing_id, price_per_night')
       .not('hospitable_property_id', 'is', null);
 
     if (property_ids && property_ids.length > 0) {
@@ -211,39 +209,47 @@ Deno.serve(async (req) => {
 
     for (const property of properties) {
       try {
-        console.log(`Syncing pricing for property: ${property.title} (Hospitable ID: ${property.hospitable_property_id})`);
-
-        const { data: calendarData, endpoint, error: calendarError } = await fetchCalendarData(
+        // Try multiple ID sources: pricelabs_listing_id first (numeric), then hospitable_property_id
+        const idsToTry = [
+          property.pricelabs_listing_id,
           property.hospitable_property_id,
-          hospitableApiKey,
-          startDate,
-          endDate
-        );
+        ].filter(Boolean);
 
-        if (calendarError || !calendarData) {
-          console.error(`Failed to fetch calendar for ${property.title}: ${calendarError}`);
+        console.log(`Syncing pricing for property: ${property.title}`);
+        console.log(`IDs to try: ${idsToTry.join(', ')}`);
+
+        let calendarData: CalendarDay[] | null = null;
+        let usedEndpoint = '';
+        let lastError = '';
+
+        for (const idToTry of idsToTry) {
+          console.log(`Trying with ID: ${idToTry}`);
+          const result = await fetchCalendarData(idToTry, hospitableApiKey, startDate, endDate);
+          
+          if (result.data && result.data.length > 0) {
+            calendarData = result.data;
+            usedEndpoint = result.endpoint;
+            console.log(`Success with ID ${idToTry}: ${result.data.length} days`);
+            break;
+          } else {
+            lastError = result.error || 'No data returned';
+          }
+        }
+
+        if (!calendarData || calendarData.length === 0) {
+          console.error(`Failed to fetch calendar for ${property.title}: ${lastError}`);
           results.push({
             property_id: property.id,
             property_title: property.title,
             hospitable_id: property.hospitable_property_id,
+            pricelabs_id: property.pricelabs_listing_id,
             success: false,
-            error: calendarError || 'No calendar data returned'
+            error: lastError || 'No calendar data returned'
           });
           continue;
         }
 
-        console.log(`Received ${calendarData.length} calendar days from ${endpoint}`);
-
-        if (calendarData.length === 0) {
-          results.push({
-            property_id: property.id,
-            property_title: property.title,
-            hospitable_id: property.hospitable_property_id,
-            success: false,
-            error: 'No calendar data returned'
-          });
-          continue;
-        }
+        console.log(`Received ${calendarData.length} calendar days from ${usedEndpoint}`);
 
         // Transform calendar data to pricing records
         const pricingRecords = calendarData
@@ -263,6 +269,7 @@ Deno.serve(async (req) => {
             property_id: property.id,
             property_title: property.title,
             hospitable_id: property.hospitable_property_id,
+            pricelabs_id: property.pricelabs_listing_id,
             success: false,
             error: 'No valid pricing data'
           });
@@ -297,9 +304,10 @@ Deno.serve(async (req) => {
           property_id: property.id,
           property_title: property.title,
           hospitable_id: property.hospitable_property_id,
+          pricelabs_id: property.pricelabs_listing_id,
           success: true,
           prices_synced: totalUpserted,
-          endpoint_used: endpoint
+          endpoint_used: usedEndpoint
         });
 
       } catch (propertyError) {
@@ -308,6 +316,7 @@ Deno.serve(async (req) => {
           property_id: property.id,
           property_title: property.title,
           hospitable_id: property.hospitable_property_id,
+          pricelabs_id: property.pricelabs_listing_id,
           success: false,
           error: propertyError.message
         });
