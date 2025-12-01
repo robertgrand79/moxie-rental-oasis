@@ -12,10 +12,12 @@ interface PriceLabsListing {
   min: number;
   max: number | null;
   recommended_base_price: number;
-  // Potential daily pricing fields
-  pricing?: Record<string, number | { price: number }>;
-  dates?: Record<string, number | { price: number }>;
-  calendar?: Record<string, number | { price: number }>;
+}
+
+interface DailyPrice {
+  date: string;
+  price: number;
+  min_stay?: number;
 }
 
 Deno.serve(async (req) => {
@@ -63,7 +65,7 @@ Deno.serve(async (req) => {
       throw new Error('PRICELABS_API_KEY not configured');
     }
 
-    // Fetch all listings with pricing data from PriceLabs
+    // Fetch all listings from PriceLabs (for basic info and listing ID mapping)
     console.log('Fetching PriceLabs listings...');
     const listingsResponse = await fetch('https://api.pricelabs.co/v1/listings', {
       method: 'GET',
@@ -80,19 +82,6 @@ Deno.serve(async (req) => {
     const listingsData = await listingsResponse.json();
     const priceLabsListings: PriceLabsListing[] = listingsData.listings || [];
     console.log(`Fetched ${priceLabsListings.length} PriceLabs listings`);
-    
-    // Log the structure of first listing to understand available data
-    if (priceLabsListings.length > 0) {
-      const sampleListing = priceLabsListings[0];
-      console.log('Sample listing structure:', JSON.stringify({
-        id: sampleListing.id,
-        name: sampleListing.name,
-        keys: Object.keys(sampleListing),
-        hasPricing: !!sampleListing.pricing,
-        hasDates: !!sampleListing.dates,
-        hasCalendar: !!sampleListing.calendar,
-      }));
-    }
 
     // Create a map for quick lookup
     const listingMap = new Map<string, PriceLabsListing>();
@@ -140,26 +129,16 @@ Deno.serve(async (req) => {
         }
 
         const listing = listingMap.get(property.pricelabs_listing_id);
-        
-        if (!listing) {
-          console.log(`PriceLabs listing ${property.pricelabs_listing_id} not found for ${property.title}`);
-          syncResults.push({
-            property_id: property.id,
-            property_title: property.title,
-            success: false,
-            error: `PriceLabs listing ${property.pricelabs_listing_id} not found`
-          });
-          continue;
-        }
+        const fallbackPrice = listing?.recommended_base_price || listing?.base || property.price_per_night || 100;
 
-        console.log(`Processing ${property.title} - listing keys: ${Object.keys(listing).join(', ')}`);
+        console.log(`Fetching daily prices for ${property.title} (${property.pricelabs_listing_id})...`);
 
-        // Try to fetch daily pricing from the getpricing endpoint
-        console.log(`Fetching daily pricing for ${property.title} (${property.pricelabs_listing_id})...`);
-        
-        // Try the getpricing endpoint with query parameters
+        // Fetch daily pricing from /v1/listing_prices/{listing_id} endpoint
+        const dailyPrices: Record<string, number> = {};
+        let pricesFromApi = 0;
+
         const pricingResponse = await fetch(
-          `https://api.pricelabs.co/v1/getpricing?listing_id=${property.pricelabs_listing_id}`,
+          `https://api.pricelabs.co/v1/listing_prices/${property.pricelabs_listing_id}`,
           {
             method: 'GET',
             headers: {
@@ -169,48 +148,47 @@ Deno.serve(async (req) => {
           }
         );
 
-        let dailyPrices: Record<string, number> = {};
-        let pricesFromApi = 0;
-
         if (pricingResponse.ok) {
           const pricingData = await pricingResponse.json();
-          console.log(`Pricing API response for ${property.title}:`, JSON.stringify(pricingData).substring(0, 1000));
-          
+          console.log(`listing_prices response for ${property.title}:`, JSON.stringify(pricingData).substring(0, 500));
+
           // Parse pricing data - handle various possible formats
-          if (pricingData.pricing) {
-            dailyPrices = parsePricingData(pricingData.pricing);
-          } else if (pricingData.dates) {
-            dailyPrices = parsePricingData(pricingData.dates);
-          } else if (pricingData.prices) {
-            dailyPrices = parsePricingData(pricingData.prices);
+          if (pricingData.prices && Array.isArray(pricingData.prices)) {
+            // Format: { prices: [{date: "2025-12-18", price: 900}, ...] }
+            for (const item of pricingData.prices) {
+              if (item.date && item.price) {
+                dailyPrices[item.date] = item.price;
+              }
+            }
           } else if (Array.isArray(pricingData)) {
-            // Handle array format [{date: "2025-12-18", price: 900}, ...]
+            // Format: [{date: "2025-12-18", price: 900}, ...]
             for (const item of pricingData) {
               if (item.date && item.price) {
                 dailyPrices[item.date] = item.price;
               }
             }
+          } else if (typeof pricingData === 'object') {
+            // Format: { "2025-12-18": 900, "2025-12-19": 850, ... }
+            for (const [key, value] of Object.entries(pricingData)) {
+              if (typeof value === 'number') {
+                dailyPrices[key] = value;
+              } else if (typeof value === 'object' && value !== null) {
+                const priceObj = value as any;
+                if (priceObj.price) {
+                  dailyPrices[key] = priceObj.price;
+                }
+              }
+            }
           }
           pricesFromApi = Object.keys(dailyPrices).length;
+          console.log(`Got ${pricesFromApi} daily prices from listing_prices endpoint`);
         } else {
           const errorText = await pricingResponse.text();
-          console.log(`getpricing endpoint returned ${pricingResponse.status}: ${errorText}`);
-          
-          // Check if listing object contains pricing data directly
-          if (listing.pricing) {
-            dailyPrices = parsePricingData(listing.pricing);
-            pricesFromApi = Object.keys(dailyPrices).length;
-            console.log(`Found ${pricesFromApi} prices in listing.pricing`);
-          } else if (listing.dates) {
-            dailyPrices = parsePricingData(listing.dates);
-            pricesFromApi = Object.keys(dailyPrices).length;
-            console.log(`Found ${pricesFromApi} prices in listing.dates`);
-          }
+          console.log(`listing_prices endpoint returned ${pricingResponse.status}: ${errorText}`);
         }
 
         // Build pricing records for the next 365 days
         const pricingRecords = [];
-        const fallbackPrice = listing.recommended_base_price || listing.base || property.price_per_night || 100;
         let pricesFromFallback = 0;
 
         const today = new Date();
@@ -240,7 +218,7 @@ Deno.serve(async (req) => {
 
         console.log(`${property.title}: ${pricesFromApi} from API, ${pricesFromFallback} from fallback ($${fallbackPrice})`);
 
-        // Log sample prices for verification
+        // Log sample prices for Dec 18-21 verification
         const sampleDates = ['2025-12-18', '2025-12-19', '2025-12-20', '2025-12-21'];
         for (const sampleDate of sampleDates) {
           const record = pricingRecords.find(r => r.date === sampleDate);
@@ -316,27 +294,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-// Helper function to parse pricing data in various formats
-function parsePricingData(data: any): Record<string, number> {
-  const prices: Record<string, number> = {};
-  
-  if (!data) return prices;
-  
-  for (const [key, value] of Object.entries(data)) {
-    if (typeof value === 'number') {
-      prices[key] = value;
-    } else if (typeof value === 'object' && value !== null) {
-      const priceObj = value as any;
-      if (priceObj.price) {
-        prices[key] = priceObj.price;
-      } else if (priceObj.rate) {
-        prices[key] = priceObj.rate;
-      } else if (priceObj.final_price) {
-        prices[key] = priceObj.final_price;
-      }
-    }
-  }
-  
-  return prices;
-}
