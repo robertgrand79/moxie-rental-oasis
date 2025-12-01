@@ -161,12 +161,10 @@ export const usePropertyOperations = () => {
         image_url: allImages[0] || null,
       };
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('properties')
         .update(cleanPropertyData)
-        .eq('id', propertyId)
-        .select()
-        .maybeSingle();
+        .eq('id', propertyId);
 
       if (error) {
         console.error('❌ [EDIT] Database update failed:', error);
@@ -178,13 +176,13 @@ export const usePropertyOperations = () => {
         return null;
       }
 
-      console.log('✅ [EDIT] Property updated successfully:', data?.id);
+      console.log('✅ [EDIT] Property updated successfully:', propertyId);
       toast({
         title: 'Success',
         description: 'Property updated successfully!'
       });
       
-      return data;
+      return { id: propertyId } as Property;
     } catch (error) {
       console.error('💥 [EDIT] Unexpected error in editProperty:', error);
       toast({
