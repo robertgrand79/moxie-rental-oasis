@@ -80,8 +80,14 @@ Deno.serve(async (req) => {
     }
 
     const listingsData = await listingsResponse.json();
+    console.log('Full listings API response structure:', JSON.stringify(listingsData).substring(0, 2000));
     const priceLabsListings: PriceLabsListing[] = listingsData.listings || [];
     console.log(`Fetched ${priceLabsListings.length} PriceLabs listings`);
+    
+    // Log first listing's full structure to see what data is available
+    if (priceLabsListings.length > 0) {
+      console.log('First listing full structure:', JSON.stringify(priceLabsListings[0]));
+    }
 
     // Create a map for quick lookup
     const listingMap = new Map<string, PriceLabsListing>();
@@ -133,58 +139,69 @@ Deno.serve(async (req) => {
 
         console.log(`Fetching daily prices for ${property.title} (${property.pricelabs_listing_id})...`);
 
-        // Fetch daily pricing from /v1/listing_prices/{listing_id} endpoint
+        // Fetch daily pricing from /v1/getpricing endpoint (POST request)
         const dailyPrices: Record<string, number> = {};
+        const minStays: Record<string, number> = {};
         let pricesFromApi = 0;
 
         const pricingResponse = await fetch(
-          `https://api.pricelabs.co/v1/listing_prices/${property.pricelabs_listing_id}`,
+          `https://api.pricelabs.co/v1/getpricing`,
           {
-            method: 'GET',
+            method: 'POST',
             headers: {
               'X-API-Key': priceLabsApiKey,
               'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+              listing_ids: [property.pricelabs_listing_id]
+            }),
           }
         );
 
         if (pricingResponse.ok) {
           const pricingData = await pricingResponse.json();
-          console.log(`listing_prices response for ${property.title}:`, JSON.stringify(pricingData).substring(0, 500));
+          console.log(`getpricing response for ${property.title}:`, JSON.stringify(pricingData).substring(0, 1000));
 
-          // Parse pricing data - handle various possible formats
-          if (pricingData.prices && Array.isArray(pricingData.prices)) {
-            // Format: { prices: [{date: "2025-12-18", price: 900}, ...] }
+          // Parse pricing data - the response format is { listings: [{ id, prices: [{date, price, min_stay}] }] }
+          if (pricingData.listings && Array.isArray(pricingData.listings)) {
+            for (const listing of pricingData.listings) {
+              if (listing.id === property.pricelabs_listing_id && listing.prices) {
+                for (const priceEntry of listing.prices) {
+                  if (priceEntry.date && priceEntry.price) {
+                    dailyPrices[priceEntry.date] = priceEntry.price;
+                    if (priceEntry.min_stay) {
+                      minStays[priceEntry.date] = priceEntry.min_stay;
+                    }
+                  }
+                }
+              }
+            }
+          } else if (pricingData.prices && Array.isArray(pricingData.prices)) {
+            // Alternative format: { prices: [{date, price, min_stay}] }
             for (const item of pricingData.prices) {
               if (item.date && item.price) {
                 dailyPrices[item.date] = item.price;
+                if (item.min_stay) {
+                  minStays[item.date] = item.min_stay;
+                }
               }
             }
           } else if (Array.isArray(pricingData)) {
-            // Format: [{date: "2025-12-18", price: 900}, ...]
+            // Format: [{date, price, min_stay}, ...]
             for (const item of pricingData) {
               if (item.date && item.price) {
                 dailyPrices[item.date] = item.price;
-              }
-            }
-          } else if (typeof pricingData === 'object') {
-            // Format: { "2025-12-18": 900, "2025-12-19": 850, ... }
-            for (const [key, value] of Object.entries(pricingData)) {
-              if (typeof value === 'number') {
-                dailyPrices[key] = value;
-              } else if (typeof value === 'object' && value !== null) {
-                const priceObj = value as any;
-                if (priceObj.price) {
-                  dailyPrices[key] = priceObj.price;
+                if (item.min_stay) {
+                  minStays[item.date] = item.min_stay;
                 }
               }
             }
           }
           pricesFromApi = Object.keys(dailyPrices).length;
-          console.log(`Got ${pricesFromApi} daily prices from listing_prices endpoint`);
+          console.log(`Got ${pricesFromApi} daily prices from getpricing endpoint`);
         } else {
           const errorText = await pricingResponse.text();
-          console.log(`listing_prices endpoint returned ${pricingResponse.status}: ${errorText}`);
+          console.log(`getpricing endpoint returned ${pricingResponse.status}: ${errorText}`);
         }
 
         // Build pricing records for the next 365 days
