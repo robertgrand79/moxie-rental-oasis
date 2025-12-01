@@ -11,6 +11,7 @@ export interface Organization {
   stripe_publishable_key: string | null;
   stripe_webhook_secret: string | null;
   stripe_account_id: string | null;
+  pricelabs_api_key: string | null;
   subscription_status: string;
   subscription_tier: string;
   trial_ends_at: string | null;
@@ -42,6 +43,7 @@ export interface UpdateOrganizationData {
   stripe_publishable_key?: string;
   stripe_webhook_secret?: string;
   stripe_account_id?: string;
+  pricelabs_api_key?: string;
 }
 
 export interface InviteOrganizationMemberData {

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Settings, Users, CreditCard } from 'lucide-react';
+import { Settings, Users, CreditCard, DollarSign } from 'lucide-react';
 
 const AdminOrganization = () => {
   const { organization, loading, isOrgAdmin, refetch } = useOrganization();
@@ -20,6 +20,7 @@ const AdminOrganization = () => {
     stripe_secret_key: '',
     stripe_publishable_key: '',
     stripe_webhook_secret: '',
+    pricelabs_api_key: '',
   });
 
   const handleUpdateGeneral = async (e: React.FormEvent) => {
@@ -42,6 +43,16 @@ const AdminOrganization = () => {
       stripe_secret_key: formData.stripe_secret_key || undefined,
       stripe_publishable_key: formData.stripe_publishable_key || undefined,
       stripe_webhook_secret: formData.stripe_webhook_secret || undefined,
+    });
+    refetch();
+  };
+
+  const handleUpdatePriceLabs = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!organization) return;
+
+    await updateOrganization(organization.id, {
+      pricelabs_api_key: formData.pricelabs_api_key || undefined,
     });
     refetch();
   };
@@ -81,14 +92,18 @@ const AdminOrganization = () => {
     >
       <div className="p-8">
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               General
             </TabsTrigger>
             <TabsTrigger value="stripe" className="flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
-              Stripe Settings
+              Stripe
+            </TabsTrigger>
+            <TabsTrigger value="pricelabs" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              PriceLabs
             </TabsTrigger>
             <TabsTrigger value="members" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -191,6 +206,40 @@ const AdminOrganization = () => {
                   {isOrgAdmin() && (
                     <Button type="submit" disabled={updating}>
                       {updating ? 'Saving...' : 'Update Stripe Settings'}
+                    </Button>
+                  )}
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="pricelabs" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>PriceLabs Integration</CardTitle>
+                <CardDescription>
+                  Configure PriceLabs API key for dynamic pricing sync across all properties in this organization.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleUpdatePriceLabs} className="space-y-4">
+                  <div>
+                    <Label htmlFor="pricelabs_api_key">PriceLabs API Key</Label>
+                    <Input
+                      id="pricelabs_api_key"
+                      type="password"
+                      placeholder="Enter your PriceLabs API key"
+                      value={formData.pricelabs_api_key}
+                      onChange={(e) => setFormData({ ...formData, pricelabs_api_key: e.target.value })}
+                      disabled={!isOrgAdmin()}
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {organization.pricelabs_api_key ? '✓ Already configured' : 'Not configured - using global key if available'}
+                    </p>
+                  </div>
+                  {isOrgAdmin() && (
+                    <Button type="submit" disabled={updating}>
+                      {updating ? 'Saving...' : 'Update PriceLabs Settings'}
                     </Button>
                   )}
                 </form>

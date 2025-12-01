@@ -2184,6 +2184,7 @@ export type Database = {
           is_active: boolean | null
           logo_url: string | null
           name: string
+          pricelabs_api_key: string | null
           slug: string
           stripe_account_id: string | null
           stripe_publishable_key: string | null
@@ -2201,6 +2202,7 @@ export type Database = {
           is_active?: boolean | null
           logo_url?: string | null
           name: string
+          pricelabs_api_key?: string | null
           slug: string
           stripe_account_id?: string | null
           stripe_publishable_key?: string | null
@@ -2218,6 +2220,7 @@ export type Database = {
           is_active?: boolean | null
           logo_url?: string | null
           name?: string
+          pricelabs_api_key?: string | null
           slug?: string
           stripe_account_id?: string | null
           stripe_publishable_key?: string | null
@@ -2460,6 +2463,60 @@ export type Database = {
           website_url?: string | null
         }
         Relationships: []
+      }
+      pricelabs_sync_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          organization_id: string | null
+          prices_synced: number | null
+          property_id: string | null
+          started_at: string | null
+          status: string
+          sync_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          organization_id?: string | null
+          prices_synced?: number | null
+          property_id?: string | null
+          started_at?: string | null
+          status?: string
+          sync_type?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          organization_id?: string | null
+          prices_synced?: number | null
+          property_id?: string | null
+          started_at?: string | null
+          status?: string
+          sync_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricelabs_sync_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricelabs_sync_logs_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricing_rules: {
         Row: {
