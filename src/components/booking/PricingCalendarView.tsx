@@ -3,11 +3,11 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter, Eye, Layers as LayersIcon, Users as UsersIcon, Plus, Home, Cloud, AlertCircle, RefreshCw } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter, Eye, Layers as LayersIcon, Users as UsersIcon, Plus, Home, Cloud, AlertCircle, RefreshCw, DollarSign } from 'lucide-react';
 import { usePriceLabsSync } from '@/hooks/usePriceLabsSync';
 import { useProperties } from '@/hooks/useProperties';
-import { useReservations, useDynamicPricing } from '@/hooks/useBookingData';
-import { useQuery } from '@tanstack/react-query';
+import { useReservations, useDynamicPricing, useUpdatePricing } from '@/hooks/useBookingData';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, addDays, startOfDay, parseISO, isSameDay, differenceInDays } from 'date-fns';
 import { Property } from '@/types/property';
@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 interface BookingBlock {
   id: string;
@@ -206,6 +207,99 @@ export const PricingCalendarView: React.FC<PricingCalendarViewProps> = ({ onAddB
     setStartDate(prev => addDays(prev, offset));
   };
 
+  const updatePricing = useUpdatePricing();
+  const queryClient = useQueryClient();
+
+  const PriceEditCell = ({ 
+    propertyId, 
+    dateStr, 
+    price, 
+    isWeekend,
+    showPricing,
+    onAddBooking 
+  }: { 
+    propertyId: string; 
+    dateStr: string; 
+    price?: number;
+    isWeekend: boolean;
+    showPricing: boolean;
+    onAddBooking?: (propertyId: string, date: string) => void;
+  }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [priceValue, setPriceValue] = useState(price?.toString() || '');
+    
+    const handleSavePrice = async () => {
+      const newPrice = parseFloat(priceValue);
+      if (isNaN(newPrice) || newPrice <= 0) {
+        toast.error('Please enter a valid price');
+        return;
+      }
+
+      try {
+        await updatePricing.mutateAsync({
+          property_id: propertyId,
+          date: dateStr,
+          base_price: price || newPrice,
+          manual_override_price: newPrice,
+          final_price: newPrice,
+          pricing_source: 'manual'
+        });
+        toast.success(`Price updated to $${newPrice}`);
+        queryClient.invalidateQueries({ queryKey: ['calendar-pricing'] });
+        setIsOpen(false);
+      } catch (error) {
+        toast.error('Failed to update price');
+      }
+    };
+
+    return (
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <div
+            className={cn(
+              "min-w-[80px] w-[80px] h-20 border-r border-border/30 flex-shrink-0 p-2 cursor-pointer",
+              "hover:bg-accent/10 transition-colors group relative",
+              isWeekend && "bg-muted/20"
+            )}
+          >
+            {showPricing && price && (
+              <div className="text-xs font-medium text-foreground">${price}</div>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-56" align="start">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium text-sm">Set Price</span>
+            </div>
+            <p className="text-xs text-muted-foreground">{format(parseISO(dateStr), 'MMM d, yyyy')}</p>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                placeholder="Price"
+                value={priceValue}
+                onChange={(e) => setPriceValue(e.target.value)}
+                className="flex-1"
+                min="0"
+                step="1"
+              />
+              <Button size="sm" onClick={handleSavePrice} disabled={updatePricing.isPending}>
+                {updatePricing.isPending ? '...' : 'Save'}
+              </Button>
+            </div>
+            {price && (
+              <p className="text-xs text-muted-foreground">Current: ${price}</p>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
   const PropertyRow = ({ property }: { property: Property }) => {
     const propertyImage = property.cover_image_url || property.featured_photos?.[0] || property.images?.[0];
     
@@ -324,24 +418,17 @@ export const PricingCalendarView: React.FC<PricingCalendarViewProps> = ({ onAddB
               );
             }
 
-            // Empty cell with pricing
+            // Empty cell with pricing - editable
             return (
-              <div
+              <PriceEditCell
                 key={day.dateStr}
-                onClick={() => onAddBooking?.(property.id, day.dateStr)}
-                className={cn(
-                  "min-w-[80px] w-[80px] h-20 border-r border-border/30 flex-shrink-0 p-2 cursor-pointer",
-                  "hover:bg-accent/10 transition-colors group relative",
-                  day.isWeekend && "bg-muted/20"
-                )}
-              >
-                {showLayers.pricing && price && (
-                  <div className="text-xs font-medium text-foreground">${price}</div>
-                )}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Plus className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </div>
+                propertyId={property.id}
+                dateStr={day.dateStr}
+                price={price}
+                isWeekend={day.isWeekend}
+                showPricing={showLayers.pricing}
+                onAddBooking={onAddBooking}
+              />
             );
           })}
         </div>
