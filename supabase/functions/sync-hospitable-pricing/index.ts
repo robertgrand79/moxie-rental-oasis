@@ -18,11 +18,14 @@ async function fetchCalendarData(
   startDate: string,
   endDate: string
 ): Promise<{ data: CalendarDay[] | null; endpoint: string; error?: string }> {
-  // Hospitable API uses numeric IDs, try different endpoint formats
+  // Hospitable API v2 - try different endpoint formats
   const endpoints = [
-    `https://api.hospitable.com/v2/listings/${hospitableId}/calendar?start_date=${startDate}&end_date=${endDate}`,
-    `https://api.hospitable.com/v2/properties/${hospitableId}/calendar?start_date=${startDate}&end_date=${endDate}`,
-    `https://api.hospitable.com/calendar/${hospitableId}?start_date=${startDate}&end_date=${endDate}`,
+    // Try include parameter approach (common REST pattern)
+    `https://public.api.hospitable.com/v2/properties/${hospitableId}?include=calendar&start_date=${startDate}&end_date=${endDate}`,
+    // Try nested calendar_days endpoint
+    `https://public.api.hospitable.com/v2/properties/${hospitableId}/calendar_days?start_date=${startDate}&end_date=${endDate}`,
+    // Try nested calendar endpoint
+    `https://public.api.hospitable.com/v2/properties/${hospitableId}/calendar?start_date=${startDate}&end_date=${endDate}`,
   ];
 
   for (const url of endpoints) {
@@ -39,18 +42,40 @@ async function fetchCalendarData(
       if (response.ok) {
         const data = await response.json();
         console.log(`Success with endpoint: ${url}`);
-        console.log(`Response structure:`, JSON.stringify(Object.keys(data)));
+        console.log(`Full response:`, JSON.stringify(data).substring(0, 1000));
         
         // Handle different response formats
         let calendarData: CalendarDay[] = [];
         if (data.data && Array.isArray(data.data)) {
+          // Standard array response: { data: [...] }
           calendarData = data.data;
         } else if (Array.isArray(data)) {
+          // Direct array response: [...]
           calendarData = data;
         } else if (data.calendar && Array.isArray(data.calendar)) {
+          // Nested calendar: { calendar: [...] }
           calendarData = data.calendar;
         } else if (data.days && Array.isArray(data.days)) {
+          // Nested days: { days: [...] }
           calendarData = data.days;
+        } else if (data.data && data.data.calendar && Array.isArray(data.data.calendar)) {
+          // Property with included calendar: { data: { ..., calendar: [...] } }
+          calendarData = data.data.calendar;
+        } else if (data.data && data.data.calendar_days && Array.isArray(data.data.calendar_days)) {
+          // Property with included calendar_days: { data: { ..., calendar_days: [...] } }
+          calendarData = data.data.calendar_days;
+        } else if (data.calendar_days && Array.isArray(data.calendar_days)) {
+          // Root level calendar_days
+          calendarData = data.calendar_days;
+        } else if (data.included && Array.isArray(data.included)) {
+          // JSON:API style includes
+          calendarData = data.included.filter((item: any) => item.type === 'calendar_day' || item.type === 'calendar');
+        }
+        
+        // Log what we found for debugging
+        console.log(`Calendar data found: ${calendarData.length} days`);
+        if (calendarData.length > 0) {
+          console.log(`Sample day:`, JSON.stringify(calendarData[0]));
         }
         
         return { data: calendarData, endpoint: url };
@@ -94,9 +119,9 @@ Deno.serve(async (req) => {
       console.log('Testing Hospitable API connection...');
       
       try {
-        // Test by fetching properties/listings from Hospitable
+        // Test by fetching properties from Hospitable API v2
         const testEndpoints = [
-          'https://api.hospitable.com/v2/listings',
+          'https://public.api.hospitable.com/v2/properties',
           'https://api.hospitable.com/v2/properties',
         ];
         
@@ -209,31 +234,25 @@ Deno.serve(async (req) => {
 
     for (const property of properties) {
       try {
-        // Try multiple ID sources: pricelabs_listing_id first (numeric), then hospitable_property_id
-        const idsToTry = [
-          property.pricelabs_listing_id,
-          property.hospitable_property_id,
-        ].filter(Boolean);
+        // Use the hospitable_property_id (UUID) for API calls
+        // The pricelabs_listing_id is numeric and only used by PriceLabs, not Hospitable
+        const hospitableId = property.hospitable_property_id;
 
         console.log(`Syncing pricing for property: ${property.title}`);
-        console.log(`IDs to try: ${idsToTry.join(', ')}`);
+        console.log(`Hospitable ID: ${hospitableId}`);
 
         let calendarData: CalendarDay[] | null = null;
         let usedEndpoint = '';
         let lastError = '';
 
-        for (const idToTry of idsToTry) {
-          console.log(`Trying with ID: ${idToTry}`);
-          const result = await fetchCalendarData(idToTry, hospitableApiKey, startDate, endDate);
-          
-          if (result.data && result.data.length > 0) {
-            calendarData = result.data;
-            usedEndpoint = result.endpoint;
-            console.log(`Success with ID ${idToTry}: ${result.data.length} days`);
-            break;
-          } else {
-            lastError = result.error || 'No data returned';
-          }
+        const result = await fetchCalendarData(hospitableId, hospitableApiKey, startDate, endDate);
+        
+        if (result.data && result.data.length > 0) {
+          calendarData = result.data;
+          usedEndpoint = result.endpoint;
+          console.log(`Success: ${result.data.length} days`);
+        } else {
+          lastError = result.error || 'No data returned';
         }
 
         if (!calendarData || calendarData.length === 0) {
