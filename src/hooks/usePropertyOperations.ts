@@ -166,7 +166,7 @@ export const usePropertyOperations = () => {
         .update(cleanPropertyData)
         .eq('id', propertyId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('❌ [EDIT] Database update failed:', error);
