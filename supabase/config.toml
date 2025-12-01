@@ -79,9 +79,6 @@ verify_jwt = false
 [functions.scheduled-airbnb-sync]
 verify_jwt = false
 
-[functions.sync-hospitable-pricing]
-verify_jwt = false
-
 [edge-runtime]
 enabled = true
 port = 54323
