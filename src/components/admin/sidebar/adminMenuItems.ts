@@ -19,6 +19,7 @@ import {
   Database,
   TestTube,
   AlertTriangle,
+  DollarSign,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -105,6 +106,12 @@ export const adminMenuItems = [
         href: '/admin/host/communication',
         icon: Mail,
         description: 'Send messages and manage guest correspondence'
+      },
+      {
+        title: 'PriceLabs',
+        href: '/admin/pricelabs',
+        icon: DollarSign,
+        description: 'Map properties to PriceLabs and sync dynamic pricing'
       }
     ]
   },

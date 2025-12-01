@@ -53,6 +53,7 @@ import AdminProfile from './pages/AdminProfile';
 import PublicLayout from './components/layouts/PublicLayout';
 import AdminSystemAdministration from './pages/admin/AdminSystemAdministration';
 import AdminTurnoProblems from './pages/admin/AdminTurnoProblems';
+import AdminPriceLabs from './pages/admin/AdminPriceLabs';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -115,6 +116,7 @@ function App() {
                   <Route path="work-orders" element={<AdminWorkOrders />} />
                   <Route path="contractors" element={<AdminContractors />} />
                   <Route path="turno-problems" element={<AdminTurnoProblems />} />
+                  <Route path="pricelabs" element={<AdminPriceLabs />} />
                   <Route path="analytics" element={<AdminUnifiedAnalytics />} />
                   <Route path="system-administration" element={<AdminSystemAdministration />} />
                   <Route path="host/analytics" element={<HostAnalyticsPage />} />
