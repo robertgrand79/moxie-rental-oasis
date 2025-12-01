@@ -5,64 +5,103 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface PriceLabsListing {
-  listing_id: string;
-  prices: {
-    [date: string]: {
-      price: number;
-      min_stay?: number;
-      available?: boolean;
-    };
-  };
+interface PriceLabsListingInfo {
+  id: string;
+  name: string;
+  base: number;
+  min: number;
+  max: number | null;
+  recommended_base_price: number;
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const priceLabsApiKey = Deno.env.get('PRICELABS_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const body = await req.json().catch(() => ({}));
+    const { property_id, organization_id } = body;
+
+    console.log('Starting PriceLabs sync...');
+
+    // Determine API key to use
+    let priceLabsApiKey: string | null = null;
+    let effectiveOrgId = organization_id;
+
+    if (property_id && !organization_id) {
+      const { data: property } = await supabase
+        .from('properties')
+        .select('organization_id')
+        .eq('id', property_id)
+        .single();
+      effectiveOrgId = property?.organization_id;
+    }
+
+    if (effectiveOrgId) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('pricelabs_api_key')
+        .eq('id', effectiveOrgId)
+        .single();
+      priceLabsApiKey = org?.pricelabs_api_key;
+    }
+
+    if (!priceLabsApiKey) {
+      priceLabsApiKey = Deno.env.get('PRICELABS_API_KEY');
+    }
 
     if (!priceLabsApiKey) {
       throw new Error('PRICELABS_API_KEY not configured');
     }
 
-    console.log('Starting PriceLabs sync...');
+    // Fetch all listings from PriceLabs to get current pricing
+    console.log('Fetching PriceLabs listings with current pricing...');
+    const listingsResponse = await fetch('https://api.pricelabs.co/v1/listings', {
+      method: 'GET',
+      headers: {
+        'X-API-Key': priceLabsApiKey,
+        'Content-Type': 'application/json',
+      },
+    });
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    if (!listingsResponse.ok) {
+      throw new Error(`PriceLabs listings API error: ${listingsResponse.status}`);
+    }
 
-    // Get request body for optional parameters
-    const body = await req.json().catch(() => ({}));
-    const { property_id, start_date, end_date } = body;
+    const listingsData = await listingsResponse.json();
+    const priceLabsListings: PriceLabsListingInfo[] = listingsData.listings || [];
+    console.log(`Fetched ${priceLabsListings.length} PriceLabs listings`);
 
-    // Fetch properties from database with PriceLabs listing IDs
-    let query = supabase.from('properties').select('id, title, pricelabs_listing_id');
+    // Create a map for quick lookup
+    const listingPriceMap = new Map<string, PriceLabsListingInfo>();
+    priceLabsListings.forEach(l => listingPriceMap.set(l.id, l));
+
+    // Fetch properties from database
+    let query = supabase.from('properties').select('id, title, pricelabs_listing_id, price_per_night');
     
     if (property_id) {
       query = query.eq('id', property_id);
     } else {
-      // Only fetch properties that have a PriceLabs listing ID configured
       query = query.not('pricelabs_listing_id', 'is', null);
     }
 
     const { data: properties, error: propertiesError } = await query;
 
-    if (propertiesError) {
-      console.error('Error fetching properties:', propertiesError);
-      throw propertiesError;
-    }
+    if (propertiesError) throw propertiesError;
 
     if (!properties || properties.length === 0) {
       return new Response(
         JSON.stringify({ 
-          error: 'No properties found with PriceLabs listing IDs configured',
-          message: 'Please configure PriceLabs listing IDs for your properties in the admin settings'
+          success: true,
+          message: 'No properties with PriceLabs mapping found',
+          results: []
         }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -70,15 +109,11 @@ Deno.serve(async (req) => {
 
     let totalPricesUpdated = 0;
     const syncResults = [];
+    const today = new Date();
 
-    // Fetch pricing from PriceLabs for each property
     for (const property of properties) {
       try {
-        console.log(`Fetching pricing for property: ${property.title} (${property.id})`);
-
-        // Skip if no PriceLabs listing ID configured
         if (!property.pricelabs_listing_id) {
-          console.log(`Skipping ${property.title}: No PriceLabs listing ID configured`);
           syncResults.push({
             property_id: property.id,
             property_title: property.title,
@@ -88,110 +123,83 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Build PriceLabs API URL using the configured listing ID
-        const priceLabsUrl = new URL('https://api.pricelabs.co/v1/listings/prices');
-        priceLabsUrl.searchParams.append('listing_id', property.pricelabs_listing_id);
+        // Get the listing info from PriceLabs
+        const listingInfo = listingPriceMap.get(property.pricelabs_listing_id);
         
-        if (start_date) {
-          priceLabsUrl.searchParams.append('start_date', start_date);
-        } else {
-          // Default to today
-          priceLabsUrl.searchParams.append('start_date', new Date().toISOString().split('T')[0]);
-        }
-        
-        if (end_date) {
-          priceLabsUrl.searchParams.append('end_date', end_date);
-        } else {
-          // Default to 365 days from now
-          const oneYearFromNow = new Date();
-          oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-          priceLabsUrl.searchParams.append('end_date', oneYearFromNow.toISOString().split('T')[0]);
-        }
-
-        // Call PriceLabs API
-        const priceLabsResponse = await fetch(priceLabsUrl.toString(), {
-          method: 'GET',
-          headers: {
-            'X-API-Key': priceLabsApiKey,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!priceLabsResponse.ok) {
-          const errorText = await priceLabsResponse.text();
-          console.error(`PriceLabs API error for ${property.title}:`, priceLabsResponse.status, errorText);
-          
+        if (!listingInfo) {
+          console.log(`PriceLabs listing ${property.pricelabs_listing_id} not found for ${property.title}`);
           syncResults.push({
             property_id: property.id,
             property_title: property.title,
             success: false,
-            error: `PriceLabs API returned ${priceLabsResponse.status}`,
+            error: `PriceLabs listing ${property.pricelabs_listing_id} not found`
           });
           continue;
         }
 
-        const priceLabsData = await priceLabsResponse.json();
-        console.log(`Received pricing data for ${property.title}:`, Object.keys(priceLabsData.prices || {}).length, 'dates');
+        console.log(`Found PriceLabs data for ${property.title}: base=$${listingInfo.base}, recommended=$${listingInfo.recommended_base_price}`);
 
-        // Upsert pricing data into dynamic_pricing table
+        // Create pricing records for the next 365 days using the recommended base price
         const pricingRecords = [];
+        const basePrice = listingInfo.recommended_base_price || listingInfo.base || property.price_per_night || 100;
         
-        if (priceLabsData.prices) {
-          for (const [date, priceData] of Object.entries(priceLabsData.prices)) {
-            pricingRecords.push({
-              property_id: property.id,
-              date: date,
-              base_price: priceData.price || 0,
-              pricelabs_price: priceData.price || 0,
-              final_price: priceData.price || 0,
-              pricing_source: 'pricelabs',
-              market_demand: priceData.available === false ? 'blocked' : undefined,
-            });
+        for (let i = 0; i < 365; i++) {
+          const date = new Date(today);
+          date.setDate(date.getDate() + i);
+          const dateStr = date.toISOString().split('T')[0];
+          
+          pricingRecords.push({
+            property_id: property.id,
+            date: dateStr,
+            base_price: basePrice,
+            pricelabs_price: basePrice,
+            final_price: basePrice,
+            pricing_source: 'pricelabs',
+          });
+        }
+
+        // Upsert in batches
+        const batchSize = 100;
+        let errorOccurred = false;
+        
+        for (let i = 0; i < pricingRecords.length; i += batchSize) {
+          const batch = pricingRecords.slice(i, i + batchSize);
+          const { error: upsertError } = await supabase
+            .from('dynamic_pricing')
+            .upsert(batch, { onConflict: 'property_id,date' });
+
+          if (upsertError) {
+            console.error(`Error upserting prices for ${property.title}:`, upsertError);
+            errorOccurred = true;
+            break;
           }
         }
 
-        if (pricingRecords.length > 0) {
-          // Upsert pricing records
-          const { error: upsertError } = await supabase
-            .from('dynamic_pricing')
-            .upsert(pricingRecords, {
-              onConflict: 'property_id,date',
-            });
-
-          if (upsertError) {
-            console.error(`Error upserting pricing for ${property.title}:`, upsertError);
-            syncResults.push({
-              property_id: property.id,
-              property_title: property.title,
-              success: false,
-              error: upsertError.message,
-            });
-          } else {
-            console.log(`Successfully synced ${pricingRecords.length} prices for ${property.title}`);
-            totalPricesUpdated += pricingRecords.length;
-            syncResults.push({
-              property_id: property.id,
-              property_title: property.title,
-              success: true,
-              prices_synced: pricingRecords.length,
-            });
-          }
+        if (errorOccurred) {
+          syncResults.push({
+            property_id: property.id,
+            property_title: property.title,
+            success: false,
+            error: 'Error upserting pricing records'
+          });
         } else {
+          console.log(`Synced ${pricingRecords.length} prices for ${property.title} at $${basePrice}/night`);
+          totalPricesUpdated += pricingRecords.length;
           syncResults.push({
             property_id: property.id,
             property_title: property.title,
             success: true,
-            prices_synced: 0,
-            message: 'No pricing data available',
+            prices_synced: pricingRecords.length,
+            base_price: basePrice
           });
         }
       } catch (propertyError) {
-        console.error(`Error processing property ${property.title}:`, propertyError);
+        console.error(`Error processing ${property.title}:`, propertyError);
         syncResults.push({
           property_id: property.id,
           property_title: property.title,
           success: false,
-          error: propertyError.message,
+          error: propertyError.message
         });
       }
     }
@@ -208,12 +216,9 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in PriceLabs sync:', error);
+    console.error('PriceLabs sync error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: 'Check edge function logs for more information'
-      }),
+      JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
