@@ -301,51 +301,58 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
             </div>
           </div>
 
-          <div className="text-sm text-muted-foreground">
-            <div className="p-3 bg-red-50 border border-red-200 rounded mb-4">
-              <p className="text-red-800 text-sm font-medium">❌ Current URL Issue</p>
-              <p className="text-red-700 text-xs mt-1">
-                The URL <code>https://www.airbnb.com/calendar/ical/26231199.ics?s=d70a448ac86b1322a060d9db4d8500d9</code> 
-                is returning a 404 error. This typically means:
-              </p>
-              <ul className="list-disc list-inside mt-1 text-red-700 text-xs space-y-1">
-                <li>The URL has expired or been revoked by Airbnb</li>
-                <li>The listing (ID: 26231199) may not be active or was removed</li>
-                <li>You need to generate a fresh export URL from Airbnb</li>
-              </ul>
-            </div>
-            
-            <p><strong>📋 How to get a fresh Airbnb calendar URL:</strong></p>
-            <div className="mt-3 space-y-4">
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                <p className="text-blue-800 text-sm font-medium mb-2">🏠 Airbnb Steps:</p>
-                <ol className="list-decimal list-inside text-blue-700 text-xs space-y-1">
+          <div className="text-sm text-muted-foreground space-y-4">
+            {/* Platform-specific instructions based on selection */}
+            {selectedPlatform === 'vrbo' && (
+              <div className="p-3 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded">
+                <p className="text-purple-800 dark:text-purple-200 text-sm font-medium mb-2">🏠 VRBO Steps:</p>
+                <ol className="list-decimal list-inside text-purple-700 dark:text-purple-300 text-xs space-y-1">
+                  <li>Log into your <strong>VRBO Owner Dashboard</strong> at vrbo.com</li>
+                  <li>Go to <strong>Calendar</strong> → <strong>Import/Export</strong></li>
+                  <li>Click <strong>"Export Calendar"</strong></li>
+                  <li>Copy the iCal URL (starts with <code className="bg-purple-100 dark:bg-purple-900 px-1 rounded">https://www.vrbo.com/icalendar/...</code>)</li>
+                  <li>Paste it here and click the + button</li>
+                </ol>
+              </div>
+            )}
+
+            {selectedPlatform === 'airbnb' && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded">
+                <p className="text-blue-800 dark:text-blue-200 text-sm font-medium mb-2">🏡 Airbnb Steps:</p>
+                <ol className="list-decimal list-inside text-blue-700 dark:text-blue-300 text-xs space-y-1">
                   <li>Go to your <strong>Airbnb Host Dashboard</strong></li>
                   <li>Select the specific listing you want to sync</li>
-                  <li>Go to <strong>Calendar</strong> for that listing</li>
-                  <li>Click <strong>"Sync calendars"</strong> or <strong>"Import/Export"</strong></li>
-                  <li>Find <strong>"Export calendar"</strong> and generate a new URL</li>
+                  <li>Go to <strong>Calendar</strong> → <strong>Sync calendars</strong></li>
+                  <li>Click <strong>"Export Calendar"</strong> and copy the URL</li>
                   <li>⚠️ Ensure the listing is <strong>active and accepting bookings</strong></li>
                 </ol>
               </div>
-              
-              <div className="p-3 bg-green-50 border border-green-200 rounded">
-                <p className="text-green-800 text-sm font-medium mb-2">✅ Test Your URL:</p>
-                <ol className="list-decimal list-inside text-green-700 text-xs space-y-1">
-                  <li>Copy the new Airbnb export URL</li>
-                  <li>Paste it in a browser tab - it should download a .ics file</li>
-                  <li>If it downloads successfully, the URL is working</li>
-                  <li>Then try adding it here in the calendar sync</li>
+            )}
+
+            {selectedPlatform === 'booking_com' && (
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded">
+                <p className="text-indigo-800 dark:text-indigo-200 text-sm font-medium mb-2">🌐 Booking.com Steps:</p>
+                <ol className="list-decimal list-inside text-indigo-700 dark:text-indigo-300 text-xs space-y-1">
+                  <li>Log into your <strong>Booking.com Extranet</strong></li>
+                  <li>Go to <strong>Rates & Availability</strong> → <strong>Calendar Sync</strong></li>
+                  <li>Find <strong>"Export your calendar"</strong></li>
+                  <li>Copy the iCal link provided</li>
                 </ol>
               </div>
-              
-              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
-                <p className="text-yellow-800 text-sm font-medium mb-2">🧪 Or Try Demo Mode:</p>
-                <p className="text-yellow-700 text-xs">
-                  Select "Demo Mode (Test)" from the platform dropdown above to test the calendar sync functionality 
-                  without needing a real iCal URL.
-                </p>
-              </div>
+            )}
+
+            {!selectedPlatform && (
+              <p className="text-muted-foreground text-xs">Select a platform above to see setup instructions.</p>
+            )}
+
+            <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded">
+              <p className="text-green-800 dark:text-green-200 text-sm font-medium mb-2">✅ Test Your URL First:</p>
+              <ol className="list-decimal list-inside text-green-700 dark:text-green-300 text-xs space-y-1">
+                <li>Copy the calendar export URL from your platform</li>
+                <li>Paste it in a new browser tab</li>
+                <li>It should download a .ics file — if so, the URL is valid</li>
+                <li>Then paste it here and click the + button</li>
+              </ol>
             </div>
             <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
               <p className="text-blue-800 text-sm font-medium mb-2">

@@ -54,6 +54,7 @@ import PublicLayout from './components/layouts/PublicLayout';
 import AdminSystemAdministration from './pages/admin/AdminSystemAdministration';
 import AdminTurnoProblems from './pages/admin/AdminTurnoProblems';
 import AdminPriceLabs from './pages/admin/AdminPriceLabs';
+import AdminCalendarSync from './pages/admin/AdminCalendarSync';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -117,6 +118,7 @@ function App() {
                   <Route path="contractors" element={<AdminContractors />} />
                   <Route path="turno-problems" element={<AdminTurnoProblems />} />
                   <Route path="pricelabs" element={<AdminPriceLabs />} />
+                  <Route path="calendar-sync" element={<AdminCalendarSync />} />
                   <Route path="analytics" element={<AdminUnifiedAnalytics />} />
                   <Route path="system-administration" element={<AdminSystemAdministration />} />
                   <Route path="host/analytics" element={<HostAnalyticsPage />} />

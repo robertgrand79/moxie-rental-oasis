@@ -112,6 +112,12 @@ export const adminMenuItems = [
         href: '/admin/pricelabs',
         icon: DollarSign,
         description: 'Map properties to PriceLabs and sync dynamic pricing'
+      },
+      {
+        title: 'Calendar Sync',
+        href: '/admin/calendar-sync',
+        icon: Calendar,
+        description: 'Manage Airbnb, VRBO, and Booking.com calendar integrations'
       }
     ]
   },
