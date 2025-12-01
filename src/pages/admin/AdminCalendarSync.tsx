@@ -4,18 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { 
-  Calendar, 
   RefreshCw, 
   ExternalLink, 
   CheckCircle, 
   AlertCircle, 
   Clock,
-  ChevronDown,
   Copy,
   Building2,
-  Link2
+  Link2,
+  Plus
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,10 +39,66 @@ interface PropertyWithCalendars {
   calendars: ExternalCalendar[];
 }
 
+const PLATFORM_OPTIONS = [
+  { value: 'vrbo', label: 'VRBO / Homeaway', icon: '🏠' },
+  { value: 'airbnb', label: 'Airbnb', icon: '🏡' },
+  { value: 'booking', label: 'Booking.com', icon: '🌐' },
+  { value: 'other', label: 'Other iCal', icon: '📅' },
+];
+
+const getPlatformInstructions = (platform: string) => {
+  switch (platform) {
+    case 'vrbo':
+      return {
+        title: 'VRBO Calendar URL',
+        steps: [
+          'Log into your VRBO Owner Dashboard at vrbo.com',
+          'Go to Calendar → Import/Export',
+          'Click "Export Calendar"',
+          'Copy the iCal URL (starts with https://www.vrbo.com/icalendar/...)',
+        ],
+        tip: 'If VRBO shows multiple listings, export each listing\'s calendar separately.',
+      };
+    case 'airbnb':
+      return {
+        title: 'Airbnb Calendar URL',
+        steps: [
+          'Log into your Airbnb Host Dashboard',
+          'Select the specific listing',
+          'Go to Calendar → Sync calendars',
+          'Click "Export Calendar" and copy the URL',
+        ],
+        tip: 'Make sure the listing is active. Regenerate the URL if you get 404 errors.',
+      };
+    case 'booking':
+      return {
+        title: 'Booking.com Calendar URL',
+        steps: [
+          'Log into your Booking.com Extranet',
+          'Go to Rates & Availability → Calendar Sync',
+          'Find "Export your calendar"',
+          'Copy the iCal link provided',
+        ],
+        tip: 'Calendar sync may take a few minutes to appear after enabling.',
+      };
+    default:
+      return {
+        title: 'iCal Calendar URL',
+        steps: ['Paste any valid iCal/ICS calendar URL'],
+        tip: 'URL should end in .ics or contain /ical/',
+      };
+  }
+};
+
 const AdminCalendarSync = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [syncingAll, setSyncingAll] = useState(false);
+  
+  // Form state for adding new calendars
+  const [selectedPropertyId, setSelectedPropertyId] = useState('');
+  const [selectedPlatform, setSelectedPlatform] = useState('');
+  const [newCalendarUrl, setNewCalendarUrl] = useState('');
 
   // Fetch all properties with their external calendars
   const { data: propertiesWithCalendars = [], isLoading } = useQuery({
@@ -91,6 +147,36 @@ const AdminCalendarSync = () => {
       toast({ title: 'Sync failed', description: error.message, variant: 'destructive' });
     }
   });
+
+  // Add new calendar
+  const addCalendarMutation = useMutation({
+    mutationFn: async ({ propertyId, platform, calendarUrl }: { propertyId: string; platform: string; calendarUrl: string }) => {
+      const { data, error } = await supabase.functions.invoke('calendar-sync', {
+        body: { platform, calendarUrl, propertyId }
+      });
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-calendar-sync'] });
+      setSelectedPropertyId('');
+      setSelectedPlatform('');
+      setNewCalendarUrl('');
+      toast({ title: 'Calendar Added', description: 'Calendar sync configured successfully' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to add calendar', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  const handleAddCalendar = () => {
+    if (!selectedPropertyId || !selectedPlatform || !newCalendarUrl) {
+      toast({ title: 'Missing fields', description: 'Please fill in all fields', variant: 'destructive' });
+      return;
+    }
+    addCalendarMutation.mutate({ propertyId: selectedPropertyId, platform: selectedPlatform, calendarUrl: newCalendarUrl });
+  };
 
   // Sync all calendars
   const handleSyncAll = async () => {
@@ -193,6 +279,86 @@ const AdminCalendarSync = () => {
         </TabsList>
 
         <TabsContent value="properties" className="space-y-4">
+          {/* Add New Calendar Form */}
+          <Card className="border-dashed">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                Add New Calendar
+              </CardTitle>
+              <CardDescription>Connect an external calendar from VRBO, Airbnb, or Booking.com</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Property</Label>
+                  <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select property..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {propertiesWithCalendars.map(property => (
+                        <SelectItem key={property.id} value={property.id}>
+                          {property.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Platform</Label>
+                  <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select platform..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PLATFORM_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <span className="flex items-center gap-2">
+                            <span>{opt.icon}</span>
+                            {opt.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Calendar URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="https://..."
+                      value={newCalendarUrl}
+                      onChange={(e) => setNewCalendarUrl(e.target.value)}
+                    />
+                    <Button 
+                      onClick={handleAddCalendar} 
+                      disabled={addCalendarMutation.isPending || !selectedPropertyId || !selectedPlatform || !newCalendarUrl}
+                    >
+                      {addCalendarMutation.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Context-aware instructions */}
+              {selectedPlatform && (
+                <div className="p-4 bg-muted/50 rounded-lg border">
+                  <p className="font-medium text-sm mb-2">{getPlatformInstructions(selectedPlatform).title}</p>
+                  <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
+                    {getPlatformInstructions(selectedPlatform).steps.map((step, i) => (
+                      <li key={i}>{step}</li>
+                    ))}
+                  </ol>
+                  <p className="text-xs text-muted-foreground mt-2 italic">
+                    💡 {getPlatformInstructions(selectedPlatform).tip}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Existing Calendars List */}
           {isLoading ? (
             <Card><CardContent className="p-8 text-center">Loading...</CardContent></Card>
           ) : (
