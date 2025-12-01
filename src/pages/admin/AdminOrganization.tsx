@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Settings, Users, CreditCard, DollarSign } from 'lucide-react';
+import { PriceLabsSettings } from '@/components/admin/settings/PriceLabsSettings';
 
 const AdminOrganization = () => {
   const { organization, loading, isOrgAdmin, refetch } = useOrganization();
@@ -213,10 +214,10 @@ const AdminOrganization = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="pricelabs" className="mt-6">
+          <TabsContent value="pricelabs" className="mt-6 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>PriceLabs Integration</CardTitle>
+                <CardTitle>PriceLabs API Key</CardTitle>
                 <CardDescription>
                   Configure PriceLabs API key for dynamic pricing sync across all properties in this organization.
                 </CardDescription>
@@ -245,6 +246,8 @@ const AdminOrganization = () => {
                 </form>
               </CardContent>
             </Card>
+            
+            <PriceLabsSettings />
           </TabsContent>
 
           <TabsContent value="members" className="mt-6">
