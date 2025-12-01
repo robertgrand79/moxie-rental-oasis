@@ -78,8 +78,13 @@ export const PropertyPriceLabsMapping: React.FC<PropertyPriceLabsMappingProps> =
 
   const currentMapping = priceLabsListings.find(l => l.id === property.pricelabs_listing_id);
 
+  // Prevent any events from bubbling up to the parent form
+  const handleContainerClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <Card>
+    <Card onClick={handleContainerClick} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <LinkIcon className="h-5 w-5" />
