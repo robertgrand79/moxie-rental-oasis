@@ -3,10 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, RefreshCw, CheckCircle2, XCircle, DollarSign, Home } from 'lucide-react';
+import { Loader2, RefreshCw, CheckCircle2, XCircle, DollarSign, Home, Save } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
@@ -26,6 +27,7 @@ interface PriceLabsListing {
 export const PriceLabsSettings = () => {
   const queryClient = useQueryClient();
   const [priceLabsIds, setPriceLabsIds] = useState<Record<string, string>>({});
+  const [hospitableIds, setHospitableIds] = useState<Record<string, string>>({});
   const [priceLabsListings, setPriceLabsListings] = useState<PriceLabsListing[]>([]);
 
   const { data: properties, isLoading } = useQuery({
@@ -38,13 +40,18 @@ export const PriceLabsSettings = () => {
       
       if (error) throw error;
       
-      const initialIds: Record<string, string> = {};
+      const initialPriceLabsIds: Record<string, string> = {};
+      const initialHospitableIds: Record<string, string> = {};
       data?.forEach(prop => {
         if (prop.pricelabs_listing_id) {
-          initialIds[prop.id] = prop.pricelabs_listing_id;
+          initialPriceLabsIds[prop.id] = prop.pricelabs_listing_id;
+        }
+        if (prop.hospitable_property_id) {
+          initialHospitableIds[prop.id] = prop.hospitable_property_id;
         }
       });
-      setPriceLabsIds(initialIds);
+      setPriceLabsIds(initialPriceLabsIds);
+      setHospitableIds(initialHospitableIds);
       
       return data as Property[];
     }
@@ -92,6 +99,31 @@ export const PriceLabsSettings = () => {
       toast({
         title: 'Error',
         description: `Failed to update: ${error.message}`,
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const updateHospitableMutation = useMutation({
+    mutationFn: async ({ propertyId, hospitableId }: { propertyId: string; hospitableId: string }) => {
+      const { error } = await supabase
+        .from('properties')
+        .update({ hospitable_property_id: hospitableId || null })
+        .eq('id', propertyId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties-pricelabs'] });
+      toast({
+        title: 'Success',
+        description: 'Hospitable property ID updated successfully'
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to update Hospitable ID: ${error.message}`,
         variant: 'destructive'
       });
     }
@@ -157,6 +189,14 @@ export const PriceLabsSettings = () => {
     updateMutation.mutate({
       propertyId,
       priceLabsId: idToSave
+    });
+  };
+
+  const handleSaveHospitableId = (propertyId: string) => {
+    const hospitableId = hospitableIds[propertyId] || '';
+    updateHospitableMutation.mutate({
+      propertyId,
+      hospitableId
     });
   };
 
@@ -315,56 +355,80 @@ export const PriceLabsSettings = () => {
         <CardHeader>
           <CardTitle>Property Mappings</CardTitle>
           <CardDescription>
-            Select a PriceLabs listing for each property to enable price syncing
+            Configure Hospitable and PriceLabs IDs for each property. Find your Hospitable ID in the URL: app.hospitable.com/properties/<strong>YOUR_ID</strong>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {properties?.map((property) => {
-            const isMapped = !!property.pricelabs_listing_id;
+            const isPriceLabsMapped = !!property.pricelabs_listing_id;
+            const isHospitableMapped = !!property.hospitable_property_id;
             const mappedListing = priceLabsListings.find(l => l.id === property.pricelabs_listing_id);
+            const currentHospitableId = hospitableIds[property.id] ?? property.hospitable_property_id ?? '';
+            const hasHospitableChanges = currentHospitableId !== (property.hospitable_property_id || '');
             
             return (
               <div 
                 key={property.id} 
-                className={`flex items-center gap-4 p-4 border rounded-lg ${
-                  isMapped ? 'border-success/30 bg-success/5' : 'border-border'
+                className={`p-4 border rounded-lg space-y-3 ${
+                  isHospitableMapped ? 'border-success/30 bg-success/5' : 'border-border'
                 }`}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    {isMapped ? (
-                      <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    )}
-                    <Label className="font-medium truncate">
-                      {property.title}
-                    </Label>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 ml-6">
-                    {isMapped 
-                      ? `Mapped to: ${mappedListing?.name || property.pricelabs_listing_id}`
-                      : 'Not mapped'}
-                  </p>
+                {/* Property Title */}
+                <div className="flex items-center gap-2">
+                  {isHospitableMapped ? (
+                    <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  )}
+                  <Label className="font-medium">
+                    {property.title}
+                  </Label>
                 </div>
-                {/* Hospitable sync button */}
-                {property.hospitable_property_id && (
+
+                {/* Hospitable ID Row */}
+                <div className="flex items-center gap-2 ml-6">
+                  <Label className="text-sm text-muted-foreground w-24 flex-shrink-0">Hospitable:</Label>
+                  <Input
+                    placeholder="Enter Hospitable Property ID"
+                    value={currentHospitableId}
+                    onChange={(e) => setHospitableIds(prev => ({
+                      ...prev,
+                      [property.id]: e.target.value
+                    }))}
+                    className="flex-1 max-w-[300px]"
+                  />
                   <Button
                     size="sm"
-                    variant="outline"
-                    onClick={() => handleHospitableSyncProperty(property.id)}
-                    disabled={hospitableSyncMutation.isPending}
-                    title="Sync from Hospitable"
+                    variant={hasHospitableChanges ? "default" : "outline"}
+                    onClick={() => handleSaveHospitableId(property.id)}
+                    disabled={updateHospitableMutation.isPending || !hasHospitableChanges}
                   >
-                    {hospitableSyncMutation.isPending ? (
+                    {updateHospitableMutation.isPending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Home className="h-4 w-4" />
+                      <Save className="h-4 w-4" />
                     )}
                   </Button>
-                )}
+                  {isHospitableMapped && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleHospitableSyncProperty(property.id)}
+                      disabled={hospitableSyncMutation.isPending}
+                      title="Sync from Hospitable"
+                    >
+                      {hospitableSyncMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Home className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
+                {/* PriceLabs Row */}
+                <div className="flex items-center gap-2 ml-6">
+                  <Label className="text-sm text-muted-foreground w-24 flex-shrink-0">PriceLabs:</Label>
                   <Select
                     value={priceLabsIds[property.id] || property.pricelabs_listing_id || 'none'}
                     onValueChange={(value) => {
@@ -377,7 +441,7 @@ export const PriceLabsSettings = () => {
                     }}
                     disabled={priceLabsListings.length === 0}
                   >
-                    <SelectTrigger className="w-[250px]">
+                    <SelectTrigger className="flex-1 max-w-[300px]">
                       <SelectValue placeholder="Select listing..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -391,8 +455,7 @@ export const PriceLabsSettings = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  
-                  {isMapped && (
+                  {isPriceLabsMapped && (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -407,6 +470,14 @@ export const PriceLabsSettings = () => {
                     </Button>
                   )}
                 </div>
+
+                {/* Status Text */}
+                <p className="text-xs text-muted-foreground ml-6">
+                  {isHospitableMapped 
+                    ? `Hospitable ID: ${property.hospitable_property_id}`
+                    : 'No Hospitable ID configured'}
+                  {isPriceLabsMapped && ` • PriceLabs: ${mappedListing?.name || property.pricelabs_listing_id}`}
+                </p>
               </div>
             );
           })}
