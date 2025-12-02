@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { invalidateAllPricingQueries } from '@/utils/pricingCacheUtils';
 
 interface SyncPriceLabsParams {
   property_id?: string;
@@ -43,9 +44,8 @@ export const usePriceLabsSync = () => {
       return data as SyncResponse;
     },
     onSuccess: (data) => {
-      // Invalidate pricing queries to refetch updated data
-      queryClient.invalidateQueries({ queryKey: ['calendar-pricing'] });
-      queryClient.invalidateQueries({ queryKey: ['dynamic-pricing'] });
+      // Invalidate all pricing queries to refetch updated data across all views
+      invalidateAllPricingQueries(queryClient);
 
       const failedSyncs = data.results.filter(r => !r.success);
       

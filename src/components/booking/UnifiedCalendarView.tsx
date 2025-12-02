@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useUpdatePricing } from '@/hooks/useBookingData';
 import { getPropertyColor, getAllPropertyColors } from '@/utils/propertyColors';
+import { invalidateAllPricingQueries } from '@/utils/pricingCacheUtils';
 
 interface BookingBlock {
   id: string;
@@ -578,7 +579,7 @@ const PriceCell: React.FC<{
         pricing_source: 'manual'
       });
       toast.success(`Price updated to $${newPrice}`);
-      queryClient.invalidateQueries({ queryKey: ['unified-pricing'] });
+      invalidateAllPricingQueries(queryClient);
       setIsOpen(false);
     } catch (error) {
       toast.error('Failed to update price');

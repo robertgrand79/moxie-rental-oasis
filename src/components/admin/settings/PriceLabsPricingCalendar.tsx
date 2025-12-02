@@ -11,6 +11,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths,
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { invalidateAllPricingQueries } from '@/utils/pricingCacheUtils';
 
 interface Property {
   id: string;
@@ -112,7 +113,7 @@ export const PriceLabsPricingCalendar = () => {
     },
     onSuccess: () => {
       toast.success('Price override saved');
-      queryClient.invalidateQueries({ queryKey: ['pricelabs-pricing-calendar', selectedPropertyId] });
+      invalidateAllPricingQueries(queryClient);
       setSelectedDate(null);
       setOverridePrice('');
     },
@@ -141,7 +142,7 @@ export const PriceLabsPricingCalendar = () => {
     },
     onSuccess: () => {
       toast.success('Override cleared');
-      queryClient.invalidateQueries({ queryKey: ['pricelabs-pricing-calendar', selectedPropertyId] });
+      invalidateAllPricingQueries(queryClient);
       setSelectedDate(null);
       setOverridePrice('');
     },
