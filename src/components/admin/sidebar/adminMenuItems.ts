@@ -19,7 +19,6 @@ import {
   Database,
   TestTube,
   AlertTriangle,
-  DollarSign,
   MessageSquare,
 } from 'lucide-react';
 
@@ -100,7 +99,7 @@ export const adminMenuItems = [
         title: 'Calendar Management',
         href: '/admin/calendar',
         icon: Calendar,
-        description: 'View bookings, manage pricing, and sync external calendars'
+        description: 'View bookings, pricing calendar, PriceLabs integration, and external calendar sync'
       },
       {
         title: 'Guest Communication',
@@ -113,12 +112,6 @@ export const adminMenuItems = [
         href: '/admin/guest-experience',
         icon: MessageSquare,
         description: 'Automated messaging rules and templates'
-      },
-      {
-        title: 'PriceLabs',
-        href: '/admin/pricelabs',
-        icon: DollarSign,
-        description: 'Map properties to PriceLabs and sync dynamic pricing'
       }
     ]
   },

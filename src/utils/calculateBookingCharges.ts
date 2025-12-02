@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { eachDayOfInterval, format, addDays } from 'date-fns';
 
 export interface TaxDetail {
   name: string;
@@ -6,6 +7,12 @@ export interface TaxDetail {
   rate: number;
   amount: number;
   taxRateId: string;
+}
+
+export interface DailyPriceDetail {
+  date: string;
+  price: number;
+  source: string;
 }
 
 export interface BookingChargesBreakdown {
@@ -18,6 +25,7 @@ export interface BookingChargesBreakdown {
   grandTotal: number;
   nights: number;
   pricePerNight: number;
+  dailyPrices?: DailyPriceDetail[];
 }
 
 export async function calculateBookingCharges(
@@ -34,7 +42,7 @@ export async function calculateBookingCharges(
     throw new Error('Check-out date must be after check-in date');
   }
 
-  // Fetch property details
+  // Fetch property details (for cleaning fee, service fee, and fallback price)
   const { data: property, error: propertyError } = await supabase
     .from('properties')
     .select('price_per_night, cleaning_fee, service_fee_percentage')
@@ -45,8 +53,46 @@ export async function calculateBookingCharges(
     throw new Error('Property not found');
   }
 
-  // Calculate base charges
-  const accommodationSubtotal = property.price_per_night * nights;
+  // Fetch dynamic pricing for each night of the stay
+  // Note: Guest pays for check-in through the night before checkout
+  const stayDates = eachDayOfInterval({ 
+    start: checkIn, 
+    end: addDays(checkOut, -1) // Exclude checkout date
+  });
+
+  const { data: dynamicPrices, error: pricingError } = await supabase
+    .from('dynamic_pricing')
+    .select('date, final_price, pricing_source')
+    .eq('property_id', propertyId)
+    .in('date', stayDates.map(d => format(d, 'yyyy-MM-dd')));
+
+  if (pricingError) {
+    console.error('Error fetching dynamic pricing:', pricingError);
+  }
+
+  // Create a map of date -> price
+  const priceMap = new Map<string, { price: number; source: string }>();
+  (dynamicPrices || []).forEach(p => {
+    priceMap.set(p.date, { price: p.final_price, source: p.pricing_source });
+  });
+
+  // Calculate accommodation total using dynamic pricing with fallback to base price
+  const dailyPrices: DailyPriceDetail[] = [];
+  let accommodationSubtotal = 0;
+
+  stayDates.forEach(date => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dynamicPrice = priceMap.get(dateStr);
+    const price = dynamicPrice?.price || property.price_per_night;
+    const source = dynamicPrice?.source || 'base';
+    
+    dailyPrices.push({ date: dateStr, price, source });
+    accommodationSubtotal += price;
+  });
+
+  // Calculate average price per night for display
+  const pricePerNight = Math.round(accommodationSubtotal / nights);
+
   const cleaningFee = property.cleaning_fee || 0;
   const serviceFee = accommodationSubtotal * ((property.service_fee_percentage || 0) / 100);
   const totalBeforeTax = accommodationSubtotal + cleaningFee + serviceFee;
@@ -96,6 +142,7 @@ export async function calculateBookingCharges(
     totalTax,
     grandTotal,
     nights,
-    pricePerNight: property.price_per_night
+    pricePerNight,
+    dailyPrices
   };
 }

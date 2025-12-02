@@ -22,8 +22,10 @@ import {
   Plus,
   Trash2,
   Upload,
-  BookOpen
+  BookOpen,
+  DollarSign
 } from 'lucide-react';
+import { PriceLabsSettings } from '@/components/admin/settings/PriceLabsSettings';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -316,7 +318,7 @@ const BookingTimelinePage = () => {
       </div>
       
       <Tabs defaultValue="calendar" className="w-full">
-        <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <TabsList className="grid w-full max-w-3xl grid-cols-5">
           <TabsTrigger value="calendar" className="gap-2">
             <CalendarDays className="h-4 w-4" />
             Calendar
@@ -324,6 +326,10 @@ const BookingTimelinePage = () => {
           <TabsTrigger value="monthly" className="gap-2">
             <LayoutGrid className="h-4 w-4" />
             Monthly
+          </TabsTrigger>
+          <TabsTrigger value="pricing" className="gap-2">
+            <DollarSign className="h-4 w-4" />
+            Pricing
           </TabsTrigger>
           <TabsTrigger value="sync" className="gap-2">
             <RefreshCw className="h-4 w-4" />
@@ -341,6 +347,10 @@ const BookingTimelinePage = () => {
         
         <TabsContent value="monthly" className="mt-6">
           <MonthlyGridCalendar />
+        </TabsContent>
+
+        <TabsContent value="pricing" className="mt-6">
+          <PriceLabsSettings />
         </TabsContent>
 
         <TabsContent value="sync" className="mt-6 space-y-4">
