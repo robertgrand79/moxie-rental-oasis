@@ -1709,6 +1709,119 @@ export type Database = {
           },
         ]
       }
+      message_templates: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          property_id: string | null
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          property_id?: string | null
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          property_id?: string | null
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messaging_rules: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delivery_channel: string
+          id: string
+          is_active: boolean | null
+          name: string
+          priority: number | null
+          property_id: string | null
+          template_id: string
+          trigger_offset_hours: number
+          trigger_time: string | null
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delivery_channel?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          priority?: number | null
+          property_id?: string | null
+          template_id: string
+          trigger_offset_hours?: number
+          trigger_time?: string | null
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delivery_channel?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          priority?: number | null
+          property_id?: string | null
+          template_id?: string
+          trigger_offset_hours?: number
+          trigger_time?: string | null
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messaging_rules_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messaging_rules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_analytics: {
         Row: {
           campaign_id: string | null
@@ -3180,6 +3293,64 @@ export type Database = {
             columns: ["role_id"]
             isOneToOne: false
             referencedRelation: "system_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scheduled_messages: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          reservation_id: string
+          rule_id: string | null
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          reservation_id: string
+          rule_id?: string | null
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          reservation_id?: string
+          rule_id?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_messages_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "property_reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_messages_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "messaging_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_messages_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
             referencedColumns: ["id"]
           },
         ]
