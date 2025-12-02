@@ -1,10 +1,19 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, CheckCircle, XCircle, Send, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Clock, CheckCircle, XCircle, Send, Calendar, Play, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ScheduledMessage {
   id: string;
@@ -45,7 +54,11 @@ const STATUS_CONFIG: Record<string, { label: string; icon: React.ReactNode; clas
 };
 
 const ScheduledQueueTab = () => {
-  const { data: messages, isLoading } = useQuery({
+  const [selectedReservation, setSelectedReservation] = useState<string>('');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: messages, isLoading, refetch } = useQuery({
     queryKey: ['scheduled-messages'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -60,6 +73,58 @@ const ScheduledQueueTab = () => {
       
       if (error) throw error;
       return data as ScheduledMessage[];
+    },
+  });
+
+  // Fetch upcoming reservations for manual scheduling
+  const { data: reservations } = useQuery({
+    queryKey: ['upcoming-reservations'],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('property_reservations')
+        .select('id, guest_name, check_in_date, properties(title)')
+        .gte('check_in_date', today)
+        .order('check_in_date', { ascending: true })
+        .limit(20);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Process pending messages
+  const processMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('process-scheduled-messages');
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({ title: 'Messages processed', description: `Sent: ${data.sent}, Failed: ${data.failed}` });
+      queryClient.invalidateQueries({ queryKey: ['scheduled-messages'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error processing messages', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Schedule messages for a reservation
+  const scheduleMutation = useMutation({
+    mutationFn: async (reservationId: string) => {
+      const { data, error } = await supabase.functions.invoke('schedule-reservation-messages', {
+        body: { reservation_id: reservationId },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({ title: 'Messages scheduled', description: `${data.scheduled} messages scheduled` });
+      queryClient.invalidateQueries({ queryKey: ['scheduled-messages'] });
+      setSelectedReservation('');
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error scheduling messages', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -123,12 +188,67 @@ const ScheduledQueueTab = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold">Scheduled Queue</h3>
-        <p className="text-sm text-muted-foreground">
-          View and manage upcoming automated messages
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Scheduled Queue</h3>
+          <p className="text-sm text-muted-foreground">
+            View and manage upcoming automated messages
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          {pendingMessages.length > 0 && (
+            <Button
+              size="sm"
+              onClick={() => processMutation.mutate()}
+              disabled={processMutation.isPending}
+            >
+              <Play className="h-4 w-4 mr-2" />
+              {processMutation.isPending ? 'Processing...' : 'Process Now'}
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Manual Schedule Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Schedule Messages for Reservation</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-3">
+            <Select value={selectedReservation} onValueChange={setSelectedReservation}>
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Select a reservation" />
+              </SelectTrigger>
+              <SelectContent>
+                {reservations?.map((res: any) => (
+                  <SelectItem key={res.id} value={res.id}>
+                    {res.guest_name} - {res.properties?.title} ({res.check_in_date})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={() => selectedReservation && scheduleMutation.mutate(selectedReservation)}
+              disabled={!selectedReservation || scheduleMutation.isPending}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {scheduleMutation.isPending ? 'Scheduling...' : 'Schedule'}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Manually trigger message scheduling for a reservation based on active rules
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Pending Messages */}
       <Card>
