@@ -964,6 +964,8 @@ export type Database = {
           last_synced_at: string | null
           manual_override_price: number | null
           market_demand: string | null
+          max_price_limit: number | null
+          min_price_limit: number | null
           min_stay: number | null
           occupancy_rate: number | null
           pricelabs_price: number | null
@@ -984,6 +986,8 @@ export type Database = {
           last_synced_at?: string | null
           manual_override_price?: number | null
           market_demand?: string | null
+          max_price_limit?: number | null
+          min_price_limit?: number | null
           min_stay?: number | null
           occupancy_rate?: number | null
           pricelabs_price?: number | null
@@ -1004,6 +1008,8 @@ export type Database = {
           last_synced_at?: string | null
           manual_override_price?: number | null
           market_demand?: string | null
+          max_price_limit?: number | null
+          min_price_limit?: number | null
           min_stay?: number | null
           occupancy_rate?: number | null
           pricelabs_price?: number | null
