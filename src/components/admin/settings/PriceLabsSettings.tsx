@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import { Loader2, RefreshCw, CheckCircle2, XCircle, DollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { PriceLabsPricingCalendar } from './PriceLabsPricingCalendar';
 
 interface Property {
   id: string;
@@ -159,6 +160,9 @@ export const PriceLabsSettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* Pricing Calendar */}
+      <PriceLabsPricingCalendar />
+
       {/* PriceLabs Status Overview */}
       <Card>
         <CardHeader>
