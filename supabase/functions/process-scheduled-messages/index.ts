@@ -158,14 +158,55 @@ serve(async (req) => {
           }
         }
 
-        // Send SMS (placeholder for future implementation)
-        if ((deliveryChannel === "sms" || deliveryChannel === "both") && reservation.guest_phone) {
-          console.log(`[SMS] Would send to ${reservation.guest_phone}: ${content.substring(0, 160)}`);
-          // TODO: Implement SMS sending via Twilio/OpenPhone
-          if (!sent) {
-            sent = true; // Consider it "sent" if we logged it
-          }
+// Send SMS via OpenPhone
+if ((deliveryChannel === "sms" || deliveryChannel === "both") && reservation.guest_phone) {
+  const openPhoneApiKey = Deno.env.get("OPENPHONE_API_KEY");
+  if (openPhoneApiKey) {
+    try {
+      // Format phone number (ensure it has country code)
+      let phoneNumber = reservation.guest_phone.replace(/\D/g, "");
+      if (phoneNumber.length === 10) {
+        phoneNumber = "1" + phoneNumber; // Add US country code
+      }
+      if (!phoneNumber.startsWith("+")) {
+        phoneNumber = "+" + phoneNumber;
+      }
+
+      const smsResponse = await fetch("https://api.openphone.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Authorization": openPhoneApiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: content.substring(0, 1600), // OpenPhone SMS limit
+          to: [phoneNumber],
+        }),
+      });
+
+      if (smsResponse.ok) {
+        console.log(`SMS sent to ${reservation.guest_phone}`);
+        sent = true;
+      } else {
+        const smsError = await smsResponse.text();
+        console.error(`SMS send error:`, smsError);
+        if (!sent) {
+          errorMessage = `SMS failed: ${smsError}`;
         }
+      }
+    } catch (smsError) {
+      console.error(`SMS send error:`, smsError);
+      if (!sent) {
+        errorMessage = `SMS failed: ${smsError.message}`;
+      }
+    }
+  } else {
+    console.log(`[SMS DRY RUN] Would send to ${reservation.guest_phone}: ${content.substring(0, 160)}`);
+    if (!sent) {
+      sent = true; // Mark as sent in dry run mode
+    }
+  }
+}
 
         // Update message status
         await supabase

@@ -4,7 +4,8 @@ import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import MessageTemplatesTab from '@/components/guest-experience/MessageTemplatesTab';
 import MessagingRulesTab from '@/components/guest-experience/MessagingRulesTab';
 import ScheduledQueueTab from '@/components/guest-experience/ScheduledQueueTab';
-import { Mail, Clock, Send, FileText } from 'lucide-react';
+import GuidebooksTab from '@/components/guest-experience/GuidebooksTab';
+import { Clock, Send, FileText, Book } from 'lucide-react';
 
 const GuestExperiencePage = () => {
   return (
@@ -14,10 +15,10 @@ const GuestExperiencePage = () => {
     >
       <div className="p-6">
         <Tabs defaultValue="rules" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[500px]">
+          <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
             <TabsTrigger value="rules" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">Messaging Rules</span>
+              <span className="hidden sm:inline">Rules</span>
               <span className="sm:hidden">Rules</span>
             </TabsTrigger>
             <TabsTrigger value="templates" className="flex items-center gap-2">
@@ -27,8 +28,13 @@ const GuestExperiencePage = () => {
             </TabsTrigger>
             <TabsTrigger value="queue" className="flex items-center gap-2">
               <Send className="h-4 w-4" />
-              <span className="hidden sm:inline">Scheduled Queue</span>
+              <span className="hidden sm:inline">Queue</span>
               <span className="sm:hidden">Queue</span>
+            </TabsTrigger>
+            <TabsTrigger value="guidebooks" className="flex items-center gap-2">
+              <Book className="h-4 w-4" />
+              <span className="hidden sm:inline">Guidebooks</span>
+              <span className="sm:hidden">Guides</span>
             </TabsTrigger>
           </TabsList>
 
@@ -42,6 +48,10 @@ const GuestExperiencePage = () => {
 
           <TabsContent value="queue" className="mt-6">
             <ScheduledQueueTab />
+          </TabsContent>
+
+          <TabsContent value="guidebooks" className="mt-6">
+            <GuidebooksTab />
           </TabsContent>
         </Tabs>
       </div>
