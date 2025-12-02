@@ -67,14 +67,18 @@ export const UnifiedCalendarView: React.FC = () => {
   const queryClient = useQueryClient();
   const updatePricing = useUpdatePricing();
 
-  // Fetch availability blocks
+  // Fetch availability blocks - only those overlapping with visible range
+  const visibleEndDate = format(addDays(startDate, daysToShow), 'yyyy-MM-dd');
+  const visibleStartDate = format(startDate, 'yyyy-MM-dd');
+  
   const { data: availabilityBlocks = [] } = useQuery({
-    queryKey: ['unified-availability-blocks'],
+    queryKey: ['unified-availability-blocks', visibleStartDate, visibleEndDate],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('availability_blocks')
         .select('*')
-        .gte('end_date', format(startDate, 'yyyy-MM-dd'))
+        .lt('start_date', visibleEndDate)  // Starts before visible range ends
+        .gte('end_date', visibleStartDate)  // Ends after visible range starts
         .order('start_date', { ascending: true });
       if (error) throw error;
       return data || [];
@@ -425,28 +429,45 @@ const PropertyRow: React.FC<PropertyRowProps> = ({
 }) => {
   // Calculate booking positions and widths
   const bookingPositions = useMemo(() => {
+    const rangeStart = columns[0]?.dateStr;
+    const rangeEnd = columns[columns.length - 1]?.dateStr;
+    
+    if (!rangeStart || !rangeEnd) return [];
+    
     return bookings.map(booking => {
       const checkInDate = parseISO(booking.checkIn);
       const checkOutDate = parseISO(booking.checkOut);
       
-      // Find start column index
-      const startIdx = columns.findIndex(col => col.dateStr === booking.checkIn);
-      const endIdx = columns.findIndex(col => col.dateStr === booking.checkOut);
+      // Skip bookings that don't overlap with visible range
+      if (booking.checkOut <= rangeStart || booking.checkIn > rangeEnd) {
+        return null;
+      }
       
-      // Calculate visible range
-      const visibleStart = Math.max(startIdx, 0);
-      const visibleEnd = endIdx === -1 ? columns.length : endIdx;
+      // Calculate visible start index
+      let visibleStart = 0;
+      if (booking.checkIn >= rangeStart) {
+        visibleStart = columns.findIndex(col => col.dateStr === booking.checkIn);
+        if (visibleStart === -1) visibleStart = 0;
+      }
       
-      if (visibleStart >= columns.length || visibleEnd <= 0) return null;
+      // Calculate visible end index
+      let visibleEnd = columns.length;
+      if (booking.checkOut <= rangeEnd) {
+        const endIdx = columns.findIndex(col => col.dateStr === booking.checkOut);
+        if (endIdx !== -1) visibleEnd = endIdx;
+      }
+      
+      const span = visibleEnd - visibleStart;
+      if (span <= 0) return null;
       
       const nights = differenceInDays(checkOutDate, checkInDate);
       
       return {
         booking,
         startCol: visibleStart,
-        span: visibleEnd - visibleStart,
-        isStartVisible: startIdx >= 0,
-        isEndVisible: endIdx >= 0 && endIdx <= columns.length,
+        span,
+        isStartVisible: booking.checkIn >= rangeStart,
+        isEndVisible: booking.checkOut <= rangeEnd,
         nights
       };
     }).filter(Boolean);
