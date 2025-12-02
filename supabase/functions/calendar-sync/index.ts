@@ -175,35 +175,34 @@ async function parseAndStoreEvents(supabase: any, icalData: string, propertyId: 
           start_date: formatDate(currentEvent.dtstart),
           end_date: formatDate(currentEvent.dtend),
           notes: currentEvent.summary || 'External Booking',
-          external_booking_id: currentEvent.uid || `${platform}-${Date.now()}`,
+          external_booking_id: currentEvent.uid || `${platform}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           source_platform: platform,
           guest_count: 1,
           sync_status: 'synced'
         })
+      } else {
+        console.log('⚠️ Skipping event - missing dates:', { dtstart: currentEvent.dtstart, dtend: currentEvent.dtend, summary: currentEvent.summary })
       }
       currentEvent = null
     } else if (currentEvent && line.includes(':')) {
-      const [key, ...valueParts] = line.split(':')
-      const value = valueParts.join(':')
+      const colonIndex = line.indexOf(':')
+      const key = line.substring(0, colonIndex)
+      const value = line.substring(colonIndex + 1)
       
-      switch (key) {
-        case 'DTSTART;VALUE=DATE':
-        case 'DTSTART':
-          currentEvent.dtstart = value
-          break
-        case 'DTEND;VALUE=DATE':
-        case 'DTEND':
-          currentEvent.dtend = value
-          break
-        case 'SUMMARY':
-          currentEvent.summary = value
-          break
-        case 'UID':
-          currentEvent.uid = value
-          break
+      // Handle various date formats: DTSTART;VALUE=DATE, DTSTART;TZID=..., DTSTART, etc.
+      if (key.startsWith('DTSTART')) {
+        currentEvent.dtstart = value
+      } else if (key.startsWith('DTEND')) {
+        currentEvent.dtend = value
+      } else if (key === 'SUMMARY') {
+        currentEvent.summary = value
+      } else if (key === 'UID') {
+        currentEvent.uid = value
       }
     }
   }
+  
+  console.log(`📊 Parsed ${events.length} valid events from iCal data`)
   
   // Remove existing events for this property/platform combination
   const { error: deleteError } = await supabase
