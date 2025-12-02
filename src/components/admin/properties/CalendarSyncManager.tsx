@@ -104,6 +104,7 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
       console.log('✅ Calendar sync successful:', data);
       queryClient.invalidateQueries({ queryKey: ['external-calendars', property.id] });
       queryClient.invalidateQueries({ queryKey: ['availability', property.id] });
+      queryClient.invalidateQueries({ queryKey: ['all-availability-blocks'] });
       setNewCalendarUrl('');
       setSelectedPlatform('');
       toast({
@@ -164,6 +165,7 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['external-calendars', property.id] });
       queryClient.invalidateQueries({ queryKey: ['availability', property.id] });
+      queryClient.invalidateQueries({ queryKey: ['all-availability-blocks'] });
       toast({
         title: 'Sync Complete',
         description: data?.message || 'Calendar synced successfully'
@@ -190,6 +192,7 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['external-calendars', property.id] });
       queryClient.invalidateQueries({ queryKey: ['availability', property.id] });
+      queryClient.invalidateQueries({ queryKey: ['all-availability-blocks'] });
       toast({ title: 'Calendar Removed', description: 'Calendar sync has been removed' });
     },
     onError: (error: any) => {
