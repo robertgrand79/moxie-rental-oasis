@@ -233,12 +233,19 @@ async function parseAndStoreEvents(supabase: any, icalData: string, propertyId: 
 // Function to format date strings
 function formatDate(dateStr: string): string {
   // Handle different date formats from iCal
-  if (dateStr.length === 8) {
-    // YYYYMMDD format
+  // Compact format: YYYYMMDD (8 chars)
+  if (/^\d{8}$/.test(dateStr)) {
     return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`
-  } else if (dateStr.includes('T')) {
-    // ISO format with time
-    return dateStr.slice(0, 10) // Just take the date part
   }
+  // Compact datetime format: YYYYMMDDTHHMMSS or YYYYMMDDTHHMMSSZ
+  if (/^\d{8}T\d{6}Z?$/.test(dateStr)) {
+    const datePart = dateStr.slice(0, 8)
+    return `${datePart.slice(0, 4)}-${datePart.slice(4, 6)}-${datePart.slice(6, 8)}`
+  }
+  // ISO format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS
+  if (dateStr.includes('-')) {
+    return dateStr.slice(0, 10)
+  }
+  console.log('⚠️ Unknown date format:', dateStr)
   return dateStr
 }
