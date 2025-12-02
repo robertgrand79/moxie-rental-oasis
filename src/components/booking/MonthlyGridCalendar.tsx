@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { useProperties } from '@/hooks/useProperties';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getPropertyColor, getAllPropertyColors } from '@/utils/propertyColors';
 
 interface BookingBlock {
   id: string;
@@ -34,18 +35,6 @@ interface BookingBlock {
   sourcePlatform: string;
   guestCount?: number;
 }
-
-const PLATFORM_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  airbnb: { bg: 'bg-red-500', text: 'text-white', border: 'border-red-600' },
-  vrbo: { bg: 'bg-blue-500', text: 'text-white', border: 'border-blue-600' },
-  direct: { bg: 'bg-emerald-500', text: 'text-white', border: 'border-emerald-600' },
-  other: { bg: 'bg-purple-500', text: 'text-white', border: 'border-purple-600' },
-};
-
-const getPlatformColor = (platform: string) => {
-  const normalized = platform?.toLowerCase() || 'other';
-  return PLATFORM_COLORS[normalized] || PLATFORM_COLORS.other;
-};
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -168,12 +157,12 @@ export const MonthlyGridCalendar: React.FC = () => {
           </Button>
         </div>
         
-        {/* Platform Legend */}
+        {/* Property Legend */}
         <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm">
-          {Object.entries(PLATFORM_COLORS).map(([platform, colors]) => (
-            <span key={platform} className="flex items-center gap-1.5">
-              <div className={cn('w-3 h-3 rounded', colors.bg)} />
-              <span className="capitalize">{platform}</span>
+          {getAllPropertyColors().map((prop) => (
+            <span key={prop.id} className="flex items-center gap-1.5">
+              <div className={cn('w-3 h-3 rounded', prop.bg)} />
+              <span className="text-xs">{prop.name}</span>
             </span>
           ))}
         </div>
@@ -271,7 +260,7 @@ interface BookingBarProps {
 const BookingBar: React.FC<BookingBarProps> = ({ booking, date, showPropertyName, expanded }) => {
   const isCheckIn = isSameDay(date, parseISO(booking.checkIn));
   const isCheckOut = isSameDay(date, addDays(parseISO(booking.checkOut), -1));
-  const colors = getPlatformColor(booking.sourcePlatform);
+  const colors = getPropertyColor(booking.propertyId);
   
   // Determine label to show
   const label = isCheckIn 
@@ -306,10 +295,7 @@ const BookingBar: React.FC<BookingBarProps> = ({ booking, date, showPropertyName
               <h4 className="font-semibold">{booking.guestName}</h4>
               <p className="text-sm text-muted-foreground">{booking.propertyTitle}</p>
             </div>
-            <Badge 
-              variant="secondary" 
-              className={cn(colors.bg, colors.text, 'capitalize')}
-            >
+            <Badge variant="secondary" className="capitalize">
               {booking.sourcePlatform}
             </Badge>
           </div>
