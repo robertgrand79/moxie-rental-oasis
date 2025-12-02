@@ -54,6 +54,7 @@ import PublicLayout from './components/layouts/PublicLayout';
 import AdminSystemAdministration from './pages/admin/AdminSystemAdministration';
 import AdminTurnoProblems from './pages/admin/AdminTurnoProblems';
 import AdminPriceLabs from './pages/admin/AdminPriceLabs';
+import GuestExperiencePage from './pages/admin/GuestExperiencePage';
 
 
 // Create a client for React Query
@@ -125,6 +126,7 @@ function App() {
                   <Route path="host/bookings" element={<HostBookingsPage />} />
                   <Route path="calendar" element={<BookingTimelinePage />} />
                   <Route path="host/communication" element={<HostCommunicationPage />} />
+                  <Route path="guest-experience" element={<GuestExperiencePage />} />
                   <Route path="profile" element={<AdminProfile />} />
                 </Route>
 

@@ -20,6 +20,7 @@ import {
   TestTube,
   AlertTriangle,
   DollarSign,
+  MessageSquare,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -106,6 +107,12 @@ export const adminMenuItems = [
         href: '/admin/host/communication',
         icon: Mail,
         description: 'Send messages and manage guest correspondence'
+      },
+      {
+        title: 'Guest Experience',
+        href: '/admin/guest-experience',
+        icon: MessageSquare,
+        description: 'Automated messaging rules and templates'
       },
       {
         title: 'PriceLabs',
