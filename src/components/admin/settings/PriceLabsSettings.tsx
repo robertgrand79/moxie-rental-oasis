@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -22,10 +22,36 @@ interface PriceLabsListing {
   nickname?: string;
 }
 
+const CACHE_KEY = 'pricelabs_listings_cache';
+const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
+
+const getCachedListings = (): PriceLabsListing[] | null => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return null;
+    const { listings, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp > CACHE_DURATION_MS) {
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+    return listings;
+  } catch {
+    return null;
+  }
+};
+
+const setCachedListings = (listings: PriceLabsListing[]) => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ listings, timestamp: Date.now() }));
+  } catch {
+    // Ignore storage errors
+  }
+};
+
 export const PriceLabsSettings = () => {
   const queryClient = useQueryClient();
   const [priceLabsIds, setPriceLabsIds] = useState<Record<string, string>>({});
-  const [priceLabsListings, setPriceLabsListings] = useState<PriceLabsListing[]>([]);
+  const [priceLabsListings, setPriceLabsListings] = useState<PriceLabsListing[]>(() => getCachedListings() || []);
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ['properties-pricelabs'],
@@ -57,6 +83,7 @@ export const PriceLabsSettings = () => {
     },
     onSuccess: (listings) => {
       setPriceLabsListings(listings);
+      setCachedListings(listings);
       toast({
         title: 'Success',
         description: `Fetched ${listings.length} PriceLabs listings`
@@ -70,6 +97,13 @@ export const PriceLabsSettings = () => {
       });
     }
   });
+
+  // Auto-load listings on mount if not cached
+  useEffect(() => {
+    if (priceLabsListings.length === 0) {
+      fetchPriceLabsMutation.mutate();
+    }
+  }, []);
 
   const updateMutation = useMutation({
     mutationFn: async ({ propertyId, priceLabsId }: { propertyId: string; priceLabsId: string }) => {
@@ -300,9 +334,12 @@ export const PriceLabsSettings = () => {
                   )}
                 </div>
 
-                {isMapped && mappedListing && (
+                {isMapped && (
                   <p className="text-sm text-muted-foreground mt-2 ml-6">
-                    Linked to: {mappedListing.name || mappedListing.nickname}
+                    {mappedListing 
+                      ? `Linked to: ${mappedListing.name || mappedListing.nickname}`
+                      : `Mapped ID: ${property.pricelabs_listing_id}`
+                    }
                   </p>
                 )}
               </div>
