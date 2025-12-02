@@ -94,21 +94,9 @@ export const PricingCalendarView: React.FC<PricingCalendarViewProps> = ({ onAddB
     return days;
   }, [startDate, daysToShow]);
 
-  // Convert reservations and availability to booking blocks
+  // Convert availability blocks (from synced external calendars) to booking blocks
+  // Only show external calendar bookings, not direct reservations
   const bookingBlocks = useMemo<BookingBlock[]>(() => {
-    const reservationBlocks = allReservations.map(r => ({
-      id: r.id,
-      propertyId: r.property_id,
-      guestName: r.guest_name,
-      guestEmail: r.guest_email,
-      checkIn: r.check_in_date,
-      checkOut: r.check_out_date,
-      guestCount: r.guest_count,
-      totalAmount: r.total_amount,
-      status: r.booking_status,
-      sourcePlatform: r.source_platform || 'direct'
-    }));
-
     const availabilityBookingBlocks = availabilityBlocks
       .filter(block => block.block_type === 'booked')
       .map(block => ({
@@ -124,8 +112,8 @@ export const PricingCalendarView: React.FC<PricingCalendarViewProps> = ({ onAddB
         sourcePlatform: block.source_platform
       }));
 
-    return [...reservationBlocks, ...availabilityBookingBlocks];
-  }, [allReservations, availabilityBlocks]);
+    return availabilityBookingBlocks;
+  }, [availabilityBlocks]);
 
   // Filter properties
   const filteredProperties = useMemo(() => {

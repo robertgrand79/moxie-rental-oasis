@@ -112,24 +112,9 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
     return properties.filter(p => selectedProperties.includes(p.id));
   }, [properties, selectedProperties]);
 
-  // Convert reservations and availability blocks to booking blocks
+  // Convert availability blocks (from synced external calendars) to booking blocks
+  // Only show external calendar bookings, not direct reservations
   const bookingBlocks = useMemo(() => {
-    const reservationBlocks = allReservations.map(reservation => ({
-      id: reservation.id,
-      propertyId: reservation.property_id,
-      guestName: reservation.guest_name,
-      guestEmail: reservation.guest_email,
-      checkIn: reservation.check_in_date,
-      checkOut: reservation.check_out_date,
-      guestCount: reservation.guest_count,
-      totalAmount: reservation.total_amount,
-      status: reservation.booking_status,
-      cleaningStatus: reservation.cleaning_status,
-      guestAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${reservation.guest_name}`,
-      sourcePlatform: 'direct'
-    }));
-
-    // Convert availability blocks (from synced calendars) to booking blocks
     const availabilityBookingBlocks = availabilityBlocks
       .filter(block => block.block_type === 'booked')
       .map(block => ({
@@ -147,8 +132,8 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
         sourcePlatform: block.source_platform
       }));
 
-    return [...reservationBlocks, ...availabilityBookingBlocks] as BookingBlock[];
-  }, [allReservations, availabilityBlocks]);
+    return availabilityBookingBlocks as BookingBlock[];
+  }, [availabilityBlocks]);
 
   // Auto-jump to the nearest upcoming booking if current range has none
   const autoJumpedRef = useRef(false);
