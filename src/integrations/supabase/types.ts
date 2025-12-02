@@ -954,12 +954,17 @@ export type Database = {
       dynamic_pricing: {
         Row: {
           base_price: number
+          checkin_allowed: boolean | null
+          checkout_allowed: boolean | null
           created_at: string
+          currency: string | null
           date: string
           final_price: number
           id: string
+          last_synced_at: string | null
           manual_override_price: number | null
           market_demand: string | null
+          min_stay: number | null
           occupancy_rate: number | null
           pricelabs_price: number | null
           pricing_source: string
@@ -969,12 +974,17 @@ export type Database = {
         }
         Insert: {
           base_price: number
+          checkin_allowed?: boolean | null
+          checkout_allowed?: boolean | null
           created_at?: string
+          currency?: string | null
           date: string
           final_price: number
           id?: string
+          last_synced_at?: string | null
           manual_override_price?: number | null
           market_demand?: string | null
+          min_stay?: number | null
           occupancy_rate?: number | null
           pricelabs_price?: number | null
           pricing_source?: string
@@ -984,12 +994,17 @@ export type Database = {
         }
         Update: {
           base_price?: number
+          checkin_allowed?: boolean | null
+          checkout_allowed?: boolean | null
           created_at?: string
+          currency?: string | null
           date?: string
           final_price?: number
           id?: string
+          last_synced_at?: string | null
           manual_override_price?: number | null
           market_demand?: string | null
+          min_stay?: number | null
           occupancy_rate?: number | null
           pricelabs_price?: number | null
           pricing_source?: string
