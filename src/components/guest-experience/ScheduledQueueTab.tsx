@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, CheckCircle, XCircle, Send, Calendar, Play, RefreshCw } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Send, Calendar, Play, RefreshCw, Ban, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -14,6 +14,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface ScheduledMessage {
   id: string;
@@ -128,6 +139,42 @@ const ScheduledQueueTab = () => {
     },
   });
 
+  // Cancel a scheduled message
+  const cancelMutation = useMutation({
+    mutationFn: async (messageId: string) => {
+      const { error } = await supabase
+        .from('scheduled_messages')
+        .update({ status: 'cancelled' })
+        .eq('id', messageId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: 'Message cancelled' });
+      queryClient.invalidateQueries({ queryKey: ['scheduled-messages'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error cancelling message', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Retry a failed message
+  const retryMutation = useMutation({
+    mutationFn: async (messageId: string) => {
+      const { error } = await supabase
+        .from('scheduled_messages')
+        .update({ status: 'pending', error_message: null, scheduled_for: new Date().toISOString() })
+        .eq('id', messageId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: 'Message rescheduled for immediate send' });
+      queryClient.invalidateQueries({ queryKey: ['scheduled-messages'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error retrying message', description: error.message, variant: 'destructive' });
+    },
+  });
+
   const pendingMessages = messages?.filter(m => m.status === 'pending') || [];
   const sentMessages = messages?.filter(m => m.status === 'sent') || [];
   const failedMessages = messages?.filter(m => m.status === 'failed') || [];
@@ -142,6 +189,8 @@ const ScheduledQueueTab = () => {
 
   const renderMessageCard = (message: ScheduledMessage) => {
     const statusConfig = STATUS_CONFIG[message.status] || STATUS_CONFIG.pending;
+    const isPending = message.status === 'pending';
+    const isFailed = message.status === 'failed';
 
     return (
       <Card key={message.id} className="hover:shadow-sm transition-shadow">
@@ -164,15 +213,58 @@ const ScheduledQueueTab = () => {
                 Check-in: {message.property_reservations?.check_in_date || 'N/A'}
               </p>
             </div>
-            <div className="text-right text-sm">
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>
-                  {format(new Date(message.scheduled_for), 'MMM d, yyyy')}
-                </span>
+            <div className="flex items-start gap-3">
+              <div className="text-right text-sm">
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>
+                    {format(new Date(message.scheduled_for), 'MMM d, yyyy')}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {format(new Date(message.scheduled_for), 'h:mm a')}
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">
-                {format(new Date(message.scheduled_for), 'h:mm a')}
+              {/* Action buttons */}
+              <div className="flex items-center gap-1">
+                {isPending && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                        <Ban className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Cancel Message?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will cancel the scheduled message for {message.property_reservations?.guest_name}. 
+                          The message will not be sent.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Keep Scheduled</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => cancelMutation.mutate(message.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Cancel Message
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+                {isFailed && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-muted-foreground hover:text-primary"
+                    onClick={() => retryMutation.mutate(message.id)}
+                    disabled={retryMutation.isPending}
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </div>
