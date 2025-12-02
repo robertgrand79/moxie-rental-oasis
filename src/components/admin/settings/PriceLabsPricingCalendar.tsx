@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Calendar, Loader2, Clock, LogIn, LogOut, AlertTriangle, Info, TrendingUp, TrendingDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Loader2, Clock, LogIn, LogOut, Info, TrendingUp, TrendingDown, DollarSign, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isWeekend } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -29,11 +31,15 @@ interface DailyPrice {
   last_synced_at: string | null;
   min_price_limit: number | null;
   max_price_limit: number | null;
+  manual_override_price: number | null;
 }
 
 export const PriceLabsPricingCalendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [overridePrice, setOverridePrice] = useState<string>('');
+  const queryClient = useQueryClient();
 
   // Fetch properties with PriceLabs mapping
   const { data: properties } = useQuery({
@@ -68,7 +74,7 @@ export const PriceLabsPricingCalendar = () => {
       
       const { data, error } = await supabase
         .from('dynamic_pricing')
-        .select('date, final_price, base_price, pricelabs_price, pricing_source, min_stay, checkin_allowed, checkout_allowed, currency, last_synced_at, min_price_limit, max_price_limit')
+        .select('date, final_price, base_price, pricelabs_price, pricing_source, min_stay, checkin_allowed, checkout_allowed, currency, last_synced_at, min_price_limit, max_price_limit, manual_override_price')
         .eq('property_id', selectedPropertyId)
         .gte('date', start)
         .lte('date', end)
@@ -85,6 +91,85 @@ export const PriceLabsPricingCalendar = () => {
     pricing?.forEach(p => map.set(p.date, p));
     return map;
   }, [pricing]);
+
+  // Mutation for saving manual price override
+  const saveOverride = useMutation({
+    mutationFn: async ({ date, price }: { date: string; price: number }) => {
+      const { error } = await supabase
+        .from('dynamic_pricing')
+        .upsert({
+          property_id: selectedPropertyId,
+          date,
+          base_price: priceMap.get(date)?.base_price || price,
+          final_price: price,
+          manual_override_price: price,
+          pricing_source: 'manual'
+        }, {
+          onConflict: 'property_id,date'
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Price override saved');
+      queryClient.invalidateQueries({ queryKey: ['pricelabs-pricing-calendar', selectedPropertyId] });
+      setSelectedDate(null);
+      setOverridePrice('');
+    },
+    onError: () => {
+      toast.error('Failed to save price override');
+    }
+  });
+
+  // Mutation for clearing manual override
+  const clearOverride = useMutation({
+    mutationFn: async (date: string) => {
+      const existingPrice = priceMap.get(date);
+      if (!existingPrice) return;
+      
+      const { error } = await supabase
+        .from('dynamic_pricing')
+        .update({
+          manual_override_price: null,
+          final_price: existingPrice.pricelabs_price || existingPrice.base_price,
+          pricing_source: existingPrice.pricelabs_price ? 'pricelabs_variation' : 'base'
+        })
+        .eq('property_id', selectedPropertyId)
+        .eq('date', date);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Override cleared');
+      queryClient.invalidateQueries({ queryKey: ['pricelabs-pricing-calendar', selectedPropertyId] });
+      setSelectedDate(null);
+      setOverridePrice('');
+    },
+    onError: () => {
+      toast.error('Failed to clear override');
+    }
+  });
+
+  const handleDayClick = (dateStr: string) => {
+    if (selectedDate === dateStr) {
+      setSelectedDate(null);
+      setOverridePrice('');
+    } else {
+      setSelectedDate(dateStr);
+      const dayPrice = priceMap.get(dateStr);
+      setOverridePrice(dayPrice?.manual_override_price?.toString() || dayPrice?.final_price?.toString() || '');
+    }
+  };
+
+  const handleSaveOverride = () => {
+    if (!selectedDate || !overridePrice) return;
+    const price = parseFloat(overridePrice);
+    if (isNaN(price) || price <= 0) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+    saveOverride.mutate({ date: selectedDate, price });
+  };
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -292,15 +377,20 @@ export const PriceLabsPricingCalendar = () => {
                   const noCheckin = dayPrice?.checkin_allowed === false;
                   const noCheckout = dayPrice?.checkout_allowed === false;
                   const isPremium = isPremiumNight(day);
+                  const isManualOverride = dayPrice?.pricing_source === 'manual';
+                  const isSelected = selectedDate === dateStr;
                   
                   return (
                     <Tooltip key={dateStr}>
                       <TooltipTrigger asChild>
                         <div
-                          className={`h-24 border-b border-r p-1.5 flex flex-col cursor-default transition-colors ${
+                          onClick={() => handleDayClick(dateStr)}
+                          className={`h-24 border-b border-r p-1.5 flex flex-col cursor-pointer transition-colors hover:bg-muted/50 ${
                             isToday ? 'bg-primary/5 ring-1 ring-inset ring-primary/20' : ''
                           } ${noCheckin || noCheckout ? 'bg-rose-50' : ''} ${
                             isPremium && !noCheckin && !noCheckout ? 'bg-amber-50/50' : ''
+                          } ${isManualOverride ? 'bg-green-50 border-green-200' : ''} ${
+                            isSelected ? 'ring-2 ring-primary' : ''
                           }`}
                         >
                           <div className="flex items-center justify-between">
@@ -330,9 +420,9 @@ export const PriceLabsPricingCalendar = () => {
                               
                               {/* Check-in/out restrictions */}
                               <div className="flex items-center gap-1">
-                                {hasPriceLabsData && !hasMinStay && !noCheckin && !noCheckout && (
-                                  <span className="text-[10px] text-primary/70 font-medium">
-                                    {dayPrice.pricing_source === 'pricelabs_daily' ? 'PL' : '~'}
+                              {!hasMinStay && !noCheckin && !noCheckout && (
+                                  <span className={`text-[10px] font-medium ${isManualOverride ? 'text-green-600' : 'text-primary/70'}`}>
+                                    {isManualOverride ? '✓ Manual' : dayPrice.pricing_source === 'pricelabs_daily' ? 'PL' : '~'}
                                   </span>
                                 )}
                                 {noCheckin && (
@@ -401,8 +491,62 @@ export const PriceLabsPricingCalendar = () => {
             </div>
           )}
 
+          {/* Manual Override Panel */}
+          {selectedDate && (
+            <div className="border rounded-lg p-4 bg-muted/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Set Price for {format(new Date(selectedDate + 'T12:00:00'), 'MMM d, yyyy')}
+                </h3>
+                <Button variant="ghost" size="sm" onClick={() => { setSelectedDate(null); setOverridePrice(''); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Input
+                    type="number"
+                    placeholder="Enter price"
+                    value={overridePrice}
+                    onChange={(e) => setOverridePrice(e.target.value)}
+                    step="1"
+                    min="0"
+                  />
+                </div>
+                <Button 
+                  onClick={handleSaveOverride}
+                  disabled={saveOverride.isPending || !overridePrice}
+                >
+                  {saveOverride.isPending ? 'Saving...' : 'Save'}
+                </Button>
+                {priceMap.get(selectedDate)?.pricing_source === 'manual' && (
+                  <Button 
+                    variant="outline"
+                    onClick={() => clearOverride.mutate(selectedDate)}
+                    disabled={clearOverride.isPending}
+                  >
+                    Clear Override
+                  </Button>
+                )}
+              </div>
+              
+              {priceMap.get(selectedDate) && (
+                <div className="text-sm text-muted-foreground">
+                  Current: ${priceMap.get(selectedDate)?.final_price} 
+                  ({priceMap.get(selectedDate)?.pricing_source === 'manual' ? 'Manual Override' : 'Synced'})
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Legend */}
           <div className="flex flex-wrap items-center gap-4 mt-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded bg-green-100 border border-green-300" />
+              <span>Manual override</span>
+            </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded bg-primary" />
               <span>PriceLabs synced</span>
