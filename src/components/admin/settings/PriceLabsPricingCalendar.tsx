@@ -38,9 +38,33 @@ interface DailyPrice {
 export const PriceLabsPricingCalendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [rangeStart, setRangeStart] = useState<string | null>(null);
+  const [rangeEnd, setRangeEnd] = useState<string | null>(null);
   const [overridePrice, setOverridePrice] = useState<string>('');
   const queryClient = useQueryClient();
+
+  // Get dates in selected range
+  const getSelectedDates = (): string[] => {
+    if (!rangeStart) return [];
+    if (!rangeEnd) return [rangeStart];
+    
+    const start = new Date(rangeStart);
+    const end = new Date(rangeEnd);
+    const dates: string[] = [];
+    
+    const [earlier, later] = start <= end ? [start, end] : [end, start];
+    const current = new Date(earlier);
+    
+    while (current <= later) {
+      dates.push(format(current, 'yyyy-MM-dd'));
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return dates;
+  };
+
+  const selectedDates = getSelectedDates();
+  const isDateInRange = (dateStr: string) => selectedDates.includes(dateStr);
 
   // Fetch properties with PriceLabs mapping
   const { data: properties } = useQuery({
@@ -93,28 +117,30 @@ export const PriceLabsPricingCalendar = () => {
     return map;
   }, [pricing]);
 
-  // Mutation for saving manual price override
+  // Mutation for saving manual price override (supports multiple dates)
   const saveOverride = useMutation({
-    mutationFn: async ({ date, price }: { date: string; price: number }) => {
+    mutationFn: async ({ dates, price }: { dates: string[]; price: number }) => {
+      const upserts = dates.map(date => ({
+        property_id: selectedPropertyId,
+        date,
+        base_price: priceMap.get(date)?.base_price || price,
+        final_price: price,
+        manual_override_price: price,
+        pricing_source: 'manual'
+      }));
+      
       const { error } = await supabase
         .from('dynamic_pricing')
-        .upsert({
-          property_id: selectedPropertyId,
-          date,
-          base_price: priceMap.get(date)?.base_price || price,
-          final_price: price,
-          manual_override_price: price,
-          pricing_source: 'manual'
-        }, {
-          onConflict: 'property_id,date'
-        });
+        .upsert(upserts, { onConflict: 'property_id,date' });
       
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Price override saved');
+      const count = selectedDates.length;
+      toast.success(`Price override saved for ${count} day${count > 1 ? 's' : ''}`);
       invalidateAllPricingQueries(queryClient);
-      setSelectedDate(null);
+      setRangeStart(null);
+      setRangeEnd(null);
       setOverridePrice('');
     },
     onError: () => {
@@ -122,28 +148,31 @@ export const PriceLabsPricingCalendar = () => {
     }
   });
 
-  // Mutation for clearing manual override
+  // Mutation for clearing manual override (supports multiple dates)
   const clearOverride = useMutation({
-    mutationFn: async (date: string) => {
-      const existingPrice = priceMap.get(date);
-      if (!existingPrice) return;
-      
-      const { error } = await supabase
-        .from('dynamic_pricing')
-        .update({
-          manual_override_price: null,
-          final_price: existingPrice.pricelabs_price || existingPrice.base_price,
-          pricing_source: existingPrice.pricelabs_price ? 'pricelabs_variation' : 'base'
-        })
-        .eq('property_id', selectedPropertyId)
-        .eq('date', date);
-      
-      if (error) throw error;
+    mutationFn: async (dates: string[]) => {
+      for (const date of dates) {
+        const existingPrice = priceMap.get(date);
+        if (!existingPrice) continue;
+        
+        const { error } = await supabase
+          .from('dynamic_pricing')
+          .update({
+            manual_override_price: null,
+            final_price: existingPrice.pricelabs_price || existingPrice.base_price,
+            pricing_source: existingPrice.pricelabs_price ? 'pricelabs_variation' : 'base'
+          })
+          .eq('property_id', selectedPropertyId)
+          .eq('date', date);
+        
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
-      toast.success('Override cleared');
+      toast.success('Override(s) cleared');
       invalidateAllPricingQueries(queryClient);
-      setSelectedDate(null);
+      setRangeStart(null);
+      setRangeEnd(null);
       setOverridePrice('');
     },
     onError: () => {
@@ -151,25 +180,40 @@ export const PriceLabsPricingCalendar = () => {
     }
   });
 
-  const handleDayClick = (dateStr: string) => {
-    if (selectedDate === dateStr) {
-      setSelectedDate(null);
-      setOverridePrice('');
+  const handleDayClick = (dateStr: string, shiftKey: boolean) => {
+    if (!rangeStart) {
+      // First click - set start
+      setRangeStart(dateStr);
+      setRangeEnd(null);
+      const dayPrice = priceMap.get(dateStr);
+      setOverridePrice(dayPrice?.manual_override_price?.toString() || dayPrice?.final_price?.toString() || '');
+    } else if (shiftKey || !rangeEnd) {
+      // Shift+click or second click - set end
+      if (dateStr === rangeStart) {
+        // Clicking same date clears selection
+        setRangeStart(null);
+        setRangeEnd(null);
+        setOverridePrice('');
+      } else {
+        setRangeEnd(dateStr);
+      }
     } else {
-      setSelectedDate(dateStr);
+      // Third click - start new selection
+      setRangeStart(dateStr);
+      setRangeEnd(null);
       const dayPrice = priceMap.get(dateStr);
       setOverridePrice(dayPrice?.manual_override_price?.toString() || dayPrice?.final_price?.toString() || '');
     }
   };
 
   const handleSaveOverride = () => {
-    if (!selectedDate || !overridePrice) return;
+    if (!selectedDates.length || !overridePrice) return;
     const price = parseFloat(overridePrice);
     if (isNaN(price) || price <= 0) {
       toast.error('Please enter a valid price');
       return;
     }
-    saveOverride.mutate({ date: selectedDate, price });
+    saveOverride.mutate({ dates: selectedDates, price });
   };
 
   const monthStart = startOfMonth(currentMonth);
@@ -379,20 +423,21 @@ export const PriceLabsPricingCalendar = () => {
                   const noCheckout = dayPrice?.checkout_allowed === false;
                   const isPremium = isPremiumNight(day);
                   const isManualOverride = dayPrice?.pricing_source === 'manual';
-                  const isSelected = selectedDate === dateStr;
+                  const isSelected = isDateInRange(dateStr);
+                  const isRangeEdge = dateStr === rangeStart || dateStr === rangeEnd;
                   
                   return (
                     <Tooltip key={dateStr}>
                       <TooltipTrigger asChild>
                         <div
-                          onClick={() => handleDayClick(dateStr)}
+                          onClick={(e) => handleDayClick(dateStr, e.shiftKey)}
                           className={`h-24 border-b border-r p-1.5 flex flex-col cursor-pointer transition-colors hover:bg-muted/50 ${
                             isToday ? 'bg-primary/5 ring-1 ring-inset ring-primary/20' : ''
                           } ${noCheckin || noCheckout ? 'bg-rose-50' : ''} ${
                             isPremium && !noCheckin && !noCheckout ? 'bg-amber-50/50' : ''
                           } ${isManualOverride ? 'bg-green-50 border-green-200' : ''} ${
-                            isSelected ? 'ring-2 ring-primary' : ''
-                          }`}
+                            isSelected ? 'bg-primary/10' : ''
+                          } ${isRangeEdge ? 'ring-2 ring-primary' : ''}`}
                         >
                           <div className="flex items-center justify-between">
                             <span className={`text-xs ${isToday ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
@@ -493,23 +538,32 @@ export const PriceLabsPricingCalendar = () => {
           )}
 
           {/* Manual Override Panel */}
-          {selectedDate && (
+          {selectedDates.length > 0 && (
             <div className="border rounded-lg p-4 bg-muted/30 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  Set Price for {format(new Date(selectedDate + 'T12:00:00'), 'MMM d, yyyy')}
+                  {selectedDates.length === 1 
+                    ? `Set Price for ${format(new Date(selectedDates[0] + 'T12:00:00'), 'MMM d, yyyy')}`
+                    : `Set Price for ${selectedDates.length} days (${format(new Date(selectedDates[0] + 'T12:00:00'), 'MMM d')} - ${format(new Date(selectedDates[selectedDates.length - 1] + 'T12:00:00'), 'MMM d, yyyy')})`
+                  }
                 </h3>
-                <Button variant="ghost" size="sm" onClick={() => { setSelectedDate(null); setOverridePrice(''); }}>
+                <Button variant="ghost" size="sm" onClick={() => { setRangeStart(null); setRangeEnd(null); setOverridePrice(''); }}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
+              
+              {selectedDates.length === 1 && !rangeEnd && (
+                <p className="text-xs text-muted-foreground">
+                  Tip: Click another date or Shift+click to select a range
+                </p>
+              )}
               
               <div className="flex gap-2">
                 <div className="flex-1">
                   <Input
                     type="number"
-                    placeholder="Enter price"
+                    placeholder={selectedDates.length > 1 ? "Enter price for all selected days" : "Enter price"}
                     value={overridePrice}
                     onChange={(e) => setOverridePrice(e.target.value)}
                     step="1"
@@ -520,23 +574,23 @@ export const PriceLabsPricingCalendar = () => {
                   onClick={handleSaveOverride}
                   disabled={saveOverride.isPending || !overridePrice}
                 >
-                  {saveOverride.isPending ? 'Saving...' : 'Save'}
+                  {saveOverride.isPending ? 'Saving...' : selectedDates.length > 1 ? `Save ${selectedDates.length} Days` : 'Save'}
                 </Button>
-                {priceMap.get(selectedDate)?.pricing_source === 'manual' && (
+                {selectedDates.some(d => priceMap.get(d)?.pricing_source === 'manual') && (
                   <Button 
                     variant="outline"
-                    onClick={() => clearOverride.mutate(selectedDate)}
+                    onClick={() => clearOverride.mutate(selectedDates.filter(d => priceMap.get(d)?.pricing_source === 'manual'))}
                     disabled={clearOverride.isPending}
                   >
-                    Clear Override
+                    Clear Override{selectedDates.length > 1 ? 's' : ''}
                   </Button>
                 )}
               </div>
               
-              {priceMap.get(selectedDate) && (
+              {selectedDates.length === 1 && priceMap.get(selectedDates[0]) && (
                 <div className="text-sm text-muted-foreground">
-                  Current: ${priceMap.get(selectedDate)?.final_price} 
-                  ({priceMap.get(selectedDate)?.pricing_source === 'manual' ? 'Manual Override' : 'Synced'})
+                  Current: ${priceMap.get(selectedDates[0])?.final_price} 
+                  ({priceMap.get(selectedDates[0])?.pricing_source === 'manual' ? 'Manual Override' : 'Synced'})
                 </div>
               )}
             </div>
