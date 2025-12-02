@@ -143,79 +143,92 @@ Deno.serve(async (req) => {
 
         console.log(`Fetching daily prices for ${property.title} (${property.pricelabs_listing_id})...`);
 
-        // Use Customer API GET /custom-pricing/{listing_id} endpoint for daily calendar prices
+        // Try Customer API endpoints for daily calendar prices
         const dailyPrices: Record<string, number> = {};
         const minStays: Record<string, number> = {};
         let pricesFromApi = 0;
 
-        const customPricingUrl = `https://api.pricelabs.co/custom-pricing/${property.pricelabs_listing_id}`;
-        console.log(`Calling: ${customPricingUrl}`);
-        
-        const customPricingResponse = await fetch(customPricingUrl, {
-          method: 'GET',
-          headers: {
-            'X-API-Key': priceLabsApiKey,
-            'Content-Type': 'application/json',
-          },
-        });
+        // Try multiple endpoint patterns
+        const endpointsToTry = [
+          `https://api.pricelabs.co/v1/listings/${property.pricelabs_listing_id}/prices`,
+          `https://api.pricelabs.co/v1/listings/${property.pricelabs_listing_id}/calendar`,
+          `https://api.pricelabs.co/v1/pricing/${property.pricelabs_listing_id}`,
+        ];
 
-        if (customPricingResponse.ok) {
-          const customPricingData = await customPricingResponse.json();
-          console.log(`custom-pricing response for ${property.title}:`, JSON.stringify(customPricingData).substring(0, 3000));
-
-          // Parse the response - could be in various formats
-          // Try common formats: { prices: [...] }, { data: [...] }, direct array, or date-keyed object
-          let pricesArray: ListingDataPrice[] = [];
+        for (const endpointUrl of endpointsToTry) {
+          console.log(`Trying: ${endpointUrl}`);
           
-          if (Array.isArray(customPricingData)) {
-            pricesArray = customPricingData;
-          } else if (customPricingData.prices && Array.isArray(customPricingData.prices)) {
-            pricesArray = customPricingData.prices;
-          } else if (customPricingData.data && Array.isArray(customPricingData.data)) {
-            pricesArray = customPricingData.data;
-          } else if (customPricingData.calendar && Array.isArray(customPricingData.calendar)) {
-            pricesArray = customPricingData.calendar;
-          } else if (typeof customPricingData === 'object') {
-            // Check if it's a date-keyed object like { "2024-01-01": { price: 100 }, ... }
-            const keys = Object.keys(customPricingData);
-            if (keys.length > 0 && keys[0].match(/^\d{4}-\d{2}-\d{2}$/)) {
-              for (const dateKey of keys) {
-                const value = customPricingData[dateKey];
-                if (typeof value === 'number') {
-                  dailyPrices[dateKey] = value;
-                } else if (value?.price) {
-                  dailyPrices[dateKey] = value.price;
-                  if (value.min_stay) minStays[dateKey] = value.min_stay;
+          const response = await fetch(endpointUrl, {
+            method: 'GET',
+            headers: {
+              'X-API-Key': priceLabsApiKey,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const responseData = await response.json();
+            console.log(`SUCCESS from ${endpointUrl}:`, JSON.stringify(responseData).substring(0, 3000));
+
+            // Parse the response - could be in various formats
+            let pricesArray: ListingDataPrice[] = [];
+            
+            if (Array.isArray(responseData)) {
+              pricesArray = responseData;
+            } else if (responseData.prices && Array.isArray(responseData.prices)) {
+              pricesArray = responseData.prices;
+            } else if (responseData.data && Array.isArray(responseData.data)) {
+              pricesArray = responseData.data;
+            } else if (responseData.calendar && Array.isArray(responseData.calendar)) {
+              pricesArray = responseData.calendar;
+            } else if (typeof responseData === 'object') {
+              // Check if it's a date-keyed object like { "2024-01-01": { price: 100 }, ... }
+              const keys = Object.keys(responseData);
+              if (keys.length > 0 && keys[0].match(/^\d{4}-\d{2}-\d{2}$/)) {
+                for (const dateKey of keys) {
+                  const value = responseData[dateKey];
+                  if (typeof value === 'number') {
+                    dailyPrices[dateKey] = value;
+                  } else if (value?.price) {
+                    dailyPrices[dateKey] = value.price;
+                    if (value.min_stay) minStays[dateKey] = value.min_stay;
+                  }
                 }
-              }
-            } else {
-              // Try to find a nested array with date/price structure
-              for (const key of keys) {
-                const value = customPricingData[key];
-                if (Array.isArray(value) && value.length > 0 && (value[0]?.date || value[0]?.price)) {
-                  pricesArray = value;
-                  console.log(`Found prices array in key: ${key}`);
-                  break;
+              } else {
+                // Try to find a nested array with date/price structure
+                for (const key of keys) {
+                  const value = responseData[key];
+                  if (Array.isArray(value) && value.length > 0 && (value[0]?.date || value[0]?.price)) {
+                    pricesArray = value;
+                    console.log(`Found prices array in key: ${key}`);
+                    break;
+                  }
                 }
               }
             }
-          }
 
-          // Parse array format
-          for (const item of pricesArray) {
-            if (item.date && item.price) {
-              dailyPrices[item.date] = item.price;
-              if (item.min_stay) {
-                minStays[item.date] = item.min_stay;
+            // Parse array format
+            for (const item of pricesArray) {
+              if (item.date && item.price) {
+                dailyPrices[item.date] = item.price;
+                if (item.min_stay) {
+                  minStays[item.date] = item.min_stay;
+                }
               }
             }
+            
+            pricesFromApi = Object.keys(dailyPrices).length;
+            if (pricesFromApi > 0) {
+              console.log(`Got ${pricesFromApi} daily prices from ${endpointUrl}`);
+              break; // Found prices, stop trying other endpoints
+            }
+          } else {
+            console.log(`${endpointUrl} returned ${response.status}`);
           }
-          
-          pricesFromApi = Object.keys(dailyPrices).length;
-          console.log(`Got ${pricesFromApi} daily prices from custom-pricing endpoint`);
-        } else {
-          const errorText = await customPricingResponse.text();
-          console.log(`custom-pricing endpoint returned ${customPricingResponse.status}: ${errorText}`);
+        }
+
+        if (pricesFromApi === 0) {
+          console.log(`No daily pricing endpoints worked for ${property.title}, using fallback`);
         }
 
         // Build pricing records for the next 365 days
