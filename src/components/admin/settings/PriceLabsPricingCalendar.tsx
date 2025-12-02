@@ -4,9 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Calendar, Loader2, Clock, LogIn, LogOut } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from 'date-fns';
+import { ChevronLeft, ChevronRight, Calendar, Loader2, Clock, LogIn, LogOut, AlertTriangle, Info, TrendingUp, TrendingDown } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isWeekend } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 
 interface Property {
   id: string;
@@ -25,6 +27,8 @@ interface DailyPrice {
   checkout_allowed: boolean;
   currency: string;
   last_synced_at: string | null;
+  min_price_limit: number | null;
+  max_price_limit: number | null;
 }
 
 export const PriceLabsPricingCalendar = () => {
@@ -64,7 +68,7 @@ export const PriceLabsPricingCalendar = () => {
       
       const { data, error } = await supabase
         .from('dynamic_pricing')
-        .select('date, final_price, base_price, pricelabs_price, pricing_source, min_stay, checkin_allowed, checkout_allowed, currency, last_synced_at')
+        .select('date, final_price, base_price, pricelabs_price, pricing_source, min_stay, checkin_allowed, checkout_allowed, currency, last_synced_at, min_price_limit, max_price_limit')
         .eq('property_id', selectedPropertyId)
         .gte('date', start)
         .lte('date', end)
@@ -91,7 +95,7 @@ export const PriceLabsPricingCalendar = () => {
     setCurrentMonth(direction === 'prev' ? subMonths(currentMonth, 1) : addMonths(currentMonth, 1));
   };
 
-  // Calculate stats
+  // Calculate stats including min/max price limits
   const stats = React.useMemo(() => {
     if (!pricing?.length) return null;
     const prices = pricing.map(p => p.final_price);
@@ -102,8 +106,29 @@ export const PriceLabsPricingCalendar = () => {
     const withMinStay = pricing.filter(p => p.min_stay && p.min_stay > 1).length;
     const withRestrictions = pricing.filter(p => !p.checkin_allowed || !p.checkout_allowed).length;
     const lastSync = pricing.find(p => p.last_synced_at)?.last_synced_at;
-    return { min, max, avg, fromPriceLabs, total: pricing.length, withMinStay, withRestrictions, lastSync };
+    
+    // Get min/max price limits from first record (they're the same for all days)
+    const firstWithLimits = pricing.find(p => p.min_price_limit !== null);
+    const minPriceLimit = firstWithLimits?.min_price_limit || null;
+    const maxPriceLimit = firstWithLimits?.max_price_limit || null;
+    
+    // Check pricing source
+    const pricingSources = new Set(pricing.map(p => p.pricing_source));
+    const hasPartnerApiAccess = pricingSources.has('pricelabs_daily');
+    const usingVariation = pricingSources.has('pricelabs_variation');
+    
+    return { 
+      min, max, avg, fromPriceLabs, total: pricing.length, 
+      withMinStay, withRestrictions, lastSync,
+      minPriceLimit, maxPriceLimit, hasPartnerApiAccess, usingVariation
+    };
   }, [pricing]);
+
+  // Check if a day is weekend (Fri/Sat - premium nights)
+  const isPremiumNight = (date: Date) => {
+    const day = date.getDay();
+    return day === 5 || day === 6;
+  };
 
   return (
     <TooltipProvider>
@@ -129,6 +154,21 @@ export const PriceLabsPricingCalendar = () => {
             </Select>
           </div>
 
+          {/* API Status Banner */}
+          {stats && !stats.hasPartnerApiAccess && (
+            <Alert className="mt-4 border-amber-200 bg-amber-50">
+              <Info className="h-4 w-4 text-amber-600" />
+              <AlertTitle className="text-amber-800">Using Estimated Pricing</AlertTitle>
+              <AlertDescription className="text-amber-700 text-sm">
+                Daily pricing requires PriceLabs Partner API access (pending approval). 
+                Currently using weekend/weekday price variation based on your min/max settings
+                {stats.minPriceLimit && stats.maxPriceLimit && (
+                  <span className="font-medium"> (${stats.minPriceLimit} - ${stats.maxPriceLimit})</span>
+                )}.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Month navigation */}
           <div className="flex items-center justify-between mt-4">
             <Button variant="outline" size="sm" onClick={() => navigateMonth('prev')}>
@@ -145,11 +185,13 @@ export const PriceLabsPricingCalendar = () => {
           {/* Stats */}
           {stats && (
             <div className="flex flex-wrap gap-3 mt-4 text-sm">
-              <div className="bg-muted px-3 py-1.5 rounded">
+              <div className="bg-muted px-3 py-1.5 rounded flex items-center gap-1">
+                <TrendingDown className="h-3 w-3 text-green-600" />
                 <span className="text-muted-foreground">Min:</span>{' '}
                 <span className="font-semibold">${stats.min}</span>
               </div>
-              <div className="bg-muted px-3 py-1.5 rounded">
+              <div className="bg-muted px-3 py-1.5 rounded flex items-center gap-1">
+                <TrendingUp className="h-3 w-3 text-rose-600" />
                 <span className="text-muted-foreground">Max:</span>{' '}
                 <span className="font-semibold">${stats.max}</span>
               </div>
@@ -157,10 +199,32 @@ export const PriceLabsPricingCalendar = () => {
                 <span className="text-muted-foreground">Avg:</span>{' '}
                 <span className="font-semibold">${Math.round(stats.avg)}</span>
               </div>
+              
+              {/* Price limits from PriceLabs */}
+              {stats.minPriceLimit && (
+                <div className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded">
+                  <span className="text-blue-600">PL Range:</span>{' '}
+                  <span className="font-semibold">${stats.minPriceLimit} - ${stats.maxPriceLimit || '∞'}</span>
+                </div>
+              )}
+              
               <div className="bg-primary/10 text-primary px-3 py-1.5 rounded">
                 <span className="font-semibold">{stats.fromPriceLabs}/{stats.total}</span>{' '}
-                <span className="text-muted-foreground">from PriceLabs</span>
+                <span className="text-muted-foreground">synced</span>
               </div>
+              
+              {stats.usingVariation && !stats.hasPartnerApiAccess && (
+                <Badge variant="outline" className="text-amber-600 border-amber-300">
+                  Weekend/Weekday Variation
+                </Badge>
+              )}
+              
+              {stats.hasPartnerApiAccess && (
+                <Badge variant="outline" className="text-green-600 border-green-300">
+                  Partner API Active
+                </Badge>
+              )}
+              
               {stats.withMinStay > 0 && (
                 <div className="bg-amber-100 text-amber-700 px-3 py-1.5 rounded flex items-center gap-1">
                   <Clock className="h-3 w-3" />
@@ -198,9 +262,15 @@ export const PriceLabsPricingCalendar = () => {
             <div className="border rounded-lg overflow-hidden">
               {/* Day headers */}
               <div className="grid grid-cols-7 bg-muted/50">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                  <div key={day} className="px-2 py-2 text-center text-xs font-medium text-muted-foreground border-b">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+                  <div 
+                    key={day} 
+                    className={`px-2 py-2 text-center text-xs font-medium border-b ${
+                      i === 5 || i === 6 ? 'text-primary bg-primary/5' : 'text-muted-foreground'
+                    }`}
+                  >
                     {day}
+                    {(i === 5 || i === 6) && <span className="ml-1 text-[10px]">↑</span>}
                   </div>
                 ))}
               </div>
@@ -221,18 +291,26 @@ export const PriceLabsPricingCalendar = () => {
                   const hasMinStay = dayPrice?.min_stay && dayPrice.min_stay > 1;
                   const noCheckin = dayPrice?.checkin_allowed === false;
                   const noCheckout = dayPrice?.checkout_allowed === false;
+                  const isPremium = isPremiumNight(day);
                   
                   return (
                     <Tooltip key={dateStr}>
                       <TooltipTrigger asChild>
                         <div
-                          className={`h-24 border-b border-r p-1.5 flex flex-col cursor-default ${
+                          className={`h-24 border-b border-r p-1.5 flex flex-col cursor-default transition-colors ${
                             isToday ? 'bg-primary/5 ring-1 ring-inset ring-primary/20' : ''
-                          } ${noCheckin || noCheckout ? 'bg-rose-50' : ''}`}
+                          } ${noCheckin || noCheckout ? 'bg-rose-50' : ''} ${
+                            isPremium && !noCheckin && !noCheckout ? 'bg-amber-50/50' : ''
+                          }`}
                         >
-                          <span className={`text-xs ${isToday ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
-                            {format(day, 'd')}
-                          </span>
+                          <div className="flex items-center justify-between">
+                            <span className={`text-xs ${isToday ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
+                              {format(day, 'd')}
+                            </span>
+                            {isPremium && hasPriceLabsData && (
+                              <TrendingUp className="h-2.5 w-2.5 text-amber-500" />
+                            )}
+                          </div>
                           
                           {dayPrice ? (
                             <div className="flex-1 flex flex-col justify-center items-center gap-0.5">
@@ -253,7 +331,9 @@ export const PriceLabsPricingCalendar = () => {
                               {/* Check-in/out restrictions */}
                               <div className="flex items-center gap-1">
                                 {hasPriceLabsData && !hasMinStay && !noCheckin && !noCheckout && (
-                                  <span className="text-[10px] text-primary/70 font-medium">PL</span>
+                                  <span className="text-[10px] text-primary/70 font-medium">
+                                    {dayPrice.pricing_source === 'pricelabs_daily' ? 'PL' : '~'}
+                                  </span>
                                 )}
                                 {noCheckin && (
                                   <span className="text-[10px] text-rose-500 flex items-center">
@@ -284,6 +364,11 @@ export const PriceLabsPricingCalendar = () => {
                             {dayPrice.base_price !== dayPrice.final_price && (
                               <div className="text-muted-foreground">Base: ${dayPrice.base_price}</div>
                             )}
+                            {dayPrice.min_price_limit && (
+                              <div className="text-blue-600">
+                                PL Range: ${dayPrice.min_price_limit} - ${dayPrice.max_price_limit || '∞'}
+                              </div>
+                            )}
                             {hasMinStay && (
                               <div className="text-amber-600">Min Stay: {dayPrice.min_stay} nights</div>
                             )}
@@ -294,7 +379,12 @@ export const PriceLabsPricingCalendar = () => {
                               <div className="text-rose-600">No check-out allowed</div>
                             )}
                             <div className="text-muted-foreground text-xs">
-                              Source: {hasPriceLabsData ? 'PriceLabs' : 'Fallback'}
+                              Source: {
+                                dayPrice.pricing_source === 'pricelabs_daily' ? 'PriceLabs Daily' :
+                                dayPrice.pricing_source === 'pricelabs_variation' ? 'PriceLabs (Estimated)' :
+                                'Fallback'
+                              }
+                              {isPremium && ' • Weekend Premium'}
                             </div>
                           </div>
                         </TooltipContent>
@@ -318,8 +408,12 @@ export const PriceLabsPricingCalendar = () => {
               <span>PriceLabs synced</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded bg-muted-foreground/50" />
-              <span>Fallback price</span>
+              <span className="text-primary font-medium">~</span>
+              <span>Estimated (weekend/weekday)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded bg-amber-100 border border-amber-300" />
+              <span>Weekend premium</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Clock className="h-3 w-3 text-amber-600" />

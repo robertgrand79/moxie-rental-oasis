@@ -32,6 +32,26 @@ interface CustomPricingResponse {
   [key: string]: any;
 }
 
+// Helper to determine if a date is a weekend (Fri/Sat nights are premium)
+function isWeekendNight(date: Date): boolean {
+  const day = date.getDay();
+  return day === 5 || day === 6; // Friday or Saturday
+}
+
+// Helper to apply weekend/weekday pricing variation
+function calculateVariedPrice(basePrice: number, minPrice: number, maxPrice: number | null, date: Date): number {
+  const effectiveMax = maxPrice || basePrice * 1.5;
+  const priceRange = effectiveMax - minPrice;
+  
+  if (isWeekendNight(date)) {
+    // Weekend: 70-100% of range above min
+    return Math.round(minPrice + priceRange * 0.85);
+  } else {
+    // Weekday: 20-50% of range above min
+    return Math.round(minPrice + priceRange * 0.35);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -45,7 +65,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { property_id, organization_id } = body;
 
-    console.log('Starting PriceLabs sync using GET /v1/custom-pricing/?listing_id= endpoint...');
+    console.log('Starting PriceLabs sync with weekend/weekday price variation...');
 
     // Determine API key to use
     let priceLabsApiKey: string | null = null;
@@ -77,7 +97,7 @@ Deno.serve(async (req) => {
       throw new Error('PRICELABS_API_KEY not configured');
     }
 
-    // Fetch all listings from PriceLabs (for basic info and fallback prices)
+    // Fetch all listings from PriceLabs (for basic info, min/max, and fallback prices)
     console.log('Fetching PriceLabs listings...');
     const listingsResponse = await fetch('https://api.pricelabs.co/v1/listings', {
       method: 'GET',
@@ -95,10 +115,10 @@ Deno.serve(async (req) => {
     const priceLabsListings: PriceLabsListing[] = listingsData.listings || [];
     console.log(`Fetched ${priceLabsListings.length} PriceLabs listings`);
 
-    // Log available listings for debugging/mapping purposes
+    // Log available listings with min/max for debugging
     console.log('=== Available PriceLabs Listings ===');
     priceLabsListings.forEach(l => {
-      console.log(`  ID: ${l.id} | Name: ${l.name} | Base: $${l.base} | Recommended: $${l.recommended_base_price}`);
+      console.log(`  ID: ${l.id} | Name: ${l.name} | Base: $${l.base} | Min: $${l.min} | Max: $${l.max || 'N/A'} | Recommended: $${l.recommended_base_price}`);
     });
     console.log('====================================');
 
@@ -156,21 +176,26 @@ Deno.serve(async (req) => {
           console.warn(`   Available IDs: ${priceLabsListings.map(l => l.id).join(', ')}`);
         } else {
           console.log(`✓ Matched: "${property.title}" -> PriceLabs "${listing.name}" (ID: ${listing.id})`);
+          console.log(`  Price range: $${listing.min} - $${listing.max || 'N/A'}, Recommended: $${listing.recommended_base_price}`);
         }
 
+        // Get min/max price limits from listing
+        const minPriceLimit = listing?.min || 0;
+        const maxPriceLimit = listing?.max || null;
+
         // Validate fallback price is a valid number
-        let fallbackPrice = listing?.recommended_base_price || listing?.base || property.price_per_night;
-        if (typeof fallbackPrice !== 'number' || isNaN(fallbackPrice) || fallbackPrice <= 0) {
-          fallbackPrice = property.price_per_night;
+        let basePrice = listing?.recommended_base_price || listing?.base || property.price_per_night;
+        if (typeof basePrice !== 'number' || isNaN(basePrice) || basePrice <= 0) {
+          basePrice = property.price_per_night;
         }
-        if (typeof fallbackPrice !== 'number' || isNaN(fallbackPrice) || fallbackPrice <= 0) {
-          fallbackPrice = 100; // Ultimate fallback
+        if (typeof basePrice !== 'number' || isNaN(basePrice) || basePrice <= 0) {
+          basePrice = 100; // Ultimate fallback
           console.warn(`⚠️ Using default fallback price ($100) for ${property.title}`);
         }
 
-        console.log(`Fetching custom pricing for ${property.title} (${property.pricelabs_listing_id}), fallback: $${fallbackPrice}...`);
+        console.log(`Fetching custom pricing for ${property.title} (${property.pricelabs_listing_id}), base: $${basePrice}...`);
 
-        // Use the correct Customer API endpoint: GET /v1/custom-pricing/?listing_id=
+        // Try to get daily prices from custom-pricing endpoint (requires Partner API)
         const customPricingUrl = `https://api.pricelabs.co/v1/custom-pricing/?listing_id=${property.pricelabs_listing_id}`;
         console.log(`Calling: ${customPricingUrl}`);
         
@@ -182,11 +207,12 @@ Deno.serve(async (req) => {
           },
         });
 
-        // Store parsed pricing data
-        const dailyPrices: Map<string, CustomPricingDay> = new Map();
+        // Store parsed pricing data from API
+        const dailyPricesFromApi: Map<string, CustomPricingDay> = new Map();
         let currency = 'USD';
         let lastUpdated: string | null = null;
         let pricesFromApi = 0;
+        let hasPartnerApiAccess = false;
 
         if (response.ok) {
           const responseData: CustomPricingResponse = await response.json();
@@ -200,14 +226,12 @@ Deno.serve(async (req) => {
           let pricesArray: CustomPricingDay[] = [];
           
           if (Array.isArray(responseData)) {
-            // Response is directly an array of prices
             pricesArray = responseData;
           } else if (responseData.prices && Array.isArray(responseData.prices)) {
             pricesArray = responseData.prices;
           } else if (responseData.data && Array.isArray(responseData.data)) {
             pricesArray = responseData.data;
           } else if (typeof responseData === 'object') {
-            // Check if it's a date-keyed object like { "2024-01-01": { price: 100 }, ... }
             const keys = Object.keys(responseData);
             for (const dateKey of keys) {
               if (dateKey.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -217,7 +241,7 @@ Deno.serve(async (req) => {
                 } else if (value && typeof value === 'object') {
                   pricesArray.push({
                     date: dateKey,
-                    price: value.price || value.rate || fallbackPrice,
+                    price: value.price || value.rate || basePrice,
                     min_stay: value.min_stay || value.minStay || value.minimum_stay,
                     checkin: value.checkin !== false && value.check_in !== false && value.checkin_allowed !== false,
                     checkout: value.checkout !== false && value.check_out !== false && value.checkout_allowed !== false,
@@ -231,9 +255,9 @@ Deno.serve(async (req) => {
           // Store in map
           for (const item of pricesArray) {
             if (item.date) {
-              dailyPrices.set(item.date, {
+              dailyPricesFromApi.set(item.date, {
                 date: item.date,
-                price: item.price || item.rate || fallbackPrice,
+                price: item.price || item.rate || basePrice,
                 min_stay: item.min_stay || item.minStay || item.minimum_stay,
                 checkin: item.checkin !== false && item.check_in !== false,
                 checkout: item.checkout !== false && item.check_out !== false,
@@ -242,15 +266,16 @@ Deno.serve(async (req) => {
             }
           }
 
-          pricesFromApi = dailyPrices.size;
+          pricesFromApi = dailyPricesFromApi.size;
+          hasPartnerApiAccess = pricesFromApi > 0;
           console.log(`Got ${pricesFromApi} daily prices from custom-pricing endpoint`);
         } else {
-          console.log(`custom-pricing endpoint returned ${response.status}: ${await response.text()}`);
+          console.log(`custom-pricing endpoint returned ${response.status} (Partner API access required)`);
         }
 
         // Build pricing records for the next 365 days
         const pricingRecords = [];
-        let pricesFromFallback = 0;
+        let pricesFromVariation = 0;
 
         const today = new Date();
         for (let i = 0; i < 365; i++) {
@@ -258,40 +283,49 @@ Deno.serve(async (req) => {
           date.setDate(date.getDate() + i);
           const dateStr = date.toISOString().split('T')[0];
           
-          const dayData = dailyPrices.get(dateStr);
+          const dayData = dailyPricesFromApi.get(dateStr);
           
-          // Use daily price if available, otherwise use fallback
           let finalPrice: number;
+          let priceLabsPrice: number | null = null;
           let minStay: number | null = null;
           let checkinAllowed = true;
           let checkoutAllowed = true;
 
           if (dayData) {
+            // Use actual daily price from Partner API
             finalPrice = dayData.price;
+            priceLabsPrice = dayData.price;
             minStay = dayData.min_stay || null;
             checkinAllowed = dayData.checkin !== false;
             checkoutAllowed = dayData.checkout !== false;
+          } else if (listing && minPriceLimit > 0) {
+            // Apply weekend/weekday variation using min/max from listings
+            finalPrice = calculateVariedPrice(basePrice, minPriceLimit, maxPriceLimit, date);
+            priceLabsPrice = finalPrice; // Mark as PriceLabs-derived (from min/max)
+            pricesFromVariation++;
           } else {
-            finalPrice = fallbackPrice;
-            pricesFromFallback++;
+            // Ultimate fallback - just use base price
+            finalPrice = basePrice;
           }
           
           pricingRecords.push({
             property_id: property.id,
             date: dateStr,
-            base_price: fallbackPrice,
-            pricelabs_price: dayData ? finalPrice : null,
+            base_price: basePrice,
+            pricelabs_price: priceLabsPrice,
             final_price: finalPrice,
-            pricing_source: 'pricelabs',
+            pricing_source: hasPartnerApiAccess ? 'pricelabs_daily' : (listing ? 'pricelabs_variation' : 'fallback'),
             min_stay: minStay,
             checkin_allowed: checkinAllowed,
             checkout_allowed: checkoutAllowed,
             currency: currency,
             last_synced_at: syncTimestamp,
+            min_price_limit: minPriceLimit > 0 ? minPriceLimit : null,
+            max_price_limit: maxPriceLimit,
           });
         }
 
-        console.log(`${property.title}: ${pricesFromApi} from API, ${pricesFromFallback} from fallback ($${fallbackPrice})`);
+        console.log(`${property.title}: ${pricesFromApi} from Partner API, ${pricesFromVariation} with weekend/weekday variation, min: $${minPriceLimit}, max: $${maxPriceLimit || 'N/A'}`);
 
         // Upsert in batches
         const batchSize = 100;
@@ -326,8 +360,11 @@ Deno.serve(async (req) => {
             success: true,
             prices_synced: pricingRecords.length,
             prices_from_api: pricesFromApi,
-            prices_from_fallback: pricesFromFallback,
-            base_price_used: fallbackPrice,
+            prices_with_variation: pricesFromVariation,
+            has_partner_api_access: hasPartnerApiAccess,
+            min_price_limit: minPriceLimit,
+            max_price_limit: maxPriceLimit,
+            base_price_used: basePrice,
             currency: currency,
             last_updated: lastUpdated,
           });
