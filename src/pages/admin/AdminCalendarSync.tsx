@@ -153,6 +153,7 @@ const AdminCalendarSync = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-calendar-sync'] });
+      queryClient.invalidateQueries({ queryKey: ['all-availability-blocks'] });
       toast({ title: 'Calendar synced successfully' });
     },
     onError: (error: any) => {
@@ -172,6 +173,7 @@ const AdminCalendarSync = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-calendar-sync'] });
+      queryClient.invalidateQueries({ queryKey: ['all-availability-blocks'] });
       setSelectedPropertyId('');
       setSelectedPlatform('');
       setNewCalendarUrl('');
@@ -193,6 +195,7 @@ const AdminCalendarSync = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-calendar-sync'] });
+      queryClient.invalidateQueries({ queryKey: ['all-availability-blocks'] });
       toast({ title: 'Calendar Removed', description: 'Calendar sync has been removed' });
     },
     onError: (error: any) => {
@@ -231,6 +234,7 @@ const AdminCalendarSync = () => {
     }
 
     queryClient.invalidateQueries({ queryKey: ['all-calendar-sync'] });
+    queryClient.invalidateQueries({ queryKey: ['all-availability-blocks'] });
     setSyncingAll(false);
     toast({
       title: 'Bulk Sync Complete',
