@@ -96,10 +96,10 @@ export const adminMenuItems = [
         description: 'Manage reservations, cleaning coordination, and work orders'
       },
       {
-        title: 'Calendar Timeline',
+        title: 'Calendar Management',
         href: '/admin/calendar',
         icon: Calendar,
-        description: 'Visual timeline view of all property bookings and availability'
+        description: 'View bookings, manage pricing, and sync external calendars'
       },
       {
         title: 'Guest Communication',
@@ -112,12 +112,6 @@ export const adminMenuItems = [
         href: '/admin/pricelabs',
         icon: DollarSign,
         description: 'Map properties to PriceLabs and sync dynamic pricing'
-      },
-      {
-        title: 'Calendar Sync',
-        href: '/admin/calendar-sync',
-        icon: Calendar,
-        description: 'Manage Airbnb, VRBO, and Booking.com calendar integrations'
       }
     ]
   },
