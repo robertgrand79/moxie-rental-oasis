@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BookingTimelineCalendar } from '@/components/booking/BookingTimelineCalendar';
 import { PricingCalendarView } from '@/components/booking/PricingCalendarView';
+import { MonthlyGridCalendar } from '@/components/booking/MonthlyGridCalendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -316,10 +317,14 @@ const BookingTimelinePage = () => {
       </div>
       
       <Tabs defaultValue="pricing" className="w-full">
-        <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <TabsList className="grid w-full max-w-3xl grid-cols-5">
           <TabsTrigger value="pricing" className="gap-2">
             <LayoutGrid className="h-4 w-4" />
             Pricing
+          </TabsTrigger>
+          <TabsTrigger value="monthly" className="gap-2">
+            <CalendarDays className="h-4 w-4" />
+            Monthly
           </TabsTrigger>
           <TabsTrigger value="timeline" className="gap-2">
             <CalendarDays className="h-4 w-4" />
@@ -337,6 +342,10 @@ const BookingTimelinePage = () => {
         
         <TabsContent value="pricing" className="mt-6">
           <PricingCalendarView onAddBooking={handleAddBooking} />
+        </TabsContent>
+        
+        <TabsContent value="monthly" className="mt-6">
+          <MonthlyGridCalendar />
         </TabsContent>
         
         <TabsContent value="timeline" className="mt-6">
