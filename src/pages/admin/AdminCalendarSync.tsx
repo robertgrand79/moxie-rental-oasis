@@ -15,8 +15,20 @@ import {
   Copy,
   Building2,
   Link2,
-  Plus
+  Plus,
+  Trash2
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -167,6 +179,24 @@ const AdminCalendarSync = () => {
     },
     onError: (error: any) => {
       toast({ title: 'Failed to add calendar', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  // Delete calendar
+  const deleteCalendarMutation = useMutation({
+    mutationFn: async (calendarId: string) => {
+      const { error } = await supabase
+        .from('external_calendars')
+        .delete()
+        .eq('id', calendarId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-calendar-sync'] });
+      toast({ title: 'Calendar Removed', description: 'Calendar sync has been removed' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to remove calendar', description: error.message, variant: 'destructive' });
     }
   });
 
@@ -407,6 +437,34 @@ const AdminCalendarSync = () => {
                           >
                             <ExternalLink className="h-4 w-4" />
                           </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Remove Calendar</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to remove this {calendar.platform} calendar sync? This will stop syncing availability from this calendar.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteCalendarMutation.mutate(calendar.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Remove
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     ))}
