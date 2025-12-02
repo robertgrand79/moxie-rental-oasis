@@ -14,10 +14,20 @@ interface PriceLabsListing {
   recommended_base_price: number;
 }
 
-interface ListingPrice {
+interface ListingDataPrice {
   date: string;
   price: number;
   min_stay?: number;
+}
+
+interface ListingDataResponse {
+  id: string;
+  name: string;
+  base_price: number;
+  min_price: number;
+  max_price: number;
+  prices?: ListingDataPrice[];
+  calendar?: ListingDataPrice[];
 }
 
 Deno.serve(async (req) => {
@@ -33,7 +43,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { property_id, organization_id } = body;
 
-    console.log('Starting PriceLabs sync with POST /v1/listing_prices endpoint...');
+    console.log('Starting PriceLabs sync using Customer API GET /v1/listing_data endpoint...');
 
     // Determine API key to use
     let priceLabsApiKey: string | null = null;
@@ -65,7 +75,7 @@ Deno.serve(async (req) => {
       throw new Error('PRICELABS_API_KEY not configured');
     }
 
-    // Fetch all listings from PriceLabs (for basic info and listing ID mapping)
+    // Fetch all listings from PriceLabs (for basic info and fallback prices)
     console.log('Fetching PriceLabs listings...');
     const listingsResponse = await fetch('https://api.pricelabs.co/v1/listings', {
       method: 'GET',
@@ -133,36 +143,47 @@ Deno.serve(async (req) => {
 
         console.log(`Fetching daily prices for ${property.title} (${property.pricelabs_listing_id})...`);
 
-        // Fetch daily pricing using POST /v1/listing_prices endpoint
+        // Use Customer API GET /v1/listing_data/{listing_id} endpoint for daily calendar prices
         const dailyPrices: Record<string, number> = {};
         const minStays: Record<string, number> = {};
         let pricesFromApi = 0;
 
-        const pricingResponse = await fetch('https://api.pricelabs.co/v1/listing_prices', {
-          method: 'POST',
+        const listingDataUrl = `https://api.pricelabs.co/v1/listing_data/${property.pricelabs_listing_id}`;
+        console.log(`Calling: ${listingDataUrl}`);
+        
+        const listingDataResponse = await fetch(listingDataUrl, {
+          method: 'GET',
           headers: {
             'X-API-Key': priceLabsApiKey,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            listings: [property.pricelabs_listing_id],
-            number_of_months: 12
-          }),
         });
 
-        if (pricingResponse.ok) {
-          const pricingData = await pricingResponse.json();
-          console.log(`listing_prices response for ${property.title}:`, JSON.stringify(pricingData).substring(0, 1500));
+        if (listingDataResponse.ok) {
+          const listingData: ListingDataResponse = await listingDataResponse.json();
+          console.log(`listing_data response for ${property.title}:`, JSON.stringify(listingData).substring(0, 2000));
 
-          // Parse the response - expected format: { prices: [{date, price, min_stay}] } or array directly
-          let pricesArray: ListingPrice[] = [];
+          // The response may contain prices in 'prices' or 'calendar' array
+          let pricesArray: ListingDataPrice[] = [];
           
-          if (pricingData.prices && Array.isArray(pricingData.prices)) {
-            pricesArray = pricingData.prices;
-          } else if (Array.isArray(pricingData)) {
-            pricesArray = pricingData;
-          } else if (pricingData.data && Array.isArray(pricingData.data)) {
-            pricesArray = pricingData.data;
+          if (listingData.prices && Array.isArray(listingData.prices)) {
+            pricesArray = listingData.prices;
+          } else if (listingData.calendar && Array.isArray(listingData.calendar)) {
+            pricesArray = listingData.calendar;
+          } else if (Array.isArray(listingData)) {
+            // Response might be array directly
+            pricesArray = listingData as unknown as ListingDataPrice[];
+          }
+
+          // Parse any nested structure if needed
+          const responseObj = listingData as Record<string, unknown>;
+          for (const key of Object.keys(responseObj)) {
+            const value = responseObj[key];
+            if (Array.isArray(value) && value.length > 0 && value[0]?.date && value[0]?.price) {
+              pricesArray = value as ListingDataPrice[];
+              console.log(`Found prices array in key: ${key}`);
+              break;
+            }
           }
 
           for (const item of pricesArray) {
@@ -175,10 +196,10 @@ Deno.serve(async (req) => {
           }
           
           pricesFromApi = Object.keys(dailyPrices).length;
-          console.log(`Got ${pricesFromApi} daily prices from listing_prices endpoint`);
+          console.log(`Got ${pricesFromApi} daily prices from listing_data endpoint`);
         } else {
-          const errorText = await pricingResponse.text();
-          console.log(`listing_prices endpoint returned ${pricingResponse.status}: ${errorText}`);
+          const errorText = await listingDataResponse.text();
+          console.log(`listing_data endpoint returned ${listingDataResponse.status}: ${errorText}`);
         }
 
         // Build pricing records for the next 365 days
