@@ -11,7 +11,9 @@ import {
   parseISO, 
   addMonths, 
   subMonths,
-  isWithinInterval
+  differenceInDays,
+  isBefore,
+  isAfter
 } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -34,6 +36,15 @@ interface BookingBlock {
   checkOut: string;
   sourcePlatform: string;
   guestCount?: number;
+}
+
+interface BookingSegment {
+  booking: BookingBlock;
+  startCol: number;
+  span: number;
+  isStartVisible: boolean;
+  isEndVisible: boolean;
+  track: number;
 }
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -97,30 +108,27 @@ export const MonthlyGridCalendar: React.FC = () => {
     return bookingBlocks.filter(b => b.propertyId === selectedPropertyId);
   }, [bookingBlocks, selectedPropertyId]);
 
-  // Generate calendar grid days
-  const calendarDays = useMemo(() => {
+  // Generate calendar days grouped into weeks
+  const weeks = useMemo(() => {
     const firstDay = startOfMonth(currentMonth);
     const lastDay = endOfMonth(currentMonth);
     const startDate = startOfWeek(firstDay, { weekStartsOn: 1 });
     const endDate = endOfWeek(lastDay, { weekStartsOn: 1 });
     
-    const days: Date[] = [];
+    const allDays: Date[] = [];
     let day = startDate;
     while (day <= endDate) {
-      days.push(day);
+      allDays.push(day);
       day = addDays(day, 1);
     }
-    return days;
+    
+    // Group into weeks of 7 days
+    const weekRows: Date[][] = [];
+    for (let i = 0; i < allDays.length; i += 7) {
+      weekRows.push(allDays.slice(i, i + 7));
+    }
+    return weekRows;
   }, [currentMonth]);
-
-  // Get bookings for a specific day
-  const getBookingsForDay = (date: Date) => {
-    return filteredBookings.filter(booking => {
-      const checkIn = parseISO(booking.checkIn);
-      const checkOut = parseISO(booking.checkOut);
-      return isWithinInterval(date, { start: checkIn, end: addDays(checkOut, -1) });
-    });
-  };
 
   const goToToday = () => setCurrentMonth(new Date());
   const goToPrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
@@ -191,109 +199,156 @@ export const MonthlyGridCalendar: React.FC = () => {
         ))}
       </div>
       
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7">
-        {calendarDays.map((date, index) => {
-          const isCurrentMonth = isSameMonth(date, currentMonth);
-          const isToday = isSameDay(date, new Date());
-          const dayBookings = getBookingsForDay(date);
-          
-          return (
-            <div
-              key={index}
-              className={cn(
-                'min-h-[110px] bg-background p-1.5 border-r border-b last:border-r-0',
-                !isCurrentMonth && 'bg-muted/20',
-                isToday && 'ring-2 ring-inset ring-primary'
-              )}
-            >
-              {/* Day Number */}
-              <span 
-                className={cn(
-                  'text-sm font-medium inline-flex items-center justify-center w-6 h-6 rounded-full mb-1',
-                  !isCurrentMonth && 'text-muted-foreground',
-                  isToday && 'bg-primary text-primary-foreground'
-                )}
-              >
-                {format(date, 'd')}
-              </span>
-              
-              {/* Booking Bars */}
-              <div className="space-y-0.5">
-                {dayBookings.slice(0, 3).map(booking => (
-                  <BookingBar 
-                    key={booking.id} 
-                    booking={booking} 
-                    date={date}
-                    showPropertyName={selectedPropertyId === 'all'}
-                  />
-                ))}
-                {dayBookings.length > 3 && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="text-xs text-muted-foreground hover:text-foreground pl-1">
-                        +{dayBookings.length - 3} more
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64 p-2">
-                      <div className="space-y-1">
-                        {dayBookings.slice(3).map(booking => (
-                          <BookingBar 
-                            key={booking.id} 
-                            booking={booking} 
-                            date={date}
-                            showPropertyName={selectedPropertyId === 'all'}
-                            expanded
-                          />
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      {/* Calendar Weeks */}
+      <div>
+        {weeks.map((weekDays, weekIndex) => (
+          <WeekRow 
+            key={weekIndex}
+            weekDays={weekDays}
+            currentMonth={currentMonth}
+            bookings={filteredBookings}
+          />
+        ))}
       </div>
     </Card>
   );
 };
 
-interface BookingBarProps {
-  booking: BookingBlock;
-  date: Date;
-  showPropertyName?: boolean;
-  expanded?: boolean;
+interface WeekRowProps {
+  weekDays: Date[];
+  currentMonth: Date;
+  bookings: BookingBlock[];
 }
 
-const BookingBar: React.FC<BookingBarProps> = ({ booking, date, showPropertyName, expanded }) => {
-  const isCheckIn = isSameDay(date, parseISO(booking.checkIn));
-  const isCheckOut = isSameDay(date, addDays(parseISO(booking.checkOut), -1));
+const WeekRow: React.FC<WeekRowProps> = ({ weekDays, currentMonth, bookings }) => {
+  const weekStart = weekDays[0];
+  const weekEnd = weekDays[6];
+  
+  // Calculate booking segments for this week
+  const bookingSegments = useMemo(() => {
+    const segments: BookingSegment[] = [];
+    
+    bookings.forEach(booking => {
+      const checkIn = parseISO(booking.checkIn);
+      // Check-out day is exclusive, so last night is checkOut - 1
+      const lastNight = addDays(parseISO(booking.checkOut), -1);
+      
+      // Check if booking overlaps with this week
+      if (isAfter(checkIn, weekEnd) || isBefore(lastNight, weekStart)) {
+        return; // No overlap
+      }
+      
+      // Calculate visible portion within this week
+      const visibleStart = isBefore(checkIn, weekStart) ? weekStart : checkIn;
+      const visibleEnd = isAfter(lastNight, weekEnd) ? weekEnd : lastNight;
+      
+      const startCol = differenceInDays(visibleStart, weekStart);
+      const span = differenceInDays(visibleEnd, visibleStart) + 1;
+      
+      const isStartVisible = !isBefore(checkIn, weekStart);
+      const isEndVisible = !isAfter(lastNight, weekEnd);
+      
+      segments.push({
+        booking,
+        startCol,
+        span,
+        isStartVisible,
+        isEndVisible,
+        track: 0, // Will be assigned below
+      });
+    });
+    
+    // Assign tracks to avoid overlaps
+    segments.sort((a, b) => a.startCol - b.startCol);
+    const tracks: { endCol: number }[] = [];
+    
+    segments.forEach(segment => {
+      // Find first available track
+      let trackIndex = tracks.findIndex(t => t.endCol < segment.startCol);
+      if (trackIndex === -1) {
+        trackIndex = tracks.length;
+        tracks.push({ endCol: -1 });
+      }
+      segment.track = trackIndex;
+      tracks[trackIndex].endCol = segment.startCol + segment.span - 1;
+    });
+    
+    return segments;
+  }, [bookings, weekStart, weekEnd]);
+  
+  const maxTracks = Math.max(1, ...bookingSegments.map(s => s.track + 1));
+  const cellHeight = 28 + maxTracks * 22; // Base height + track heights
+  
+  return (
+    <div className="relative grid grid-cols-7">
+      {/* Day cells as background */}
+      {weekDays.map((date, colIndex) => {
+        const isCurrentMonth = isSameMonth(date, currentMonth);
+        const isToday = isSameDay(date, new Date());
+        
+        return (
+          <div
+            key={colIndex}
+            style={{ minHeight: `${cellHeight}px` }}
+            className={cn(
+              'bg-background p-1.5 border-r border-b last:border-r-0',
+              !isCurrentMonth && 'bg-muted/20',
+              isToday && 'ring-2 ring-inset ring-primary'
+            )}
+          >
+            <span 
+              className={cn(
+                'text-sm font-medium inline-flex items-center justify-center w-6 h-6 rounded-full',
+                !isCurrentMonth && 'text-muted-foreground',
+                isToday && 'bg-primary text-primary-foreground'
+              )}
+            >
+              {format(date, 'd')}
+            </span>
+          </div>
+        );
+      })}
+      
+      {/* Booking overlays */}
+      {bookingSegments.map((segment, idx) => (
+        <BookingOverlay key={`${segment.booking.id}-${idx}`} segment={segment} />
+      ))}
+    </div>
+  );
+};
+
+interface BookingOverlayProps {
+  segment: BookingSegment;
+}
+
+const BookingOverlay: React.FC<BookingOverlayProps> = ({ segment }) => {
+  const { booking, startCol, span, isStartVisible, isEndVisible, track } = segment;
   const colors = getPropertyColor(booking.propertyId);
   
-  // Determine label to show
-  const label = isCheckIn 
-    ? booking.guestName 
-    : showPropertyName 
-      ? booking.propertyTitle 
-      : '';
+  const leftPercent = (startCol / 7) * 100;
+  const widthPercent = (span / 7) * 100;
+  const topOffset = 28 + track * 22; // Below day number + track offset
   
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           className={cn(
-            'w-full h-5 text-xs truncate cursor-pointer transition-opacity hover:opacity-80 text-left',
+            'absolute h-5 text-xs truncate cursor-pointer transition-opacity hover:opacity-80 flex items-center',
             colors.bg,
             colors.text,
-            isCheckIn && 'rounded-l-full pl-2',
-            isCheckOut && 'rounded-r-full pr-1',
-            !isCheckIn && !isCheckOut && 'px-0',
-            expanded && 'rounded-full px-2'
+            isStartVisible && 'rounded-l-full pl-2',
+            isEndVisible && 'rounded-r-full pr-1',
+            !isStartVisible && !isEndVisible && 'px-1'
           )}
+          style={{
+            left: `calc(${leftPercent}% + 4px)`,
+            width: `calc(${widthPercent}% - 8px)`,
+            top: `${topOffset}px`,
+          }}
         >
-          {(isCheckIn || expanded) && (
-            <span className="truncate">{label}</span>
+          {isStartVisible && (
+            <span className="truncate">{booking.guestName}</span>
           )}
         </button>
       </PopoverTrigger>
