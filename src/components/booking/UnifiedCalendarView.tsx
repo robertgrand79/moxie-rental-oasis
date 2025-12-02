@@ -16,7 +16,6 @@ import {
   Users,
   Calendar,
   Eye,
-  Layers,
   Home
 } from 'lucide-react';
 import { useProperties } from '@/hooks/useProperties';
@@ -27,6 +26,7 @@ import { Property } from '@/types/property';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useUpdatePricing } from '@/hooks/useBookingData';
+import { getPropertyColor, getAllPropertyColors } from '@/utils/propertyColors';
 
 interface BookingBlock {
   id: string;
@@ -48,14 +48,6 @@ interface DayColumn {
   isToday: boolean;
   isWeekend: boolean;
 }
-
-const PLATFORM_STYLES: Record<string, { bg: string; icon: string }> = {
-  airbnb: { bg: 'bg-[#00A699]', icon: '🏠' },
-  vrbo: { bg: 'bg-[#3B3B4F]', icon: '🏡' },
-  direct: { bg: 'bg-emerald-500', icon: '✓' },
-  other: { bg: 'bg-purple-500', icon: '📅' },
-  blocked: { bg: 'bg-gray-400', icon: '' },
-};
 
 export const UnifiedCalendarView: React.FC = () => {
   const [startDate, setStartDate] = useState(() => {
@@ -383,25 +375,15 @@ export const UnifiedCalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* Platform Legend */}
-      <div className="border-t p-3 flex items-center gap-6 text-sm bg-muted/20">
-        <span className="text-muted-foreground">Platforms:</span>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-[#00A699]" />
-          <span>Airbnb</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-[#3B3B4F]" />
-          <span>VRBO</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-emerald-500" />
-          <span>Direct</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-gray-400" />
-          <span>Blocked</span>
-        </div>
+      {/* Property Legend */}
+      <div className="border-t p-3 flex flex-wrap items-center gap-4 text-sm bg-muted/20">
+        <span className="text-muted-foreground">Properties:</span>
+        {getAllPropertyColors().map((prop) => (
+          <div key={prop.id} className="flex items-center gap-1.5">
+            <div className={cn('w-3 h-3 rounded', prop.bg)} />
+            <span className="text-xs">{prop.name}</span>
+          </div>
+        ))}
       </div>
     </Card>
   );
@@ -502,8 +484,8 @@ const PropertyRow: React.FC<PropertyRowProps> = ({
       {bookingPositions.map((pos) => {
         if (!pos) return null;
         const { booking, startCol, span, isStartVisible, isEndVisible } = pos;
+        const propertyColors = getPropertyColor(booking.propertyId);
         const platform = booking.sourcePlatform?.toLowerCase() || 'other';
-        const styles = PLATFORM_STYLES[platform] || PLATFORM_STYLES.other;
         
         return (
           <Popover key={booking.id}>
@@ -511,7 +493,8 @@ const PropertyRow: React.FC<PropertyRowProps> = ({
               <div
                 className={cn(
                   "absolute top-2 bottom-2 flex items-center cursor-pointer transition-opacity hover:opacity-90",
-                  styles.bg,
+                  propertyColors.bg,
+                  propertyColors.text,
                   isStartVisible && "rounded-l-full",
                   isEndVisible && "rounded-r-full"
                 )}
@@ -520,7 +503,7 @@ const PropertyRow: React.FC<PropertyRowProps> = ({
                   width: `${span * 64}px`,
                 }}
               >
-                <div className="flex items-center gap-2 px-3 text-white overflow-hidden">
+                <div className="flex items-center gap-2 px-3 overflow-hidden">
                   <Avatar className="h-6 w-6 flex-shrink-0 border border-white/30">
                     <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${booking.guestName}`} />
                     <AvatarFallback className="text-xs bg-white/20">
