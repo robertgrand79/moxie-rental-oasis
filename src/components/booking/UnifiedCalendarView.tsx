@@ -1,0 +1,698 @@
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Filter, 
+  Plus,
+  DollarSign,
+  Users,
+  Calendar,
+  Eye,
+  Layers,
+  Home
+} from 'lucide-react';
+import { useProperties } from '@/hooks/useProperties';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { format, addDays, parseISO, isSameDay, differenceInDays } from 'date-fns';
+import { Property } from '@/types/property';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useUpdatePricing } from '@/hooks/useBookingData';
+
+interface BookingBlock {
+  id: string;
+  propertyId: string;
+  guestName: string;
+  checkIn: string;
+  checkOut: string;
+  guestCount: number;
+  totalAmount?: number;
+  sourcePlatform?: string;
+}
+
+interface DayColumn {
+  date: Date;
+  dateStr: string;
+  dayOfWeek: string;
+  dayNumber: number;
+  monthAbbr: string;
+  isToday: boolean;
+  isWeekend: boolean;
+}
+
+const PLATFORM_STYLES: Record<string, { bg: string; icon: string }> = {
+  airbnb: { bg: 'bg-[#00A699]', icon: '🏠' },
+  vrbo: { bg: 'bg-[#3B3B4F]', icon: '🏡' },
+  direct: { bg: 'bg-emerald-500', icon: '✓' },
+  other: { bg: 'bg-purple-500', icon: '📅' },
+  blocked: { bg: 'bg-gray-400', icon: '' },
+};
+
+export const UnifiedCalendarView: React.FC = () => {
+  const [startDate, setStartDate] = useState(() => {
+    const today = new Date();
+    today.setDate(today.getDate() - 3); // Start 3 days before today
+    return today;
+  });
+  const [daysToShow] = useState(21);
+  const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
+  const [propertySearch, setPropertySearch] = useState('');
+  const [showPricing, setShowPricing] = useState(true);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+
+  const { properties = [] } = useProperties();
+  const queryClient = useQueryClient();
+  const updatePricing = useUpdatePricing();
+
+  // Fetch availability blocks
+  const { data: availabilityBlocks = [] } = useQuery({
+    queryKey: ['unified-availability-blocks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('availability_blocks')
+        .select('*')
+        .gte('end_date', format(startDate, 'yyyy-MM-dd'))
+        .order('start_date', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch pricing data
+  const { data: pricingData = {} } = useQuery({
+    queryKey: ['unified-pricing', format(startDate, 'yyyy-MM-dd'), daysToShow],
+    queryFn: async () => {
+      const endDate = addDays(startDate, daysToShow);
+      const { data, error } = await supabase
+        .from('dynamic_pricing')
+        .select('*')
+        .gte('date', format(startDate, 'yyyy-MM-dd'))
+        .lte('date', format(endDate, 'yyyy-MM-dd'));
+      
+      if (error) throw error;
+      
+      const grouped: Record<string, Record<string, number>> = {};
+      (data || []).forEach(p => {
+        if (!grouped[p.property_id]) grouped[p.property_id] = {};
+        grouped[p.property_id][p.date] = p.final_price;
+      });
+      return grouped;
+    },
+    enabled: showPricing
+  });
+
+  // Generate calendar columns
+  const columns = useMemo<DayColumn[]>(() => {
+    const days: DayColumn[] = [];
+    for (let i = 0; i < daysToShow; i++) {
+      const date = addDays(startDate, i);
+      days.push({
+        date,
+        dateStr: format(date, 'yyyy-MM-dd'),
+        dayOfWeek: format(date, 'EEE'),
+        dayNumber: date.getDate(),
+        monthAbbr: format(date, 'MMM'),
+        isToday: isSameDay(date, new Date()),
+        isWeekend: date.getDay() === 0 || date.getDay() === 6
+      });
+    }
+    return days;
+  }, [startDate, daysToShow]);
+
+  // Convert availability blocks to booking blocks
+  const bookingBlocks = useMemo<BookingBlock[]>(() => {
+    return availabilityBlocks
+      .filter(block => 
+        block.block_type === 'booked' && 
+        !(block.notes?.toLowerCase().startsWith('blocked'))
+      )
+      .map(block => ({
+        id: block.id,
+        propertyId: block.property_id,
+        guestName: block.notes || 'External Booking',
+        checkIn: block.start_date,
+        checkOut: block.end_date,
+        guestCount: block.guest_count || 1,
+        sourcePlatform: block.source_platform || 'other',
+      }));
+  }, [availabilityBlocks]);
+
+  // Filter properties
+  const filteredProperties = useMemo(() => {
+    let filtered = properties;
+    
+    if (selectedProperties.length > 0) {
+      filtered = filtered.filter(p => selectedProperties.includes(p.id));
+    }
+    
+    if (propertySearch) {
+      const search = propertySearch.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.title.toLowerCase().includes(search) || 
+        p.location?.toLowerCase().includes(search)
+      );
+    }
+    
+    return filtered;
+  }, [properties, selectedProperties, propertySearch]);
+
+  // Sync scroll between header and content
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    const headerScroll = headerScrollRef.current;
+    if (!scrollContainer || !headerScroll) return;
+
+    const handleScroll = () => {
+      headerScroll.scrollLeft = scrollContainer.scrollLeft;
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const navigateDays = (direction: 'prev' | 'next') => {
+    const offset = direction === 'next' ? 14 : -14;
+    setStartDate(prev => addDays(prev, offset));
+  };
+
+  const goToToday = () => {
+    const today = new Date();
+    today.setDate(today.getDate() - 3);
+    setStartDate(today);
+  };
+
+  const getBookingsForProperty = (propertyId: string) => {
+    return bookingBlocks.filter(b => b.propertyId === propertyId);
+  };
+
+  const getPrice = (propertyId: string, dateStr: string) => {
+    return pricingData[propertyId]?.[dateStr];
+  };
+
+  const handlePropertyFilterToggle = (propertyId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedProperties(prev => [...prev, propertyId]);
+    } else {
+      setSelectedProperties(prev => prev.filter(id => id !== propertyId));
+    }
+  };
+
+  // Group columns by month for header
+  const monthGroups = useMemo(() => {
+    const groups: { month: string; columns: DayColumn[] }[] = [];
+    let currentMonth = '';
+    
+    columns.forEach(col => {
+      const month = format(col.date, 'MMM');
+      if (month !== currentMonth) {
+        groups.push({ month, columns: [col] });
+        currentMonth = month;
+      } else {
+        groups[groups.length - 1].columns.push(col);
+      }
+    });
+    
+    return groups;
+  }, [columns]);
+
+  return (
+    <Card className="overflow-hidden">
+      {/* Header Controls */}
+      <div className="border-b p-4 flex flex-wrap items-center justify-between gap-4 bg-background">
+        <div className="flex items-center gap-3">
+          {/* Date Navigation */}
+          <Button variant="outline" size="icon" onClick={() => navigateDays('prev')}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="px-3 py-1.5 border rounded-md text-sm font-medium min-w-[200px] text-center bg-background">
+            {format(startDate, 'MMM d, yyyy')} - {format(addDays(startDate, daysToShow - 1), 'MMM d, yyyy')}
+          </div>
+          <Button variant="outline" size="icon" onClick={() => navigateDays('next')}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={goToToday}>
+            Today
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Property Filter */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="text-primary">
+                <Filter className="h-4 w-4 mr-2" />
+                Filter properties
+                {selectedProperties.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">{selectedProperties.length}</Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72" align="end">
+              <div className="space-y-3">
+                <Input
+                  placeholder="Search properties..."
+                  value={propertySearch}
+                  onChange={(e) => setPropertySearch(e.target.value)}
+                />
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {properties.map(property => (
+                    <div key={property.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={property.id}
+                        checked={selectedProperties.includes(property.id)}
+                        onCheckedChange={(checked) => handlePropertyFilterToggle(property.id, !!checked)}
+                      />
+                      <label htmlFor={property.id} className="text-sm truncate cursor-pointer">
+                        {property.title}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {selectedProperties.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => setSelectedProperties([])}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Pricing Toggle */}
+          <Button 
+            variant={showPricing ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setShowPricing(!showPricing)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Preview dynamic pricing
+          </Button>
+
+          {/* Add Booking */}
+          <Button size="sm" className="bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white">
+            <Plus className="h-4 w-4 mr-2" />
+            Add booking
+          </Button>
+        </div>
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="flex">
+        {/* Property Column - Fixed */}
+        <div className="flex-shrink-0 w-64 border-r bg-background z-10">
+          {/* Property Header */}
+          <div className="h-16 border-b flex items-center px-3 bg-muted/30">
+            <span className="text-sm text-muted-foreground flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              Property name
+            </span>
+          </div>
+          
+          {/* Property Rows */}
+          {filteredProperties.map(property => (
+            <PropertyRowLabel key={property.id} property={property} />
+          ))}
+        </div>
+
+        {/* Scrollable Calendar Area */}
+        <div className="flex-1 overflow-hidden">
+          {/* Date Headers - Synced scroll */}
+          <div 
+            ref={headerScrollRef}
+            className="overflow-hidden border-b bg-muted/30"
+          >
+            <div className="flex" style={{ width: `${columns.length * 64}px` }}>
+              {columns.map((col) => (
+                <div 
+                  key={col.dateStr}
+                  className={cn(
+                    "w-16 flex-shrink-0 text-center py-2 border-r border-border/30",
+                    col.isToday && "bg-primary/10"
+                  )}
+                >
+                  {col.dayNumber === 1 && (
+                    <div className="text-xs text-muted-foreground -mt-1">{col.monthAbbr}</div>
+                  )}
+                  <div className={cn(
+                    "text-lg font-semibold",
+                    col.isToday && "text-primary"
+                  )}>
+                    {col.dayNumber}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{col.dayOfWeek}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Calendar Rows */}
+          <div 
+            ref={scrollContainerRef}
+            className="overflow-x-auto"
+          >
+            <div style={{ width: `${columns.length * 64}px` }}>
+              {filteredProperties.map(property => (
+                <PropertyRow 
+                  key={property.id}
+                  property={property}
+                  columns={columns}
+                  bookings={getBookingsForProperty(property.id)}
+                  pricingData={pricingData}
+                  showPricing={showPricing}
+                  updatePricing={updatePricing}
+                  queryClient={queryClient}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Platform Legend */}
+      <div className="border-t p-3 flex items-center gap-6 text-sm bg-muted/20">
+        <span className="text-muted-foreground">Platforms:</span>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-[#00A699]" />
+          <span>Airbnb</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-[#3B3B4F]" />
+          <span>VRBO</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-emerald-500" />
+          <span>Direct</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-gray-400" />
+          <span>Blocked</span>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+const PropertyRowLabel: React.FC<{ property: Property }> = ({ property }) => {
+  const propertyImage = property.cover_image_url || property.featured_photos?.[0] || property.images?.[0];
+  
+  return (
+    <div className="h-16 border-b flex items-center gap-3 px-3 hover:bg-muted/20">
+      <img 
+        src={propertyImage || '/placeholder.svg'} 
+        alt={property.title}
+        className="w-10 h-10 rounded object-cover flex-shrink-0"
+      />
+      <span className="text-sm font-medium truncate">{property.title}</span>
+    </div>
+  );
+};
+
+interface PropertyRowProps {
+  property: Property;
+  columns: DayColumn[];
+  bookings: BookingBlock[];
+  pricingData: Record<string, Record<string, number>>;
+  showPricing: boolean;
+  updatePricing: ReturnType<typeof useUpdatePricing>;
+  queryClient: ReturnType<typeof useQueryClient>;
+}
+
+const PropertyRow: React.FC<PropertyRowProps> = ({
+  property,
+  columns,
+  bookings,
+  pricingData,
+  showPricing,
+  updatePricing,
+  queryClient
+}) => {
+  // Calculate booking positions and widths
+  const bookingPositions = useMemo(() => {
+    return bookings.map(booking => {
+      const checkInDate = parseISO(booking.checkIn);
+      const checkOutDate = parseISO(booking.checkOut);
+      
+      // Find start column index
+      const startIdx = columns.findIndex(col => col.dateStr === booking.checkIn);
+      const endIdx = columns.findIndex(col => col.dateStr === booking.checkOut);
+      
+      // Calculate visible range
+      const visibleStart = Math.max(startIdx, 0);
+      const visibleEnd = endIdx === -1 ? columns.length : endIdx;
+      
+      if (visibleStart >= columns.length || visibleEnd <= 0) return null;
+      
+      const nights = differenceInDays(checkOutDate, checkInDate);
+      
+      return {
+        booking,
+        startCol: visibleStart,
+        span: visibleEnd - visibleStart,
+        isStartVisible: startIdx >= 0,
+        isEndVisible: endIdx >= 0 && endIdx <= columns.length,
+        nights
+      };
+    }).filter(Boolean);
+  }, [bookings, columns]);
+
+  return (
+    <div className="h-16 border-b relative">
+      {/* Price cells background */}
+      <div className="flex h-full">
+        {columns.map((col) => {
+          const price = pricingData[property.id]?.[col.dateStr];
+          const hasBooking = bookings.some(b => {
+            const checkIn = b.checkIn;
+            const checkOut = b.checkOut;
+            return col.dateStr >= checkIn && col.dateStr < checkOut;
+          });
+          
+          return (
+            <PriceCell
+              key={col.dateStr}
+              propertyId={property.id}
+              dateStr={col.dateStr}
+              price={price}
+              showPricing={showPricing && !hasBooking}
+              isWeekend={col.isWeekend}
+              isToday={col.isToday}
+              updatePricing={updatePricing}
+              queryClient={queryClient}
+            />
+          );
+        })}
+      </div>
+
+      {/* Booking bars overlay */}
+      {bookingPositions.map((pos) => {
+        if (!pos) return null;
+        const { booking, startCol, span, isStartVisible, isEndVisible } = pos;
+        const platform = booking.sourcePlatform?.toLowerCase() || 'other';
+        const styles = PLATFORM_STYLES[platform] || PLATFORM_STYLES.other;
+        
+        return (
+          <Popover key={booking.id}>
+            <PopoverTrigger asChild>
+              <div
+                className={cn(
+                  "absolute top-2 bottom-2 flex items-center cursor-pointer transition-opacity hover:opacity-90",
+                  styles.bg,
+                  isStartVisible && "rounded-l-full",
+                  isEndVisible && "rounded-r-full"
+                )}
+                style={{
+                  left: `${startCol * 64}px`,
+                  width: `${span * 64}px`,
+                }}
+              >
+                <div className="flex items-center gap-2 px-3 text-white overflow-hidden">
+                  <Avatar className="h-6 w-6 flex-shrink-0 border border-white/30">
+                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${booking.guestName}`} />
+                    <AvatarFallback className="text-xs bg-white/20">
+                      {booking.guestName.slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium truncate">
+                    {booking.guestName.split(' ').slice(0, 2).join(' ')}
+                  </span>
+                  <PlatformIcon platform={platform} />
+                </div>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="start">
+              <BookingPopoverContent booking={booking} />
+            </PopoverContent>
+          </Popover>
+        );
+      })}
+    </div>
+  );
+};
+
+const PriceCell: React.FC<{
+  propertyId: string;
+  dateStr: string;
+  price?: number;
+  showPricing: boolean;
+  isWeekend: boolean;
+  isToday: boolean;
+  updatePricing: ReturnType<typeof useUpdatePricing>;
+  queryClient: ReturnType<typeof useQueryClient>;
+}> = ({ propertyId, dateStr, price, showPricing, isWeekend, isToday, updatePricing, queryClient }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [priceValue, setPriceValue] = useState(price?.toString() || '');
+
+  const handleSave = async () => {
+    const newPrice = parseFloat(priceValue);
+    if (isNaN(newPrice) || newPrice <= 0) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+
+    try {
+      await updatePricing.mutateAsync({
+        property_id: propertyId,
+        date: dateStr,
+        base_price: price || newPrice,
+        manual_override_price: newPrice,
+        final_price: newPrice,
+        pricing_source: 'manual'
+      });
+      toast.success(`Price updated to $${newPrice}`);
+      queryClient.invalidateQueries({ queryKey: ['unified-pricing'] });
+      setIsOpen(false);
+    } catch (error) {
+      toast.error('Failed to update price');
+    }
+  };
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <div
+          className={cn(
+            "w-16 h-full flex-shrink-0 border-r border-border/30 flex flex-col items-center justify-center cursor-pointer",
+            "hover:bg-accent/20 transition-colors",
+            isWeekend && "bg-muted/20",
+            isToday && "bg-primary/5"
+          )}
+        >
+          {showPricing && price && (
+            <>
+              <span className="text-sm font-medium">${price}</span>
+              <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                <Users className="h-3 w-3" />2
+              </span>
+            </>
+          )}
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-48" align="start">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <DollarSign className="h-4 w-4" />
+            Set Price
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {format(parseISO(dateStr), 'MMM d, yyyy')}
+          </p>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              placeholder="Price"
+              value={priceValue}
+              onChange={(e) => setPriceValue(e.target.value)}
+              className="flex-1"
+            />
+            <Button size="sm" onClick={handleSave} disabled={updatePricing.isPending}>
+              Save
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+const PlatformIcon: React.FC<{ platform: string }> = ({ platform }) => {
+  if (platform === 'airbnb') {
+    return (
+      <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+        <span className="text-xs">🏠</span>
+      </div>
+    );
+  }
+  if (platform === 'vrbo') {
+    return (
+      <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+        <span className="text-xs font-bold">V</span>
+      </div>
+    );
+  }
+  return null;
+};
+
+const BookingPopoverContent: React.FC<{ booking: BookingBlock }> = ({ booking }) => {
+  const checkIn = parseISO(booking.checkIn);
+  const checkOut = parseISO(booking.checkOut);
+  const nights = differenceInDays(checkOut, checkIn);
+  
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${booking.guestName}`} />
+          <AvatarFallback>{booking.guestName.slice(0, 2)}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <h4 className="font-semibold">{booking.guestName}</h4>
+          <Badge variant="outline" className="capitalize text-xs">
+            {booking.sourcePlatform}
+          </Badge>
+        </div>
+      </div>
+      
+      <Separator />
+      
+      <div className="space-y-2 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground flex items-center gap-2">
+            <Calendar className="h-4 w-4" /> Check-in
+          </span>
+          <span className="font-medium">{format(checkIn, 'MMM d, yyyy')}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground flex items-center gap-2">
+            <Calendar className="h-4 w-4" /> Check-out
+          </span>
+          <span className="font-medium">{format(checkOut, 'MMM d, yyyy')}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground">Nights</span>
+          <span className="font-medium">{nights}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground flex items-center gap-2">
+            <Users className="h-4 w-4" /> Guests
+          </span>
+          <span className="font-medium">{booking.guestCount}</span>
+        </div>
+      </div>
+    </div>
+  );
+};

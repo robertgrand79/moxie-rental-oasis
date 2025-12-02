@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { BookingTimelineCalendar } from '@/components/booking/BookingTimelineCalendar';
-import { PricingCalendarView } from '@/components/booking/PricingCalendarView';
+import { UnifiedCalendarView } from '@/components/booking/UnifiedCalendarView';
 import { MonthlyGridCalendar } from '@/components/booking/MonthlyGridCalendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -316,19 +315,15 @@ const BookingTimelinePage = () => {
         </Card>
       </div>
       
-      <Tabs defaultValue="pricing" className="w-full">
-        <TabsList className="grid w-full max-w-3xl grid-cols-5">
-          <TabsTrigger value="pricing" className="gap-2">
-            <LayoutGrid className="h-4 w-4" />
-            Pricing
+      <Tabs defaultValue="calendar" className="w-full">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4">
+          <TabsTrigger value="calendar" className="gap-2">
+            <CalendarDays className="h-4 w-4" />
+            Calendar
           </TabsTrigger>
           <TabsTrigger value="monthly" className="gap-2">
-            <CalendarDays className="h-4 w-4" />
+            <LayoutGrid className="h-4 w-4" />
             Monthly
-          </TabsTrigger>
-          <TabsTrigger value="timeline" className="gap-2">
-            <CalendarDays className="h-4 w-4" />
-            Timeline
           </TabsTrigger>
           <TabsTrigger value="sync" className="gap-2">
             <RefreshCw className="h-4 w-4" />
@@ -340,16 +335,12 @@ const BookingTimelinePage = () => {
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="pricing" className="mt-6">
-          <PricingCalendarView onAddBooking={handleAddBooking} />
+        <TabsContent value="calendar" className="mt-6">
+          <UnifiedCalendarView />
         </TabsContent>
         
         <TabsContent value="monthly" className="mt-6">
           <MonthlyGridCalendar />
-        </TabsContent>
-        
-        <TabsContent value="timeline" className="mt-6">
-          <BookingTimelineCalendar onAddBooking={handleAddBooking} />
         </TabsContent>
 
         <TabsContent value="sync" className="mt-6 space-y-4">
