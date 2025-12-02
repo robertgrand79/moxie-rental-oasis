@@ -95,6 +95,13 @@ Deno.serve(async (req) => {
     const priceLabsListings: PriceLabsListing[] = listingsData.listings || [];
     console.log(`Fetched ${priceLabsListings.length} PriceLabs listings`);
 
+    // Log available listings for debugging/mapping purposes
+    console.log('=== Available PriceLabs Listings ===');
+    priceLabsListings.forEach(l => {
+      console.log(`  ID: ${l.id} | Name: ${l.name} | Base: $${l.base} | Recommended: $${l.recommended_base_price}`);
+    });
+    console.log('====================================');
+
     // Create a map for quick lookup
     const listingMap = new Map<string, PriceLabsListing>();
     priceLabsListings.forEach(l => listingMap.set(l.id, l));
@@ -142,9 +149,26 @@ Deno.serve(async (req) => {
         }
 
         const listing = listingMap.get(property.pricelabs_listing_id);
-        const fallbackPrice = listing?.recommended_base_price || listing?.base || property.price_per_night || 100;
+        
+        // Warn if property mapping doesn't match any PriceLabs listing
+        if (!listing) {
+          console.warn(`⚠️ WARNING: Property "${property.title}" mapped to ID "${property.pricelabs_listing_id}" but NO matching PriceLabs listing found!`);
+          console.warn(`   Available IDs: ${priceLabsListings.map(l => l.id).join(', ')}`);
+        } else {
+          console.log(`✓ Matched: "${property.title}" -> PriceLabs "${listing.name}" (ID: ${listing.id})`);
+        }
 
-        console.log(`Fetching custom pricing for ${property.title} (${property.pricelabs_listing_id})...`);
+        // Validate fallback price is a valid number
+        let fallbackPrice = listing?.recommended_base_price || listing?.base || property.price_per_night;
+        if (typeof fallbackPrice !== 'number' || isNaN(fallbackPrice) || fallbackPrice <= 0) {
+          fallbackPrice = property.price_per_night;
+        }
+        if (typeof fallbackPrice !== 'number' || isNaN(fallbackPrice) || fallbackPrice <= 0) {
+          fallbackPrice = 100; // Ultimate fallback
+          console.warn(`⚠️ Using default fallback price ($100) for ${property.title}`);
+        }
+
+        console.log(`Fetching custom pricing for ${property.title} (${property.pricelabs_listing_id}), fallback: $${fallbackPrice}...`);
 
         // Use the correct Customer API endpoint: GET /v1/custom-pricing/?listing_id=
         const customPricingUrl = `https://api.pricelabs.co/v1/custom-pricing/?listing_id=${property.pricelabs_listing_id}`;
