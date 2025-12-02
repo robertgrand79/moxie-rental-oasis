@@ -95,10 +95,14 @@ export const PricingCalendarView: React.FC<PricingCalendarViewProps> = ({ onAddB
   }, [startDate, daysToShow]);
 
   // Convert availability blocks (from synced external calendars) to booking blocks
-  // Only show external calendar bookings, not direct reservations
+  // Only show external calendar bookings, not direct reservations or "Blocked" sync entries
   const bookingBlocks = useMemo<BookingBlock[]>(() => {
     const availabilityBookingBlocks = availabilityBlocks
-      .filter(block => block.block_type === 'booked')
+      .filter(block => 
+        block.block_type === 'booked' && 
+        // Exclude "Blocked" entries from VRBO which are just sync mirrors
+        !(block.notes?.toLowerCase().startsWith('blocked'))
+      )
       .map(block => ({
         id: `availability-${block.id}`,
         propertyId: block.property_id,
