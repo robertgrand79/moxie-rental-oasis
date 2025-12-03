@@ -5,9 +5,11 @@ import GuestBookingWidget from '@/components/booking/GuestBookingWidget';
 
 interface IntegratedBookingSectionProps {
   property: Property;
+  initialCheckin?: string | null;
+  initialCheckout?: string | null;
 }
 
-const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) => {
+const IntegratedBookingSection = ({ property, initialCheckin, initialCheckout }: IntegratedBookingSectionProps) => {
   const handleBookingComplete = (reservationId: string) => {
     console.log('Booking completed:', reservationId);
   };
@@ -23,6 +25,8 @@ const IntegratedBookingSection = ({ property }: IntegratedBookingSectionProps) =
         <GuestBookingWidget 
           property={property} 
           onBookingComplete={handleBookingComplete}
+          initialCheckin={initialCheckin}
+          initialCheckout={initialCheckout}
         />
       </div>
     </div>

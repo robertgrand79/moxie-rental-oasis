@@ -13,9 +13,11 @@ interface AboutPropertySectionProps {
   property: Property;
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  initialCheckin?: string | null;
+  initialCheckout?: string | null;
 }
 
-const AboutPropertySection = ({ property, activeTab = "about", onTabChange }: AboutPropertySectionProps) => {
+const AboutPropertySection = ({ property, activeTab = "about", onTabChange, initialCheckin, initialCheckout }: AboutPropertySectionProps) => {
   const isMobile = useIsMobile();
 
   const handleTabChange = (value: string) => {
@@ -41,7 +43,7 @@ const AboutPropertySection = ({ property, activeTab = "about", onTabChange }: Ab
             </TabsContent>
             
             <TabsContent value="booking" className="mt-0 -mx-4">
-              <IntegratedBookingSection property={property} />
+              <IntegratedBookingSection property={property} initialCheckin={initialCheckin} initialCheckout={initialCheckout} />
             </TabsContent>
           </Tabs>
         </div>
@@ -74,7 +76,7 @@ const AboutPropertySection = ({ property, activeTab = "about", onTabChange }: Ab
                 </TabsContent>
                 
                 <TabsContent value="booking" className="mt-0">
-                  <IntegratedBookingSection property={property} />
+                  <IntegratedBookingSection property={property} initialCheckin={initialCheckin} initialCheckout={initialCheckout} />
                 </TabsContent>
               </Tabs>
             </CardContent>

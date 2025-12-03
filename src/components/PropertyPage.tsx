@@ -19,9 +19,11 @@ const PropertyPage = () => {
   const { properties, loading } = useProperties();
   const isMobile = useIsMobile();
   
-  // Check URL for tab parameter
+  // Check URL for tab and date parameters
   const searchParams = new URLSearchParams(window.location.search);
   const tabParam = searchParams.get('tab');
+  const checkinParam = searchParams.get('checkin');
+  const checkoutParam = searchParams.get('checkout');
   const [activeTab, setActiveTab] = useState(tabParam === 'booking' ? 'booking' : 'about');
 
   console.log('PropertyPage - Current addressSlug from URL:', addressSlug);
@@ -135,6 +137,8 @@ const PropertyPage = () => {
         property={property} 
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        initialCheckin={checkinParam}
+        initialCheckout={checkoutParam}
       />
 
       {/* Amenities Section - Enhanced with new colors and 12-item layout */}

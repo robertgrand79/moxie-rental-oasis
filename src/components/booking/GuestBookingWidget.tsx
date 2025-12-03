@@ -3,7 +3,7 @@ import { Property } from '@/types/property';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useCreateReservation } from '@/hooks/useBookingData';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, parseISO } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { BookingProgressBar } from './BookingProgressBar';
 import { BookingSummaryCard } from './BookingSummaryCard';
@@ -16,6 +16,8 @@ import { CheckCircle } from 'lucide-react';
 interface GuestBookingWidgetProps {
   property: Property;
   onBookingComplete?: (reservationId: string) => void;
+  initialCheckin?: string | null;
+  initialCheckout?: string | null;
 }
 
 interface BookingForm {
@@ -26,11 +28,19 @@ interface BookingForm {
   specialRequests: string;
 }
 
-const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBookingComplete }) => {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ 
-    from: undefined, 
-    to: undefined 
+const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBookingComplete, initialCheckin, initialCheckout }) => {
+  // Initialize step and dateRange based on whether initial dates are provided
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(() => {
+    return (initialCheckin && initialCheckout) ? 2 : 1;
+  });
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>(() => {
+    if (initialCheckin && initialCheckout) {
+      return {
+        from: parseISO(initialCheckin),
+        to: parseISO(initialCheckout)
+      };
+    }
+    return { from: undefined, to: undefined };
   });
   const [bookingForm, setBookingForm] = useState<BookingForm>({
     guestName: '',
