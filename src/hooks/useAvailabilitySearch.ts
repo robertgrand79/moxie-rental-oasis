@@ -51,8 +51,7 @@ export const usePropertiesAvailability = (checkInDate: string, checkOutDate: str
     queryFn: async (): Promise<PropertiesAvailabilityResult> => {
       const propertiesResponse = await (supabase as any)
         .from('properties')
-        .select('id, title')
-        .eq('is_active', true);
+        .select('id, title');
 
       if (propertiesResponse.error) throw propertiesResponse.error;
 
