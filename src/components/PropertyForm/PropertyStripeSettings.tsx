@@ -36,7 +36,8 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
   };
 
   // Check if property has Stripe configured (we can't see the actual keys, but we can check if they exist)
-  const hasStripeConfigured = !!(property as any).stripe_secret_key || !!(property as any).stripe_publishable_key;
+  const initialHasStripeConfigured = !!(property as any).stripe_secret_key || !!(property as any).stripe_publishable_key;
+  const [localHasStripeConfigured, setLocalHasStripeConfigured] = useState(initialHasStripeConfigured);
 
   const handleSave = async () => {
     if (!formData.stripeSecretKey && !formData.stripePublishableKey) {
@@ -58,6 +59,7 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
 
       if (error) throw error;
 
+      setLocalHasStripeConfigured(true);
       toast.success('Stripe settings saved successfully');
       setFormData({
         stripeSecretKey: '',
@@ -88,6 +90,7 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
 
       if (error) throw error;
 
+      setLocalHasStripeConfigured(false);
       toast.success('Stripe settings cleared - will use organization defaults');
     } catch (error) {
       console.error('Error clearing Stripe settings:', error);
@@ -117,7 +120,7 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
           </AlertDescription>
         </Alert>
 
-        {hasStripeConfigured && (
+        {localHasStripeConfigured && (
           <Alert className="border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
@@ -232,7 +235,7 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
               'Save Payment Settings'
             )}
           </Button>
-          {hasStripeConfigured && (
+          {localHasStripeConfigured && (
             <Button variant="outline" onClick={handleClear} disabled={saving || clearing}>
               {clearing ? (
                 <>
