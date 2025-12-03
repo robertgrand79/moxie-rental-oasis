@@ -195,16 +195,35 @@ Deno.serve(async (req) => {
 
         console.log(`Fetching dynamic pricing for ${property.title} (${property.pricelabs_listing_id}), base: $${basePrice}...`);
 
-        // Get daily prices from listing_prices endpoint (recommended by PriceLabs support)
-        const listingPricesUrl = `https://api.pricelabs.co/v1/listing_prices?listing_id=${property.pricelabs_listing_id}`;
-        console.log(`Calling: ${listingPricesUrl}`);
+        // Build date range for pricing request (365 days from today)
+        const today = new Date();
+        const endDate = new Date(today);
+        endDate.setDate(endDate.getDate() + 365);
         
-        const response = await fetch(listingPricesUrl, {
-          method: 'GET',
+        const dateFrom = today.toISOString().split('T')[0];
+        const dateTo = endDate.toISOString().split('T')[0];
+
+        // POST request to listing_prices endpoint with correct body structure (per PriceLabs support)
+        const requestBody = {
+          listings: [{
+            id: property.pricelabs_listing_id,
+            pms: "smartbnb",  // Required for Hospitable/Smartbnb integration
+            dateFrom: dateFrom,
+            dateTo: dateTo,
+            reason: true  // Include pricing reasons for debugging
+          }]
+        };
+        
+        console.log(`POST to https://api.pricelabs.co/v1/listing_prices with body:`, JSON.stringify(requestBody));
+        
+        const response = await fetch('https://api.pricelabs.co/v1/listing_prices', {
+          method: 'POST',
           headers: {
+            'accept': 'application/json',
             'X-API-Key': priceLabsApiKey,
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify(requestBody),
         });
 
         // Store parsed pricing data from API
@@ -215,27 +234,33 @@ Deno.serve(async (req) => {
         let hasPartnerApiAccess = false;
 
         if (response.ok) {
-          const responseData: CustomPricingResponse = await response.json();
-          console.log(`Response from custom-pricing:`, JSON.stringify(responseData).substring(0, 2000));
+          const responseData = await response.json();
+          console.log(`Response from listing_prices POST:`, JSON.stringify(responseData).substring(0, 3000));
+          
+          // Handle POST response format - may be array of listing responses
+          let listingResponse = responseData;
+          if (Array.isArray(responseData) && responseData.length > 0) {
+            listingResponse = responseData[0]; // Get first listing's response
+          }
 
-          // Extract metadata
-          currency = responseData.currency || 'USD';
-          lastUpdated = responseData.last_updated || null;
+          // Extract metadata from listing response
+          currency = listingResponse.currency || 'USD';
+          lastUpdated = listingResponse.last_updated || null;
 
-          // Parse pricing data - handle various response formats
+          // Parse pricing data - handle various response formats from POST
           let pricesArray: CustomPricingDay[] = [];
           
-          if (Array.isArray(responseData)) {
-            pricesArray = responseData;
-          } else if (responseData.prices && Array.isArray(responseData.prices)) {
-            pricesArray = responseData.prices;
-          } else if (responseData.data && Array.isArray(responseData.data)) {
-            pricesArray = responseData.data;
-          } else if (typeof responseData === 'object') {
-            const keys = Object.keys(responseData);
+          // Check for prices/data arrays in the listing response
+          if (listingResponse.prices && Array.isArray(listingResponse.prices)) {
+            pricesArray = listingResponse.prices;
+          } else if (listingResponse.data && Array.isArray(listingResponse.data)) {
+            pricesArray = listingResponse.data;
+          } else if (typeof listingResponse === 'object') {
+            // Handle date-keyed object format
+            const keys = Object.keys(listingResponse);
             for (const dateKey of keys) {
               if (dateKey.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                const value = responseData[dateKey];
+                const value = listingResponse[dateKey];
                 if (typeof value === 'number') {
                   pricesArray.push({ date: dateKey, price: value });
                 } else if (value && typeof value === 'object') {
@@ -270,14 +295,15 @@ Deno.serve(async (req) => {
           hasPartnerApiAccess = pricesFromApi > 0;
           console.log(`Got ${pricesFromApi} daily prices from listing_prices endpoint`);
         } else {
-          console.log(`listing_prices endpoint returned ${response.status}`);
+          const errorText = await response.text();
+          console.log(`listing_prices POST returned ${response.status}: ${errorText.substring(0, 500)}`);
         }
 
         // Build pricing records for the next 365 days
         const pricingRecords = [];
         let pricesFromVariation = 0;
 
-        const today = new Date();
+        // Use the same today/dates defined earlier for the API request
         for (let i = 0; i < 365; i++) {
           const date = new Date(today);
           date.setDate(date.getDate() + i);
