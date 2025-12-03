@@ -193,13 +193,13 @@ Deno.serve(async (req) => {
           console.warn(`⚠️ Using default fallback price ($100) for ${property.title}`);
         }
 
-        console.log(`Fetching custom pricing for ${property.title} (${property.pricelabs_listing_id}), base: $${basePrice}...`);
+        console.log(`Fetching dynamic pricing for ${property.title} (${property.pricelabs_listing_id}), base: $${basePrice}...`);
 
-        // Try to get daily prices from custom-pricing endpoint (requires Partner API)
-        const customPricingUrl = `https://api.pricelabs.co/v1/custom-pricing/?listing_id=${property.pricelabs_listing_id}`;
-        console.log(`Calling: ${customPricingUrl}`);
+        // Get daily prices from listing_prices endpoint (recommended by PriceLabs support)
+        const listingPricesUrl = `https://api.pricelabs.co/v1/listing_prices?listing_id=${property.pricelabs_listing_id}`;
+        console.log(`Calling: ${listingPricesUrl}`);
         
-        const response = await fetch(customPricingUrl, {
+        const response = await fetch(listingPricesUrl, {
           method: 'GET',
           headers: {
             'X-API-Key': priceLabsApiKey,
@@ -268,9 +268,9 @@ Deno.serve(async (req) => {
 
           pricesFromApi = dailyPricesFromApi.size;
           hasPartnerApiAccess = pricesFromApi > 0;
-          console.log(`Got ${pricesFromApi} daily prices from custom-pricing endpoint`);
+          console.log(`Got ${pricesFromApi} daily prices from listing_prices endpoint`);
         } else {
-          console.log(`custom-pricing endpoint returned ${response.status} (Partner API access required)`);
+          console.log(`listing_prices endpoint returned ${response.status}`);
         }
 
         // Build pricing records for the next 365 days
