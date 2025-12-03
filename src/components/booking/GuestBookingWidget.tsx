@@ -153,8 +153,9 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
         body: {
           reservationId: reservation.id,
+          propertyId: property.id,
           guestEmail: bookingForm.guestEmail,
-          amount: charges.grandTotal,
+          totalAmount: charges.grandTotal,
           propertyTitle: property.title,
           checkInDate: selectedDates.start,
           checkOutDate: selectedDates.end
