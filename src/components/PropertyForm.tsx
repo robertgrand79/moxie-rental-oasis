@@ -13,11 +13,12 @@ import PropertyDetailsForm from './PropertyForm/PropertyDetailsForm';
 import BookingIntegrationSection from './PropertyForm/BookingIntegrationSection';
 import { PropertyFormData } from './PropertyForm/types';
 import { useOptimizedPhotoUpload } from '@/hooks/useOptimizedPhotoUpload';
-import { Loader2, FileText, Image, Calendar, Home, Wrench, DollarSign } from 'lucide-react';
+import { Loader2, FileText, Image, Calendar, Home, Wrench, DollarSign, CreditCard } from 'lucide-react';
 import BookingIntegrationManager from '@/components/admin/properties/BookingIntegrationManager';
 import TurnoPropertyMapping from './PropertyForm/TurnoPropertyMapping';
 import { SmartHomeManager } from '@/components/smart-home/SmartHomeManager';
 import { PropertyPriceLabsMapping } from './PropertyForm/PropertyPriceLabsMapping';
+import { PropertyStripeSettings } from './PropertyForm/PropertyStripeSettings';
 
 const propertySchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -108,7 +109,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="details" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Details
@@ -120,6 +121,10 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
                 <TabsTrigger value="booking" className="flex items-center gap-2" disabled={!isEditing}>
                   <Calendar className="h-4 w-4" />
                   Booking
+                </TabsTrigger>
+                <TabsTrigger value="payments" className="flex items-center gap-2" disabled={!isEditing}>
+                  <CreditCard className="h-4 w-4" />
+                  Payments
                 </TabsTrigger>
                 <TabsTrigger value="pricelabs" className="flex items-center gap-2" disabled={!isEditing}>
                   <DollarSign className="h-4 w-4" />
@@ -158,6 +163,10 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
                 <>
                   <TabsContent value="booking" className="space-y-6 mt-6">
                     <BookingIntegrationManager property={initialData as Property} />
+                  </TabsContent>
+
+                  <TabsContent value="payments" className="space-y-6 mt-6">
+                    <PropertyStripeSettings property={initialData as Property} />
                   </TabsContent>
 
                   <TabsContent value="pricelabs" className="space-y-6 mt-6">
