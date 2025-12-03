@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Property } from '@/types/property';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { CreditCard, Eye, EyeOff, CheckCircle, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
+import { CreditCard, Eye, EyeOff, CheckCircle, AlertTriangle, Loader2, Trash2, Copy, Check } from 'lucide-react';
 
 interface PropertyStripeSettingsProps {
   property: Property;
@@ -24,6 +24,16 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
   const [saving, setSaving] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const webhookUrl = "https://joiovubyokikqjytxtuv.supabase.co/functions/v1/handle-stripe-webhook";
+
+  const handleCopyWebhookUrl = async () => {
+    await navigator.clipboard.writeText(webhookUrl);
+    setCopied(true);
+    toast.success('Webhook URL copied to clipboard');
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Check if property has Stripe configured (we can't see the actual keys, but we can check if they exist)
   const hasStripeConfigured = !!(property as any).stripe_secret_key || !!(property as any).stripe_publishable_key;
@@ -149,6 +159,31 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
               onChange={(e) => setFormData(prev => ({ ...prev, stripePublishableKey: e.target.value }))}
             />
             <p className="text-xs text-muted-foreground">This key is safe to expose in frontend code</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Webhook Endpoint URL</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                readOnly
+                value={webhookUrl}
+                className="font-mono text-xs bg-muted"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleCopyWebhookUrl}
+              >
+                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Use this URL when creating a webhook in Stripe Dashboard. Select events: {' '}
+              <code className="bg-muted px-1 rounded">checkout.session.completed</code>, {' '}
+              <code className="bg-muted px-1 rounded">checkout.session.expired</code>, {' '}
+              <code className="bg-muted px-1 rounded">payment_intent.payment_failed</code>
+            </p>
           </div>
 
           <div className="space-y-2">
