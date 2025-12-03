@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
 import { usePropertiesAvailability } from '@/hooks/useAvailabilitySearch';
 import { generateAddressSlug } from '@/utils/addressSlug';
+import PropertyPriceDisplay from '@/components/search/PropertyPriceDisplay';
 
 interface SearchPropertyResultsProps {
   checkin: string;
@@ -183,6 +184,16 @@ const PropertyGrid = ({ properties, checkin, checkout, showAvailabilityBadge, is
                   {property.max_guests}
                 </div>
               </div>
+
+              {/* Pricing Display - only show for available properties with dates */}
+              {checkin && checkout && !isUnavailable && (
+                <PropertyPriceDisplay
+                  propertyId={property.id}
+                  checkin={checkin}
+                  checkout={checkout}
+                  basePricePerNight={property.price_per_night}
+                />
+              )}
 
               <div className="flex flex-col sm:flex-row gap-2">
                 <Link to={`/property/${addressSlug}`} className="flex-1">
