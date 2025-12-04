@@ -451,11 +451,15 @@ const PropertyRow: React.FC<PropertyRowProps> = ({
         if (visibleStart === -1) visibleStart = 0;
       }
       
-      // Calculate visible end index
+      // Calculate visible end index (checkout day is exclusive for nights but we want to show half-day)
       let visibleEnd = columns.length;
+      let isCheckoutDayVisible = false;
       if (booking.checkOut <= rangeEnd) {
         const endIdx = columns.findIndex(col => col.dateStr === booking.checkOut);
-        if (endIdx !== -1) visibleEnd = endIdx;
+        if (endIdx !== -1) {
+          visibleEnd = endIdx;
+          isCheckoutDayVisible = true;
+        }
       }
       
       const span = visibleEnd - visibleStart;
@@ -469,6 +473,7 @@ const PropertyRow: React.FC<PropertyRowProps> = ({
         span,
         isStartVisible: booking.checkIn >= rangeStart,
         isEndVisible: booking.checkOut <= rangeEnd,
+        isCheckoutDayVisible,
         nights
       };
     }).filter(Boolean);
@@ -505,24 +510,33 @@ const PropertyRow: React.FC<PropertyRowProps> = ({
       {/* Booking bars overlay */}
       {bookingPositions.map((pos) => {
         if (!pos) return null;
-        const { booking, startCol, span, isStartVisible, isEndVisible } = pos;
+        const { booking, startCol, span, isStartVisible, isEndVisible, isCheckoutDayVisible } = pos;
         const propertyColors = getPropertyColor(booking.propertyId);
         const platform = booking.sourcePlatform?.toLowerCase() || 'other';
+        
+        // Add half-cell width for checkout day visualization
+        const totalWidth = isCheckoutDayVisible ? (span * 64) + 32 : span * 64;
         
         return (
           <Popover key={booking.id}>
             <PopoverTrigger asChild>
               <div
                 className={cn(
-                  "absolute top-2 bottom-2 flex items-center cursor-pointer transition-opacity hover:opacity-90",
+                  "absolute top-2 bottom-2 flex items-center cursor-pointer transition-opacity hover:opacity-90 overflow-hidden",
                   propertyColors.bg,
                   propertyColors.text,
                   isStartVisible && "rounded-l-full",
-                  isEndVisible && "rounded-r-full"
+                  // Only round right if checkout is NOT visible (continues past view)
+                  isEndVisible && !isCheckoutDayVisible && "rounded-r-full"
                 )}
                 style={{
                   left: `${startCol * 64}px`,
-                  width: `${span * 64}px`,
+                  width: `${totalWidth}px`,
+                  // Add gradient fade on checkout day for half-day visualization
+                  ...(isCheckoutDayVisible && {
+                    maskImage: 'linear-gradient(to right, black 85%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)',
+                  }),
                 }}
               >
                 <div className="flex items-center gap-2 px-3 overflow-hidden">
