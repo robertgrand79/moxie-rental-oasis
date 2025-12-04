@@ -65,7 +65,7 @@ const ChecklistTemplatesTab = ({
     return acc;
   }, {} as Record<string, ChecklistTemplate[]>);
 
-  const typeOrder = ['fall', 'spring', 'monthly', 'quarterly', 'custom'];
+  const typeOrder = ['monthly', 'quarterly', 'fall', 'spring', 'custom'];
 
   return (
     <div className="space-y-8">
