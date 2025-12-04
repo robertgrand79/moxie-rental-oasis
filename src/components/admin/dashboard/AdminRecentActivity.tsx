@@ -9,7 +9,7 @@ import { Activity, BookOpen } from 'lucide-react';
 interface BlogPost {
   id: string;
   title: string;
-  status: 'published' | 'draft';
+  status: string;
   created_at: string;
 }
 

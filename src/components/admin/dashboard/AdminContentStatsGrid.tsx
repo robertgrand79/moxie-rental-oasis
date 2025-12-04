@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { Plus, Building2, BookOpen, FileText, MapPin, Camera, Star, Mail, Users } from 'lucide-react';
+import { Plus, Building2, BookOpen, MapPin, Camera, Star, Mail, Users } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ContentStat {
@@ -21,29 +21,26 @@ interface ContentStat {
   }[];
 }
 
-interface AdminContentStatsGridProps {
-  properties: any[];
-  blogPosts: any[];
-  pointsOfInterest: any[];
-  galleryItems: any[];
-  testimonials: any[];
-  subscriberCount: number | null;
+interface DashboardStats {
+  properties: { total: number };
+  blogPosts: { total: number; published: number };
+  pointsOfInterest: { total: number; featured: number };
+  galleryItems: { total: number; featured: number };
+  testimonials: { total: number; featured: number };
+  subscriberCount: number;
 }
 
-const AdminContentStatsGrid = ({ 
-  properties, 
-  blogPosts, 
-  pointsOfInterest, 
-  galleryItems, 
-  testimonials, 
-  subscriberCount 
-}: AdminContentStatsGridProps) => {
+interface AdminContentStatsGridProps {
+  stats: DashboardStats;
+}
+
+const AdminContentStatsGrid = ({ stats }: AdminContentStatsGridProps) => {
   const isMobile = useIsMobile();
 
   const contentStats: ContentStat[] = [
     {
       title: 'Properties',
-      count: properties.length,
+      count: stats.properties.total,
       icon: Building2,
       color: 'text-blue-600',
       href: '/admin/properties',
@@ -52,7 +49,7 @@ const AdminContentStatsGrid = ({
     },
     {
       title: 'Blog Posts',
-      count: blogPosts.length,
+      count: stats.blogPosts.total,
       icon: BookOpen,
       color: 'text-green-600',
       href: '/admin/blog',
@@ -61,13 +58,13 @@ const AdminContentStatsGrid = ({
       additionalStats: [
         {
           label: 'Published',
-          value: blogPosts.filter(post => post.status === 'published').length
+          value: stats.blogPosts.published
         }
       ]
     },
     {
       title: 'Points of Interest',
-      count: pointsOfInterest.length,
+      count: stats.pointsOfInterest.total,
       icon: MapPin,
       color: 'text-purple-600',
       href: '/admin/points-of-interest',
@@ -76,13 +73,13 @@ const AdminContentStatsGrid = ({
       additionalStats: [
         {
           label: 'Featured',
-          value: pointsOfInterest.filter(poi => poi.is_featured).length
+          value: stats.pointsOfInterest.featured
         }
       ]
     },
     {
       title: 'Lifestyle Gallery',
-      count: galleryItems.length,
+      count: stats.galleryItems.total,
       icon: Camera,
       color: 'text-orange-600',
       href: '/admin/lifestyle-gallery',
@@ -91,13 +88,13 @@ const AdminContentStatsGrid = ({
       additionalStats: [
         {
           label: 'Featured',
-          value: galleryItems.filter(item => item.is_featured).length
+          value: stats.galleryItems.featured
         }
       ]
     },
     {
       title: 'Testimonials',
-      count: testimonials.length,
+      count: stats.testimonials.total,
       icon: Star,
       color: 'text-amber-600',
       href: '/admin/testimonials',
@@ -106,13 +103,13 @@ const AdminContentStatsGrid = ({
       additionalStats: [
         {
           label: 'Featured',
-          value: testimonials.filter(testimonial => testimonial.is_featured).length
+          value: stats.testimonials.featured
         }
       ]
     },
     {
       title: 'Newsletter',
-      count: subscriberCount || 0,
+      count: stats.subscriberCount,
       icon: Mail,
       color: 'text-indigo-600',
       href: '/admin/newsletter',
@@ -121,7 +118,7 @@ const AdminContentStatsGrid = ({
       additionalStats: [
         {
           label: 'Subscribers',
-          value: subscriberCount || 0,
+          value: stats.subscriberCount,
           icon: Users
         }
       ]
