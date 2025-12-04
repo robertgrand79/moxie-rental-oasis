@@ -208,7 +208,7 @@ export const useChecklistManagement = () => {
     await fetchRuns();
   };
 
-  const createTemplate = async (name: string, type: string, description: string) => {
+  const createTemplate = async (name: string, type: string, description: string, organizationId: string) => {
     const { data, error } = await supabase
       .from('maintenance_checklist_templates')
       .insert({
@@ -216,6 +216,7 @@ export const useChecklistManagement = () => {
         type,
         description: description || null,
         is_system_template: false,
+        organization_id: organizationId,
         created_by: (await supabase.auth.getUser()).data.user?.id,
       })
       .select()
