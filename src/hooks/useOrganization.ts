@@ -26,16 +26,16 @@ export const useOrganization = () => {
         .from('organization_members')
         .select('*, organization:organizations(*)')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (memberError) {
-        if (memberError.code === 'PGRST116') {
-          // No organization membership found
-          setOrganization(null);
-          setMembership(null);
-        } else {
-          throw memberError;
-        }
+        throw memberError;
+      }
+      
+      if (!memberData) {
+        // No organization membership found
+        setOrganization(null);
+        setMembership(null);
       } else {
         setMembership(memberData as OrganizationMember);
         setOrganization(memberData.organization as Organization);
