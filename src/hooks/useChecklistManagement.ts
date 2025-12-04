@@ -47,6 +47,13 @@ export interface ItemCompletion {
   completed_at: string | null;
   notes: string | null;
   work_order_id: string | null;
+  photos?: string[];
+  needs_work?: boolean;
+}
+
+interface CategoryWithItems {
+  name: string;
+  items: { title: string; description: string }[];
 }
 
 export const useChecklistManagement = () => {
@@ -139,6 +146,8 @@ export const useChecklistManagement = () => {
         run_id: run.id,
         item_id: item.id,
         is_completed: false,
+        photos: [],
+        needs_work: false,
       }));
 
       await supabase.from('property_checklist_item_completions').insert(completionRecords);
@@ -193,6 +202,25 @@ export const useChecklistManagement = () => {
     await fetchRuns();
   };
 
+  const updateItemCompletion = async (
+    completionId: string,
+    updates: { notes?: string; photos?: string[]; needs_work?: boolean }
+  ) => {
+    const { error } = await supabase
+      .from('property_checklist_item_completions')
+      .update(updates)
+      .eq('id', completionId);
+
+    if (error) {
+      console.error('Error updating completion:', error);
+      toast({ title: 'Error', description: 'Failed to update item', variant: 'destructive' });
+      return false;
+    }
+
+    await fetchRuns();
+    return true;
+  };
+
   const deleteRun = async (runId: string) => {
     const { error } = await supabase
       .from('property_checklist_runs')
@@ -232,6 +260,130 @@ export const useChecklistManagement = () => {
     return data;
   };
 
+  const saveTemplateWithItems = async (
+    templateData: { name: string; type: string; description: string; categories: CategoryWithItems[] },
+    existingTemplateId?: string
+  ) => {
+    const user = (await supabase.auth.getUser()).data.user;
+
+    if (existingTemplateId) {
+      // Update existing template
+      const { error: updateError } = await supabase
+        .from('maintenance_checklist_templates')
+        .update({
+          name: templateData.name,
+          type: templateData.type,
+          description: templateData.description || null,
+        })
+        .eq('id', existingTemplateId);
+
+      if (updateError) {
+        toast({ title: 'Error', description: 'Failed to update template', variant: 'destructive' });
+        return null;
+      }
+
+      // Delete existing items
+      await supabase
+        .from('maintenance_checklist_items')
+        .delete()
+        .eq('template_id', existingTemplateId);
+
+      // Insert new items
+      let displayOrder = 0;
+      for (const category of templateData.categories) {
+        for (const item of category.items) {
+          if (!item.title.trim()) continue;
+          await supabase.from('maintenance_checklist_items').insert({
+            template_id: existingTemplateId,
+            category: category.name,
+            title: item.title.trim(),
+            description: item.description.trim() || null,
+            display_order: displayOrder++,
+            is_active: true,
+          });
+        }
+      }
+
+      toast({ title: 'Success', description: 'Template updated successfully' });
+      await fetchTemplates();
+      return existingTemplateId;
+    } else {
+      // Create new template
+      const { data: newTemplate, error: createError } = await supabase
+        .from('maintenance_checklist_templates')
+        .insert({
+          name: templateData.name,
+          type: templateData.type,
+          description: templateData.description || null,
+          is_system_template: false,
+          created_by: user?.id,
+        })
+        .select()
+        .single();
+
+      if (createError || !newTemplate) {
+        toast({ title: 'Error', description: 'Failed to create template', variant: 'destructive' });
+        return null;
+      }
+
+      // Insert items
+      let displayOrder = 0;
+      for (const category of templateData.categories) {
+        for (const item of category.items) {
+          if (!item.title.trim()) continue;
+          await supabase.from('maintenance_checklist_items').insert({
+            template_id: newTemplate.id,
+            category: category.name,
+            title: item.title.trim(),
+            description: item.description.trim() || null,
+            display_order: displayOrder++,
+            is_active: true,
+          });
+        }
+      }
+
+      toast({ title: 'Success', description: 'Template created successfully' });
+      await fetchTemplates();
+      return newTemplate.id;
+    }
+  };
+
+  const deleteTemplate = async (templateId: string) => {
+    // Check if there are any runs using this template
+    const { data: existingRuns } = await supabase
+      .from('property_checklist_runs')
+      .select('id')
+      .eq('template_id', templateId)
+      .limit(1);
+
+    if (existingRuns && existingRuns.length > 0) {
+      toast({
+        title: 'Cannot Delete',
+        description: 'This template has existing checklists. Delete those first.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    // Delete items first
+    await supabase.from('maintenance_checklist_items').delete().eq('template_id', templateId);
+
+    // Delete template
+    const { error } = await supabase
+      .from('maintenance_checklist_templates')
+      .delete()
+      .eq('id', templateId);
+
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to delete template', variant: 'destructive' });
+      return false;
+    }
+
+    toast({ title: 'Success', description: 'Template deleted' });
+    await fetchTemplates();
+    return true;
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -247,8 +399,11 @@ export const useChecklistManagement = () => {
     loading,
     startChecklist,
     toggleItemCompletion,
+    updateItemCompletion,
     deleteRun,
     createTemplate,
+    saveTemplateWithItems,
+    deleteTemplate,
     refreshData: () => Promise.all([fetchTemplates(), fetchRuns()]),
   };
 };

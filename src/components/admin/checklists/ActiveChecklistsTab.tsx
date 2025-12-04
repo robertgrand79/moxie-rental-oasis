@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, ChevronRight, Home } from 'lucide-react';
+import { Trash2, ChevronRight, Home, AlertTriangle } from 'lucide-react';
 import { ChecklistRun, ChecklistTemplate } from '@/hooks/useChecklistManagement';
 import ChecklistRunView from './ChecklistRunView';
 import {
@@ -21,7 +21,9 @@ interface ActiveChecklistsTabProps {
   runs: ChecklistRun[];
   templates: ChecklistTemplate[];
   onToggleItem: (completionId: string, isCompleted: boolean, runId: string) => Promise<void>;
+  onUpdateCompletion?: (completionId: string, updates: { notes?: string; photos?: string[]; needs_work?: boolean }) => Promise<boolean>;
   onDeleteRun: (runId: string) => Promise<void>;
+  onCreateWorkOrder?: (propertyId: string, items: { title: string; description: string; notes?: string; photos?: string[] }[]) => Promise<void>;
   initialSelectedRunId?: string | null;
   onClearSelection?: () => void;
 }
@@ -29,8 +31,10 @@ interface ActiveChecklistsTabProps {
 const ActiveChecklistsTab = ({ 
   runs, 
   templates, 
-  onToggleItem, 
+  onToggleItem,
+  onUpdateCompletion,
   onDeleteRun,
+  onCreateWorkOrder,
   initialSelectedRunId,
   onClearSelection
 }: ActiveChecklistsTabProps) => {
@@ -47,6 +51,16 @@ const ActiveChecklistsTab = ({
     }
   }, [initialSelectedRunId, runs]);
 
+  // Keep selectedRun in sync with runs data
+  useEffect(() => {
+    if (selectedRun) {
+      const updatedRun = runs.find(r => r.id === selectedRun.id);
+      if (updatedRun) {
+        setSelectedRun(updatedRun);
+      }
+    }
+  }, [runs]);
+
   const handleBack = () => {
     setSelectedRun(null);
     onClearSelection?.();
@@ -57,6 +71,11 @@ const ActiveChecklistsTab = ({
     if (completions.length === 0) return 0;
     const completed = completions.filter((c) => c.is_completed).length;
     return Math.round((completed / completions.length) * 100);
+  };
+
+  const getNeedsWorkCount = (run: ChecklistRun) => {
+    const completions = run.completions || [];
+    return completions.filter((c: any) => c.needs_work).length;
   };
 
   const getStatusColor = (status: string) => {
@@ -88,6 +107,8 @@ const ActiveChecklistsTab = ({
         run={selectedRun}
         template={template || null}
         onToggleItem={onToggleItem}
+        onUpdateCompletion={onUpdateCompletion}
+        onCreateWorkOrder={onCreateWorkOrder}
         onBack={handleBack}
       />
     );
@@ -110,6 +131,7 @@ const ActiveChecklistsTab = ({
           const progress = getProgress(run);
           const completions = run.completions || [];
           const completedCount = completions.filter((c) => c.is_completed).length;
+          const needsWorkCount = getNeedsWorkCount(run);
 
           return (
             <Card key={run.id} className="hover:shadow-md transition-shadow">
@@ -123,6 +145,12 @@ const ActiveChecklistsTab = ({
                         <Badge variant="outline" className={getStatusColor(run.status)}>
                           {run.status.replace('_', ' ')}
                         </Badge>
+                        {needsWorkCount > 0 && (
+                          <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            {needsWorkCount}
+                          </Badge>
+                        )}
                       </CardTitle>
                       <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                         <Home className="h-3.5 w-3.5" />

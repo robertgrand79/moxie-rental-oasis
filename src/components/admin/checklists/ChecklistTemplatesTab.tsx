@@ -4,13 +4,19 @@ import { Plus } from 'lucide-react';
 import { ChecklistTemplate } from '@/hooks/useChecklistManagement';
 import ChecklistTemplateCard from './ChecklistTemplateCard';
 import StartChecklistModal from './StartChecklistModal';
-import CreateTemplateModal from './CreateTemplateModal';
+import TemplateEditorModal from './TemplateEditorModal';
+
+interface CategoryWithItems {
+  name: string;
+  items: { title: string; description: string }[];
+}
 
 interface ChecklistTemplatesTabProps {
   templates: ChecklistTemplate[];
   onStartChecklist: (templateId: string, propertyId: string, period: string, dueDate?: string) => Promise<any>;
   onChecklistStarted: (runId: string) => void;
-  onCreateTemplate: (name: string, type: string, description: string) => Promise<any>;
+  onSaveTemplate: (data: { name: string; type: string; description: string; categories: CategoryWithItems[] }, templateId?: string) => Promise<any>;
+  onDeleteTemplate: (templateId: string) => Promise<boolean>;
   onRefresh: () => Promise<any>;
 }
 
@@ -18,12 +24,14 @@ const ChecklistTemplatesTab = ({
   templates, 
   onStartChecklist, 
   onChecklistStarted,
-  onCreateTemplate,
+  onSaveTemplate,
+  onDeleteTemplate,
   onRefresh
 }: ChecklistTemplatesTabProps) => {
   const [selectedTemplate, setSelectedTemplate] = useState<ChecklistTemplate | null>(null);
   const [isStartModalOpen, setIsStartModalOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<ChecklistTemplate | null>(null);
 
   const handleStartChecklist = (template: ChecklistTemplate) => {
     setSelectedTemplate(template);
@@ -41,10 +49,24 @@ const ChecklistTemplatesTab = ({
     }
   };
 
-  const handleCreateTemplate = async (name: string, type: string, description: string) => {
-    await onCreateTemplate(name, type, description);
-    await onRefresh();
-    setIsCreateModalOpen(false);
+  const handleCreateNew = () => {
+    setEditingTemplate(null);
+    setIsEditorOpen(true);
+  };
+
+  const handleEditTemplate = (template: ChecklistTemplate) => {
+    setEditingTemplate(template);
+    setIsEditorOpen(true);
+  };
+
+  const handleSaveTemplate = async (data: { name: string; type: string; description: string; categories: CategoryWithItems[] }) => {
+    await onSaveTemplate(data, editingTemplate?.id);
+    setIsEditorOpen(false);
+    setEditingTemplate(null);
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    await onDeleteTemplate(templateId);
   };
 
   const getTypeLabel = (type: string) => {
@@ -70,7 +92,7 @@ const ChecklistTemplatesTab = ({
   return (
     <div className="space-y-8">
       <div className="flex justify-end">
-        <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+        <Button onClick={handleCreateNew} className="gap-2">
           <Plus className="h-4 w-4" />
           Create Custom Checklist
         </Button>
@@ -89,6 +111,8 @@ const ChecklistTemplatesTab = ({
                   key={template.id}
                   template={template}
                   onStart={() => handleStartChecklist(template)}
+                  onEdit={() => handleEditTemplate(template)}
+                  onDelete={() => handleDeleteTemplate(template.id)}
                 />
               ))}
             </div>
@@ -109,10 +133,11 @@ const ChecklistTemplatesTab = ({
         onConfirm={handleConfirmStart}
       />
 
-      <CreateTemplateModal
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        onConfirm={handleCreateTemplate}
+      <TemplateEditorModal
+        open={isEditorOpen}
+        onOpenChange={setIsEditorOpen}
+        template={editingTemplate}
+        onSave={handleSaveTemplate}
       />
     </div>
   );

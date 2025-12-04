@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClipboardList, PlayCircle, History } from 'lucide-react';
 import { useChecklistManagement } from '@/hooks/useChecklistManagement';
 import { useOrganization } from '@/hooks/useOrganization';
+import { useWorkOrderManagement } from '@/hooks/useWorkOrderManagement';
 import { useToast } from '@/hooks/use-toast';
 import LoadingState from '@/components/ui/loading-state';
 import ChecklistTemplatesTab from '@/components/admin/checklists/ChecklistTemplatesTab';
@@ -12,7 +13,11 @@ import ChecklistHistoryTab from '@/components/admin/checklists/ChecklistHistoryT
 const AdminChecklists = () => {
   const [activeTab, setActiveTab] = useState('templates');
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-  const { templates, runs, loading, startChecklist, toggleItemCompletion, deleteRun, createTemplate, refreshData } = useChecklistManagement();
+  const { 
+    templates, runs, loading, startChecklist, toggleItemCompletion, 
+    updateItemCompletion, deleteRun, saveTemplateWithItems, deleteTemplate, refreshData 
+  } = useChecklistManagement();
+  const { createWorkOrder } = useWorkOrderManagement();
   const { organization } = useOrganization();
   const { toast } = useToast();
 
@@ -30,18 +35,32 @@ const AdminChecklists = () => {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-    // Clear selection when manually changing tabs
     if (tab !== 'active') {
       setSelectedRunId(null);
     }
   };
 
-  const handleCreateTemplate = async (name: string, type: string, description: string) => {
-    const newTemplate = await createTemplate(name, type, description, organization?.id || null);
-    if (newTemplate) {
-      await refreshData();
+  const handleSaveTemplate = async (
+    data: { name: string; type: string; description: string; categories: { name: string; items: { title: string; description: string }[] }[] },
+    templateId?: string
+  ) => {
+    return await saveTemplateWithItems(data, templateId);
+  };
+
+  const handleCreateWorkOrders = async (
+    propertyId: string,
+    items: { title: string; description: string; notes?: string; photos?: string[] }[]
+  ) => {
+    for (const item of items) {
+      await createWorkOrder({
+        property_id: propertyId,
+        title: item.title,
+        description: item.notes ? `${item.description}\n\nNotes: ${item.notes}` : item.description,
+        priority: 'medium',
+        status: 'pending',
+      });
     }
-    return newTemplate;
+    toast({ title: 'Success', description: `Created ${items.length} work order(s)` });
   };
 
   return (
@@ -72,7 +91,8 @@ const AdminChecklists = () => {
             templates={templates} 
             onStartChecklist={startChecklist}
             onChecklistStarted={handleChecklistStarted}
-            onCreateTemplate={handleCreateTemplate}
+            onSaveTemplate={handleSaveTemplate}
+            onDeleteTemplate={deleteTemplate}
             onRefresh={refreshData}
           />
         </TabsContent>
@@ -81,8 +101,10 @@ const AdminChecklists = () => {
           <ActiveChecklistsTab 
             runs={activeRuns} 
             templates={templates}
-            onToggleItem={toggleItemCompletion} 
+            onToggleItem={toggleItemCompletion}
+            onUpdateCompletion={updateItemCompletion}
             onDeleteRun={deleteRun}
+            onCreateWorkOrder={handleCreateWorkOrders}
             initialSelectedRunId={selectedRunId}
             onClearSelection={() => setSelectedRunId(null)}
           />

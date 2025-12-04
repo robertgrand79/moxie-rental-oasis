@@ -3083,7 +3083,9 @@ export type Database = {
           id: string
           is_completed: boolean | null
           item_id: string
+          needs_work: boolean | null
           notes: string | null
+          photos: string[] | null
           run_id: string
           work_order_id: string | null
         }
@@ -3094,7 +3096,9 @@ export type Database = {
           id?: string
           is_completed?: boolean | null
           item_id: string
+          needs_work?: boolean | null
           notes?: string | null
+          photos?: string[] | null
           run_id: string
           work_order_id?: string | null
         }
@@ -3105,7 +3109,9 @@ export type Database = {
           id?: string
           is_completed?: boolean | null
           item_id?: string
+          needs_work?: boolean | null
           notes?: string | null
+          photos?: string[] | null
           run_id?: string
           work_order_id?: string | null
         }
