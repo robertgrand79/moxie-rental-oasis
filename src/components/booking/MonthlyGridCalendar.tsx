@@ -44,6 +44,7 @@ interface BookingSegment {
   span: number;
   isStartVisible: boolean;
   isEndVisible: boolean;
+  isCheckoutDayVisible: boolean;
   track: number;
 }
 
@@ -230,16 +231,17 @@ const WeekRow: React.FC<WeekRowProps> = ({ weekDays, currentMonth, bookings }) =
     
     bookings.forEach(booking => {
       const checkIn = parseISO(booking.checkIn);
-      // Check-out day is exclusive, so last night is checkOut - 1
-      const lastNight = addDays(parseISO(booking.checkOut), -1);
+      const checkOut = parseISO(booking.checkOut);
+      const lastNight = addDays(checkOut, -1);
       
-      // Check if booking overlaps with this week
-      if (isAfter(checkIn, weekEnd) || isBefore(lastNight, weekStart)) {
+      // Check if booking overlaps with this week (including checkout day for half-day display)
+      if (isAfter(checkIn, weekEnd) || isBefore(checkOut, weekStart)) {
         return; // No overlap
       }
       
       // Calculate visible portion within this week
       const visibleStart = isBefore(checkIn, weekStart) ? weekStart : checkIn;
+      // Include checkout day in the span for half-day visualization
       const visibleEnd = isAfter(lastNight, weekEnd) ? weekEnd : lastNight;
       
       const startCol = differenceInDays(visibleStart, weekStart);
@@ -247,6 +249,8 @@ const WeekRow: React.FC<WeekRowProps> = ({ weekDays, currentMonth, bookings }) =
       
       const isStartVisible = !isBefore(checkIn, weekStart);
       const isEndVisible = !isAfter(lastNight, weekEnd);
+      // Check if checkout day falls within this week
+      const isCheckoutDayVisible = !isBefore(checkOut, weekStart) && !isAfter(checkOut, addDays(weekEnd, 1));
       
       segments.push({
         booking,
@@ -254,6 +258,7 @@ const WeekRow: React.FC<WeekRowProps> = ({ weekDays, currentMonth, bookings }) =
         span,
         isStartVisible,
         isEndVisible,
+        isCheckoutDayVisible,
         track: 0, // Will be assigned below
       });
     });
@@ -322,11 +327,14 @@ interface BookingOverlayProps {
 }
 
 const BookingOverlay: React.FC<BookingOverlayProps> = ({ segment }) => {
-  const { booking, startCol, span, isStartVisible, isEndVisible, track } = segment;
+  const { booking, startCol, span, isStartVisible, isEndVisible, isCheckoutDayVisible, track } = segment;
   const colors = getPropertyColor(booking.propertyId);
   
   const leftPercent = (startCol / 7) * 100;
-  const widthPercent = (span / 7) * 100;
+  // If checkout day is visible and the booking ends in this week, reduce width by half a cell
+  const widthPercent = isEndVisible && isCheckoutDayVisible
+    ? ((span + 0.5) / 7) * 100  // Add half cell for checkout day
+    : (span / 7) * 100;
   const topOffset = 28 + track * 22; // Below day number + track offset
   
   return (
@@ -334,17 +342,23 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ segment }) => {
       <PopoverTrigger asChild>
         <button
           className={cn(
-            'absolute h-5 text-xs truncate cursor-pointer transition-opacity hover:opacity-80 flex items-center',
+            'absolute h-5 text-xs truncate cursor-pointer transition-opacity hover:opacity-80 flex items-center overflow-hidden',
             colors.bg,
             colors.text,
             isStartVisible && 'rounded-l-full pl-2',
-            isEndVisible && 'rounded-r-full pr-1',
+            // Only round right if checkout is visible (half-day display)
+            isEndVisible && !isCheckoutDayVisible && 'rounded-r-full pr-1',
             !isStartVisible && !isEndVisible && 'px-1'
           )}
           style={{
             left: `calc(${leftPercent}% + 4px)`,
             width: `calc(${widthPercent}% - 8px)`,
             top: `${topOffset}px`,
+            // Add gradient fade on checkout day
+            ...(isEndVisible && isCheckoutDayVisible && {
+              maskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
+            }),
           }}
         >
           {isStartVisible && (
