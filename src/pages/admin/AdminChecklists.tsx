@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClipboardList, PlayCircle, History } from 'lucide-react';
 import { useChecklistManagement } from '@/hooks/useChecklistManagement';
+import { useOrganization } from '@/hooks/useOrganization';
+import { useToast } from '@/hooks/use-toast';
 import LoadingState from '@/components/ui/loading-state';
 import ChecklistTemplatesTab from '@/components/admin/checklists/ChecklistTemplatesTab';
 import ActiveChecklistsTab from '@/components/admin/checklists/ActiveChecklistsTab';
@@ -11,6 +13,8 @@ const AdminChecklists = () => {
   const [activeTab, setActiveTab] = useState('templates');
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const { templates, runs, loading, startChecklist, toggleItemCompletion, deleteRun, createTemplate, refreshData } = useChecklistManagement();
+  const { organization } = useOrganization();
+  const { toast } = useToast();
 
   if (loading) {
     return <LoadingState variant="page" message="Loading checklists..." />;
@@ -30,6 +34,18 @@ const AdminChecklists = () => {
     if (tab !== 'active') {
       setSelectedRunId(null);
     }
+  };
+
+  const handleCreateTemplate = async (name: string, type: string, description: string) => {
+    if (!organization?.id) {
+      toast({ title: 'Error', description: 'No organization found', variant: 'destructive' });
+      return null;
+    }
+    const newTemplate = await createTemplate(name, type, description, organization.id);
+    if (newTemplate) {
+      await refreshData();
+    }
+    return newTemplate;
   };
 
   return (
@@ -60,7 +76,7 @@ const AdminChecklists = () => {
             templates={templates} 
             onStartChecklist={startChecklist}
             onChecklistStarted={handleChecklistStarted}
-            onCreateTemplate={createTemplate}
+            onCreateTemplate={handleCreateTemplate}
             onRefresh={refreshData}
           />
         </TabsContent>
