@@ -208,7 +208,7 @@ export const useChecklistManagement = () => {
     await fetchRuns();
   };
 
-  const createTemplate = async (name: string, type: string, description: string, organizationId: string) => {
+  const createTemplate = async (name: string, type: string, description: string, organizationId?: string | null) => {
     const { data, error } = await supabase
       .from('maintenance_checklist_templates')
       .insert({
@@ -216,13 +216,14 @@ export const useChecklistManagement = () => {
         type,
         description: description || null,
         is_system_template: false,
-        organization_id: organizationId,
+        organization_id: organizationId || null,
         created_by: (await supabase.auth.getUser()).data.user?.id,
       })
       .select()
       .single();
 
     if (error) {
+      console.error('Error creating template:', error);
       toast({ title: 'Error', description: 'Failed to create checklist template', variant: 'destructive' });
       return null;
     }

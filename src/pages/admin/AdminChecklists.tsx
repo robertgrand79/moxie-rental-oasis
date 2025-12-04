@@ -37,11 +37,7 @@ const AdminChecklists = () => {
   };
 
   const handleCreateTemplate = async (name: string, type: string, description: string) => {
-    if (!organization?.id) {
-      toast({ title: 'Error', description: 'No organization found', variant: 'destructive' });
-      return null;
-    }
-    const newTemplate = await createTemplate(name, type, description, organization.id);
+    const newTemplate = await createTemplate(name, type, description, organization?.id || null);
     if (newTemplate) {
       await refreshData();
     }
