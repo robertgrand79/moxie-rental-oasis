@@ -309,9 +309,9 @@ export const UnifiedCalendarView: React.FC = () => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="flex">
+      <div className="flex relative overflow-hidden">
         {/* Property Column - Fixed */}
-        <div className="flex-shrink-0 w-64 border-r bg-background z-10">
+        <div className="flex-shrink-0 w-64 border-r bg-background z-0">
           {/* Property Header */}
           <div className="h-16 border-b flex items-center px-3 bg-muted/30">
             <span className="text-sm text-muted-foreground flex items-center gap-2">
