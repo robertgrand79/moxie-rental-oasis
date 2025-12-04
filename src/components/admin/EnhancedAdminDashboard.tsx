@@ -1,32 +1,36 @@
 
 import React from 'react';
-import { useProperties } from '@/hooks/useProperties';
-import { useBlogPosts } from '@/hooks/useBlogPosts';
-import { useEugeneEvents } from '@/hooks/useEugeneEvents';
-import { usePointsOfInterest } from '@/hooks/usePointsOfInterest';
-import { useLifestyleGallery } from '@/hooks/useLifestyleGallery';
-import { useTestimonials } from '@/hooks/useTestimonials';
-import { usePages } from '@/hooks/usePages';
-import { useNewsletterStats } from '@/hooks/useNewsletterStats';
-import AdminWelcomeSection from './dashboard/AdminWelcomeSection';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 import AdminContentStatsGrid from './dashboard/AdminContentStatsGrid';
 import AdminRecentActivity from './dashboard/AdminRecentActivity';
+import { Loader2 } from 'lucide-react';
 
 const EnhancedAdminDashboard = () => {
-  const { properties } = useProperties();
-  const { blogPosts } = useBlogPosts();
-  const { events } = useEugeneEvents();
-  const { pointsOfInterest } = usePointsOfInterest();
-  const { galleryItems } = useLifestyleGallery();
-  const { testimonials } = useTestimonials();
-  const { pages } = usePages();
-  const { subscriberCount } = useNewsletterStats();
+  const { data: stats, isLoading, error } = useDashboardStats();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>Unable to load dashboard stats. Please refresh the page.</p>
+      </div>
+    );
+  }
+
+  if (!stats) return null;
 
   return (
     <div className="space-y-8">
       {/* Recent Activity */}
       <div className="animate-fade-in">
-        <AdminRecentActivity blogPosts={blogPosts} />
+        <AdminRecentActivity blogPosts={stats.recentBlogPosts} />
       </div>
 
       {/* Enhanced Content Stats Grid */}
@@ -36,14 +40,7 @@ const EnhancedAdminDashboard = () => {
           <p className="text-gray-600">Manage all your content and view quick stats at a glance</p>
         </div>
         
-        <AdminContentStatsGrid 
-          properties={properties}
-          blogPosts={blogPosts}
-          pointsOfInterest={pointsOfInterest}
-          galleryItems={galleryItems}
-          testimonials={testimonials}
-          subscriberCount={subscriberCount}
-        />
+        <AdminContentStatsGrid stats={stats} />
       </div>
     </div>
   );
