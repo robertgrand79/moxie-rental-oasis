@@ -20,6 +20,7 @@ import {
   TestTube,
   AlertTriangle,
   MessageSquare,
+  ClipboardList,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -141,6 +142,12 @@ export const adminMenuItems = [
         href: '/admin/turno-problems',
         icon: AlertTriangle,
         description: 'Manage problems from Turno field service'
+      },
+      {
+        title: 'Checklists',
+        href: '/admin/checklists',
+        icon: ClipboardList,
+        description: 'Seasonal and periodic maintenance checklists'
       }
     ]
   },

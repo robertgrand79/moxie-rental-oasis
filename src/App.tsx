@@ -55,7 +55,7 @@ import AdminSystemAdministration from './pages/admin/AdminSystemAdministration';
 import AdminTurnoProblems from './pages/admin/AdminTurnoProblems';
 import AdminPriceLabs from './pages/admin/AdminPriceLabs';
 import GuestExperiencePage from './pages/admin/GuestExperiencePage';
-
+import AdminChecklists from './pages/admin/AdminChecklists';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -118,6 +118,7 @@ function App() {
                   <Route path="work-orders" element={<AdminWorkOrders />} />
                   <Route path="contractors" element={<AdminContractors />} />
                   <Route path="turno-problems" element={<AdminTurnoProblems />} />
+                  <Route path="checklists" element={<AdminChecklists />} />
                   <Route path="pricelabs" element={<AdminPriceLabs />} />
                   
                   <Route path="analytics" element={<AdminUnifiedAnalytics />} />
