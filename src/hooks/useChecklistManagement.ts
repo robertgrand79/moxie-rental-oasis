@@ -208,6 +208,28 @@ export const useChecklistManagement = () => {
     await fetchRuns();
   };
 
+  const createTemplate = async (name: string, type: string, description: string) => {
+    const { data, error } = await supabase
+      .from('maintenance_checklist_templates')
+      .insert({
+        name,
+        type,
+        description: description || null,
+        is_system_template: false,
+        created_by: (await supabase.auth.getUser()).data.user?.id,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to create checklist template', variant: 'destructive' });
+      return null;
+    }
+
+    toast({ title: 'Success', description: 'Checklist template created' });
+    return data;
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -224,6 +246,7 @@ export const useChecklistManagement = () => {
     startChecklist,
     toggleItemCompletion,
     deleteRun,
+    createTemplate,
     refreshData: () => Promise.all([fetchTemplates(), fetchRuns()]),
   };
 };
