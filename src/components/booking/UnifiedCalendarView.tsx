@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -62,7 +62,6 @@ export const UnifiedCalendarView: React.FC = () => {
   const [showPricing, setShowPricing] = useState(true);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const headerScrollRef = useRef<HTMLDivElement>(null);
 
   const { properties = [] } = useProperties();
   const queryClient = useQueryClient();
@@ -164,19 +163,6 @@ export const UnifiedCalendarView: React.FC = () => {
     return filtered;
   }, [properties, selectedProperties, propertySearch]);
 
-  // Sync scroll between header and content
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    const headerScroll = headerScrollRef.current;
-    if (!scrollContainer || !headerScroll) return;
-
-    const handleScroll = () => {
-      headerScroll.scrollLeft = scrollContainer.scrollLeft;
-    };
-
-    scrollContainer.addEventListener('scroll', handleScroll);
-    return () => scrollContainer.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const navigateDays = (direction: 'prev' | 'next') => {
     const offset = direction === 'next' ? 14 : -14;
@@ -308,60 +294,54 @@ export const UnifiedCalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="flex relative overflow-hidden">
-        {/* Property Column - Fixed */}
-        <div className="flex-shrink-0 w-64 border-r bg-background z-0">
-          {/* Property Header */}
-          <div className="h-16 border-b flex items-center px-3 bg-muted/30">
-            <span className="text-sm text-muted-foreground flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              Property name
-            </span>
-          </div>
-          
-          {/* Property Rows */}
-          {filteredProperties.map(property => (
-            <PropertyRowLabel key={property.id} property={property} />
-          ))}
-        </div>
-
-        {/* Scrollable Calendar Area */}
-        <div className="flex-1 overflow-hidden">
-          {/* Date Headers - Synced scroll */}
-          <div 
-            ref={headerScrollRef}
-            className="overflow-hidden border-b bg-muted/30"
-          >
-            <div className="flex" style={{ width: `${columns.length * 64}px` }}>
-              {columns.map((col) => (
-                <div 
-                  key={col.dateStr}
-                  className={cn(
-                    "w-16 flex-shrink-0 text-center py-2 border-r border-border/30",
-                    col.isToday && "bg-primary/10"
-                  )}
-                >
-                  {col.dayNumber === 1 && (
-                    <div className="text-xs text-muted-foreground -mt-1">{col.monthAbbr}</div>
-                  )}
-                  <div className={cn(
-                    "text-lg font-semibold",
-                    col.isToday && "text-primary"
-                  )}>
-                    {col.dayNumber}
-                  </div>
-                  <div className="text-xs text-muted-foreground">{col.dayOfWeek}</div>
-                </div>
-              ))}
+      {/* Calendar Grid - Horizontal scrollable container */}
+      <div className="overflow-x-auto" ref={scrollContainerRef}>
+        <div className="flex" style={{ minWidth: `${256 + columns.length * 64}px` }}>
+          {/* Property Column - Sticky left */}
+          <div className="sticky left-0 z-20 w-64 flex-shrink-0 border-r bg-background">
+            {/* Property Header */}
+            <div className="h-16 border-b flex items-center px-3 bg-muted/30">
+              <span className="text-sm text-muted-foreground flex items-center gap-2">
+                <Home className="h-4 w-4" />
+                Property name
+              </span>
             </div>
+            
+            {/* Property Rows */}
+            {filteredProperties.map(property => (
+              <PropertyRowLabel key={property.id} property={property} />
+            ))}
           </div>
 
-          {/* Calendar Rows */}
-          <div 
-            ref={scrollContainerRef}
-            className="overflow-x-auto"
-          >
+          {/* Calendar Area */}
+          <div className="flex-1">
+            {/* Date Headers */}
+            <div className="border-b bg-muted/30">
+              <div className="flex" style={{ width: `${columns.length * 64}px` }}>
+                {columns.map((col) => (
+                  <div 
+                    key={col.dateStr}
+                    className={cn(
+                      "w-16 flex-shrink-0 text-center py-2 border-r border-border/30",
+                      col.isToday && "bg-primary/10"
+                    )}
+                  >
+                    {col.dayNumber === 1 && (
+                      <div className="text-xs text-muted-foreground -mt-1">{col.monthAbbr}</div>
+                    )}
+                    <div className={cn(
+                      "text-lg font-semibold",
+                      col.isToday && "text-primary"
+                    )}>
+                      {col.dayNumber}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{col.dayOfWeek}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Calendar Rows */}
             <div style={{ width: `${columns.length * 64}px` }}>
               {filteredProperties.map(property => (
                 <PropertyRow 
