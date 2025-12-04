@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -22,11 +22,35 @@ interface ActiveChecklistsTabProps {
   templates: ChecklistTemplate[];
   onToggleItem: (completionId: string, isCompleted: boolean, runId: string) => Promise<void>;
   onDeleteRun: (runId: string) => Promise<void>;
+  initialSelectedRunId?: string | null;
+  onClearSelection?: () => void;
 }
 
-const ActiveChecklistsTab = ({ runs, templates, onToggleItem, onDeleteRun }: ActiveChecklistsTabProps) => {
+const ActiveChecklistsTab = ({ 
+  runs, 
+  templates, 
+  onToggleItem, 
+  onDeleteRun,
+  initialSelectedRunId,
+  onClearSelection
+}: ActiveChecklistsTabProps) => {
   const [selectedRun, setSelectedRun] = useState<ChecklistRun | null>(null);
   const [deleteConfirmRun, setDeleteConfirmRun] = useState<ChecklistRun | null>(null);
+
+  // Auto-select run when initialSelectedRunId is provided
+  useEffect(() => {
+    if (initialSelectedRunId) {
+      const run = runs.find(r => r.id === initialSelectedRunId);
+      if (run) {
+        setSelectedRun(run);
+      }
+    }
+  }, [initialSelectedRunId, runs]);
+
+  const handleBack = () => {
+    setSelectedRun(null);
+    onClearSelection?.();
+  };
 
   const getProgress = (run: ChecklistRun) => {
     const completions = run.completions || [];
@@ -64,7 +88,7 @@ const ActiveChecklistsTab = ({ runs, templates, onToggleItem, onDeleteRun }: Act
         run={selectedRun}
         template={template || null}
         onToggleItem={onToggleItem}
-        onBack={() => setSelectedRun(null)}
+        onBack={handleBack}
       />
     );
   }

@@ -9,7 +9,8 @@ import ChecklistHistoryTab from '@/components/admin/checklists/ChecklistHistoryT
 
 const AdminChecklists = () => {
   const [activeTab, setActiveTab] = useState('templates');
-  const { templates, runs, loading, startChecklist, toggleItemCompletion, deleteRun, refreshData } = useChecklistManagement();
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const { templates, runs, loading, startChecklist, toggleItemCompletion, deleteRun, createTemplate, refreshData } = useChecklistManagement();
 
   if (loading) {
     return <LoadingState variant="page" message="Loading checklists..." />;
@@ -18,6 +19,19 @@ const AdminChecklists = () => {
   const activeRuns = runs.filter((r) => r.status !== 'completed');
   const completedRuns = runs.filter((r) => r.status === 'completed');
 
+  const handleChecklistStarted = (runId: string) => {
+    setSelectedRunId(runId);
+    setActiveTab('active');
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    // Clear selection when manually changing tabs
+    if (tab !== 'active') {
+      setSelectedRunId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -25,7 +39,7 @@ const AdminChecklists = () => {
         <p className="text-muted-foreground">Manage seasonal and periodic maintenance checklists for your properties</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="templates" className="flex items-center gap-2">
             <ClipboardList className="h-4 w-4" />
@@ -42,7 +56,13 @@ const AdminChecklists = () => {
         </TabsList>
 
         <TabsContent value="templates" className="mt-6">
-          <ChecklistTemplatesTab templates={templates} onStartChecklist={startChecklist} />
+          <ChecklistTemplatesTab 
+            templates={templates} 
+            onStartChecklist={startChecklist}
+            onChecklistStarted={handleChecklistStarted}
+            onCreateTemplate={createTemplate}
+            onRefresh={refreshData}
+          />
         </TabsContent>
 
         <TabsContent value="active" className="mt-6">
@@ -51,6 +71,8 @@ const AdminChecklists = () => {
             templates={templates}
             onToggleItem={toggleItemCompletion} 
             onDeleteRun={deleteRun}
+            initialSelectedRunId={selectedRunId}
+            onClearSelection={() => setSelectedRunId(null)}
           />
         </TabsContent>
 
