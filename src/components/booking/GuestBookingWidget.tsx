@@ -140,7 +140,7 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
         booking_status: 'pending' as const,
         payment_status: 'pending' as const,
         special_requests: bookingForm.specialRequests,
-        created_by: user.id
+        source_platform: 'direct'
       };
 
       const reservation = await createReservationMutation.mutateAsync(reservationData);
