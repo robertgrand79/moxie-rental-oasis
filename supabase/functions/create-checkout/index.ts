@@ -120,8 +120,7 @@ serve(async (req) => {
       .from("property_reservations")
       .update({ 
         payment_status: "pending",
-        stripe_session_id: session.id,
-        stripe_account_id: stripeAccountId
+        stripe_session_id: session.id
       })
       .eq("id", reservationId);
 
