@@ -162,16 +162,17 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
         }
       });
 
-      if (checkoutError) throw checkoutError;
+      if (checkoutError) {
+        console.error('Checkout error:', checkoutError);
+        throw new Error(checkoutError.message || 'Failed to create checkout session');
+      }
 
       if (checkoutData?.url) {
+        // Redirect to Stripe - don't show confirmation until payment is complete
         window.location.href = checkoutData.url;
-      }
-      
-      setStep(4);
-      
-      if (onBookingComplete) {
-        onBookingComplete(reservation.id);
+        return; // Stop execution - user will return via success/cancel URLs
+      } else {
+        throw new Error('No checkout URL received from payment provider');
       }
     } catch (error: any) {
       console.error('Booking error:', error);
