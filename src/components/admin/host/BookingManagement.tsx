@@ -30,7 +30,7 @@ interface Reservation {
   created_at: string;
   properties: {
     title: string;
-    address: string;
+    location: string;
   };
   work_orders?: {
     id: string;
@@ -55,7 +55,7 @@ const BookingManagement = () => {
         .from('property_reservations')
         .select(`
           *,
-          properties:properties!inner(title, address),
+          properties:properties!inner(title, location),
           work_orders:work_orders(id, work_order_number, status)
         `)
         .order('check_in_date', { ascending: false });
@@ -74,7 +74,7 @@ const BookingManagement = () => {
       
       return data.map((item: any) => ({
         ...item,
-        properties: item.properties || { title: 'Unknown Property', address: '' },
+        properties: item.properties || { title: 'Unknown Property', location: '' },
         work_orders: item.work_orders || null
       })) as Reservation[];
     },
