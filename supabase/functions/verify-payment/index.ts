@@ -20,9 +20,6 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -31,6 +28,50 @@ serve(async (req) => {
 
     const { sessionId, reservationId } = await req.json();
     logStep("Request data received", { sessionId, reservationId });
+
+    // Fetch reservation to get property_id
+    const { data: reservation, error: reservationError } = await supabaseClient
+      .from("property_reservations")
+      .select("property_id")
+      .eq("id", reservationId)
+      .single();
+
+    if (reservationError || !reservation) {
+      logStep("Error fetching reservation", reservationError);
+      throw new Error("Reservation not found");
+    }
+
+    logStep("Reservation found", { propertyId: reservation.property_id });
+
+    // Get property-specific Stripe key
+    let stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    
+    const { data: property } = await supabaseClient
+      .from("properties")
+      .select("stripe_secret_key, organization_id")
+      .eq("id", reservation.property_id)
+      .single();
+
+    if (property?.stripe_secret_key) {
+      stripeKey = property.stripe_secret_key;
+      logStep("Using property-specific Stripe key");
+    } else if (property?.organization_id) {
+      // Try organization-level Stripe key
+      const { data: org } = await supabaseClient
+        .from("organizations")
+        .select("stripe_secret_key")
+        .eq("id", property.organization_id)
+        .single();
+      
+      if (org?.stripe_secret_key) {
+        stripeKey = org.stripe_secret_key;
+        logStep("Using organization-level Stripe key");
+      }
+    }
+
+    if (!stripeKey) {
+      throw new Error("No Stripe key configured for this property");
+    }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
