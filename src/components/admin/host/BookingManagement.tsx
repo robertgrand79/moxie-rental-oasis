@@ -32,11 +32,6 @@ interface Reservation {
     title: string;
     location: string;
   };
-  work_orders?: {
-    id: string;
-    work_order_number: string;
-    status: string;
-  };
 }
 
 const BookingManagement = () => {
@@ -55,8 +50,7 @@ const BookingManagement = () => {
         .from('property_reservations')
         .select(`
           *,
-          properties:properties!inner(title, location),
-          work_orders:work_orders(id, work_order_number, status)
+          properties:properties!inner(title, location)
         `)
         .order('check_in_date', { ascending: false });
 
@@ -74,8 +68,7 @@ const BookingManagement = () => {
       
       return data.map((item: any) => ({
         ...item,
-        properties: item.properties || { title: 'Unknown Property', location: '' },
-        work_orders: item.work_orders || null
+        properties: item.properties || { title: 'Unknown Property', location: '' }
       })) as Reservation[];
     },
   });
@@ -360,16 +353,6 @@ const BookingManagement = () => {
                     </div>
                   </div>
                   
-                  {reservation.work_orders && (
-                    <div className="mt-2 pt-2 border-t">
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">Work Order:</span>
-                        <Badge variant="outline">
-                          {reservation.work_orders.work_order_number} - {reservation.work_orders.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
