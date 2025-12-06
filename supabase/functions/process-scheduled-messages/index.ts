@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { generateBookingConfirmationEmail, generateGenericEmail } from "./emailTemplates.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,14 +38,16 @@ serve(async (req) => {
       .from("scheduled_messages")
       .select(`
         *,
-        message_templates(name, subject, content),
+        message_templates(name, subject, content, category),
         property_reservations(
+          id,
           guest_name,
           guest_email,
           guest_phone,
           check_in_date,
           check_out_date,
           guest_count,
+          total_amount,
           property_id,
           properties(title, location)
         ),
@@ -91,6 +94,14 @@ serve(async (req) => {
         const checkOut = new Date(reservation.check_out_date);
         const nightsCount = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
 
+        // Format total amount
+        const totalAmount = reservation.total_amount 
+          ? parseFloat(reservation.total_amount).toFixed(2) 
+          : "0.00";
+
+        // Generate confirmation code from reservation ID
+        const confirmationCode = reservation.id?.substring(0, 8).toUpperCase() || "N/A";
+
         // Build template variables
         const variables: Record<string, string> = {
           guest_name: reservation.guest_name || "Guest",
@@ -108,14 +119,29 @@ serve(async (req) => {
             month: "long",
             day: "numeric",
           }),
-          check_in_time: reservation.properties?.check_in_time || "4:00 PM",
-          check_out_time: reservation.properties?.check_out_time || "11:00 AM",
+          // Add aliases for backwards compatibility with existing templates
+          checkin_date: new Date(reservation.check_in_date).toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          checkout_date: new Date(reservation.check_out_date).toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          check_in_time: "4:00 PM",
+          check_out_time: "11:00 AM",
           nights_count: nightsCount.toString(),
           guest_count: reservation.guest_count?.toString() || "1",
+          total_amount: totalAmount,
+          confirmation_code: confirmationCode,
           wifi_network: "", // Could be fetched from property settings
           wifi_password: "", // Could be fetched from property settings
           door_code: "", // Could be fetched from reservation access codes
-          guidebook_link: `${Deno.env.get("SITE_URL") || supabaseUrl}/guest/guidebook/${reservation.property_id}`,
+          guidebook_link: `${Deno.env.get("SITE_URL") || "https://moxieproperties.com"}/guest/guidebook/${reservation.property_id}`,
         };
 
         // Process subject and content
@@ -130,18 +156,20 @@ serve(async (req) => {
         if ((deliveryChannel === "email" || deliveryChannel === "both") && reservation.guest_email) {
           if (resend) {
             try {
-              // Convert plain text to HTML with line breaks
-              const htmlContent = content.replace(/\n/g, "<br>");
+              // Use beautiful HTML template for booking confirmation emails
+              const isBookingConfirmation = template.category === "booking_confirmation" || 
+                template.name?.toLowerCase().includes("booking confirmation") ||
+                template.name?.toLowerCase().includes("reservation confirm");
+              
+              const htmlContent = isBookingConfirmation 
+                ? generateBookingConfirmationEmail(variables)
+                : generateGenericEmail(subject, content, variables);
               
               const emailResult = await resend.emails.send({
-                from: "Guest Communications <onboarding@resend.dev>",
+                from: "Moxie Properties <onboarding@resend.dev>",
                 to: [reservation.guest_email],
                 subject: subject,
-                html: `
-                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    ${htmlContent}
-                  </div>
-                `,
+                html: htmlContent,
               });
 
               console.log(`Email sent to ${reservation.guest_email}:`, emailResult);
