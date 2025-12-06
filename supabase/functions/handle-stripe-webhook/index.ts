@@ -115,9 +115,9 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Verify webhook signature
+    // Verify webhook signature (use async version for Deno compatibility)
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
       logStep("Signature verified");
     } catch (err) {
       logStep("Signature verification failed", { error: err.message });

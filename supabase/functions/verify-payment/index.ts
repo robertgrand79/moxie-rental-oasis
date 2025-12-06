@@ -110,8 +110,52 @@ serve(async (req) => {
 
     logStep("Reservation updated", { paymentStatus, bookingStatus });
 
-    // Schedule confirmation email if booking was confirmed
+    // If booking confirmed, create availability block (backup for webhook)
     if (bookingStatus === "confirmed") {
+      try {
+        // Fetch full reservation details
+        const { data: reservationFull } = await supabaseClient
+          .from("property_reservations")
+          .select("check_in_date, check_out_date, guest_name")
+          .eq("id", reservationId)
+          .single();
+
+        if (reservationFull) {
+          // Check if block already exists (webhook may have created it)
+          const { data: existingBlock } = await supabaseClient
+            .from("availability_blocks")
+            .select("id")
+            .eq("external_booking_id", reservationId)
+            .maybeSingle();
+
+          if (!existingBlock) {
+            const { error: blockError } = await supabaseClient
+              .from("availability_blocks")
+              .insert({
+                property_id: reservation.property_id,
+                start_date: reservationFull.check_in_date,
+                end_date: reservationFull.check_out_date,
+                block_type: 'booked',
+                source_platform: 'direct',
+                external_booking_id: reservationId,
+                notes: `Direct Booking - ${reservationFull.guest_name}`,
+                sync_status: 'synced'
+              });
+
+            if (blockError) {
+              logStep("Warning: Failed to create availability block", blockError);
+            } else {
+              logStep("Availability block created", { reservationId });
+            }
+          } else {
+            logStep("Availability block already exists", { reservationId });
+          }
+        }
+      } catch (blockErr) {
+        logStep("Warning: Error creating availability block", { error: String(blockErr) });
+      }
+
+      // Schedule confirmation email
       try {
         logStep("Scheduling confirmation messages for reservation", { reservationId });
         
@@ -153,7 +197,6 @@ serve(async (req) => {
           logStep("Messages processed", processResult);
         }
       } catch (emailError) {
-        // Don't fail the payment verification if email scheduling fails
         logStep("Warning: Error scheduling confirmation email", { error: String(emailError) });
       }
     }

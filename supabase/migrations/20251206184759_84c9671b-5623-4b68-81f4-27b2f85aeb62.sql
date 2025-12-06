@@ -1,0 +1,2 @@
+INSERT INTO availability_blocks (property_id, start_date, end_date, block_type, source_platform, external_booking_id, notes, sync_status)
+VALUES ('4fe1f5e4-d4fd-45aa-a802-84f1d939669c', '2026-01-20', '2026-01-22', 'booked', 'direct', '6e3eaeba-c64c-4a7b-b96f-5e8c3aeba8f9', 'Direct Booking - Robert Grand', 'synced');
