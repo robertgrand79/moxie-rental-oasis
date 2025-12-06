@@ -15,10 +15,19 @@ export interface DailyPriceDetail {
   source: string;
 }
 
+export interface CustomFeeDetail {
+  id: string;
+  name: string;
+  amount: number;
+  description?: string;
+}
+
 export interface BookingChargesBreakdown {
   accommodationSubtotal: number;
   cleaningFee: number;
   serviceFee: number;
+  customFees: CustomFeeDetail[];
+  totalCustomFees: number;
   taxes: TaxDetail[];
   totalBeforeTax: number;
   totalTax: number;
@@ -95,7 +104,50 @@ export async function calculateBookingCharges(
 
   const cleaningFee = property.cleaning_fee || 0;
   const serviceFee = accommodationSubtotal * ((property.service_fee_percentage || 0) / 100);
-  const totalBeforeTax = accommodationSubtotal + cleaningFee + serviceFee;
+
+  // Fetch custom fees for this property
+  const { data: customFeesData, error: customFeesError } = await supabase
+    .from('property_fees')
+    .select('*')
+    .eq('property_id', propertyId)
+    .eq('is_active', true);
+
+  if (customFeesError) {
+    console.error('Error fetching custom fees:', customFeesError);
+  }
+
+  // Calculate custom fees
+  const customFees: CustomFeeDetail[] = (customFeesData || []).map((fee: any) => {
+    let amount = 0;
+    
+    if (fee.fee_type === 'flat') {
+      switch (fee.fee_applies_to) {
+        case 'booking':
+          amount = fee.fee_amount;
+          break;
+        case 'per_night':
+          amount = fee.fee_amount * nights;
+          break;
+        case 'per_guest':
+          // For now, we don't have guest count in this function
+          // Default to 1 guest, can be enhanced later
+          amount = fee.fee_amount;
+          break;
+      }
+    } else if (fee.fee_type === 'percentage') {
+      amount = accommodationSubtotal * (fee.fee_amount / 100);
+    }
+
+    return {
+      id: fee.id,
+      name: fee.fee_name,
+      amount,
+      description: fee.description,
+    };
+  });
+
+  const totalCustomFees = customFees.reduce((sum, fee) => sum + fee.amount, 0);
+  const totalBeforeTax = accommodationSubtotal + cleaningFee + serviceFee + totalCustomFees;
 
   // Fetch applicable tax rates
   const { data: taxAssignments, error: taxError } = await supabase
@@ -137,6 +189,8 @@ export async function calculateBookingCharges(
     accommodationSubtotal,
     cleaningFee,
     serviceFee,
+    customFees,
+    totalCustomFees,
     taxes,
     totalBeforeTax,
     totalTax,

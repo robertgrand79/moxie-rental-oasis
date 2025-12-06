@@ -5,6 +5,13 @@ import { format, parseISO, differenceInDays } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 
+interface CustomFeeDetail {
+  id: string;
+  name: string;
+  amount: number;
+  description?: string;
+}
+
 interface ReviewStepProps {
   property: Property;
   checkInDate: string;
@@ -20,6 +27,8 @@ interface ReviewStepProps {
     accommodationSubtotal: number;
     cleaningFee: number;
     serviceFee: number;
+    customFees?: CustomFeeDetail[];
+    totalCustomFees?: number;
     subtotal: number;
     totalTax: number;
     grandTotal: number;
@@ -147,6 +156,12 @@ export const ReviewStep = ({
                   <span>${charges.serviceFee.toFixed(2)}</span>
                 </div>
               )}
+              {charges.customFees && charges.customFees.length > 0 && charges.customFees.map((fee) => (
+                <div key={fee.id} className="flex justify-between">
+                  <span className="text-muted-foreground">{fee.name}</span>
+                  <span>${fee.amount.toFixed(2)}</span>
+                </div>
+              ))}
               {charges.totalTax > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Taxes</span>

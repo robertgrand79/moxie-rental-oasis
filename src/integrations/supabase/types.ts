@@ -3199,6 +3199,56 @@ export type Database = {
           },
         ]
       }
+      property_fees: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          fee_amount: number
+          fee_applies_to: string
+          fee_name: string
+          fee_type: string
+          id: string
+          is_active: boolean | null
+          property_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          fee_amount: number
+          fee_applies_to?: string
+          fee_name: string
+          fee_type?: string
+          id?: string
+          is_active?: boolean | null
+          property_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          fee_amount?: number
+          fee_applies_to?: string
+          fee_name?: string
+          fee_type?: string
+          id?: string
+          is_active?: boolean | null
+          property_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_fees_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_guidebooks: {
         Row: {
           content: Json

@@ -55,6 +55,17 @@ const BookingChargesBreakdown = ({ charges, className }: BookingChargesBreakdown
           </div>
         )}
 
+        {/* Custom Fees */}
+        {charges.customFees && charges.customFees.length > 0 && charges.customFees.map((fee) => (
+          <div key={fee.id} className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Receipt className="h-4 w-4" />
+              <span>{fee.name}</span>
+            </div>
+            <span className="font-medium">{formatCurrency(fee.amount)}</span>
+          </div>
+        ))}
+
         <Separator />
 
         {/* Subtotal */}
