@@ -46,7 +46,7 @@ serve(async (req) => {
           check_out_date,
           guest_count,
           property_id,
-          properties(title, address, check_in_time, check_out_time)
+          properties(title, location)
         ),
         messaging_rules(delivery_channel)
       `)
@@ -95,7 +95,7 @@ serve(async (req) => {
         const variables: Record<string, string> = {
           guest_name: reservation.guest_name || "Guest",
           property_name: reservation.properties?.title || "Property",
-          property_address: reservation.properties?.address || "",
+          property_address: reservation.properties?.location || "",
           check_in_date: new Date(reservation.check_in_date).toLocaleDateString("en-US", {
             weekday: "long",
             year: "numeric",
