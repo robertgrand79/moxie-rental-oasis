@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Get availability blocks (bookings) for this property
+    // Get all availability blocks (contains both direct bookings and external calendar syncs)
     const { data: blocks, error: blocksError } = await supabase
       .from('availability_blocks')
       .select('*')
@@ -54,27 +54,12 @@ Deno.serve(async (req) => {
       console.error('Error fetching availability blocks:', blocksError)
     }
 
-    // Get direct bookings from reservations table
-    const { data: reservations, error: reservationsError } = await supabase
-      .from('reservations')
-      .select('*')
-      .eq('property_id', propertyId)
-      .in('booking_status', ['confirmed', 'active'])
-
-    if (reservationsError) {
-      console.error('Error fetching reservations:', reservationsError)
-    }
-
     const availabilityBlocks = blocks || []
-    const directBookings = reservations || []
 
-    console.log(`Found ${availabilityBlocks.length} availability blocks and ${directBookings.length} direct bookings`)
+    console.log(`Found ${availabilityBlocks.length} availability blocks for export`)
 
     // Generate iCal content
-    const icalContent = generateICalContent(property, availabilityBlocks, directBookings, propertyId)
-
-    const totalEvents = availabilityBlocks.length + directBookings.length
-    console.log(`Generated iCal with ${totalEvents} total events (${directBookings.length} direct + ${availabilityBlocks.length} external)`)
+    const icalContent = generateICalContent(property, availabilityBlocks, propertyId)
 
     return new Response(
       icalContent,
@@ -97,7 +82,7 @@ Deno.serve(async (req) => {
   }
 })
 
-function generateICalContent(property: any, blocks: any[], reservations: any[], propertyId: string): string {
+function generateICalContent(property: any, blocks: any[], propertyId: string): string {
   const now = new Date()
   const timestamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 
@@ -112,35 +97,14 @@ function generateICalContent(property: any, blocks: any[], reservations: any[], 
     'X-WR-TIMEZONE:America/Los_Angeles'
   ]
 
-  // Add availability blocks (external bookings)
+  // Add all availability blocks as events
   blocks.forEach((block) => {
     const startDate = formatDateForICal(block.start_date)
     const endDate = formatDateForICal(addDays(block.end_date, 1)) // End date is exclusive in iCal
     const uid = block.external_booking_id || `block-${block.id}-${propertyId}`
     const summary = block.notes || `Booked - ${property.title}`
-    const description = `Property: ${property.title}\\nLocation: ${property.location}\\nSource: ${block.source_platform || 'External Calendar'}`
-
-    ical.push(
-      'BEGIN:VEVENT',
-      `UID:${uid}`,
-      `DTSTAMP:${timestamp}`,
-      `DTSTART;VALUE=DATE:${startDate}`,
-      `DTEND;VALUE=DATE:${endDate}`,
-      `SUMMARY:${summary}`,
-      `DESCRIPTION:${description}`,
-      'STATUS:CONFIRMED',
-      'TRANSP:OPAQUE',
-      'END:VEVENT'
-    )
-  })
-
-  // Add direct bookings from reservations table
-  reservations.forEach((reservation) => {
-    const startDate = formatDateForICal(reservation.check_in_date)
-    const endDate = formatDateForICal(addDays(reservation.check_out_date, 1)) // End date is exclusive in iCal
-    const uid = reservation.external_booking_id || `reservation-${reservation.id}-${propertyId}`
-    const summary = `Booked - ${reservation.guest_name}`
-    const description = `Property: ${property.title}\\nGuest: ${reservation.guest_name}\\nEmail: ${reservation.guest_email}\\nGuests: ${reservation.guest_count}\\nSource: Direct Booking\\nConfirmation: ${reservation.confirmation_code}`
+    const source = block.source_platform || 'Unknown'
+    const description = `Property: ${property.title}\\nLocation: ${property.location}\\nSource: ${source}`
 
     ical.push(
       'BEGIN:VEVENT',
