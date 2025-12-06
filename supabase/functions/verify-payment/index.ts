@@ -110,6 +110,54 @@ serve(async (req) => {
 
     logStep("Reservation updated", { paymentStatus, bookingStatus });
 
+    // Schedule confirmation email if booking was confirmed
+    if (bookingStatus === "confirmed") {
+      try {
+        logStep("Scheduling confirmation messages for reservation", { reservationId });
+        
+        const scheduleResponse = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/schedule-reservation-messages`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            },
+            body: JSON.stringify({ reservation_id: reservationId }),
+          }
+        );
+
+        if (!scheduleResponse.ok) {
+          const errorText = await scheduleResponse.text();
+          logStep("Warning: Failed to schedule messages", { error: errorText });
+        } else {
+          const scheduleResult = await scheduleResponse.json();
+          logStep("Messages scheduled successfully", scheduleResult);
+        }
+
+        // Also trigger immediate processing of scheduled messages
+        const processResponse = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/process-scheduled-messages`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            },
+            body: JSON.stringify({}),
+          }
+        );
+
+        if (processResponse.ok) {
+          const processResult = await processResponse.json();
+          logStep("Messages processed", processResult);
+        }
+      } catch (emailError) {
+        // Don't fail the payment verification if email scheduling fails
+        logStep("Warning: Error scheduling confirmation email", { error: String(emailError) });
+      }
+    }
+
     return new Response(JSON.stringify({ 
       paymentStatus, 
       bookingStatus,
