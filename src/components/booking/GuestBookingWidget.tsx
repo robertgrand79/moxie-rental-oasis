@@ -117,17 +117,6 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
     if (!selectedDates || !charges) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to complete your booking",
-          variant: "destructive"
-        });
-        return;
-      }
-
       const reservationData = {
         property_id: property.id,
         guest_name: bookingForm.guestName,
