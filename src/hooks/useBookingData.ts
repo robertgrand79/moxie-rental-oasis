@@ -66,6 +66,38 @@ export const useUpdateReservation = () => {
   });
 };
 
+export const useDeleteReservation = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (reservationId: string) => {
+      // First delete associated availability block
+      const { error: blockError } = await supabase
+        .from('availability_blocks')
+        .delete()
+        .eq('external_booking_id', reservationId);
+      
+      if (blockError) {
+        console.error('Error deleting availability block:', blockError);
+      }
+      
+      // Then delete the reservation
+      const { error } = await supabase
+        .from('property_reservations')
+        .delete()
+        .eq('id', reservationId);
+      
+      if (error) throw error;
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['property-reservations'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings-management'] });
+      queryClient.invalidateQueries({ queryKey: ['availability'] });
+    }
+  });
+};
+
 // Dynamic Pricing
 export const useDynamicPricing = (propertyId: string, dateRange?: { start: string; end: string }) => {
   return useQuery({
