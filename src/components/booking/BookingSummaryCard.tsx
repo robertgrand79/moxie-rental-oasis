@@ -5,6 +5,13 @@ import { format, parseISO, differenceInDays } from 'date-fns';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
+interface CustomFeeDetail {
+  id: string;
+  name: string;
+  amount: number;
+  description?: string;
+}
+
 interface BookingSummaryCardProps {
   property: Property;
   checkInDate?: string;
@@ -14,6 +21,8 @@ interface BookingSummaryCardProps {
     accommodationSubtotal: number;
     cleaningFee: number;
     serviceFee: number;
+    customFees?: CustomFeeDetail[];
+    totalCustomFees?: number;
     subtotal: number;
     totalTax: number;
     grandTotal: number;
@@ -105,6 +114,13 @@ export const BookingSummaryCard = ({
                   <span className="font-medium">${charges.serviceFee.toFixed(2)}</span>
                 </div>
               )}
+
+              {charges.customFees && charges.customFees.length > 0 && charges.customFees.map((fee) => (
+                <div key={fee.id} className="flex justify-between">
+                  <span className="text-muted-foreground">{fee.name}</span>
+                  <span className="font-medium">${fee.amount.toFixed(2)}</span>
+                </div>
+              ))}
               
               {charges.totalTax > 0 && (
                 <div className="flex justify-between">

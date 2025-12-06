@@ -17,8 +17,8 @@ import { Loader2, FileText, Image, Calendar, Home, Wrench, DollarSign, CreditCar
 import BookingIntegrationManager from '@/components/admin/properties/BookingIntegrationManager';
 import TurnoPropertyMapping from './PropertyForm/TurnoPropertyMapping';
 import { SmartHomeManager } from '@/components/smart-home/SmartHomeManager';
-import { PropertyPriceLabsMapping } from './PropertyForm/PropertyPriceLabsMapping';
 import { PropertyStripeSettings } from './PropertyForm/PropertyStripeSettings';
+import { PropertyFeesManager } from './PropertyForm/PropertyFeesManager';
 
 const propertySchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -126,9 +126,9 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
                   <CreditCard className="h-4 w-4" />
                   Payments
                 </TabsTrigger>
-                <TabsTrigger value="pricelabs" className="flex items-center gap-2" disabled={!isEditing}>
+                <TabsTrigger value="fees" className="flex items-center gap-2" disabled={!isEditing}>
                   <DollarSign className="h-4 w-4" />
-                  PriceLabs
+                  Fees
                 </TabsTrigger>
                 <TabsTrigger value="smart-home" className="flex items-center gap-2" disabled={!isEditing}>
                   <Home className="h-4 w-4" />
@@ -169,8 +169,8 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
                     <PropertyStripeSettings property={initialData as Property} />
                   </TabsContent>
 
-                  <TabsContent value="pricelabs" className="space-y-6 mt-6">
-                    <PropertyPriceLabsMapping property={initialData as Property} />
+                  <TabsContent value="fees" className="space-y-6 mt-6">
+                    <PropertyFeesManager property={initialData as Property} />
                   </TabsContent>
 
                   <TabsContent value="smart-home" className="space-y-6 mt-6">

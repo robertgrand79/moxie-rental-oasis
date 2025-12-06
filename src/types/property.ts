@@ -8,6 +8,8 @@ export interface Property {
   bathrooms: number;
   max_guests: number;
   price_per_night?: number; // Made optional since we're removing pricing displays
+  cleaning_fee?: number;
+  service_fee_percentage?: number;
   image_url?: string;
   cover_image_url?: string; // New field for selected cover photo
   images?: string[];
