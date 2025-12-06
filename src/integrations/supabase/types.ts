@@ -4716,7 +4716,7 @@ export type Database = {
           completion_photos: string[] | null
           contractor_id: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string
           estimated_completion_date: string | null
           estimated_cost: number | null
@@ -4748,7 +4748,7 @@ export type Database = {
           completion_photos?: string[] | null
           contractor_id?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description: string
           estimated_completion_date?: string | null
           estimated_cost?: number | null
@@ -4780,7 +4780,7 @@ export type Database = {
           completion_photos?: string[] | null
           contractor_id?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string
           estimated_completion_date?: string | null
           estimated_cost?: number | null
