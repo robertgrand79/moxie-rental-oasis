@@ -108,7 +108,7 @@ serve(async (req) => {
             month: "long",
             day: "numeric",
           }),
-          check_in_time: reservation.properties?.check_in_time || "3:00 PM",
+          check_in_time: reservation.properties?.check_in_time || "4:00 PM",
           check_out_time: reservation.properties?.check_out_time || "11:00 AM",
           nights_count: nightsCount.toString(),
           guest_count: reservation.guest_count?.toString() || "1",
