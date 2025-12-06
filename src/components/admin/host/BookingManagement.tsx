@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { CalendarIcon, User, Mail, Phone, MapPin, DollarSign, MessageSquare } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { CalendarIcon, User, Mail, Phone, MapPin, DollarSign, MessageSquare, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-
+import { useDeleteReservation } from '@/hooks/useBookingData';
 interface Reservation {
   id: string;
   property_id: string;
@@ -44,6 +45,7 @@ const BookingManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const deleteReservation = useDeleteReservation();
 
   // Fetch reservations
   const { data: reservations = [], isLoading } = useQuery({
@@ -170,6 +172,24 @@ const BookingManagement = () => {
     
     return matchesSearch && matchesStatus;
   });
+
+  const handleDeleteReservation = (reservationId: string, guestName: string) => {
+    deleteReservation.mutate(reservationId, {
+      onSuccess: () => {
+        toast({
+          title: "Booking Deleted",
+          description: `Reservation for ${guestName} has been deleted and calendar dates unblocked.`,
+        });
+      },
+      onError: () => {
+        toast({
+          title: "Error",
+          description: "Failed to delete reservation",
+          variant: "destructive",
+        });
+      }
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -306,6 +326,37 @@ const BookingManagement = () => {
                           )}
                         </DialogContent>
                       </Dialog>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            disabled={deleteReservation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Booking</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete the reservation for {reservation.guest_name}? 
+                              This will also unblock the calendar dates ({format(new Date(reservation.check_in_date), 'MMM dd')} - {format(new Date(reservation.check_out_date), 'MMM dd')}).
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteReservation(reservation.id, reservation.guest_name)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                   

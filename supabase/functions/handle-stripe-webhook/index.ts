@@ -149,6 +149,38 @@ serve(async (req) => {
         }
 
         logStep("Reservation marked as paid", { reservationId });
+
+        // Get reservation details to create availability block
+        const { data: reservation, error: fetchError } = await supabaseClient
+          .from("property_reservations")
+          .select("check_in_date, check_out_date, guest_name")
+          .eq("id", reservationId)
+          .single();
+
+        if (fetchError) {
+          logStep("Error fetching reservation for availability block", fetchError);
+        } else if (reservation && propertyId) {
+          // Create availability block for direct booking
+          const { error: blockError } = await supabaseClient
+            .from("availability_blocks")
+            .insert({
+              property_id: propertyId,
+              start_date: reservation.check_in_date,
+              end_date: reservation.check_out_date,
+              block_type: 'booked',
+              source_platform: 'direct',
+              external_booking_id: reservationId,
+              notes: `Direct Booking - ${reservation.guest_name}`,
+              sync_status: 'synced'
+            });
+
+          if (blockError) {
+            logStep("Error creating availability block", blockError);
+          } else {
+            logStep("Availability block created", { reservationId, propertyId });
+          }
+        }
+
         break;
       }
 
