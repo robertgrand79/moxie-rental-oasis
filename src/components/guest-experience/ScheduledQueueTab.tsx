@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Clock, CheckCircle, XCircle, Send, Calendar, Play, RefreshCw, Ban, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import {
   Select,
   SelectContent,
@@ -68,33 +69,45 @@ const ScheduledQueueTab = () => {
   const [selectedReservation, setSelectedReservation] = useState<string>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Get organization-scoped property IDs
+  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
+  const orgPropertyIds = orgProperties.map(p => p.id);
 
   const { data: messages, isLoading, refetch } = useQuery({
-    queryKey: ['scheduled-messages'],
+    queryKey: ['scheduled-messages', orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+      
+      // Get scheduled messages for reservations belonging to org properties
       const { data, error } = await supabase
         .from('scheduled_messages')
         .select(`
           *,
           message_templates(name, subject),
-          property_reservations(guest_name, check_in_date)
+          property_reservations!inner(guest_name, check_in_date, property_id)
         `)
+        .in('property_reservations.property_id', orgPropertyIds)
         .order('scheduled_for', { ascending: true })
         .limit(50);
       
       if (error) throw error;
       return data as ScheduledMessage[];
     },
+    enabled: !propertiesLoading && orgPropertyIds.length > 0,
   });
 
-  // Fetch upcoming reservations for manual scheduling
+  // Fetch upcoming reservations for manual scheduling - filtered by organization
   const { data: reservations } = useQuery({
-    queryKey: ['upcoming-reservations'],
+    queryKey: ['upcoming-reservations', orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+      
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('property_reservations')
         .select('id, guest_name, check_in_date, properties(title)')
+        .in('property_id', orgPropertyIds)
         .gte('check_in_date', today)
         .order('check_in_date', { ascending: true })
         .limit(20);
@@ -102,6 +115,7 @@ const ScheduledQueueTab = () => {
       if (error) throw error;
       return data;
     },
+    enabled: !propertiesLoading && orgPropertyIds.length > 0,
   });
 
   // Process pending messages

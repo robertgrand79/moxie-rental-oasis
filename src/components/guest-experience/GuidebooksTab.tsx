@@ -1,16 +1,24 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Book, ExternalLink, Settings, MapPin, Phone, Wifi } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const GuidebooksTab = () => {
-  const { data: properties, isLoading } = useQuery({
-    queryKey: ['properties-guidebooks'],
+  // Use organization-scoped properties
+  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
+  const orgPropertyIds = orgProperties.map(p => p.id);
+  
+  // Fetch property access details for org properties
+  const { data: propertiesWithDetails, isLoading } = useQuery({
+    queryKey: ['properties-guidebooks', orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from('properties')
         .select(`
@@ -19,12 +27,16 @@ const GuidebooksTab = () => {
           location,
           property_access_details(check_in_instructions, wifi_name, door_code)
         `)
+        .in('id', orgPropertyIds)
         .order('title');
       
       if (error) throw error;
       return data;
     },
+    enabled: !propertiesLoading && orgPropertyIds.length > 0,
   });
+  
+  const properties = propertiesWithDetails;
 
   // Check if a property has guidebook content
   const hasGuidebook = (property: any) => {

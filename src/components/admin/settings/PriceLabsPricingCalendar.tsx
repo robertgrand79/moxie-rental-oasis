@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { invalidateAllPricingQueries } from '@/utils/pricingCacheUtils';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 
 interface Property {
   id: string;
@@ -42,6 +43,10 @@ export const PriceLabsPricingCalendar = () => {
   const [rangeEnd, setRangeEnd] = useState<string | null>(null);
   const [overridePrice, setOverridePrice] = useState<string>('');
   const queryClient = useQueryClient();
+  
+  // Get organization-scoped properties
+  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
+  const orgPropertyIds = orgProperties.map(p => p.id);
 
   // Get dates in selected range
   const getSelectedDates = (): string[] => {
@@ -66,19 +71,23 @@ export const PriceLabsPricingCalendar = () => {
   const selectedDates = getSelectedDates();
   const isDateInRange = (dateStr: string) => selectedDates.includes(dateStr);
 
-  // Fetch properties with PriceLabs mapping
+  // Fetch properties with PriceLabs mapping - filtered by organization
   const { data: properties } = useQuery({
-    queryKey: ['properties-with-pricelabs'],
+    queryKey: ['properties-with-pricelabs', orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from('properties')
         .select('id, title, pricelabs_listing_id')
+        .in('id', orgPropertyIds)
         .not('pricelabs_listing_id', 'is', null)
         .order('title');
       
       if (error) throw error;
       return data as Property[];
-    }
+    },
+    enabled: !propertiesLoading && orgPropertyIds.length > 0,
   });
 
   // Auto-select first property if none selected

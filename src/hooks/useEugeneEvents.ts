@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSync } from '@/hooks/useAutoSync';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export interface EugeneEvent {
   id: string;
@@ -31,10 +32,16 @@ export const useEugeneEvents = (timeFilter: string = 'all', categoryFilter: stri
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { triggerAutoSync } = useAutoSync({ enabled: true, debounceMs: 2000 });
+  
+  // Note: Eugene events are typically global/public content, but we track created_by user
+  // For multi-tenant, events could be filtered by organization if needed
+  const { organization } = useCurrentOrganization();
 
   const { data: allEvents = [], isLoading, error } = useQuery({
-    queryKey: ['eugene-events'],
+    queryKey: ['eugene-events', organization?.id],
     queryFn: async () => {
+      // Eugene events are public content - no organization filter needed
+      // They're shared across all tenants as local area information
       const { data, error } = await supabase
         .from('eugene_events')
         .select('*')

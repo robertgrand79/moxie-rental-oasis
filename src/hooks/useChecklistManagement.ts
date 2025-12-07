@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 
 export interface ChecklistTemplate {
   id: string;
@@ -61,11 +63,20 @@ export const useChecklistManagement = () => {
   const [runs, setRuns] = useState<ChecklistRun[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  
+  // Get organization context for multi-tenant filtering
+  const { organization } = useCurrentOrganization();
+  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
+  const orgPropertyIds = orgProperties.map(p => p.id);
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
+    if (!organization?.id) return;
+    
+    // Fetch templates that are system templates OR belong to this organization
     const { data, error } = await supabase
       .from('maintenance_checklist_templates')
       .select('*')
+      .or(`is_system_template.eq.true,organization_id.eq.${organization.id}`)
       .order('type', { ascending: true });
 
     if (error) {
@@ -86,9 +97,12 @@ export const useChecklistManagement = () => {
     );
 
     setTemplates(templatesWithItems as ChecklistTemplate[]);
-  };
+  }, [organization?.id]);
 
-  const fetchRuns = async () => {
+  const fetchRuns = useCallback(async () => {
+    if (orgPropertyIds.length === 0) return;
+    
+    // Filter runs by organization's properties
     const { data, error } = await supabase
       .from('property_checklist_runs')
       .select(`
@@ -96,6 +110,7 @@ export const useChecklistManagement = () => {
         template:maintenance_checklist_templates(*),
         property:properties(id, title)
       `)
+      .in('property_id', orgPropertyIds)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -115,7 +130,7 @@ export const useChecklistManagement = () => {
     );
 
     setRuns(runsWithCompletions as ChecklistRun[]);
-  };
+  }, [orgPropertyIds]);
 
   const startChecklist = async (templateId: string, propertyId: string, period: string, dueDate?: string) => {
     const { data: run, error: runError } = await supabase
@@ -386,12 +401,13 @@ export const useChecklistManagement = () => {
 
   useEffect(() => {
     const loadData = async () => {
+      if (!organization?.id || propertiesLoading) return;
       setLoading(true);
       await Promise.all([fetchTemplates(), fetchRuns()]);
       setLoading(false);
     };
     loadData();
-  }, []);
+  }, [organization?.id, propertiesLoading, fetchTemplates, fetchRuns]);
 
   return {
     templates,
