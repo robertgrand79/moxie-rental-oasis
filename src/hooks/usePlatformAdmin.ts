@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+export type TemplateType = 'single_property' | 'multi_property';
+
 export interface PlatformOrganization {
   id: string;
   name: string;
@@ -13,6 +15,7 @@ export interface PlatformOrganization {
   custom_domain: string | null;
   is_active: boolean;
   is_template: boolean;
+  template_type: TemplateType;
   onboarding_completed: boolean;
   onboarding_step: number;
   subscription_status: string;
@@ -146,10 +149,32 @@ export const usePlatformAdmin = () => {
     },
     onSuccess: (_, { isTemplate }) => {
       queryClient.invalidateQueries({ queryKey: ['platform-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['template-organizations'] });
       toast.success(`Organization ${isTemplate ? 'marked as template' : 'unmarked as template'}`);
     },
     onError: (error) => {
       toast.error('Failed to update template status');
+      console.error(error);
+    },
+  });
+
+  // Update organization template type
+  const updateTemplateType = useMutation({
+    mutationFn: async ({ orgId, templateType }: { orgId: string; templateType: TemplateType }) => {
+      const { error } = await supabase
+        .from('organizations')
+        .update({ template_type: templateType })
+        .eq('id', orgId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platform-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['template-organizations'] });
+      toast.success('Template type updated');
+    },
+    onError: (error) => {
+      toast.error('Failed to update template type');
       console.error(error);
     },
   });
@@ -189,7 +214,8 @@ export const usePlatformAdmin = () => {
     loadingStats,
     toggleOrgStatus: toggleOrgStatus.mutate,
     toggleTemplateStatus: toggleTemplateStatus.mutate,
+    updateTemplateType: updateTemplateType.mutate,
     deleteOrganization: deleteOrganization.mutate,
-    isUpdating: toggleOrgStatus.isPending || toggleTemplateStatus.isPending || deleteOrganization.isPending,
+    isUpdating: toggleOrgStatus.isPending || toggleTemplateStatus.isPending || updateTemplateType.isPending || deleteOrganization.isPending,
   };
 };

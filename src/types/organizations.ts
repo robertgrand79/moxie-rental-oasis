@@ -1,3 +1,5 @@
+export type TemplateType = 'single_property' | 'multi_property';
+
 export interface Organization {
   id: string;
   name: string;
@@ -7,6 +9,8 @@ export interface Organization {
   created_at: string;
   updated_at: string;
   is_active: boolean;
+  is_template: boolean;
+  template_type: TemplateType;
   stripe_secret_key: string | null;
   stripe_publishable_key: string | null;
   stripe_webhook_secret: string | null;

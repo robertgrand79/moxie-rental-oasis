@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
-import { usePlatformAdmin, PlatformOrganization } from '@/hooks/usePlatformAdmin';
+import { usePlatformAdmin, PlatformOrganization, TemplateType } from '@/hooks/usePlatformAdmin';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   Building2, 
   Users, 
@@ -21,7 +28,8 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Globe
+  Globe,
+  Building
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -46,6 +54,7 @@ const SuperAdminPanel = () => {
     loadingStats,
     toggleOrgStatus,
     toggleTemplateStatus,
+    updateTemplateType,
     deleteOrganization,
     isUpdating
   } = usePlatformAdmin();
@@ -117,10 +126,17 @@ const SuperAdminPanel = () => {
           )}
         </div>
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold">{org.name}</h3>
             {org.is_template && (
-              <Badge variant="secondary">Template</Badge>
+              <Badge variant="secondary" className="flex items-center gap-1">
+                {org.template_type === 'single_property' ? (
+                  <Home className="h-3 w-3" />
+                ) : (
+                  <Building className="h-3 w-3" />
+                )}
+                {org.template_type === 'single_property' ? 'Single' : 'Multi'} Template
+              </Badge>
             )}
             {!org.is_active && (
               <Badge variant="destructive">Inactive</Badge>
@@ -165,7 +181,7 @@ const SuperAdminPanel = () => {
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">Active</label>
             <Switch
@@ -183,6 +199,33 @@ const SuperAdminPanel = () => {
               disabled={isUpdating}
             />
           </div>
+
+          {org.is_template && (
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-muted-foreground">Type</label>
+              <Select
+                value={org.template_type}
+                onValueChange={(value: TemplateType) => updateTemplateType({ orgId: org.id, templateType: value })}
+                disabled={isUpdating}
+              >
+                <SelectTrigger className="h-8 w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="single_property">
+                    <span className="flex items-center gap-1">
+                      <Home className="h-3 w-3" /> Single
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="multi_property">
+                    <span className="flex items-center gap-1">
+                      <Building className="h-3 w-3" /> Multi
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           
           <AlertDialog>
             <AlertDialogTrigger asChild>
