@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,10 +16,44 @@ interface Props {
 const OnboardingBrandingStep = ({ onComplete, isCompleting }: Props) => {
   const { organization } = useCurrentOrganization();
   const { toast } = useToast();
-  const [siteName, setSiteName] = useState(organization?.name || '');
+  const [siteName, setSiteName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Load existing settings on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!organization) return;
+      
+      try {
+        // Load from site_settings
+        const { data: settings } = await supabase
+          .from('site_settings')
+          .select('key, value')
+          .eq('organization_id', organization.id)
+          .in('key', ['site_name', 'logo_url']);
+
+        const settingsMap = settings?.reduce((acc, s) => {
+          acc[s.key] = s.value;
+          return acc;
+        }, {} as Record<string, any>) || {};
+
+        setSiteName(settingsMap.site_name || organization.name || '');
+        setLogoUrl(settingsMap.logo_url || organization.logo_url || '');
+      } catch (error) {
+        console.error('Error loading settings:', error);
+        // Fallback to organization data
+        setSiteName(organization.name || '');
+        setLogoUrl(organization.logo_url || '');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, [organization]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!organization || acceptedFiles.length === 0) return;
@@ -120,6 +154,14 @@ const OnboardingBrandingStep = ({ onComplete, isCompleting }: Props) => {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
