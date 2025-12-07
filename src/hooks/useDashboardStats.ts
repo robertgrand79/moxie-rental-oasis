@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface DashboardStats {
   properties: { total: number };
@@ -17,10 +18,34 @@ interface DashboardStats {
 }
 
 export const useDashboardStats = () => {
+  const { organization } = useCurrentOrganization();
+  const organizationId = organization?.id;
+
   return useQuery({
-    queryKey: ['dashboard-stats'],
+    queryKey: ['dashboard-stats', organizationId],
     queryFn: async (): Promise<DashboardStats> => {
-      // Run all COUNT queries in parallel - much more efficient than fetching full tables
+      if (!organizationId) {
+        // Return empty stats if no organization
+        return {
+          properties: { total: 0 },
+          blogPosts: { total: 0, published: 0 },
+          pointsOfInterest: { total: 0, featured: 0 },
+          galleryItems: { total: 0, featured: 0 },
+          testimonials: { total: 0, featured: 0 },
+          subscriberCount: 0,
+          recentBlogPosts: []
+        };
+      }
+
+      // First get properties for this organization to filter testimonials
+      const { data: orgProperties } = await supabase
+        .from('properties')
+        .select('id')
+        .eq('organization_id', organizationId);
+      
+      const propertyIds = orgProperties?.map(p => p.id) || [];
+
+      // Run all COUNT queries in parallel - filtered by organization_id where available
       const [
         propertiesCount,
         blogPostsTotal,
@@ -34,28 +59,70 @@ export const useDashboardStats = () => {
         subscribersCount,
         recentPosts
       ] = await Promise.all([
-        // Properties count
-        supabase.from('properties').select('*', { count: 'exact', head: true }),
-        // Blog posts total
-        supabase.from('blog_posts').select('*', { count: 'exact', head: true }),
-        // Blog posts published
-        supabase.from('blog_posts').select('*', { count: 'exact', head: true }).eq('status', 'published'),
-        // Points of interest total
-        supabase.from('points_of_interest').select('*', { count: 'exact', head: true }),
-        // Points of interest featured
-        supabase.from('points_of_interest').select('*', { count: 'exact', head: true }).eq('is_featured', true),
-        // Gallery items total
-        supabase.from('lifestyle_gallery').select('*', { count: 'exact', head: true }),
-        // Gallery items featured
-        supabase.from('lifestyle_gallery').select('*', { count: 'exact', head: true }).eq('is_featured', true),
-        // Testimonials total
-        supabase.from('testimonials').select('*', { count: 'exact', head: true }),
-        // Testimonials featured
-        supabase.from('testimonials').select('*', { count: 'exact', head: true }).eq('is_featured', true),
-        // Newsletter subscribers
-        supabase.from('newsletter_subscribers').select('*', { count: 'exact', head: true }).eq('is_active', true).eq('email_opt_in', true),
-        // Recent blog posts (only fetch 5 with minimal fields)
-        supabase.from('blog_posts').select('id, title, status, created_at').order('created_at', { ascending: false }).limit(5)
+        // Properties count - filtered by organization
+        supabase
+          .from('properties')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organizationId),
+        // Blog posts total - filtered by organization
+        supabase
+          .from('blog_posts')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organizationId),
+        // Blog posts published - filtered by organization
+        supabase
+          .from('blog_posts')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organizationId)
+          .eq('status', 'published'),
+        // Points of interest total - no org filter (global content)
+        supabase
+          .from('points_of_interest')
+          .select('*', { count: 'exact', head: true }),
+        // Points of interest featured - no org filter (global content)
+        supabase
+          .from('points_of_interest')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_featured', true),
+        // Gallery items total - filtered by organization
+        supabase
+          .from('lifestyle_gallery')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organizationId),
+        // Gallery items featured - filtered by organization
+        supabase
+          .from('lifestyle_gallery')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organizationId)
+          .eq('is_featured', true),
+        // Testimonials total - filter by property_id (linked to org properties)
+        propertyIds.length > 0
+          ? supabase
+              .from('testimonials')
+              .select('*', { count: 'exact', head: true })
+              .in('property_id', propertyIds)
+          : Promise.resolve({ count: 0 }),
+        // Testimonials featured - filter by property_id
+        propertyIds.length > 0
+          ? supabase
+              .from('testimonials')
+              .select('*', { count: 'exact', head: true })
+              .in('property_id', propertyIds)
+              .eq('is_featured', true)
+          : Promise.resolve({ count: 0 }),
+        // Newsletter subscribers - global for now
+        supabase
+          .from('newsletter_subscribers')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true)
+          .eq('email_opt_in', true),
+        // Recent blog posts - filtered by organization
+        supabase
+          .from('blog_posts')
+          .select('id, title, status, created_at')
+          .eq('organization_id', organizationId)
+          .order('created_at', { ascending: false })
+          .limit(5)
       ]);
 
       return {
@@ -80,6 +147,7 @@ export const useDashboardStats = () => {
         recentBlogPosts: recentPosts.data || []
       };
     },
+    enabled: !!organizationId, // Only run query when we have an organization
     staleTime: 30000, // Cache for 30 seconds
     gcTime: 60000, // Keep in cache for 1 minute
   });

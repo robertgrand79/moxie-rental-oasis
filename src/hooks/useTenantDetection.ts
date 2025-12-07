@@ -31,8 +31,18 @@ export const useTenantDetection = (): TenantDetectionResult => {
   const [error, setError] = useState<string | null>(null);
   const [isDefaultTenant, setIsDefaultTenant] = useState(false);
 
+  // Check if we're on an admin route - admin routes should use OrganizationContext instead
+  const isAdminRoute = useMemo(() => {
+    return window.location.pathname.startsWith('/admin');
+  }, []);
+
   // Detect tenant identifier from URL
   const detectedIdentifier = useMemo(() => {
+    // On admin routes, don't detect tenant from URL - let OrganizationContext handle it
+    if (isAdminRoute) {
+      return null;
+    }
+
     const hostname = window.location.hostname;
     
     // Check if it's a custom domain (not lovable.app or localhost)
@@ -58,7 +68,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
     
     // No specific tenant detected - will use default
     return null;
-  }, []);
+  }, [isAdminRoute]);
 
   useEffect(() => {
     const fetchTenant = async () => {
@@ -87,7 +97,15 @@ export const useTenantDetection = (): TenantDetectionResult => {
           }
         }
 
-        // Fallback: Get the default/first active organization
+        // On admin routes, don't fallback to any organization - let OrganizationContext handle it
+        if (isAdminRoute) {
+          setTenant(null);
+          setIsDefaultTenant(false);
+          setLoading(false);
+          return;
+        }
+
+        // Fallback for public routes: Get the default/first active organization
         const { data: defaultOrg, error: defaultError } = await supabase
           .from('organizations')
           .select('id, name, slug, logo_url, website, custom_domain, is_active')
@@ -115,7 +133,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
     };
 
     fetchTenant();
-  }, [detectedIdentifier]);
+  }, [detectedIdentifier, isAdminRoute]);
 
   return {
     tenant,
