@@ -17,6 +17,24 @@ function processTemplate(template: string, variables: Record<string, string>): s
   return processed;
 }
 
+// Helper function to get API keys for an organization
+async function getOrgApiKeys(supabase: any, organizationId: string): Promise<{ resendApiKey: string | null; openPhoneApiKey: string | null }> {
+  if (!organizationId) {
+    return { resendApiKey: null, openPhoneApiKey: null };
+  }
+
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('resend_api_key, openphone_api_key')
+    .eq('id', organizationId)
+    .single();
+
+  return {
+    resendApiKey: org?.resend_api_key || null,
+    openPhoneApiKey: org?.openphone_api_key || null,
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -25,10 +43,8 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
     
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
     console.log("Processing scheduled messages...");
 
@@ -66,7 +82,7 @@ serve(async (req) => {
           guest_count,
           total_amount,
           property_id,
-          properties(title, location)
+          properties(title, location, organization_id)
         ),
         messaging_rules(delivery_channel)
       `)
@@ -90,6 +106,9 @@ serve(async (req) => {
 
     const results = { sent: 0, failed: 0, errors: [] as string[] };
 
+    // Cache for org API keys to avoid repeated lookups
+    const orgApiKeysCache: Map<string, { resendApiKey: string | null; openPhoneApiKey: string | null }> = new Map();
+
     for (const message of pendingMessages) {
       try {
         const reservation = message.property_reservations;
@@ -105,6 +124,20 @@ serve(async (req) => {
           results.failed++;
           continue;
         }
+
+        // Get organization-level API keys (with caching)
+        const organizationId = reservation.properties?.organization_id;
+        let orgApiKeys = orgApiKeysCache.get(organizationId);
+        if (!orgApiKeys && organizationId) {
+          orgApiKeys = await getOrgApiKeys(supabase, organizationId);
+          orgApiKeysCache.set(organizationId, orgApiKeys);
+        }
+
+        // Determine which API keys to use (org-level or global fallback)
+        const resendApiKey = orgApiKeys?.resendApiKey || Deno.env.get("RESEND_API_KEY");
+        const openPhoneApiKey = orgApiKeys?.openPhoneApiKey || Deno.env.get("OPENPHONE_API_KEY");
+        
+        const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
         // Calculate nights count
         const checkIn = new Date(reservation.check_in_date);
@@ -204,55 +237,54 @@ serve(async (req) => {
           }
         }
 
-// Send SMS via OpenPhone
-if ((deliveryChannel === "sms" || deliveryChannel === "both") && reservation.guest_phone) {
-  const openPhoneApiKey = Deno.env.get("OPENPHONE_API_KEY");
-  if (openPhoneApiKey) {
-    try {
-      // Format phone number (ensure it has country code)
-      let phoneNumber = reservation.guest_phone.replace(/\D/g, "");
-      if (phoneNumber.length === 10) {
-        phoneNumber = "1" + phoneNumber; // Add US country code
-      }
-      if (!phoneNumber.startsWith("+")) {
-        phoneNumber = "+" + phoneNumber;
-      }
+        // Send SMS via OpenPhone
+        if ((deliveryChannel === "sms" || deliveryChannel === "both") && reservation.guest_phone) {
+          if (openPhoneApiKey) {
+            try {
+              // Format phone number (ensure it has country code)
+              let phoneNumber = reservation.guest_phone.replace(/\D/g, "");
+              if (phoneNumber.length === 10) {
+                phoneNumber = "1" + phoneNumber; // Add US country code
+              }
+              if (!phoneNumber.startsWith("+")) {
+                phoneNumber = "+" + phoneNumber;
+              }
 
-      const smsResponse = await fetch("https://api.openphone.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Authorization": openPhoneApiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content: content.substring(0, 1600), // OpenPhone SMS limit
-          to: [phoneNumber],
-        }),
-      });
+              const smsResponse = await fetch("https://api.openphone.com/v1/messages", {
+                method: "POST",
+                headers: {
+                  "Authorization": openPhoneApiKey,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  content: content.substring(0, 1600), // OpenPhone SMS limit
+                  to: [phoneNumber],
+                }),
+              });
 
-      if (smsResponse.ok) {
-        console.log(`SMS sent to ${reservation.guest_phone}`);
-        sent = true;
-      } else {
-        const smsError = await smsResponse.text();
-        console.error(`SMS send error:`, smsError);
-        if (!sent) {
-          errorMessage = `SMS failed: ${smsError}`;
+              if (smsResponse.ok) {
+                console.log(`SMS sent to ${reservation.guest_phone}`);
+                sent = true;
+              } else {
+                const smsError = await smsResponse.text();
+                console.error(`SMS send error:`, smsError);
+                if (!sent) {
+                  errorMessage = `SMS failed: ${smsError}`;
+                }
+              }
+            } catch (smsError) {
+              console.error(`SMS send error:`, smsError);
+              if (!sent) {
+                errorMessage = `SMS failed: ${smsError.message}`;
+              }
+            }
+          } else {
+            console.log(`[SMS DRY RUN] Would send to ${reservation.guest_phone}: ${content.substring(0, 160)}`);
+            if (!sent) {
+              sent = true; // Mark as sent in dry run mode
+            }
+          }
         }
-      }
-    } catch (smsError) {
-      console.error(`SMS send error:`, smsError);
-      if (!sent) {
-        errorMessage = `SMS failed: ${smsError.message}`;
-      }
-    }
-  } else {
-    console.log(`[SMS DRY RUN] Would send to ${reservation.guest_phone}: ${content.substring(0, 160)}`);
-    if (!sent) {
-      sent = true; // Mark as sent in dry run mode
-    }
-  }
-}
 
         // Update message status
         await supabase

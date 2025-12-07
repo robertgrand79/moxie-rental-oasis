@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { propertyId, airbnbUrl } = await req.json();
+    const { propertyId, airbnbUrl, organizationId } = await req.json();
 
     if (!propertyId && !airbnbUrl) {
       return new Response(
@@ -23,25 +23,18 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const apifyApiKey = Deno.env.get('APIFY_API_KEY');
-
-    if (!apifyApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'APIFY_API_KEY not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get property details if only propertyId provided
     let listingUrl = airbnbUrl;
     let targetPropertyId = propertyId;
+    let effectiveOrgId = organizationId;
 
     if (propertyId && !airbnbUrl) {
       const { data: property, error: propError } = await supabase
         .from('properties')
-        .select('id, airbnb_listing_url')
+        .select('id, airbnb_listing_url, organization_id')
         .eq('id', propertyId)
         .single();
 
@@ -53,6 +46,37 @@ serve(async (req) => {
       }
 
       listingUrl = property.airbnb_listing_url;
+      effectiveOrgId = effectiveOrgId || property.organization_id;
+    }
+
+    // Get Apify API key - check organization first, then fall back to global secret
+    let apifyApiKey: string | null = null;
+
+    if (effectiveOrgId) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('apify_api_key')
+        .eq('id', effectiveOrgId)
+        .single();
+      apifyApiKey = org?.apify_api_key;
+      if (apifyApiKey) {
+        console.log('Using organization-level Apify API key');
+      }
+    }
+
+    // Fall back to global secret if no org key
+    if (!apifyApiKey) {
+      apifyApiKey = Deno.env.get('APIFY_API_KEY');
+      if (apifyApiKey) {
+        console.log('Using global Apify API key');
+      }
+    }
+
+    if (!apifyApiKey) {
+      return new Response(
+        JSON.stringify({ error: 'APIFY_API_KEY not configured for this organization' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Validate that we have a targetPropertyId - critical for proper data association

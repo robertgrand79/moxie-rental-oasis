@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Users, CreditCard, DollarSign, Building2, Shield, Crown, UserCog } from 'lucide-react';
+import { Settings, Users, CreditCard, DollarSign, Building2, Shield, Crown, UserCog, MessageSquare, Lock, Plug, CheckCircle2, AlertCircle } from 'lucide-react';
 import { PriceLabsSettings } from '@/components/admin/settings/PriceLabsSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -25,6 +25,18 @@ const AdminOrganization = () => {
     stripe_publishable_key: '',
     stripe_webhook_secret: '',
     pricelabs_api_key: '',
+    // Communications
+    openphone_api_key: '',
+    resend_api_key: '',
+    // Smart Home
+    seam_api_key: '',
+    seam_webhook_secret: '',
+    // Integrations
+    turno_api_token: '',
+    turno_api_secret: '',
+    turno_partner_id: '',
+    apify_api_key: '',
+    openweather_api_key: '',
   });
 
   // Initialize form data when organization loads
@@ -38,6 +50,15 @@ const AdminOrganization = () => {
         stripe_publishable_key: '',
         stripe_webhook_secret: '',
         pricelabs_api_key: '',
+        openphone_api_key: '',
+        resend_api_key: '',
+        seam_api_key: '',
+        seam_webhook_secret: '',
+        turno_api_token: '',
+        turno_api_secret: '',
+        turno_partner_id: '',
+        apify_api_key: '',
+        openweather_api_key: '',
       });
     }
   }, [organization]);
@@ -97,6 +118,42 @@ const AdminOrganization = () => {
     refetch();
   };
 
+  const handleUpdateCommunications = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!organization) return;
+
+    await updateOrganization(organization.id, {
+      openphone_api_key: formData.openphone_api_key || undefined,
+      resend_api_key: formData.resend_api_key || undefined,
+    });
+    refetch();
+  };
+
+  const handleUpdateSmartHome = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!organization) return;
+
+    await updateOrganization(organization.id, {
+      seam_api_key: formData.seam_api_key || undefined,
+      seam_webhook_secret: formData.seam_webhook_secret || undefined,
+    });
+    refetch();
+  };
+
+  const handleUpdateIntegrations = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!organization) return;
+
+    await updateOrganization(organization.id, {
+      turno_api_token: formData.turno_api_token || undefined,
+      turno_api_secret: formData.turno_api_secret || undefined,
+      turno_partner_id: formData.turno_partner_id || undefined,
+      apify_api_key: formData.apify_api_key || undefined,
+      openweather_api_key: formData.openweather_api_key || undefined,
+    });
+    refetch();
+  };
+
   const getRoleBadge = (role: string) => {
     const variants: Record<string, { variant: 'default' | 'secondary' | 'outline'; icon: React.ReactNode }> = {
       owner: { variant: 'default', icon: <Crown className="h-3 w-3 mr-1" /> },
@@ -111,6 +168,22 @@ const AdminOrganization = () => {
       </Badge>
     );
   };
+
+  const ConfigStatus = ({ configured }: { configured: boolean }) => (
+    <span className={`flex items-center gap-1 text-sm ${configured ? 'text-green-600' : 'text-muted-foreground'}`}>
+      {configured ? (
+        <>
+          <CheckCircle2 className="h-4 w-4" />
+          Configured
+        </>
+      ) : (
+        <>
+          <AlertCircle className="h-4 w-4" />
+          Not configured
+        </>
+      )}
+    </span>
+  );
 
   if (loading) {
     return (
@@ -140,6 +213,19 @@ const AdminOrganization = () => {
     );
   }
 
+  // Type assertion to access new fields
+  const org = organization as typeof organization & {
+    openphone_api_key?: string;
+    resend_api_key?: string;
+    seam_api_key?: string;
+    seam_webhook_secret?: string;
+    turno_api_token?: string;
+    turno_api_secret?: string;
+    turno_partner_id?: string;
+    apify_api_key?: string;
+    openweather_api_key?: string;
+  };
+
   return (
     <AdminPageWrapper 
       title="Organization Settings" 
@@ -165,7 +251,7 @@ const AdminOrganization = () => {
         </div>
 
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               General
@@ -177,6 +263,18 @@ const AdminOrganization = () => {
             <TabsTrigger value="pricelabs" className="flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
               PriceLabs
+            </TabsTrigger>
+            <TabsTrigger value="communications" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Communications
+            </TabsTrigger>
+            <TabsTrigger value="smarthome" className="flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Smart Home
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <Plug className="h-4 w-4" />
+              Integrations
             </TabsTrigger>
             <TabsTrigger value="members" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -254,9 +352,9 @@ const AdminOrganization = () => {
                       onChange={(e) => setFormData({ ...formData, stripe_secret_key: e.target.value })}
                       disabled={!isOrgAdmin()}
                     />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {organization.stripe_secret_key ? '✓ Already configured' : 'Not configured'}
-                    </p>
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!organization.stripe_secret_key} />
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="stripe_publishable_key">Stripe Publishable Key</Label>
@@ -309,9 +407,9 @@ const AdminOrganization = () => {
                       onChange={(e) => setFormData({ ...formData, pricelabs_api_key: e.target.value })}
                       disabled={!isOrgAdmin()}
                     />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {organization.pricelabs_api_key ? '✓ Already configured' : 'Not configured - using global key if available'}
-                    </p>
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!organization.pricelabs_api_key} />
+                    </div>
                   </div>
                   {isOrgAdmin() && (
                     <Button type="submit" disabled={updating}>
@@ -323,6 +421,230 @@ const AdminOrganization = () => {
             </Card>
             
             <PriceLabsSettings />
+          </TabsContent>
+
+          <TabsContent value="communications" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Communications Settings</CardTitle>
+                <CardDescription>
+                  Configure SMS (OpenPhone) and Email (Resend) API keys for guest messaging.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleUpdateCommunications} className="space-y-4">
+                  <div>
+                    <Label htmlFor="openphone_api_key">OpenPhone API Key</Label>
+                    <Input
+                      id="openphone_api_key"
+                      type="password"
+                      placeholder="Enter your OpenPhone API key"
+                      value={formData.openphone_api_key}
+                      onChange={(e) => setFormData({ ...formData, openphone_api_key: e.target.value })}
+                      disabled={!isOrgAdmin()}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!org.openphone_api_key} />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Used for sending SMS messages to guests
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="resend_api_key">Resend API Key</Label>
+                    <Input
+                      id="resend_api_key"
+                      type="password"
+                      placeholder="re_..."
+                      value={formData.resend_api_key}
+                      onChange={(e) => setFormData({ ...formData, resend_api_key: e.target.value })}
+                      disabled={!isOrgAdmin()}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!org.resend_api_key} />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Used for sending transactional emails to guests
+                    </p>
+                  </div>
+                  {isOrgAdmin() && (
+                    <Button type="submit" disabled={updating}>
+                      {updating ? 'Saving...' : 'Update Communications Settings'}
+                    </Button>
+                  )}
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="smarthome" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Smart Home Settings (SEAM)</CardTitle>
+                <CardDescription>
+                  Configure SEAM API for smart lock access codes and device management.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleUpdateSmartHome} className="space-y-4">
+                  <div>
+                    <Label htmlFor="seam_api_key">SEAM API Key</Label>
+                    <Input
+                      id="seam_api_key"
+                      type="password"
+                      placeholder="seam_..."
+                      value={formData.seam_api_key}
+                      onChange={(e) => setFormData({ ...formData, seam_api_key: e.target.value })}
+                      disabled={!isOrgAdmin()}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!org.seam_api_key} />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Used for managing smart locks and generating guest access codes
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="seam_webhook_secret">SEAM Webhook Secret</Label>
+                    <Input
+                      id="seam_webhook_secret"
+                      type="password"
+                      placeholder="Enter your SEAM webhook secret"
+                      value={formData.seam_webhook_secret}
+                      onChange={(e) => setFormData({ ...formData, seam_webhook_secret: e.target.value })}
+                      disabled={!isOrgAdmin()}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!org.seam_webhook_secret} />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Used for verifying webhook callbacks from SEAM
+                    </p>
+                  </div>
+                  {isOrgAdmin() && (
+                    <Button type="submit" disabled={updating}>
+                      {updating ? 'Saving...' : 'Update Smart Home Settings'}
+                    </Button>
+                  )}
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="integrations" className="mt-6 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Turno (Cleaning Service)</CardTitle>
+                <CardDescription>
+                  Configure Turno API for automated cleaning scheduling.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleUpdateIntegrations} className="space-y-4">
+                  <div>
+                    <Label htmlFor="turno_api_token">Turno API Token</Label>
+                    <Input
+                      id="turno_api_token"
+                      type="password"
+                      placeholder="Enter your Turno API token"
+                      value={formData.turno_api_token}
+                      onChange={(e) => setFormData({ ...formData, turno_api_token: e.target.value })}
+                      disabled={!isOrgAdmin()}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!org.turno_api_token} />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="turno_api_secret">Turno API Secret</Label>
+                    <Input
+                      id="turno_api_secret"
+                      type="password"
+                      placeholder="Enter your Turno API secret"
+                      value={formData.turno_api_secret}
+                      onChange={(e) => setFormData({ ...formData, turno_api_secret: e.target.value })}
+                      disabled={!isOrgAdmin()}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!org.turno_api_secret} />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="turno_partner_id">Turno Partner ID</Label>
+                    <Input
+                      id="turno_partner_id"
+                      placeholder="Enter your Turno partner ID"
+                      value={formData.turno_partner_id}
+                      onChange={(e) => setFormData({ ...formData, turno_partner_id: e.target.value })}
+                      disabled={!isOrgAdmin()}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!org.turno_partner_id} />
+                    </div>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Apify (Airbnb Reviews Scraping)</CardTitle>
+                <CardDescription>
+                  Configure Apify API for automated Airbnb review imports.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="apify_api_key">Apify API Key</Label>
+                    <Input
+                      id="apify_api_key"
+                      type="password"
+                      placeholder="Enter your Apify API key"
+                      value={formData.apify_api_key}
+                      onChange={(e) => setFormData({ ...formData, apify_api_key: e.target.value })}
+                      disabled={!isOrgAdmin()}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!org.apify_api_key} />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>OpenWeather (Weather Data)</CardTitle>
+                <CardDescription>
+                  Configure OpenWeather API for displaying local weather information.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="openweather_api_key">OpenWeather API Key</Label>
+                    <Input
+                      id="openweather_api_key"
+                      type="password"
+                      placeholder="Enter your OpenWeather API key"
+                      value={formData.openweather_api_key}
+                      onChange={(e) => setFormData({ ...formData, openweather_api_key: e.target.value })}
+                      disabled={!isOrgAdmin()}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={!!org.openweather_api_key} />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {isOrgAdmin() && (
+              <Button type="button" onClick={handleUpdateIntegrations} disabled={updating}>
+                {updating ? 'Saving...' : 'Update All Integrations'}
+              </Button>
+            )}
           </TabsContent>
 
           <TabsContent value="members" className="mt-6">
