@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { ChecklistTemplate } from '@/hooks/useChecklistManagement';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface StartChecklistModalProps {
   open: boolean;
@@ -25,10 +26,17 @@ const StartChecklistModal = ({ open, onOpenChange, template, onConfirm }: StartC
   const [period, setPeriod] = useState<string>('');
   const [dueDate, setDueDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { organization } = useCurrentOrganization();
 
   useEffect(() => {
     const fetchProperties = async () => {
-      const { data } = await supabase.from('properties').select('id, title').order('title');
+      if (!organization?.id) return;
+      
+      const { data } = await supabase
+        .from('properties')
+        .select('id, title')
+        .eq('organization_id', organization.id)
+        .order('title');
       setProperties((data || []) as Property[]);
     };
     if (open) {
@@ -46,7 +54,7 @@ const StartChecklistModal = ({ open, onOpenChange, template, onConfirm }: StartC
         setPeriod(defaultPeriods[template.type] || '');
       }
     }
-  }, [open, template]);
+  }, [open, template, organization?.id]);
 
   const handleSubmit = async () => {
     if (!selectedProperty || !period) return;

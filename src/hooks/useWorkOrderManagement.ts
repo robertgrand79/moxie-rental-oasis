@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export interface WorkOrder {
   id: string;
@@ -63,9 +64,31 @@ export const useWorkOrderManagement = () => {
   const [contractors, setContractors] = useState<Contractor[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { organization, loading: orgLoading } = useCurrentOrganization();
 
-  const fetchWorkOrders = async () => {
+  const fetchWorkOrders = useCallback(async () => {
+    if (!organization?.id) {
+      console.log('🔄 useWorkOrderManagement - Waiting for organization...');
+      setWorkOrders([]);
+      return;
+    }
+
     try {
+      // First get property IDs for this organization
+      const { data: orgProperties, error: propError } = await supabase
+        .from('properties')
+        .select('id')
+        .eq('organization_id', organization.id);
+
+      if (propError) throw propError;
+
+      const propertyIds = orgProperties?.map(p => p.id) || [];
+
+      if (propertyIds.length === 0) {
+        setWorkOrders([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('work_orders')
         .select(`
@@ -73,6 +96,7 @@ export const useWorkOrderManagement = () => {
           property:properties(*),
           contractor:contractors(*)
         `)
+        .in('property_id', propertyIds)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -85,13 +109,19 @@ export const useWorkOrderManagement = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [organization?.id, toast]);
 
-  const fetchContractors = async () => {
+  const fetchContractors = useCallback(async () => {
+    if (!organization?.id) {
+      setContractors([]);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('contractors')
         .select('*')
+        .eq('organization_id', organization.id)
         .eq('is_active', true)
         .order('name');
 
@@ -105,7 +135,7 @@ export const useWorkOrderManagement = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [organization?.id, toast]);
 
   const createWorkOrder = async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'contractor'>) => {
     try {
@@ -299,13 +329,14 @@ export const useWorkOrderManagement = () => {
 
   useEffect(() => {
     const loadData = async () => {
+      if (orgLoading) return;
       setLoading(true);
       await Promise.all([fetchWorkOrders(), fetchContractors()]);
       setLoading(false);
     };
     
     loadData();
-  }, []);
+  }, [orgLoading, fetchWorkOrders, fetchContractors]);
 
   const refreshData = () => {
     fetchWorkOrders();

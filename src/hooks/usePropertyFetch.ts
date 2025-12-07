@@ -1,16 +1,26 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Property } from '@/types/property';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export const usePropertyFetch = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { organization, loading: orgLoading } = useCurrentOrganization();
 
-  const fetchProperties = async () => {
-    console.log('🔄 usePropertyFetch - Starting to fetch properties...');
+  const fetchProperties = useCallback(async () => {
+    // Wait for organization to be available
+    if (!organization?.id) {
+      console.log('🔄 usePropertyFetch - Waiting for organization...');
+      setProperties([]);
+      setLoading(false);
+      return;
+    }
+
+    console.log('🔄 usePropertyFetch - Starting to fetch properties for org:', organization.id);
     setLoading(true);
     setError(null);
     
@@ -19,6 +29,7 @@ export const usePropertyFetch = () => {
       const { data, error } = await supabase
         .from('properties')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
@@ -36,12 +47,10 @@ export const usePropertyFetch = () => {
           description: `Failed to fetch properties: ${error.message}`,
           variant: 'destructive'
         });
-        // Set empty array on error to prevent undefined
         setProperties([]);
       } else {
         console.log('✅ usePropertyFetch - Success! Fetched properties:', data?.length || 0, 'items');
         console.log('✅ usePropertyFetch - First property sample:', data?.[0]);
-        // Ensure we always have an array, even if data is null
         const safeProperties = Array.isArray(data) ? data : [];
         setProperties(safeProperties);
       }
@@ -54,22 +63,23 @@ export const usePropertyFetch = () => {
         description: `Failed to fetch properties: ${errorMessage}`,
         variant: 'destructive'
       });
-      // Set empty array on error to prevent undefined
       setProperties([]);
     } finally {
       console.log('🏁 usePropertyFetch - Finished (loading set to false)');
       setLoading(false);
     }
-  };
+  }, [organization?.id]);
 
   useEffect(() => {
-    fetchProperties();
-  }, []);
+    if (!orgLoading) {
+      fetchProperties();
+    }
+  }, [orgLoading, fetchProperties]);
 
   return {
     properties,
     setProperties,
-    loading,
+    loading: loading || orgLoading,
     error,
     refetch: fetchProperties
   };
