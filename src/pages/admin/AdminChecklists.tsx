@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClipboardList, PlayCircle, History } from 'lucide-react';
 import { useChecklistManagement } from '@/hooks/useChecklistManagement';
-import { useOrganization } from '@/hooks/useOrganization';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useWorkOrderManagement } from '@/hooks/useWorkOrderManagement';
 import { useToast } from '@/hooks/use-toast';
 import LoadingState from '@/components/ui/loading-state';
@@ -18,7 +18,7 @@ const AdminChecklists = () => {
     updateItemCompletion, deleteRun, saveTemplateWithItems, deleteTemplate, refreshData 
   } = useChecklistManagement();
   const { createWorkOrder } = useWorkOrderManagement();
-  const { organization } = useOrganization();
+  const { organization } = useCurrentOrganization();
   const { toast } = useToast();
 
   if (loading) {
