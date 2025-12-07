@@ -68,37 +68,53 @@ const OnboardingBrandingStep = ({ onComplete, isCompleting }: Props) => {
     setSaving(true);
 
     try {
-      // Save site settings
-      const settings = [
-        { key: 'site_name', value: siteName },
-        ...(logoUrl ? [{ key: 'logo_url', value: logoUrl }] : []),
-      ];
+      const user = (await supabase.auth.getUser()).data.user;
+      
+      // Save site_name setting
+      const { error: siteNameError } = await supabase
+        .from('site_settings')
+        .upsert({
+          organization_id: organization.id,
+          key: 'site_name',
+          value: siteName,
+          created_by: user?.id,
+        }, {
+          onConflict: 'organization_id,key',
+        });
 
-      for (const setting of settings) {
-        const { error } = await supabase
+      if (siteNameError) throw siteNameError;
+
+      // Save logo_url if provided
+      if (logoUrl) {
+        const { error: logoError } = await supabase
           .from('site_settings')
           .upsert({
             organization_id: organization.id,
-            key: setting.key,
-            value: setting.value,
-            created_by: (await supabase.auth.getUser()).data.user?.id,
+            key: 'logo_url',
+            value: logoUrl,
+            created_by: user?.id,
           }, {
             onConflict: 'organization_id,key',
           });
 
-        if (error) throw error;
+        if (logoError) throw logoError;
       }
 
-      // Update organization name if changed
-      if (siteName !== organization.name) {
+      // Update organization name and logo if changed
+      const updates: Record<string, string> = {};
+      if (siteName !== organization.name) updates.name = siteName;
+      if (logoUrl) updates.logo_url = logoUrl;
+      
+      if (Object.keys(updates).length > 0) {
         await supabase
           .from('organizations')
-          .update({ name: siteName })
+          .update(updates)
           .eq('id', organization.id);
       }
 
       onComplete({ siteName, logoUrl });
     } catch (error: any) {
+      console.error('Save error:', error);
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setSaving(false);
