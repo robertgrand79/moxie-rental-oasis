@@ -1,27 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
-import { useOrganization } from '@/hooks/useOrganization';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationOperations } from '@/hooks/useOrganizationOperations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Settings, Users, CreditCard, DollarSign } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Settings, Users, CreditCard, DollarSign, Building2, Shield, Crown, UserCog } from 'lucide-react';
 import { PriceLabsSettings } from '@/components/admin/settings/PriceLabsSettings';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 const AdminOrganization = () => {
-  const { organization, loading, isOrgAdmin, refetch } = useOrganization();
+  const { organization, membership, isPlatformAdmin, loading, isOrgAdmin, canManageOrganization, refetch } = useCurrentOrganization();
   const { updateOrganization, updating } = useOrganizationOperations();
   
   const [formData, setFormData] = useState({
-    name: organization?.name || '',
-    slug: organization?.slug || '',
-    website: organization?.website || '',
+    name: '',
+    slug: '',
+    website: '',
     stripe_secret_key: '',
     stripe_publishable_key: '',
     stripe_webhook_secret: '',
     pricelabs_api_key: '',
+  });
+
+  // Initialize form data when organization loads
+  useEffect(() => {
+    if (organization) {
+      setFormData({
+        name: organization.name || '',
+        slug: organization.slug || '',
+        website: organization.website || '',
+        stripe_secret_key: '',
+        stripe_publishable_key: '',
+        stripe_webhook_secret: '',
+        pricelabs_api_key: '',
+      });
+    }
+  }, [organization]);
+
+  // Fetch organization members
+  const { data: members, isLoading: membersLoading, refetch: refetchMembers } = useQuery({
+    queryKey: ['organization-members', organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('organization_members')
+        .select(`
+          *,
+          profile:profiles(id, email, full_name, avatar_url)
+        `)
+        .eq('organization_id', organization.id)
+        .order('joined_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!organization?.id,
   });
 
   const handleUpdateGeneral = async (e: React.FormEvent) => {
@@ -58,6 +97,21 @@ const AdminOrganization = () => {
     refetch();
   };
 
+  const getRoleBadge = (role: string) => {
+    const variants: Record<string, { variant: 'default' | 'secondary' | 'outline'; icon: React.ReactNode }> = {
+      owner: { variant: 'default', icon: <Crown className="h-3 w-3 mr-1" /> },
+      admin: { variant: 'secondary', icon: <Shield className="h-3 w-3 mr-1" /> },
+      member: { variant: 'outline', icon: <UserCog className="h-3 w-3 mr-1" /> },
+    };
+    const config = variants[role] || variants.member;
+    return (
+      <Badge variant={config.variant} className="flex items-center">
+        {config.icon}
+        {role.charAt(0).toUpperCase() + role.slice(1)}
+      </Badge>
+    );
+  };
+
   if (loading) {
     return (
       <AdminPageWrapper title="Organization Settings" description="Manage your organization">
@@ -92,6 +146,24 @@ const AdminOrganization = () => {
       description={`Manage ${organization.name}`}
     >
       <div className="p-8">
+        {/* Status indicators */}
+        <div className="flex items-center gap-4 mb-6">
+          <Badge variant="outline" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            {organization.name}
+          </Badge>
+          {membership && getRoleBadge(membership.role)}
+          {isPlatformAdmin && (
+            <Badge variant="destructive" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Platform Admin
+            </Badge>
+          )}
+          <Badge variant={organization.subscription_status === 'active' ? 'default' : 'secondary'}>
+            {organization.subscription_tier} - {organization.subscription_status}
+          </Badge>
+        </div>
+
         <Tabs defaultValue="general" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="general" className="flex items-center gap-2">
@@ -137,6 +209,9 @@ const AdminOrganization = () => {
                       onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                       disabled={!isOrgAdmin()}
                     />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Used for subdomain routing (e.g., {formData.slug}.yourdomain.com)
+                    </p>
                   </div>
                   <div>
                     <Label htmlFor="website">Website</Label>
@@ -180,7 +255,7 @@ const AdminOrganization = () => {
                       disabled={!isOrgAdmin()}
                     />
                     <p className="text-sm text-muted-foreground mt-1">
-                      {organization.stripe_secret_key ? 'Already configured' : 'Not configured'}
+                      {organization.stripe_secret_key ? '✓ Already configured' : 'Not configured'}
                     </p>
                   </div>
                   <div>
@@ -254,10 +329,49 @@ const AdminOrganization = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Organization Members</CardTitle>
-                <CardDescription>Manage who has access to this organization</CardDescription>
+                <CardDescription>
+                  {members?.length || 0} member{members?.length !== 1 ? 's' : ''} in this organization
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Member management coming soon...</p>
+                {membersLoading ? (
+                  <div className="text-center py-4">Loading members...</div>
+                ) : members && members.length > 0 ? (
+                  <div className="space-y-4">
+                    {members.map((member: any) => (
+                      <div 
+                        key={member.id} 
+                        className="flex items-center justify-between p-4 border rounded-lg"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                            {member.profile?.full_name?.charAt(0)?.toUpperCase() || member.profile?.email?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+                          <div>
+                            <p className="font-medium">{member.profile?.full_name || 'Unknown'}</p>
+                            <p className="text-sm text-muted-foreground">{member.profile?.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          {getRoleBadge(member.role)}
+                          <span className="text-sm text-muted-foreground">
+                            Joined {new Date(member.joined_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">No members found</p>
+                )}
+                
+                {canManageOrganization() && (
+                  <div className="mt-6 pt-6 border-t">
+                    <p className="text-sm text-muted-foreground">
+                      Invite new members feature coming soon...
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
+import { OrganizationProvider } from './contexts/OrganizationContext';
 import { StaticSettingsProvider } from './contexts/StaticSettingsContext';
 import Index from './pages/Index';
 import Properties from './pages/Properties';
@@ -56,6 +57,7 @@ import AdminTurnoProblems from './pages/admin/AdminTurnoProblems';
 import AdminPriceLabs from './pages/admin/AdminPriceLabs';
 import GuestExperiencePage from './pages/admin/GuestExperiencePage';
 import AdminChecklists from './pages/admin/AdminChecklists';
+import AdminOrganization from './pages/admin/AdminOrganization';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -71,7 +73,8 @@ function App() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <AuthProvider>
-        <StaticSettingsProvider>
+        <OrganizationProvider>
+          <StaticSettingsProvider>
           <QueryClientProvider client={queryClient}>
             <Router>
               <Routes>
@@ -129,6 +132,7 @@ function App() {
                   <Route path="host/communication" element={<HostCommunicationPage />} />
                   <Route path="guest-experience" element={<GuestExperiencePage />} />
                   <Route path="profile" element={<AdminProfile />} />
+                  <Route path="organization" element={<AdminOrganization />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />
@@ -136,7 +140,8 @@ function App() {
             </Router>
           </QueryClientProvider>
         </StaticSettingsProvider>
-      </AuthProvider>
+      </OrganizationProvider>
+    </AuthProvider>
     </div>
   );
 }
