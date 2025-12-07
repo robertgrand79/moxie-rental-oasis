@@ -1,0 +1,195 @@
+import { useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+
+export interface PlatformOrganization {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  website: string | null;
+  custom_domain: string | null;
+  is_active: boolean;
+  is_template: boolean;
+  onboarding_completed: boolean;
+  onboarding_step: number;
+  subscription_status: string;
+  subscription_tier: string;
+  trial_ends_at: string | null;
+  created_at: string;
+  updated_at: string;
+  member_count?: number;
+  property_count?: number;
+}
+
+export interface PlatformStats {
+  totalOrganizations: number;
+  activeOrganizations: number;
+  totalUsers: number;
+  totalProperties: number;
+  totalReservations: number;
+  recentReservations: number;
+}
+
+export const usePlatformAdmin = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Check if current user is platform admin
+  const { data: isPlatformAdmin, isLoading: checkingAdmin } = useQuery({
+    queryKey: ['is-platform-admin', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      
+      const { data, error } = await supabase
+        .from('platform_admins')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (error) throw error;
+      return !!data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch all organizations with counts
+  const { data: organizations, isLoading: loadingOrgs, refetch: refetchOrgs } = useQuery({
+    queryKey: ['platform-organizations'],
+    queryFn: async () => {
+      const { data: orgs, error } = await supabase
+        .from('organizations')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Get member counts
+      const { data: memberCounts } = await supabase
+        .from('organization_members')
+        .select('organization_id');
+
+      // Get property counts
+      const { data: propertyCounts } = await supabase
+        .from('properties')
+        .select('organization_id');
+
+      // Calculate counts per organization
+      return (orgs || []).map(org => ({
+        ...org,
+        member_count: memberCounts?.filter(m => m.organization_id === org.id).length || 0,
+        property_count: propertyCounts?.filter(p => p.organization_id === org.id).length || 0,
+      })) as PlatformOrganization[];
+    },
+    enabled: isPlatformAdmin === true,
+  });
+
+  // Fetch platform-wide stats
+  const { data: stats, isLoading: loadingStats } = useQuery({
+    queryKey: ['platform-stats'],
+    queryFn: async (): Promise<PlatformStats> => {
+      const [orgsResult, usersResult, propsResult, reservationsResult, recentReservationsResult] = await Promise.all([
+        supabase.from('organizations').select('id, is_active'),
+        supabase.from('profiles').select('id', { count: 'exact' }),
+        supabase.from('properties').select('id', { count: 'exact' }),
+        supabase.from('property_reservations').select('id', { count: 'exact' }),
+        supabase.from('property_reservations')
+          .select('id', { count: 'exact' })
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+      ]);
+
+      return {
+        totalOrganizations: orgsResult.data?.length || 0,
+        activeOrganizations: orgsResult.data?.filter(o => o.is_active).length || 0,
+        totalUsers: usersResult.count || 0,
+        totalProperties: propsResult.count || 0,
+        totalReservations: reservationsResult.count || 0,
+        recentReservations: recentReservationsResult.count || 0,
+      };
+    },
+    enabled: isPlatformAdmin === true,
+  });
+
+  // Toggle organization active status
+  const toggleOrgStatus = useMutation({
+    mutationFn: async ({ orgId, isActive }: { orgId: string; isActive: boolean }) => {
+      const { error } = await supabase
+        .from('organizations')
+        .update({ is_active: isActive })
+        .eq('id', orgId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, { isActive }) => {
+      queryClient.invalidateQueries({ queryKey: ['platform-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['platform-stats'] });
+      toast.success(`Organization ${isActive ? 'activated' : 'deactivated'}`);
+    },
+    onError: (error) => {
+      toast.error('Failed to update organization status');
+      console.error(error);
+    },
+  });
+
+  // Toggle organization template status
+  const toggleTemplateStatus = useMutation({
+    mutationFn: async ({ orgId, isTemplate }: { orgId: string; isTemplate: boolean }) => {
+      const { error } = await supabase
+        .from('organizations')
+        .update({ is_template: isTemplate })
+        .eq('id', orgId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, { isTemplate }) => {
+      queryClient.invalidateQueries({ queryKey: ['platform-organizations'] });
+      toast.success(`Organization ${isTemplate ? 'marked as template' : 'unmarked as template'}`);
+    },
+    onError: (error) => {
+      toast.error('Failed to update template status');
+      console.error(error);
+    },
+  });
+
+  // Delete organization
+  const deleteOrganization = useMutation({
+    mutationFn: async (orgId: string) => {
+      // First remove all members
+      await supabase.from('organization_members').delete().eq('organization_id', orgId);
+      
+      // Then delete the organization
+      const { error } = await supabase
+        .from('organizations')
+        .delete()
+        .eq('id', orgId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platform-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['platform-stats'] });
+      toast.success('Organization deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete organization');
+      console.error(error);
+    },
+  });
+
+  return {
+    isPlatformAdmin,
+    checkingAdmin,
+    organizations,
+    loadingOrgs,
+    refetchOrgs,
+    stats,
+    loadingStats,
+    toggleOrgStatus: toggleOrgStatus.mutate,
+    toggleTemplateStatus: toggleTemplateStatus.mutate,
+    deleteOrganization: deleteOrganization.mutate,
+    isUpdating: toggleOrgStatus.isPending || toggleTemplateStatus.isPending || deleteOrganization.isPending,
+  };
+};
