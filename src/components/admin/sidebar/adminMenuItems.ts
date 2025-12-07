@@ -179,5 +179,22 @@ export const adminMenuItems = [
         description: 'Configure site settings and preferences'
       }
     ]
+  },
+  {
+    title: 'Platform Administration',
+    items: [
+      {
+        title: 'Super Admin Panel',
+        href: '/admin/platform',
+        icon: Shield,
+        description: 'Platform-wide organization management (Super Admins only)'
+      },
+      {
+        title: 'Organization Settings',
+        href: '/admin/organization',
+        icon: Database,
+        description: 'Manage your organization settings and members'
+      }
+    ]
   }
 ];

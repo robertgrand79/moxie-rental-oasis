@@ -58,6 +58,7 @@ import AdminPriceLabs from './pages/admin/AdminPriceLabs';
 import GuestExperiencePage from './pages/admin/GuestExperiencePage';
 import AdminChecklists from './pages/admin/AdminChecklists';
 import AdminOrganization from './pages/admin/AdminOrganization';
+import SuperAdminPanel from './pages/admin/SuperAdminPanel';
 import OrganizationSignup from './pages/onboarding/OrganizationSignup';
 import OnboardingWizard from './pages/onboarding/OnboardingWizard';
 
@@ -140,6 +141,7 @@ function App() {
                   <Route path="guest-experience" element={<GuestExperiencePage />} />
                   <Route path="profile" element={<AdminProfile />} />
                   <Route path="organization" element={<AdminOrganization />} />
+                  <Route path="platform" element={<SuperAdminPanel />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />
