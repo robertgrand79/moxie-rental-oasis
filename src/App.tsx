@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { OrganizationProvider } from './contexts/OrganizationContext';
+import { TenantProvider } from './contexts/TenantContext';
 import { StaticSettingsProvider } from './contexts/StaticSettingsContext';
 import Index from './pages/Index';
 import Properties from './pages/Properties';
@@ -74,15 +74,16 @@ function App() {
     <div className="min-h-screen bg-background text-foreground">
       <AuthProvider>
         <OrganizationProvider>
-          <StaticSettingsProvider>
           <QueryClientProvider client={queryClient}>
-            <Router>
-              <Routes>
-                <Route path="/" element={<PublicLayout />}>
-                  <Route index element={<Index />} />
-                  <Route path="/properties" element={<Properties />} />
-                  <Route path="/property/:addressSlug" element={<PropertyPage />} />
-                  <Route path="/about" element={<About />} />
+            <TenantProvider>
+              <StaticSettingsProvider>
+                <Router>
+                  <Routes>
+                    <Route path="/" element={<PublicLayout />}>
+                      <Route index element={<Index />} />
+                      <Route path="/properties" element={<Properties />} />
+                      <Route path="/property/:addressSlug" element={<PropertyPage />} />
+                      <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/experiences" element={<Experiences />} />
                   <Route path="/events" element={<Events />} />
@@ -137,11 +138,12 @@ function App() {
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </Router>
+                </Router>
+              </StaticSettingsProvider>
+            </TenantProvider>
           </QueryClientProvider>
-        </StaticSettingsProvider>
-      </OrganizationProvider>
-    </AuthProvider>
+        </OrganizationProvider>
+      </AuthProvider>
     </div>
   );
 }
