@@ -5,11 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useAdminSetup } from '@/hooks/useAdminSetup';
 
 const AdminAccessSetup = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin: isLegacyAdmin } = useAuth();
+  const { isOrgAdmin } = useCurrentOrganization();
   const { setupAdminAccess, isSettingUp } = useAdminSetup();
+
+  // User has admin access if they have legacy admin role OR are an org admin/owner
+  const hasAdminAccess = isLegacyAdmin || isOrgAdmin();
 
   if (!user) {
     return (
@@ -27,7 +32,7 @@ const AdminAccessSetup = () => {
     );
   }
 
-  if (isAdmin) {
+  if (hasAdminAccess) {
     return (
       <Card className="max-w-md mx-auto mt-8">
         <CardHeader>
