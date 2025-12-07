@@ -33,7 +33,7 @@ const EmailTestingCard = () => {
       
       const { data, error } = await supabase.functions.invoke('send-newsletter-preview', {
         body: {
-          email: testEmail,
+          testEmail: testEmail,
           subject: '🧪 Email System Test - Configuration Verified',
           content: `
             <div style="padding: 20px; font-family: Arial, sans-serif;">
