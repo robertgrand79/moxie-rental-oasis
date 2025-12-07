@@ -72,8 +72,8 @@ serve(async (req) => {
       // Calculate scheduled time based on trigger type
       switch (rule.trigger_type) {
         case "booking_confirmed":
-          // Send immediately (or within a few minutes)
-          scheduledFor = new Date(now.getTime() + 2 * 60 * 1000); // 2 minutes from now
+          // Send immediately - schedule for now so process-scheduled-messages picks it up right away
+          scheduledFor = new Date(now.getTime());
           break;
 
         case "before_checkin":
