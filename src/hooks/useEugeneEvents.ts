@@ -26,30 +26,30 @@ export interface EugeneEvent {
   created_by: string;
   created_at: string;
   updated_at: string;
+  organization_id: string;
 }
 
 export const useEugeneEvents = (timeFilter: string = 'all', categoryFilter: string = 'all') => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { triggerAutoSync } = useAutoSync({ enabled: true, debounceMs: 2000 });
-  
-  // Note: Eugene events are typically global/public content, but we track created_by user
-  // For multi-tenant, events could be filtered by organization if needed
   const { organization } = useCurrentOrganization();
 
   const { data: allEvents = [], isLoading, error } = useQuery({
     queryKey: ['eugene-events', organization?.id],
     queryFn: async () => {
-      // Eugene events are public content - no organization filter needed
-      // They're shared across all tenants as local area information
+      if (!organization?.id) return [];
+      
       const { data, error } = await supabase
         .from('eugene_events')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('event_date', { ascending: true });
       
       if (error) throw error;
       return data as EugeneEvent[];
-    }
+    },
+    enabled: !!organization?.id
   });
 
   // Filter events based on time and category
@@ -77,10 +77,12 @@ export const useEugeneEvents = (timeFilter: string = 'all', categoryFilter: stri
   });
 
   const createEvent = useMutation({
-    mutationFn: async (event: Omit<EugeneEvent, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (event: Omit<EugeneEvent, 'id' | 'created_at' | 'updated_at' | 'organization_id'>) => {
+      if (!organization?.id) throw new Error('No organization context');
+      
       const { data, error } = await supabase
         .from('eugene_events')
-        .insert([event])
+        .insert([{ ...event, organization_id: organization.id }])
         .select()
         .single();
       
@@ -93,8 +95,6 @@ export const useEugeneEvents = (timeFilter: string = 'all', categoryFilter: stri
         title: "Success",
         description: "Event created successfully",
       });
-      
-      // Trigger auto-sync for public content
       triggerAutoSync('event created');
     },
     onError: (error) => {
@@ -124,8 +124,6 @@ export const useEugeneEvents = (timeFilter: string = 'all', categoryFilter: stri
         title: "Success",
         description: "Event updated successfully",
       });
-      
-      // Trigger auto-sync for public content
       triggerAutoSync('event updated');
     },
     onError: (error) => {
@@ -152,8 +150,6 @@ export const useEugeneEvents = (timeFilter: string = 'all', categoryFilter: stri
         title: "Success",
         description: "Event deleted successfully",
       });
-      
-      // Trigger auto-sync for public content
       triggerAutoSync('event deleted');
     },
     onError: (error) => {

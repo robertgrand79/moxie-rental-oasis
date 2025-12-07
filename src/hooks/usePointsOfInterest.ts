@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export interface PointOfInterest {
   id: string;
@@ -26,30 +26,38 @@ export interface PointOfInterest {
   created_by: string;
   created_at: string;
   updated_at: string;
+  organization_id: string;
 }
 
 export const usePointsOfInterest = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { organization } = useCurrentOrganization();
 
   const { data: pointsOfInterest = [], isLoading, error } = useQuery({
-    queryKey: ['points-of-interest'],
+    queryKey: ['points-of-interest', organization?.id],
     queryFn: async () => {
+      if (!organization?.id) return [];
+      
       const { data, error } = await supabase
         .from('points_of_interest')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('display_order', { ascending: true });
       
       if (error) throw error;
       return data as PointOfInterest[];
-    }
+    },
+    enabled: !!organization?.id
   });
 
   const createPointOfInterest = useMutation({
-    mutationFn: async (poi: Omit<PointOfInterest, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (poi: Omit<PointOfInterest, 'id' | 'created_at' | 'updated_at' | 'organization_id'>) => {
+      if (!organization?.id) throw new Error('No organization context');
+      
       const { data, error } = await supabase
         .from('points_of_interest')
-        .insert([poi])
+        .insert([{ ...poi, organization_id: organization.id }])
         .select()
         .single();
       

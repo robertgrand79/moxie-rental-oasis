@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export interface LifestyleGalleryItem {
   id: string;
@@ -18,30 +18,38 @@ export interface LifestyleGalleryItem {
   created_by: string;
   created_at: string;
   updated_at: string;
+  organization_id: string;
 }
 
 export const useLifestyleGallery = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { organization } = useCurrentOrganization();
 
   const { data: galleryItems = [], isLoading, error } = useQuery({
-    queryKey: ['lifestyle-gallery'],
+    queryKey: ['lifestyle-gallery', organization?.id],
     queryFn: async () => {
+      if (!organization?.id) return [];
+      
       const { data, error } = await supabase
         .from('lifestyle_gallery')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('display_order', { ascending: true });
       
       if (error) throw error;
       return data as LifestyleGalleryItem[];
-    }
+    },
+    enabled: !!organization?.id
   });
 
   const createGalleryItem = useMutation({
-    mutationFn: async (item: Omit<LifestyleGalleryItem, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (item: Omit<LifestyleGalleryItem, 'id' | 'created_at' | 'updated_at' | 'organization_id'>) => {
+      if (!organization?.id) throw new Error('No organization context');
+      
       const { data, error } = await supabase
         .from('lifestyle_gallery')
-        .insert([item])
+        .insert([{ ...item, organization_id: organization.id }])
         .select()
         .single();
       
