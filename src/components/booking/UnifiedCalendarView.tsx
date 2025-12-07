@@ -67,32 +67,42 @@ export const UnifiedCalendarView: React.FC = () => {
   const queryClient = useQueryClient();
   const updatePricing = useUpdatePricing();
 
-  // Fetch availability blocks - only those overlapping with visible range
+  // Get organization-scoped property IDs
+  const propertyIds = useMemo(() => properties.map(p => p.id), [properties]);
+
+  // Fetch availability blocks - only those overlapping with visible range AND for org properties
   const visibleEndDate = format(addDays(startDate, daysToShow), 'yyyy-MM-dd');
   const visibleStartDate = format(startDate, 'yyyy-MM-dd');
   
   const { data: availabilityBlocks = [] } = useQuery({
-    queryKey: ['unified-availability-blocks', visibleStartDate, visibleEndDate],
+    queryKey: ['unified-availability-blocks', visibleStartDate, visibleEndDate, propertyIds],
     queryFn: async () => {
+      if (propertyIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from('availability_blocks')
         .select('*')
+        .in('property_id', propertyIds)
         .lt('start_date', visibleEndDate)  // Starts before visible range ends
         .gte('end_date', visibleStartDate)  // Ends after visible range starts
         .order('start_date', { ascending: true });
       if (error) throw error;
       return data || [];
-    }
+    },
+    enabled: propertyIds.length > 0
   });
 
-  // Fetch pricing data
+  // Fetch pricing data - only for org properties
   const { data: pricingData = {} } = useQuery({
-    queryKey: ['unified-pricing', format(startDate, 'yyyy-MM-dd'), daysToShow],
+    queryKey: ['unified-pricing', format(startDate, 'yyyy-MM-dd'), daysToShow, propertyIds],
     queryFn: async () => {
+      if (propertyIds.length === 0) return {};
+      
       const endDate = addDays(startDate, daysToShow);
       const { data, error } = await supabase
         .from('dynamic_pricing')
         .select('*')
+        .in('property_id', propertyIds)
         .gte('date', format(startDate, 'yyyy-MM-dd'))
         .lte('date', format(endDate, 'yyyy-MM-dd'));
       
@@ -105,7 +115,7 @@ export const UnifiedCalendarView: React.FC = () => {
       });
       return grouped;
     },
-    enabled: showPricing
+    enabled: showPricing && propertyIds.length > 0
   });
 
   // Generate calendar columns
