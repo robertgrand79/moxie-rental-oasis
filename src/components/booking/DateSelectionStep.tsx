@@ -23,6 +23,7 @@ export const DateSelectionStep = ({
     }
   );
 
+  // Calculate blocked dates (excluding checkout day - it's available for check-in)
   const disabledDates = useMemo(() => {
     const disabled: Date[] = [];
     
@@ -30,12 +31,19 @@ export const DateSelectionStep = ({
       const start = parseISO(block.start_date);
       const end = parseISO(block.end_date);
       
-      for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+      // Only block dates up to (but NOT including) the checkout day
+      // Checkout day is available for new check-ins (same-day turnover)
+      for (let date = new Date(start); date < end; date.setDate(date.getDate() + 1)) {
         disabled.push(new Date(date));
       }
     });
     
     return disabled;
+  }, [availabilityBlocks]);
+
+  // Calculate checkout dates for half-day visual indicator
+  const checkoutDates = useMemo(() => {
+    return availabilityBlocks?.map(block => parseISO(block.end_date)) || [];
   }, [availabilityBlocks]);
 
   return (
@@ -56,6 +64,12 @@ export const DateSelectionStep = ({
               format(disabledDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
             )
           }
+          modifiers={{
+            checkout: checkoutDates
+          }}
+          modifiersClassNames={{
+            checkout: "relative overflow-hidden before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-tr before:from-amber-200 before:via-amber-100 before:via-50% before:to-transparent before:to-50% dark:before:from-amber-900/50 dark:before:via-amber-900/25 dark:before:to-transparent before:z-0 [&>*]:relative [&>*]:z-10"
+          }}
           numberOfMonths={2}
           className="rounded-lg border bg-card p-4 pointer-events-auto"
         />
@@ -69,6 +83,10 @@ export const DateSelectionStep = ({
         <Badge variant="secondary" className="text-xs gap-2">
           <div className="w-3 h-3 bg-primary rounded-sm" />
           Selected
+        </Badge>
+        <Badge variant="outline" className="text-xs gap-2">
+          <div className="w-3 h-3 relative overflow-hidden rounded-sm bg-gradient-to-tr from-amber-200 via-amber-100 via-50% to-white to-50% dark:from-amber-900/50 dark:via-amber-900/25 dark:to-background" />
+          Check-out Day
         </Badge>
         <Badge variant="outline" className="text-xs gap-2">
           <div className="w-3 h-3 relative overflow-hidden rounded-sm bg-muted before:content-[''] before:absolute before:inset-0 before:bg-[repeating-linear-gradient(45deg,transparent,transparent_3px,hsl(var(--destructive))_3px,hsl(var(--destructive))_4px)] before:opacity-40" />
