@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
+import OrganizationBadge from './OrganizationBadge';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -15,14 +15,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-gray-50 w-full">
+    <div className="min-h-screen bg-muted/30 w-full">
       <SidebarProvider defaultOpen={!isMobile}>
         <div className="flex w-full min-h-screen">
           <AdminSidebar />
           <SidebarInset className="flex-1">
-            <header className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white ${isMobile ? 'px-3' : ''}`}>
+            <header className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background ${isMobile ? 'px-3' : ''}`}>
               <SidebarTrigger className="-ml-1" />
-              <div className="flex items-center justify-between w-full">
+              <div className="flex items-center justify-between w-full gap-4">
                 <EnhancedButton 
                   variant="outline" 
                   size={isMobile ? "sm" : "default"} 
@@ -35,6 +35,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
                   </Link>
                 </EnhancedButton>
+                
+                {/* Organization context badge */}
+                {!isMobile && <OrganizationBadge />}
               </div>
             </header>
             <main className={`flex-1 overflow-auto ${isMobile ? 'p-4' : 'p-8'}`}>
