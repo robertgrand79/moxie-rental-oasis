@@ -32,6 +32,23 @@ serve(async (req) => {
 
     console.log("Processing scheduled messages...");
 
+    // Fetch email settings from site_settings
+    const { data: emailSettings } = await supabase
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["emailFromAddress", "emailFromName", "emailReplyTo"]);
+
+    const settingsMap: Record<string, string> = {};
+    emailSettings?.forEach((s: { key: string; value: string }) => {
+      settingsMap[s.key] = s.value;
+    });
+
+    const fromEmail = settingsMap.emailFromAddress || "onboarding@resend.dev";
+    const fromName = settingsMap.emailFromName || "Moxie Properties";
+    const replyTo = settingsMap.emailReplyTo || fromEmail;
+
+    console.log(`Email config - From: ${fromName} <${fromEmail}>, Reply-To: ${replyTo}`);
+
     // Get all pending messages that are due
     const now = new Date().toISOString();
     const { data: pendingMessages, error: fetchError } = await supabase
@@ -166,8 +183,9 @@ serve(async (req) => {
                 : generateGenericEmail(subject, content, variables);
               
               const emailResult = await resend.emails.send({
-                from: "Moxie Properties <onboarding@resend.dev>",
+                from: `${fromName} <${fromEmail}>`,
                 to: [reservation.guest_email],
+                replyTo: replyTo,
                 subject: subject,
                 html: htmlContent,
               });
