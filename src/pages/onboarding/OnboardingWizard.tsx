@@ -70,7 +70,10 @@ const OnboardingWizard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate('/admin/dashboard')} className="w-full">
+            <Button onClick={() => {
+              // Force a full page reload to ensure the organization context is refreshed
+              window.location.href = '/admin/dashboard';
+            }} className="w-full">
               Go to Dashboard
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
