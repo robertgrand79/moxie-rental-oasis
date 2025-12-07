@@ -2,6 +2,7 @@
 import React from 'react';
 import { Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import AdminAccessSetup from '@/components/admin/AdminAccessSetup';
 
 interface AdminPageWrapperProps {
@@ -12,7 +13,12 @@ interface AdminPageWrapperProps {
 }
 
 const AdminPageWrapper = ({ children, title, description, actions }: AdminPageWrapperProps) => {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin: isLegacyAdmin, loading: authLoading } = useAuth();
+  const { isOrgAdmin, loading: orgLoading } = useCurrentOrganization();
+
+  // User has admin access if they have legacy admin role OR are an org admin/owner
+  const hasAdminAccess = isLegacyAdmin || isOrgAdmin();
+  const loading = authLoading || orgLoading;
 
   if (loading) {
     return (
@@ -30,7 +36,7 @@ const AdminPageWrapper = ({ children, title, description, actions }: AdminPageWr
     );
   }
 
-  if (!isAdmin) {
+  if (!hasAdminAccess) {
     return (
       <div className="min-h-screen bg-gray-50 py-12">
         <AdminAccessSetup />
