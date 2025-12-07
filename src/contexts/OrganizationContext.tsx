@@ -46,7 +46,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setError(null);
       setLoading(true);
 
-      // Fetch organization membership and platform admin status in parallel
+      // Fetch organization membership (most recent) and platform admin status in parallel
       const [membershipResult, platformAdminResult] = await Promise.all([
         supabase
           .from('organization_members')
@@ -55,6 +55,8 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             organization:organizations(*)
           `)
           .eq('user_id', user.id)
+          .order('joined_at', { ascending: false })
+          .limit(1)
           .maybeSingle(),
         supabase
           .from('platform_admins')
