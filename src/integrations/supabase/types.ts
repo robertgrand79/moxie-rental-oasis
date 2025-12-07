@@ -2620,6 +2620,33 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_admins: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["platform_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       points_of_interest: {
         Row: {
           address: string | null
@@ -3306,6 +3333,7 @@ export type Database = {
           guest_name: string
           guest_phone: string | null
           id: string
+          organization_id: string | null
           payment_status: string | null
           property_id: string
           source_platform: string | null
@@ -3329,6 +3357,7 @@ export type Database = {
           guest_name: string
           guest_phone?: string | null
           id?: string
+          organization_id?: string | null
           payment_status?: string | null
           property_id: string
           source_platform?: string | null
@@ -3352,6 +3381,7 @@ export type Database = {
           guest_name?: string
           guest_phone?: string | null
           id?: string
+          organization_id?: string | null
           payment_status?: string | null
           property_id?: string
           source_platform?: string | null
@@ -3362,6 +3392,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "property_reservations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "property_reservations_property_id_fkey"
             columns: ["property_id"]
@@ -3463,6 +3500,7 @@ export type Database = {
           guest_name: string | null
           guest_phone: string | null
           id: string
+          organization_id: string | null
           payment_status: string | null
           property_id: string
           service_fee: number | null
@@ -3493,6 +3531,7 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
+          organization_id?: string | null
           payment_status?: string | null
           property_id: string
           service_fee?: number | null
@@ -3523,6 +3562,7 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
+          organization_id?: string | null
           payment_status?: string | null
           property_id?: string
           service_fee?: number | null
@@ -3535,6 +3575,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reservations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reservations_property_id_fkey"
             columns: ["property_id"]
@@ -4940,7 +4987,15 @@ export type Database = {
       }
       generate_work_order_number: { Args: never; Returns: string }
       get_user_organization_id: { Args: { _user_id: string }; Returns: string }
+      has_platform_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["platform_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_admin: { Args: never; Returns: boolean }
+      is_platform_admin: { Args: { _user_id?: string }; Returns: boolean }
       refresh_office_space_availability: {
         Args: { p_office_space_id: string }
         Returns: undefined
@@ -4964,7 +5019,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      platform_role: "super_admin" | "support" | "billing"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5091,6 +5146,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      platform_role: ["super_admin", "support", "billing"],
+    },
   },
 } as const
