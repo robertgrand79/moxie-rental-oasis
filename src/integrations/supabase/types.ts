@@ -1042,6 +1042,7 @@ export type Database = {
           is_featured: boolean | null
           is_recurring: boolean | null
           location: string | null
+          organization_id: string
           place_id: string | null
           price_range: string | null
           recurrence_pattern: string | null
@@ -1066,6 +1067,7 @@ export type Database = {
           is_featured?: boolean | null
           is_recurring?: boolean | null
           location?: string | null
+          organization_id: string
           place_id?: string | null
           price_range?: string | null
           recurrence_pattern?: string | null
@@ -1090,6 +1092,7 @@ export type Database = {
           is_featured?: boolean | null
           is_recurring?: boolean | null
           location?: string | null
+          organization_id?: string
           place_id?: string | null
           price_range?: string | null
           recurrence_pattern?: string | null
@@ -1102,6 +1105,13 @@ export type Database = {
           website_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "eugene_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "eugene_events_place_id_fkey"
             columns: ["place_id"]
@@ -2643,6 +2653,7 @@ export type Database = {
           location_text: string | null
           longitude: number | null
           name: string
+          organization_id: string
           phone: string | null
           price_level: number | null
           rating: number | null
@@ -2668,6 +2679,7 @@ export type Database = {
           location_text?: string | null
           longitude?: number | null
           name: string
+          organization_id: string
           phone?: string | null
           price_level?: number | null
           rating?: number | null
@@ -2693,6 +2705,7 @@ export type Database = {
           location_text?: string | null
           longitude?: number | null
           name?: string
+          organization_id?: string
           phone?: string | null
           price_level?: number | null
           rating?: number | null
@@ -2701,7 +2714,15 @@ export type Database = {
           updated_at?: string
           website_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "places_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_admins: {
         Row: {
@@ -2747,6 +2768,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           name: string
+          organization_id: string
           phone: string | null
           price_level: number | null
           rating: number | null
@@ -2771,6 +2793,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name: string
+          organization_id: string
           phone?: string | null
           price_level?: number | null
           rating?: number | null
@@ -2795,6 +2818,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name?: string
+          organization_id?: string
           phone?: string | null
           price_level?: number | null
           rating?: number | null
@@ -2803,7 +2827,15 @@ export type Database = {
           walking_time?: number | null
           website_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "points_of_interest_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricelabs_sync_logs: {
         Row: {

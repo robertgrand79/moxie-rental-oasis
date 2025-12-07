@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export interface Event {
   id: string;
@@ -25,15 +26,21 @@ export interface Event {
   updated_at?: string;
   created_by?: string;
   place_id?: string;
+  organization_id?: string;
 }
 
 export const useEvents = () => {
+  const { organization } = useCurrentOrganization();
+  
   const { data: events = [], isLoading, error } = useQuery({
-    queryKey: ['events'],
+    queryKey: ['events', organization?.id],
     queryFn: async () => {
+      if (!organization?.id) return [];
+      
       const { data, error } = await supabase
         .from('eugene_events')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('event_date', { ascending: true });
       
       if (error) {
@@ -43,6 +50,7 @@ export const useEvents = () => {
       
       return data as Event[];
     },
+    enabled: !!organization?.id
   });
 
   return { events, isLoading, error };
@@ -51,12 +59,15 @@ export const useEvents = () => {
 export const useCreateEvent = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
 
   return useMutation({
     mutationFn: async (event: Partial<Event> & { title: string; event_date: string; created_by: string }) => {
+      if (!organization?.id) throw new Error('No organization context');
+      
       const { data, error } = await supabase
         .from('eugene_events')
-        .insert([event])
+        .insert([{ ...event, organization_id: organization.id }])
         .select()
         .single();
 

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export interface Place {
   id: string;
@@ -26,15 +27,21 @@ export interface Place {
   created_at?: string;
   updated_at?: string;
   created_by?: string;
+  organization_id?: string;
 }
 
 export const usePlaces = () => {
+  const { organization } = useCurrentOrganization();
+  
   const { data: places = [], isLoading, error } = useQuery({
-    queryKey: ['places'],
+    queryKey: ['places', organization?.id],
     queryFn: async () => {
+      if (!organization?.id) return [];
+      
       const { data, error } = await supabase
         .from('places')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('display_order', { ascending: true });
       
       if (error) {
@@ -44,6 +51,7 @@ export const usePlaces = () => {
       
       return data as Place[];
     },
+    enabled: !!organization?.id
   });
 
   return { places, isLoading, error };
@@ -52,12 +60,15 @@ export const usePlaces = () => {
 export const useCreatePlace = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
 
   return useMutation({
     mutationFn: async (place: Partial<Place> & { name: string; category: string; created_by: string }) => {
+      if (!organization?.id) throw new Error('No organization context');
+      
       const { data, error } = await supabase
         .from('places')
-        .insert([place])
+        .insert([{ ...place, organization_id: organization.id }])
         .select()
         .single();
 
