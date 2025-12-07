@@ -4956,6 +4956,22 @@ export type Database = {
     }
     Functions: {
       archive_old_community_updates: { Args: never; Returns: undefined }
+      can_access_organization: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_access_property: {
+        Args: { _property_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_manage_organization: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_manage_property: {
+        Args: { _property_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_manage_users: { Args: never; Returns: boolean }
       can_update_user_role: {
         Args: { new_role: string; old_role: string; target_user_id: string }
@@ -4986,6 +5002,10 @@ export type Database = {
         Returns: Json
       }
       generate_work_order_number: { Args: never; Returns: string }
+      get_property_organization_id: {
+        Args: { _property_id: string }
+        Returns: string
+      }
       get_user_organization_id: { Args: { _user_id: string }; Returns: string }
       has_platform_role: {
         Args: {
