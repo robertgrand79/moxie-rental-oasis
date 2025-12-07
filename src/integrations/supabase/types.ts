@@ -2411,6 +2411,7 @@ export type Database = {
       organizations: {
         Row: {
           created_at: string | null
+          custom_domain: string | null
           id: string
           is_active: boolean | null
           logo_url: string | null
@@ -2429,6 +2430,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          custom_domain?: string | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
@@ -2447,6 +2449,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          custom_domain?: string | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
@@ -5002,6 +5005,18 @@ export type Database = {
         Returns: Json
       }
       generate_work_order_number: { Args: never; Returns: string }
+      get_organization_by_identifier: {
+        Args: { _identifier: string }
+        Returns: {
+          custom_domain: string
+          id: string
+          is_active: boolean
+          logo_url: string
+          name: string
+          slug: string
+          website: string
+        }[]
+      }
       get_property_organization_id: {
         Args: { _property_id: string }
         Returns: string
