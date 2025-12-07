@@ -1294,33 +1294,45 @@ export type Database = {
         Row: {
           created_at: string
           delivery_status: string | null
+          direction: string | null
           id: string
+          is_read: boolean | null
           message_content: string
           message_type: string
+          raw_email_data: Json | null
           reservation_id: string
           scheduled_for: string | null
+          sender_email: string | null
           sent_at: string | null
           subject: string
         }
         Insert: {
           created_at?: string
           delivery_status?: string | null
+          direction?: string | null
           id?: string
+          is_read?: boolean | null
           message_content: string
           message_type: string
+          raw_email_data?: Json | null
           reservation_id: string
           scheduled_for?: string | null
+          sender_email?: string | null
           sent_at?: string | null
           subject: string
         }
         Update: {
           created_at?: string
           delivery_status?: string | null
+          direction?: string | null
           id?: string
+          is_read?: boolean | null
           message_content?: string
           message_type?: string
+          raw_email_data?: Json | null
           reservation_id?: string
           scheduled_for?: string | null
+          sender_email?: string | null
           sent_at?: string | null
           subject?: string
         }
