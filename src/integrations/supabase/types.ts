@@ -2408,14 +2408,58 @@ export type Database = {
           },
         ]
       }
+      organization_onboarding: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          data: Json | null
+          id: string
+          organization_id: string
+          step_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          organization_id: string
+          step_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          organization_id?: string
+          step_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_onboarding_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string | null
           custom_domain: string | null
           id: string
           is_active: boolean | null
+          is_template: boolean | null
           logo_url: string | null
           name: string
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
           pricelabs_api_key: string | null
           slug: string
           stripe_account_id: string | null
@@ -2433,8 +2477,11 @@ export type Database = {
           custom_domain?: string | null
           id?: string
           is_active?: boolean | null
+          is_template?: boolean | null
           logo_url?: string | null
           name: string
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
           pricelabs_api_key?: string | null
           slug: string
           stripe_account_id?: string | null
@@ -2452,8 +2499,11 @@ export type Database = {
           custom_domain?: string | null
           id?: string
           is_active?: boolean | null
+          is_template?: boolean | null
           logo_url?: string | null
           name?: string
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
           pricelabs_api_key?: string | null
           slug?: string
           stripe_account_id?: string | null
@@ -4989,6 +5039,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_organization_with_owner: {
+        Args: {
+          _name: string
+          _slug: string
+          _template_id?: string
+          _user_id: string
+        }
+        Returns: string
+      }
       create_reservation_with_lock: {
         Args: {
           p_check_in: string
@@ -5031,6 +5090,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_platform_admin: { Args: { _user_id?: string }; Returns: boolean }
+      is_slug_available: { Args: { _slug: string }; Returns: boolean }
       refresh_office_space_availability: {
         Args: { p_office_space_id: string }
         Returns: undefined

@@ -58,6 +58,8 @@ import AdminPriceLabs from './pages/admin/AdminPriceLabs';
 import GuestExperiencePage from './pages/admin/GuestExperiencePage';
 import AdminChecklists from './pages/admin/AdminChecklists';
 import AdminOrganization from './pages/admin/AdminOrganization';
+import OrganizationSignup from './pages/onboarding/OrganizationSignup';
+import OnboardingWizard from './pages/onboarding/OnboardingWizard';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -104,10 +106,14 @@ function App() {
                 <Route path="/guest/portal" element={<GuestPortalPage />} />
                 <Route path="/guest/checkin/:reservationId" element={<CheckinPage />} />
                 <Route path="/guest/guidebook/:propertyId" element={<GuidebookPage />} />
-                <Route path="/:slug" element={<DynamicPage />} />
-              </Route>
+                      <Route path="/:slug" element={<DynamicPage />} />
+                    </Route>
 
-                <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
+                    {/* Onboarding Routes */}
+                    <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
+                    <Route path="/admin/onboarding" element={<ProtectedRoute><OnboardingWizard /></ProtectedRoute>} />
+
+                    <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="blog" element={<BlogManagement />} />
