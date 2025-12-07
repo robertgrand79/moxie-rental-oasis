@@ -2451,6 +2451,7 @@ export type Database = {
       }
       organizations: {
         Row: {
+          apify_api_key: string | null
           created_at: string | null
           custom_domain: string | null
           id: string
@@ -2460,7 +2461,12 @@ export type Database = {
           name: string
           onboarding_completed: boolean | null
           onboarding_step: number | null
+          openphone_api_key: string | null
+          openweather_api_key: string | null
           pricelabs_api_key: string | null
+          resend_api_key: string | null
+          seam_api_key: string | null
+          seam_webhook_secret: string | null
           slug: string
           stripe_account_id: string | null
           stripe_publishable_key: string | null
@@ -2470,10 +2476,14 @@ export type Database = {
           subscription_tier: string | null
           template_type: string | null
           trial_ends_at: string | null
+          turno_api_secret: string | null
+          turno_api_token: string | null
+          turno_partner_id: string | null
           updated_at: string | null
           website: string | null
         }
         Insert: {
+          apify_api_key?: string | null
           created_at?: string | null
           custom_domain?: string | null
           id?: string
@@ -2483,7 +2493,12 @@ export type Database = {
           name: string
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
+          openphone_api_key?: string | null
+          openweather_api_key?: string | null
           pricelabs_api_key?: string | null
+          resend_api_key?: string | null
+          seam_api_key?: string | null
+          seam_webhook_secret?: string | null
           slug: string
           stripe_account_id?: string | null
           stripe_publishable_key?: string | null
@@ -2493,10 +2508,14 @@ export type Database = {
           subscription_tier?: string | null
           template_type?: string | null
           trial_ends_at?: string | null
+          turno_api_secret?: string | null
+          turno_api_token?: string | null
+          turno_partner_id?: string | null
           updated_at?: string | null
           website?: string | null
         }
         Update: {
+          apify_api_key?: string | null
           created_at?: string | null
           custom_domain?: string | null
           id?: string
@@ -2506,7 +2525,12 @@ export type Database = {
           name?: string
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
+          openphone_api_key?: string | null
+          openweather_api_key?: string | null
           pricelabs_api_key?: string | null
+          resend_api_key?: string | null
+          seam_api_key?: string | null
+          seam_webhook_secret?: string | null
           slug?: string
           stripe_account_id?: string | null
           stripe_publishable_key?: string | null
@@ -2516,6 +2540,9 @@ export type Database = {
           subscription_tier?: string | null
           template_type?: string | null
           trial_ends_at?: string | null
+          turno_api_secret?: string | null
+          turno_api_token?: string | null
+          turno_partner_id?: string | null
           updated_at?: string | null
           website?: string | null
         }

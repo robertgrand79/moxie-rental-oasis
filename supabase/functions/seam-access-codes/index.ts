@@ -8,7 +8,43 @@ const corsHeaders = {
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const seamApiKey = Deno.env.get('SEAM_API_KEY')!;
+
+// Helper function to get SEAM API key for an organization
+async function getSeamApiKey(supabase: any, propertyId?: string, organizationId?: string): Promise<string> {
+  let effectiveOrgId = organizationId;
+
+  // If property provided but no org, look up org from property
+  if (propertyId && !organizationId) {
+    const { data: property } = await supabase
+      .from('properties')
+      .select('organization_id')
+      .eq('id', propertyId)
+      .single();
+    effectiveOrgId = property?.organization_id;
+  }
+
+  // Try to get org-level API key
+  if (effectiveOrgId) {
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('seam_api_key')
+      .eq('id', effectiveOrgId)
+      .single();
+    if (org?.seam_api_key) {
+      console.log('Using organization-level SEAM API key');
+      return org.seam_api_key;
+    }
+  }
+
+  // Fall back to global secret
+  const globalKey = Deno.env.get('SEAM_API_KEY');
+  if (globalKey) {
+    console.log('Using global SEAM API key');
+    return globalKey;
+  }
+
+  throw new Error('SEAM_API_KEY not configured for this organization');
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -17,14 +53,14 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { action, deviceId, reservationId, accessCodeData } = await req.json();
+    const { action, deviceId, reservationId, accessCodeData, organizationId } = await req.json();
 
     console.log(`Processing access code action: ${action}`);
 
     // Get device info
     const { data: device, error: deviceError } = await supabase
       .from('seam_devices')
-      .select('*')
+      .select('*, properties(organization_id)')
       .eq('id', deviceId)
       .single();
 
@@ -36,14 +72,17 @@ serve(async (req) => {
       throw new Error('Access codes are only available for smart locks');
     }
 
+    // Get the SEAM API key for this organization
+    const seamApiKey = await getSeamApiKey(supabase, device.property_id, organizationId || device.properties?.organization_id);
+
     let result;
 
     switch (action) {
       case 'create':
-        result = await createAccessCode(supabase, device, reservationId, accessCodeData);
+        result = await createAccessCode(supabase, device, reservationId, accessCodeData, seamApiKey);
         break;
       case 'delete':
-        result = await deleteAccessCode(supabase, accessCodeData.accessCodeId);
+        result = await deleteAccessCode(supabase, accessCodeData.accessCodeId, seamApiKey);
         break;
       case 'list':
         result = await listAccessCodes(supabase, deviceId);
@@ -71,7 +110,7 @@ serve(async (req) => {
   }
 });
 
-async function createAccessCode(supabase: any, device: any, reservationId: string, accessCodeData: any) {
+async function createAccessCode(supabase: any, device: any, reservationId: string, accessCodeData: any, seamApiKey: string) {
   // Get reservation details
   const { data: reservation, error: reservationError } = await supabase
     .from('property_reservations')
@@ -97,7 +136,7 @@ async function createAccessCode(supabase: any, device: any, reservationId: strin
   const seamResponse = await fetch('https://connect.getseam.com/access_codes/create', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${Deno.env.get('SEAM_API_KEY')}`,
+      'Authorization': `Bearer ${seamApiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(seamPayload),
@@ -136,7 +175,7 @@ async function createAccessCode(supabase: any, device: any, reservationId: strin
       await fetch('https://connect.getseam.com/access_codes/delete', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${Deno.env.get('SEAM_API_KEY')}`,
+          'Authorization': `Bearer ${seamApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ access_code_id: seamResult.access_code.access_code_id }),
@@ -153,7 +192,7 @@ async function createAccessCode(supabase: any, device: any, reservationId: strin
   };
 }
 
-async function deleteAccessCode(supabase: any, accessCodeId: string) {
+async function deleteAccessCode(supabase: any, accessCodeId: string, seamApiKey: string) {
   // Get access code from database
   const { data: accessCode, error: accessCodeError } = await supabase
     .from('seam_access_codes')
@@ -169,7 +208,7 @@ async function deleteAccessCode(supabase: any, accessCodeId: string) {
   const seamResponse = await fetch('https://connect.getseam.com/access_codes/delete', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${Deno.env.get('SEAM_API_KEY')}`,
+      'Authorization': `Bearer ${seamApiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ access_code_id: accessCode.seam_access_code_id }),

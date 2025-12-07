@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -11,6 +10,8 @@ interface SendSMSRequest {
   to: string;
   message: string;
   from?: string;
+  organizationId?: string;
+  propertyId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -24,19 +25,52 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const openPhoneApiKey = Deno.env.get('OPENPHONE_API_KEY');
-    
-    if (!openPhoneApiKey) {
-      throw new Error('OPENPHONE_API_KEY not configured. Please add your OpenPhone API key in the Supabase dashboard.');
-    }
-
-    const { to, message, from }: SendSMSRequest = await req.json();
+    const { to, message, from, organizationId, propertyId }: SendSMSRequest = await req.json();
 
     if (!to || !message) {
       return new Response(
         JSON.stringify({ error: 'Phone number and message are required' }),
         { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
+    }
+
+    // Get OpenPhone API key - check organization first, then fall back to global secret
+    let openPhoneApiKey: string | null = null;
+    let effectiveOrgId = organizationId;
+
+    // If property provided but no org, look up org from property
+    if (propertyId && !organizationId) {
+      const { data: property } = await supabaseClient
+        .from('properties')
+        .select('organization_id')
+        .eq('id', propertyId)
+        .single();
+      effectiveOrgId = property?.organization_id;
+    }
+
+    // Try to get org-level API key
+    if (effectiveOrgId) {
+      const { data: org } = await supabaseClient
+        .from('organizations')
+        .select('openphone_api_key')
+        .eq('id', effectiveOrgId)
+        .single();
+      openPhoneApiKey = org?.openphone_api_key;
+      if (openPhoneApiKey) {
+        console.log('Using organization-level OpenPhone API key');
+      }
+    }
+
+    // Fall back to global secret if no org key
+    if (!openPhoneApiKey) {
+      openPhoneApiKey = Deno.env.get('OPENPHONE_API_KEY');
+      if (openPhoneApiKey) {
+        console.log('Using global OpenPhone API key');
+      }
+    }
+    
+    if (!openPhoneApiKey) {
+      throw new Error('OPENPHONE_API_KEY not configured. Please add your OpenPhone API key in Organization Settings or Supabase dashboard.');
     }
 
     console.log(`📱 Sending SMS to ${to}: ${message.substring(0, 50)}...`);

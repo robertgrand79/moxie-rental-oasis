@@ -8,7 +8,6 @@ const corsHeaders = {
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const seamApiKey = Deno.env.get('SEAM_API_KEY')!;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,10 +18,49 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     console.log('Starting Seam device sync...');
 
-    const { workspaceId, propertyId } = await req.json();
+    const { workspaceId, propertyId, organizationId } = await req.json();
 
     if (!workspaceId) {
       throw new Error('Workspace ID is required');
+    }
+
+    // Get SEAM API key - check organization first, then fall back to global secret
+    let seamApiKey: string | null = null;
+    let effectiveOrgId = organizationId;
+
+    // If property provided but no org, look up org from property
+    if (propertyId && !organizationId) {
+      const { data: property } = await supabase
+        .from('properties')
+        .select('organization_id')
+        .eq('id', propertyId)
+        .single();
+      effectiveOrgId = property?.organization_id;
+    }
+
+    // Try to get org-level API key
+    if (effectiveOrgId) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('seam_api_key')
+        .eq('id', effectiveOrgId)
+        .single();
+      seamApiKey = org?.seam_api_key;
+      if (seamApiKey) {
+        console.log('Using organization-level SEAM API key');
+      }
+    }
+
+    // Fall back to global secret if no org key
+    if (!seamApiKey) {
+      seamApiKey = Deno.env.get('SEAM_API_KEY');
+      if (seamApiKey) {
+        console.log('Using global SEAM API key');
+      }
+    }
+
+    if (!seamApiKey) {
+      throw new Error('SEAM_API_KEY not configured for this organization');
     }
 
     // Fetch devices from Seam API
