@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -141,10 +141,10 @@ export const useCreateOrganization = () => {
     }
   };
 
-  const checkSlugAvailability = async (slug: string): Promise<boolean> => {
+  const checkSlugAvailability = useCallback(async (slug: string): Promise<boolean> => {
     const { data } = await supabase.rpc('is_slug_available', { _slug: slug });
     return data as boolean;
-  };
+  }, []);
 
   return {
     createOrganization,
