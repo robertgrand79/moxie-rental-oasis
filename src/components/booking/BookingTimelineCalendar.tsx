@@ -9,8 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Plus, Filter, ChevronLeft, ChevronRight, Calendar, DollarSign, Users, Home, Activity, Cloud, CloudOff, Clock } from 'lucide-react';
-import { useProperties } from '@/hooks/useProperties';
-import { useReservations, useDynamicPricing, useAvailability, useExternalCalendars } from '@/hooks/useBookingData';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import { useReservations, useExternalCalendars } from '@/hooks/useBookingData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, addDays, startOfWeek, endOfWeek, isWithinInterval, parseISO, isSameDay } from 'date-fns';
@@ -58,25 +58,33 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
   const headerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const { properties = [] } = useProperties();
+  const { properties = [] } = usePropertyFetch();
+  
+  // Get organization-scoped property IDs
+  const propertyIds = useMemo(() => properties.map(p => p.id), [properties]);
+  
   // Update hook call to include availability blocks as reservations
   const { data: allReservations = [] } = useReservations();
   
-  // Fetch external calendar sync info for all properties
+  // Fetch external calendar sync info for organization properties only
   const { data: externalCalendars = [] } = useExternalCalendars();
   
-  // Fetch all availability blocks for all properties
+  // Fetch availability blocks for organization properties only
   const { data: availabilityBlocks = [] } = useQuery({
-    queryKey: ['all-availability-blocks'],
+    queryKey: ['all-availability-blocks', propertyIds],
     queryFn: async () => {
+      if (propertyIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from('availability_blocks')
         .select('*')
+        .in('property_id', propertyIds)
         .order('start_date', { ascending: true });
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: propertyIds.length > 0
   });
 
   // Generate timeline days

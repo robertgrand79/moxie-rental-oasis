@@ -1,16 +1,46 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DynamicPricing, AvailabilityBlock, ExternalCalendar } from '@/types/booking';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
-// Reservations - Updated to use property_reservations table
-export const useReservations = (propertyId?: string, status?: string) => {
+// Hook to get organization-scoped property IDs
+const useOrganizationPropertyIds = () => {
+  const { organization } = useCurrentOrganization();
+  
   return useQuery({
-    queryKey: ['property-reservations', propertyId, status],
+    queryKey: ['organization-property-ids', organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('properties')
+        .select('id')
+        .eq('organization_id', organization.id);
+      
+      if (error) throw error;
+      return data?.map(p => p.id) || [];
+    },
+    enabled: !!organization?.id
+  });
+};
+
+// Reservations - Updated to use property_reservations table with organization filtering
+export const useReservations = (propertyId?: string, status?: string) => {
+  const { data: orgPropertyIds = [] } = useOrganizationPropertyIds();
+  
+  return useQuery({
+    queryKey: ['property-reservations', propertyId, status, orgPropertyIds],
     queryFn: async () => {
       let query = supabase.from('property_reservations').select('*');
       
       if (propertyId) {
         query = query.eq('property_id', propertyId);
+      } else if (orgPropertyIds.length > 0) {
+        // Filter by organization properties when no specific property is provided
+        query = query.in('property_id', orgPropertyIds);
+      } else {
+        // No organization properties available, return empty
+        return [];
       }
       
       if (status) {
@@ -21,7 +51,8 @@ export const useReservations = (propertyId?: string, status?: string) => {
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!propertyId || orgPropertyIds.length > 0
   });
 };
 
@@ -190,22 +221,31 @@ export const useCreateAvailabilityBlock = () => {
   });
 };
 
-// External Calendars
+// External Calendars - with organization filtering
 export const useExternalCalendars = (propertyId?: string) => {
+  const { data: orgPropertyIds = [] } = useOrganizationPropertyIds();
+  
   return useQuery({
-    queryKey: ['external-calendars', propertyId],
+    queryKey: ['external-calendars', propertyId, orgPropertyIds],
     queryFn: async () => {
       let query = supabase.from('external_calendars').select('*');
       
       if (propertyId) {
         query = query.eq('property_id', propertyId);
+      } else if (orgPropertyIds.length > 0) {
+        // Filter by organization properties when no specific property is provided
+        query = query.in('property_id', orgPropertyIds);
+      } else {
+        // No organization properties available, return empty
+        return [];
       }
       
       const { data, error } = await query;
       
       if (error) throw error;
       return data as ExternalCalendar[];
-    }
+    },
+    enabled: !!propertyId || orgPropertyIds.length > 0
   });
 };
 

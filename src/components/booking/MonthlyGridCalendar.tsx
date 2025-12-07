@@ -22,7 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Calendar, User, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useProperties } from '@/hooks/useProperties';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getPropertyColor, getAllPropertyColors } from '@/utils/propertyColors';
@@ -54,7 +54,10 @@ export const MonthlyGridCalendar: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('all');
   
-  const { properties = [] } = useProperties();
+  const { properties = [] } = usePropertyFetch();
+  
+  // Get organization-scoped property IDs
+  const propertyIds = useMemo(() => properties.map(p => p.id), [properties]);
 
   // Calculate visible date range for query optimization
   const { visibleStart, visibleEnd } = useMemo(() => {
@@ -66,19 +69,23 @@ export const MonthlyGridCalendar: React.FC = () => {
     };
   }, [currentMonth]);
 
-  // Fetch availability blocks - only for visible range
+  // Fetch availability blocks - only for visible range and organization properties
   const { data: availabilityBlocks = [] } = useQuery({
-    queryKey: ['monthly-availability-blocks', visibleStart, visibleEnd],
+    queryKey: ['monthly-availability-blocks', visibleStart, visibleEnd, propertyIds],
     queryFn: async () => {
+      if (propertyIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from('availability_blocks')
         .select('*')
+        .in('property_id', propertyIds)
         .eq('block_type', 'booked')
         .lt('start_date', visibleEnd)
         .gte('end_date', visibleStart);
       if (error) throw error;
       return data || [];
-    }
+    },
+    enabled: propertyIds.length > 0
   });
 
   // Convert availability blocks to booking blocks (filter out "Blocked" sync entries)
