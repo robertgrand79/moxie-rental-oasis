@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import {
   Dialog,
   DialogContent,
@@ -71,6 +72,9 @@ const TemplateDialog: React.FC<TemplateDialogProps> = ({ open, onOpenChange, tem
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isEditing = !!template;
+  
+  // Use organization-scoped properties
+  const { properties } = usePropertyFetch();
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     defaultValues: {
@@ -81,18 +85,6 @@ const TemplateDialog: React.FC<TemplateDialogProps> = ({ open, onOpenChange, tem
       content: '',
       is_default: false,
       is_active: true,
-    },
-  });
-
-  const { data: properties } = useQuery({
-    queryKey: ['properties-list'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('id, title')
-        .order('title');
-      if (error) throw error;
-      return data;
     },
   });
 

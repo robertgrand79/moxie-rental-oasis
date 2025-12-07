@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { SettingsState } from './settings/types';
@@ -9,12 +10,13 @@ import { parseSettingsFromDatabase, mergeWithDefaults } from './settings/utils';
 
 export const useSimplifiedSiteSettings = () => {
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
   const [settings, setSettings] = useState<SettingsState>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch settings from database
+  // Fetch settings from database - filtered by organization
   const fetchSettings = useCallback(async () => {
     if (!user) {
       console.log('[Settings] No user, using defaults');
@@ -22,13 +24,20 @@ export const useSimplifiedSiteSettings = () => {
       return;
     }
 
+    if (!organization?.id) {
+      console.log('[Settings] No organization, using defaults');
+      setLoading(false);
+      return;
+    }
+
     try {
       setError(null);
-      console.log('[Settings] Fetching from database...');
+      console.log('[Settings] Fetching from database for organization:', organization.id);
       
       const { data, error: fetchError } = await supabase
         .from('site_settings')
-        .select('*');
+        .select('*')
+        .eq('organization_id', organization.id);
 
       if (fetchError) {
         console.error('[Settings] Fetch error:', fetchError);
@@ -52,7 +61,8 @@ export const useSimplifiedSiteSettings = () => {
         await supabase
           .from('site_settings')
           .update({ value: '' })
-          .eq('key', 'facebookPixelId');
+          .eq('key', 'facebookPixelId')
+          .eq('organization_id', organization.id);
       }
       
       const newSettings = mergeWithDefaults(settingsMap, defaultSettings);
@@ -71,7 +81,7 @@ export const useSimplifiedSiteSettings = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, organization?.id]);
 
   // Save a single setting with immediate feedback
   const saveSetting = useCallback(async (key: string, value: any): Promise<boolean> => {

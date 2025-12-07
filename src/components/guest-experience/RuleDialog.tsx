@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import {
   Dialog,
   DialogContent,
@@ -68,6 +69,10 @@ const RuleDialog: React.FC<RuleDialogProps> = ({ open, onOpenChange, rule }) => 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isEditing = !!rule;
+  
+  // Use organization-scoped properties
+  const { properties } = usePropertyFetch();
+  const orgPropertyIds = properties.map(p => p.id);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     defaultValues: {
@@ -87,28 +92,18 @@ const RuleDialog: React.FC<RuleDialogProps> = ({ open, onOpenChange, rule }) => 
   const triggerType = watch('trigger_type');
   const propertyId = watch('property_id');
 
-  const { data: properties } = useQuery({
-    queryKey: ['properties-list'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('id, title')
-        .order('title');
-      if (error) throw error;
-      return data;
-    },
-  });
-
   const { data: templates } = useQuery({
-    queryKey: ['message-templates-for-rule', propertyId],
+    queryKey: ['message-templates-for-rule', propertyId, orgPropertyIds],
     queryFn: async () => {
-      let query = supabase
+      if (orgPropertyIds.length === 0) return [];
+      
+      const { data, error } = await supabase
         .from('message_templates')
         .select('id, name, property_id')
         .eq('is_active', true)
+        .or(`property_id.is.null,property_id.in.(${orgPropertyIds.join(',')})`)
         .order('name');
 
-      const { data, error } = await query;
       if (error) throw error;
       
       // Filter to show global templates and templates for the selected property
@@ -118,6 +113,7 @@ const RuleDialog: React.FC<RuleDialogProps> = ({ open, onOpenChange, rule }) => 
         t.property_id === propertyId
       );
     },
+    enabled: orgPropertyIds.length > 0,
   });
 
   useEffect(() => {

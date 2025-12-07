@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Globe, Home, Mail, MessageSquare, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import RuleDialog from './RuleDialog';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,18 +71,26 @@ const MessagingRulesTab = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Get organization-scoped property IDs
+  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
+  const orgPropertyIds = orgProperties.map(p => p.id);
 
   const { data: rules, isLoading } = useQuery({
-    queryKey: ['messaging-rules'],
+    queryKey: ['messaging-rules', orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from('messaging_rules')
         .select('*, properties(title), message_templates(name, subject)')
+        .or(`property_id.is.null,property_id.in.(${orgPropertyIds.join(',')})`)
         .order('priority', { ascending: true });
       
       if (error) throw error;
       return data as MessagingRule[];
     },
+    enabled: !propertiesLoading && orgPropertyIds.length > 0,
   });
 
   const toggleMutation = useMutation({

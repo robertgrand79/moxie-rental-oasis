@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 
 export interface Testimonial {
   id: string;
@@ -46,15 +47,22 @@ export interface CreateTestimonialData {
 export const useTestimonials = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Get organization-scoped property IDs
+  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
+  const orgPropertyIds = orgProperties.map(p => p.id);
 
   const { data: testimonials = [], isLoading, error } = useQuery({
-    queryKey: ['testimonials'],
+    queryKey: ['testimonials', orgPropertyIds],
     queryFn: async () => {
       console.log('🔄 Fetching testimonials...');
-      // First, get testimonials without the join
+      if (orgPropertyIds.length === 0) return [];
+      
+      // Filter testimonials by organization's property IDs (or null for global ones)
       const { data, error } = await supabase
         .from('testimonials')
         .select('*')
+        .or(`property_id.is.null,property_id.in.(${orgPropertyIds.join(',')})`)
         .order('display_order', { ascending: true });
       
       if (error) {
@@ -63,7 +71,8 @@ export const useTestimonials = () => {
       }
       console.log('✅ Testimonials fetched:', data?.length || 0, 'items');
       return data as Testimonial[];
-    }
+    },
+    enabled: !propertiesLoading && orgPropertyIds.length > 0,
   });
 
   const createTestimonial = useMutation({

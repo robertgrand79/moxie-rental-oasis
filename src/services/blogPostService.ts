@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { BlogPost, ContentType } from '@/types/blogPost';
 import { toast } from '@/hooks/use-toast';
 
+// Note: This service now accepts organizationId as a parameter for multi-tenant filtering
+
 const isNetworkError = (error: any): boolean => {
   return error?.message?.includes('Failed to fetch') || 
          error?.message?.includes('Network request failed') ||
@@ -44,8 +46,8 @@ const safeMetadataCast = (metadata: any): Record<string, any> => {
 };
 
 export const blogPostService = {
-  async fetchBlogPosts(publishedOnly: boolean = false): Promise<BlogPost[]> {
-    console.log('🔍 Fetching blog posts, publishedOnly:', publishedOnly);
+  async fetchBlogPosts(publishedOnly: boolean = false, organizationId?: string): Promise<BlogPost[]> {
+    console.log('🔍 Fetching blog posts, publishedOnly:', publishedOnly, 'orgId:', organizationId);
     
     // Check network connectivity first
     if (!navigator.onLine) {
@@ -58,6 +60,11 @@ export const blogPostService = {
         .from('blog_posts')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Filter by organization if provided
+      if (organizationId) {
+        query = query.eq('organization_id', organizationId);
+      }
 
       // If publishedOnly is true, filter for published posts only
       if (publishedOnly) {

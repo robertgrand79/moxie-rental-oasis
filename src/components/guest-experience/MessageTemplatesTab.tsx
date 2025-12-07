@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Globe, Home, Mail, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import TemplateDialog from './TemplateDialog';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,18 +46,26 @@ const MessageTemplatesTab = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Get organization-scoped property IDs
+  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
+  const orgPropertyIds = orgProperties.map(p => p.id);
 
   const { data: templates, isLoading } = useQuery({
-    queryKey: ['message-templates'],
+    queryKey: ['message-templates', orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from('message_templates')
         .select('*, properties(title)')
+        .or(`property_id.is.null,property_id.in.(${orgPropertyIds.join(',')})`)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as MessageTemplate[];
     },
+    enabled: !propertiesLoading && orgPropertyIds.length > 0,
   });
 
   const deleteMutation = useMutation({
