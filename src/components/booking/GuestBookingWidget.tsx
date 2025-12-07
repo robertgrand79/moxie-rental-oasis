@@ -49,6 +49,7 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
     guestCount: 1,
     specialRequests: ''
   });
+  const [dateRangeValid, setDateRangeValid] = useState(true);
   
   const { toast } = useToast();
   const createReservationMutation = useCreateReservation();
@@ -226,6 +227,7 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
               propertyId={property.id}
               selectedDates={dateRange}
               onDateSelect={handleDateSelect}
+              onValidationChange={setDateRangeValid}
             />
           )}
           
@@ -271,7 +273,7 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
                 onClick={handleNextStep}
                 size="lg"
                 className="flex-1"
-                disabled={step === 1 && !selectedDates}
+                disabled={step === 1 && (!selectedDates || !dateRangeValid)}
               >
                 Continue
               </Button>

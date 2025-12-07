@@ -1,19 +1,23 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAvailability } from '@/hooks/useBookingData';
 import { format, parseISO } from 'date-fns';
+import { AlertCircle } from 'lucide-react';
 
 interface DateSelectionStepProps {
   propertyId: string;
   selectedDates: { from: Date | undefined; to: Date | undefined };
   onDateSelect: (range: { from: Date | undefined; to: Date | undefined } | undefined) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 export const DateSelectionStep = ({
   propertyId,
   selectedDates,
-  onDateSelect
+  onDateSelect,
+  onValidationChange
 }: DateSelectionStepProps) => {
   const { data: availabilityBlocks } = useAvailability(
     propertyId,
@@ -46,6 +50,21 @@ export const DateSelectionStep = ({
     return availabilityBlocks?.map(block => parseISO(block.end_date)) || [];
   }, [availabilityBlocks]);
 
+  // Check if selected range contains any unavailable dates
+  const hasUnavailableDatesInRange = useMemo(() => {
+    if (!selectedDates.from || !selectedDates.to) return false;
+    
+    return disabledDates.some(disabledDate => 
+      disabledDate >= selectedDates.from! && 
+      disabledDate < selectedDates.to!
+    );
+  }, [selectedDates, disabledDates]);
+
+  // Notify parent of validation state changes
+  useEffect(() => {
+    onValidationChange?.(!hasUnavailableDatesInRange);
+  }, [hasUnavailableDatesInRange, onValidationChange]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -74,6 +93,17 @@ export const DateSelectionStep = ({
           className="rounded-lg border bg-card p-4 pointer-events-auto"
         />
       </div>
+
+      {hasUnavailableDatesInRange && (
+        <Alert variant="destructive" className="mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Dates Unavailable</AlertTitle>
+          <AlertDescription>
+            One or more dates in your selected range are already booked. 
+            Please select a different date range.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="flex flex-wrap gap-2 justify-center">
         <Badge variant="outline" className="text-xs gap-2">
