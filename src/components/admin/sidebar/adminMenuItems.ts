@@ -167,12 +167,6 @@ export const adminMenuItems = [
         description: 'Manage users, roles, permissions, and access control'
       },
       {
-        title: 'System Administration',
-        href: '/admin/system-administration',
-        icon: Database,
-        description: 'System testing, optimization, and technical diagnostics'
-      },
-      {
         title: 'Site Settings',
         href: '/admin/settings',
         icon: Settings,
