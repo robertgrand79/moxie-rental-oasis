@@ -248,8 +248,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("📋 Site settings loaded:", Object.keys(settings));
 
-    const siteName = settings.siteName || "Moxie Vacation Rentals";
-    const fromEmail = settings.emailFromAddress || settings.contactEmail || "noreply@moxievacationrentals.com";
+    const siteName = settings.siteName || "Vacation Rentals";
+    const fromEmail = settings.emailFromAddress || settings.contactEmail || "";
     const fromName = settings.emailFromName || siteName;
     const replyTo = settings.emailReplyTo || fromEmail;
 
@@ -410,7 +410,7 @@ const handler = async (req: Request): Promise<Response> => {
               <div class="header">
                   <div class="header-content">
                       <h1>${siteName}</h1>
-                      <p>Your Home Base for Living Like a Local in Eugene</p>
+                      <p>Your latest updates</p>
                   </div>
               </div>
               
@@ -421,12 +421,12 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div class="footer">
                   <p><strong>${siteName}</strong></p>
-                  <p>Your Home Base for Living Like a Local in Eugene</p>
-                  <p>${settings.address || "2472 Willamette St Eugene OR 97405"} | ${settings.contactEmail || fromEmail}</p>
+                  <p>${settings.tagline || ''}</p>
+                  <p>${settings.address || ''} | ${settings.contactEmail || fromEmail}</p>
                   ${settings.phone ? `<p>Phone: ${settings.phone}</p>` : ''}
                   <div class="social-links">
-                      <a href="https://moxievacationrentals.com">Visit Our Website</a>
-                      <a href="https://moxievacationrentals.com">View Properties</a>
+                      <a href="#">Visit Our Website</a>
+                      <a href="#">View Properties</a>
                       ${settings.socialMedia?.facebook ? `<a href="${settings.socialMedia.facebook}">Facebook</a>` : ''}
                       ${settings.socialMedia?.instagram ? `<a href="${settings.socialMedia.instagram}">Instagram</a>` : ''}
                       ${settings.socialMedia?.twitter ? `<a href="${settings.socialMedia.twitter}">Twitter</a>` : ''}

@@ -52,10 +52,10 @@ interface NewsletterTemplateProps {
 }
 
 const NewsletterTemplate = ({ subject, sections, preheader, headerConfig, footerConfig }: NewsletterTemplateProps) => {
-  // Default configurations that match the site's hero section
+  // Default configurations - generic placeholders
   const defaultHeaderConfig: HeaderConfig = {
-    title: 'Moxie Vacation Rentals',
-    subtitle: 'Your Home Base for Living Like a Local in Eugene',
+    title: 'Newsletter',
+    subtitle: 'Your latest updates',
     background_gradient: {
       from: 'hsl(220, 8%, 85%)',
       to: 'hsl(220, 3%, 97%)'
@@ -65,11 +65,11 @@ const NewsletterTemplate = ({ subject, sections, preheader, headerConfig, footer
   };
 
   const defaultFooterConfig: FooterConfig = {
-    company_name: 'Moxie Vacation Rentals',
-    tagline: 'Your Home Base for Living Like a Local in Eugene',
+    company_name: 'Newsletter',
+    tagline: '',
     contact_info: {
-      email: 'contact@moxievacationrentals.com',
-      location: 'Eugene, Oregon'
+      email: '',
+      location: ''
     },
     links: [
       { text: 'Visit Our Website', url: '#' },

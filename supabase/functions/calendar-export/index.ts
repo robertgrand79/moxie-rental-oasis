@@ -89,7 +89,7 @@ function generateICalContent(property: any, blocks: any[], propertyId: string): 
   let ical = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Moxie Vacation Rentals//Calendar Export//EN',
+    'PRODID:-//Vacation Rentals//Calendar Export//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${property.title || 'Property'} - Bookings`,

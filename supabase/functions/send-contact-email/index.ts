@@ -44,9 +44,9 @@ const handler = async (req: Request): Promise<Response> => {
       return acc;
     }, {} as Record<string, any>) || {};
 
-    const siteName = settingsMap.siteName || 'Moxie Vacation Rentals';
-    const contactEmail = settingsMap.contactEmail || 'contact@moxievacationrentals.com';
-    const fromEmail = settingsMap.emailFromAddress || 'noreply@moxievacationrentals.com';
+    const siteName = settingsMap.siteName || 'Vacation Rentals';
+    const contactEmail = settingsMap.contactEmail || '';
+    const fromEmail = settingsMap.emailFromAddress || '';
     const fromName = settingsMap.emailFromName || siteName;
 
     // Email to business owner

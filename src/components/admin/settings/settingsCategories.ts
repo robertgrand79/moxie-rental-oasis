@@ -39,19 +39,19 @@ export const createSettingsCategories = (siteData: any, seoData: any, analyticsD
       { 
         name: 'Testimonials & Reviews', 
         description: 'Manage customer reviews and testimonials', 
-        status: 'configured',
+        status: 'needs-setup',
         key: 'content-testimonials'
       },
       { 
         name: 'Places & POI', 
         description: 'Points of interest and locations', 
-        status: 'configured',
+        status: 'needs-setup',
         key: 'content-places'
       },
       { 
         name: 'Events Calendar', 
         description: 'Upcoming events and activities', 
-        status: 'configured',
+        status: 'needs-setup',
         key: 'content-events'
       }
     ]
@@ -66,7 +66,7 @@ export const createSettingsCategories = (siteData: any, seoData: any, analyticsD
       { 
         name: 'Design & Branding', 
         description: 'Colors, fonts, and visual elements', 
-        status: 'configured',
+        status: 'needs-setup',
         key: 'design-branding'
       }
     ]
@@ -114,7 +114,7 @@ export const createSettingsCategories = (siteData: any, seoData: any, analyticsD
       { 
         name: 'Advanced Settings', 
         description: 'Custom CSS and JavaScript', 
-        status: 'configured',
+        status: 'needs-setup',
         key: 'advanced-settings'
       }
     ]

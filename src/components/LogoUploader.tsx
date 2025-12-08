@@ -1,18 +1,29 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Image, Trash2, Save } from 'lucide-react';
+import { Upload, Image, Trash2, Save, Loader2 } from 'lucide-react';
+import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
 
 const LogoUploader = () => {
   const [logo, setLogo] = useState<string | null>(null);
   const [favicon, setFavicon] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { settings, saveSetting, loading } = useStableSiteSettings();
+
+  // Load from database settings
+  useEffect(() => {
+    if (!loading && settings) {
+      setLogo(settings.siteLogo || null);
+      setFavicon(settings.favicon || null);
+    }
+  }, [settings, loading]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon') => {
     const file = event.target.files?.[0];
@@ -39,32 +50,49 @@ const LogoUploader = () => {
     }
   };
 
-  const saveBranding = () => {
-    const brandingData = {
-      logo,
-      favicon,
-      timestamp: new Date().toISOString()
-    };
-    
-    localStorage.setItem('siteBranding', JSON.stringify(brandingData));
-    
-    // Apply favicon if provided
-    if (favicon) {
-      const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-      if (link) {
-        link.href = favicon;
-      } else {
-        const newLink = document.createElement('link');
-        newLink.rel = 'icon';
-        newLink.href = favicon;
-        document.head.appendChild(newLink);
+  const saveBranding = async () => {
+    setIsSaving(true);
+    try {
+      // Save to database instead of localStorage
+      const promises = [];
+      
+      if (logo !== settings?.siteLogo) {
+        promises.push(saveSetting('siteLogo', logo || ''));
       }
-    }
+      
+      if (favicon !== settings?.favicon) {
+        promises.push(saveSetting('favicon', favicon || ''));
+      }
 
-    toast({
-      title: "Branding Saved",
-      description: "Your logos and branding have been saved successfully.",
-    });
+      await Promise.all(promises);
+      
+      // Apply favicon if provided
+      if (favicon) {
+        const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+        if (link) {
+          link.href = favicon;
+        } else {
+          const newLink = document.createElement('link');
+          newLink.rel = 'icon';
+          newLink.href = favicon;
+          document.head.appendChild(newLink);
+        }
+      }
+
+      toast({
+        title: "Branding Saved",
+        description: "Your logos and branding have been saved successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving branding:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save branding. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const removeLogo = () => {
@@ -81,14 +109,13 @@ const LogoUploader = () => {
     }
   };
 
-  React.useEffect(() => {
-    const savedBranding = localStorage.getItem('siteBranding');
-    if (savedBranding) {
-      const parsed = JSON.parse(savedBranding);
-      setLogo(parsed.logo || null);
-      setFavicon(parsed.favicon || null);
-    }
-  }, []);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -107,7 +134,7 @@ const LogoUploader = () => {
             {/* Logo Upload */}
             <div className="space-y-4">
               <Label>Site Logo</Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
                 {logo ? (
                   <div className="space-y-4">
                     <img
@@ -136,9 +163,9 @@ const LogoUploader = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <Upload className="h-12 w-12 mx-auto text-gray-400" />
+                    <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-muted-foreground mb-2">
                         Upload your site logo (PNG, JPG, SVG)
                       </p>
                       <Button
@@ -163,7 +190,7 @@ const LogoUploader = () => {
             {/* Favicon Upload */}
             <div className="space-y-4">
               <Label>Favicon</Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
                 {favicon ? (
                   <div className="space-y-4">
                     <img
@@ -192,11 +219,11 @@ const LogoUploader = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="w-16 h-16 mx-auto bg-gray-100 rounded flex items-center justify-center">
-                      <Image className="h-8 w-8 text-gray-400" />
+                    <div className="w-16 h-16 mx-auto bg-muted rounded flex items-center justify-center">
+                      <Image className="h-8 w-8 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-muted-foreground mb-2">
                         Upload favicon (16x16 or 32x32 px)
                       </p>
                       <Button
@@ -219,9 +246,18 @@ const LogoUploader = () => {
             </div>
           </div>
 
-          <Button onClick={saveBranding} className="w-full">
-            <Save className="h-4 w-4 mr-2" />
-            Save Branding
+          <Button onClick={saveBranding} className="w-full" disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Branding
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -231,9 +267,9 @@ const LogoUploader = () => {
           <CardTitle>Branding Guidelines</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4 text-sm text-gray-600">
+          <div className="space-y-4 text-sm text-muted-foreground">
             <div>
-              <strong>Logo Requirements:</strong>
+              <strong className="text-foreground">Logo Requirements:</strong>
               <ul className="list-disc list-inside mt-1 space-y-1">
                 <li>Recommended size: 200-400px wide</li>
                 <li>Format: PNG with transparency preferred</li>
@@ -241,7 +277,7 @@ const LogoUploader = () => {
               </ul>
             </div>
             <div>
-              <strong>Favicon Requirements:</strong>
+              <strong className="text-foreground">Favicon Requirements:</strong>
               <ul className="list-disc list-inside mt-1 space-y-1">
                 <li>Size: 16x16 or 32x32 pixels</li>
                 <li>Format: ICO, PNG, or SVG</li>
