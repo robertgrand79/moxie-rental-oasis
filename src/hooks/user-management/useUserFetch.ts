@@ -1,7 +1,7 @@
-
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface User {
   id: string;
@@ -12,6 +12,7 @@ interface User {
   last_login_at: string | null;
   created_at: string;
   updated_at: string;
+  organization_role?: string; // Role within the organization (owner, admin, member)
 }
 
 export const useUserFetch = () => {
@@ -19,77 +20,67 @@ export const useUserFetch = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { organization, isOrgAdmin, isPlatformAdmin } = useCurrentOrganization();
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Check if current user is admin first using legacy system
-      const { data: currentUserProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user?.id)
-        .single();
-
-      if (profileError) {
-        console.error('Error checking user role:', profileError);
-        setError('Failed to verify admin access');
-        return;
-      }
-
-      if (currentUserProfile?.role !== 'admin') {
+      // Check if user has admin access (org admin or platform admin)
+      if (!isOrgAdmin() && !isPlatformAdmin) {
         setError('Access denied: Admin privileges required');
+        setUsers([]);
         return;
       }
 
-      // First try to fetch users with new role system
-      const { data: usersWithNewRoles, error: newRoleError } = await supabase
-        .from('profiles')
+      // If no organization context, return empty
+      if (!organization?.id) {
+        setUsers([]);
+        return;
+      }
+
+      // Fetch organization members with their profiles
+      const { data: members, error: membersError } = await supabase
+        .from('organization_members')
         .select(`
-          *,
-          user_roles!fk_user_roles_user_id(
-            role:system_roles!user_roles_role_id_fkey(name)
+          id,
+          role,
+          joined_at,
+          profile:profiles(
+            id,
+            email,
+            full_name,
+            role,
+            status,
+            last_login_at,
+            created_at,
+            updated_at
           )
         `)
-        .order('created_at', { ascending: false });
+        .eq('organization_id', organization.id)
+        .order('joined_at', { ascending: false });
 
-      if (newRoleError) {
-        console.warn('New role system query failed, falling back to legacy:', newRoleError);
-        
-        // Fallback to legacy role system
-        const { data: legacyUsers, error: legacyError } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (legacyError) {
-          console.error('Error fetching users with legacy system:', legacyError);
-          setError(legacyError.message);
-          return;
-        }
-
-        // Format legacy users
-        const formattedLegacyUsers = (legacyUsers || []).map((userProfile: any) => ({
-          ...userProfile,
-          role: userProfile.role || 'user'
-        }));
-
-        setUsers(formattedLegacyUsers);
+      if (membersError) {
+        console.error('Error fetching organization members:', membersError);
+        setError(membersError.message);
         return;
       }
 
-      // Format users data to include role information from new system
-      const formattedUsers = (usersWithNewRoles || []).map((userProfile: any) => {
-        // Try to get role from new system first, fallback to legacy
-        const newSystemRole = userProfile.user_roles?.[0]?.role?.name;
-        const finalRole = newSystemRole || userProfile.role || 'user';
-        
-        return {
-          ...userProfile,
-          role: finalRole
-        };
-      });
+      // Format users data with organization role
+      const formattedUsers: User[] = (members || [])
+        .filter(member => member.profile) // Filter out members without profiles
+        .map((member: any) => ({
+          id: member.profile.id,
+          email: member.profile.email,
+          full_name: member.profile.full_name,
+          role: member.profile.role || 'user',
+          status: member.profile.status || 'active',
+          last_login_at: member.profile.last_login_at,
+          created_at: member.profile.created_at,
+          updated_at: member.profile.updated_at,
+          organization_role: member.role, // owner, admin, or member
+        }));
 
       setUsers(formattedUsers);
     } catch (err) {
@@ -98,9 +89,9 @@ export const useUserFetch = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, organization?.id, isOrgAdmin, isPlatformAdmin]);
 
-  const searchUsers = (query: string) => {
+  const searchUsers = useCallback((query: string) => {
     if (!query.trim()) {
       return users;
     }
@@ -109,9 +100,10 @@ export const useUserFetch = () => {
     return users.filter(user => 
       user.email.toLowerCase().includes(lowercaseQuery) ||
       (user.full_name && user.full_name.toLowerCase().includes(lowercaseQuery)) ||
-      user.role.toLowerCase().includes(lowercaseQuery)
+      user.role.toLowerCase().includes(lowercaseQuery) ||
+      (user.organization_role && user.organization_role.toLowerCase().includes(lowercaseQuery))
     );
-  };
+  }, [users]);
 
   return {
     users,

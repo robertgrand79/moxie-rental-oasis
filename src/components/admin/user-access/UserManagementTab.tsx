@@ -134,7 +134,7 @@ const UserManagementTab = () => {
   }
 
   const activeUsers = users.filter(u => u.status === 'active');
-  const adminUsers = users.filter(u => u.role === 'admin');
+  const adminUsers = users.filter(u => u.organization_role === 'admin' || u.organization_role === 'owner');
 
   return (
     <div className="space-y-6">
@@ -274,8 +274,8 @@ const UserManagementTab = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                        {user.role}
+                      <Badge variant={user.organization_role === 'owner' ? 'default' : user.organization_role === 'admin' ? 'secondary' : 'outline'}>
+                        {user.organization_role || user.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
