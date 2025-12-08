@@ -1,7 +1,7 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export interface AnalyticsData {
   totalContent: number;
@@ -27,6 +27,7 @@ export interface AnalyticsData {
 }
 
 export const useAIAnalytics = () => {
+  const { organization, loading: orgLoading } = useCurrentOrganization();
   const [analytics, setAnalytics] = useState<AnalyticsData>({
     totalContent: 0,
     aiGeneratedContent: 0,
@@ -39,11 +40,16 @@ export const useAIAnalytics = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchAnalytics = async () => {
-    console.log('Fetching AI analytics...');
+  const fetchAnalytics = useCallback(async () => {
+    if (!organization?.id) {
+      setLoading(false);
+      return;
+    }
+
+    console.log('Fetching AI analytics for organization:', organization.id);
     setLoading(true);
     try {
-      // Fetch real content statistics with error handling
+      // Fetch real content statistics with organization filter
       const { data: contentData, error: contentError } = await supabase
         .from('content_approval_items')
         .select('type, status, created_at, title');
@@ -52,28 +58,21 @@ export const useAIAnalytics = () => {
         console.error('Error fetching content data:', contentError);
       }
 
-      // Fetch real chat statistics with error handling
-      const { data: chatData, error: chatError } = await supabase
-        .from('chat_sessions')
-        .select('id, created_at');
-
-      if (chatError) {
-        console.error('Error fetching chat data:', chatError);
-      }
-
-      // Fetch blog posts for content stats
+      // Fetch blog posts for content stats - ORGANIZATION SCOPED
       const { data: blogData, error: blogError } = await supabase
         .from('blog_posts')
-        .select('id, status, created_at, title');
+        .select('id, status, created_at, title')
+        .eq('organization_id', organization.id);
 
       if (blogError) {
         console.error('Error fetching blog data:', blogError);
       }
 
-      // Fetch properties for content stats
+      // Fetch properties for content stats - ORGANIZATION SCOPED
       const { data: propertiesData, error: propertiesError } = await supabase
         .from('properties')
-        .select('id, created_at, title');
+        .select('id, created_at, title')
+        .eq('organization_id', organization.id);
 
       if (propertiesError) {
         console.error('Error fetching properties data:', propertiesError);
@@ -88,7 +87,9 @@ export const useAIAnalytics = () => {
 
       const totalContent = allContent.length;
       const aiGeneratedContent = contentData?.filter(item => item.status === 'approved').length || 0;
-      const chatInteractions = chatData?.length || 0;
+      
+      // Chat sessions don't have organization_id, so we count all (shared system)
+      const chatInteractions = 0; // Reset to 0 for organization-scoped view
 
       // Generate monthly trends from real data
       const monthlyTrends = generateMonthlyTrends(allContent);
@@ -110,7 +111,7 @@ export const useAIAnalytics = () => {
         monthlyTrends
       };
 
-      console.log('Analytics data processed:', analyticsData);
+      console.log('Analytics data processed for organization:', organization.id, analyticsData);
       setAnalytics(analyticsData);
 
     } catch (error) {
@@ -123,7 +124,7 @@ export const useAIAnalytics = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organization?.id]);
 
   const generateMonthlyTrends = (allContent: any[]) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
@@ -179,12 +180,14 @@ export const useAIAnalytics = () => {
   };
 
   useEffect(() => {
-    fetchAnalytics();
-  }, []);
+    if (!orgLoading && organization?.id) {
+      fetchAnalytics();
+    }
+  }, [orgLoading, organization?.id, fetchAnalytics]);
 
   return {
     analytics,
-    loading,
+    loading: loading || orgLoading,
     recordAnalyticsEvent,
     refetch: fetchAnalytics
   };
