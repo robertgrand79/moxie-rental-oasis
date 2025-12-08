@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Property } from '@/types/property';
 import { toast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface UsePaginatedPropertiesResult {
   properties: Property[];
@@ -22,6 +22,7 @@ interface UsePaginatedPropertiesResult {
 const PROPERTIES_PER_PAGE = 20;
 
 export const usePaginatedProperties = (): UsePaginatedPropertiesResult => {
+  const { organization, loading: orgLoading } = useCurrentOrganization();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,8 +34,15 @@ export const usePaginatedProperties = (): UsePaginatedPropertiesResult => {
   const hasPreviousPage = currentPage > 1;
 
   const fetchProperties = async (page: number) => {
+    if (!organization?.id) {
+      setProperties([]);
+      setTotalCount(0);
+      setLoading(false);
+      return;
+    }
+
     try {
-      console.log('📊 Starting fetchProperties for page:', page);
+      console.log('📊 Starting fetchProperties for page:', page, 'org:', organization.id);
       setLoading(true);
       setError(null);
 
@@ -44,6 +52,7 @@ export const usePaginatedProperties = (): UsePaginatedPropertiesResult => {
       const { data, error: fetchError, count } = await supabase
         .from('properties')
         .select('*', { count: 'exact' })
+        .eq('organization_id', organization.id)
         .order('created_at', { ascending: false })
         .range(offset, offset + PROPERTIES_PER_PAGE - 1);
 
@@ -98,8 +107,10 @@ export const usePaginatedProperties = (): UsePaginatedPropertiesResult => {
   };
 
   useEffect(() => {
-    fetchProperties(currentPage);
-  }, [currentPage]);
+    if (!orgLoading) {
+      fetchProperties(currentPage);
+    }
+  }, [currentPage, organization?.id, orgLoading]);
 
   return {
     properties,
