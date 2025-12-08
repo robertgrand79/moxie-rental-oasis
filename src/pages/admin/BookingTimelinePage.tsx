@@ -40,6 +40,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 
 interface ExternalCalendar {
   id: string;
@@ -124,30 +125,35 @@ const BookingTimelinePage = () => {
     console.log('Add booking for property:', propertyId, 'on date:', date);
   };
 
-  // Fetch all properties with their external calendars
-  const { data: propertiesWithCalendars = [], isLoading } = useQuery({
-    queryKey: ['all-calendar-sync'],
+  // Get organization-scoped properties
+  const { properties: orgProperties = [], loading: propertiesLoading } = usePropertyFetch();
+  const propertyIds = orgProperties.map(p => p.id);
+
+  // Fetch external calendars for organization properties
+  const { data: propertiesWithCalendars = [], isLoading: calendarsLoading } = useQuery({
+    queryKey: ['all-calendar-sync', propertyIds],
     queryFn: async () => {
-      const { data: properties, error: propError } = await supabase
-        .from('properties')
-        .select('id, title, location')
-        .order('title');
-      
-      if (propError) throw propError;
+      if (propertyIds.length === 0) return [];
 
       const { data: calendars, error: calError } = await supabase
         .from('external_calendars')
         .select('*')
+        .in('property_id', propertyIds)
         .order('created_at', { ascending: false });
       
       if (calError) throw calError;
 
-      return (properties || []).map(prop => ({
-        ...prop,
+      return orgProperties.map(prop => ({
+        id: prop.id,
+        title: prop.title,
+        location: prop.location || '',
         calendars: (calendars || []).filter(cal => cal.property_id === prop.id)
       })) as PropertyWithCalendars[];
-    }
+    },
+    enabled: propertyIds.length > 0
   });
+
+  const isLoading = propertiesLoading || calendarsLoading;
 
   // Sync single calendar
   const syncCalendarMutation = useMutation({
