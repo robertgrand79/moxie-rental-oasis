@@ -9,6 +9,7 @@ interface TenantInfo {
   website: string | null;
   custom_domain: string | null;
   is_active: boolean;
+  template_type: 'single_property' | 'multi_property' | null;
 }
 
 interface TenantContextType {
@@ -17,6 +18,7 @@ interface TenantContextType {
   error: string | null;
   isDefaultTenant: boolean;
   tenantId: string | null;
+  isSingleProperty: boolean;
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -42,6 +44,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     error,
     isDefaultTenant,
     tenantId: tenant?.id ?? null,
+    isSingleProperty: tenant?.template_type === 'single_property',
   };
 
   return (

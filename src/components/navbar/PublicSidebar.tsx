@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -15,19 +14,29 @@ import {
 } from '@/components/ui/sidebar';
 import { navigationItems } from './navigationItems';
 import AuthSection from './AuthSection';
+import { useTenant } from '@/contexts/TenantContext';
 
 const PublicSidebar = () => {
   const location = useLocation();
+  const { isSingleProperty, tenant } = useTenant();
 
-  // Filter out Admin from public navigation
-  const publicNavItems = navigationItems.filter(item => item.name !== 'Admin');
+  // Filter out Admin and Properties (for single property sites) from public navigation
+  const publicNavItems = navigationItems.filter(item => {
+    if (item.name === 'Admin') return false;
+    if ((item.href === '/properties' || item.href === '/listings') && isSingleProperty) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center px-4 py-2">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-primary">Moxie</span>
+            <span className="text-xl font-bold text-primary">
+              {tenant?.name || 'Home'}
+            </span>
           </Link>
         </div>
       </SidebarHeader>

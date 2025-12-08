@@ -9,6 +9,7 @@ interface TenantInfo {
   website: string | null;
   custom_domain: string | null;
   is_active: boolean;
+  template_type: 'single_property' | 'multi_property' | null;
 }
 
 interface TenantDetectionResult {
@@ -80,7 +81,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
           // Try to find organization by slug or custom domain
           const { data, error: fetchError } = await supabase
             .from('organizations')
-            .select('id, name, slug, logo_url, website, custom_domain, is_active')
+            .select('id, name, slug, logo_url, website, custom_domain, is_active, template_type')
             .or(`slug.eq.${detectedIdentifier},custom_domain.eq.${detectedIdentifier}`)
             .eq('is_active', true)
             .maybeSingle();
@@ -108,7 +109,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
         // Fallback for public routes: Get the default/first active organization
         const { data: defaultOrg, error: defaultError } = await supabase
           .from('organizations')
-          .select('id, name, slug, logo_url, website, custom_domain, is_active')
+          .select('id, name, slug, logo_url, website, custom_domain, is_active, template_type')
           .eq('is_active', true)
           .order('created_at', { ascending: true })
           .limit(1)
