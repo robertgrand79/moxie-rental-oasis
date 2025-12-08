@@ -2566,6 +2566,7 @@ export type Database = {
           id: string
           is_published: boolean
           meta_description: string | null
+          organization_id: string
           slug: string
           title: string
           updated_at: string
@@ -2577,6 +2578,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           meta_description?: string | null
+          organization_id: string
           slug: string
           title: string
           updated_at?: string
@@ -2588,6 +2590,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           meta_description?: string | null
+          organization_id?: string
           slug?: string
           title?: string
           updated_at?: string
@@ -2598,6 +2601,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]

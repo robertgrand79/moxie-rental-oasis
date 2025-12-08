@@ -6,19 +6,23 @@ import { pageService } from '@/services/pageService';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { getDefaultPages } from '@/data/defaultPages';
 import { toast } from '@/hooks/use-toast';
 import SecureContentRenderer from '@/components/SecureContentRenderer';
 
 const DynamicFAQ = () => {
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
   
   const { data: faqPage, isLoading, error, refetch } = useQuery({
-    queryKey: ['page', 'faq'],
+    queryKey: ['page', 'faq', organization?.id],
     queryFn: async () => {
-      const pages = await pageService.fetchPages();
+      if (!organization?.id) return null;
+      const pages = await pageService.fetchPages(organization.id);
       return pages.find(page => page.slug === 'faq' && page.is_published);
-    }
+    },
+    enabled: !!organization?.id
   });
 
   const updateFAQContent = async () => {
@@ -32,7 +36,8 @@ const DynamicFAQ = () => {
     }
 
     try {
-      const defaultPages = getDefaultPages(user.id);
+      if (!organization?.id) return;
+      const defaultPages = getDefaultPages(user.id, organization.id);
       const faqDefaultContent = defaultPages.find(page => page.slug === 'faq');
       
       if (faqDefaultContent && faqPage) {

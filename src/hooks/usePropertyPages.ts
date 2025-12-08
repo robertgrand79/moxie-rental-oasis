@@ -3,14 +3,16 @@ import { useToast } from '@/hooks/use-toast';
 import { Property } from '@/types/property';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { generateAddressSlug } from '@/utils/addressSlug';
 
 export const usePropertyPages = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
 
   const createPropertyPage = async (property: Property) => {
-    if (!user) return;
+    if (!user || !organization?.id) return;
 
     // Generate clean SEO-friendly slug without property ID
     const slug = generateAddressSlug(property.location);
@@ -43,7 +45,7 @@ Ready to experience this amazing property? Book now through our secure booking s
 
 ---
 
-*Located at ${property.location}, this property offers the perfect combination of comfort and convenience for your Eugene getaway.*
+*Located at ${property.location}, this property offers the perfect combination of comfort and convenience for your getaway.*
     `.trim();
 
     try {
@@ -55,7 +57,8 @@ Ready to experience this amazing property? Book now through our secure booking s
           content: pageContent,
           meta_description: metaDescription,
           is_published: true,
-          created_by: user.id
+          created_by: user.id,
+          organization_id: organization.id
         }]);
 
       if (error) {

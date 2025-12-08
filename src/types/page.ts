@@ -9,6 +9,7 @@ export interface Page {
   created_at: string;
   updated_at: string;
   created_by: string;
+  organization_id: string;
 }
 
 export interface PageFormData {
@@ -21,4 +22,5 @@ export interface PageFormData {
 
 export interface CreatePageData extends PageFormData {
   created_by: string;
+  organization_id: string;
 }
