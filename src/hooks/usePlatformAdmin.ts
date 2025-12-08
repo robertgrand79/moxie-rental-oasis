@@ -18,9 +18,10 @@ export interface PlatformOrganization {
   template_type: TemplateType;
   onboarding_completed: boolean;
   onboarding_step: number;
-  subscription_status: string;
-  subscription_tier: string;
+  subscription_status: string | null;
+  subscription_tier: string | null;
   trial_ends_at: string | null;
+  stripe_customer_id: string | null;
   created_at: string;
   updated_at: string;
   member_count?: number;

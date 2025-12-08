@@ -15,13 +15,16 @@ import {
   DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
-import { Layout, Plus, Edit, DollarSign, Building, Home, Loader2 } from 'lucide-react';
+import { Layout, Plus, Edit, DollarSign, Building, Home, Loader2, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { usePlatformSettings, SiteTemplate } from '@/hooks/usePlatformSettings';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const TemplatesManager = () => {
   const { templates, loadingTemplates, updateTemplate, createTemplate, isUpdating } = usePlatformSettings();
   const [editingTemplate, setEditingTemplate] = useState<SiteTemplate | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [newTemplate, setNewTemplate] = useState({
     name: '',
     slug: '',
@@ -76,6 +79,28 @@ const TemplatesManager = () => {
     });
   };
 
+  const handleSyncStripeProducts = async () => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-stripe-products');
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success('Stripe products synced successfully');
+        // Refresh templates to show updated Stripe IDs
+        window.location.reload();
+      } else {
+        toast.error(data.error || 'Failed to sync Stripe products');
+      }
+    } catch (error) {
+      console.error('Failed to sync Stripe products:', error);
+      toast.error('Failed to sync Stripe products');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   if (loadingTemplates) {
     return (
       <Card>
@@ -100,13 +125,26 @@ const TemplatesManager = () => {
                 Manage subscription tiers and pricing for new tenants
               </CardDescription>
             </div>
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Template
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleSyncStripeProducts}
+                disabled={isSyncing}
+              >
+                {isSyncing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                Sync with Stripe
+              </Button>
+              <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Template
+                  </Button>
+                </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Create New Template</DialogTitle>
@@ -175,7 +213,8 @@ const TemplatesManager = () => {
                   </Button>
                 </DialogFooter>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -209,9 +248,15 @@ const TemplatesManager = () => {
                       <span>
                         {template.max_properties ? `${template.max_properties} property` : 'Unlimited properties'}
                       </span>
-                      {template.stripe_product_id && (
-                        <Badge variant="outline" className="text-xs">
+                      {template.stripe_product_id ? (
+                        <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                          <CheckCircle className="h-3 w-3 mr-1" />
                           Stripe Connected
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs text-amber-600 border-amber-600">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Not Synced
                         </Badge>
                       )}
                     </div>

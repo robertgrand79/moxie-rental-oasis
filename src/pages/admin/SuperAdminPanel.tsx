@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
+import SubscriptionControls from '@/components/admin/superadmin/SubscriptionControls';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -59,7 +60,8 @@ const SuperAdminPanel = () => {
     toggleTemplateStatus,
     updateTemplateType,
     deleteOrganization,
-    isUpdating
+    isUpdating,
+    refetchOrgs
   } = usePlatformAdmin();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -175,11 +177,19 @@ const SuperAdminPanel = () => {
       </div>
       
       <div className="flex items-center gap-4">
-        <div className="text-right text-sm">
-          <Badge variant={org.subscription_status === 'active' ? 'default' : 'secondary'}>
-            {org.subscription_tier}
-          </Badge>
-          <p className="text-xs text-muted-foreground mt-1">
+        <div className="text-right text-sm space-y-2">
+          <SubscriptionControls 
+            organization={{
+              id: org.id,
+              name: org.name,
+              subscription_status: org.subscription_status,
+              subscription_tier: org.subscription_tier,
+              trial_ends_at: org.trial_ends_at,
+              stripe_customer_id: org.stripe_customer_id
+            }}
+            onUpdate={() => refetchOrgs?.()}
+          />
+          <p className="text-xs text-muted-foreground">
             Created {format(new Date(org.created_at), 'MMM d, yyyy')}
           </p>
         </div>

@@ -6,12 +6,9 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { 
   Check, 
-  X, 
   ArrowRight, 
-  Zap,
-  Building2,
-  Rocket,
-  Crown
+  Home,
+  Building2
 } from 'lucide-react';
 
 const Pricing: React.FC = () => {
@@ -19,87 +16,41 @@ const Pricing: React.FC = () => {
 
   const plans = [
     {
-      name: 'Starter',
-      description: 'Perfect for hosts just getting started with direct bookings',
-      icon: Zap,
-      monthlyPrice: 49,
-      annualPrice: 39,
-      properties: '1-3',
+      name: 'Single Property',
+      description: 'Perfect for hosts with one vacation rental property',
+      icon: Home,
+      monthlyPrice: 79.99,
+      annualPrice: 63.99,
+      properties: '1',
       popular: false,
       features: [
-        { name: 'Direct booking engine', included: true },
-        { name: 'Basic website template', included: true },
-        { name: 'Calendar sync (2 channels)', included: true },
-        { name: 'Guest messaging', included: true },
-        { name: 'Email support', included: true },
-        { name: 'Local content hub', included: false },
-        { name: 'AI messaging', included: false },
-        { name: 'Smart home integration', included: false },
-        { name: 'Custom domain', included: false },
-        { name: 'Priority support', included: false },
+        'Direct booking engine',
+        'Beautiful single-property website',
+        'Calendar sync (Airbnb, VRBO, Booking.com)',
+        'Guest messaging & notifications',
+        'Digital guidebook',
+        'Stripe payment processing',
+        'Custom domain support',
+        'Email support',
       ],
     },
     {
-      name: 'Professional',
-      description: 'For serious hosts ready to grow their direct booking business',
-      icon: Rocket,
-      monthlyPrice: 99,
-      annualPrice: 79,
-      properties: '1-10',
+      name: 'Multi-Property',
+      description: 'For property managers with multiple vacation rentals',
+      icon: Building2,
+      monthlyPrice: 119.99,
+      annualPrice: 95.99,
+      properties: 'Unlimited',
       popular: true,
       features: [
-        { name: 'Direct booking engine', included: true },
-        { name: 'Premium website templates', included: true },
-        { name: 'Unlimited calendar sync', included: true },
-        { name: 'Guest messaging', included: true },
-        { name: 'Local content hub', included: true },
-        { name: 'AI messaging (500/mo)', included: true },
-        { name: 'Smart home integration', included: true },
-        { name: 'Custom domain', included: true },
-        { name: 'Digital guidebooks', included: true },
-        { name: 'Priority support', included: false },
-      ],
-    },
-    {
-      name: 'Business',
-      description: 'For property managers scaling their portfolio',
-      icon: Building2,
-      monthlyPrice: 199,
-      annualPrice: 159,
-      properties: '1-25',
-      popular: false,
-      features: [
-        { name: 'Everything in Professional', included: true },
-        { name: 'Unlimited AI messaging', included: true },
-        { name: 'Team access (5 users)', included: true },
-        { name: 'Advanced analytics', included: true },
-        { name: 'White-label branding', included: true },
-        { name: 'API access', included: true },
-        { name: 'Priority support', included: true },
-        { name: 'Dedicated account manager', included: false },
-        { name: 'Custom integrations', included: false },
-        { name: 'SLA guarantee', included: false },
-      ],
-    },
-    {
-      name: 'Enterprise',
-      description: 'Custom solutions for large portfolios',
-      icon: Crown,
-      monthlyPrice: null,
-      annualPrice: null,
-      properties: 'Unlimited',
-      popular: false,
-      features: [
-        { name: 'Everything in Business', included: true },
-        { name: 'Unlimited properties', included: true },
-        { name: 'Unlimited team members', included: true },
-        { name: 'Dedicated account manager', included: true },
-        { name: 'Custom integrations', included: true },
-        { name: 'SLA guarantee', included: true },
-        { name: 'On-boarding assistance', included: true },
-        { name: 'Custom training', included: true },
-        { name: 'Volume discounts', included: true },
-        { name: '24/7 phone support', included: true },
+        'Everything in Single Property',
+        'Unlimited properties',
+        'Multi-property portfolio site',
+        'Property search & filtering',
+        'Team member access',
+        'Dynamic pricing integration',
+        'Smart home integration',
+        'Priority support',
       ],
     },
   ];
@@ -110,24 +61,24 @@ const Pricing: React.FC = () => {
       answer: 'Yes! You can upgrade or downgrade your plan at any time. Changes take effect at the start of your next billing cycle.',
     },
     {
-      question: 'What happens if I exceed my property limit?',
-      answer: 'We\'ll notify you when you\'re approaching your limit. You can easily upgrade to the next tier to add more properties.',
-    },
-    {
       question: 'Is there a free trial?',
       answer: 'Yes, all plans include a 14-day free trial. No credit card required to start.',
     },
     {
       question: 'What payment methods do you accept?',
-      answer: 'We accept all major credit cards, including Visa, Mastercard, and American Express. Enterprise plans can also pay via invoice.',
+      answer: 'We accept all major credit cards, including Visa, Mastercard, and American Express via Stripe.',
     },
     {
       question: 'Can I cancel anytime?',
       answer: 'Absolutely. You can cancel your subscription at any time with no cancellation fees. Your access continues until the end of your billing period.',
     },
     {
-      question: 'Do you offer discounts for non-profits?',
-      answer: 'Yes! Contact us for special pricing for non-profit organizations and community housing initiatives.',
+      question: 'What happens when I outgrow Single Property?',
+      answer: 'Simply upgrade to Multi-Property when you add more rentals. We\'ll prorate your billing automatically.',
+    },
+    {
+      question: 'Do you handle payment processing?',
+      answer: 'You connect your own Stripe account to receive payments directly. We never hold your funds.',
     },
   ];
 
@@ -169,8 +120,8 @@ const Pricing: React.FC = () => {
 
       {/* Pricing Cards */}
       <section className="pb-20 lg:pb-32 -mt-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-8">
             {plans.map((plan) => (
               <Card 
                 key={plan.name} 
@@ -185,63 +136,53 @@ const Pricing: React.FC = () => {
                 )}
                 
                 <CardHeader className="text-center pb-4">
-                  <div className={`w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center ${
+                  <div className={`w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center ${
                     plan.popular 
                       ? 'bg-gradient-to-br from-emerald-500 to-teal-600' 
                       : 'bg-muted'
                   }`}>
-                    <plan.icon className={`w-6 h-6 ${plan.popular ? 'text-white' : 'text-muted-foreground'}`} />
+                    <plan.icon className={`w-7 h-7 ${plan.popular ? 'text-white' : 'text-muted-foreground'}`} />
                   </div>
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  <CardDescription className="h-12">{plan.description}</CardDescription>
+                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  <CardDescription className="text-base">{plan.description}</CardDescription>
                 </CardHeader>
                 
                 <CardContent>
-                  <div className="text-center mb-6">
-                    {plan.monthlyPrice !== null ? (
-                      <>
-                        <div className="text-4xl font-bold">
-                          ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                        </div>
-                        <div className="text-sm text-muted-foreground">per month</div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          Up to {plan.properties} properties
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-2xl font-bold">Custom Pricing</div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {plan.properties} properties
-                        </div>
-                      </>
+                  <div className="text-center mb-8">
+                    <div className="text-5xl font-bold">
+                      ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                    </div>
+                    <div className="text-sm text-muted-foreground">per month</div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {plan.properties === '1' ? '1 property' : `${plan.properties} properties`}
+                    </div>
+                    {isAnnual && (
+                      <div className="text-sm text-emerald-600 dark:text-emerald-400 mt-2">
+                        Billed annually (${(plan.annualPrice * 12).toFixed(0)}/year)
+                      </div>
                     )}
                   </div>
                   
-                  <Link to={plan.monthlyPrice !== null ? '/auth?tab=signup' : '/contact'}>
+                  <Link to="/auth?tab=signup">
                     <Button 
-                      className={`w-full mb-6 ${
+                      className={`w-full mb-8 h-12 text-base ${
                         plan.popular 
                           ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white' 
                           : ''
                       }`}
                       variant={plan.popular ? 'default' : 'outline'}
+                      size="lg"
                     >
-                      {plan.monthlyPrice !== null ? 'Start Free Trial' : 'Contact Sales'}
+                      Start Free Trial
+                      <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   </Link>
                   
                   <ul className="space-y-3">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-3">
-                        {feature.included ? (
-                          <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        ) : (
-                          <X className="w-5 h-5 text-muted-foreground/50 flex-shrink-0 mt-0.5" />
-                        )}
-                        <span className={feature.included ? 'text-foreground' : 'text-muted-foreground/50'}>
-                          {feature.name}
-                        </span>
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-foreground">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -257,12 +198,12 @@ const Pricing: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
           
-          <div className="grid gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
             {faqs.map((faq, index) => (
               <Card key={index} className="border-0 shadow-sm">
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2">{faq.question}</h3>
-                  <p className="text-muted-foreground">{faq.answer}</p>
+                  <p className="text-muted-foreground text-sm">{faq.answer}</p>
                 </CardContent>
               </Card>
             ))}
