@@ -10,34 +10,35 @@ import AdminSidebarFooter from './sidebar/AdminSidebarFooter';
 import { adminMenuItems } from './sidebar/adminMenuItems';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 const AdminSidebar = () => {
   const isMobile = useIsMobile();
   const { settings } = useSimplifiedSiteSettings();
+  const { organization } = useCurrentOrganization();
+  
+  const logoUrl = settings.siteLogo || organization?.logo_url;
 
   return (
     <Sidebar>
       <SidebarHeader>
         <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
           <div className="flex items-center gap-3">
-            {/* Site Logo - conditionally render logo or fallback to site name */}
-            {settings.siteLogo ? (
+            {logoUrl ? (
               <div className="flex items-center">
                 <img 
-                  src={settings.siteLogo} 
+                  src={logoUrl} 
                   alt="Site Logo" 
                   className={`${isMobile ? 'h-8' : 'h-10'} w-auto max-w-[150px] object-contain`}
                   onError={(e) => {
-                    console.log('Logo failed to load:', settings.siteLogo);
-                    // Hide the image if it fails to load and show fallback
                     e.currentTarget.style.display = 'none';
                   }}
                 />
               </div>
             ) : (
               <div className="flex items-center">
-                <h2 className={`font-bold text-gray-900 ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                  {settings.siteName || 'Moxie'}
+                <h2 className={`font-bold text-foreground ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                  {settings.siteName || organization?.name || 'Admin'}
                 </h2>
               </div>
             )}
