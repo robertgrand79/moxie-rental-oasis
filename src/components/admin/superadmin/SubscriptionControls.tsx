@@ -45,7 +45,7 @@ interface SubscriptionControlsProps {
     trial_ends_at: string | null;
     stripe_customer_id: string | null;
   };
-  onUpdate: () => void;
+  onUpdate: () => Promise<void> | void;
 }
 
 const SubscriptionControls: React.FC<SubscriptionControlsProps> = ({ organization, onUpdate }) => {
@@ -76,8 +76,8 @@ const SubscriptionControls: React.FC<SubscriptionControlsProps> = ({ organizatio
 
       if (error) throw error;
 
+      await onUpdate();
       toast.success('Subscription updated');
-      onUpdate();
       setIsOpen(false);
     } catch (error) {
       console.error('Failed to update subscription:', error);
@@ -101,8 +101,8 @@ const SubscriptionControls: React.FC<SubscriptionControlsProps> = ({ organizatio
 
       if (error) throw error;
 
+      await onUpdate();
       toast.success(`Trial extended by ${days} days`);
-      onUpdate();
     } catch (error) {
       console.error('Failed to extend trial:', error);
       toast.error('Failed to extend trial');
@@ -135,8 +135,8 @@ const SubscriptionControls: React.FC<SubscriptionControlsProps> = ({ organizatio
 
       if (error) throw error;
 
+      await onUpdate();
       toast.success('Subscription status updated');
-      onUpdate();
     } catch (error) {
       console.error('Failed to update status:', error);
       toast.error('Failed to update status');
