@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { BlogPost } from '@/types/blogPost';
 import { blogPostService } from '@/services/blogPostService';
 import { toast } from '@/hooks/use-toast';
@@ -9,6 +10,7 @@ export type { BlogPost } from '@/types/blogPost';
 
 interface UseBlogPostsOptions {
   publishedOnly?: boolean;
+  organizationId?: string;
 }
 
 const MAX_RETRIES = 2; // Reduced from 3 to prevent spam
@@ -21,12 +23,15 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
   
   // Default to publishedOnly=true for unauthenticated users, false for authenticated users
   const publishedOnly = options.publishedOnly ?? !user;
+  // Use provided organizationId or fall back to context
+  const organizationId = options.organizationId || organization?.id;
 
   const fetchBlogPosts = useCallback(async (attempt = 0) => {
-    console.log(`🔄 useBlogPosts - fetching with publishedOnly: ${publishedOnly}, attempt: ${attempt + 1}`);
+    console.log(`🔄 useBlogPosts - fetching with publishedOnly: ${publishedOnly}, orgId: ${organizationId}, attempt: ${attempt + 1}`);
     
     // Check network connectivity first
     if (!navigator.onLine) {
@@ -46,7 +51,7 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), NETWORK_TIMEOUT);
       
-      const posts = await blogPostService.fetchBlogPosts(publishedOnly);
+      const posts = await blogPostService.fetchBlogPosts(publishedOnly, organizationId);
       
       clearTimeout(timeoutId);
       console.log('📊 useBlogPosts - received posts:', posts.length);
@@ -92,7 +97,7 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
         setLoading(false);
       }
     }
-  }, [publishedOnly]);
+  }, [publishedOnly, organizationId]);
 
   const addBlogPost = async (postData: Omit<BlogPost, 'id' | 'created_at' | 'updated_at' | 'created_by'>): Promise<BlogPost | null> => {
     if (!user) {

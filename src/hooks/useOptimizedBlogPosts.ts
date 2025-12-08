@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { optimizedBlogService, BlogPostSummary, PaginatedBlogResponse } from '@/services/optimizedBlogService';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 
 interface UseOptimizedBlogPostsOptions {
@@ -9,6 +10,7 @@ interface UseOptimizedBlogPostsOptions {
   loadMoreSize?: number;
   searchQuery?: string;
   category?: string;
+  organizationId?: string;
 }
 
 interface UseOptimizedBlogPostsResult {
@@ -31,8 +33,12 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
     pageSize = 4,
     loadMoreSize = 4,
     searchQuery = '',
-    category = 'all'
+    category = 'all',
+    organizationId: optionsOrgId
   } = options;
+
+  const { organization } = useCurrentOrganization();
+  const organizationId = optionsOrgId || organization?.id;
 
   const [posts, setPosts] = useState<BlogPostSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +87,8 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
         page,
         currentPageSize,
         searchQuery.trim() || undefined,
-        category !== 'all' ? category : undefined
+        category !== 'all' ? category : undefined,
+        organizationId
       );
 
       // Check if request was aborted
@@ -141,7 +148,7 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
         setIsLoadingMore(false);
       }
     }
-  }, [publishedOnly, pageSize, loadMoreSize, searchQuery, category]);
+  }, [publishedOnly, pageSize, loadMoreSize, searchQuery, category, organizationId]);
 
   const loadMore = useCallback(() => {
     if (!isLoadingMore && hasMore && !loading) {
