@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
@@ -67,7 +67,8 @@ export const useChecklistManagement = () => {
   // Get organization context for multi-tenant filtering
   const { organization } = useCurrentOrganization();
   const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
-  const orgPropertyIds = orgProperties.map(p => p.id);
+  // Memoize property IDs to prevent infinite re-render loops
+  const orgPropertyIds = useMemo(() => orgProperties.map(p => p.id), [orgProperties]);
 
   const fetchTemplates = useCallback(async () => {
     if (!organization?.id) return;
