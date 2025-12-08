@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 const DEFAULT_LOGO_SETTINGS = {
   siteName: 'Moxie Vacation Rentals',
@@ -10,45 +11,46 @@ const DEFAULT_LOGO_SETTINGS = {
 };
 
 const LogoSection = () => {
-  // Fetch logo settings from database
+  const { tenantId, tenant } = useTenant();
+
+  // Fetch logo settings from database scoped by tenant
   const { data: logoSettings } = useQuery({
-    queryKey: ['logo-settings'],
+    queryKey: ['logo-settings', tenantId],
     queryFn: async () => {
-      console.log('Fetching logo settings from database...');
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('site_settings')
         .select('key, value')
         .in('key', ['siteName', 'logoUrl']);
+
+      // Filter by tenant if available
+      if (tenantId) {
+        query = query.eq('organization_id', tenantId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching logo settings:', error);
         return DEFAULT_LOGO_SETTINGS;
       }
 
-      console.log('Raw logo settings from database:', data);
-
-      // Convert array to object and handle empty/null values properly
+      // Convert array to object
       const settingsMap = data?.reduce((acc, setting) => {
-        // Only use database value if it's not null, undefined, or empty string
         if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
           acc[setting.key] = setting.value;
         }
         return acc;
       }, {} as Record<string, any>) || {};
 
-      console.log('Processed logo settings (non-empty values only):', settingsMap);
-
-      // Merge with defaults - database values override defaults only if they exist and are not empty
+      // Use tenant info as additional fallback
       const finalSettings = {
         ...DEFAULT_LOGO_SETTINGS,
-        ...settingsMap
+        siteName: settingsMap.siteName || tenant?.name || DEFAULT_LOGO_SETTINGS.siteName,
+        logoUrl: settingsMap.logoUrl || tenant?.logo_url || DEFAULT_LOGO_SETTINGS.logoUrl
       };
 
-      console.log('Final logo settings with defaults:', finalSettings);
       return finalSettings;
     },
-    // Cache for 30 seconds to reduce database calls
     staleTime: 30000
   });
 

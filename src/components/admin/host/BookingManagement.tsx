@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useDeleteReservation } from '@/hooks/useBookingData';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 interface Reservation {
   id: string;
   property_id: string;
@@ -42,16 +43,23 @@ const BookingManagement = () => {
   const queryClient = useQueryClient();
   const deleteReservation = useDeleteReservation();
 
-  // Fetch reservations
-  const { data: reservations = [], isLoading } = useQuery({
-    queryKey: ['bookings-management', searchTerm, statusFilter],
+  // Get organization-scoped properties
+  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
+  const orgPropertyIds = orgProperties.map(p => p.id);
+
+  // Fetch reservations scoped to organization properties
+  const { data: reservations = [], isLoading: reservationsLoading } = useQuery({
+    queryKey: ['bookings-management', searchTerm, statusFilter, orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+
       let query = supabase
         .from('property_reservations')
         .select(`
           *,
           properties:properties!inner(title, location)
         `)
+        .in('property_id', orgPropertyIds)
         .order('check_in_date', { ascending: false });
 
       if (searchTerm) {
@@ -71,7 +79,10 @@ const BookingManagement = () => {
         properties: item.properties || { title: 'Unknown Property', location: '' }
       })) as Reservation[];
     },
+    enabled: orgPropertyIds.length > 0,
   });
+
+  const isLoading = propertiesLoading || reservationsLoading;
 
   // Create Turno cleaning task
   const createTurnoTask = useMutation({

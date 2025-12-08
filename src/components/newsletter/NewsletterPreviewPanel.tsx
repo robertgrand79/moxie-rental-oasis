@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface NewsletterPreviewPanelProps {
   subject: string;
@@ -13,14 +14,22 @@ interface NewsletterPreviewPanelProps {
 }
 
 const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPreviewPanelProps) => {
-  // Fetch dynamic site settings for preview
+  const { organization } = useCurrentOrganization();
+
+  // Fetch dynamic site settings for preview scoped to organization
   const { data: siteSettings } = useQuery({
-    queryKey: ['newsletter-preview-settings'],
+    queryKey: ['newsletter-preview-settings', organization?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('site_settings')
         .select('key, value')
         .in('key', ['siteName', 'contactEmail', 'phone', 'address', 'socialMedia']);
+
+      if (organization?.id) {
+        query = query.eq('organization_id', organization.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching site settings for preview:', error);
@@ -34,7 +43,6 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
               ? JSON.parse(setting.value) 
               : setting.value;
           } catch (parseError) {
-            console.warn(`Failed to parse socialMedia setting:`, parseError);
             acc[setting.key] = setting.value;
           }
         } else {
@@ -43,7 +51,7 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
         return acc;
       }, {} as Record<string, any>) || {};
     },
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 30000,
   });
 
   const preheader = useMemo(() => {

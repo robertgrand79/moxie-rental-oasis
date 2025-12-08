@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Facebook, Instagram, Twitter } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 // Default values to use as fallback
 const DEFAULT_SETTINGS = {
@@ -21,12 +22,12 @@ const DEFAULT_SETTINGS = {
 };
 
 const Footer = () => {
+  const { tenantId } = useTenant();
+
   const { data: settings } = useQuery({
-    queryKey: ['footer-settings'],
+    queryKey: ['footer-settings', tenantId],
     queryFn: async () => {
-      console.log('🔄 Footer: Fetching settings from database...');
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('site_settings')
         .select('key, value')
         .in('key', [
@@ -38,25 +39,27 @@ const Footer = () => {
           'socialMedia'
         ]);
 
+      // Filter by tenant if available
+      if (tenantId) {
+        query = query.eq('organization_id', tenantId);
+      }
+
+      const { data, error } = await query;
+
       if (error) {
-        console.error('❌ Footer: Error fetching settings:', error);
+        console.error('Footer: Error fetching settings:', error);
         return DEFAULT_SETTINGS;
       }
 
-      console.log('📄 Footer: Raw settings from database:', data);
-
       // Convert array to object and handle empty/null values properly
       const settingsMap = data?.reduce((acc, setting) => {
-        // Only use database value if it's not null, undefined, or empty string
         if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
           if (setting.key === 'socialMedia') {
-            // Handle JSON parsing for socialMedia
             try {
               acc[setting.key] = typeof setting.value === 'string' 
                 ? JSON.parse(setting.value) 
                 : setting.value;
             } catch (parseError) {
-              console.warn(`❌ Footer: Failed to parse socialMedia:`, parseError);
               acc[setting.key] = setting.value;
             }
           } else {
@@ -66,9 +69,7 @@ const Footer = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      console.log('🔧 Footer: Processed settings (non-empty values only):', settingsMap);
-
-      // Merge with defaults - database values override defaults only if they exist and are not empty
+      // Merge with defaults
       const finalSettings = {
         ...DEFAULT_SETTINGS,
         ...settingsMap,
@@ -78,10 +79,9 @@ const Footer = () => {
         }
       };
 
-      console.log('✅ Footer: Final settings with defaults:', finalSettings);
       return finalSettings;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     refetchInterval: false,
     retry: 3
   });

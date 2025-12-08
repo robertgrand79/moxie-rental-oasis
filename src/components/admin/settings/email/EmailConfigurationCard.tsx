@@ -10,20 +10,28 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 const EmailConfigurationCard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
 
   const { data: emailSettings } = useQuery({
-    queryKey: ['email-settings'],
+    queryKey: ['email-settings', organization?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('site_settings')
         .select('key, value')
         .in('key', ['emailFromAddress', 'emailFromName', 'emailReplyTo']);
+
+      if (organization?.id) {
+        query = query.eq('organization_id', organization.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -32,6 +40,7 @@ const EmailConfigurationCard = () => {
         return acc;
       }, {} as Record<string, any>) || {};
     },
+    enabled: !!organization?.id,
   });
 
   const handleSaveSettings = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -54,7 +63,7 @@ const EmailConfigurationCard = () => {
         { key: 'emailFromAddress', value: formData.get('emailFromAddress') as string },
         { key: 'emailFromName', value: formData.get('emailFromName') as string },
         { key: 'emailReplyTo', value: formData.get('emailReplyTo') as string },
-      ].filter(setting => setting.value); // Only save non-empty values
+      ].filter(setting => setting.value);
 
       for (const setting of settings) {
         const { error } = await supabase
@@ -62,8 +71,9 @@ const EmailConfigurationCard = () => {
           .upsert({
             key: setting.key,
             value: setting.value,
-            created_by: user.id
-          }, { onConflict: 'key' });
+            created_by: user.id,
+            organization_id: organization?.id
+          }, { onConflict: 'key,organization_id' });
         
         if (error) throw error;
       }
@@ -74,8 +84,9 @@ const EmailConfigurationCard = () => {
         .upsert({
           key: 'emailSetupVerified',
           value: 'true',
-          created_by: user.id
-        }, { onConflict: 'key' });
+          created_by: user.id,
+          organization_id: organization?.id
+        }, { onConflict: 'key,organization_id' });
 
       toast({
         title: "Settings Saved",

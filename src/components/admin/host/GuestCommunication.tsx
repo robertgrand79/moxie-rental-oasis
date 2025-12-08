@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 interface GuestCommunication {
   id: string;
   reservation_id: string;
@@ -106,10 +106,16 @@ const GuestCommunication = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch recent communications
-  const { data: communications = [], isLoading } = useQuery({
-    queryKey: ['guest-communications'],
+  // Get organization-scoped properties
+  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
+  const orgPropertyIds = orgProperties.map(p => p.id);
+
+  // Fetch recent communications scoped to organization
+  const { data: communications = [], isLoading: communicationsLoading } = useQuery({
+    queryKey: ['guest-communications', orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+
       const { data, error } = await supabase
         .from('guest_communications')
         .select(`
@@ -119,6 +125,7 @@ const GuestCommunication = () => {
             guest_email,
             check_in_date,
             check_out_date,
+            property_id,
             properties:properties!inner(title)
           )
         `)
@@ -128,20 +135,28 @@ const GuestCommunication = () => {
       if (error) throw error;
       if (!data) return [];
       
-      return data.map((item: any) => ({
-        ...item,
-        property_reservations: {
-          ...item.property_reservations,
-          properties: item.property_reservations.properties || { title: 'Unknown Property' }
-        }
-      })) as GuestCommunication[];
+      // Filter to only include communications for organization properties
+      return data
+        .filter((item: any) => orgPropertyIds.includes(item.property_reservations?.property_id))
+        .map((item: any) => ({
+          ...item,
+          property_reservations: {
+            ...item.property_reservations,
+            properties: item.property_reservations.properties || { title: 'Unknown Property' }
+          }
+        })) as GuestCommunication[];
     },
+    enabled: orgPropertyIds.length > 0,
   });
 
-  // Fetch reservations for messaging
+  const isLoading = propertiesLoading || communicationsLoading;
+
+  // Fetch reservations for messaging scoped to organization
   const { data: reservations = [] } = useQuery({
-    queryKey: ['reservations-for-messaging'],
+    queryKey: ['reservations-for-messaging', orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+
       const { data, error } = await supabase
         .from('property_reservations')
         .select(`
@@ -153,6 +168,7 @@ const GuestCommunication = () => {
           check_in_instructions,
           properties:properties!inner(title)
         `)
+        .in('property_id', orgPropertyIds)
         .eq('booking_status', 'confirmed')
         .order('check_in_date', { ascending: true });
 
@@ -164,6 +180,7 @@ const GuestCommunication = () => {
         properties: item.properties || { title: 'Unknown Property' }
       }));
     },
+    enabled: orgPropertyIds.length > 0,
   });
 
   // Send message mutation

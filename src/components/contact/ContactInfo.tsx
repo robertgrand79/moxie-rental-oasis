@@ -3,24 +3,29 @@ import React from 'react';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 const ContactInfo = () => {
+  const { tenantId } = useTenant();
+
   const { data: settings } = useQuery({
-    queryKey: ['contact-info-settings'],
+    queryKey: ['contact-info-settings', tenantId],
     queryFn: async () => {
-      console.log('🔄 ContactInfo: Fetching settings from database...');
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('site_settings')
         .select('key, value')
         .in('key', ['contactEmail', 'phone', 'address']);
 
-      if (error) {
-        console.error('❌ ContactInfo: Error fetching settings:', error);
-        throw error;
+      if (tenantId) {
+        query = query.eq('organization_id', tenantId);
       }
 
-      console.log('📄 ContactInfo: Raw settings:', data);
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('ContactInfo: Error fetching settings:', error);
+        throw error;
+      }
 
       const settingsMap = data?.reduce((acc, setting) => {
         if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
@@ -35,10 +40,9 @@ const ContactInfo = () => {
         address: settingsMap.address || '2472 Willamette St\nEugene OR 97405'
       };
 
-      console.log('✅ ContactInfo: Final settings:', finalSettings);
       return finalSettings;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     refetchInterval: false,
     retry: 3
   });

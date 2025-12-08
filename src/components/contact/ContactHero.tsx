@@ -3,24 +3,29 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { useTenant } from '@/contexts/TenantContext';
 
 const ContactHero = () => {
+  const { tenantId } = useTenant();
+
   const { data: settings } = useQuery({
-    queryKey: ['contact-hero-settings'],
+    queryKey: ['contact-hero-settings', tenantId],
     queryFn: async () => {
-      console.log('🔄 ContactHero: Fetching settings from database...');
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('site_settings')
         .select('key, value')
         .in('key', ['siteName', 'contactEmail', 'phone', 'address']);
 
-      if (error) {
-        console.error('❌ ContactHero: Error fetching settings:', error);
-        throw error;
+      if (tenantId) {
+        query = query.eq('organization_id', tenantId);
       }
 
-      console.log('📄 ContactHero: Raw settings:', data);
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('ContactHero: Error fetching settings:', error);
+        throw error;
+      }
 
       const settingsMap = data?.reduce((acc, setting) => {
         if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
@@ -36,10 +41,9 @@ const ContactHero = () => {
         address: settingsMap.address || '2472 Willamette St Eugene OR 97405'
       };
 
-      console.log('✅ ContactHero: Final settings:', finalSettings);
       return finalSettings;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     refetchInterval: false,
     retry: 3
   });
