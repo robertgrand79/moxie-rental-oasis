@@ -1,5 +1,6 @@
-
 import React from 'react';
+import { useTenant } from '@/contexts/TenantContext';
+import SinglePropertyHome from '@/components/home/SinglePropertyHome';
 import ModernHeroSection from '@/components/home/ModernHeroSection';
 import MainSearchBar from '@/components/MainSearchBar';
 import CompactPropertyShowcase from '@/components/home/CompactPropertyShowcase';
@@ -17,6 +18,14 @@ import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 
 const Index = () => {
+  const { isSingleProperty } = useTenant();
+
+  // Single property sites get a dedicated property landing page
+  if (isSingleProperty) {
+    return <SinglePropertyHome />;
+  }
+
+  // Multi-property sites get the current layout with search and grid
   return (
     <BackgroundWrapper>
       <main>

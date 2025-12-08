@@ -1,15 +1,16 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { navigationItems } from './navigationItems';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldShowAdminFeatures } from '@/utils/domainUtils';
+import { useTenant } from '@/contexts/TenantContext';
 
 const DesktopNavigation = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const { isSingleProperty } = useTenant();
 
-  // Filter navigation items based on domain and user authentication
+  // Filter navigation items based on domain, user authentication, and template type
   const filteredItems = navigationItems.filter(item => {
     // Hide admin link if not on admin domain
     if (item.href === '/admin' && !shouldShowAdminFeatures()) {
@@ -17,6 +18,10 @@ const DesktopNavigation = () => {
     }
     // Hide admin link if user is not authenticated (on admin domain)
     if (item.href === '/admin' && !user) {
+      return false;
+    }
+    // Hide Properties link for single property sites
+    if ((item.href === '/properties' || item.href === '/listings') && isSingleProperty) {
       return false;
     }
     return true;
