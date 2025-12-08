@@ -187,7 +187,7 @@ const SuperAdminPanel = () => {
               trial_ends_at: org.trial_ends_at,
               stripe_customer_id: org.stripe_customer_id
             }}
-            onUpdate={() => refetchOrgs?.()}
+            onUpdate={async () => { await refetchOrgs?.(); }}
           />
           <p className="text-xs text-muted-foreground">
             Created {format(new Date(org.created_at), 'MMM d, yyyy')}
