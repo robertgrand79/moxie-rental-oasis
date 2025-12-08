@@ -17,21 +17,41 @@ function processTemplate(template: string, variables: Record<string, string>): s
   return processed;
 }
 
-// Helper function to get API keys for an organization
-async function getOrgApiKeys(supabase: any, organizationId: string): Promise<{ resendApiKey: string | null; openPhoneApiKey: string | null }> {
+// Helper function to get API keys and settings for an organization
+async function getOrgSettings(supabase: any, organizationId: string): Promise<{ 
+  resendApiKey: string | null; 
+  openPhoneApiKey: string | null;
+  siteName: string;
+  contactEmail: string;
+}> {
   if (!organizationId) {
-    return { resendApiKey: null, openPhoneApiKey: null };
+    return { resendApiKey: null, openPhoneApiKey: null, siteName: '', contactEmail: '' };
   }
 
+  // Get organization API keys
   const { data: org } = await supabase
     .from('organizations')
-    .select('resend_api_key, openphone_api_key')
+    .select('resend_api_key, openphone_api_key, name')
     .eq('id', organizationId)
     .single();
+
+  // Get site settings for company name/email
+  const { data: settings } = await supabase
+    .from('site_settings')
+    .select('key, value')
+    .eq('organization_id', organizationId)
+    .in('key', ['siteName', 'contactEmail']);
+
+  const settingsMap: Record<string, string> = {};
+  settings?.forEach((s: { key: string; value: string }) => {
+    settingsMap[s.key] = s.value;
+  });
 
   return {
     resendApiKey: org?.resend_api_key || null,
     openPhoneApiKey: org?.openphone_api_key || null,
+    siteName: settingsMap.siteName || org?.name || '',
+    contactEmail: settingsMap.contactEmail || '',
   };
 }
 
@@ -48,22 +68,22 @@ serve(async (req) => {
 
     console.log("Processing scheduled messages...");
 
-    // Fetch email settings from site_settings
+    // Fetch email settings from site_settings (global fallback)
     const { data: emailSettings } = await supabase
       .from("site_settings")
       .select("key, value")
       .in("key", ["emailFromAddress", "emailFromName", "emailReplyTo"]);
 
-    const settingsMap: Record<string, string> = {};
+    const globalSettingsMap: Record<string, string> = {};
     emailSettings?.forEach((s: { key: string; value: string }) => {
-      settingsMap[s.key] = s.value;
+      globalSettingsMap[s.key] = s.value;
     });
 
-    const fromEmail = settingsMap.emailFromAddress || "onboarding@resend.dev";
-    const fromName = settingsMap.emailFromName || "Moxie Properties";
-    const replyTo = settingsMap.emailReplyTo || fromEmail;
+    const globalFromEmail = globalSettingsMap.emailFromAddress || "onboarding@resend.dev";
+    const globalFromName = globalSettingsMap.emailFromName || "Vacation Rentals";
+    const globalReplyTo = globalSettingsMap.emailReplyTo || globalFromEmail;
 
-    console.log(`Email config - From: ${fromName} <${fromEmail}>, Reply-To: ${replyTo}`);
+    console.log(`Global email config - From: ${globalFromName} <${globalFromEmail}>`);
 
     // Get all pending messages that are due
     const now = new Date().toISOString();
@@ -106,8 +126,8 @@ serve(async (req) => {
 
     const results = { sent: 0, failed: 0, errors: [] as string[] };
 
-    // Cache for org API keys to avoid repeated lookups
-    const orgApiKeysCache: Map<string, { resendApiKey: string | null; openPhoneApiKey: string | null }> = new Map();
+    // Cache for org settings to avoid repeated lookups
+    const orgSettingsCache: Map<string, { resendApiKey: string | null; openPhoneApiKey: string | null; siteName: string; contactEmail: string }> = new Map();
 
     for (const message of pendingMessages) {
       try {
@@ -125,17 +145,22 @@ serve(async (req) => {
           continue;
         }
 
-        // Get organization-level API keys (with caching)
+        // Get organization-level settings (with caching)
         const organizationId = reservation.properties?.organization_id;
-        let orgApiKeys = orgApiKeysCache.get(organizationId);
-        if (!orgApiKeys && organizationId) {
-          orgApiKeys = await getOrgApiKeys(supabase, organizationId);
-          orgApiKeysCache.set(organizationId, orgApiKeys);
+        let orgSettings = orgSettingsCache.get(organizationId);
+        if (!orgSettings && organizationId) {
+          orgSettings = await getOrgSettings(supabase, organizationId);
+          orgSettingsCache.set(organizationId, orgSettings);
         }
 
         // Determine which API keys to use (org-level or global fallback)
-        const resendApiKey = orgApiKeys?.resendApiKey || Deno.env.get("RESEND_API_KEY");
-        const openPhoneApiKey = orgApiKeys?.openPhoneApiKey || Deno.env.get("OPENPHONE_API_KEY");
+        const resendApiKey = orgSettings?.resendApiKey || Deno.env.get("RESEND_API_KEY");
+        const openPhoneApiKey = orgSettings?.openPhoneApiKey || Deno.env.get("OPENPHONE_API_KEY");
+        
+        // Use org-specific sender info or fall back to global
+        const fromName = orgSettings?.siteName || globalFromName;
+        const fromEmail = globalFromEmail; // Always use verified sender
+        const replyTo = orgSettings?.contactEmail || globalReplyTo;
         
         const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
@@ -169,7 +194,6 @@ serve(async (req) => {
             month: "long",
             day: "numeric",
           }),
-          // Add aliases for backwards compatibility with existing templates
           checkin_date: new Date(reservation.check_in_date).toLocaleDateString("en-US", {
             weekday: "long",
             year: "numeric",
@@ -188,10 +212,13 @@ serve(async (req) => {
           guest_count: reservation.guest_count?.toString() || "1",
           total_amount: totalAmount,
           confirmation_code: confirmationCode,
-          wifi_network: "", // Could be fetched from property settings
-          wifi_password: "", // Could be fetched from property settings
-          door_code: "", // Could be fetched from reservation access codes
-          guidebook_link: `${Deno.env.get("SITE_URL") || "https://moxieproperties.com"}/guest/guidebook/${reservation.property_id}`,
+          wifi_network: "",
+          wifi_password: "",
+          door_code: "",
+          guidebook_link: `${Deno.env.get("SITE_URL") || ""}/guest/guidebook/${reservation.property_id}`,
+          // Company info for email templates
+          company_name: orgSettings?.siteName || fromName,
+          company_email: orgSettings?.contactEmail || replyTo,
         };
 
         // Process subject and content
@@ -206,7 +233,6 @@ serve(async (req) => {
         if ((deliveryChannel === "email" || deliveryChannel === "both") && reservation.guest_email) {
           if (resend) {
             try {
-              // Use beautiful HTML template for booking confirmation emails
               const isBookingConfirmation = template.category === "booking_confirmation" || 
                 template.name?.toLowerCase().includes("booking confirmation") ||
                 template.name?.toLowerCase().includes("reservation confirm");
@@ -232,8 +258,7 @@ serve(async (req) => {
           } else {
             console.log(`[DRY RUN] Would send email to ${reservation.guest_email}`);
             console.log(`Subject: ${subject}`);
-            console.log(`Content: ${content}`);
-            sent = true; // Mark as sent in dry run mode
+            sent = true;
           }
         }
 
@@ -241,10 +266,9 @@ serve(async (req) => {
         if ((deliveryChannel === "sms" || deliveryChannel === "both") && reservation.guest_phone) {
           if (openPhoneApiKey) {
             try {
-              // Format phone number (ensure it has country code)
               let phoneNumber = reservation.guest_phone.replace(/\D/g, "");
               if (phoneNumber.length === 10) {
-                phoneNumber = "1" + phoneNumber; // Add US country code
+                phoneNumber = "1" + phoneNumber;
               }
               if (!phoneNumber.startsWith("+")) {
                 phoneNumber = "+" + phoneNumber;
@@ -257,7 +281,7 @@ serve(async (req) => {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  content: content.substring(0, 1600), // OpenPhone SMS limit
+                  content: content.substring(0, 1600),
                   to: [phoneNumber],
                 }),
               });
@@ -279,9 +303,9 @@ serve(async (req) => {
               }
             }
           } else {
-            console.log(`[SMS DRY RUN] Would send to ${reservation.guest_phone}: ${content.substring(0, 160)}`);
+            console.log(`[SMS DRY RUN] Would send to ${reservation.guest_phone}`);
             if (!sent) {
-              sent = true; // Mark as sent in dry run mode
+              sent = true;
             }
           }
         }

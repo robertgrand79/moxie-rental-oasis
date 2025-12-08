@@ -1,6 +1,9 @@
 // Beautiful HTML email templates for guest communications
 
 export function generateBookingConfirmationEmail(variables: Record<string, string>): string {
+  const companyName = variables.company_name || 'Your Vacation Rental';
+  const companyEmail = variables.company_email || '';
+  
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -133,11 +136,13 @@ export function generateBookingConfirmationEmail(variables: Record<string, strin
               <p style="margin: 0 0 10px; color: #a1a1aa; font-size: 14px;">
                 Questions about your stay?
               </p>
+              ${companyEmail ? `
               <p style="margin: 0 0 20px;">
-                <a href="mailto:stay@moxieproperties.com" style="color: #5eead4; text-decoration: none; font-size: 14px;">stay@moxieproperties.com</a>
+                <a href="mailto:${companyEmail}" style="color: #5eead4; text-decoration: none; font-size: 14px;">${companyEmail}</a>
               </p>
+              ` : ''}
               <p style="margin: 0; color: #71717a; font-size: 12px;">
-                © ${new Date().getFullYear()} Moxie Properties. All rights reserved.
+                © ${new Date().getFullYear()} ${companyName}. All rights reserved.
               </p>
             </td>
           </tr>
@@ -152,6 +157,9 @@ export function generateBookingConfirmationEmail(variables: Record<string, strin
 }
 
 export function generateGenericEmail(subject: string, content: string, variables: Record<string, string>): string {
+  const companyName = variables.company_name || 'Your Vacation Rental';
+  const companyEmail = variables.company_email || '';
+  
   // Convert plain text to HTML with line breaks
   const htmlContent = content.replace(/\n/g, "<br>");
   
@@ -172,7 +180,7 @@ export function generateGenericEmail(subject: string, content: string, variables
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">Moxie Properties</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">${companyName}</h1>
             </td>
           </tr>
           
@@ -188,11 +196,13 @@ export function generateGenericEmail(subject: string, content: string, variables
           <!-- Footer -->
           <tr>
             <td style="background-color: #27272a; padding: 25px; border-radius: 0 0 12px 12px; text-align: center;">
+              ${companyEmail ? `
               <p style="margin: 0 0 10px;">
-                <a href="mailto:stay@moxieproperties.com" style="color: #5eead4; text-decoration: none; font-size: 14px;">stay@moxieproperties.com</a>
+                <a href="mailto:${companyEmail}" style="color: #5eead4; text-decoration: none; font-size: 14px;">${companyEmail}</a>
               </p>
+              ` : ''}
               <p style="margin: 0; color: #71717a; font-size: 12px;">
-                © ${new Date().getFullYear()} Moxie Properties. All rights reserved.
+                © ${new Date().getFullYear()} ${companyName}. All rights reserved.
               </p>
             </td>
           </tr>

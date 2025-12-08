@@ -6,16 +6,16 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
     slug: '',
     content: `
       <div class="text-center py-16">
-        <h1 class="text-4xl font-bold mb-6">Welcome to Moxie Vacation Rentals</h1>
-        <p class="text-xl text-gray-600 mb-8">Experience the best of Eugene, Oregon with our premium vacation rentals</p>
+        <h1 class="text-4xl font-bold mb-6">Welcome to Our Vacation Rentals</h1>
+        <p class="text-xl text-gray-600 mb-8">Experience exceptional stays in our premium properties</p>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
           <div class="text-center">
             <h3 class="text-xl font-semibold mb-4">Premium Properties</h3>
-            <p>Carefully curated homes in the heart of Eugene</p>
+            <p>Carefully curated homes for your comfort</p>
           </div>
           <div class="text-center">
             <h3 class="text-xl font-semibold mb-4">Local Experiences</h3>
-            <p>Discover the best Eugene has to offer</p>
+            <p>Discover the best our area has to offer</p>
           </div>
           <div class="text-center">
             <h3 class="text-xl font-semibold mb-4">Exceptional Service</h3>
@@ -24,7 +24,7 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
         </div>
       </div>
     `,
-    meta_description: 'Welcome to Moxie Vacation Rentals - Premium vacation rentals in Eugene, Oregon near the University of Oregon.',
+    meta_description: 'Welcome to our vacation rentals - Premium accommodations for your perfect getaway.',
     is_published: true,
     created_by: userId
   },
@@ -33,29 +33,29 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
     slug: 'about',
     content: `
       <div class="max-w-4xl mx-auto py-12">
-        <h1 class="text-4xl font-bold mb-8">About Moxie Vacation Rentals</h1>
+        <h1 class="text-4xl font-bold mb-8">About Us</h1>
         <div class="prose prose-lg">
-          <p>Welcome to Moxie Vacation Rentals, where comfort meets adventure in the heart of Eugene, Oregon. We're passionate about providing exceptional vacation rental experiences that showcase the best of our beautiful Pacific Northwest city.</p>
+          <p>Welcome to our vacation rentals, where comfort meets adventure. We're passionate about providing exceptional vacation rental experiences.</p>
           
           <h2>Our Story</h2>
-          <p>Founded with a vision to create memorable stays for travelers, Moxie Vacation Rentals has grown from a single property to a collection of carefully curated homes throughout Eugene. Each property is selected and maintained to our high standards of comfort, cleanliness, and style.</p>
+          <p>Founded with a vision to create memorable stays for travelers, we have grown from a single property to a collection of carefully curated homes. Each property is selected and maintained to our high standards of comfort, cleanliness, and style.</p>
           
           <h2>Our Mission</h2>
           <p>We believe that where you stay should enhance your travel experience. That's why we go beyond just providing a place to sleep - we create spaces where memories are made, adventures begin, and guests feel truly at home.</p>
           
-          <h2>Why Choose Moxie?</h2>
+          <h2>Why Choose Us?</h2>
           <ul>
-            <li><strong>Prime Locations:</strong> All our properties are strategically located near the University of Oregon and downtown Eugene</li>
+            <li><strong>Prime Locations:</strong> All our properties are strategically located</li>
             <li><strong>Exceptional Amenities:</strong> From fully equipped kitchens to high-speed Wi-Fi, we provide everything you need</li>
-            <li><strong>Local Expertise:</strong> Our team knows Eugene inside and out and loves sharing insider tips</li>
-            <li><strong>24/7 Support:</strong> We're always here when you need us, ensuring peace of mind throughout your stay</li>
+            <li><strong>Local Expertise:</strong> Our team knows the area inside and out</li>
+            <li><strong>24/7 Support:</strong> We're always here when you need us</li>
           </ul>
           
-          <p>Whether you're visiting for a University of Oregon event, exploring the outdoor recreation opportunities, or discovering Eugene's vibrant arts and culture scene, we're here to make your stay exceptional.</p>
+          <p>We're here to make your stay exceptional.</p>
         </div>
       </div>
     `,
-    meta_description: 'Learn about Moxie Vacation Rentals - your trusted partner for exceptional vacation rental experiences in Eugene, Oregon.',
+    meta_description: 'Learn about us - your trusted partner for exceptional vacation rental experiences.',
     is_published: true,
     created_by: userId
   },
@@ -69,21 +69,12 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
           <div>
             <h2 class="text-2xl font-semibold mb-6">Get in Touch</h2>
             <div class="space-y-4">
-              <div>
-                <h3 class="font-semibold">Primary Contact</h3>
-                <p>Gabby: <a href="tel:541-255-1545" class="text-blue-600 hover:underline">541-255-1545</a></p>
-                <p>Email: <a href="mailto:gabby@moxievacationrentals.com" class="text-blue-600 hover:underline">gabby@moxievacationrentals.com</a></p>
-              </div>
-              <div>
-                <h3 class="font-semibold">Additional Support</h3>
-                <p>Robert: <a href="tel:541-953-7247" class="text-blue-600 hover:underline">541-953-7247</a></p>
-                <p>Shelly: <a href="tel:541-221-0608" class="text-blue-600 hover:underline">541-221-0608</a></p>
-              </div>
+              <p>We'd love to hear from you. Reach out with any questions about our properties or your booking.</p>
             </div>
             <div class="mt-8">
-              <h3 class="font-semibold mb-2">Office Hours</h3>
+              <h3 class="font-semibold mb-2">Support Hours</h3>
               <p>We're available 24/7 for emergencies</p>
-              <p>Regular business hours: 9 AM - 6 PM PST</p>
+              <p>Regular business hours: 9 AM - 6 PM</p>
             </div>
           </div>
           <div>
@@ -95,15 +86,11 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
               <li>• Questions about amenities and policies</li>
               <li>• Special requests and accommodations</li>
             </ul>
-            <div class="mt-8 p-4 bg-blue-50 rounded-lg">
-              <h3 class="font-semibold mb-2">Emergency Contact</h3>
-              <p class="text-sm">For urgent matters during your stay, please call or text Gabby at 541-255-1545. We respond to emergencies immediately.</p>
-            </div>
           </div>
         </div>
       </div>
     `,
-    meta_description: 'Contact Moxie Vacation Rentals for booking assistance, local recommendations, and support. Available 24/7 for your needs.',
+    meta_description: 'Contact us for booking assistance, local recommendations, and support. Available 24/7 for your needs.',
     is_published: true,
     created_by: userId
   },
@@ -119,11 +106,6 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
           
           <div class="space-y-4">
             <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">Where are the properties located?</h3>
-              <p>All homes are located in Eugene, Oregon, close to the University of Oregon and downtown.</p>
-            </div>
-            
-            <div class="border rounded-lg p-4">
               <h3 class="font-semibold mb-2">What time is check-in and check-out?</h3>
               <p><strong>Check-in:</strong> 4:00 PM</p>
               <p><strong>Check-out:</strong> 11:00 AM</p>
@@ -131,17 +113,12 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
             
             <div class="border rounded-lg p-4">
               <h3 class="font-semibold mb-2">Are pets allowed?</h3>
-              <p>No pets allowed unless explicitly approved in advance. If approved, a $150 cleaning fee applies.</p>
+              <p>Pet policies vary by property. Please check the specific property listing or contact us for details.</p>
             </div>
             
             <div class="border rounded-lg p-4">
               <h3 class="font-semibold mb-2">What are quiet hours?</h3>
-              <p>Quiet hours begin at 10:00 PM. Please respect neighbors and any attached units.</p>
-            </div>
-            
-            <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">Are extra guests allowed?</h3>
-              <p>No. Only registered guests are permitted. Each property has a guest limit (typically 2–6).</p>
+              <p>Quiet hours begin at 10:00 PM. Please respect neighbors.</p>
             </div>
           </div>
         </div>
@@ -152,55 +129,13 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
           
           <div class="space-y-4">
             <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">How do I access the home?</h3>
-              <p>Each home uses a keyless entry system. Enter the code and press the red button to unlock. Press only the red button to lock.</p>
+              <h3 class="font-semibold mb-2">How do I access the property?</h3>
+              <p>Properties use keyless entry systems. You'll receive access instructions prior to your arrival.</p>
             </div>
             
             <div class="border rounded-lg p-4">
               <h3 class="font-semibold mb-2">Is parking available?</h3>
-              <p>Yes, each home has at least one dedicated parking space. Some also offer free street parking nearby.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Wi-Fi Information Section -->
-        <div>
-          <h2 class="text-2xl font-semibold mb-4 text-foreground">📶 Wi-Fi Information</h2>
-          
-          <div class="border rounded-lg p-4">
-            <h3 class="font-semibold mb-4">Wi-Fi credentials for each property:</h3>
-            <div class="overflow-x-auto">
-              <table class="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr class="bg-gray-100">
-                    <th class="border border-gray-300 px-4 py-2 text-left">Property</th>
-                    <th class="border border-gray-300 px-4 py-2 text-left">Wi-Fi Name</th>
-                    <th class="border border-gray-300 px-4 py-2 text-left">Wi-Fi Password</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="border border-gray-300 px-4 py-2">2920 Harris House</td>
-                    <td class="border border-gray-300 px-4 py-2">2920Harris</td>
-                    <td class="border border-gray-300 px-4 py-2">2920 Harris St</td>
-                  </tr>
-                  <tr>
-                    <td class="border border-gray-300 px-4 py-2">2614 Kincaid House</td>
-                    <td class="border border-gray-300 px-4 py-2">2614 Kincaid</td>
-                    <td class="border border-gray-300 px-4 py-2">2614kincaid#</td>
-                  </tr>
-                  <tr>
-                    <td class="border border-gray-300 px-4 py-2">358 W. 10th Studio</td>
-                    <td class="border border-gray-300 px-4 py-2">358w10studio</td>
-                    <td class="border border-gray-300 px-4 py-2">358w10studio#</td>
-                  </tr>
-                  <tr>
-                    <td class="border border-gray-300 px-4 py-2">358 W. 10th House</td>
-                    <td class="border border-gray-300 px-4 py-2">358w10</td>
-                    <td class="border border-gray-300 px-4 py-2">358w10th#</td>
-                  </tr>
-                </tbody>
-              </table>
+              <p>Parking availability varies by property. Check your property listing for specific details.</p>
             </div>
           </div>
         </div>
@@ -211,105 +146,18 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
           
           <div class="space-y-4">
             <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">Do homes have coffee makers?</h3>
-              <p>Yes. Dual-style (Keurig + full pot) with provided K-cups: dark, medium, and decaf.</p>
-            </div>
-            
-            <div class="border rounded-lg p-4">
               <h3 class="font-semibold mb-2">Are linens and towels provided?</h3>
               <p>Yes, along with extra bedding.</p>
             </div>
             
             <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">Are toiletries provided?</h3>
-              <p>Yes. Shampoo, conditioner, and body wash are stocked in every bathroom.</p>
-            </div>
-            
-            <div class="border rounded-lg p-4">
               <h3 class="font-semibold mb-2">Is the kitchen fully equipped?</h3>
-              <p>Yes. Includes pots, pans, utensils, spices, blender, waffle maker, grill tools, etc.</p>
+              <p>Yes, kitchens include pots, pans, utensils, and basic cooking supplies.</p>
             </div>
             
             <div class="border rounded-lg p-4">
               <h3 class="font-semibold mb-2">Are laundry facilities available?</h3>
-              <p>Yes. Each home has a washer and dryer, with detergent and dryer sheets included.</p>
-            </div>
-            
-            <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">Do homes have air conditioning and heat?</h3>
-              <p>Yes. Thermostats are pre-set to 68–72°F but are fully adjustable.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Entertainment & Tech Section -->
-        <div>
-          <h2 class="text-2xl font-semibold mb-4 text-foreground">🔊 Entertainment & Tech</h2>
-          
-          <div class="space-y-4">
-            <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">Are smart TVs provided?</h3>
-              <p>Yes, all TVs offer streaming services like Netflix and Disney+.</p>
-            </div>
-            
-            <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">Are speakers included?</h3>
-              <p>Yes. Some homes feature Bose portable speakers or built-in surround sound.</p>
-            </div>
-            
-            <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">Are phone/device chargers provided?</h3>
-              <p>Yes. Each bedroom includes charging stations.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Outdoor Spaces Section -->
-        <div>
-          <h2 class="text-2xl font-semibold mb-4 text-foreground">🔥 Outdoor Spaces</h2>
-          
-          <div class="space-y-4">
-            <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">What outdoor amenities are available?</h3>
-              <p>Most homes include patios, fire pits, BBQs, string lighting, and outdoor seating.</p>
-            </div>
-            
-            <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">Are bikes available?</h3>
-              <p>Yes. Harris and Kincaid homes have 6 bikes each, with helmets.</p>
-              <ul class="mt-2 space-y-1">
-                <li><strong>Harris bike lock code:</strong> 0651</li>
-                <li><strong>Kincaid bike lock code:</strong> 0561</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Trash & Housekeeping Section -->
-        <div>
-          <h2 class="text-2xl font-semibold mb-4 text-foreground">♻️ Trash & Housekeeping</h2>
-          
-          <div class="space-y-4">
-            <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">How is trash handled?</h3>
-              <p>Each house has:</p>
-              <ul class="mt-2 space-y-1">
-                <li><strong>Trash:</strong> Blue bin</li>
-                <li><strong>Recycling:</strong> Green bin</li>
-                <li><strong>Yard waste/compost:</strong> Grey bin</li>
-                <li><strong>Glass:</strong> Small red bin</li>
-              </ul>
-              <p class="mt-2"><strong>Trash pickup is Friday.</strong></p>
-            </div>
-            
-            <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">What should I do at check-out?</h3>
-              <ul class="space-y-2">
-                <li>• Start the dishwasher</li>
-                <li>• Take out all trash and recycling</li>
-                <li>• Strip the beds and start a towel load if possible</li>
-                <li>• Lock all doors and windows</li>
-              </ul>
+              <p>Most properties have washer and dryer. Check your specific listing for details.</p>
             </div>
           </div>
         </div>
@@ -321,28 +169,18 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
           <div class="space-y-4">
             <div class="border rounded-lg p-4">
               <h3 class="font-semibold mb-2">Who do I contact for help?</h3>
-              <div class="space-y-2">
-                <p><strong>Gabby:</strong> 541-255-1545</p>
-                <p><strong>Robert:</strong> 541-953-7247</p>
-                <p><strong>Shelly:</strong> 541-221-0608</p>
-                <p><strong>Email:</strong> gabby@moxievacationrentals.com</p>
-              </div>
+              <p>Contact information is provided in your booking confirmation. We're available 24/7 for emergencies.</p>
             </div>
             
             <div class="border rounded-lg p-4">
               <h3 class="font-semibold mb-2">Can I request late check-out?</h3>
               <p>Yes, based on availability. Please reach out in advance.</p>
             </div>
-            
-            <div class="border rounded-lg p-4">
-              <h3 class="font-semibold mb-2">Is mid-stay housekeeping available?</h3>
-              <p>Yes, upon request.</p>
-            </div>
           </div>
         </div>
       </div>
     `,
-    meta_description: 'Find answers to frequently asked questions about Moxie Vacation Rentals including check-in, amenities, Wi-Fi, and guest support.',
+    meta_description: 'Find answers to frequently asked questions including check-in, amenities, and guest support.',
     is_published: true,
     created_by: userId
   }

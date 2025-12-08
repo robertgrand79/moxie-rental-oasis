@@ -9,6 +9,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface QRCodeCheckinProps {
   reservationId?: string;
@@ -34,9 +35,35 @@ interface ReservationDetails {
 const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { tenantId } = useTenant();
   const [manualCode, setManualCode] = useState('');
   const [checkinStatus, setCheckinStatus] = useState<'pending' | 'checking' | 'success' | 'error'>('pending');
   const [currentReservationId, setCurrentReservationId] = useState(reservationId);
+
+  // Fetch support contact info
+  const { data: contactSettings } = useQuery({
+    queryKey: ['support-contact', tenantId],
+    queryFn: async () => {
+      let query = supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['contactEmail', 'phone']);
+
+      if (tenantId) {
+        query = query.eq('organization_id', tenantId);
+      }
+
+      const { data } = await query;
+      return data?.reduce((acc, s) => {
+        acc[s.key] = s.value;
+        return acc;
+      }, {} as Record<string, any>) || {};
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const supportEmail = contactSettings?.contactEmail || '';
+  const supportPhone = contactSettings?.phone || '';
 
   // Fetch reservation details
   const { data: reservation, isLoading } = useQuery({
@@ -67,7 +94,6 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
   // Check-in mutation
   const checkinMutation = useMutation({
     mutationFn: async ({ reservationId, code }: { reservationId: string; code: string }) => {
-      // Simulate QR code verification
       const { data: reservation, error } = await supabase
         .from('property_reservations')
         .select('*')
@@ -76,11 +102,9 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
 
       if (error) throw new Error('Reservation not found');
 
-      // Check if check-in is allowed (within check-in timeframe)
       const checkInDate = new Date(reservation.check_in_date);
       const now = new Date();
-      const checkInTime = new Date(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate(), 15, 0); // 3 PM
-      const earlyCheckinTime = new Date(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate(), 12, 0); // 12 PM earliest
+      const earlyCheckinTime = new Date(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate(), 12, 0);
 
       if (now < earlyCheckinTime) {
         throw new Error('Check-in is not available yet. Early check-in starts at 12:00 PM.');
@@ -90,12 +114,10 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
         throw new Error('This reservation has expired.');
       }
 
-      // For demo purposes, accept any 6-character code
       if (code.length !== 6) {
         throw new Error('Invalid access code. Please check your code and try again.');
       }
 
-      // Update reservation status
       const { error: updateError } = await supabase
         .from('property_reservations')
         .update({ 
@@ -125,7 +147,6 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
     },
   });
 
-  // Handle QR code scan (simulated)
   const handleQRScan = (code: string) => {
     if (!currentReservationId) {
       toast({
@@ -140,7 +161,6 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
     checkinMutation.mutate({ reservationId: currentReservationId, code });
   };
 
-  // Handle manual code entry
   const handleManualCheckin = () => {
     if (!manualCode.trim()) {
       toast({
@@ -154,7 +174,6 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
     handleQRScan(manualCode.trim());
   };
 
-  // Auto-check-in if access code is provided
   useEffect(() => {
     if (accessCode && currentReservationId && checkinStatus === 'pending') {
       handleQRScan(accessCode);
@@ -167,7 +186,7 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
         <Card>
           <CardContent className="flex items-center justify-center p-8">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-muted-foreground">Loading reservation...</p>
             </div>
           </CardContent>
@@ -254,8 +273,8 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
       {/* QR Code Check-in */}
       <Card>
         <CardHeader className="text-center">
-          <div className="rounded-full bg-blue-100 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <QrCode className="h-8 w-8 text-blue-600" />
+          <div className="rounded-full bg-primary/10 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <QrCode className="h-8 w-8 text-primary" />
           </div>
           <CardTitle>Property Check-in</CardTitle>
           <CardDescription>
@@ -264,11 +283,11 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* QR Scanner Placeholder */}
-          <div className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+          <div className="aspect-square bg-muted rounded-lg border-2 border-dashed border-border flex items-center justify-center">
             <div className="text-center">
-              <QrCode className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">QR Scanner</p>
-              <p className="text-xs text-gray-400">Point camera at QR code</p>
+              <QrCode className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">QR Scanner</p>
+              <p className="text-xs text-muted-foreground">Point camera at QR code</p>
             </div>
           </div>
 
@@ -319,18 +338,22 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <a href="tel:+1234567890">
-                <Phone className="h-4 w-4 mr-1" />
-                Call Support
-              </a>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <a href="mailto:support@moxievacationrentals.com">
-                <Mail className="h-4 w-4 mr-1" />
-                Email
-              </a>
-            </Button>
+            {supportPhone && (
+              <Button variant="outline" size="sm" asChild>
+                <a href={`tel:${supportPhone}`}>
+                  <Phone className="h-4 w-4 mr-1" />
+                  Call Support
+                </a>
+              </Button>
+            )}
+            {supportEmail && (
+              <Button variant="outline" size="sm" asChild>
+                <a href={`mailto:${supportEmail}`}>
+                  <Mail className="h-4 w-4 mr-1" />
+                  Email
+                </a>
+              </Button>
+            )}
           </div>
           <p className="text-xs text-muted-foreground text-center">
             Check-in is available from 12:00 PM. Standard check-in time is 3:00 PM.

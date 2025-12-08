@@ -12,10 +12,11 @@ interface GlobalNewsletterSettings {
 export const useGlobalNewsletterSettings = () => {
   const { organization } = useCurrentOrganization();
   
+  // Generic defaults - no company-specific values
   const [settings, setSettings] = useState<GlobalNewsletterSettings>({
     headerConfig: {
-      title: 'Moxie Vacation Rentals',
-      subtitle: 'Your Home Base for Living Like a Local in Eugene',
+      title: '',
+      subtitle: '',
       background_gradient: {
         from: 'hsl(220, 8%, 85%)',
         to: 'hsl(220, 3%, 97%)'
@@ -24,11 +25,11 @@ export const useGlobalNewsletterSettings = () => {
       logo_url: ''
     },
     footerConfig: {
-      company_name: 'Moxie Vacation Rentals',
-      tagline: 'Your Home Base for Living Like a Local in Eugene',
+      company_name: '',
+      tagline: '',
       contact_info: {
-        email: 'contact@moxievacationrentals.com',
-        location: 'Eugene, Oregon'
+        email: '',
+        location: ''
       },
       links: [
         { text: 'Visit Our Website', url: '#' },

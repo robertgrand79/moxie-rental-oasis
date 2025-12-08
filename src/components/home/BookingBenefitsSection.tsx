@@ -6,26 +6,26 @@ const BookingBenefitsSection = () => {
   const benefits = [
     {
       icon: Calendar,
-      title: "Best Eugene Rates",
-      description: "Direct booking means better rates and more savings for your Eugene adventure.",
+      title: "Best Rates",
+      description: "Direct booking means better rates and more savings for your adventure.",
       color: "text-icon-blue"
     },
     {
       icon: Users,
-      title: "Local Loyalty Program",
-      description: "Return guest discounts for exploring more of Eugene and the Pacific Northwest.",
+      title: "Loyalty Program",
+      description: "Return guest discounts for exploring more of the area.",
       color: "text-icon-purple"
     },
     {
       icon: MessageCircle,
-      title: "Eugene Local Support",
-      description: "Direct communication with local hosts who know the city inside and out.",
+      title: "Local Support",
+      description: "Direct communication with local hosts who know the area inside and out.",
       color: "text-icon-green"
     },
     {
       icon: CreditCard,
       title: "No Booking Fees",
-      description: "More savings to spend on Eugene's farmers markets and local dining.",
+      description: "More savings to spend on local experiences and dining.",
       color: "text-icon-emerald"
     }
   ];
@@ -41,7 +41,7 @@ const BookingBenefitsSection = () => {
             </h2>
             <div className="w-16 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-6 rounded-full"></div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Book directly for the best Eugene experience and exclusive local advantages
+              Book directly for the best experience and exclusive advantages
             </p>
           </div>
 
