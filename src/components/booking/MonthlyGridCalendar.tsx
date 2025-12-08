@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { getPropertyColor, getAllPropertyColors } from '@/utils/propertyColors';
+import { getPropertyColor } from '@/utils/propertyColors';
 
 interface BookingBlock {
   id: string;
@@ -185,14 +185,17 @@ export const MonthlyGridCalendar: React.FC = () => {
         </Button>
       </div>
       
-      {/* Property Legend */}
+      {/* Property Legend - Dynamic based on organization properties */}
       <div className="flex flex-wrap justify-center gap-4 py-3 border-b text-sm bg-background">
-        {getAllPropertyColors().map((prop) => (
-          <span key={prop.id} className="flex items-center gap-1.5">
-            <div className={cn('w-3 h-3 rounded', prop.bg)} />
-            <span className="text-xs">{prop.name}</span>
-          </span>
-        ))}
+        {properties.map((property) => {
+          const colors = getPropertyColor(property.id, property.title);
+          return (
+            <span key={property.id} className="flex items-center gap-1.5">
+              <div className={cn('w-3 h-3 rounded', colors.bg)} />
+              <span className="text-xs">{property.title}</span>
+            </span>
+          );
+        })}
       </div>
       
       {/* Day Headers */}
