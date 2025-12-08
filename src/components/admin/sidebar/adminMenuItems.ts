@@ -152,14 +152,8 @@ export const adminMenuItems = [
     ]
   },
   {
-    title: 'Settings & Analytics',
+    title: 'Settings',
     items: [
-      {
-        title: 'Analytics & Insights',
-        href: '/admin/analytics',
-        icon: BarChart,
-        description: 'Comprehensive analytics covering content, site health, marketing, and real-time monitoring'
-      },
       {
         title: 'User & Access Management',
         href: '/admin/user-access-management',
