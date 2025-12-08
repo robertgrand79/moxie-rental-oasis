@@ -581,7 +581,15 @@ const AdminOrganization = () => {
                     <div className="mt-1">
                       <ConfigStatus configured={!!org.turno_partner_id} />
                     </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Optional - used for partner API access
+                    </p>
                   </div>
+                  {isOrgAdmin() && (
+                    <Button type="submit" disabled={updating}>
+                      {updating ? 'Saving...' : 'Update Turno Settings'}
+                    </Button>
+                  )}
                 </form>
               </CardContent>
             </Card>
