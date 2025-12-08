@@ -1,7 +1,10 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Users, Mail, Calendar, Activity, Clock } from 'lucide-react';
+import { 
+  RefreshCw, Users, Mail, Calendar, Activity, Clock, 
+  LogIn, LogOut, Wrench, DollarSign, Star 
+} from 'lucide-react';
 import { useSimplifiedAnalytics } from '@/hooks/useSimplifiedAnalytics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
@@ -37,6 +40,15 @@ const SimplifiedAnalyticsDashboard = () => {
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -45,7 +57,7 @@ const SimplifiedAnalyticsDashboard = () => {
           <Skeleton className="h-10 w-24" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(5)].map((_, i) => (
+          {[...Array(8)].map((_, i) => (
             <Skeleton key={i} className="h-32" />
           ))}
         </div>
@@ -66,105 +78,198 @@ const SimplifiedAnalyticsDashboard = () => {
         </Button>
       </div>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Real-time Visitors */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Users className="h-6 w-6 text-primary" />
+      {/* Today's Activity */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Today's Activity</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Check-ins Today */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <LogIn className="h-6 w-6 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">{analytics.checkInsToday}</p>
+                  <p className="text-sm text-muted-foreground">Check-ins today</p>
+                </div>
               </div>
-              <div>
-                <p className="text-3xl font-bold">{analytics.realTimeVisitors}</p>
-                <p className="text-sm text-muted-foreground">Live visitors now</p>
-              </div>
-            </div>
-            <div className="mt-3 flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
-              <span className="text-xs text-muted-foreground">Currently browsing</span>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Newsletter Subscribers */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-                <Mail className="h-6 w-6 text-blue-500" />
+          {/* Check-outs Today */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+                  <LogOut className="h-6 w-6 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">{analytics.checkOutsToday}</p>
+                  <p className="text-sm text-muted-foreground">Check-outs today</p>
+                </div>
               </div>
-              <div>
-                <p className="text-3xl font-bold">{analytics.totalSubscribers}</p>
-                <p className="text-sm text-muted-foreground">Newsletter subscribers</p>
-              </div>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              +{analytics.subscribersThisMonth} this month
-            </p>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Bookings This Month */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-violet-500/10 flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-violet-500" />
+          {/* Open Work Orders */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                  analytics.openWorkOrders > 0 ? 'bg-red-500/10' : 'bg-muted'
+                }`}>
+                  <Wrench className={`h-6 w-6 ${
+                    analytics.openWorkOrders > 0 ? 'text-red-500' : 'text-muted-foreground'
+                  }`} />
+                </div>
+                <div>
+                  <p className={`text-3xl font-bold ${
+                    analytics.openWorkOrders > 0 ? 'text-red-500' : ''
+                  }`}>{analytics.openWorkOrders}</p>
+                  <p className="text-sm text-muted-foreground">Open work orders</p>
+                </div>
               </div>
-              <div>
-                <p className="text-3xl font-bold">{analytics.bookingsThisMonth}</p>
-                <p className="text-sm text-muted-foreground">Bookings this month</p>
-              </div>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Direct reservations
-            </p>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
-        {/* Site Status */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className={`h-12 w-12 rounded-full ${getStatusBg(analytics.siteStatus)} flex items-center justify-center`}>
-                <Activity className={`h-6 w-6 ${getStatusColor(analytics.siteStatus)}`} />
+      {/* This Month */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">This Month</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Bookings This Month */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-violet-500/10 flex items-center justify-center">
+                  <Calendar className="h-6 w-6 text-violet-500" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">{analytics.bookingsThisMonth}</p>
+                  <p className="text-sm text-muted-foreground">New bookings</p>
+                </div>
               </div>
-              <div>
-                <p className={`text-3xl font-bold ${getStatusColor(analytics.siteStatus)}`}>
-                  {getStatusLabel(analytics.siteStatus)}
-                </p>
-                <p className="text-sm text-muted-foreground">Site status</p>
-              </div>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              All systems operational
-            </p>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Load Time */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-amber-500/10 flex items-center justify-center">
-                <Clock className="h-6 w-6 text-amber-500" />
+          {/* Revenue This Month */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                  <DollarSign className="h-6 w-6 text-emerald-500" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">{formatCurrency(analytics.revenueThisMonth)}</p>
+                  <p className="text-sm text-muted-foreground">Revenue</p>
+                </div>
               </div>
-              <div>
-                <p className="text-3xl font-bold">
-                  {analytics.loadTime ? `${(analytics.loadTime / 1000).toFixed(1)}s` : '—'}
-                </p>
-                <p className="text-sm text-muted-foreground">API response</p>
+            </CardContent>
+          </Card>
+
+          {/* Newsletter Subscribers */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <Mail className="h-6 w-6 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">{analytics.totalSubscribers}</p>
+                  <p className="text-sm text-muted-foreground">Subscribers</p>
+                </div>
               </div>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Database query time
-            </p>
-          </CardContent>
-        </Card>
+              <p className="mt-3 text-xs text-muted-foreground">
+                +{analytics.subscribersThisMonth} this month
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Reputation & Site Health */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Reputation */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Reputation</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Average Rating */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-amber-500/10 flex items-center justify-center">
+                    <Star className="h-6 w-6 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold">
+                      {analytics.averageRating !== null 
+                        ? analytics.averageRating.toFixed(1) 
+                        : '—'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Avg rating</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Total Reviews */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold">{analytics.totalReviews}</p>
+                    <p className="text-sm text-muted-foreground">Reviews</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Site Health */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Site Health</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Site Status */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className={`h-12 w-12 rounded-full ${getStatusBg(analytics.siteStatus)} flex items-center justify-center`}>
+                    <Activity className={`h-6 w-6 ${getStatusColor(analytics.siteStatus)}`} />
+                  </div>
+                  <div>
+                    <p className={`text-3xl font-bold ${getStatusColor(analytics.siteStatus)}`}>
+                      {getStatusLabel(analytics.siteStatus)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Load Time */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold">
+                      {analytics.loadTime ? `${(analytics.loadTime / 1000).toFixed(1)}s` : '—'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">API response</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}
@@ -175,6 +280,11 @@ const SimplifiedAnalyticsDashboard = () => {
             <Button variant="outline" size="sm" asChild>
               <Link to="/admin/host/bookings">View Bookings</Link>
             </Button>
+            {analytics.openWorkOrders > 0 && (
+              <Button variant="outline" size="sm" asChild className="border-red-500/50 text-red-500 hover:bg-red-500/10">
+                <Link to="/admin/work-orders">Work Orders ({analytics.openWorkOrders})</Link>
+              </Button>
+            )}
             <Button variant="outline" size="sm" asChild>
               <Link to="/admin/newsletter">Newsletters</Link>
             </Button>
