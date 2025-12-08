@@ -6,13 +6,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 
-// Default values to use as fallback
+// Default values to use as fallback - generic placeholders
 const DEFAULT_SETTINGS = {
-  siteName: 'Moxie Vacation Rental',
-  description: 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.',
-  contactEmail: 'gabby@moxievacationrental.com',
-  phone: '+1 541-255-1698',
-  address: '2472 Willamette St Eugene OR 97405',
+  siteName: 'Vacation Rentals',
+  description: 'Discover amazing vacation rental properties.',
+  contactEmail: '',
+  phone: '',
+  address: '',
   socialMedia: {
     facebook: '',
     instagram: '',

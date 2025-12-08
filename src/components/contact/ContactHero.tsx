@@ -35,10 +35,10 @@ const ContactHero = () => {
       }, {} as Record<string, any>) || {};
 
       const finalSettings = {
-        siteName: settingsMap.siteName || 'Moxie Vacation Rental',
-        contactEmail: settingsMap.contactEmail || 'gabby@moxievacationrental.com',
-        phone: settingsMap.phone || '+1 541-255-1698',
-        address: settingsMap.address || '2472 Willamette St Eugene OR 97405'
+        siteName: settingsMap.siteName || 'Vacation Rentals',
+        contactEmail: settingsMap.contactEmail || '',
+        phone: settingsMap.phone || '',
+        address: settingsMap.address || ''
       };
 
       return finalSettings;
@@ -49,10 +49,10 @@ const ContactHero = () => {
   });
 
   const currentSettings = settings || {
-    siteName: 'Moxie Vacation Rental',
-    contactEmail: 'gabby@moxievacationrental.com',
-    phone: '+1 541-255-1698',
-    address: '2472 Willamette St Eugene OR 97405'
+    siteName: 'Vacation Rentals',
+    contactEmail: '',
+    phone: '',
+    address: ''
   };
 
   return (

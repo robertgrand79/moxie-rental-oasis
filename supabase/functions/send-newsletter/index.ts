@@ -169,8 +169,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Get newsletter branding configurations
     const headerConfig = settings.newsletter_header_config || {
-      title: 'Moxie Vacation Rentals',
-      subtitle: 'Your Home Base for Living Like a Local in Eugene',
+      title: settings.siteName || 'Newsletter',
+      subtitle: settings.tagline || '',
       background_gradient: {
         from: 'hsl(220, 8%, 85%)',
         to: 'hsl(220, 3%, 97%)'
@@ -180,11 +180,11 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     const footerConfig = settings.newsletter_footer_config || {
-      company_name: 'Moxie Vacation Rentals',
-      tagline: 'Your Home Base for Living Like a Local in Eugene',
+      company_name: settings.siteName || 'Newsletter',
+      tagline: settings.tagline || '',
       contact_info: {
-        email: 'contact@moxievacationrentals.com',
-        location: 'Eugene, Oregon'
+        email: settings.contactEmail || '',
+        location: settings.address || ''
       },
       links: [
         { text: 'Visit Our Website', url: '#' },
@@ -202,13 +202,13 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     // Use configured settings with fallbacks
-    const siteName = settings.siteName || "Moxie Vacation Rentals";
-    const fromEmail = settings.emailFromAddress || settings.contactEmail || "noreply@moxievacationrentals.com";
+    const siteName = settings.siteName || "Vacation Rentals";
+    const fromEmail = settings.emailFromAddress || settings.contactEmail || "";
     const fromName = settings.emailFromName || siteName;
     const replyTo = settings.emailReplyTo || fromEmail;
     const contactEmail = settings.contactEmail || fromEmail;
-    const phone = settings.phone || "+1 (555) 123-4567";
-    const address = settings.address || "123 Vacation St, Eugene, OR 97401";
+    const phone = settings.phone || "";
+    const address = settings.address || "";
     const socialMedia = settings.socialMedia || {
       facebook: '',
       instagram: '',
