@@ -4,10 +4,10 @@ import ModernHeroSection from '@/components/home/ModernHeroSection';
 import MainSearchBar from '@/components/MainSearchBar';
 import CompactPropertyShowcase from '@/components/home/CompactPropertyShowcase';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
-import WhyMoxieSection from '@/components/home/WhyMoxieSection';
+import WhyChooseUsSection from '@/components/home/WhyChooseUsSection';
 import AmenitiesSection from '@/components/home/AmenitiesSection';
 import SocialProofSection from '@/components/home/SocialProofSection';
-import EugeneInfoSection from '@/components/home/EugeneInfoSection';
+import LocalInfoSection from '@/components/home/LocalInfoSection';
 import EnhancedLifestyleGallerySection from '@/components/home/EnhancedLifestyleGallerySection';
 import EnhancedWhatsNearbySection from '@/components/home/EnhancedWhatsNearbySection';
 import EnhancedEugeneEventsSection from '@/components/home/EnhancedEugeneEventsSection';
@@ -32,9 +32,9 @@ const Index = () => {
         <CompactPropertyShowcase />
         <TestimonialsSection />
         <SocialProofSection />
-        <WhyMoxieSection />
+        <WhyChooseUsSection />
         <AmenitiesSection />
-        <EugeneInfoSection />
+        <LocalInfoSection />
         <EnhancedLifestyleGallerySection />
         
         {/* Newsletter Section - Added before What's Nearby */}
