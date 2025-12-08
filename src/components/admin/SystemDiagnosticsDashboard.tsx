@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Activity
 } from 'lucide-react';
+import PropertyDiagnostics from './PropertyDiagnostics';
 
 const SystemDiagnosticsDashboard = () => {
   return (
@@ -132,6 +133,9 @@ const SystemDiagnosticsDashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Property System Diagnostics */}
+      <PropertyDiagnostics />
 
       {/* Performance Recommendations */}
       <Card>
