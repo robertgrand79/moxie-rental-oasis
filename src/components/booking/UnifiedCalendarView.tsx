@@ -26,7 +26,7 @@ import { Property } from '@/types/property';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useUpdatePricing } from '@/hooks/useBookingData';
-import { getPropertyColor, getAllPropertyColors } from '@/utils/propertyColors';
+import { getPropertyColor } from '@/utils/propertyColors';
 import { invalidateAllPricingQueries } from '@/utils/pricingCacheUtils';
 
 interface BookingBlock {
@@ -370,15 +370,18 @@ export const UnifiedCalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* Property Legend */}
+      {/* Property Legend - Dynamic based on organization properties */}
       <div className="border-t p-3 flex flex-wrap items-center gap-4 text-sm bg-muted/20">
         <span className="text-muted-foreground">Properties:</span>
-        {getAllPropertyColors().map((prop) => (
-          <div key={prop.id} className="flex items-center gap-1.5">
-            <div className={cn('w-3 h-3 rounded', prop.bg)} />
-            <span className="text-xs">{prop.name}</span>
-          </div>
-        ))}
+        {filteredProperties.map((property) => {
+          const colors = getPropertyColor(property.id, property.title);
+          return (
+            <div key={property.id} className="flex items-center gap-1.5">
+              <div className={cn('w-3 h-3 rounded', colors.bg)} />
+              <span className="text-xs">{property.title}</span>
+            </div>
+          );
+        })}
       </div>
     </Card>
   );
