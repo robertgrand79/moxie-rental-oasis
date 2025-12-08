@@ -1,6 +1,6 @@
-
 import React, { useCallback } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Wrench } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { usePropertyForm } from '@/hooks/usePropertyForm';
 import { usePaginatedProperties } from '@/hooks/usePaginatedProperties';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,7 @@ import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import PropertyFormContainer from '@/components/admin/properties/PropertyFormContainer';
 import PropertyListContainer from '@/components/admin/properties/PropertyListContainer';
 import PaginationControls from '@/components/ui/pagination-controls';
-
-import PropertyDiagnostics from '@/components/admin/PropertyDiagnostics';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
@@ -80,9 +79,19 @@ const AdminProperties = () => {
       actions={pageActions}
     >
       <div className={isMobile ? 'p-4' : 'p-6'}>
-        {/* Show diagnostics when there are issues */}
+        {/* Show helpful link when no properties */}
         {!showAddForm && totalCount === 0 && (
-          <PropertyDiagnostics />
+          <Alert className="mb-6">
+            <Wrench className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Having issues setting up properties? Run system diagnostics to check your configuration.</span>
+              <Button variant="outline" size="sm" asChild className="ml-4">
+                <Link to="/admin/system-administration">
+                  Open System Diagnostics
+                </Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
         )}
 
         {showAddForm && (
