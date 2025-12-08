@@ -29,8 +29,11 @@ import {
   CheckCircle,
   Clock,
   Globe,
-  Building
+  Building,
+  Settings
 } from 'lucide-react';
+import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
+import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -281,6 +284,10 @@ const SuperAdminPanel = () => {
               <Building2 className="h-4 w-4" />
               Organizations
             </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6 space-y-6">
@@ -381,6 +388,11 @@ const SuperAdminPanel = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-6 space-y-6">
+            <PlatformStripeSettings />
+            <TemplatesManager />
           </TabsContent>
         </Tabs>
       </div>
