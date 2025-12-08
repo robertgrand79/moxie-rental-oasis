@@ -602,7 +602,7 @@ const AdminOrganization = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <form onSubmit={handleUpdateIntegrations} className="space-y-4">
                   <div>
                     <Label htmlFor="apify_api_key">Apify API Key</Label>
                     <Input
@@ -617,7 +617,12 @@ const AdminOrganization = () => {
                       <ConfigStatus configured={!!org.apify_api_key} />
                     </div>
                   </div>
-                </div>
+                  {isOrgAdmin() && (
+                    <Button type="submit" disabled={updating}>
+                      {updating ? 'Saving...' : 'Update Apify Settings'}
+                    </Button>
+                  )}
+                </form>
               </CardContent>
             </Card>
 
@@ -629,7 +634,7 @@ const AdminOrganization = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <form onSubmit={handleUpdateIntegrations} className="space-y-4">
                   <div>
                     <Label htmlFor="openweather_api_key">OpenWeather API Key</Label>
                     <Input
@@ -644,15 +649,14 @@ const AdminOrganization = () => {
                       <ConfigStatus configured={!!org.openweather_api_key} />
                     </div>
                   </div>
-                </div>
+                  {isOrgAdmin() && (
+                    <Button type="submit" disabled={updating}>
+                      {updating ? 'Saving...' : 'Update OpenWeather Settings'}
+                    </Button>
+                  )}
+                </form>
               </CardContent>
             </Card>
-
-            {isOrgAdmin() && (
-              <Button type="button" onClick={handleUpdateIntegrations} disabled={updating}>
-                {updating ? 'Saving...' : 'Update All Integrations'}
-              </Button>
-            )}
           </TabsContent>
 
           <TabsContent value="members" className="mt-6">
