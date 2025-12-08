@@ -40,24 +40,10 @@ export const useUserFetch = () => {
         return;
       }
 
-      // Fetch organization members with their profiles
+      // Fetch organization members
       const { data: members, error: membersError } = await supabase
         .from('organization_members')
-        .select(`
-          id,
-          role,
-          joined_at,
-          profile:profiles(
-            id,
-            email,
-            full_name,
-            role,
-            status,
-            last_login_at,
-            created_at,
-            updated_at
-          )
-        `)
+        .select('id, user_id, role, joined_at')
         .eq('organization_id', organization.id)
         .order('joined_at', { ascending: false });
 
@@ -67,20 +53,46 @@ export const useUserFetch = () => {
         return;
       }
 
+      if (!members || members.length === 0) {
+        setUsers([]);
+        return;
+      }
+
+      // Get user IDs from members
+      const userIds = members.map(m => m.user_id).filter(Boolean);
+
+      // Fetch profiles for these users
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, role, status, last_login_at, created_at, updated_at')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        setError(profilesError.message);
+        return;
+      }
+
+      // Create a map of profiles by ID
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
       // Format users data with organization role
-      const formattedUsers: User[] = (members || [])
-        .filter(member => member.profile) // Filter out members without profiles
-        .map((member: any) => ({
-          id: member.profile.id,
-          email: member.profile.email,
-          full_name: member.profile.full_name,
-          role: member.profile.role || 'user',
-          status: member.profile.status || 'active',
-          last_login_at: member.profile.last_login_at,
-          created_at: member.profile.created_at,
-          updated_at: member.profile.updated_at,
-          organization_role: member.role, // owner, admin, or member
-        }));
+      const formattedUsers: User[] = members
+        .filter(member => profileMap.has(member.user_id))
+        .map((member) => {
+          const profile = profileMap.get(member.user_id)!;
+          return {
+            id: profile.id,
+            email: profile.email,
+            full_name: profile.full_name,
+            role: profile.role || 'user',
+            status: profile.status || 'active',
+            last_login_at: profile.last_login_at,
+            created_at: profile.created_at,
+            updated_at: profile.updated_at,
+            organization_role: member.role,
+          };
+        });
 
       setUsers(formattedUsers);
     } catch (err) {
