@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { BlogPost, ContentType } from '@/types/blogPost';
 import { toast } from '@/hooks/use-toast';
 
@@ -22,12 +23,15 @@ interface UsePaginatedBlogPostsResult {
 const POSTS_PER_PAGE = 20;
 const REQUEST_TIMEOUT = 10000; // 10 seconds
 
-export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePaginatedBlogPostsResult => {
+export const usePaginatedBlogPosts = (publishedOnly: boolean = false, organizationId?: string): UsePaginatedBlogPostsResult => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  
+  const { organization } = useCurrentOrganization();
+  const orgId = organizationId || organization?.id;
 
   const totalPages = Math.ceil(totalCount / POSTS_PER_PAGE);
   const hasNextPage = currentPage < totalPages;
@@ -35,7 +39,7 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
 
   const fetchPosts = async (page: number) => {
     try {
-      console.log('🔄 usePaginatedBlogPosts - Fetching page:', page, 'publishedOnly:', publishedOnly);
+      console.log('🔄 usePaginatedBlogPosts - Fetching page:', page, 'publishedOnly:', publishedOnly, 'orgId:', orgId);
       
       // Check network connectivity
       if (!navigator.onLine) {
@@ -65,6 +69,11 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
 
       if (publishedOnly) {
         query = query.eq('status', 'published');
+      }
+
+      // Filter by organization
+      if (orgId) {
+        query = query.eq('organization_id', orgId);
       }
 
       const startTime = Date.now();
@@ -213,7 +222,7 @@ export const usePaginatedBlogPosts = (publishedOnly: boolean = false): UsePagina
 
   useEffect(() => {
     fetchPosts(currentPage);
-  }, [currentPage, publishedOnly]);
+  }, [currentPage, publishedOnly, orgId]);
 
   return {
     posts,

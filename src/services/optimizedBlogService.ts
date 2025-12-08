@@ -16,9 +16,10 @@ export const optimizedBlogService = {
     page: number = 1,
     limit: number = 20,
     searchQuery?: string,
-    category?: string
+    category?: string,
+    organizationId?: string
   ): Promise<PaginatedBlogResponse> {
-    console.log('🔍 Fetching blog post summaries, page:', page, 'limit:', limit, 'publishedOnly:', publishedOnly);
+    console.log('🔍 Fetching blog post summaries, page:', page, 'limit:', limit, 'publishedOnly:', publishedOnly, 'orgId:', organizationId);
     
     // Create cache key
     const cacheKey = blogCache.createKey({
@@ -26,7 +27,8 @@ export const optimizedBlogService = {
       page,
       limit,
       searchQuery: searchQuery || '',
-      category: category || ''
+      category: category || '',
+      organizationId: organizationId || ''
     });
     
     // Return cached data if still valid
@@ -43,7 +45,8 @@ export const optimizedBlogService = {
         page,
         limit,
         searchQuery,
-        category
+        category,
+        organizationId
       );
       
       const { data, error, count } = await query;
@@ -100,9 +103,9 @@ export const optimizedBlogService = {
   },
 
   // Get blog post stats (for admin dashboard)
-  async getBlogStats(): Promise<BlogStats> {
+  async getBlogStats(organizationId?: string): Promise<BlogStats> {
     try {
-      const { data, error } = await BlogQueryBuilder.buildStatsQuery();
+      const { data, error } = await BlogQueryBuilder.buildStatsQuery(organizationId);
 
       if (error) {
         console.error('Error fetching blog stats:', error);

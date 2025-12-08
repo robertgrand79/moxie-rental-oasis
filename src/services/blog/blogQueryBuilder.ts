@@ -7,7 +7,8 @@ export class BlogQueryBuilder {
     page: number,
     limit: number,
     searchQuery?: string,
-    category?: string
+    category?: string,
+    organizationId?: string
   ) {
     const offset = (page - 1) * limit;
 
@@ -25,9 +26,15 @@ export class BlogQueryBuilder {
         status,
         created_at,
         updated_at,
-        created_by
+        created_by,
+        organization_id
       `, { count: 'exact' })
       .range(offset, offset + limit - 1);
+
+    // Filter by organization if provided
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId);
+    }
 
     // Apply filters first for better query optimization
     if (publishedOnly) {
@@ -61,10 +68,16 @@ export class BlogQueryBuilder {
       .maybeSingle();
   }
 
-  static buildStatsQuery() {
-    return supabase
+  static buildStatsQuery(organizationId?: string) {
+    let query = supabase
       .from('blog_posts')
       .select('status')
       .order('created_at', { ascending: false });
+    
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId);
+    }
+    
+    return query;
   }
 }
