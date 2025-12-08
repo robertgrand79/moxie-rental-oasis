@@ -2479,6 +2479,7 @@ export type Database = {
           seam_webhook_secret: string | null
           slug: string
           stripe_account_id: string | null
+          stripe_customer_id: string | null
           stripe_publishable_key: string | null
           stripe_secret_key: string | null
           stripe_webhook_secret: string | null
@@ -2511,6 +2512,7 @@ export type Database = {
           seam_webhook_secret?: string | null
           slug: string
           stripe_account_id?: string | null
+          stripe_customer_id?: string | null
           stripe_publishable_key?: string | null
           stripe_secret_key?: string | null
           stripe_webhook_secret?: string | null
@@ -2543,6 +2545,7 @@ export type Database = {
           seam_webhook_secret?: string | null
           slug?: string
           stripe_account_id?: string | null
+          stripe_customer_id?: string | null
           stripe_publishable_key?: string | null
           stripe_secret_key?: string | null
           stripe_webhook_secret?: string | null
@@ -2758,6 +2761,33 @@ export type Database = {
           is_active?: boolean
           role?: Database["public"]["Enums"]["platform_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      platform_settings: {
+        Row: {
+          id: string
+          is_secret: boolean | null
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: string | null
+        }
+        Insert: {
+          id?: string
+          is_secret?: boolean | null
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: string | null
+        }
+        Update: {
+          id?: string
+          is_secret?: boolean | null
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: string | null
         }
         Relationships: []
       }
@@ -4146,6 +4176,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_templates: {
+        Row: {
+          annual_price_cents: number | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          max_properties: number | null
+          monthly_price_cents: number
+          name: string
+          slug: string
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          annual_price_cents?: number | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_properties?: number | null
+          monthly_price_cents: number
+          name: string
+          slug: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          annual_price_cents?: number | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_properties?: number | null
+          monthly_price_cents?: number
+          name?: string
+          slug?: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       social_links: {
         Row: {
