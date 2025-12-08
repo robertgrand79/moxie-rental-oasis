@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { HeaderConfig, FooterConfig } from '@/components/admin/newsletter/types';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface GlobalNewsletterSettings {
   headerConfig: HeaderConfig;
@@ -9,6 +10,8 @@ interface GlobalNewsletterSettings {
 }
 
 export const useGlobalNewsletterSettings = () => {
+  const { organization } = useCurrentOrganization();
+  
   const [settings, setSettings] = useState<GlobalNewsletterSettings>({
     headerConfig: {
       title: 'Moxie Vacation Rentals',
@@ -49,12 +52,18 @@ export const useGlobalNewsletterSettings = () => {
 
   // Load global settings from site_settings table
   const loadSettings = async () => {
+    if (!organization?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       
       const { data, error } = await supabase
         .from('site_settings')
         .select('key, value')
+        .eq('organization_id', organization.id)
         .in('key', ['newsletter_header_config', 'newsletter_footer_config']);
 
       if (error) throw error;
@@ -85,6 +94,15 @@ export const useGlobalNewsletterSettings = () => {
 
   // Save settings to site_settings table
   const saveSettings = async (newSettings: GlobalNewsletterSettings) => {
+    if (!organization?.id) {
+      toast({
+        title: "Error",
+        description: "No organization context available.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     try {
       setSaving(true);
 
@@ -92,28 +110,30 @@ export const useGlobalNewsletterSettings = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Update header config
+      // Update header config with organization_id
       const { error: headerError } = await supabase
         .from('site_settings')
         .upsert({
           key: 'newsletter_header_config',
           value: newSettings.headerConfig as any,
-          created_by: user.id
+          created_by: user.id,
+          organization_id: organization.id
         }, {
-          onConflict: 'key'
+          onConflict: 'key,organization_id'
         });
 
       if (headerError) throw headerError;
 
-      // Update footer config
+      // Update footer config with organization_id
       const { error: footerError } = await supabase
         .from('site_settings')
         .upsert({
           key: 'newsletter_footer_config',
           value: newSettings.footerConfig as any,
-          created_by: user.id
+          created_by: user.id,
+          organization_id: organization.id
         }, {
-          onConflict: 'key'
+          onConflict: 'key,organization_id'
         });
 
       if (footerError) throw footerError;
@@ -153,7 +173,7 @@ export const useGlobalNewsletterSettings = () => {
 
   useEffect(() => {
     loadSettings();
-  }, []);
+  }, [organization?.id]);
 
   return {
     settings,

@@ -7,16 +7,25 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, AlertCircle, Mail, ExternalLink, Settings } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 const EmailSetupStatus = () => {
+  const { organization } = useCurrentOrganization();
+
   const { data: emailSettings, isLoading } = useQuery({
-    queryKey: ['email-setup-status'],
+    queryKey: ['email-setup-status', organization?.id],
     queryFn: async () => {
-      // Check if we have email settings configured
-      const { data: settings, error } = await supabase
+      // Check if we have email settings configured for this organization
+      let query = supabase
         .from('site_settings')
         .select('key, value')
         .in('key', ['emailFromAddress', 'emailFromName', 'emailReplyTo']);
+
+      if (organization?.id) {
+        query = query.eq('organization_id', organization.id);
+      }
+
+      const { data: settings, error } = await query;
 
       if (error) throw error;
 
@@ -44,6 +53,7 @@ const EmailSetupStatus = () => {
         };
       }
     },
+    enabled: !!organization?.id,
   });
 
   if (isLoading) {

@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, DollarSign, Users, Home, TrendingUp, AlertCircle } from 'lucide-react';
-import { useProperties } from '@/hooks/useProperties';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -38,12 +38,17 @@ interface ReservationData {
 
 const PropertyAnalyticsDashboard = () => {
   const [selectedProperty, setSelectedProperty] = useState<string>('all');
-  const { properties = [] } = useProperties();
+  
+  // Get organization-scoped properties
+  const { properties = [], loading: propertiesLoading } = usePropertyFetch();
+  const orgPropertyIds = properties.map(p => p.id);
 
-  // Fetch property analytics
+  // Fetch property analytics scoped to organization
   const { data: analytics = [], isLoading: analyticsLoading } = useQuery({
-    queryKey: ['property-analytics', selectedProperty],
+    queryKey: ['property-analytics', selectedProperty, orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+
       let query = supabase
         .from('property_reservations')
         .select(`
@@ -54,7 +59,8 @@ const PropertyAnalyticsDashboard = () => {
           check_in_date,
           check_out_date,
           properties:properties!inner(title)
-        `);
+        `)
+        .in('property_id', orgPropertyIds);
 
       if (selectedProperty !== 'all') {
         query = query.eq('property_id', selectedProperty);
@@ -102,18 +108,22 @@ const PropertyAnalyticsDashboard = () => {
 
       return Object.values(propertyStats);
     },
+    enabled: orgPropertyIds.length > 0,
   });
 
-  // Fetch recent reservations
+  // Fetch recent reservations scoped to organization
   const { data: recentReservations = [], isLoading: reservationsLoading } = useQuery({
-    queryKey: ['recent-reservations', selectedProperty],
+    queryKey: ['recent-reservations', selectedProperty, orgPropertyIds],
     queryFn: async () => {
+      if (orgPropertyIds.length === 0) return [];
+
       let query = supabase
         .from('property_reservations')
         .select(`
           *,
           properties:properties!inner(title)
         `)
+        .in('property_id', orgPropertyIds)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -130,6 +140,7 @@ const PropertyAnalyticsDashboard = () => {
         properties: item.properties || { title: 'Unknown Property' }
       })) as ReservationData[];
     },
+    enabled: orgPropertyIds.length > 0,
   });
 
   const totalRevenue = analytics.reduce((sum, prop) => sum + prop.total_revenue, 0);
