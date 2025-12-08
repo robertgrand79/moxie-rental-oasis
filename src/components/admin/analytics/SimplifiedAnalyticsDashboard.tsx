@@ -173,7 +173,7 @@ const SimplifiedAnalyticsDashboard = () => {
           <h3 className="text-sm font-medium mb-4">Quick Actions</h3>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link to="/admin/reservations">View Bookings</Link>
+              <Link to="/admin/host/bookings">View Bookings</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
               <Link to="/admin/newsletter">Newsletters</Link>
