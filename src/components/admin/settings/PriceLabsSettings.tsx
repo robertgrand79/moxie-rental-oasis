@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,27 +54,34 @@ export const PriceLabsSettings = () => {
   const [priceLabsIds, setPriceLabsIds] = useState<Record<string, string>>({});
   const [priceLabsListings, setPriceLabsListings] = useState<PriceLabsListing[]>(() => getCachedListings() || []);
 
-  const { data: properties, isLoading } = useQuery({
-    queryKey: ['properties-pricelabs'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('id, title, pricelabs_listing_id')
-        .order('title');
-      
-      if (error) throw error;
-      
-      const initialPriceLabsIds: Record<string, string> = {};
-      data?.forEach(prop => {
-        if (prop.pricelabs_listing_id) {
-          initialPriceLabsIds[prop.id] = prop.pricelabs_listing_id;
-        }
-      });
-      setPriceLabsIds(initialPriceLabsIds);
-      
-      return data as Property[];
-    }
-  });
+  // Get organization-scoped properties
+  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
+  
+  // Transform properties to the expected format and set initial priceLabsIds
+  const properties = React.useMemo(() => {
+    const props = (orgProperties || []).map(p => ({
+      id: p.id,
+      title: p.title,
+      pricelabs_listing_id: p.pricelabs_listing_id || null
+    })) as Property[];
+    
+    const initialPriceLabsIds: Record<string, string> = {};
+    props.forEach(prop => {
+      if (prop.pricelabs_listing_id) {
+        initialPriceLabsIds[prop.id] = prop.pricelabs_listing_id;
+      }
+    });
+    setPriceLabsIds(prev => {
+      // Only update if there are changes to avoid infinite loops
+      const hasChanges = Object.keys(initialPriceLabsIds).length !== Object.keys(prev).length ||
+        Object.keys(initialPriceLabsIds).some(k => initialPriceLabsIds[k] !== prev[k]);
+      return hasChanges ? initialPriceLabsIds : prev;
+    });
+    
+    return props;
+  }, [orgProperties]);
+
+  const isLoading = propertiesLoading;
 
   const fetchPriceLabsMutation = useMutation({
     mutationFn: async () => {
