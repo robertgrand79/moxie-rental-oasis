@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Users, CreditCard, DollarSign, Building2, Shield, Crown, UserCog, MessageSquare, Lock, Plug, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Settings, CreditCard, DollarSign, Building2, Shield, Crown, UserCog, MessageSquare, Lock, Plug, CheckCircle2, AlertCircle, Users, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { PriceLabsSettings } from '@/components/admin/settings/PriceLabsSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -62,27 +63,6 @@ const AdminOrganization = () => {
       });
     }
   }, [organization]);
-
-  // Fetch organization members
-  const { data: members, isLoading: membersLoading, refetch: refetchMembers } = useQuery({
-    queryKey: ['organization-members', organization?.id],
-    queryFn: async () => {
-      if (!organization?.id) return [];
-      
-      const { data, error } = await supabase
-        .from('organization_members')
-        .select(`
-          *,
-          profile:profiles(id, email, full_name, avatar_url)
-        `)
-        .eq('organization_id', organization.id)
-        .order('joined_at', { ascending: true });
-
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!organization?.id,
-  });
 
   const handleUpdateGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -251,7 +231,7 @@ const AdminOrganization = () => {
         </div>
 
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               General
@@ -275,10 +255,6 @@ const AdminOrganization = () => {
             <TabsTrigger value="integrations" className="flex items-center gap-2">
               <Plug className="h-4 w-4" />
               Integrations
-            </TabsTrigger>
-            <TabsTrigger value="members" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Members
             </TabsTrigger>
           </TabsList>
 
@@ -327,6 +303,27 @@ const AdminOrganization = () => {
                     </Button>
                   )}
                 </form>
+
+                {/* Link to User Management */}
+                <div className="mt-6 pt-6 border-t">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Team Members
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        Manage team members, roles, and permissions
+                      </p>
+                    </div>
+                    <Button variant="outline" asChild>
+                      <Link to="/admin/users" className="flex items-center gap-2">
+                        User & Access Management
+                        <ExternalLink className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -659,56 +656,6 @@ const AdminOrganization = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="members" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Organization Members</CardTitle>
-                <CardDescription>
-                  {members?.length || 0} member{members?.length !== 1 ? 's' : ''} in this organization
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {membersLoading ? (
-                  <div className="text-center py-4">Loading members...</div>
-                ) : members && members.length > 0 ? (
-                  <div className="space-y-4">
-                    {members.map((member: any) => (
-                      <div 
-                        key={member.id} 
-                        className="flex items-center justify-between p-4 border rounded-lg"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                            {member.profile?.full_name?.charAt(0)?.toUpperCase() || member.profile?.email?.charAt(0)?.toUpperCase() || '?'}
-                          </div>
-                          <div>
-                            <p className="font-medium">{member.profile?.full_name || 'Unknown'}</p>
-                            <p className="text-sm text-muted-foreground">{member.profile?.email}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          {getRoleBadge(member.role)}
-                          <span className="text-sm text-muted-foreground">
-                            Joined {new Date(member.joined_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">No members found</p>
-                )}
-                
-                {canManageOrganization() && (
-                  <div className="mt-6 pt-6 border-t">
-                    <p className="text-sm text-muted-foreground">
-                      Invite new members feature coming soon...
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
     </AdminPageWrapper>
