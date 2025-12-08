@@ -34,13 +34,11 @@ const ContactInfo = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      const finalSettings = {
-        contactEmail: settingsMap.contactEmail || 'team@moxievacationrentals.com',
-        phone: settingsMap.phone || '+1 541-255-1698',
-        address: settingsMap.address || '2472 Willamette St\nEugene OR 97405'
+      return {
+        contactEmail: settingsMap.contactEmail || '',
+        phone: settingsMap.phone || '',
+        address: settingsMap.address || ''
       };
-
-      return finalSettings;
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: false,
@@ -48,57 +46,72 @@ const ContactInfo = () => {
   });
 
   const currentSettings = settings || {
-    contactEmail: 'team@moxievacationrentals.com',
-    phone: '+1 541-255-1698',
-    address: '2472 Willamette St\nEugene OR 97405'
+    contactEmail: '',
+    phone: '',
+    address: ''
   };
+
+  // Don't render sections without data
+  const hasEmail = !!currentSettings.contactEmail;
+  const hasPhone = !!currentSettings.phone;
+  const hasAddress = !!currentSettings.address;
+
+  if (!hasEmail && !hasPhone && !hasAddress) {
+    return null;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 py-16">
       {/* Visit Us */}
-      <div className="text-center">
-        <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <MapPin className="h-6 w-6 text-blue-600" />
+      {hasAddress && (
+        <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+              <MapPin className="h-6 w-6 text-primary" />
+            </div>
           </div>
+          <h3 className="text-lg font-semibold text-foreground mb-3">Visit Us</h3>
+          <p className="text-muted-foreground whitespace-pre-line">
+            {currentSettings.address}
+          </p>
         </div>
-        <h3 className="text-lg font-semibold text-foreground mb-3">Visit Us</h3>
-        <p className="text-muted-foreground whitespace-pre-line">
-          {currentSettings.address}
-        </p>
-      </div>
+      )}
 
       {/* Call Us */}
-      <div className="text-center">
-        <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-            <Phone className="h-6 w-6 text-green-600" />
+      {hasPhone && (
+        <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+              <Phone className="h-6 w-6 text-primary" />
+            </div>
           </div>
+          <h3 className="text-lg font-semibold text-foreground mb-3">Call Us</h3>
+          <p className="text-muted-foreground">
+            {currentSettings.phone}
+          </p>
         </div>
-        <h3 className="text-lg font-semibold text-foreground mb-3">Call Us</h3>
-        <p className="text-muted-foreground">
-          {currentSettings.phone}
-        </p>
-      </div>
+      )}
 
       {/* Email Us */}
-      <div className="text-center">
-        <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-            <Mail className="h-6 w-6 text-orange-600" />
+      {hasEmail && (
+        <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+              <Mail className="h-6 w-6 text-primary" />
+            </div>
           </div>
+          <h3 className="text-lg font-semibold text-foreground mb-3">Email Us</h3>
+          <p className="text-muted-foreground">
+            {currentSettings.contactEmail}
+          </p>
         </div>
-        <h3 className="text-lg font-semibold text-foreground mb-3">Email Us</h3>
-        <p className="text-muted-foreground">
-          {currentSettings.contactEmail}
-        </p>
-      </div>
+      )}
 
       {/* Support */}
       <div className="text-center">
         <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-            <Clock className="h-6 w-6 text-purple-600" />
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+            <Clock className="h-6 w-6 text-primary" />
           </div>
         </div>
         <h3 className="text-lg font-semibold text-foreground mb-3">Support</h3>

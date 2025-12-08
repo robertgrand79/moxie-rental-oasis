@@ -5,8 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Type, Save, RotateCcw } from 'lucide-react';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 const FontCustomizer = () => {
+  const { organization } = useCurrentOrganization();
   const [fonts, setFonts] = useState({
     heading: 'Playfair Display',
     body: 'Inter',
@@ -14,6 +16,12 @@ const FontCustomizer = () => {
   });
 
   const { toast } = useToast();
+
+  // Tenant-scoped localStorage key
+  const getStorageKey = () => {
+    const orgId = organization?.id || 'default';
+    return `customFonts_${orgId}`;
+  };
 
   const googleFonts = [
     'Inter',
@@ -80,7 +88,8 @@ const FontCustomizer = () => {
       }
     });
 
-    localStorage.setItem('customFonts', JSON.stringify(fonts));
+    // Save with tenant-scoped key
+    localStorage.setItem(getStorageKey(), JSON.stringify(fonts));
     
     toast({
       title: "Fonts Applied",
@@ -96,7 +105,7 @@ const FontCustomizer = () => {
     };
     
     setFonts(defaultFonts);
-    localStorage.removeItem('customFonts');
+    localStorage.removeItem(getStorageKey());
     
     // Reset CSS variables
     const root = document.documentElement;
@@ -117,7 +126,7 @@ const FontCustomizer = () => {
   };
 
   useEffect(() => {
-    // Load the elegant fonts immediately
+    // Load the fonts
     loadGoogleFont('Playfair Display');
     loadGoogleFont('Great Vibes');
     
@@ -126,7 +135,8 @@ const FontCustomizer = () => {
       applyFonts();
     }, 500);
 
-    const savedFonts = localStorage.getItem('customFonts');
+    // Load saved fonts with tenant-scoped key
+    const savedFonts = localStorage.getItem(getStorageKey());
     if (savedFonts) {
       const parsed = JSON.parse(savedFonts);
       setFonts(parsed);
@@ -138,7 +148,7 @@ const FontCustomizer = () => {
         }
       });
     }
-  }, []);
+  }, [organization?.id]);
 
   return (
     <Card>

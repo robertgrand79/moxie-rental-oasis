@@ -1,8 +1,37 @@
 
 import React from 'react';
 import { Shield, Heart, MapPin, Star } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
-const WhyMoxieSection = () => {
+const WhyChooseUsSection = () => {
+  const { tenantId } = useTenant();
+
+  const { data: settings } = useQuery({
+    queryKey: ['why-choose-us-settings', tenantId],
+    queryFn: async () => {
+      let query = supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['siteName', 'heroLocationText']);
+
+      if (tenantId) {
+        query = query.eq('organization_id', tenantId);
+      }
+
+      const { data } = await query;
+      return data?.reduce((acc, s) => {
+        acc[s.key] = s.value;
+        return acc;
+      }, {} as Record<string, any>) || {};
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const siteName = settings?.siteName || 'Us';
+  const location = settings?.heroLocationText || 'your destination';
+
   const features = [
     {
       icon: Shield,
@@ -13,13 +42,13 @@ const WhyMoxieSection = () => {
     {
       icon: Heart,
       title: "Local Hospitality",
-      description: "Eugene-based hosts who care about your experience and know the city's hidden gems.",
+      description: `Local hosts who care about your experience and know ${location}'s hidden gems.`,
       color: "text-icon-rose"
     },
     {
       icon: MapPin,
       title: "Prime Locations",
-      description: "Handpicked properties in Eugene's most walkable and desirable neighborhoods.",
+      description: "Handpicked properties in the most walkable and desirable neighborhoods.",
       color: "text-icon-emerald"
     },
     {
@@ -37,11 +66,11 @@ const WhyMoxieSection = () => {
           {/* Section Header */}
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Why Choose Moxie
+              Why Choose {siteName}
             </h2>
             <div className="w-16 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-6 rounded-full"></div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              We're not just providing a place to stay—we're creating authentic Eugene experiences
+              We're not just providing a place to stay—we're creating authentic local experiences
             </p>
           </div>
 
@@ -70,4 +99,4 @@ const WhyMoxieSection = () => {
   );
 };
 
-export default WhyMoxieSection;
+export default WhyChooseUsSection;

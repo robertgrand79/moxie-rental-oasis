@@ -51,19 +51,19 @@ export const useSettingsData = () => {
   useEffect(() => {
     if (!loading && Object.keys(settings).length > 0) {
       setSiteData({
-        siteName: settings.siteName || 'Moxie Vacation Rentals',
-        tagline: settings.tagline || 'Your perfect getaway is just a click away.',
-        description: settings.description || 'Discover amazing vacation rental properties in prime locations.',
-        heroTitle: settings.heroTitle || 'Your Home Away From Home',
-        heroSubtitle: settings.heroSubtitle || 'in Eugene',
-        heroDescription: settings.heroDescription || 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
+        siteName: settings.siteName || '',
+        tagline: settings.tagline || '',
+        description: settings.description || '',
+        heroTitle: settings.heroTitle || '',
+        heroSubtitle: settings.heroSubtitle || '',
+        heroDescription: settings.heroDescription || '',
         heroBackgroundImage: settings.heroBackgroundImage || '',
-        heroLocationText: settings.heroLocationText || 'Eugene, Oregon',
-        heroRating: settings.heroRating || '4.9',
+        heroLocationText: settings.heroLocationText || '',
+        heroRating: settings.heroRating || '',
         heroCTAText: settings.heroCTAText || 'View Properties',
-        contactEmail: settings.contactEmail || 'contact@moxievacationrentals.com',
-        phone: settings.phone || '+1 (555) 123-4567',
-        address: settings.address || '123 Vacation St, Resort City, RC 12345',
+        contactEmail: settings.contactEmail || '',
+        phone: settings.phone || '',
+        address: settings.address || '',
         socialMedia: settings.socialMedia || {
           facebook: '',
           instagram: '',
@@ -76,8 +76,8 @@ export const useSettingsData = () => {
       setMapboxToken(settings.mapboxToken || '');
       
       setSeoData({
-        siteTitle: settings.siteTitle || 'Moxie Vacation Rentals',
-        metaDescription: settings.metaDescription || 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.',
+        siteTitle: settings.siteTitle || '',
+        metaDescription: settings.metaDescription || '',
         ogTitle: settings.ogTitle || '',
         ogDescription: settings.ogDescription || '',
         ogImage: settings.ogImage || '',

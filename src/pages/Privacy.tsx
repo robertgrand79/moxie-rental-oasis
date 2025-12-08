@@ -1,7 +1,40 @@
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 const Privacy = () => {
+  const { tenantId } = useTenant();
+
+  const { data: settings } = useQuery({
+    queryKey: ['privacy-page-settings', tenantId],
+    queryFn: async () => {
+      let query = supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['siteName', 'contactEmail', 'phone', 'address']);
+
+      if (tenantId) {
+        query = query.eq('organization_id', tenantId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return data?.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {} as Record<string, any>) || {};
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const siteName = settings?.siteName || 'Our Company';
+  const contactEmail = settings?.contactEmail || '';
+  const phone = settings?.phone || '';
+  const siteUrl = window.location.origin;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
@@ -12,8 +45,7 @@ const Privacy = () => {
             <section>
               <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
               <p>
-                Moxie Vacation Rentals ("we," "us," "our") operates properties listed at{' '}
-                <a href="http://www.moxievacationrentals.com" className="text-primary hover:underline">www.moxievacationrentals.com</a>. 
+                {siteName} ("we," "us," "our") operates this website. 
                 This Privacy Policy explains how we collect, use, share, and protect your personal information when you book or interact with our services.
               </p>
             </section>
@@ -77,10 +109,12 @@ const Privacy = () => {
                 <li>Request data portability</li>
                 <li>Withdraw consent where applicable</li>
               </ul>
-              <p className="mt-4">
-                To exercise these rights, contact us at{' '}
-                <a href="mailto:team@moxievacationrentals.com" className="text-primary hover:underline">team@moxievacationrentals.com</a>.
-              </p>
+              {contactEmail && (
+                <p className="mt-4">
+                  To exercise these rights, contact us at{' '}
+                  <a href={`mailto:${contactEmail}`} className="text-primary hover:underline">{contactEmail}</a>.
+                </p>
+              )}
             </section>
 
             <section>
@@ -107,13 +141,13 @@ const Privacy = () => {
             <section>
               <h2 className="text-2xl font-semibold mb-4">11. Contact Us</h2>
               <div>
-                <p><strong>Moxie Vacation Rentals</strong></p>
-                <p>
-                  <a href="http://www.moxievacationrentals.com" className="text-primary hover:underline">www.moxievacationrentals.com</a>
-                </p>
-                <p>
-                  <a href="mailto:team@moxievacationrentals.com" className="text-primary hover:underline">team@moxievacationrentals.com</a> | +1 541-255-1698
-                </p>
+                <p><strong>{siteName}</strong></p>
+                {contactEmail && (
+                  <p>
+                    <a href={`mailto:${contactEmail}`} className="text-primary hover:underline">{contactEmail}</a>
+                    {phone && ` | ${phone}`}
+                  </p>
+                )}
               </div>
             </section>
 

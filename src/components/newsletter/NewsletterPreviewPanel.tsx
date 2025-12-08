@@ -58,17 +58,17 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
     // Generate preheader from content
     const textContent = content.replace(/<[^>]*>/g, '').trim();
     const firstLine = textContent.split('\n')[0]?.trim();
-    return firstLine?.substring(0, 100) + '...' || `${subject} - Your Eugene adventure awaits!`;
+    return firstLine?.substring(0, 100) + '...' || `${subject}`;
   }, [subject, content]);
 
   const isEmpty = !subject && !content;
 
   // Create the newsletter HTML with dynamic settings
   const generateNewsletterHTML = (subject: string, content: string, preheader: string) => {
-    const siteName = siteSettings?.siteName || "Moxie Vacation Rentals";
-    const contactEmail = siteSettings?.contactEmail || "contact@moxievacationrentals.com";
-    const phone = siteSettings?.phone || "+1 (555) 123-4567";
-    const address = siteSettings?.address || "123 Vacation St, Eugene, OR 97401";
+    const siteName = siteSettings?.siteName || organization?.name || "Our Company";
+    const contactEmail = siteSettings?.contactEmail || "";
+    const phone = siteSettings?.phone || "";
+    const address = siteSettings?.address || "";
     const socialMedia = siteSettings?.socialMedia || {
       facebook: '',
       instagram: '',
@@ -121,33 +121,14 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
                   font-size: 24px; 
                   margin-bottom: 16px; 
               }
-              .content h3 { 
-                  color: #333; 
-                  font-size: 20px; 
-                  margin-bottom: 12px; 
-              }
               .content p { 
                   color: #666; 
                   line-height: 1.6; 
                   margin-bottom: 16px; 
               }
-              .content ul, .content ol { 
-                  color: #666; 
-                  padding-left: 20px; 
-                  margin-bottom: 16px; 
-              }
-              .content li { 
-                  margin-bottom: 8px; 
-              }
-              .content strong { 
-                  color: #333; 
-              }
               .content a { 
                   color: #667eea; 
                   text-decoration: none; 
-              }
-              .content a:hover { 
-                  text-decoration: underline; 
               }
               .footer { 
                   background: #f8fafc; 
@@ -174,12 +155,6 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
                   color: #667eea;
                   text-decoration: none;
               }
-              @media (max-width: 600px) {
-                  .header { padding: 30px 20px; }
-                  .header h1 { font-size: 24px; }
-                  .content { padding: 20px; }
-                  .footer { padding: 20px; }
-              }
           </style>
       </head>
       <body>
@@ -188,26 +163,22 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
               
               <div class="header">
                   <h1>${siteName}</h1>
-                  <p>Your Home Base for Living Like a Local in Eugene</p>
               </div>
               
               <div class="content">
-                  <h2 style="margin-top: 0;">${subject || 'Your Eugene Newsletter'}</h2>
+                  <h2 style="margin-top: 0;">${subject || 'Your Newsletter'}</h2>
                   <div>${content}</div>
               </div>
               
               <div class="footer">
                   <p><strong>${siteName}</strong></p>
-                  <p>Your Home Base for Living Like a Local in Eugene</p>
-                  <p>${address} | ${contactEmail}</p>
+                  ${address ? `<p>${address}</p>` : ''}
+                  ${contactEmail ? `<p>${contactEmail}</p>` : ''}
                   ${phone ? `<p>Phone: ${phone}</p>` : ''}
                   <div class="social-links">
-                      <a href="https://moxievacationrentals.com">Visit Our Website</a>
-                      <a href="https://moxievacationrentals.com">View Properties</a>
                       ${socialMedia?.facebook ? `<a href="${socialMedia.facebook}">Facebook</a>` : ''}
                       ${socialMedia?.instagram ? `<a href="${socialMedia.instagram}">Instagram</a>` : ''}
                       ${socialMedia?.twitter ? `<a href="${socialMedia.twitter}">Twitter</a>` : ''}
-                      ${socialMedia?.googlePlaces ? `<a href="${socialMedia.googlePlaces}">Find Us</a>` : ''}
                   </div>
                   <p style="font-size: 12px;">
                       <a href="#">Unsubscribe</a> | 
@@ -240,24 +211,24 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
       </CardHeader>
       <CardContent>
         {isEmpty ? (
-          <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
-            <Eye className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+          <div className="text-center py-12 text-muted-foreground border-2 border-dashed border-border rounded-lg">
+            <Eye className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="font-medium">Preview will appear here</p>
             <p className="text-sm">Start typing in the editor to see your newsletter preview</p>
           </div>
         ) : (
-          <div className="border rounded-lg overflow-hidden bg-gray-50">
+          <div className="border rounded-lg overflow-hidden bg-muted/50">
             {/* Email Client Header */}
-            <div className="bg-white border-b px-4 py-3 text-sm">
-              <div className="flex justify-between items-center text-gray-600">
-                <span>From: {siteSettings?.siteName || "Moxie Vacation Rentals"}</span>
+            <div className="bg-background border-b px-4 py-3 text-sm">
+              <div className="flex justify-between items-center text-muted-foreground">
+                <span>From: {siteSettings?.siteName || organization?.name || "Your Company"}</span>
                 <span>📧</span>
               </div>
-              <div className="font-semibold text-gray-800 mt-1">
-                Subject: {subject || 'Your Eugene Newsletter'}
+              <div className="font-semibold text-foreground mt-1">
+                Subject: {subject || 'Your Newsletter'}
               </div>
               {preheader && (
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {preheader}
                 </div>
               )}
@@ -265,7 +236,7 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
 
             {/* Newsletter Content */}
             <div 
-              className={`bg-white transition-all duration-300 ${
+              className={`bg-background transition-all duration-300 ${
                 viewMode === 'mobile' ? 'max-w-sm mx-auto' : 'max-w-2xl mx-auto'
               }`}
             >
@@ -281,10 +252,10 @@ const NewsletterPreviewPanel = ({ subject, content, viewMode }: NewsletterPrevie
           </div>
         )}
         
-        <div className="mt-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
-          <p className="text-xs text-green-800">
+        <div className="mt-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
+          <p className="text-xs text-primary">
             ✨ This preview shows exactly what your subscribers will receive, using your current contact 
-            information from the admin settings. Changes to contact info will automatically appear here.
+            information from the admin settings.
           </p>
         </div>
       </CardContent>
