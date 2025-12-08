@@ -1,6 +1,6 @@
 import { CreatePageData } from '@/types/page';
 
-export const getDefaultPages = (userId: string): CreatePageData[] => [
+export const getDefaultPages = (userId: string, organizationId: string): CreatePageData[] => [
   {
     title: 'Home',
     slug: '',
@@ -26,7 +26,8 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
     `,
     meta_description: 'Welcome to our vacation rentals - Premium accommodations for your perfect getaway.',
     is_published: true,
-    created_by: userId
+    created_by: userId,
+    organization_id: organizationId
   },
   {
     title: 'About Us',
@@ -57,7 +58,8 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
     `,
     meta_description: 'Learn about us - your trusted partner for exceptional vacation rental experiences.',
     is_published: true,
-    created_by: userId
+    created_by: userId,
+    organization_id: organizationId
   },
   {
     title: 'Contact Us',
@@ -92,7 +94,8 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
     `,
     meta_description: 'Contact us for booking assistance, local recommendations, and support. Available 24/7 for your needs.',
     is_published: true,
-    created_by: userId
+    created_by: userId,
+    organization_id: organizationId
   },
   {
     title: 'Frequently Asked Questions',
@@ -182,6 +185,7 @@ export const getDefaultPages = (userId: string): CreatePageData[] => [
     `,
     meta_description: 'Find answers to frequently asked questions including check-in, amenities, and guest support.',
     is_published: true,
-    created_by: userId
+    created_by: userId,
+    organization_id: organizationId
   }
 ];

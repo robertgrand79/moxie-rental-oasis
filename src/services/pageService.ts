@@ -3,11 +3,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { Page, CreatePageData } from '@/types/page';
 
 export const pageService = {
-  async fetchPages(): Promise<Page[]> {
-    const { data, error } = await supabase
+  async fetchPages(organizationId?: string): Promise<Page[]> {
+    let query = supabase
       .from('pages')
       .select('*')
       .order('updated_at', { ascending: false });
+
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching pages:', error);
@@ -60,12 +66,17 @@ export const pageService = {
     }
   },
 
-  async checkPageExists(slug: string): Promise<boolean> {
-    const { data } = await supabase
+  async checkPageExists(slug: string, organizationId?: string): Promise<boolean> {
+    let query = supabase
       .from('pages')
       .select('id')
-      .eq('slug', slug)
-      .maybeSingle();
+      .eq('slug', slug);
+
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId);
+    }
+
+    const { data } = await query.maybeSingle();
 
     return !!data;
   }

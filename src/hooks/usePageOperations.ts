@@ -4,9 +4,14 @@ import { getDefaultPages } from '@/data/defaultPages';
 import { toast } from '@/hooks/use-toast';
 import { Page, PageFormData } from '@/types/page';
 
-export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) => Page[]) => void, fetchPages: () => Promise<void>) => {
+export const usePageOperations = (
+  user: any, 
+  setPages: (updater: (prev: Page[]) => Page[]) => void, 
+  fetchPages: () => Promise<void>,
+  organizationId?: string
+) => {
   const addPage = async (pageData: PageFormData) => {
-    if (!user) {
+    if (!user || !organizationId) {
       toast({
         title: 'Error',
         description: 'You must be logged in to create pages.',
@@ -18,7 +23,8 @@ export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) 
     try {
       const data = await pageService.createPage({
         ...pageData,
-        created_by: user.id
+        created_by: user.id,
+        organization_id: organizationId
       });
 
       setPages(prev => [data, ...prev]);
@@ -77,12 +83,12 @@ export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) 
   };
 
   const autoLoadAllPages = async () => {
-    if (!user) return;
+    if (!user || !organizationId) return;
 
-    const defaultPages = getDefaultPages(user.id);
+    const defaultPages = getDefaultPages(user.id, organizationId);
 
     try {
-      const existingPages = await pageService.fetchPages();
+      const existingPages = await pageService.fetchPages(organizationId);
       
       for (const pageData of defaultPages) {
         const existingPage = existingPages.find(page => page.slug === pageData.slug);
@@ -116,7 +122,7 @@ export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) 
   };
 
   const addSitePages = async () => {
-    if (!user) {
+    if (!user || !organizationId) {
       toast({
         title: 'Error',
         description: 'You must be logged in to add site pages.',
@@ -125,10 +131,10 @@ export const usePageOperations = (user: any, setPages: (updater: (prev: Page[]) 
       return;
     }
 
-    const publicPages = getDefaultPages(user.id).filter(page => page.is_published);
+    const publicPages = getDefaultPages(user.id, organizationId).filter(page => page.is_published);
 
     try {
-      const existingPages = await pageService.fetchPages();
+      const existingPages = await pageService.fetchPages(organizationId);
       
       for (const pageData of publicPages) {
         const existingPage = existingPages.find(page => page.slug === pageData.slug);
