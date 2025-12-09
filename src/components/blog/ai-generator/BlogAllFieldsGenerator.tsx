@@ -37,7 +37,7 @@ const BlogAllFieldsGenerator = ({
             id="topic-prompt"
             value={topicPrompt}
             onChange={(e) => setTopicPrompt(e.target.value)}
-            placeholder="e.g., Best coffee shops in Eugene, Eugene food scene, Hiking trails near Eugene"
+            placeholder="e.g., Best coffee shops in the area, Local food scene, Nearby hiking trails"
             disabled={isGeneratingAll}
           />
         </div>

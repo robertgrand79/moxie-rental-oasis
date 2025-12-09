@@ -27,11 +27,11 @@ const NewsletterEmailClient = ({ subject, preheader, sections, viewMode, headerC
       {/* Email Client Header */}
       <div className="bg-white border-b px-4 py-3 text-sm">
         <div className="flex justify-between items-center text-gray-600">
-          <span>From: Moxie Vacation Rentals &lt;newsletter@moxievacationrentals.com&gt;</span>
+          <span>From: Your Organization &lt;newsletter@yourdomain.com&gt;</span>
           <span>📧</span>
         </div>
         <div className="font-semibold text-gray-800 mt-1">
-          Subject: {subject || 'Your Eugene Newsletter'}
+          Subject: {subject || 'Your Newsletter'}
         </div>
         {preheader && (
           <div className="text-xs text-gray-500 mt-1">

@@ -75,7 +75,7 @@ const GeneralChatTab = () => {
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-primary" />
-          <span className="font-medium">Stay Moxie Assistant</span>
+          <span className="font-medium">AI Assistant</span>
         </div>
         {messages.length > 0 && (
           <Button variant="ghost" size="sm" onClick={clearChat}>
@@ -90,7 +90,7 @@ const GeneralChatTab = () => {
         {messages.length === 0 ? (
           <div className="text-center text-muted-foreground py-12">
             <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium mb-2">Hi! I'm your Stay Moxie Assistant.</p>
+            <p className="text-lg font-medium mb-2">Hi! I'm your AI Assistant.</p>
             <p className="text-sm">I can help you with:</p>
             <ul className="text-sm mt-2 space-y-1">
               <li>• Drafting emails and guest responses</li>

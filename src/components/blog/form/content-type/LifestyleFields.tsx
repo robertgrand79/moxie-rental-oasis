@@ -52,7 +52,7 @@ const LifestyleFields = ({ form }: LifestyleFieldsProps) => {
 
         <div>
           <Label htmlFor="location">Location (if applicable)</Label>
-          <Input {...register('location')} placeholder="Eugene, Oregon" />
+          <Input {...register('location')} placeholder="City, State" />
         </div>
 
         <div className="flex items-center space-x-2">

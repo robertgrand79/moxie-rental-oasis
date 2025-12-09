@@ -151,7 +151,7 @@ const NewsletterEditorWithPreview = ({
                   <div className="p-4 bg-purple-50 rounded-lg">
                     <h4 className="font-medium text-purple-900 mb-2">Professional Design</h4>
                     <p className="text-sm text-purple-700">
-                      Your newsletter includes Moxie branding, responsive design, and professional email formatting.
+                      Your newsletter includes your branding, responsive design, and professional email formatting.
                     </p>
                   </div>
                 </CardContent>

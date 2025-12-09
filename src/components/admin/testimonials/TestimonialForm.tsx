@@ -59,7 +59,7 @@ const TestimonialForm = ({
       let logoUrl = '';
       switch (platform) {
         case 'direct':
-          logoUrl = '/moxie-logo.png';
+          logoUrl = '/placeholder.svg';
           break;
         case 'airbnb':
           logoUrl = '/airbnb-logo.png';
