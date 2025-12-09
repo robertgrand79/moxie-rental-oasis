@@ -38,6 +38,9 @@ export const useTenantDetection = (): TenantDetectionResult => {
   
   // Track previous admin route state to detect transitions
   const wasAdminRoute = useRef(pathname.startsWith('/admin'));
+  
+  // Track force re-detection after logout
+  const forceRedetect = useRef(false);
 
   // Check if we're on an admin route - admin routes should use OrganizationContext instead
   const isAdminRoute = useMemo(() => {
@@ -92,14 +95,16 @@ export const useTenantDetection = (): TenantDetectionResult => {
     return null;
   }, [isAdminRoute]);
 
-  // Listen for auth state changes to clear tenant cache when user logs out
+  // Listen for auth state changes to trigger re-detection when user logs out
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
-        console.log('🔄 User signed out, clearing tenant cache');
+        console.log('🔄 User signed out, triggering tenant re-detection from domain');
         sessionStorage.removeItem('current_tenant_slug');
-        setTenant(null);
-        setIsDefaultTenant(true);
+        // Set flag to force re-detection, then trigger loading state
+        // This ensures we re-detect from custom_domain instead of clearing tenant
+        forceRedetect.current = true;
+        setLoading(true);
       }
     });
     
@@ -107,6 +112,14 @@ export const useTenantDetection = (): TenantDetectionResult => {
   }, []);
 
   useEffect(() => {
+    // Skip if not loading and no force flag
+    if (!loading && !forceRedetect.current) {
+      return;
+    }
+    
+    // Clear force flag
+    forceRedetect.current = false;
+    
     let isMounted = true;
     
     const fetchTenant = async () => {
@@ -225,7 +238,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
       isMounted = false;
       clearTimeout(safetyTimeout);
     };
-  }, [detectedIdentifier, isAdminRoute]);
+  }, [detectedIdentifier, isAdminRoute, loading]);
 
   return {
     tenant,
