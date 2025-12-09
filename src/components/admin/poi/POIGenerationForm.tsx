@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sparkles, Loader2 } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface POIGenerationFormProps {
   onGenerate: (prompt: string, numberOfItems: number, category: string) => void;
@@ -21,6 +22,9 @@ const POIGenerationForm = ({
   const [prompt, setPrompt] = useState('');
   const [numberOfItems, setNumberOfItems] = useState(5);
   const [category, setCategory] = useState('all');
+  const { settings } = useTenantSettings();
+  
+  const locationText = settings.heroLocationText || 'your area';
 
   const handleGenerate = () => {
     // Convert "all" back to empty string for the generation logic
@@ -66,7 +70,7 @@ const POIGenerationForm = ({
           id="prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe the types of points of interest you want to generate for Eugene, Oregon..."
+          placeholder={`Describe the types of points of interest you want to generate for ${locationText}...`}
           rows={4}
         />
       </div>

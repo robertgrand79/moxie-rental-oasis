@@ -19,6 +19,7 @@ import {
   Wand2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface PromptTemplate {
   id: string;
@@ -36,8 +37,13 @@ interface PromptTemplatesLibraryProps {
 
 const PromptTemplatesLibrary = ({ onUseTemplate }: PromptTemplatesLibraryProps) => {
   const { toast } = useToast();
+  const { settings } = useTenantSettings();
   const [selectedTemplate, setSelectedTemplate] = useState<PromptTemplate | null>(null);
   const [templateVariables, setTemplateVariables] = useState<Record<string, string>>({});
+
+  // Dynamic values from tenant settings
+  const siteName = settings.site_name || 'our vacation rentals';
+  const locationText = settings.heroLocationText || 'your destination';
 
   const promptTemplates: PromptTemplate[] = [
     // Weekly Content Sprint
@@ -48,14 +54,14 @@ const PromptTemplatesLibrary = ({ onUseTemplate }: PromptTemplatesLibraryProps) 
       category: 'workflow',
       icon: <Calendar className="h-5 w-5" />,
       variables: [],
-      prompt: `Generate this week's content sprint for Moxie Vacation Rentals. Include:
+      prompt: `Generate this week's content sprint for ${siteName}. Include:
 
 1 blog post idea with outline
 1 newsletter idea with subject line and content  
 3 social media post ideas with captions and hashtags
 1 local event or lifestyle feature to spotlight
 
-Style: friendly, upscale, and local-first approach that showcases Eugene, Oregon as a premier vacation destination.`
+Style: friendly, upscale, and local-first approach that showcases ${locationText} as a premier vacation destination.`
     },
     
     // Testimonial Conversion
@@ -76,26 +82,26 @@ Format it as:
 - Property featured
 - Call-to-action to book
 
-Style it to match Moxie brand: friendly, upscale, and trustworthy.`
+Style it to match our brand: friendly, upscale, and trustworthy.`
     },
 
     // Point of Interest Page Builder
     {
       id: 'poi-builder',
       title: 'Point of Interest Page Builder',
-      description: 'Create detailed POI pages for Eugene attractions',
+      description: `Create detailed POI pages for ${locationText} attractions`,
       category: 'poi',
       icon: <MapPin className="h-5 w-5" />,
       variables: ['PLACE_NAME'],
-      prompt: `Write a 'Point of Interest' page for {PLACE_NAME} in Eugene, Oregon. Include:
+      prompt: `Write a 'Point of Interest' page for {PLACE_NAME} in ${locationText}. Include:
 
 - A catchy intro that hooks readers
 - Why it's special and unique
 - How close it is to our rentals (with specific distance/time)
 - When to go / insider tips from locals
-- A compelling call-to-action to book with Moxie
+- A compelling call-to-action to book with ${siteName}
 
-Style: Informative yet exciting, positioning Moxie as the local expert for the best Eugene experience.`
+Style: Informative yet exciting, positioning us as the local expert for the best ${locationText} experience.`
     },
 
     // Blog Post Generator
@@ -111,10 +117,10 @@ Style: Informative yet exciting, positioning Moxie as the local expert for the b
 - Compelling headline that includes SEO keywords
 - Introduction that hooks the reader
 - 3-4 subheadings with valuable content
-- Local Eugene connections where relevant
+- Local ${locationText} connections where relevant
 - Call-to-action encouraging bookings
 
-Style: Match the Moxie brand - friendly, upscale, and local-first. Write for travelers who appreciate authentic, high-quality experiences.`
+Style: Match our brand - friendly, upscale, and local-first. Write for travelers who appreciate authentic, high-quality experiences.`
     },
 
     // Content Calendar Creation
@@ -128,7 +134,7 @@ Style: Match the Moxie brand - friendly, upscale, and local-first. Write for tra
       prompt: `Create a 4-week content calendar for our blog, newsletter, and social media. Focus on:
 
 - Seasonally relevant content for {SEASON_THEME}
-- Local Eugene events and attractions
+- Local ${locationText} events and attractions
 - Travel/lifestyle inspiration
 - Property showcases
 - Guest testimonials and stories
@@ -144,17 +150,17 @@ Format as a week-by-week breakdown with specific content types, topics, and publ
       category: 'content',
       icon: <Mail className="h-5 w-5" />,
       variables: ['NEWSLETTER_TOPIC'],
-      prompt: `Create a newsletter for Moxie Vacation Rentals. The theme is {NEWSLETTER_TOPIC}. Write:
+      prompt: `Create a newsletter for ${siteName}. The theme is {NEWSLETTER_TOPIC}. Write:
 
 - Compelling subject line (under 50 characters)
 - Preview text that teases the content
 - Engaging intro paragraph
-- 2-3 short stories or features related to Eugene/travel
+- 2-3 short stories or features related to ${locationText}/travel
 - Local event spotlights
 - Property highlights
 - Strong call-to-action to book or learn more
 
-Style: Warm, personal, and informative. Make readers excited about visiting Eugene and staying with Moxie.`
+Style: Warm, personal, and informative. Make readers excited about visiting ${locationText} and staying with us.`
     },
 
     // Social Caption Template
@@ -171,9 +177,9 @@ Style: Warm, personal, and informative. Make readers excited about visiting Euge
 
 {MAIN_MESSAGE}
 
-📍 Stay local. Stay Moxie.
+📍 Stay local. Stay with us.
 
-Include relevant hashtags for Eugene, Oregon vacation rentals, and the specific content topic. Keep it engaging and on-brand.`
+Include relevant hashtags for ${locationText} vacation rentals and the specific content topic. Keep it engaging and on-brand.`
     },
 
     // Local Event Snapshot
@@ -189,11 +195,11 @@ Include relevant hashtags for Eugene, Oregon vacation rentals, and the specific 
 Event Name: {EVENT_NAME}
 When: {EVENT_DATE}
 Where: {EVENT_VENUE}
-Why You'll Love It: [Write a compelling hook that connects to the Moxie experience]
+Why You'll Love It: [Write a compelling hook that connects to the ${siteName} experience]
 Perfect For: [Target audience - families, couples, etc.]
 Book Your Stay: Include compelling call-to-action
 
-Style: Exciting and informative, positioning our properties as the perfect base for experiencing Eugene's best events.`
+Style: Exciting and informative, positioning our properties as the perfect base for experiencing ${locationText}'s best events.`
     }
   ];
 

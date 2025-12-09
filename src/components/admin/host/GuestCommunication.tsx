@@ -12,6 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
+
 interface GuestCommunication {
   id: string;
   reservation_id: string;
@@ -33,7 +35,8 @@ interface GuestCommunication {
   };
 }
 
-const messageTemplates = {
+// Function to create message templates with dynamic tenant info
+const createMessageTemplates = (siteName: string, locationText: string) => ({
   welcome: {
     subject: "Welcome to {{property_name}} - Your Reservation is Confirmed!",
     content: `Dear {{guest_name}},
@@ -48,7 +51,7 @@ Reservation Details:
 We'll send you detailed check-in instructions closer to your arrival date.
 
 Best regards,
-Moxie Vacation Rentals Team`
+${siteName} Team`
   },
   check_in: {
     subject: "Check-in Instructions for {{property_name}}",
@@ -63,14 +66,14 @@ Check-out time: 11:00 AM
 
 If you have any questions, please don't hesitate to reach out.
 
-Welcome to Eugene!
-Moxie Vacation Rentals Team`
+Welcome to ${locationText}!
+${siteName} Team`
   },
   check_out: {
     subject: "Thank You for Staying with Us!",
     content: `Dear {{guest_name}},
 
-Thank you for choosing {{property_name}} for your stay in Eugene. We hope you had a wonderful experience!
+Thank you for choosing {{property_name}} for your stay in ${locationText}. We hope you had a wonderful experience!
 
 Check-out reminders:
 - Please leave keys as instructed
@@ -80,7 +83,7 @@ Check-out reminders:
 We'd love to hear about your experience and welcome you back anytime!
 
 Best regards,
-Moxie Vacation Rentals Team`
+${siteName} Team`
   },
   follow_up: {
     subject: "How was your stay at {{property_name}}?",
@@ -90,12 +93,12 @@ We hope you had a fantastic time during your recent stay at {{property_name}}!
 
 Your feedback helps us improve our service and assists future guests in making their decision. Would you mind taking a moment to share your experience?
 
-We'd also love to welcome you back to Eugene anytime!
+We'd also love to welcome you back to ${locationText} anytime!
 
 Best regards,
-Moxie Vacation Rentals Team`
+${siteName} Team`
   }
-};
+});
 
 const GuestCommunication = () => {
   const [selectedReservation, setSelectedReservation] = useState<string>('');
@@ -105,6 +108,12 @@ const GuestCommunication = () => {
   const [scheduledFor, setScheduledFor] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { settings } = useTenantSettings();
+
+  // Dynamic values from tenant settings
+  const siteName = settings.site_name || 'Our Team';
+  const locationText = settings.heroLocationText || 'the area';
+  const messageTemplates = createMessageTemplates(siteName, locationText);
 
   // Get organization-scoped properties
   const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
