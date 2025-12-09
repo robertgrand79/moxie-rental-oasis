@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { User, LogOut, Edit2, Save, X, ChevronDown } from 'lucide-react';
@@ -24,6 +25,7 @@ const AdminSidebarFooter = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editData, setEditData] = useState({
@@ -92,6 +94,9 @@ const AdminSidebarFooter = () => {
 
   const handleSignOut = async () => {
     try {
+      // Clear all React Query cache before signout to prevent stale data
+      queryClient.clear();
+      
       const { error } = await signOut();
       
       if (error) {
