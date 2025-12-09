@@ -40,5 +40,7 @@ export const defaultSettings: SettingsState = {
   customHeaderScripts: '',
   customFooterScripts: '',
   customCss: '',
-  mapboxToken: ''
+  mapboxToken: '',
+  fontPairing: 'playfair-source',
+  fontScale: 'default'
 };

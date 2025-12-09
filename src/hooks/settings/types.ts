@@ -63,4 +63,8 @@ export interface SettingsState {
   
   // Maps
   mapboxToken: string;
+  
+  // Typography
+  fontPairing: string;
+  fontScale: string;
 }

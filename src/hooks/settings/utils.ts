@@ -28,6 +28,8 @@ const keyMapping: Record<string, string> = {
   'mapbox_token': 'mapboxToken',
   'email_setup_verified': 'emailSetupVerified',
   'email_verification_details': 'emailVerificationDetails',
+  'font_pairing': 'fontPairing',
+  'font_scale': 'fontScale',
 };
 
 const normalizeKey = (key: string): string => {
