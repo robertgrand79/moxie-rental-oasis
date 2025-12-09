@@ -10,6 +10,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import SettingsNavTabs from './SettingsNavTabs';
 
 interface SettingsPageLayoutProps {
   title: string;
@@ -55,6 +56,9 @@ const SettingsPageLayout: React.FC<SettingsPageLayoutProps> = ({
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         <p className="text-muted-foreground">{description}</p>
       </div>
+
+      {/* Tab Navigation */}
+      <SettingsNavTabs />
 
       {/* Content */}
       <div className="mt-6">
