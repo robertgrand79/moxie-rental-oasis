@@ -66,6 +66,7 @@ import GuestExperiencePage from '@/pages/admin/GuestExperiencePage';
 import AdminChecklists from '@/pages/admin/AdminChecklists';
 import SuperAdminPanel from '@/pages/admin/SuperAdminPanel';
 import AdminAIAssistant from '@/pages/admin/AdminAIAssistant';
+import GuidebookEditorPage from '@/pages/admin/GuidebookEditorPage';
 import OrganizationSignup from '@/pages/onboarding/OrganizationSignup';
 import OnboardingWizard from '@/pages/onboarding/OnboardingWizard';
 
@@ -118,6 +119,7 @@ const AppRoutes: React.FC = () => {
           <Route path="calendar" element={<BookingTimelinePage />} />
           <Route path="host/communication" element={<HostCommunicationPage />} />
           <Route path="guest-experience" element={<GuestExperiencePage />} />
+          <Route path="guidebooks/:propertyId/edit" element={<GuidebookEditorPage />} />
           <Route path="profile" element={<AdminProfile />} />
           <Route path="platform" element={<SuperAdminPanel />} />
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
@@ -190,6 +192,7 @@ const AppRoutes: React.FC = () => {
         <Route path="calendar" element={<BookingTimelinePage />} />
         <Route path="host/communication" element={<HostCommunicationPage />} />
         <Route path="guest-experience" element={<GuestExperiencePage />} />
+        <Route path="guidebooks/:propertyId/edit" element={<GuidebookEditorPage />} />
         <Route path="profile" element={<AdminProfile />} />
         <Route path="platform" element={<SuperAdminPanel />} />
         <Route path="ai-assistant" element={<AdminAIAssistant />} />
