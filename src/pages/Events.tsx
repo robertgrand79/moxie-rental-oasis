@@ -1,17 +1,16 @@
-
 import React, { useState } from 'react';
 import EventsHeader from '@/components/events/EventsHeader';
 import EventsGrid from '@/components/events/EventsGrid';
 import EventsLoadingState from '@/components/events/EventsLoadingState';
 import EventsEmptyState from '@/components/events/EventsEmptyState';
 import EventsFilters from '@/components/events/EventsFilters';
-import { useEugeneEvents } from '@/hooks/useEugeneEvents';
+import { useLocalEvents } from '@/hooks/useLocalEvents';
 
 const Events = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [timeFilter, setTimeFilter] = useState('upcoming');
   
-  const { events, isLoading } = useEugeneEvents(timeFilter, selectedCategory);
+  const { events, isLoading } = useLocalEvents(timeFilter, selectedCategory);
 
   const handleClearFilters = () => {
     setSelectedCategory('all');

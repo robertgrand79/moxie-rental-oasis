@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, FileText, Calendar, MapPin } from 'lucide-react';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
-import { useEugeneEvents } from '@/hooks/useEugeneEvents';
+import { useLocalEvents } from '@/hooks/useLocalEvents';
 import { usePlaces } from '@/hooks/usePlaces';
 import { BlogPost } from '@/types/blogPost';
-import { EugeneEvent } from '@/hooks/useEugeneEvents';
+import { LocalEvent } from '@/hooks/useLocalEvents';
 import { Place } from '@/hooks/usePlaces';
 import ContentSelectionList from './ContentSelectionList';
 
@@ -21,7 +21,7 @@ export interface SelectedContent {
 interface ContentPickerProps {
   selectedContent: SelectedContent;
   onContentChange: (content: SelectedContent) => void;
-  onImportContent: (contentType: 'blog_posts' | 'events' | 'places', items: (BlogPost | EugeneEvent | Place)[]) => void;
+  onImportContent: (contentType: 'blog_posts' | 'events' | 'places', items: (BlogPost | LocalEvent | Place)[]) => void;
 }
 
 const ContentPicker = ({ selectedContent, onContentChange, onImportContent }: ContentPickerProps) => {
@@ -29,7 +29,7 @@ const ContentPicker = ({ selectedContent, onContentChange, onImportContent }: Co
   const [activeTab, setActiveTab] = useState('blog_posts');
   
   const { blogPosts, loading: blogLoading } = useBlogPosts();
-  const { events, isLoading: eventsLoading } = useEugeneEvents();
+  const { events, isLoading: eventsLoading } = useLocalEvents();
   const { places, isLoading: placesLoading } = usePlaces();
 
   const publishedBlogPosts = blogPosts.filter(post => post.status === 'published');
@@ -65,7 +65,7 @@ const ContentPicker = ({ selectedContent, onContentChange, onImportContent }: Co
     console.log('🔄 Content type:', contentType);
     console.log('🔄 Selected IDs:', selectedIds);
     
-    let items: (BlogPost | EugeneEvent | Place)[] = [];
+    let items: (BlogPost | LocalEvent | Place)[] = [];
     
     if (contentType === 'blog_posts') {
       items = publishedBlogPosts.filter(post => selectedIds.includes(post.slug));

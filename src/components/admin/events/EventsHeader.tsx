@@ -13,7 +13,7 @@ const EventsHeader = ({ onAddNew }: EventsHeaderProps) => {
     <CardHeader>
       <div className="flex items-center justify-between">
         <div>
-          <CardTitle>Eugene Events</CardTitle>
+          <CardTitle>Local Events</CardTitle>
           <CardDescription>
             Manage local events and activities to showcase to guests
           </CardDescription>

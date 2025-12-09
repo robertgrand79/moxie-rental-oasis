@@ -15,7 +15,7 @@ import { generateContentTemplate } from './ContentTemplateGenerator';
 import ImageUpload from './ImageUpload';
 import TestEmailPanel from './TestEmailPanel';
 import { BlogPost } from '@/types/blogPost';
-import { EugeneEvent } from '@/hooks/useEugeneEvents';
+import { LocalEvent } from '@/hooks/useLocalEvents';
 import { Place } from '@/hooks/usePlaces';
 import { HeaderConfig, FooterConfig, NewsletterFormData } from './types';
 import { useGlobalNewsletterSettings } from '@/hooks/useGlobalNewsletterSettings';
