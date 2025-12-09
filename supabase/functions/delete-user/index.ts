@@ -9,6 +9,7 @@ const corsHeaders = {
 
 interface DeleteUserRequest {
   userId: string;
+  organizationId: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -36,22 +37,56 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Verify admin role
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+    const { userId, organizationId }: DeleteUserRequest = await req.json();
 
-    if (profileError || profile?.role !== 'admin') {
-      console.error('Admin verification failed:', profileError);
+    if (!organizationId) {
       return new Response(
-        JSON.stringify({ error: 'Admin privileges required' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Organization ID is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { userId }: DeleteUserRequest = await req.json();
+    // Check if requesting user is platform admin OR organization admin/owner
+    const { data: platformAdmin } = await supabaseClient
+      .from('platform_admins')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    const isPlatformAdmin = !!platformAdmin;
+
+    // If not platform admin, check organization membership
+    if (!isPlatformAdmin) {
+      const { data: orgMembership, error: membershipError } = await supabaseClient
+        .from('organization_members')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('organization_id', organizationId)
+        .single();
+
+      if (membershipError || !orgMembership || !['owner', 'admin'].includes(orgMembership.role)) {
+        console.error('Organization admin verification failed:', membershipError);
+        return new Response(
+          JSON.stringify({ error: 'Organization admin privileges required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Verify target user belongs to the same organization
+    const { data: targetMembership, error: targetError } = await supabaseClient
+      .from('organization_members')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('organization_id', organizationId)
+      .single();
+
+    if (targetError || !targetMembership) {
+      return new Response(
+        JSON.stringify({ error: 'User not found in this organization' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Prevent self-deletion
     if (userId === user.id) {
@@ -94,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
         target_user_id: userId,
         target_user_email: targetUser.email,
         performed_by: user.id,
-        details: { full_name: targetUser.full_name }
+        details: { full_name: targetUser.full_name, organization_id: organizationId }
       });
 
     console.log('User deleted successfully:', userId);

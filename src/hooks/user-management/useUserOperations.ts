@@ -2,11 +2,13 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 
 export const useUserOperations = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
 
   const updateUserProfile = async (userId: string, updates: any) => {
     try {
@@ -133,9 +135,13 @@ export const useUserOperations = () => {
     try {
       setLoading(true);
       
-      // Use the edge function for actual deletion
+      if (!organization?.id) {
+        throw new Error('Organization context required');
+      }
+      
+      // Use the edge function for actual deletion with organization context
       const { data, error } = await supabase.functions.invoke('delete-user', {
-        body: { userId }
+        body: { userId, organizationId: organization.id }
       });
 
       if (error) throw error;
@@ -163,22 +169,21 @@ export const useUserOperations = () => {
     try {
       setLoading(true);
 
-      const invitationToken = crypto.randomUUID();
+      if (!organization?.id) {
+        throw new Error('Organization context required');
+      }
 
-      // Create invitation record
-      const { data: invitationData, error: inviteError } = await supabase
-        .from('user_invitations')
-        .insert({
+      // Use the edge function for invitation with organization context
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: {
           email: invitation.email,
-          role: invitation.role,
           full_name: invitation.full_name,
-          invited_by: user?.id,
-          invitation_token: invitationToken
-        })
-        .select()
-        .single();
+          role: invitation.role,
+          organizationId: organization.id
+        }
+      });
 
-      if (inviteError) throw inviteError;
+      if (error) throw error;
 
       // Send invitation email
       const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
@@ -187,7 +192,7 @@ export const useUserOperations = () => {
           full_name: invitation.full_name,
           role: invitation.role,
           invitedBy: user?.id,
-          invitationToken: invitationToken
+          invitationToken: data?.invitation_id
         }
       });
 
@@ -206,11 +211,11 @@ export const useUserOperations = () => {
       }
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error inviting user:', error);
       toast({
         title: 'Error',
-        description: 'Failed to invite user',
+        description: error?.message || 'Failed to invite user',
         variant: 'destructive',
       });
       return false;

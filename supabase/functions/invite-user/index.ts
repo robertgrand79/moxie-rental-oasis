@@ -11,6 +11,7 @@ interface InviteUserRequest {
   email: string;
   full_name?: string;
   role: string;
+  organizationId: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -38,22 +39,41 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Verify admin role
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+    const { email, full_name, role, organizationId }: InviteUserRequest = await req.json();
 
-    if (profileError || profile?.role !== 'admin') {
-      console.error('Admin verification failed:', profileError);
+    if (!organizationId) {
       return new Response(
-        JSON.stringify({ error: 'Admin privileges required' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Organization ID is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { email, full_name, role }: InviteUserRequest = await req.json();
+    // Check if requesting user is platform admin OR organization admin/owner
+    const { data: platformAdmin } = await supabaseClient
+      .from('platform_admins')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    const isPlatformAdmin = !!platformAdmin;
+
+    // If not platform admin, check organization membership
+    if (!isPlatformAdmin) {
+      const { data: orgMembership, error: membershipError } = await supabaseClient
+        .from('organization_members')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('organization_id', organizationId)
+        .single();
+
+      if (membershipError || !orgMembership || !['owner', 'admin'].includes(orgMembership.role)) {
+        console.error('Organization admin verification failed:', membershipError);
+        return new Response(
+          JSON.stringify({ error: 'Organization admin privileges required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     // Generate invitation token
     const invitationToken = crypto.randomUUID();
@@ -72,22 +92,23 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if invitation already exists
+    // Check if invitation already exists for this org
     const { data: existingInvitation } = await supabaseClient
       .from('user_invitations')
       .select('id')
       .eq('email', email)
+      .eq('organization_id', organizationId)
       .gt('expires_at', new Date().toISOString())
       .single();
 
     if (existingInvitation) {
       return new Response(
-        JSON.stringify({ error: 'Active invitation already exists for this email' }),
+        JSON.stringify({ error: 'Active invitation already exists for this email in this organization' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Create invitation record
+    // Create invitation record with organization context
     const { data: invitation, error: inviteError } = await supabaseClient
       .from('user_invitations')
       .insert({
@@ -96,6 +117,7 @@ const handler = async (req: Request): Promise<Response> => {
         role,
         invited_by: user.id,
         invitation_token: invitationToken,
+        organization_id: organizationId,
       })
       .select()
       .single();
@@ -115,12 +137,11 @@ const handler = async (req: Request): Promise<Response> => {
         action: 'user_invited',
         target_user_email: email,
         performed_by: user.id,
-        details: { role, full_name }
+        details: { role, full_name, organization_id: organizationId }
       });
 
     console.log('Invitation created successfully:', invitation.id);
 
-    // For now, just return success (in production, you'd send an actual email here)
     return new Response(
       JSON.stringify({ 
         success: true, 

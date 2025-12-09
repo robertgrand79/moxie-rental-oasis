@@ -118,6 +118,9 @@ verify_jwt = false
 [functions.generate-color-palette]
 verify_jwt = false
 
+[functions.create-chat-session]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323
