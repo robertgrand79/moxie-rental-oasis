@@ -46,11 +46,8 @@ export class BlogQueryBuilder {
     }
 
     if (category && category !== 'all') {
-      if (category === 'robert-shelly') {
-        query = query.contains('tags', ["Robert & Shelly's Travels"]);
-      } else {
-        query = query.contains('tags', [category]);
-      }
+      // Filter by tag - categories map directly to tags
+      query = query.contains('tags', [category]);
     }
 
     // Always order by created_at last for better index usage

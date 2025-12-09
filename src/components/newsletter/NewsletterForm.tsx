@@ -1,14 +1,18 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Plane, Shield } from 'lucide-react';
 import { NewsletterFormProps, BasicNewsletterFormData } from './types';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const NewsletterForm: React.FC<NewsletterFormProps> = ({ onSubmit, isLoading }) => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const { settings } = useTenantSettings();
+  
+  const siteName = settings?.site_name || 'Our';
+  const locationText = settings?.heroLocationText || 'local';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,10 +27,10 @@ const NewsletterForm: React.FC<NewsletterFormProps> = ({ onSubmit, isLoading }) 
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2 mb-2 group-hover:text-primary transition-colors">
           <Plane className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
-          Moxie Travel Newsletter
+          {siteName} Travel Newsletter
         </CardTitle>
         <CardDescription className="text-sm text-muted-foreground">
-          Get travel tips, Eugene local secrets, and stories from Robert & Shelly's adventures delivered to your inbox.
+          Get travel tips, {locationText} insider secrets, and adventures delivered to your inbox.
         </CardDescription>
       </CardHeader>
 
