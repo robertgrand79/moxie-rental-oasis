@@ -24,27 +24,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     queryClient.invalidateQueries({ queryKey: ['site-settings'] });
   }, [queryClient]);
 
-  // Determine the "Back to Site" destination based on organization context
-  const getBackToSiteUrl = () => {
-    // Priority 1: If organization has a custom domain, use that
-    if (organization?.custom_domain) {
-      const domain = organization.custom_domain;
-      return domain.startsWith('http') ? domain : `https://${domain}`;
-    }
-    // Priority 2: If organization has a website configured, use that
-    if (organization?.website) {
-      const website = organization.website;
-      return website.startsWith('http') ? website : `https://${website}`;
-    }
-    // Priority 3: Use query param to hint tenant context on shared domain
-    if (organization?.slug) {
-      return `/?org=${organization.slug}`;
-    }
-    // Fallback: Go to platform site (no tenant context)
-    return '/';
-  };
-
-  const backUrl = getBackToSiteUrl();
+  // Navigate to root of current domain - works for both Lovable preview and production
+  const backUrl = '/';
   
   return (
     <div className="min-h-screen bg-muted/30 w-full">
