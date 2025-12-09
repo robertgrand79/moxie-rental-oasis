@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { AlertTriangle, Database, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
@@ -58,11 +59,36 @@ const Auth = () => {
         return;
       }
       
-      // Role loading complete, redirect
+      // Role loading complete, redirect with org context
       console.log('🚀 Redirecting user...');
       if (hasAdminAccess) {
-        console.log('👑 Redirecting admin to /admin');
-        navigate('/admin', { replace: true });
+        // Fetch user's organization to include in redirect
+        const fetchOrgAndRedirect = async () => {
+          try {
+            const { data: membership } = await supabase
+              .from('organization_members')
+              .select('organization:organizations(slug)')
+              .eq('user_id', user.id)
+              .order('joined_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            
+            const orgSlug = (membership?.organization as { slug?: string })?.slug;
+            
+            if (orgSlug) {
+              console.log('👑 Redirecting admin to /admin with org:', orgSlug);
+              // Use window.location for full page reload to ensure clean state
+              window.location.href = `/admin?org=${orgSlug}`;
+            } else {
+              console.log('👑 Redirecting admin to /admin (no org found)');
+              navigate('/admin', { replace: true });
+            }
+          } catch (err) {
+            console.error('Error fetching org for redirect:', err);
+            navigate('/admin', { replace: true });
+          }
+        };
+        fetchOrgAndRedirect();
       } else {
         console.log('👤 Redirecting user to /');
         navigate('/', { replace: true });

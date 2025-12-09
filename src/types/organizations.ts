@@ -6,6 +6,7 @@ export interface Organization {
   slug: string;
   logo_url: string | null;
   website: string | null;
+  custom_domain: string | null;
   created_at: string;
   updated_at: string;
   is_active: boolean;
@@ -56,6 +57,7 @@ export interface UpdateOrganizationData {
   slug?: string;
   logo_url?: string;
   website?: string;
+  custom_domain?: string;
   stripe_secret_key?: string;
   stripe_publishable_key?: string;
   stripe_webhook_secret?: string;
