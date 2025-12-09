@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface NewsletterVisualPreviewProps {
   subject: string;
@@ -9,6 +9,10 @@ interface NewsletterVisualPreviewProps {
 }
 
 const NewsletterVisualPreview = ({ subject, content }: NewsletterVisualPreviewProps) => {
+  const { settings } = useTenantSettings();
+  const siteName = settings?.site_name || 'Your Business';
+  const tagline = settings?.heroSubtitle || 'Your trusted destination';
+
   return (
     <Card className="h-full">
       <CardHeader>
@@ -25,7 +29,7 @@ const NewsletterVisualPreview = ({ subject, content }: NewsletterVisualPreviewPr
           {/* Email Header Preview */}
           <div className="bg-gray-100 border-b px-4 py-2 text-sm">
             <div className="flex justify-between items-center text-gray-600">
-              <span>From: Moxie Travel Blog &lt;noreply@yourdomain.com&gt;</span>
+              <span>From: {siteName} &lt;noreply@yourdomain.com&gt;</span>
               <span>📧</span>
             </div>
             <div className="font-semibold text-gray-800 mt-1">
@@ -44,8 +48,8 @@ const NewsletterVisualPreview = ({ subject, content }: NewsletterVisualPreviewPr
               }}
             >
               <div className="relative z-10">
-                <h1 className="text-3xl font-bold m-0 text-slate-800">Moxie Vacation Rentals</h1>
-                <p className="mt-3 mb-0 text-slate-600 font-medium">Your Home Base for Living Like a Local in Eugene</p>
+                <h1 className="text-3xl font-bold m-0 text-slate-800">{siteName}</h1>
+                <p className="mt-3 mb-0 text-slate-600 font-medium">{tagline}</p>
               </div>
               {/* Subtle accent overlay */}
               <div 
@@ -74,7 +78,7 @@ const NewsletterVisualPreview = ({ subject, content }: NewsletterVisualPreviewPr
             <div className="px-8 pb-8">
               <div className="pt-6 border-t border-gray-200 text-center">
                 <p className="text-gray-600 text-sm mb-2">
-                  Thanks for subscribing to Moxie Vacation Rentals!
+                  Thanks for subscribing to {siteName}!
                 </p>
                 <p className="text-gray-500 text-xs">
                   <a href="#" className="text-gray-500 hover:text-gray-700">Unsubscribe</a> | 

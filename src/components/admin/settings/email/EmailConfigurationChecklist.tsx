@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 
@@ -25,7 +24,7 @@ const EmailConfigurationChecklist = ({ emailSetupVerified }: EmailConfigurationC
           ) : (
             <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
           )}
-          Domain moxievacationrentals.com verified in Resend
+          Your domain verified in Resend
         </li>
         <li className="flex items-center">
           {emailSetupVerified ? (

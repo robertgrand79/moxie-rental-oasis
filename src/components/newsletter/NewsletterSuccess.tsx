@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, Mail } from 'lucide-react';
@@ -16,7 +15,7 @@ const NewsletterSuccess: React.FC<NewsletterSuccessProps> = ({ userName }) => {
           <div>
             <h3 className="text-lg font-semibold text-foreground mb-2">🎉 Welcome aboard!</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Get ready for travel content and Eugene local secrets from Robert & Shelly.
+              Get ready for exclusive travel content and local insider tips.
             </p>
             <div className="flex items-center justify-center text-xs text-muted-foreground">
               <Mail className="h-3 w-3 mr-1" />
