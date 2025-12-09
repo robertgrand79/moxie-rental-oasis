@@ -39,15 +39,24 @@ const TestimonialsSection = () => {
     queryFn: async () => {
       if (!tenantId) return { data: [], count: 0 };
       
-      // Query testimonials that belong to tenant's properties
+      // Step 1: Get property IDs for this tenant
+      const { data: properties } = await supabase
+        .from('properties')
+        .select('id')
+        .eq('organization_id', tenantId);
+      
+      const propertyIds = properties?.map(p => p.id) || [];
+      
+      if (propertyIds.length === 0) {
+        return { data: [], count: 0 };
+      }
+      
+      // Step 2: Fetch testimonials for those properties
       const { data, error, count } = await supabase
         .from('testimonials')
-        .select(`
-          *,
-          properties!inner(organization_id)
-        `, { count: 'exact' })
+        .select('*', { count: 'exact' })
+        .in('property_id', propertyIds)
         .eq('is_active', true)
-        .eq('properties.organization_id', tenantId)
         .order('created_at', { ascending: false })
         .range(page * pageSize, (page + 1) * pageSize - 1);
       
