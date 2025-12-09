@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Book, ExternalLink, Settings, MapPin, Phone, Wifi } from 'lucide-react';
+import { Book, ExternalLink, Settings, MapPin, Phone, Wifi, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import { useQuery } from '@tanstack/react-query';
@@ -13,38 +13,45 @@ const GuidebooksTab = () => {
   const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
   const orgPropertyIds = orgProperties.map(p => p.id);
   
-  // Fetch property access details for org properties
+  // Fetch property access details and guidebooks for org properties
   const { data: propertiesWithDetails, isLoading } = useQuery({
     queryKey: ['properties-guidebooks', orgPropertyIds],
     queryFn: async () => {
       if (orgPropertyIds.length === 0) return [];
       
-      const { data, error } = await supabase
+      // Fetch properties with access details
+      const { data: properties, error: propError } = await supabase
         .from('properties')
         .select(`
           id, 
           title, 
-          location,
-          property_access_details(check_in_instructions, wifi_name, door_code)
+          location
         `)
         .in('id', orgPropertyIds)
         .order('title');
       
-      if (error) throw error;
-      return data;
+      if (propError) throw propError;
+
+      // Fetch guidebooks for these properties
+      const { data: guidebooks, error: guidebookError } = await supabase
+        .from('property_guidebooks')
+        .select('property_id, is_active')
+        .in('property_id', orgPropertyIds);
+
+      if (guidebookError) throw guidebookError;
+
+      // Combine data
+      return properties.map(p => ({
+        ...p,
+        hasGuidebook: guidebooks?.some(g => g.property_id === p.id)
+      }));
     },
     enabled: !propertiesLoading && orgPropertyIds.length > 0,
   });
   
   const properties = propertiesWithDetails;
 
-  // Check if a property has guidebook content
-  const hasGuidebook = (property: any) => {
-    const details = property.property_access_details?.[0];
-    return details?.check_in_instructions || details?.wifi_name || details?.door_code;
-  };
-
-  if (isLoading) {
+  if (isLoading || propertiesLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -52,8 +59,8 @@ const GuidebooksTab = () => {
     );
   }
 
-  const propertiesWithGuidebook = properties?.filter(hasGuidebook) || [];
-  const propertiesWithoutGuidebook = properties?.filter(p => !hasGuidebook(p)) || [];
+  const propertiesWithGuidebook = properties?.filter(p => p.hasGuidebook) || [];
+  const propertiesWithoutGuidebook = properties?.filter(p => !p.hasGuidebook) || [];
 
   return (
     <div className="space-y-6">
@@ -144,7 +151,7 @@ const GuidebooksTab = () => {
                       </a>
                     </Button>
                     <Button variant="outline" size="sm" asChild>
-                      <Link to={`/admin/properties/${property.id}`}>
+                      <Link to={`/admin/guidebooks/${property.id}/edit`}>
                         <Settings className="h-4 w-4 mr-2" />
                         Edit
                       </Link>
@@ -180,9 +187,9 @@ const GuidebooksTab = () => {
                     </p>
                   </div>
                   <Button size="sm" asChild>
-                    <Link to={`/admin/properties/${property.id}`}>
-                      <Settings className="h-4 w-4 mr-2" />
-                      Setup Guidebook
+                    <Link to={`/admin/guidebooks/${property.id}/edit`}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Guidebook
                     </Link>
                   </Button>
                 </div>
