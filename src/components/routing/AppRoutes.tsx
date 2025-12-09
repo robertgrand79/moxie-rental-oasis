@@ -70,6 +70,15 @@ import GuidebookEditorPage from '@/pages/admin/GuidebookEditorPage';
 import OrganizationSignup from '@/pages/onboarding/OrganizationSignup';
 import OnboardingWizard from '@/pages/onboarding/OnboardingWizard';
 
+// Settings pages
+import OrganizationSettingsPage from '@/pages/admin/settings/OrganizationSettingsPage';
+import SiteContentSettingsPage from '@/pages/admin/settings/SiteContentSettingsPage';
+import AppearanceSettingsPage from '@/pages/admin/settings/AppearanceSettingsPage';
+import TeamAccessSettingsPage from '@/pages/admin/settings/TeamAccessSettingsPage';
+import IntegrationsSettingsPage from '@/pages/admin/settings/IntegrationsSettingsPage';
+import PaymentsSettingsPage from '@/pages/admin/settings/PaymentsSettingsPage';
+import LocalContentSettingsPage from '@/pages/admin/settings/LocalContentSettingsPage';
+
 const AppRoutes: React.FC = () => {
   const { isPlatformSite } = usePlatform();
 
@@ -100,6 +109,13 @@ const AppRoutes: React.FC = () => {
         <Route path="properties/:propertyId" element={<AdminProperties />} />
         <Route path="pages" element={<AdminPageManagement />} />
           <Route path="settings" element={<AdminSettingsHub />} />
+          <Route path="settings/organization" element={<OrganizationSettingsPage />} />
+          <Route path="settings/site-content" element={<SiteContentSettingsPage />} />
+          <Route path="settings/appearance" element={<AppearanceSettingsPage />} />
+          <Route path="settings/team" element={<TeamAccessSettingsPage />} />
+          <Route path="settings/integrations" element={<IntegrationsSettingsPage />} />
+          <Route path="settings/payments" element={<PaymentsSettingsPage />} />
+          <Route path="settings/local-content" element={<LocalContentSettingsPage />} />
           {/* Redirects for old routes */}
           <Route path="user-access-management" element={<Navigate to="/admin/settings" replace />} />
           <Route path="organization" element={<Navigate to="/admin/settings" replace />} />
@@ -173,6 +189,13 @@ const AppRoutes: React.FC = () => {
         <Route path="properties/:propertyId" element={<AdminProperties />} />
         <Route path="pages" element={<AdminPageManagement />} />
         <Route path="settings" element={<AdminSettingsHub />} />
+        <Route path="settings/organization" element={<OrganizationSettingsPage />} />
+        <Route path="settings/site-content" element={<SiteContentSettingsPage />} />
+        <Route path="settings/appearance" element={<AppearanceSettingsPage />} />
+        <Route path="settings/team" element={<TeamAccessSettingsPage />} />
+        <Route path="settings/integrations" element={<IntegrationsSettingsPage />} />
+        <Route path="settings/payments" element={<PaymentsSettingsPage />} />
+        <Route path="settings/local-content" element={<LocalContentSettingsPage />} />
         {/* Redirects for old routes */}
         <Route path="user-access-management" element={<Navigate to="/admin/settings" replace />} />
         <Route path="organization" element={<Navigate to="/admin/settings" replace />} />
