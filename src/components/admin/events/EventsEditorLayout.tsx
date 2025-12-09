@@ -1,11 +1,10 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, Eye, Sparkles, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
-import { EugeneEvent } from '@/hooks/useEugeneEvents';
+import { LocalEvent } from '@/hooks/useLocalEvents';
 import EventsEditorForm from './EventsEditorForm';
 import EventsPreview from './EventsPreview';
 import EventsAllFieldsGenerator from './EventsAllFieldsGenerator';
@@ -13,16 +12,16 @@ import EventsList from './EventsList';
 import EventsStatusFilter from './EventsStatusFilter';
 
 interface EventsEditorLayoutProps {
-  events: EugeneEvent[];
+  events: LocalEvent[];
   categories: Array<{ value: string; label: string }>;
   isLoading: boolean;
   onSubmit: (data: any) => Promise<void>;
-  onEdit: (event: EugeneEvent) => void;
+  onEdit: (event: LocalEvent) => void;
   onDelete: (id: string) => void;
-  onEnhance: (event: EugeneEvent) => void;
+  onEnhance: (event: LocalEvent) => void;
   isEnhancing: boolean;
   enhancingId: string | null;
-  getSuggestions: (event: EugeneEvent) => any[];
+  getSuggestions: (event: LocalEvent) => any[];
 }
 
 const EventsEditorLayout = ({
@@ -38,7 +37,7 @@ const EventsEditorLayout = ({
   getSuggestions
 }: EventsEditorLayoutProps) => {
   const [activeTab, setActiveTab] = useState('list');
-  const [editingEvent, setEditingEvent] = useState<EugeneEvent | null>(null);
+  const [editingEvent, setEditingEvent] = useState<LocalEvent | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [formData, setFormData] = useState({
     title: '',
@@ -110,7 +109,7 @@ const EventsEditorLayout = ({
     published: events.filter(event => event.status === 'published').length,
   }), [events]);
 
-  const handleEdit = (event: EugeneEvent) => {
+  const handleEdit = (event: LocalEvent) => {
     setEditingEvent(event);
     setFormData({
       title: event.title,
@@ -179,7 +178,7 @@ const EventsEditorLayout = ({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Eugene Events</CardTitle>
+          <CardTitle>Local Events</CardTitle>
           <div className="flex items-center space-x-2">
             <Button
               variant={activeTab === 'list' ? 'default' : 'outline'}

@@ -1,18 +1,17 @@
-
 import React from 'react';
 import { CardContent } from '@/components/ui/card';
-import { EugeneEvent } from '@/hooks/useEugeneEvents';
+import { LocalEvent } from '@/hooks/useLocalEvents';
 import EventCard from './EventCard';
 
 interface EventsListProps {
-  events: EugeneEvent[];
+  events: LocalEvent[];
   categories: Array<{ value: string; label: string }>;
-  onEdit: (event: EugeneEvent) => void;
+  onEdit: (event: LocalEvent) => void;
   onDelete: (id: string) => void;
-  onEnhance: (event: EugeneEvent) => void;
+  onEnhance: (event: LocalEvent) => void;
   isEnhancing: boolean;
   enhancingId: string | null;
-  getSuggestions: (event: EugeneEvent) => any[];
+  getSuggestions: (event: LocalEvent) => any[];
 }
 
 const EventsList = ({ 

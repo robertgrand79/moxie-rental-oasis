@@ -1,12 +1,15 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { EugeneEvent } from '@/hooks/useEugeneEvents';
+import { LocalEvent } from '@/hooks/useLocalEvents';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
-export const useEventGeneration = (existingEvents: EugeneEvent[]) => {
+export const useEventGeneration = (existingEvents: LocalEvent[]) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedEvents, setGeneratedEvents] = useState<any[]>([]);
+  const { settings } = useTenantSettings();
+  
+  const location = settings?.heroLocationText || 'the local area';
 
   const generateEvents = async (
     prompt: string,
@@ -28,7 +31,7 @@ export const useEventGeneration = (existingEvents: EugeneEvent[]) => {
       const { data, error } = await supabase.functions.invoke('generate-content-ai', {
         body: {
           type: 'events',
-          prompt: `Generate ${numberOfEvents} ${eventType ? eventType + ' ' : ''}events for Eugene, Oregon based on this request: ${prompt}. 
+          prompt: `Generate ${numberOfEvents} ${eventType ? eventType + ' ' : ''}events for ${location} based on this request: ${prompt}. 
           
           Time frame: ${timeframe}
           
@@ -39,7 +42,7 @@ export const useEventGeneration = (existingEvents: EugeneEvent[]) => {
           - end_date: string (YYYY-MM-DD format, optional)
           - time_start: string (e.g., "7:00 PM")
           - time_end: string (e.g., "10:00 PM")
-          - location: string (venue or address in Eugene)
+          - location: string (venue or address in the area)
           - category: string (festival, sports, arts, food, outdoor, music, or seasonal)
           - image_url: string (relevant Unsplash URL)
           - website_url: string (optional)
@@ -50,9 +53,9 @@ export const useEventGeneration = (existingEvents: EugeneEvent[]) => {
           - is_recurring: boolean
           - recurrence_pattern: string (if recurring)
           
-          Make sure events are diverse, realistic for Eugene, and include local venues when possible.`,
+          Make sure events are diverse, realistic for the area, and include local venues when possible.`,
           count: numberOfEvents,
-          location: 'Eugene, Oregon',
+          location: location,
           category: eventType || 'events',
           context: {
             existingEventsCount: existingEvents.length,

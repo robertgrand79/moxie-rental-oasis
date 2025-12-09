@@ -1,17 +1,16 @@
-
 import { useState } from 'react';
-import { useEugeneEvents, EugeneEvent } from '@/hooks/useEugeneEvents';
+import { useLocalEvents, LocalEvent } from '@/hooks/useLocalEvents';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCrossContentIntegration } from '@/hooks/useCrossContentIntegration';
 import { EventFormData } from '@/components/admin/events/EventFormFields';
 
 export const useEventsManager = () => {
-  const { events, isLoading, createEvent, updateEvent, deleteEvent } = useEugeneEvents();
+  const { events, isLoading, createEvent, updateEvent, deleteEvent } = useLocalEvents();
   const { user } = useAuth();
   const { getLocationBasedSuggestions, getCategoryBasedSuggestions } = useCrossContentIntegration();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<EugeneEvent | null>(null);
+  const [editingEvent, setEditingEvent] = useState<LocalEvent | null>(null);
 
   const categories = [
     { value: 'festival', label: 'Festival' },
@@ -46,7 +45,7 @@ export const useEventsManager = () => {
     setEditingEvent(null);
   };
 
-  const handleEdit = (event: EugeneEvent) => {
+  const handleEdit = (event: LocalEvent) => {
     setEditingEvent(event);
     setIsDialogOpen(true);
   };
@@ -61,7 +60,7 @@ export const useEventsManager = () => {
     }
   };
 
-  const handleEnhanceItem = async (item: EugeneEvent) => {
+  const handleEnhanceItem = async (item: LocalEvent) => {
     // Enhancement functionality can be handled through the unified AI chat
     console.log('Enhancement can be done through the AI Assistant', item);
   };
@@ -71,7 +70,7 @@ export const useEventsManager = () => {
     setIsDialogOpen(true);
   };
 
-  const getSuggestions = (event: EugeneEvent) => {
+  const getSuggestions = (event: LocalEvent) => {
     return [
       ...getLocationBasedSuggestions(event.location || '', event.id, 'event'),
       ...getCategoryBasedSuggestions(event.category || '', event.id, 'event')

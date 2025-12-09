@@ -4,12 +4,12 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, FileText, Clock, DollarSign } from 'lucide-react';
 import { BlogPost } from '@/types/blogPost';
-import { EugeneEvent } from '@/hooks/useEugeneEvents';
+import { LocalEvent } from '@/hooks/useLocalEvents';
 import { Place } from '@/hooks/usePlaces';
 import { format } from 'date-fns';
 
 interface ContentSelectionListProps {
-  items: (BlogPost | EugeneEvent | Place)[];
+  items: (BlogPost | LocalEvent | Place)[];
   selectedIds: string[];
   onSelectionChange: (id: string, isSelected: boolean) => void;
   loading: boolean;
@@ -49,33 +49,33 @@ const ContentSelectionList = ({
     );
   }
 
-  const getItemId = (item: BlogPost | EugeneEvent | Place): string => {
+  const getItemId = (item: BlogPost | LocalEvent | Place): string => {
     if (type === 'blog_posts') {
       return (item as BlogPost).slug;
     }
     return item.id;
   };
 
-  const getItemTitle = (item: BlogPost | EugeneEvent | Place): string => {
+  const getItemTitle = (item: BlogPost | LocalEvent | Place): string => {
     if ('title' in item) return item.title;
     return item.name;
   };
 
-  const getItemImage = (item: BlogPost | EugeneEvent | Place): string | undefined => {
+  const getItemImage = (item: BlogPost | LocalEvent | Place): string | undefined => {
     return item.image_url;
   };
 
-  const getItemDescription = (item: BlogPost | EugeneEvent | Place): string => {
+  const getItemDescription = (item: BlogPost | LocalEvent | Place): string => {
     if (type === 'blog_posts') {
       return (item as BlogPost).excerpt;
     }
     if (type === 'events') {
-      return (item as EugeneEvent).description || '';
+      return (item as LocalEvent).description || '';
     }
     return (item as Place).description || '';
   };
 
-  const renderItemMetadata = (item: BlogPost | EugeneEvent | Place) => {
+  const renderItemMetadata = (item: BlogPost | LocalEvent | Place) => {
     if (type === 'blog_posts') {
       const post = item as BlogPost;
       return (
@@ -88,7 +88,7 @@ const ContentSelectionList = ({
     }
     
     if (type === 'events') {
-      const event = item as EugeneEvent;
+      const event = item as LocalEvent;
       return (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-3 w-3" />

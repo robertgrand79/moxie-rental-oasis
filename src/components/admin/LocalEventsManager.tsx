@@ -1,9 +1,8 @@
-
 import React from 'react';
 import EventsManager from './events/EventsManager';
 
-const EugeneEventsManager = () => {
+const LocalEventsManager = () => {
   return <EventsManager />;
 };
 
-export default EugeneEventsManager;
+export default LocalEventsManager;

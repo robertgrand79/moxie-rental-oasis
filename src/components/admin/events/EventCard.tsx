@@ -1,19 +1,18 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Clock, MapPin, Edit, Trash2, ExternalLink, Ticket, Sparkles } from 'lucide-react';
-import { EugeneEvent } from '@/hooks/useEugeneEvents';
+import { LocalEvent } from '@/hooks/useLocalEvents';
 import { format } from 'date-fns';
 import ContentSuggestions from '@/components/admin/ContentSuggestions';
 
 interface EventCardProps {
-  event: EugeneEvent;
+  event: LocalEvent;
   categories: Array<{ value: string; label: string }>;
-  onEdit: (event: EugeneEvent) => void;
+  onEdit: (event: LocalEvent) => void;
   onDelete: (id: string) => void;
-  onEnhance: (event: EugeneEvent) => void;
+  onEnhance: (event: LocalEvent) => void;
   isEnhancing: boolean;
   enhancingId: string | null;
   suggestions: Array<any>;

@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles } from 'lucide-react';
-import { EugeneEvent } from '@/hooks/useEugeneEvents';
+import { LocalEvent } from '@/hooks/useLocalEvents';
 import { toast } from '@/hooks/use-toast';
 import { useEventGeneration } from '@/hooks/useEventGeneration';
 import EventGenerationForm from './EventGenerationForm';
@@ -10,7 +9,7 @@ import GeneratedEventsList from './GeneratedEventsList';
 
 interface EventsAllFieldsGeneratorProps {
   onEventsGenerated: (events: any[]) => void;
-  existingEvents: EugeneEvent[];
+  existingEvents: LocalEvent[];
 }
 
 const EventsAllFieldsGenerator = ({ onEventsGenerated, existingEvents }: EventsAllFieldsGeneratorProps) => {
