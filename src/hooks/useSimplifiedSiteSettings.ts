@@ -83,7 +83,7 @@ export const useSimplifiedSiteSettings = () => {
     }
   }, [user, organization?.id]);
 
-  // Save a single setting with immediate feedback
+  // Save a single setting with immediate feedback - scoped by organization
   const saveSetting = useCallback(async (key: string, value: any): Promise<boolean> => {
     if (!user) {
       toast({
@@ -94,16 +94,26 @@ export const useSimplifiedSiteSettings = () => {
       return false;
     }
 
+    if (!organization?.id) {
+      toast({
+        title: 'Organization Required',
+        description: 'Organization context required to save settings.',
+        variant: 'destructive'
+      });
+      return false;
+    }
+
     setSaving(prev => ({ ...prev, [key]: true }));
     
     try {
-      console.log(`[Settings] Saving ${key}:`, value);
+      console.log(`[Settings] Saving ${key} for org ${organization.id}:`, value);
 
-      // Check if setting exists
+      // Check if setting exists for this organization
       const { data: existing } = await supabase
         .from('site_settings')
         .select('id')
         .eq('key', key)
+        .eq('organization_id', organization.id)
         .maybeSingle();
 
       const settingData = {
@@ -116,14 +126,16 @@ export const useSimplifiedSiteSettings = () => {
         result = await supabase
           .from('site_settings')
           .update(settingData)
-          .eq('key', key);
+          .eq('key', key)
+          .eq('organization_id', organization.id);
       } else {
         result = await supabase
           .from('site_settings')
           .insert({
             key,
             ...settingData,
-            created_by: user.id
+            created_by: user.id,
+            organization_id: organization.id
           });
       }
 
@@ -164,7 +176,7 @@ export const useSimplifiedSiteSettings = () => {
     } finally {
       setSaving(prev => ({ ...prev, [key]: false }));
     }
-  }, [user]);
+  }, [user, organization?.id]);
 
   // Save multiple settings
   const saveSettings = useCallback(async (updates: Partial<SettingsState>): Promise<boolean> => {

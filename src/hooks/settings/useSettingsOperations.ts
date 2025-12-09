@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAutoSync } from '@/hooks/useAutoSync';
@@ -10,6 +11,7 @@ export const useSettingsOperations = (
   setError: React.Dispatch<React.SetStateAction<string | null>>
 ) => {
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
   const { triggerAutoSync } = useAutoSync({ enabled: true, debounceMs: 1500 });
 
   // Improved serialization function that handles JSONB properly
@@ -39,7 +41,7 @@ export const useSettingsOperations = (
     return value;
   };
 
-  // Save individual setting with improved error handling and auto-sync
+  // Save individual setting with improved error handling and auto-sync - scoped by organization
   const saveSetting = useCallback(async (key: string, value: any): Promise<boolean> => {
     console.log(`[Settings] Starting save for ${key}:`, value);
 
@@ -48,6 +50,18 @@ export const useSettingsOperations = (
       console.error('[Settings] Auth error:', error);
       toast({
         title: 'Authentication Required',
+        description: error,
+        variant: 'destructive'
+      });
+      setError(error);
+      return false;
+    }
+
+    if (!organization?.id) {
+      const error = 'Organization context required to save settings';
+      console.error('[Settings] Organization error:', error);
+      toast({
+        title: 'Organization Required',
         description: error,
         variant: 'destructive'
       });
@@ -77,11 +91,12 @@ export const useSettingsOperations = (
       const serializedValue = serializeSettingValue(value);
       console.log(`[Settings] Serialized value for ${key}:`, serializedValue);
 
-      // Check if setting exists
+      // Check if setting exists for this organization
       const { data: existingData, error: selectError } = await supabase
         .from('site_settings')
         .select('id')
         .eq('key', key)
+        .eq('organization_id', organization.id)
         .maybeSingle();
 
       if (selectError) {
@@ -91,8 +106,8 @@ export const useSettingsOperations = (
 
       let result;
       if (existingData) {
-        // Update existing setting
-        console.log(`[Settings] Updating existing setting ${key}`);
+        // Update existing setting for this organization
+        console.log(`[Settings] Updating existing setting ${key} for org ${organization.id}`);
         result = await supabase
           .from('site_settings')
           .update({
@@ -100,16 +115,18 @@ export const useSettingsOperations = (
             updated_at: new Date().toISOString()
           })
           .eq('key', key)
+          .eq('organization_id', organization.id)
           .select();
       } else {
-        // Insert new setting
-        console.log(`[Settings] Creating new setting ${key}`);
+        // Insert new setting for this organization
+        console.log(`[Settings] Creating new setting ${key} for org ${organization.id}`);
         result = await supabase
           .from('site_settings')
           .insert({
             key,
             value: serializedValue,
-            created_by: user.id
+            created_by: user.id,
+            organization_id: organization.id
           })
           .select();
       }
@@ -164,7 +181,7 @@ export const useSettingsOperations = (
       });
       return false;
     }
-  }, [user, setSettings, setError, triggerAutoSync]);
+  }, [user, organization?.id, setSettings, setError, triggerAutoSync]);
 
   // Batch save multiple settings with better error tracking and auto-sync
   const saveSettings = useCallback(async (updates: Partial<SettingsState>): Promise<boolean> => {

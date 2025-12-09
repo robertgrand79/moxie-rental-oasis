@@ -1,6 +1,7 @@
 
 import { useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { SettingsState } from './types';
 import { defaultSettings } from './constants';
@@ -12,20 +13,28 @@ export const useSettingsFetch = (
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
 
-  // Memoized function to fetch settings from database
+  // Memoized function to fetch settings from database - filtered by organization
   const fetchSettings = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
     }
 
+    if (!organization?.id) {
+      console.log('[Settings] No organization, using defaults');
+      setLoading(false);
+      return;
+    }
+
     try {
       setError(null);
-      console.log('Fetching settings from database...');
+      console.log('Fetching settings from database for organization:', organization.id);
       const { data, error } = await supabase
         .from('site_settings')
-        .select('*');
+        .select('*')
+        .eq('organization_id', organization.id);
 
       if (error) {
         console.error('Error fetching site settings:', error);
@@ -50,7 +59,7 @@ export const useSettingsFetch = (
     } finally {
       setLoading(false);
     }
-  }, [user, setSettings, setError, setLoading]);
+  }, [user, organization?.id, setSettings, setError, setLoading]);
 
   return {
     fetchSettings
