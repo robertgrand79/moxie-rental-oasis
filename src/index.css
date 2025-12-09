@@ -99,6 +99,24 @@
     --font-size-h5: 20px;
     --font-size-body: 16px;
     
+    /* Footer colors */
+    --footer-bg: var(--primary);
+    --footer-text: var(--primary-foreground);
+    --footer-muted: 0 0% 80%;
+    --footer-border: 0 0% 100% / 20%;
+    
+    /* Navigation colors */
+    --nav-bg: var(--background);
+    --nav-text: var(--foreground);
+    --nav-text-hover: var(--primary);
+    --nav-bg-hover: var(--accent);
+    
+    /* Hero colors */
+    --hero-gradient-from: var(--primary);
+    --hero-gradient-to: 220 10% 40%;
+    --hero-text: 0 0% 100%;
+    --hero-text-muted: 0 0% 90%;
+    
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
@@ -172,6 +190,25 @@
     --chart-4: 304 26.5% 62.7%;
     --chart-5: 16 24.6% 64.5%;
     --sidebar: 266 4% 20.8%;
+    
+    /* Footer colors for dark mode */
+    --footer-bg: var(--primary);
+    --footer-text: var(--primary-foreground);
+    --footer-muted: 0 0% 70%;
+    --footer-border: 0 0% 100% / 15%;
+    
+    /* Navigation colors for dark mode */
+    --nav-bg: var(--background);
+    --nav-text: var(--foreground);
+    --nav-text-hover: var(--primary);
+    --nav-bg-hover: var(--accent);
+    
+    /* Hero colors for dark mode */
+    --hero-gradient-from: var(--primary);
+    --hero-gradient-to: 220 10% 25%;
+    --hero-text: 0 0% 100%;
+    --hero-text-muted: 0 0% 85%;
+    
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);

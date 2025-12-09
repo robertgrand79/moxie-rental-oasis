@@ -111,7 +111,7 @@ const ChatWidget = () => {
       isMinimized ? 'h-14' : 'h-96'
     }`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 text-white rounded-t-lg" style={{ backgroundColor: '#a7adb2' }}>
+      <div className="flex items-center justify-between p-4 text-primary-foreground rounded-t-lg bg-primary">
         <div className="flex items-center space-x-2">
           <MessageCircle className="h-5 w-5" />
           <h3 className="font-semibold">Travel Assistant</h3>

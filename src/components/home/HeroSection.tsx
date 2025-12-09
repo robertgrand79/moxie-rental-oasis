@@ -15,11 +15,11 @@ const HeroSection = () => {
         className="relative h-screen flex items-center justify-center overflow-hidden"
         data-hero-section
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800"></div>
-        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <div className="absolute inset-0 bg-gradient-to-br from-hero-gradient-from to-hero-gradient-to"></div>
+        <div className="relative z-10 text-center text-hero-text px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <div className="space-y-8 animate-pulse">
-            <div className="h-16 bg-white/20 rounded-lg"></div>
-            <div className="h-8 bg-white/20 rounded-lg"></div>
+            <div className="h-16 bg-hero-text/20 rounded-lg"></div>
+            <div className="h-8 bg-hero-text/20 rounded-lg"></div>
           </div>
         </div>
       </section>
