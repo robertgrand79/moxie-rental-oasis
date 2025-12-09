@@ -3,64 +3,42 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { AlertTriangle, Database, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Loader2 } from 'lucide-react';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
-  const [debugInfo, setDebugInfo] = useState('');
-  const { signIn, signUp, user, isAdmin, loading, roleLoading, databaseStatus, retryAuth } = useAuth();
+  const { signIn, signUp, user, isAdmin, loading, roleLoading, databaseStatus } = useAuth();
   const { isOrgAdmin, loading: orgLoading } = useCurrentOrganization();
+  const { settings, loading: settingsLoading } = useTenantSettings();
   const navigate = useNavigate();
 
   // Check if user has any admin access (legacy admin OR organization admin)
   const hasAdminAccess = isAdmin || isOrgAdmin();
 
-  useEffect(() => {
-    // Debug logging
-    const info = `
-      User: ${user?.email || 'None'}
-      Loading: ${loading}
-      Role Loading: ${roleLoading}
-      Org Loading: ${orgLoading}
-      Is Admin (legacy): ${isAdmin}
-      Is Org Admin: ${isOrgAdmin()}
-      Has Admin Access: ${hasAdminAccess}
-      Database Connected: ${databaseStatus.isConnected}
-      Database Error: ${databaseStatus.error || 'None'}
-      Current Time: ${new Date().toLocaleTimeString()}
-    `;
-    setDebugInfo(info);
+  // Tenant branding
+  const siteName = settings?.site_name || 'Welcome';
+  const logoUrl = settings?.logo_url;
+  const heroImageUrl = settings?.hero_image_url;
 
+  useEffect(() => {
     // Handle redirect once auth is complete
     if (user && !loading) {
-      console.log('🎯 Auth complete, checking role...', { 
-        hasUser: !!user, 
-        isAdmin, 
-        isOrgAdmin: isOrgAdmin(),
-        hasAdminAccess,
-        roleLoading,
-        orgLoading,
-        userEmail: user.email 
-      });
-      
       // If role or org is still loading, wait
       if (roleLoading || orgLoading) {
-        console.log('⏳ Role/org still loading, waiting...');
         return;
       }
       
       // Role loading complete, redirect with org context
-      console.log('🚀 Redirecting user...');
       if (hasAdminAccess) {
         // Fetch user's organization to include in redirect
         const fetchOrgAndRedirect = async () => {
@@ -76,11 +54,8 @@ const Auth = () => {
             const orgSlug = (membership?.organization as { slug?: string })?.slug;
             
             if (orgSlug) {
-              console.log('👑 Redirecting admin to /admin with org:', orgSlug);
-              // Use window.location for full page reload to ensure clean state
               window.location.href = `/admin?org=${orgSlug}`;
             } else {
-              console.log('👑 Redirecting admin to /admin (no org found)');
               navigate('/admin', { replace: true });
             }
           } catch (err) {
@@ -90,24 +65,19 @@ const Auth = () => {
         };
         fetchOrgAndRedirect();
       } else {
-        console.log('👤 Redirecting user to /');
         navigate('/', { replace: true });
       }
     }
-  }, [user, isAdmin, hasAdminAccess, loading, roleLoading, orgLoading, navigate, databaseStatus, isOrgAdmin]);
+  }, [user, isAdmin, hasAdminAccess, loading, roleLoading, orgLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      console.log('🔑 Login attempt for:', loginData.email);
-      
       const { error } = await signIn(loginData.email, loginData.password);
       
       if (error) {
-        console.error('❌ Login failed:', error);
-        
         let errorMessage = error.message;
         if (error.message.includes('invalid_credentials') || error.message.includes('Invalid login credentials')) {
           errorMessage = 'Invalid email or password. Please check your credentials and try again.';
@@ -121,14 +91,12 @@ const Auth = () => {
           variant: 'destructive'
         });
       } else {
-        console.log('✅ Login successful');
         toast({
           title: 'Welcome back!',
           description: 'You have successfully logged in.',
         });
       }
     } catch (error) {
-      console.error('💥 Unexpected login error:', error);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
@@ -144,13 +112,9 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      console.log('📝 Signup attempt for:', signupData.email);
-      
       const { error } = await signUp(signupData.email, signupData.password, signupData.fullName);
       
       if (error) {
-        console.error('❌ Signup failed:', error);
-        
         let errorMessage = error.message;
         if (error.message.includes('already registered')) {
           errorMessage = 'This email is already registered. Please try logging in instead.';
@@ -162,14 +126,12 @@ const Auth = () => {
           variant: 'destructive'
         });
       } else {
-        console.log('✅ Signup successful');
         toast({
           title: 'Account Created!',
           description: 'Welcome! Please check your email to verify your account.',
         });
       }
     } catch (error) {
-      console.error('💥 Unexpected signup error:', error);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
@@ -183,88 +145,52 @@ const Auth = () => {
   // Show loading state while auth is being determined
   if (user && (loading || roleLoading || orgLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex items-center justify-center p-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-sm text-muted-foreground">
-                {loading ? 'Authenticating...' : 'Loading your profile...'}
-              </p>
-              
-              {/* Database status indicator */}
-              <div className="flex items-center justify-center gap-2 mt-3">
-                {databaseStatus.isConnected ? (
-                  <div className="flex items-center gap-1 text-green-600">
-                    <Database className="w-4 h-4" />
-                    <span className="text-xs">Connected</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-red-600">
-                    <Database className="w-4 h-4" />
-                    <span className="text-xs">Disconnected</span>
-                  </div>
-                )}
-              </div>
-
-              {!databaseStatus.isConnected && databaseStatus.canRetry && (
-                <Button 
-                  onClick={databaseStatus.retry} 
-                  variant="outline" 
-                  size="sm" 
-                  className="mt-3"
-                  disabled={databaseStatus.isChecking}
-                >
-                  <RefreshCw className={`w-3 h-3 mr-1 ${databaseStatus.isChecking ? 'animate-spin' : ''}`} />
-                  Retry Connection
-                </Button>
-              )}
-              
-              {process.env.NODE_ENV === 'development' && (
-                <Alert className="mt-4">
-                  <AlertDescription>
-                    <pre className="text-xs whitespace-pre-wrap">{debugInfo}</pre>
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-sm text-muted-foreground">
+            {loading ? 'Authenticating...' : 'Loading your profile...'}
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-900">Welcome</CardTitle>
-            <CardDescription>Sign in to access your account</CardDescription>
-            
-            {/* Database connection status */}
-            <div className="flex items-center justify-center gap-2 mt-2">
-              {databaseStatus.isConnected ? (
-                <div className="flex items-center gap-1 text-green-600">
-                  <Wifi className="w-4 h-4" />
-                  <span className="text-xs">Database Connected</span>
-                </div>
+      <div className="min-h-screen flex">
+        {/* Left side - Form */}
+        <div className="flex-1 flex items-center justify-center p-8 bg-background">
+          <div className="w-full max-w-md space-y-8">
+            {/* Logo and branding */}
+            <div className="text-center">
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt={siteName} 
+                  className="h-16 w-auto mx-auto mb-6 object-contain"
+                />
               ) : (
-                <div className="flex items-center gap-1 text-red-600">
-                  <WifiOff className="w-4 h-4" />
-                  <span className="text-xs">Database Disconnected</span>
+                <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                  <span className="text-2xl font-bold text-primary">
+                    {siteName.charAt(0).toUpperCase()}
+                  </span>
                 </div>
               )}
+              <h1 className="text-2xl font-bold text-foreground">
+                Welcome to {siteName}
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Sign in to access your account
+              </p>
             </div>
-          </CardHeader>
-          <CardContent>
-            
+
             {/* Database error alert */}
             {!databaseStatus.isConnected && databaseStatus.error && (
-              <Alert className="mb-4 border-orange-200 bg-orange-50">
-                <AlertTriangle className="h-4 w-4 text-orange-600" />
-                <AlertDescription className="text-orange-800">
-                  <p className="font-medium mb-1">Database Connection Issue</p>
+              <Alert className="border-destructive/50 bg-destructive/10">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <AlertDescription className="text-destructive">
+                  <p className="font-medium mb-1">Connection Issue</p>
                   <p className="text-sm">{databaseStatus.error}</p>
                   {databaseStatus.canRetry && (
                     <Button 
@@ -275,113 +201,160 @@ const Auth = () => {
                       disabled={databaseStatus.isChecking}
                     >
                       <RefreshCw className={`w-3 h-3 mr-1 ${databaseStatus.isChecking ? 'animate-spin' : ''}`} />
-                      Retry Connection
+                      Retry
                     </Button>
                   )}
                 </AlertDescription>
               </Alert>
             )}
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    value={loginData.email}
-                    onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    value={loginData.password}
-                    onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading || (!databaseStatus.isConnected && !databaseStatus.isChecking)}
-                >
-                  {isLoading ? 'Logging in...' : 'Login'}
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    value={signupData.fullName}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, fullName: e.target.value }))}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    value={signupData.email}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={signupData.password}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
-                    required
-                    disabled={isLoading}
-                    minLength={6}
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading || (!databaseStatus.isConnected && !databaseStatus.isChecking)}
-                >
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
 
-          {/* Debug info for development */}
-          {process.env.NODE_ENV === 'development' && (
-            <Alert className="mt-4">
-              <AlertDescription>
-                <details>
-                  <summary className="cursor-pointer text-sm font-medium">Debug Info</summary>
-                  <pre className="text-xs whitespace-pre-wrap mt-2">{debugInfo}</pre>
-                </details>
-              </AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+            {/* Auth tabs */}
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="login">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Create Account</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="login" className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={loginData.email}
+                      onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                      required
+                      disabled={isLoading}
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Password</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={loginData.password}
+                      onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                      required
+                      disabled={isLoading}
+                      className="h-11"
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11" 
+                    disabled={isLoading || (!databaseStatus.isConnected && !databaseStatus.isChecking)}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      'Sign In'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+              
+              <TabsContent value="signup" className="space-y-4">
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      placeholder="John Doe"
+                      value={signupData.fullName}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, fullName: e.target.value }))}
+                      required
+                      disabled={isLoading}
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={signupData.email}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
+                      required
+                      disabled={isLoading}
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Password</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={signupData.password}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
+                      required
+                      disabled={isLoading}
+                      minLength={6}
+                      className="h-11"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Must be at least 6 characters
+                    </p>
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11" 
+                    disabled={isLoading || (!databaseStatus.isConnected && !databaseStatus.isChecking)}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating account...
+                      </>
+                    ) : (
+                      'Create Account'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+
+            {/* Footer */}
+            <p className="text-center text-sm text-muted-foreground">
+              By continuing, you agree to our Terms of Service and Privacy Policy.
+            </p>
+          </div>
+        </div>
+
+        {/* Right side - Hero image/gradient (hidden on mobile) */}
+        <div 
+          className="hidden lg:flex flex-1 items-center justify-center relative overflow-hidden"
+          style={{
+            background: heroImageUrl 
+              ? `linear-gradient(to bottom, hsl(var(--primary) / 0.8), hsl(var(--primary) / 0.9)), url(${heroImageUrl}) center/cover`
+              : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))'
+          }}
+        >
+          <div className="relative z-10 text-center p-12 max-w-lg">
+            <h2 className="text-3xl font-bold text-primary-foreground mb-4">
+              {siteName}
+            </h2>
+            <p className="text-primary-foreground/80 text-lg">
+              Manage your properties, bookings, and guest experiences all in one place.
+            </p>
+          </div>
+          
+          {/* Decorative elements */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-white/20 blur-3xl" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-white/10 blur-3xl" />
+          </div>
+        </div>
+      </div>
     </ErrorBoundary>
   );
 };
