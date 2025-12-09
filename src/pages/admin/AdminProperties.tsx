@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Plus, Wrench } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { usePropertyForm } from '@/hooks/usePropertyForm';
 import { usePaginatedProperties } from '@/hooks/usePaginatedProperties';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminProperties = () => {
+  const { propertyId } = useParams<{ propertyId?: string }>();
+  const navigate = useNavigate();
+  
   const {
     properties,
     loading,
@@ -40,8 +43,32 @@ const AdminProperties = () => {
     deleteProperty
   } = usePropertyForm(properties, refetch);
 
+  // Auto-select property for editing when propertyId is in URL
+  useEffect(() => {
+    if (propertyId && properties.length > 0 && !loading) {
+      const property = properties.find(p => p.id === propertyId);
+      if (property && editingProperty?.id !== propertyId) {
+        handleEditProperty(property);
+      }
+    }
+  }, [propertyId, properties, loading, editingProperty?.id, handleEditProperty]);
+
   const handleFormSubmitWithPageReset = async (propertyData: any) => {
-    await handleFormSubmit(propertyData, () => goToPage(1));
+    await handleFormSubmit(propertyData, () => {
+      goToPage(1);
+      // Navigate back to properties list after save if we came from a direct link
+      if (propertyId) {
+        navigate('/admin/properties');
+      }
+    });
+  };
+
+  const handleFormCancelWithNavigation = () => {
+    handleFormCancel();
+    // Navigate back to properties list if we came from a direct link
+    if (propertyId) {
+      navigate('/admin/properties');
+    }
   };
   
   const isMobile = useIsMobile();
@@ -100,7 +127,7 @@ const AdminProperties = () => {
               editingProperty={editingProperty}
               isSubmitting={isSubmitting}
               onFormSubmit={handleFormSubmitWithPageReset}
-              onFormCancel={handleFormCancel}
+              onFormCancel={handleFormCancelWithNavigation}
             />
           </div>
         )}
