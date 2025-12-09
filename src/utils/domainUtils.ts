@@ -1,10 +1,10 @@
-
 /**
  * Utility functions for domain-based feature detection
  */
 
 /**
- * Check if the current domain is the admin domain
+ * Check if the current domain is an admin-enabled domain
+ * All domains now support admin access for multi-tenant support
  * @returns boolean indicating if current domain allows admin access
  */
 export const isAdminDomain = (): boolean => {
@@ -12,12 +12,14 @@ export const isAdminDomain = (): boolean => {
   
   const hostname = window.location.hostname;
   
-  // Allow admin access on production and staging domains
-  return hostname === 'moxievacationrentals.com' ||
-         hostname === 'www.moxievacationrentals.com' ||
-         hostname === 'moxie-rental-oasis.lovable.app' || 
+  // All domains allow admin access in multi-tenant mode
+  // Authentication and organization membership control access
+  return hostname.includes('lovable.app') || 
          hostname === 'localhost' || 
-         hostname === '127.0.0.1';
+         hostname === '127.0.0.1' ||
+         hostname.includes('staymoxie.com') ||
+         // Allow any custom domain (tenant domains)
+         !hostname.includes('localhost');
 };
 
 /**

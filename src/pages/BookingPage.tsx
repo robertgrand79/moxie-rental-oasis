@@ -10,12 +10,17 @@ import AvailabilityDisplay from '@/components/booking/AvailabilityDisplay';
 import GuestReservationPortal from '@/components/booking/GuestReservationPortal';
 import ThumbnailImage from '@/components/ui/thumbnail-image';
 import LoadingState from '@/components/ui/loading-state';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const BookingPage = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
   const [activeTab, setActiveTab] = useState('book');
   const { properties, loading } = useProperties();
+  const { settings } = useTenantSettings();
   const property = properties?.find(p => p.id === propertyId);
+
+  const contactPhone = settings?.contactPhone || '';
+  const contactEmail = settings?.contactEmail || '';
 
   if (loading) {
     return <LoadingState variant="page" message="Loading property details..." />;
@@ -196,26 +201,32 @@ const BookingPage = () => {
             )}
 
             {/* Contact Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Need Help?</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <p className="text-muted-foreground">
-                  Have questions about this property or need assistance with your booking?
-                </p>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Phone:</span>
-                    <span className="font-medium">(555) 123-4567</span>
+            {(contactPhone || contactEmail) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Need Help?</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  <p className="text-muted-foreground">
+                    Have questions about this property or need assistance with your booking?
+                  </p>
+                  <div className="space-y-2">
+                    {contactPhone && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Phone:</span>
+                        <span className="font-medium">{contactPhone}</span>
+                      </div>
+                    )}
+                    {contactEmail && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Email:</span>
+                        <span className="font-medium">{contactEmail}</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Email:</span>
-                    <span className="font-medium">hello@moxie.com</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
