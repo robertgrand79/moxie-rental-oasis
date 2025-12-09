@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
@@ -7,6 +8,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
@@ -14,6 +16,14 @@ interface AdminLayoutProps {
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const isMobile = useIsMobile();
   const { organization } = useCurrentOrganization();
+  const queryClient = useQueryClient();
+
+  // Clear stale tenant-related caches when entering admin to ensure fresh data
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['tenant'] });
+    queryClient.invalidateQueries({ queryKey: ['organization'] });
+    queryClient.invalidateQueries({ queryKey: ['site-settings'] });
+  }, [queryClient]);
 
   // Determine the "Back to Site" destination based on organization context
   const getBackToSiteUrl = () => {
