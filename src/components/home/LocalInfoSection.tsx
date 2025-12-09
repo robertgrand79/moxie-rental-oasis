@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Mountain, Coffee, TreePine } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -14,7 +13,7 @@ const LocalInfoSection = () => {
       let query = supabase
         .from('site_settings')
         .select('key, value')
-        .in('key', ['siteName', 'heroLocationText', 'description']);
+        .in('key', ['siteName', 'site_name', 'heroLocationText', 'hero_location_text', 'description']);
 
       if (tenantId) {
         query = query.eq('organization_id', tenantId);
@@ -29,8 +28,9 @@ const LocalInfoSection = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const siteName = settings?.siteName || 'Our Properties';
-  const location = settings?.heroLocationText || 'Your Destination';
+  // Normalize keys - check both camelCase and snake_case
+  const siteName = settings?.siteName || settings?.site_name || 'Our Properties';
+  const location = settings?.heroLocationText || settings?.hero_location_text || 'Your Destination';
 
   return (
     <section className="py-20 relative">

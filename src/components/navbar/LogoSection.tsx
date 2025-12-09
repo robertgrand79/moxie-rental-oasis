@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -14,7 +13,7 @@ const DEFAULT_LOGO_SETTINGS = {
 const LogoSection = () => {
   const { tenantId, tenant, loading: tenantLoading } = useTenant();
 
-  // Fetch logo settings from database scoped by tenant
+  // Fetch logo settings from database scoped by tenant - query both camelCase and snake_case keys
   const { data: logoSettings } = useQuery({
     queryKey: ['logo-settings', tenantId],
     queryFn: async () => {
@@ -26,7 +25,7 @@ const LogoSection = () => {
         .from('site_settings')
         .select('key, value')
         .eq('organization_id', tenantId)
-        .in('key', ['siteName', 'logoUrl']);
+        .in('key', ['siteName', 'site_name', 'logoUrl', 'logo_url']);
 
       if (error) {
         console.error('Error fetching logo settings:', error);
@@ -41,10 +40,10 @@ const LogoSection = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      // Use tenant info as additional fallback
+      // Normalize keys - check both camelCase and snake_case, use tenant info as fallback
       const finalSettings = {
-        siteName: settingsMap.siteName || tenant?.name || DEFAULT_LOGO_SETTINGS.siteName,
-        logoUrl: settingsMap.logoUrl || tenant?.logo_url || DEFAULT_LOGO_SETTINGS.logoUrl
+        siteName: settingsMap.siteName || settingsMap.site_name || tenant?.name || DEFAULT_LOGO_SETTINGS.siteName,
+        logoUrl: settingsMap.logoUrl || settingsMap.logo_url || tenant?.logo_url || DEFAULT_LOGO_SETTINGS.logoUrl
       };
 
       return finalSettings;

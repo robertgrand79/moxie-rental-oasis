@@ -5,13 +5,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Wand2, Zap, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { newsletterTemplates, quickPrompts } from './NewsletterTemplates';
+import { getNewsletterTemplates, getQuickPrompts } from './NewsletterTemplates';
 import TemplateSelector from './TemplateSelector';
 import QuickPrompts from './QuickPrompts';
 import CustomPromptInput from './CustomPromptInput';
 import GeneratedContentDisplay from './GeneratedContentDisplay';
 import { marked } from 'marked';
 import { extractContentFromHTML, isFullHTMLDocument } from '@/utils/htmlContentExtractor';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface NewsletterAIGeneratorProps {
   currentSubject: string;
@@ -31,6 +32,15 @@ const NewsletterAIGenerator = ({
   const [contentWasFiltered, setContentWasFiltered] = useState(false);
   const [activeTab, setActiveTab] = useState('templates');
   const { toast } = useToast();
+  const { settings } = useTenantSettings();
+  
+  // Get tenant-specific values with fallbacks
+  const siteName = settings?.siteName || settings?.site_name || 'Our Vacation Rentals';
+  const location = settings?.heroLocationText || settings?.hero_location_text || 'the area';
+  
+  // Get dynamic templates and prompts
+  const newsletterTemplates = getNewsletterTemplates(siteName, location);
+  const quickPrompts = getQuickPrompts(location);
 
   // Convert markdown to HTML and clean it up with better width handling
   const convertMarkdownToHtml = (markdownText: string): string => {
@@ -96,7 +106,7 @@ const NewsletterAIGenerator = ({
 - Keep content width-constrained and responsive for email display
 - Avoid fixed widths, use percentage-based or relative sizing
 - Write in an engaging, professional tone suitable for vacation rental guests
-- Include specific Eugene, Oregon references and local knowledge
+- Include specific ${location} references and local knowledge
 - Focus on experiences that vacation rental guests would appreciate
 - Make content scannable with clear paragraph breaks using <p> tags
 - Include calls-to-action using <strong> tags for emphasis
@@ -108,12 +118,12 @@ const NewsletterAIGenerator = ({
 - Keep images and tables responsive with max-width: 100%
 - DO NOT create a complete email template - only the content that will go inside the template
 
-**MOXIE BRAND CONTEXT:**
-- We are Moxie Vacation Rentals, Eugene's premier vacation rental company
-- Our tagline: "Your Home Base for Living Like a Local in Eugene"
-- We specialize in helping guests experience Eugene like locals
-- Our expertise is in Eugene, Oregon attractions, dining, and experiences
-- We offer premium vacation rental properties throughout Eugene
+**BRAND CONTEXT:**
+- We are ${siteName}, a premier vacation rental company in ${location}
+- Our tagline: "Your Home Base for Living Like a Local in ${location}"
+- We specialize in helping guests experience ${location} like locals
+- Our expertise is in ${location} attractions, dining, and experiences
+- We offer premium vacation rental properties throughout the area
 - Our guests value authentic local experiences and quality accommodations`
         : promptToUse;
 
@@ -123,7 +133,8 @@ const NewsletterAIGenerator = ({
           context: {
             businessType: 'vacation rental newsletter',
             currentContent: {
-              siteName: 'Moxie Vacation Rentals',
+              siteName: siteName,
+              location: location,
               subject: currentSubject,
               content: currentContent
             },
@@ -174,7 +185,7 @@ const NewsletterAIGenerator = ({
 
   const generateCompleteNewsletter = async () => {
     setSelectedField('content');
-    const completePrompt = `Create newsletter content for Moxie Vacation Rentals with clean HTML formatting.
+    const completePrompt = `Create newsletter content for ${siteName} with clean HTML formatting.
 
 **IMPORTANT: Generate ONLY content fragments, NOT a full email template**
 
@@ -185,12 +196,12 @@ Generate newsletter content using these sections with HTML formatting:
 
 <h2>Featured Content (choose 2-3 main topics):</h2>
 <p>Property highlight with compelling description</p>
-<p>Local Eugene events and attractions</p>
+<p>Local ${location} events and attractions</p>
 <p>Seasonal activities and recommendations</p>
 <p>Guest experience story or testimonials</p>
 
 <h2>Local Expertise Section:</h2>
-<p>Insider tips for experiencing Eugene like a local</p>
+<p>Insider tips for experiencing ${location} like a local</p>
 <p>Hidden gems or lesser-known attractions</p>
 <p>Dining recommendations from local favorites</p>
 
@@ -207,7 +218,7 @@ Generate newsletter content using these sections with HTML formatting:
 - Use <em> for italics (NOT *)
 - Use <ul> and <li> for lists
 - Make each section substantive with 2-3 paragraphs
-- Include specific Eugene locations and details
+- Include specific ${location} locations and details
 - Use warm, welcoming tone that reflects local expertise
 - Structure with clear HTML section breaks for easy reading
 - Focus on experiences that vacation rental guests value
@@ -218,9 +229,9 @@ Generate newsletter content using these sections with HTML formatting:
 
 **STYLE GUIDELINES:**
 - Professional yet friendly tone
-- Locally-focused content showcasing Eugene expertise
+- Locally-focused content showcasing ${location} expertise
 - Scannable HTML format with clear paragraph breaks
-- Engaging content that makes readers excited about Eugene
+- Engaging content that makes readers excited about ${location}
 - Include specific details rather than generic tourism information
 - NO MARKDOWN SYNTAX - only clean HTML fragments
 - NO full document structure - content fragments only`;
@@ -265,7 +276,7 @@ Generate newsletter content using these sections with HTML formatting:
           Enhanced AI Newsletter Generator
         </CardTitle>
         <CardDescription>
-          Generate professionally designed, responsive newsletters with Moxie's branding and Eugene expertise
+          Generate professionally designed, responsive newsletters with your branding and local expertise
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -303,9 +314,9 @@ Generate newsletter content using these sections with HTML formatting:
           <TabsContent value="templates" className="space-y-6">
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-2">Moxie Newsletter Templates</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Choose from professionally designed templates with Moxie branding and Eugene expertise
+                <h3 className="text-lg font-semibold mb-2">Newsletter Templates</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Choose from professionally designed templates with your branding and local expertise
                 </p>
               </div>
               
