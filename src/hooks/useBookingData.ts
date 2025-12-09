@@ -102,11 +102,13 @@ export const useDeleteReservation = () => {
   
   return useMutation({
     mutationFn: async (reservationId: string) => {
-      // First delete associated availability block
+      // Delete associated availability blocks - handle both direct bookings and external calendar imports
+      // Direct bookings: external_booking_id = reservationId
+      // External imports: external_booking_id = reservationId@something.com
       const { error: blockError } = await supabase
         .from('availability_blocks')
         .delete()
-        .eq('external_booking_id', reservationId);
+        .or(`external_booking_id.eq.${reservationId},external_booking_id.ilike.${reservationId}@%`);
       
       if (blockError) {
         console.error('Error deleting availability block:', blockError);
@@ -125,6 +127,7 @@ export const useDeleteReservation = () => {
       queryClient.invalidateQueries({ queryKey: ['property-reservations'] });
       queryClient.invalidateQueries({ queryKey: ['bookings-management'] });
       queryClient.invalidateQueries({ queryKey: ['availability'] });
+      queryClient.invalidateQueries({ queryKey: ['unified-availability-blocks'] });
     }
   });
 };
