@@ -6,6 +6,7 @@ import SettingsContentArea from './SettingsContentArea';
 import SettingsDialog from './SettingsDialog';
 import StaticSettingsSyncButton from './StaticSettingsSyncButton';
 import SettingsInputHandlers from './SettingsInputHandlers';
+import SmartAISuggestionBanner from './SmartAISuggestionBanner';
 import { createSettingsCategories } from './settingsCategories';
 
 interface AdminSettingsContentProps {
@@ -82,6 +83,35 @@ const AdminSettingsContent = ({
     return () => window.removeEventListener('resetAdminSettings', handleReset);
   }, []);
 
+  // Build flat data for AI banner
+  const flatDataForAI = {
+    siteName: localData.siteData?.siteName || '',
+    tagline: localData.siteData?.tagline || '',
+    description: localData.siteData?.description || '',
+    heroTitle: localData.siteData?.heroTitle || '',
+    heroSubtitle: localData.siteData?.heroSubtitle || '',
+    heroDescription: localData.siteData?.heroDescription || '',
+    heroLocationText: localData.siteData?.heroLocationText || '',
+    heroCTAText: localData.siteData?.heroCTAText || '',
+    address: localData.siteData?.address || '',
+    metaDescription: localData.seoData?.metaDescription || '',
+  };
+
+  const handleAIApplyContent = (field: string, value: string) => {
+    // Update the appropriate data section based on field
+    if (['metaDescription', 'siteTitle', 'ogTitle', 'ogDescription'].includes(field)) {
+      setLocalData((prev: any) => ({
+        ...prev,
+        seoData: { ...prev.seoData, [field]: value }
+      }));
+    } else {
+      setLocalData((prev: any) => ({
+        ...prev,
+        siteData: { ...prev.siteData, [field]: value }
+      }));
+    }
+  };
+
   return (
     <SettingsInputHandlers
       localData={localData}
@@ -90,6 +120,12 @@ const AdminSettingsContent = ({
     >
       {({ handleInputChange, handleSocialMediaChange }) => (
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+          {/* Smart AI Suggestion Banner */}
+          <SmartAISuggestionBanner
+            localData={flatDataForAI}
+            onApplyContent={handleAIApplyContent}
+          />
+
           {/* Static Settings Sync Button - Show at top */}
           <StaticSettingsSyncButton />
 
