@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Eye } from 'lucide-react';
 
@@ -10,10 +9,10 @@ const NewsletterDesignInfo = () => {
           <Eye className="h-4 w-4" />
         </div>
         <div>
-          <h4 className="font-semibold text-gray-800">Enhanced with Moxie Design</h4>
+          <h4 className="font-semibold text-gray-800">Professional Newsletter Design</h4>
           <p className="text-sm text-gray-600 mt-1">
             Your newsletter includes branded headers, responsive design, property showcases, 
-            and professional styling that reflects Moxie's Eugene-focused vacation rental expertise.
+            and professional styling that reflects your vacation rental expertise.
           </p>
         </div>
       </div>

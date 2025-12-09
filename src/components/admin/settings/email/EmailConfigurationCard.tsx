@@ -148,8 +148,8 @@ const EmailConfigurationCard = () => {
                 id="emailReplyTo"
                 name="emailReplyTo"
                 type="email"
-                placeholder="reply@inbound.moxievacationrentals.com"
-                defaultValue={emailSettings?.emailReplyTo || 'reply@inbound.moxievacationrentals.com'}
+                placeholder="reply@inbound.yourdomain.com"
+                defaultValue={emailSettings?.emailReplyTo || ''}
               />
               <p className="text-xs text-muted-foreground">
                 Uses inbound subdomain to capture guest replies via webhook

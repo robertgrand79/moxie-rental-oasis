@@ -103,7 +103,7 @@ const NewsletterFooterEditor = ({ footerConfig, onFooterConfigChange, disabled =
               id="company-name"
               value={footerConfig.company_name}
               onChange={(e) => handleInputChange('company_name', e.target.value)}
-              placeholder="Moxie Vacation Rentals"
+              placeholder="Your Business Name"
             />
           </div>
           <div className="space-y-2">
@@ -112,7 +112,7 @@ const NewsletterFooterEditor = ({ footerConfig, onFooterConfigChange, disabled =
               id="tagline"
               value={footerConfig.tagline}
               onChange={(e) => handleInputChange('tagline', e.target.value)}
-              placeholder="Your Home Base for Living Like a Local"
+              placeholder="Your business tagline"
             />
           </div>
         </div>
@@ -128,7 +128,7 @@ const NewsletterFooterEditor = ({ footerConfig, onFooterConfigChange, disabled =
                 type="email"
                 value={footerConfig.contact_info.email}
                 onChange={(e) => handleContactInfoChange('email', e.target.value)}
-                placeholder="contact@moxievacationrentals.com"
+                placeholder="contact@yourdomain.com"
               />
             </div>
             <div className="space-y-2">
@@ -137,7 +137,7 @@ const NewsletterFooterEditor = ({ footerConfig, onFooterConfigChange, disabled =
                 id="contact-location"
                 value={footerConfig.contact_info.location}
                 onChange={(e) => handleContactInfoChange('location', e.target.value)}
-                placeholder="Eugene, Oregon"
+                placeholder="Your City, State"
               />
             </div>
           </div>
