@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useMemo } from 'react';
 
+// Platform domain configuration - can be overridden via environment or build config
+const PLATFORM_DOMAIN = 'staymoxie.com';
+
 interface PlatformContextType {
   isPlatformSite: boolean;
   isTenantSite: boolean;
@@ -9,7 +12,7 @@ interface PlatformContextType {
 const PlatformContext = createContext<PlatformContextType>({
   isPlatformSite: false,
   isTenantSite: true,
-  platformDomain: 'staymoxie.com',
+  platformDomain: PLATFORM_DOMAIN,
 });
 
 export const usePlatform = () => useContext(PlatformContext);
@@ -24,16 +27,16 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
     
     // Check if it's the SaaS marketing domain
     const isPlatformSite = 
-      hostname === 'staymoxie.com' ||
-      hostname === 'www.staymoxie.com' ||
-      hostname.includes('staymoxie') ||
+      hostname === PLATFORM_DOMAIN ||
+      hostname === `www.${PLATFORM_DOMAIN}` ||
+      hostname.includes(PLATFORM_DOMAIN.split('.')[0]) ||
       // For development/testing - check URL param
       (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('platform') === 'true');
     
     return {
       isPlatformSite,
       isTenantSite: !isPlatformSite,
-      platformDomain: 'staymoxie.com',
+      platformDomain: PLATFORM_DOMAIN,
     };
   }, []);
 

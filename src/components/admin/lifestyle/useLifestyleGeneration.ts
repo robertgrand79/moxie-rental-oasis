@@ -8,12 +8,14 @@ interface UseLifestyleGenerationProps {
   existingItems: LifestyleGalleryItem[];
   categories: string[];
   activityTypes: string[];
+  location?: string;
 }
 
 export const useLifestyleGeneration = ({
   existingItems,
   categories,
-  activityTypes
+  activityTypes,
+  location = 'the local area'
 }: UseLifestyleGenerationProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedItems, setGeneratedItems] = useState<any[]>([]);
@@ -37,7 +39,7 @@ export const useLifestyleGeneration = ({
       type: 'lifestyle',
       prompt,
       count: numberOfItems,
-      location: 'Eugene, Oregon',
+      location,
       category: focusArea || 'lifestyle'
     });
 
@@ -45,7 +47,7 @@ export const useLifestyleGeneration = ({
       const { data, error } = await supabase.functions.invoke('generate-content-ai', {
         body: {
           type: 'lifestyle',
-          prompt: `Generate ${numberOfItems} lifestyle gallery items for Eugene, Oregon based on this request: ${prompt}. 
+          prompt: `Generate ${numberOfItems} lifestyle gallery items for ${location} based on this request: ${prompt}. 
           
           Focus area: ${focusArea || 'General lifestyle activities'}
           
@@ -54,15 +56,15 @@ export const useLifestyleGeneration = ({
           - description: string (detailed description of the activity)
           - image_url: string (relevant Unsplash URL)
           - category: string (one of: ${categories.join(', ')})
-          - location: string (specific location in Eugene area)
+          - location: string (specific location in the area)
           - activity_type: string (one of: ${activityTypes.join(', ')})
           - display_order: number (ascending order)
           - is_featured: boolean
           - is_active: boolean (default true)
           
-          Make sure activities are diverse, realistic for Eugene, and include local venues/areas when possible.`,
+          Make sure activities are diverse, realistic for the area, and include local venues/areas when possible.`,
           count: numberOfItems,
-          location: 'Eugene, Oregon',
+          location,
           category: focusArea || 'lifestyle',
           context: {
             existingItemsCount: existingItems.length,
