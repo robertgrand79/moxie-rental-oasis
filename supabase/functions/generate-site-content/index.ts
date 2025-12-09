@@ -1,9 +1,8 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getSystemPrompt } from './systemPrompts.ts';
 import { enhanceParagraphStructure } from './contentProcessing.ts';
-import { generateContentWithOpenAI, getMaxTokensForCategory } from './openaiConfig.ts';
+import { generateContentWithAI, getMaxTokensForCategory } from './aiConfig.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,7 +20,7 @@ serve(async (req) => {
     const systemPrompt = getSystemPrompt(context.category || 'content', context);
     const maxTokens = getMaxTokensForCategory(context.category);
 
-    let content = await generateContentWithOpenAI(systemPrompt, prompt, maxTokens);
+    let content = await generateContentWithAI(systemPrompt, prompt, maxTokens);
 
     // Post-process content to ensure proper paragraph structure
     if (context.category === 'blog') {
