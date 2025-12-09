@@ -85,6 +85,8 @@ export const useTenantDetection = (): TenantDetectionResult => {
   }, [isAdminRoute]);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchTenant = async () => {
       try {
         setLoading(true);
@@ -103,8 +105,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
             console.error('Error fetching tenant:', fetchError);
           }
 
-          if (data) {
-            // Store tenant slug in sessionStorage for persistence across navigation
+          if (data && isMounted) {
             sessionStorage.setItem('current_tenant_slug', data.slug);
             setTenant(data as TenantInfo);
             setIsDefaultTenant(false);
@@ -113,34 +114,56 @@ export const useTenantDetection = (): TenantDetectionResult => {
           }
         }
 
-        // Third try: If user is logged in, use their organization
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && !isAdminRoute) {
-          const { data: membership } = await supabase
-            .from('organization_members')
-            .select('organization:organizations(id, name, slug, logo_url, website, custom_domain, is_active, template_type)')
-            .eq('user_id', user.id)
-            .order('joined_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+        // Try user organization with a 3-second timeout to prevent hanging
+        if (!isAdminRoute) {
+          const userOrgPromise = (async (): Promise<TenantInfo | null> => {
+            try {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const { data: membership } = await supabase
+                  .from('organization_members')
+                  .select('organization:organizations(id, name, slug, logo_url, website, custom_domain, is_active, template_type)')
+                  .eq('user_id', user.id)
+                  .order('joined_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
 
-          if (membership?.organization) {
-            const orgData = membership.organization as unknown as TenantInfo;
-            if (orgData.is_active) {
-              sessionStorage.setItem('current_tenant_slug', orgData.slug);
-              setTenant(orgData);
-              setIsDefaultTenant(false);
-              setLoading(false);
-              return;
+                if (membership?.organization) {
+                  const orgData = membership.organization as unknown as TenantInfo;
+                  if (orgData.is_active) {
+                    return orgData;
+                  }
+                }
+              }
+              return null;
+            } catch (err) {
+              console.warn('Error checking user organization:', err);
+              return null;
             }
+          })();
+
+          // Race between user org detection and a 3-second timeout
+          const userOrg = await Promise.race([
+            userOrgPromise,
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
+          ]);
+
+          if (userOrg && isMounted) {
+            sessionStorage.setItem('current_tenant_slug', userOrg.slug);
+            setTenant(userOrg);
+            setIsDefaultTenant(false);
+            setLoading(false);
+            return;
           }
         }
 
         // On admin routes, don't fallback to any organization - let OrganizationContext handle it
         if (isAdminRoute) {
-          setTenant(null);
-          setIsDefaultTenant(false);
-          setLoading(false);
+          if (isMounted) {
+            setTenant(null);
+            setIsDefaultTenant(false);
+            setLoading(false);
+          }
           return;
         }
 
@@ -152,6 +175,8 @@ export const useTenantDetection = (): TenantDetectionResult => {
           .order('created_at', { ascending: true })
           .limit(1)
           .maybeSingle();
+
+        if (!isMounted) return;
 
         if (defaultError) {
           console.error('Error fetching default tenant:', defaultError);
@@ -165,13 +190,30 @@ export const useTenantDetection = (): TenantDetectionResult => {
 
       } catch (err) {
         console.error('Error in tenant detection:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Unknown error');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
+    // Overall safety timeout - ensure loading never stays stuck forever
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('Tenant detection safety timeout reached, forcing load complete');
+        setLoading(false);
+      }
+    }, 8000);
+
     fetchTenant();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimeout);
+    };
   }, [detectedIdentifier, isAdminRoute]);
 
   return {
