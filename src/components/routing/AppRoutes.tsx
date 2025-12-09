@@ -88,6 +88,7 @@ const AppRoutes: React.FC = () => {
         {/* Platform Marketing Routes (staymoxie.com) */}
         <Route path="/" element={<PlatformLayout />}>
           <Route index element={<PlatformHome />} />
+          <Route path="home" element={<Navigate to="/" replace />} />
           <Route path="features" element={<Features />} />
           <Route path="pricing" element={<Pricing />} />
           <Route path="about" element={<PlatformAbout />} />
@@ -151,6 +152,7 @@ const AppRoutes: React.FC = () => {
     <Routes>
       <Route path="/" element={<PublicLayout />}>
         <Route index element={<Index />} />
+        <Route path="home" element={<Navigate to="/" replace />} />
         <Route path="/properties" element={<Properties />} />
         <Route path="/property/:addressSlug" element={<PropertyPage />} />
         <Route path="/about" element={<About />} />
