@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Property } from '@/types/property';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface PropertyMapProps {
   properties: Property[];
@@ -14,6 +15,9 @@ const PropertyMap = ({ properties, selectedProperty }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const { settings } = useSimplifiedSiteSettings();
+  const { settings: tenantSettings } = useTenantSettings();
+  
+  const siteName = tenantSettings.site_name || 'Our Office';
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -30,36 +34,23 @@ const PropertyMap = ({ properties, selectedProperty }: PropertyMapProps) => {
     // Initialize map
     mapboxgl.accessToken = mapboxToken;
     
+    // Default to US center - properties will be placed with offsets
+    const defaultCenter: [number, number] = [-98.5795, 39.8283];
+    
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-123.0868, 44.0521], // Eugene, Oregon coordinates
-      zoom: 12
+      center: defaultCenter,
+      zoom: 4
     });
 
-    // Add office location marker
-    const officeMarker = new mapboxgl.Marker({
-      color: '#3B82F6'
-    })
-      .setLngLat([-123.0868, 44.0521])
-      .setPopup(
-        new mapboxgl.Popup({ offset: 25 })
-          .setHTML(`
-            <div class="p-2">
-              <h3 class="font-bold text-sm">Moxie Vacation Rentals</h3>
-              <p class="text-xs text-gray-600">2472 Willamette Street<br>Eugene, OR 97405</p>
-            </div>
-          `)
-      )
-      .addTo(map.current);
-
-    // Add property markers
-    properties.forEach((property) => {
+    // Add property markers with random offsets from center
+    // In production, properties should have their own coordinates
+    properties.forEach((property, index) => {
       if (property.location && map.current) {
-        // For demo purposes, using Eugene coordinates with slight offsets
-        // In production, you'd geocode the actual addresses
-        const lng = -123.0868 + (Math.random() - 0.5) * 0.02;
-        const lat = 44.0521 + (Math.random() - 0.5) * 0.02;
+        // Use slight offsets from center for visualization
+        const lng = defaultCenter[0] + (Math.random() - 0.5) * 10;
+        const lat = defaultCenter[1] + (Math.random() - 0.5) * 10;
 
         const marker = new mapboxgl.Marker({
           color: selectedProperty?.id === property.id ? '#F59E0B' : '#EF4444'
@@ -72,7 +63,7 @@ const PropertyMap = ({ properties, selectedProperty }: PropertyMapProps) => {
                   <h3 class="font-bold text-sm">${property.title}</h3>
                   <p class="text-xs text-gray-600 mb-2">${property.location}</p>
                   <p class="text-xs mb-2">${property.bedrooms} bed • ${property.bathrooms} bath</p>
-                  <p class="text-sm font-semibold text-blue-600">$${property.price_per_night}/night</p>
+                  ${property.price_per_night ? `<p class="text-sm font-semibold text-blue-600">$${property.price_per_night}/night</p>` : ''}
                 </div>
               `)
           )
@@ -86,7 +77,7 @@ const PropertyMap = ({ properties, selectedProperty }: PropertyMapProps) => {
         map.current = null;
       }
     };
-  }, [properties, selectedProperty, settings.mapboxToken]);
+  }, [properties, selectedProperty, settings.mapboxToken, siteName]);
 
   // Show placeholder if no mapbox token is configured
   if (!settings.mapboxToken || settings.mapboxToken.trim() === '') {

@@ -19,7 +19,7 @@ const categoryLabels = {
   outdoor: 'Outdoor'
 };
 
-const EnhancedEugeneEventsSection = () => {
+const EnhancedLocalEventsSection = () => {
   const { events, isLoading } = useEugeneEvents();
   const { trackInteraction } = useContentAnalytics();
   const [searchTerm, setSearchTerm] = useState('');
@@ -342,4 +342,4 @@ const EnhancedEugeneEventsSection = () => {
   );
 };
 
-export default EnhancedEugeneEventsSection;
+export default EnhancedLocalEventsSection;

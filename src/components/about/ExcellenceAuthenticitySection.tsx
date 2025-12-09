@@ -1,8 +1,13 @@
 
 import React from 'react';
 import { Award, Heart } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const ExcellenceAuthenticitySection = () => {
+  const { settings } = useTenantSettings();
+  const siteName = settings.site_name || 'Our Team';
+  const locationText = settings.heroLocationText || 'the area';
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
       <div className="max-w-6xl mx-auto">
@@ -27,7 +32,7 @@ const ExcellenceAuthenticitySection = () => {
             </div>
             <h4 className="text-xl font-semibold text-gray-900 mb-4">Authenticity</h4>
             <p className="text-gray-600 leading-relaxed">
-              We believe in showcasing the true essence of Oregon. From recommending local dining 
+              We believe in showcasing the true essence of {locationText}. From recommending local dining 
               experiences to offering outdoor activities, we provide an authentic and immersive 
               experience that allows guests to truly connect with the beauty and culture of the region.
             </p>
@@ -37,12 +42,12 @@ const ExcellenceAuthenticitySection = () => {
         {/* Quote section */}
         <div className="bg-gray-50 rounded-lg p-8 text-center">
           <blockquote className="text-xl text-gray-700 italic mb-6 leading-relaxed max-w-4xl mx-auto">
-            "Immerse yourself in the wonders of Oregon and indulge in the comfort, style, and hospitality 
-            that Moxie Vacation Rentals offers, guided by the expertise of our passionate team."
+            "Immerse yourself in the wonders of {locationText} and indulge in the comfort, style, and hospitality 
+            that we offer, guided by the expertise of our passionate team."
           </blockquote>
           
           <div className="border-t border-gray-200 pt-6 max-w-md mx-auto">
-            <p className="font-semibold text-gray-900 text-lg">— The Moxie Family</p>
+            <p className="font-semibold text-gray-900 text-lg">— {siteName}</p>
           </div>
         </div>
       </div>

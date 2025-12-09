@@ -11,7 +11,7 @@ import SocialProofSection from '@/components/home/SocialProofSection';
 import LocalInfoSection from '@/components/home/LocalInfoSection';
 import EnhancedLifestyleGallerySection from '@/components/home/EnhancedLifestyleGallerySection';
 import EnhancedWhatsNearbySection from '@/components/home/EnhancedWhatsNearbySection';
-import EnhancedEugeneEventsSection from '@/components/home/EnhancedEugeneEventsSection';
+import EnhancedLocalEventsSection from '@/components/home/EnhancedLocalEventsSection';
 import BookingBenefitsSection from '@/components/home/BookingBenefitsSection';
 import FinalFeaturesSection from '@/components/home/FinalFeaturesSection';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
@@ -56,7 +56,7 @@ const Index = () => {
         </section>
         
         <EnhancedWhatsNearbySection />
-        <EnhancedEugeneEventsSection />
+        <EnhancedLocalEventsSection />
         <BookingBenefitsSection />
         <FinalFeaturesSection />
       </main>

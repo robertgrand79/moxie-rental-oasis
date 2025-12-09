@@ -5,15 +5,19 @@ import PropertyMap from '@/components/PropertyMap';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import { MapPin, Headphones, Calendar } from 'lucide-react';
 import { useProperties } from '@/hooks/useProperties';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const Listings = () => {
   const { properties } = useProperties();
+  const { settings } = useTenantSettings();
+  
+  const locationText = settings.heroLocationText || 'your destination';
 
   const features = [
     {
       icon: MapPin,
       title: "Premium Locations",
-      description: "Handpicked properties in Eugene and the most desirable Pacific Northwest vacation destinations.",
+      description: `Handpicked properties in ${locationText} and the most desirable vacation destinations.`,
       color: "text-icon-emerald"
     },
     {
@@ -39,7 +43,7 @@ const Listings = () => {
             Our Vacation Rentals
           </h1>
           <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-            Discover our collection of premium vacation rental properties in Eugene, Oregon and the Pacific Northwest's most desirable destinations.
+            Discover our collection of premium vacation rental properties in {locationText}.
           </p>
         </div>
 
