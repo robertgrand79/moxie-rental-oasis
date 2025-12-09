@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, Lock, Plug, CheckCircle2, AlertCircle, Map } from 'lucide-react';
+import { MessageSquare, Lock, Plug, CheckCircle2, AlertCircle, Map, Bot } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationOperations } from '@/hooks/useOrganizationOperations';
 import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import AssistantSettingsTab from '@/components/admin/settings/AssistantSettingsTab';
 
 const ConfigStatus = ({ configured }: { configured: boolean }) => (
   <span className={`flex items-center gap-1 text-sm ${configured ? 'text-green-600' : 'text-muted-foreground'}`}>
@@ -113,8 +114,12 @@ const IntegrationsSettingsPanel = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="communications" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="ai-assistant" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="ai-assistant" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            AI Assistant
+          </TabsTrigger>
           <TabsTrigger value="communications" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Communications
@@ -132,6 +137,10 @@ const IntegrationsSettingsPanel = () => {
             Maps
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="ai-assistant" className="mt-6">
+          <AssistantSettingsTab />
+        </TabsContent>
 
         <TabsContent value="communications" className="mt-6">
           <Card>
