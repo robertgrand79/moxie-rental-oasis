@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, Loader2 } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface LifestyleGenerationFormProps {
   onGenerate: (prompt: string, numberOfItems: number, focusArea: string) => void;
@@ -18,6 +19,9 @@ const LifestyleGenerationForm = ({
   const [prompt, setPrompt] = useState('');
   const [numberOfItems, setNumberOfItems] = useState(5);
   const [focusArea, setFocusArea] = useState('');
+  const { settings } = useTenantSettings();
+  
+  const locationText = settings.heroLocationText || 'your area';
 
   const handleGenerate = () => {
     onGenerate(prompt, numberOfItems, focusArea);
@@ -54,7 +58,7 @@ const LifestyleGenerationForm = ({
           id="prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe the types of lifestyle activities you want to generate for Eugene, Oregon..."
+          placeholder={`Describe the types of lifestyle activities you want to generate for ${locationText}...`}
           rows={4}
         />
       </div>

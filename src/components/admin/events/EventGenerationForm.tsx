@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, Loader2 } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface EventGenerationFormProps {
   prompt: string;
@@ -31,6 +32,9 @@ const EventGenerationForm = ({
   isGenerating,
   onGenerate
 }: EventGenerationFormProps) => {
+  const { settings } = useTenantSettings();
+  const locationText = settings.heroLocationText || 'your area';
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -77,7 +81,7 @@ const EventGenerationForm = ({
           id="prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe the types of events you want to generate for Eugene, Oregon..."
+          placeholder={`Describe the types of events you want to generate for ${locationText}...`}
           rows={4}
         />
       </div>

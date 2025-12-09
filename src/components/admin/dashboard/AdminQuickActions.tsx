@@ -31,9 +31,9 @@ const AdminQuickActions = () => {
     },
     {
       title: 'Add Event',
-      description: 'Create a new Eugene event',
+      description: 'Create a new local event',
       icon: <Calendar className="h-4 w-4" />,
-      action: () => navigate('/admin/eugene-events?action=create'),
+      action: () => navigate('/admin/events?action=create'),
       variant: 'default' as const,
     },
     {

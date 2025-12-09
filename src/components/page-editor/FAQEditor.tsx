@@ -34,7 +34,7 @@ const FAQEditor = ({ content, onChange }: FAQEditorProps) => {
         id: 'general',
         title: '🏡 General',
         items: [
-          { id: '1', question: 'Where are the properties located?', answer: 'All homes are located in Eugene, Oregon, close to the University of Oregon and downtown.' }
+          { id: '1', question: 'Where are the properties located?', answer: 'Our properties are conveniently located near local attractions and amenities.' }
         ]
       }
     ];

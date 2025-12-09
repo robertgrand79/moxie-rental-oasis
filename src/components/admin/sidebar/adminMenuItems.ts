@@ -52,7 +52,7 @@ export const adminMenuItems = [
         description: 'Newsletter campaigns and subscribers'
       },
       {
-        title: 'Stay Moxie Assistant',
+        title: 'AI Assistant',
         href: '/admin/ai-assistant',
         icon: Sparkles,
         description: 'Your AI-powered assistant for content and productivity'
