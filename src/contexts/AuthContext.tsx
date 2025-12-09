@@ -308,11 +308,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { error } = await supabase.auth.signOut();
     
     if (!error) {
+      // Clear all auth-related state
       setUserRole(null);
       setIsAdmin(false);
       setProfile(null);
       setRoleLoading(false);
-      console.log('✅ Sign out successful');
+      
+      // CRITICAL: Clear session storage to prevent user context mixing
+      sessionStorage.removeItem('current_tenant_slug');
+      sessionStorage.removeItem('chat_session_id');
+      sessionStorage.removeItem('client_id');
+      sessionStorage.removeItem('ga-connected-shown');
+      sessionStorage.removeItem('ga_retry_count');
+      
+      console.log('✅ Sign out successful, session storage cleared');
     } else {
       console.error('❌ Sign out error:', error);
     }

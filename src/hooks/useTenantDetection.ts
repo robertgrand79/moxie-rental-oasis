@@ -84,6 +84,20 @@ export const useTenantDetection = (): TenantDetectionResult => {
     return null;
   }, [isAdminRoute]);
 
+  // Listen for auth state changes to clear tenant cache when user logs out
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        console.log('🔄 User signed out, clearing tenant cache');
+        sessionStorage.removeItem('current_tenant_slug');
+        setTenant(null);
+        setIsDefaultTenant(true);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
     
