@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Settings, CreditCard, DollarSign, Building2, Shield, Crown, UserCog, MessageSquare, Lock, Plug, CheckCircle2, AlertCircle, Users, ExternalLink } from 'lucide-react';
+import { Settings, CreditCard, DollarSign, Building2, Shield, Crown, UserCog, MessageSquare, Lock, Plug, CheckCircle2, AlertCircle, Users, ExternalLink, Receipt } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PriceLabsSettings } from '@/components/admin/settings/PriceLabsSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import BillingSubscriptionTab from '@/components/admin/organization/BillingSubscriptionTab';
 
 const AdminOrganization = () => {
   const { organization, membership, isPlatformAdmin, loading, isOrgAdmin, canManageOrganization, refetch } = useCurrentOrganization();
@@ -231,10 +232,14 @@ const AdminOrganization = () => {
         </div>
 
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               General
+            </TabsTrigger>
+            <TabsTrigger value="billing" className="flex items-center gap-2">
+              <Receipt className="h-4 w-4" />
+              Billing
             </TabsTrigger>
             <TabsTrigger value="stripe" className="flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
@@ -326,6 +331,10 @@ const AdminOrganization = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="billing" className="mt-6">
+            <BillingSubscriptionTab />
           </TabsContent>
 
           <TabsContent value="stripe" className="mt-6">

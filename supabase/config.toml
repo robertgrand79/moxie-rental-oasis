@@ -109,6 +109,9 @@ verify_jwt = false
 [functions.sync-stripe-products]
 verify_jwt = false
 
+[functions.create-customer-portal-session]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323
