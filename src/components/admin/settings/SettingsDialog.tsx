@@ -54,6 +54,77 @@ const SettingsDialog = ({
   setMapboxToken,
   updateSetting
 }: SettingsDialogProps) => {
+  const [saving, setSaving] = React.useState(false);
+
+  // Save handler for site-info (General Information)
+  const handleSaveSiteInfo = async () => {
+    setSaving(true);
+    try {
+      const fieldsToSave = ['siteName', 'tagline', 'description'];
+      let allSuccessful = true;
+      
+      for (const field of fieldsToSave) {
+        const value = siteData[field];
+        if (value !== undefined) {
+          const success = await updateSetting(field, value);
+          if (!success) allSuccessful = false;
+        }
+      }
+      
+      if (allSuccessful) {
+        setDialogOpen(false);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Save handler for hero-section
+  const handleSaveHeroSection = async () => {
+    setSaving(true);
+    try {
+      const fieldsToSave = ['heroTitle', 'heroSubtitle', 'heroDescription', 'heroBackgroundImage', 'heroLocationText', 'heroRating', 'heroCTAText'];
+      let allSuccessful = true;
+      
+      for (const field of fieldsToSave) {
+        const value = siteData[field];
+        if (value !== undefined) {
+          const success = await updateSetting(field, value);
+          if (!success) allSuccessful = false;
+        }
+      }
+      
+      if (allSuccessful) {
+        setDialogOpen(false);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Save handler for contact-info
+  const handleSaveContactInfo = async () => {
+    setSaving(true);
+    try {
+      const fieldsToSave = ['contactEmail', 'phone', 'address', 'socialMedia'];
+      let allSuccessful = true;
+      
+      for (const field of fieldsToSave) {
+        const value = siteData[field];
+        if (value !== undefined) {
+          const success = await updateSetting(field, value);
+          if (!success) allSuccessful = false;
+        }
+      }
+      
+      if (allSuccessful) {
+        setDialogOpen(false);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const renderSettingContent = () => {
     switch (selectedSetting) {
       case 'site-info':
@@ -61,8 +132,8 @@ const SettingsDialog = ({
           <GeneralInformationSettings
             siteData={siteData}
             onInputChange={onInputChange}
-            onSave={onSaveSettings}
-            saving={false}
+            onSave={handleSaveSiteInfo}
+            saving={saving}
           />
         );
       case 'hero-section':
@@ -78,8 +149,8 @@ const SettingsDialog = ({
               heroCTAText: siteData.heroCTAText || ''
             }}
             onInputChange={onInputChange}
-            onSave={onSaveSettings}
-            saving={{}}
+            onSave={handleSaveHeroSection}
+            saving={{ heroSection: saving }}
           />
         );
       case 'contact-info':
@@ -91,8 +162,8 @@ const SettingsDialog = ({
               address: siteData.address || ''
             }}
             onInputChange={onInputChange}
-            onSave={onSaveSettings}
-            saving={{}}
+            onSave={handleSaveContactInfo}
+            saving={{ contactInfo: saving }}
           />
         );
       case 'design-branding':
@@ -105,26 +176,28 @@ const SettingsDialog = ({
             analyticsData={analyticsData}
             setAnalyticsData={setAnalyticsData}
             onSave={async () => {
-              // Save all analytics fields, not just Google Analytics ID
-              const settingsToSave = [
-                { key: 'googleAnalyticsId', value: analyticsData.googleAnalyticsId },
-                { key: 'googleTagManagerId', value: analyticsData.googleTagManagerId },
-                { key: 'facebookPixelId', value: analyticsData.facebookPixelId },
-                { key: 'customHeaderScripts', value: analyticsData.customHeaderScripts },
-                { key: 'customFooterScripts', value: analyticsData.customFooterScripts },
-                { key: 'customCss', value: analyticsData.customCss }
-              ];
+              setSaving(true);
+              try {
+                const settingsToSave = [
+                  { key: 'googleAnalyticsId', value: analyticsData.googleAnalyticsId },
+                  { key: 'googleTagManagerId', value: analyticsData.googleTagManagerId },
+                  { key: 'facebookPixelId', value: analyticsData.facebookPixelId },
+                  { key: 'customHeaderScripts', value: analyticsData.customHeaderScripts },
+                  { key: 'customFooterScripts', value: analyticsData.customFooterScripts },
+                  { key: 'customCss', value: analyticsData.customCss }
+                ];
 
-              let allSuccessful = true;
-              for (const setting of settingsToSave) {
-                const success = await updateSetting(setting.key, setting.value);
-                if (!success) {
-                  allSuccessful = false;
+                let allSuccessful = true;
+                for (const setting of settingsToSave) {
+                  const success = await updateSetting(setting.key, setting.value);
+                  if (!success) allSuccessful = false;
                 }
-              }
 
-              if (allSuccessful) {
-                setDialogOpen(false);
+                if (allSuccessful) {
+                  setDialogOpen(false);
+                }
+              } finally {
+                setSaving(false);
               }
             }}
           />
