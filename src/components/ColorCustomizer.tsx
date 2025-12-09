@@ -6,9 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Palette, RotateCcw, Save } from 'lucide-react';
+import AIPaletteGenerator from '@/components/admin/settings/AIPaletteGenerator';
+
+interface ColorPalette {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  text: string;
+  muted: string;
+}
 
 const ColorCustomizer = () => {
-  const [colors, setColors] = useState({
+  const [colors, setColors] = useState<ColorPalette>({
     primary: '#767b8d',
     secondary: '#8b929a',
     accent: '#cbcfd2',
@@ -154,8 +164,13 @@ const ColorCustomizer = () => {
     }));
   };
 
+  const handleApplyAIPalette = (palette: ColorPalette) => {
+    setColors(palette);
+  };
+
   return (
     <div className="space-y-6">
+      <AIPaletteGenerator onApplyPalette={handleApplyAIPalette} />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
