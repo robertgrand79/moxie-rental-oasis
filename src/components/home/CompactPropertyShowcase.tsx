@@ -8,9 +8,15 @@ import { useProperties } from '@/hooks/useProperties';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import OptimizedImage from '@/components/ui/optimized-image';
 import PropertyCardSkeleton from '@/components/ui/property-card-skeleton';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const CompactPropertyShowcase = () => {
   const { properties, loading } = useProperties();
+  const { settings } = useTenantSettings();
+
+  const sectionTitle = settings.propertiesSectionTitle || 'Our Properties';
+  const sectionDescription = settings.propertiesSectionDescription || 
+    'Discover our handpicked collection of vacation rentals';
 
   return (
     <section className="py-20 relative">
@@ -19,11 +25,11 @@ const CompactPropertyShowcase = () => {
           {/* Section Header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              Our Eugene Properties
+              {sectionTitle}
             </h2>
             <div className="w-20 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-8 rounded-full"></div>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Discover our handpicked collection of vacation rentals in Eugene's most desirable neighborhoods.
+              {sectionDescription}
             </p>
           </div>
           

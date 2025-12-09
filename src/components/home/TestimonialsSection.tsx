@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import TestimonialCard from '@/components/ui/testimonial-card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface Testimonial {
   id: string;
@@ -26,6 +27,10 @@ const TestimonialsSection = () => {
   const [allTestimonials, setAllTestimonials] = useState<Testimonial[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const pageSize = 6;
+  const { settings } = useTenantSettings();
+
+  const sectionDescription = settings.testimonialsSectionDescription || 
+    'Real experiences from travelers who\'ve stayed with us';
 
   const { data: testimonialResult, isLoading, isFetching } = useQuery({
     queryKey: ['testimonials-featured', page],
@@ -96,7 +101,7 @@ const TestimonialsSection = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground mb-4">What Our Guests Say</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Real experiences from travelers who've made Eugene their home away from home
+            {sectionDescription}
           </p>
         </div>
 

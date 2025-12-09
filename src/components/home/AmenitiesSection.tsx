@@ -1,8 +1,14 @@
 
 import React from 'react';
 import { Wifi, Car, Coffee, Utensils, Tv, Waves, TreePine, Dumbbell } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const AmenitiesSection = () => {
+  const { settings } = useTenantSettings();
+
+  const sectionDescription = settings.amenitiesSectionDescription || 
+    'Our properties come thoughtfully equipped with everything you need for a comfortable stay';
+
   const amenities = [
     { icon: Wifi, name: "High-Speed WiFi", color: "text-icon-blue" },
     { icon: Car, name: "Free Parking", color: "text-icon-gray" },
@@ -25,7 +31,7 @@ const AmenitiesSection = () => {
             </h2>
             <div className="w-16 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-6 rounded-full"></div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Every Moxie property comes thoughtfully equipped with everything you need for a comfortable stay
+              {sectionDescription}
             </p>
           </div>
 
