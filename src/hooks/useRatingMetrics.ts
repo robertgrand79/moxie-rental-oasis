@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 export interface RatingMetrics {
   averageRating: number;
@@ -9,14 +10,31 @@ export interface RatingMetrics {
 }
 
 export const useRatingMetrics = () => {
+  const { tenantId } = useTenant();
+
   const { data: metrics, isLoading, error } = useQuery({
-    queryKey: ['rating-metrics'],
+    queryKey: ['rating-metrics', tenantId],
     queryFn: async (): Promise<RatingMetrics> => {
-      console.log('🔄 Fetching rating metrics...');
+      if (!tenantId) {
+        return {
+          averageRating: 0,
+          totalReviews: 0,
+          formattedRating: '0.0',
+          reviewText: '0 Reviews'
+        };
+      }
+
+      console.log('🔄 Fetching rating metrics for tenant:', tenantId);
+      
+      // Query testimonials that belong to tenant's properties
       const { data, error } = await supabase
         .from('testimonials')
-        .select('rating')
+        .select(`
+          rating,
+          properties!inner(organization_id)
+        `)
         .eq('is_active', true)
+        .eq('properties.organization_id', tenantId)
         .not('rating', 'is', null);
       
       if (error) {
@@ -44,6 +62,7 @@ export const useRatingMetrics = () => {
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!tenantId
   });
 
   return {

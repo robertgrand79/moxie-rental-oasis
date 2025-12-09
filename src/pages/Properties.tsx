@@ -1,13 +1,17 @@
 
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
 import PropertyList from '@/components/PropertyList';
 import { useProperties } from '@/hooks/useProperties';
 import LoadingState from '@/components/ui/loading-state';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const Properties = () => {
   const { properties, loading } = useProperties();
+  const { settings } = useTenantSettings();
+
+  // Dynamic location text from tenant settings
+  const locationText = settings.heroLocationText || settings.location || 'our area';
 
   if (loading) {
     return (
@@ -29,7 +33,7 @@ const Properties = () => {
                 Our Properties
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Discover our carefully curated collection of vacation rental properties in Eugene, Oregon.
+                Discover our carefully curated collection of vacation rental properties in {locationText}.
               </p>
             </div>
 

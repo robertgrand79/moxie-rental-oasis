@@ -6,6 +6,7 @@ import TestimonialCard from '@/components/ui/testimonial-card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface Testimonial {
   id: string;
@@ -28,25 +29,33 @@ const TestimonialsSection = () => {
   const [hasMore, setHasMore] = useState(true);
   const pageSize = 6;
   const { settings } = useTenantSettings();
+  const { tenantId } = useTenant();
 
   const sectionDescription = settings.testimonialsSectionDescription || 
     'Real experiences from travelers who\'ve stayed with us';
 
   const { data: testimonialResult, isLoading, isFetching } = useQuery({
-    queryKey: ['testimonials-featured', page],
+    queryKey: ['testimonials-featured', page, tenantId],
     queryFn: async () => {
+      if (!tenantId) return { data: [], count: 0 };
+      
+      // Query testimonials that belong to tenant's properties
       const { data, error, count } = await supabase
         .from('testimonials')
-        .select('*', { count: 'exact' })
+        .select(`
+          *,
+          properties!inner(organization_id)
+        `, { count: 'exact' })
         .eq('is_active', true)
+        .eq('properties.organization_id', tenantId)
         .order('created_at', { ascending: false })
-        .order('display_order', { ascending: true })
         .range(page * pageSize, (page + 1) * pageSize - 1);
       
       if (error) throw error;
       
       return { data: data as Testimonial[], count: count || 0 };
-    }
+    },
+    enabled: !!tenantId
   });
 
   useEffect(() => {

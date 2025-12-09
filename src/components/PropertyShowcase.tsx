@@ -6,9 +6,14 @@ import { MapPin, Bed, Bath, Users, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
 import { generateAddressSlug } from '@/utils/addressSlug';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const PropertyShowcase = () => {
   const { properties, loading } = useProperties();
+  const { settings } = useTenantSettings();
+
+  // Dynamic location text from tenant settings
+  const locationText = settings.heroLocationText || settings.location || 'our area';
 
   if (loading) {
     return (
@@ -16,10 +21,10 @@ const PropertyShowcase = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Our Eugene Properties
+              Our Properties
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover our handpicked collection of vacation rentals in Eugene, Oregon.
+              Discover our handpicked collection of vacation rentals in {locationText}.
             </p>
           </div>
           <div className="flex justify-center items-center py-12">
@@ -36,10 +41,10 @@ const PropertyShowcase = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Our Eugene Properties
+            Our Properties
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Discover our handpicked collection of vacation rentals in Eugene, Oregon.
+            Discover our handpicked collection of vacation rentals in {locationText}.
           </p>
         </div>
         
