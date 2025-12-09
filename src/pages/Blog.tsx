@@ -14,11 +14,13 @@ import BlogPostsGrid from '@/components/blog/BlogPostsGrid';
 import BlogSidebar from '@/components/blog/BlogSidebar';
 import BlogEmptyState from '@/components/blog/BlogEmptyState';
 import BlogErrorState from '@/components/blog/BlogErrorState';
+import { useTenant } from '@/contexts/TenantContext';
 
 const Blog = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const { tenantId } = useTenant();
   
   // Check if user wants to view all posts initially
   const viewAll = searchParams.get('view') === 'all';
@@ -41,7 +43,8 @@ const Blog = () => {
     searchQuery: debouncedSearchQuery,
     category: selectedCategory,
     pageSize: initialPageSize,
-    loadMoreSize: loadMoreSize
+    loadMoreSize: loadMoreSize,
+    organizationId: tenantId
   });
 
   console.log('🎯 Blog page - posts:', blogPosts.length, 'loading:', loading, 'hasMore:', hasMore);
