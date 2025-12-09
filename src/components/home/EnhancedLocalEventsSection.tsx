@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar, Clock, MapPin, ExternalLink, Ticket, Search, Filter } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
-import { useLocalEvents } from '@/hooks/useLocalEvents';
+import { useTenantLocalEvents } from '@/hooks/useTenantLocalEvents';
 import { format, parseISO, isAfter, isBefore, addDays } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -20,7 +20,7 @@ const categoryLabels = {
 };
 
 const EnhancedLocalEventsSection = () => {
-  const { events, isLoading } = useLocalEvents();
+  const { events, isLoading } = useTenantLocalEvents();
   const { trackInteraction } = useContentAnalytics();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');

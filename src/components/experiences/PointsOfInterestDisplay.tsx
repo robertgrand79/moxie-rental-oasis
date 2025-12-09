@@ -15,11 +15,11 @@ import {
   Filter,
   DollarSign
 } from 'lucide-react';
-import { usePointsOfInterest } from '@/hooks/usePointsOfInterest';
+import { useTenantPointsOfInterest } from '@/hooks/useTenantPointsOfInterest';
 import OptimizedImage from '@/components/ui/optimized-image';
 
 const PointsOfInterestDisplay = () => {
-  const { pointsOfInterest, isLoading } = usePointsOfInterest();
+  const { pointsOfInterest, isLoading } = useTenantPointsOfInterest();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('rating');
