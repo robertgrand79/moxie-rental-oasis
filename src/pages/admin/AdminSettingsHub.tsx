@@ -13,7 +13,9 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { useSettingsCompletion } from '@/hooks/useSettingsCompletion';
 
 // Sub-page components
 import OrganizationSettingsPanel from '@/components/admin/settings-hub/OrganizationSettingsPanel';
@@ -83,6 +85,7 @@ const AdminSettingsHub = () => {
   const [activeSection, setActiveSection] = useState<SettingsSection>('hub');
   const { organization } = useCurrentOrganization();
   const navigate = useNavigate();
+  const { data: completion, isLoading: completionLoading } = useSettingsCompletion();
 
   const handleTileClick = (sectionId: SettingsSection) => {
     setActiveSection(sectionId);
@@ -104,6 +107,22 @@ const AdminSettingsHub = () => {
     return tile?.description || '';
   };
 
+  const getBadgeText = (categoryId: string) => {
+    const cat = completion?.categories[categoryId];
+    if (!cat) return undefined;
+    
+    switch (cat.status) {
+      case 'complete':
+        return 'Complete';
+      case 'partial':
+        return `${cat.complete}/${cat.total}`;
+      case 'needs-setup':
+        return 'Needs Setup';
+      default:
+        return undefined;
+    }
+  };
+
   const renderContent = () => {
     switch (activeSection) {
       case 'organization':
@@ -122,16 +141,39 @@ const AdminSettingsHub = () => {
         return <LocalContentSettingsPanel />;
       default:
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {settingsTiles.map((tile) => (
-              <SettingsTile
-                key={tile.id}
-                title={tile.title}
-                description={tile.description}
-                icon={tile.icon}
-                onClick={() => handleTileClick(tile.id)}
-              />
-            ))}
+          <div className="space-y-6">
+            {/* Progress Section */}
+            {completion && (
+              <div className="bg-card border rounded-lg p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-semibold text-lg">Site Setup Progress</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {completion.completeCount} of {completion.totalCount} sections complete
+                    </p>
+                  </div>
+                  <span className="text-2xl font-bold text-primary">
+                    {completion.overallPercentage}%
+                  </span>
+                </div>
+                <Progress value={completion.overallPercentage} className="h-2" />
+              </div>
+            )}
+
+            {/* Settings Tiles Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {settingsTiles.map((tile) => (
+                <SettingsTile
+                  key={tile.id}
+                  title={tile.title}
+                  description={tile.description}
+                  icon={tile.icon}
+                  onClick={() => handleTileClick(tile.id)}
+                  badge={getBadgeText(tile.id)}
+                  badgeVariant={completion?.categories[tile.id]?.status}
+                />
+              ))}
+            </div>
           </div>
         );
     }
