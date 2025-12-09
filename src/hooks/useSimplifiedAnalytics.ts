@@ -133,14 +133,11 @@ export const useSimplifiedAnalytics = () => {
               .eq('booking_status', 'confirmed')
           : Promise.resolve({ data: [] }),
         
-        // Reviews/testimonials
-        propertyIds.length > 0 
-          ? supabase
-              .from('testimonials')
-              .select('rating')
-              .in('property_id', propertyIds)
-              .eq('is_active', true)
-          : Promise.resolve({ data: [] }),
+        // Reviews/testimonials - get all active reviews for org properties OR without property_id
+        supabase
+          .from('testimonials')
+          .select('rating, property_id')
+          .eq('is_active', true),
       ]);
 
       // Calculate revenue
@@ -149,8 +146,11 @@ export const useSimplifiedAnalytics = () => {
         0
       ) || 0;
 
-      // Calculate average rating
-      const reviews = reviewsResult.data || [];
+      // Calculate average rating - include reviews with matching property_id OR no property_id (org-level)
+      const allReviews = reviewsResult.data || [];
+      const reviews = allReviews.filter(r => 
+        !r.property_id || propertyIds.includes(r.property_id)
+      );
       const totalReviews = reviews.length;
       const averageRating = totalReviews > 0 
         ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / totalReviews 

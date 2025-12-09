@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { useSimplifiedAnalytics } from '@/hooks/useSimplifiedAnalytics';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 
 const SimplifiedAnalyticsDashboard = () => {
@@ -272,31 +271,6 @@ const SimplifiedAnalyticsDashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardContent className="pt-6">
-          <h3 className="text-sm font-medium mb-4">Quick Actions</h3>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/admin/host/bookings">View Bookings</Link>
-            </Button>
-            {analytics.openWorkOrders > 0 && (
-              <Button variant="outline" size="sm" asChild className="border-red-500/50 text-red-500 hover:bg-red-500/10">
-                <Link to="/admin/work-orders">Work Orders ({analytics.openWorkOrders})</Link>
-              </Button>
-            )}
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/admin/newsletter">Newsletters</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/admin/settings">Settings</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/admin/properties">Properties</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
