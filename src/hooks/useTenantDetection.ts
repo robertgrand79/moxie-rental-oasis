@@ -44,6 +44,13 @@ export const useTenantDetection = (): TenantDetectionResult => {
       return null;
     }
 
+    // Check for org query parameter first (used by "Back to Site" button)
+    const urlParams = new URLSearchParams(window.location.search);
+    const orgSlug = urlParams.get('org');
+    if (orgSlug) {
+      return orgSlug;
+    }
+
     const hostname = window.location.hostname;
     
     // Check if it's a custom domain (not lovable.app or localhost)

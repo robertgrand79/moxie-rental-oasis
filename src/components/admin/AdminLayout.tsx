@@ -6,14 +6,32 @@ import OrganizationBadge from './OrganizationBadge';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
-
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const isMobile = useIsMobile();
+  const { organization } = useCurrentOrganization();
 
+  // Determine the "Back to Site" destination based on organization context
+  const getBackToSiteUrl = () => {
+    // If organization has a website configured, use that
+    if (organization?.website) {
+      // Ensure it starts with http
+      const website = organization.website;
+      return website.startsWith('http') ? website : `https://${website}`;
+    }
+    // Fallback: use query param to hint tenant context
+    if (organization?.slug) {
+      return `/?org=${organization.slug}`;
+    }
+    return '/';
+  };
+
+  const backUrl = getBackToSiteUrl();
+  const isExternalUrl = backUrl.startsWith('http');
   return (
     <div className="min-h-screen bg-muted/30 w-full">
       <SidebarProvider defaultOpen={!isMobile}>
@@ -29,11 +47,19 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                   asChild 
                   className={isMobile ? 'min-h-[44px]' : ''}
                 >
-                  <Link to="/" className="flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
-                    <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                  </Link>
+                  {isExternalUrl ? (
+                    <a href={backUrl} className="flex items-center gap-2">
+                      <ArrowLeft className="h-4 w-4" />
+                      <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
+                      <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
+                    </a>
+                  ) : (
+                    <Link to={backUrl} className="flex items-center gap-2">
+                      <ArrowLeft className="h-4 w-4" />
+                      <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
+                      <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
+                    </Link>
+                  )}
                 </EnhancedButton>
                 
                 {/* Organization context badge */}
