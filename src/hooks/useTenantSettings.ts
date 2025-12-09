@@ -19,6 +19,9 @@ interface TenantSettings {
   hero_subtitle?: string;
   hero_image_url?: string;
   footer_text?: string;
+  // Blog settings
+  blogTitle?: string;
+  blogDescription?: string;
   [key: string]: string | undefined;
 }
 
