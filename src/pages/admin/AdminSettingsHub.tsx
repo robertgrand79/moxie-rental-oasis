@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
-import SettingsTile from '@/components/admin/settings/SettingsTile';
+import SettingsTile from '@/components/admin/settings-hub/SettingsTile';
 import { 
   Building2, 
   Globe, 
