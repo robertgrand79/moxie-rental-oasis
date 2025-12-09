@@ -92,12 +92,24 @@ const AdminSidebarFooter = () => {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      const { error } = await signOut();
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to sign out. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       toast({
         title: "Signed Out",
         description: "You have been successfully signed out.",
       });
-      navigate('/');
+      
+      // Force navigation and page reload to ensure clean state
+      window.location.href = '/';
     } catch (error: any) {
       toast({
         title: "Error",
