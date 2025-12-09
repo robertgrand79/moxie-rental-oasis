@@ -30,10 +30,12 @@ import {
   Clock,
   Globe,
   Building,
-  Settings
+  Settings,
+  Layout
 } from 'lucide-react';
 import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
+import TemplateOrganizations from '@/components/admin/superadmin/TemplateOrganizations';
 import SubscriptionControls from '@/components/admin/superadmin/SubscriptionControls';
 import { format } from 'date-fns';
 import {
@@ -294,6 +296,10 @@ const SuperAdminPanel = () => {
               <Building2 className="h-4 w-4" />
               Organizations
             </TabsTrigger>
+            <TabsTrigger value="templates" className="flex items-center gap-2">
+              <Layout className="h-4 w-4" />
+              Templates
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Settings
@@ -400,9 +406,17 @@ const SuperAdminPanel = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="templates" className="mt-6 space-y-6">
+            <TemplatesManager />
+            <TemplateOrganizations 
+              organizations={organizations} 
+              loading={loadingOrgs}
+              onRefresh={() => refetchOrgs?.()}
+            />
+          </TabsContent>
+
           <TabsContent value="settings" className="mt-6 space-y-6">
             <PlatformStripeSettings />
-            <TemplatesManager />
           </TabsContent>
         </Tabs>
       </div>
