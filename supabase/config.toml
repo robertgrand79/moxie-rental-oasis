@@ -115,6 +115,9 @@ verify_jwt = false
 [functions.generate-social-post]
 verify_jwt = false
 
+[functions.generate-color-palette]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323
