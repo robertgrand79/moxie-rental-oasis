@@ -6,9 +6,10 @@ import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const TermsOfService = () => {
   const { settings } = useTenantSettings();
-  const siteName = settings.site_name || 'Our Company';
-  const contactEmail = settings.contact_email || '';
-  const contactPhone = settings.contact_phone || '';
+  // Handle both camelCase and snake_case key conventions
+  const siteName = settings.siteName || settings.site_name || 'Our Company';
+  const contactEmail = settings.contactEmail || settings.contact_email || '';
+  const contactPhone = settings.phone || settings.contact_phone || '';
   const address = settings.address || '';
 
   return (
