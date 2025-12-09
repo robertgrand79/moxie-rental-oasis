@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   MessageSquare,
   ClipboardList,
+  Sparkles,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -49,6 +50,12 @@ export const adminMenuItems = [
         href: '/admin/newsletter',
         icon: Mail,
         description: 'Newsletter campaigns and subscribers'
+      },
+      {
+        title: 'AI Assistant',
+        href: '/admin/ai-assistant',
+        icon: Sparkles,
+        description: 'Generate social media posts from your content'
       }
     ]
   },

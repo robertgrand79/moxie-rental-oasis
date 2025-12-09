@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import {
   Sidebar,
@@ -7,7 +6,6 @@ import {
 } from '@/components/ui/sidebar';
 import AdminSidebarSection from './sidebar/AdminSidebarSection';
 import AdminSidebarFooter from './sidebar/AdminSidebarFooter';
-import SidebarAIAssistant from './sidebar/SidebarAIAssistant';
 import { adminMenuItems } from './sidebar/adminMenuItems';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
@@ -77,7 +75,6 @@ const AdminSidebar = () => {
           />
         ))}
       </SidebarContent>
-      <SidebarAIAssistant />
       <AdminSidebarFooter />
     </Sidebar>
   );
