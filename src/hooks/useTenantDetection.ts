@@ -84,9 +84,10 @@ export const useTenantDetection = (): TenantDetectionResult => {
     if (!hostname.includes('lovable.app') && 
         !hostname.includes('localhost') && 
         !hostname.includes('127.0.0.1')) {
-      // It's a custom domain - use the full hostname
-      console.log('🏷️ Tenant from custom domain:', hostname);
-      return hostname;
+      // It's a custom domain - strip www. prefix for consistent DB matching
+      const cleanHostname = hostname.replace(/^www\./, '');
+      console.log('🏷️ Tenant from custom domain:', cleanHostname);
+      return cleanHostname;
     }
     
     // On Lovable preview or localhost WITHOUT explicit tenant - this is platform site
