@@ -223,7 +223,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     }
   };
 
-  const handleContentImport = (contentType: 'blog_posts' | 'events' | 'places', items: (BlogPost | EugeneEvent | Place)[]) => {
+  const handleContentImport = (contentType: 'blog_posts' | 'events' | 'places', items: (BlogPost | LocalEvent | Place)[]) => {
     console.log('🔄 handleContentImport called with:', { contentType, itemCount: items.length, items });
     
     const template = generateContentTemplate(contentType, items);
