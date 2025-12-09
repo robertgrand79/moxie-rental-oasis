@@ -12,7 +12,7 @@ import PropertyReviewsSection from '@/components/property/PropertyReviewsSection
 import IntegratedBookingSection from '@/components/property/IntegratedBookingSection';
 import TestimonialsSection from './TestimonialsSection';
 import EnhancedWhatsNearbySection from './EnhancedWhatsNearbySection';
-import EnhancedEugeneEventsSection from './EnhancedEugeneEventsSection';
+import EnhancedLocalEventsSection from './EnhancedLocalEventsSection';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import BackgroundWrapper from './BackgroundWrapper';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -141,7 +141,7 @@ const SinglePropertyHome: React.FC = () => {
         <EnhancedWhatsNearbySection />
 
         {/* Local Events */}
-        <EnhancedEugeneEventsSection />
+        <EnhancedLocalEventsSection />
       </main>
     </BackgroundWrapper>
   );

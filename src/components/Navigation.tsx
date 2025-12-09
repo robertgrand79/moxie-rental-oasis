@@ -22,7 +22,7 @@ import {
 const publicNavItems = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Properties', href: '/properties', icon: Building },
-  { name: 'Eugene Life', href: '/eugene-life', icon: MapPin },
+  { name: 'Local Life', href: '/eugene-life', icon: MapPin },
   { name: 'Events', href: '/events', icon: Calendar },
   { name: 'Blog', href: '/blog', icon: BookOpen },
   { name: 'Contact', href: '/contact', icon: MessageCircle },
@@ -34,7 +34,7 @@ const adminNavItems = [
   { name: 'Work Orders', href: '/admin/workorders', icon: Wrench },
   { name: 'Contractors', href: '/admin/contractors', icon: Users },
   { name: 'Users', href: '/admin/users', icon: Users },
-  { name: 'Eugene Events', href: '/admin/eugene-events', icon: Calendar },
+  { name: 'Local Events', href: '/admin/eugene-events', icon: Calendar },
   { name: 'Lifestyle Gallery', href: '/admin/lifestyle-gallery', icon: Image },
   { name: 'Points of Interest', href: '/admin/points-of-interest', icon: MapPin },
   { name: 'Testimonials', href: '/admin/testimonials', icon: Star },

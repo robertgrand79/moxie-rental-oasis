@@ -5,8 +5,13 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Home, Users, Phone, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NewsletterSignup from '@/components/NewsletterSignup';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const BlogPostFooter = () => {
+  const { settings } = useTenantSettings();
+  const locationText = settings.heroLocationText || 'your destination';
+  const siteName = settings.site_name || 'our vacation rentals';
+
   return (
     <div className="space-y-8 mt-12 pt-8 border-t border-border">
       {/* Newsletter Signup Section */}
@@ -16,17 +21,17 @@ const BlogPostFooter = () => {
             Enjoyed this post?
           </h3>
           <p className="text-muted-foreground">
-            Get more travel insights, local Eugene tips, and exclusive offers delivered to your inbox.
+            Get more travel insights, local tips, and exclusive offers delivered to your inbox.
           </p>
         </div>
         <NewsletterSignup />
       </div>
 
-      {/* Moxie Vacation Rentals Links */}
+      {/* Vacation Rentals Links */}
       <Card className="bg-gradient-to-br from-primary/5 to-accent/10 border-primary/20">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl text-foreground">
-            Ready to Experience Eugene?
+            Ready to Experience {locationText}?
           </CardTitle>
           <p className="text-muted-foreground">
             Discover our carefully curated vacation rentals and local experiences
@@ -43,7 +48,7 @@ const BlogPostFooter = () => {
                   <Home className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
                   <div className="text-left">
                     <div className="font-semibold text-foreground">Explore Our Properties</div>
-                    <div className="text-sm text-muted-foreground">Find your perfect Eugene stay</div>
+                    <div className="text-sm text-muted-foreground">Find your perfect stay</div>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all ml-auto" />
                 </div>
@@ -59,7 +64,7 @@ const BlogPostFooter = () => {
                   <MapPin className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
                   <div className="text-left">
                     <div className="font-semibold text-foreground">Local Experiences</div>
-                    <div className="text-sm text-muted-foreground">Discover Eugene like a local</div>
+                    <div className="text-sm text-muted-foreground">Discover the area like a local</div>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all ml-auto" />
                 </div>
@@ -75,7 +80,7 @@ const BlogPostFooter = () => {
                   <Users className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
                   <div className="text-left">
                     <div className="font-semibold text-foreground">About Our Team</div>
-                    <div className="text-sm text-muted-foreground">Meet Robert & Shelly</div>
+                    <div className="text-sm text-muted-foreground">Learn more about us</div>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all ml-auto" />
                 </div>

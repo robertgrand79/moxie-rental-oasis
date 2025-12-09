@@ -4,6 +4,7 @@ import { MapPin, Star, Bed, Bath, Users } from 'lucide-react';
 import { Property } from '@/types/property';
 import OptimizedImage from '@/components/ui/optimized-image';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface PropertyPageHeroProps {
   property: Property;
@@ -11,6 +12,9 @@ interface PropertyPageHeroProps {
 }
 
 const PropertyPageHero = ({ property, coverImage }: PropertyPageHeroProps) => {
+  const { settings } = useTenantSettings();
+  const locationText = settings.heroLocationText || 'your destination';
+
   return (
     <div className="relative w-full">
       {/* Image Container with Aspect Ratio */}
@@ -61,7 +65,7 @@ const PropertyPageHero = ({ property, coverImage }: PropertyPageHeroProps) => {
           {/* Call to Action */}
           <div className="animate-fade-in" style={{ animationDelay: '600ms' }}>
             <div className="text-lg md:text-xl lg:text-2xl font-medium text-white/90">
-              Experience Eugene's finest vacation rental
+              Experience {locationText}'s finest vacation rental
             </div>
           </div>
         </div>
