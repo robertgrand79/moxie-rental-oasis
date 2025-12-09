@@ -1,5 +1,5 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, Check, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SettingsTileProps {
@@ -8,7 +8,7 @@ interface SettingsTileProps {
   icon: LucideIcon;
   onClick: () => void;
   badge?: string;
-  badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline';
+  badgeVariant?: 'complete' | 'partial' | 'needs-setup';
 }
 
 const SettingsTile = ({
@@ -17,8 +17,32 @@ const SettingsTile = ({
   icon: Icon,
   onClick,
   badge,
-  badgeVariant = 'secondary'
+  badgeVariant
 }: SettingsTileProps) => {
+  const getBadgeStyles = () => {
+    switch (badgeVariant) {
+      case 'complete':
+        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      case 'partial':
+        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      case 'needs-setup':
+        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+      default:
+        return 'bg-secondary text-secondary-foreground';
+    }
+  };
+
+  const getBadgeIcon = () => {
+    switch (badgeVariant) {
+      case 'complete':
+        return <Check className="h-3 w-3 mr-1" />;
+      case 'needs-setup':
+        return <AlertCircle className="h-3 w-3 mr-1" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <button
       onClick={onClick}
@@ -35,12 +59,10 @@ const SettingsTile = ({
         </div>
         {badge && (
           <span className={cn(
-            "text-xs px-2 py-0.5 rounded-full",
-            badgeVariant === 'default' && "bg-primary text-primary-foreground",
-            badgeVariant === 'secondary' && "bg-secondary text-secondary-foreground",
-            badgeVariant === 'destructive' && "bg-destructive text-destructive-foreground",
-            badgeVariant === 'outline' && "border border-border text-muted-foreground"
+            "text-xs px-2 py-0.5 rounded-full font-medium flex items-center",
+            getBadgeStyles()
           )}>
+            {getBadgeIcon()}
             {badge}
           </span>
         )}
