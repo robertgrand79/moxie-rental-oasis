@@ -65,6 +65,7 @@ import AdminPriceLabs from '@/pages/admin/AdminPriceLabs';
 import GuestExperiencePage from '@/pages/admin/GuestExperiencePage';
 import AdminChecklists from '@/pages/admin/AdminChecklists';
 import SuperAdminPanel from '@/pages/admin/SuperAdminPanel';
+import AdminAIAssistant from '@/pages/admin/AdminAIAssistant';
 import OrganizationSignup from '@/pages/onboarding/OrganizationSignup';
 import OnboardingWizard from '@/pages/onboarding/OnboardingWizard';
 
@@ -118,6 +119,7 @@ const AppRoutes: React.FC = () => {
           <Route path="guest-experience" element={<GuestExperiencePage />} />
           <Route path="profile" element={<AdminProfile />} />
           <Route path="platform" element={<SuperAdminPanel />} />
+          <Route path="ai-assistant" element={<AdminAIAssistant />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
@@ -188,6 +190,7 @@ const AppRoutes: React.FC = () => {
         <Route path="guest-experience" element={<GuestExperiencePage />} />
         <Route path="profile" element={<AdminProfile />} />
         <Route path="platform" element={<SuperAdminPanel />} />
+        <Route path="ai-assistant" element={<AdminAIAssistant />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
