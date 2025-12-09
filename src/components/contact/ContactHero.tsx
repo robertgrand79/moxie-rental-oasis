@@ -11,10 +11,11 @@ const ContactHero = () => {
   const { data: settings } = useQuery({
     queryKey: ['contact-hero-settings', tenantId],
     queryFn: async () => {
+      // Query both camelCase and snake_case key conventions
       let query = supabase
         .from('site_settings')
         .select('key, value')
-        .in('key', ['siteName', 'contactEmail', 'phone', 'address']);
+        .in('key', ['siteName', 'site_name', 'contactEmail', 'contact_email', 'phone', 'contact_phone', 'address']);
 
       if (tenantId) {
         query = query.eq('organization_id', tenantId);
@@ -34,10 +35,11 @@ const ContactHero = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
+      // Normalize to handle both key conventions
       const finalSettings = {
-        siteName: settingsMap.siteName || 'Vacation Rentals',
-        contactEmail: settingsMap.contactEmail || '',
-        phone: settingsMap.phone || '',
+        siteName: settingsMap.siteName || settingsMap.site_name || 'Vacation Rentals',
+        contactEmail: settingsMap.contactEmail || settingsMap.contact_email || '',
+        phone: settingsMap.phone || settingsMap.contact_phone || '',
         address: settingsMap.address || ''
       };
 

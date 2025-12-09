@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Facebook, Instagram, Twitter } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { normalizeSettingsKeys, ALL_SETTING_KEYS } from '@/utils/settingsNormalization';
 
 // Default values to use as fallback - generic placeholders
 const DEFAULT_SETTINGS = {
@@ -17,7 +17,6 @@ const DEFAULT_SETTINGS = {
     facebook: '',
     instagram: '',
     twitter: '',
-    googlePlaces: ''
   }
 };
 
@@ -30,14 +29,7 @@ const Footer = () => {
       let query = supabase
         .from('site_settings')
         .select('key, value')
-        .in('key', [
-          'siteName',
-          'description',
-          'contactEmail',
-          'phone',
-          'address',
-          'socialMedia'
-        ]);
+        .in('key', ALL_SETTING_KEYS);
 
       // Filter by tenant if available
       if (tenantId) {
@@ -69,13 +61,19 @@ const Footer = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
+      // Normalize keys to handle both camelCase and snake_case
+      const normalized = normalizeSettingsKeys(settingsMap);
+
       // Merge with defaults
       const finalSettings = {
-        ...DEFAULT_SETTINGS,
-        ...settingsMap,
+        siteName: normalized.siteName || DEFAULT_SETTINGS.siteName,
+        description: normalized.description || DEFAULT_SETTINGS.description,
+        contactEmail: normalized.contactEmail || DEFAULT_SETTINGS.contactEmail,
+        phone: normalized.phone || DEFAULT_SETTINGS.phone,
+        address: normalized.address || DEFAULT_SETTINGS.address,
         socialMedia: {
           ...DEFAULT_SETTINGS.socialMedia,
-          ...(settingsMap.socialMedia || {})
+          ...normalized.socialMedia
         }
       };
 
