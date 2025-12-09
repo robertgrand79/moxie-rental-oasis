@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Palette, RotateCcw, Save } from 'lucide-react';
+import { Palette, RotateCcw, Save, Eye } from 'lucide-react';
 import AIPaletteGenerator from '@/components/admin/settings/AIPaletteGenerator';
-
+import SiteThemePreview from '@/components/admin/settings/SiteThemePreview';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 interface ColorPalette {
   primary: string;
   secondary: string;
@@ -26,6 +27,7 @@ const ColorCustomizer = () => {
     text: '#1a202c',
     muted: '#ececec',
   });
+  const [previewOpen, setPreviewOpen] = useState(true);
 
   const { toast } = useToast();
 
@@ -81,6 +83,13 @@ const ColorCustomizer = () => {
     root.style.setProperty('--gradient-to', accentHsl);
     root.style.setProperty('--gradient-accent-from', secondaryHsl);
     root.style.setProperty('--gradient-accent-to', accentHsl);
+
+    // Also update hero colors based on primary
+    root.style.setProperty('--hero-gradient-from', primaryHsl);
+    root.style.setProperty('--hero-gradient-to', secondaryHsl);
+    
+    // Also update footer colors based on primary
+    root.style.setProperty('--footer-bg', primaryHsl);
 
     localStorage.setItem('customColors', JSON.stringify(colors));
     
@@ -169,8 +178,9 @@ const ColorCustomizer = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <AIPaletteGenerator onApplyPalette={handleApplyAIPalette} />
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="xl:col-span-2 space-y-6">
+        <AIPaletteGenerator onApplyPalette={handleApplyAIPalette} />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -251,6 +261,36 @@ const ColorCustomizer = () => {
           </div>
         </CardContent>
       </Card>
+      </div>
+
+      {/* Right Column - Live Preview */}
+      <div className="xl:col-span-1">
+        <Collapsible open={previewOpen} onOpenChange={setPreviewOpen}>
+          <Card className="sticky top-4">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center text-base">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Live Preview
+                </CardTitle>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    {previewOpen ? 'Collapse' : 'Expand'}
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+              <CardDescription className="text-xs">
+                See how your colors look on the site
+              </CardDescription>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="pt-2">
+                <SiteThemePreview />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      </div>
     </div>
   );
 };

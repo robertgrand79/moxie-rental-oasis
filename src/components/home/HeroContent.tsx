@@ -16,7 +16,7 @@ interface HeroContentProps {
 
 const HeroContent = ({ settings }: HeroContentProps) => {
   return (
-    <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+    <div className="relative z-10 text-center text-hero-text px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
       <div className="space-y-8">
         {/* Main Heading */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight">
@@ -27,7 +27,7 @@ const HeroContent = ({ settings }: HeroContentProps) => {
         </h1>
 
         {/* Subheading */}
-        <p className="text-lg sm:text-xl md:text-2xl text-gray-200 max-w-4xl mx-auto leading-relaxed">
+        <p className="text-lg sm:text-xl md:text-2xl text-hero-text-muted max-w-4xl mx-auto leading-relaxed">
           {settings.heroDescription}
         </p>
 

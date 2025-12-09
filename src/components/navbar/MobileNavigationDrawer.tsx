@@ -72,9 +72,9 @@ const MobileNavigationDrawer = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-80 bg-white">
+      <SheetContent side="right" className="w-80 bg-background">
         <SheetHeader className="pb-6">
-          <SheetTitle className="text-left text-xl font-bold text-gray-900">
+          <SheetTitle className="text-left text-xl font-bold text-foreground">
             Navigation
           </SheetTitle>
         </SheetHeader>
@@ -91,7 +91,7 @@ const MobileNavigationDrawer = ({
                 className={`flex items-center px-4 py-4 rounded-xl font-medium transition-all duration-200 ${
                   isActive 
                     ? 'text-primary bg-primary/10 border border-primary/20' 
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent'
+                    : 'text-foreground hover:text-foreground hover:bg-accent border border-transparent'
                 }`}
                 onClick={handleLinkClick}
               >
@@ -109,10 +109,10 @@ const MobileNavigationDrawer = ({
           {user ? (
             <>
               {/* User Info */}
-              <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl">
-                <User className="h-5 w-5 text-gray-500 mr-3" />
+              <div className="flex items-center px-4 py-3 bg-muted rounded-xl">
+                <User className="h-5 w-5 text-muted-foreground mr-3" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-700 truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {displayName}
                   </p>
                 </div>
@@ -122,9 +122,9 @@ const MobileNavigationDrawer = ({
               {shouldShowAdminFeatures() && (
                 <button
                   onClick={handleAdminPanel}
-                  className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
+                  className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-foreground hover:text-foreground hover:bg-accent border border-transparent"
                 >
-                  <Shield className="h-6 w-6 text-gray-500" />
+                  <Shield className="h-6 w-6 text-muted-foreground" />
                   <span className="text-base">Admin Panel</span>
                 </button>
               )}
@@ -132,9 +132,9 @@ const MobileNavigationDrawer = ({
               {/* Sign Out Button */}
               <button
                 onClick={handleSignOut}
-                className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
+                className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-foreground hover:text-foreground hover:bg-accent border border-transparent"
               >
-                <LogOut className="h-6 w-6 text-gray-500" />
+                <LogOut className="h-6 w-6 text-muted-foreground" />
                 <span className="text-base">Sign Out</span>
               </button>
             </>
@@ -143,9 +143,9 @@ const MobileNavigationDrawer = ({
             shouldShowAdminFeatures() && (
               <button
                 onClick={handleAdminLogin}
-                className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
+                className="w-full flex items-center space-x-4 px-4 py-4 rounded-xl font-medium transition-all duration-200 text-foreground hover:text-foreground hover:bg-accent border border-transparent"
               >
-                <Settings className="h-6 w-6 text-gray-500" />
+                <Settings className="h-6 w-6 text-muted-foreground" />
                 <span className="text-base">Admin Login</span>
               </button>
             )

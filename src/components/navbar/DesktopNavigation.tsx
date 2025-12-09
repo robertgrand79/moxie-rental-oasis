@@ -37,8 +37,8 @@ const DesktopNavigation = () => {
           <Link
             key={item.title}
             to={item.href}
-            className={`flex items-center space-x-1.5 font-medium text-sm transition-colors duration-200 hover:text-primary px-2.5 py-2 rounded-md ${
-              isActive ? 'text-primary bg-primary/10' : 'text-gray-700'
+            className={`flex items-center space-x-1.5 font-medium text-sm transition-colors duration-200 hover:text-nav-hover px-2.5 py-2 rounded-md ${
+              isActive ? 'text-primary bg-primary/10' : 'text-nav-foreground'
             }`}
           >
             <IconComponent className="h-5 w-5" />

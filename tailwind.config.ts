@@ -75,9 +75,27 @@ export default {
     			'icon-teal': 'hsl(var(--icon-teal))',
     			'icon-amber': 'hsl(var(--icon-amber))',
     			'icon-rose': 'hsl(var(--icon-rose))',
-    			'icon-emerald': 'hsl(var(--icon-emerald))',
-    			'icon-indigo': 'hsl(var(--icon-indigo))'
-    		},
+			'icon-emerald': 'hsl(var(--icon-emerald))',
+			'icon-indigo': 'hsl(var(--icon-indigo))',
+			footer: {
+				DEFAULT: 'hsl(var(--footer-bg))',
+				foreground: 'hsl(var(--footer-text))',
+				muted: 'hsl(var(--footer-muted))',
+				border: 'hsl(var(--footer-border))'
+			},
+			nav: {
+				DEFAULT: 'hsl(var(--nav-bg))',
+				foreground: 'hsl(var(--nav-text))',
+				hover: 'hsl(var(--nav-text-hover))',
+				'bg-hover': 'hsl(var(--nav-bg-hover))'
+			},
+			hero: {
+				'gradient-from': 'hsl(var(--hero-gradient-from))',
+				'gradient-to': 'hsl(var(--hero-gradient-to))',
+				text: 'hsl(var(--hero-text))',
+				'text-muted': 'hsl(var(--hero-text-muted))'
+			}
+		},
     		borderRadius: {
     			lg: 'var(--radius)',
     			md: 'calc(var(--radius) - 2px)',
