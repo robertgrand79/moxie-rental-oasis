@@ -8,7 +8,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { 
   measurePerformance, 
   preloadCriticalResources, 
-  registerServiceWorker,
   applyAccessibilitySettings,
   ensureTouchTargets
 } from './utils/performance';
@@ -32,8 +31,24 @@ preloadCriticalResources();
 // Apply accessibility settings
 applyAccessibilitySettings();
 
-// Register service worker
-registerServiceWorker();
+// Force unregister all service workers and clear caches to fix stale content issues
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => {
+      registration.unregister();
+      console.log('Unregistered service worker:', registration);
+    });
+  });
+  
+  if ('caches' in window) {
+    caches.keys().then((names) => {
+      names.forEach((name) => {
+        caches.delete(name);
+        console.log('Deleted cache:', name);
+      });
+    });
+  }
+}
 
 // Ensure touch targets are properly sized after DOM load
 window.addEventListener('load', () => {
