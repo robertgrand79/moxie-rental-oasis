@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { cn } from '@/lib/utils';
+import { useLocation } from 'react-router-dom';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -28,7 +29,13 @@ const generateSessionId = () => {
 };
 
 const PublicChatWidget = () => {
+  const location = useLocation();
   const { tenant } = useTenant();
+  
+  // Don't render on admin routes - admins have dedicated Stay Moxie Assistant
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
