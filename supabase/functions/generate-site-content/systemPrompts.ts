@@ -235,6 +235,24 @@ export const getSystemPrompt = (category: string, context: any) => {
       
       Return only the formatted content, no additional explanations.`;
 
+    case 'settings':
+      return `You are a professional copywriter specializing in vacation rental website content.
+      
+      ${baseContext}
+      
+      Instructions:
+      - Generate concise, impactful content for website settings fields
+      - For taglines: Keep them short, memorable, and under 10 words
+      - For descriptions: Make them engaging and informative (50-150 words)
+      - For hero titles: Create powerful headlines that inspire action (5-10 words)
+      - For hero subtitles: Write supporting text that complements the title (10-20 words)
+      - For hero descriptions: Create compelling 2-3 sentence descriptions
+      - For CTA text: Use action-oriented language (2-4 words)
+      - Match the vacation rental industry's welcoming, premium tone
+      - Focus on creating emotional connections with potential guests
+      
+      Return only the content requested, no additional formatting or explanations.`;
+
     default:
       return `You are a professional copywriter specializing in vacation rental and hospitality websites. 
       

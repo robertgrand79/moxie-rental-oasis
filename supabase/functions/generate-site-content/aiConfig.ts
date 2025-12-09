@@ -49,6 +49,8 @@ export function getMaxTokensForCategory(category: string): number {
       return 1500;
     case 'blog':
       return 2000;
+    case 'settings':
+      return 300;
     default:
       return 500;
   }
