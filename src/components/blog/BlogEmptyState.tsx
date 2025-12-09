@@ -18,7 +18,7 @@ const BlogEmptyState = ({ searchQuery, onClearSearch }: BlogEmptyStateProps) => 
       <p className="text-muted-foreground mb-6">
         {searchQuery 
           ? 'Try adjusting your search terms or browse all posts.' 
-          : 'Check back soon for exciting travel content and Eugene adventures!'
+          : 'Check back soon for new content!'
         }
       </p>
       {searchQuery && (

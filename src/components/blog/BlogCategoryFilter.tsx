@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { BookOpen, MapPin, Plane } from 'lucide-react';
+import { BookOpen, MapPin, Compass } from 'lucide-react';
 
 interface BlogCategoryFilterProps {
   selectedCategory: string;
@@ -12,9 +12,8 @@ interface BlogCategoryFilterProps {
 const BlogCategoryFilter = ({ selectedCategory, onCategoryChange, loading }: BlogCategoryFilterProps) => {
   const categories = [
     { id: 'all', name: 'All Posts', icon: BookOpen },
-    { id: 'eugene', name: 'Eugene Local', icon: MapPin },
-    { id: 'robert-shelly', name: "Robert & Shelly's Travels", icon: Plane },
-    { id: 'travel', name: 'Travel Tips', icon: MapPin },
+    { id: 'local', name: 'Local Guides', icon: MapPin },
+    { id: 'travel', name: 'Travel Tips', icon: Compass },
     { id: 'destinations', name: 'Destinations', icon: MapPin }
   ];
 

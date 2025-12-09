@@ -68,7 +68,7 @@ const BlogSidebar = ({ featuredPost, showFeatured }: BlogSidebarProps) => {
             Our Properties →
           </Link>
           <Link to="/about" className="block text-primary hover:text-primary/80 text-sm">
-            About Our Hosts →
+            About Us →
           </Link>
         </CardContent>
       </Card>
