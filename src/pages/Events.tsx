@@ -4,13 +4,13 @@ import EventsGrid from '@/components/events/EventsGrid';
 import EventsLoadingState from '@/components/events/EventsLoadingState';
 import EventsEmptyState from '@/components/events/EventsEmptyState';
 import EventsFilters from '@/components/events/EventsFilters';
-import { useLocalEvents } from '@/hooks/useLocalEvents';
+import { useTenantLocalEvents } from '@/hooks/useTenantLocalEvents';
 
 const Events = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [timeFilter, setTimeFilter] = useState('upcoming');
   
-  const { events, isLoading } = useLocalEvents(timeFilter, selectedCategory);
+  const { events, isLoading } = useTenantLocalEvents(timeFilter, selectedCategory);
 
   const handleClearFilters = () => {
     setSelectedCategory('all');

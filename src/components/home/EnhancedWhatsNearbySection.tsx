@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MapPin, Clock, Car, Phone, Globe, Star, Search, Navigation } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
-import { usePointsOfInterest } from '@/hooks/usePointsOfInterest';
+import { useTenantPointsOfInterest } from '@/hooks/useTenantPointsOfInterest';
 import { useMutation } from '@tanstack/react-query';
 
 const categoryLabels = {
@@ -22,7 +22,7 @@ const EnhancedWhatsNearbySection = () => {
   const [sortBy, setSortBy] = useState('distance');
   const [showAll, setShowAll] = useState(false);
 
-  const { pointsOfInterest, isLoading } = usePointsOfInterest();
+  const { pointsOfInterest, isLoading } = useTenantPointsOfInterest();
 
   // Track POI interactions
   const trackPOIClick = useMutation({

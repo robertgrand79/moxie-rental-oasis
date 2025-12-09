@@ -3,11 +3,11 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Star } from 'lucide-react';
-import { usePointsOfInterest } from '@/hooks/usePointsOfInterest';
+import { useTenantPointsOfInterest } from '@/hooks/useTenantPointsOfInterest';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const LocalHighlights = () => {
-  const { pointsOfInterest, isLoading } = usePointsOfInterest();
+  const { pointsOfInterest, isLoading } = useTenantPointsOfInterest();
   const { settings } = useTenantSettings();
   const locationText = settings.heroLocationText || 'the Area';
 

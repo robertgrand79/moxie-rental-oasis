@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { useLifestyleGallery } from '@/hooks/useLifestyleGallery';
+import { useTenantLifestyleGallery } from '@/hooks/useTenantLifestyleGallery';
 import { useMutation } from '@tanstack/react-query';
 import { useContentAnalytics } from '@/hooks/useContentAnalytics';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
@@ -22,7 +22,7 @@ const EnhancedLifestyleGallerySection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAll, setShowAll] = useState(false);
   
-  const { galleryItems, isLoading } = useLifestyleGallery();
+  const { galleryItems, isLoading } = useTenantLifestyleGallery();
   const { trackInteraction } = useContentAnalytics();
   const { settings } = useTenantSettings();
 
