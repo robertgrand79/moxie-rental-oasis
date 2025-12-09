@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useProperties } from '@/hooks/useProperties';
+import { useTenantProperties } from '@/hooks/useTenantProperties';
 import LoadingState from '@/components/ui/loading-state';
 import PropertyPageHero from '@/components/property/PropertyPageHero';
 import MobilePropertyHero from '@/components/property/MobilePropertyHero';
@@ -16,7 +16,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 const PropertyPage = () => {
   const { addressSlug } = useParams<{ addressSlug: string }>();
-  const { properties, loading } = useProperties();
+  const { properties, loading } = useTenantProperties();
   const isMobile = useIsMobile();
   
   // Check URL for tab and date parameters

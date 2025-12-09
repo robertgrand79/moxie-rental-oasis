@@ -4,14 +4,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Bed, Bath, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useProperties } from '@/hooks/useProperties';
+import { useTenantProperties } from '@/hooks/useTenantProperties';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import OptimizedImage from '@/components/ui/optimized-image';
 import PropertyCardSkeleton from '@/components/ui/property-card-skeleton';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const CompactPropertyShowcase = () => {
-  const { properties, loading } = useProperties();
+  const { properties, loading } = useTenantProperties();
   const { settings } = useTenantSettings();
 
   const sectionTitle = settings.propertiesSectionTitle || 'Our Properties';

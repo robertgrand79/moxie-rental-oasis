@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Bed, Bath, Users, Loader2, CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useProperties } from '@/hooks/useProperties';
+import { useTenantProperties } from '@/hooks/useTenantProperties';
 import { usePropertiesAvailability } from '@/hooks/useAvailabilitySearch';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import PropertyPriceDisplay from '@/components/search/PropertyPriceDisplay';
@@ -16,7 +16,7 @@ interface SearchPropertyResultsProps {
 }
 
 const SearchPropertyResults = ({ checkin, checkout, guests }: SearchPropertyResultsProps) => {
-  const { properties, loading: propertiesLoading } = useProperties();
+  const { properties, loading: propertiesLoading } = useTenantProperties();
   const { data: availability, isLoading: availabilityLoading } = usePropertiesAvailability(
     checkin,
     checkout,
