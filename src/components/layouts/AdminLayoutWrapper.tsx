@@ -1,21 +1,39 @@
-import React from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 const AdminLayoutWrapper = () => {
-  const { organization, isPlatformAdmin, loading, isOrgAdmin } = useCurrentOrganization();
+  const { organization, isPlatformAdmin, loading: orgLoading, isOrgAdmin } = useCurrentOrganization();
+  const { user, loading: authLoading } = useAuth();
+  const [minLoadTime, setMinLoadTime] = useState(true);
 
-  if (loading) {
+  // Ensure minimum loading time to prevent flash of incorrect content
+  useEffect(() => {
+    const timer = setTimeout(() => setMinLoadTime(false), 300);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Wait for both contexts to fully load
+  const isFullyLoaded = !authLoading && !orgLoading && !minLoadTime;
+
+  if (!isFullyLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading organization...</p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
+  }
+
+  // If not logged in, redirect to auth
+  if (!user) {
+    window.location.href = '/auth';
+    return null;
   }
 
   // Platform admins can access admin area even without organization
@@ -37,9 +55,6 @@ const AdminLayoutWrapper = () => {
       </div>
     );
   }
-
-  // Non-admins (members) can only access limited routes - this is enforced per-route
-  // But they can still access the admin layout
 
   return (
     <AdminLayout>
