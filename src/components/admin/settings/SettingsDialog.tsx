@@ -12,7 +12,7 @@ import EmailServicesTab from '@/components/admin/settings/EmailServicesTab';
 import AdvancedSettingsTab from '@/components/admin/settings/AdvancedSettingsTab';
 import TestimonialsManager from '@/components/admin/TestimonialsManager';
 import PointsOfInterestManager from '@/components/admin/PointsOfInterestManager';
-import EugeneEventsManager from '@/components/admin/EugeneEventsManager';
+import LocalEventsManager from '@/components/admin/LocalEventsManager';
 
 interface SettingsDialogProps {
   dialogOpen: boolean;
@@ -155,7 +155,7 @@ const SettingsDialog = ({
       case 'content-places':
         return <PointsOfInterestManager />;
       case 'content-events':
-        return <EugeneEventsManager />;
+        return <LocalEventsManager />;
       default:
         return <div>Select a setting to configure</div>;
     }
