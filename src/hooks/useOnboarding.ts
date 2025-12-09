@@ -102,24 +102,47 @@ export const useCreateOrganization = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const createOrganization = async (params: CreateOrganizationParams): Promise<string | null> => {
     setCreating(true);
+    setError(null);
+    
+    console.log('[Onboarding] Starting organization creation:', params.name);
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      // Step 1: Verify authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('[Onboarding] Auth error:', authError);
+        throw new Error('Authentication failed. Please log in again.');
+      }
+      if (!user) {
+        throw new Error('Not authenticated. Please log in.');
+      }
+      console.log('[Onboarding] User authenticated:', user.id);
 
-      // Check slug availability
-      const { data: slugAvailable } = await supabase
+      // Step 2: Check slug availability
+      console.log('[Onboarding] Checking slug availability:', params.slug);
+      const { data: slugAvailable, error: slugError } = await supabase
         .rpc('is_slug_available', { _slug: params.slug });
 
-      if (!slugAvailable) {
-        toast({ title: 'Error', description: 'This URL slug is already taken', variant: 'destructive' });
-        return null;
+      if (slugError) {
+        console.error('[Onboarding] Slug check error:', slugError);
+        throw new Error('Failed to verify URL availability. Please try again.');
       }
 
-      // Create organization with owner
-      const { data: orgId, error } = await supabase
+      if (!slugAvailable) {
+        const errorMsg = 'This URL slug is already taken. Please choose a different one.';
+        setError(errorMsg);
+        toast({ title: 'URL Taken', description: errorMsg, variant: 'destructive' });
+        return null;
+      }
+      console.log('[Onboarding] Slug available:', params.slug);
+
+      // Step 3: Create organization with all related records
+      console.log('[Onboarding] Creating organization with template:', params.templateId);
+      const { data: orgId, error: createError } = await supabase
         .rpc('create_organization_with_owner', {
           _name: params.name,
           _slug: params.slug,
@@ -127,14 +150,76 @@ export const useCreateOrganization = () => {
           _template_id: params.templateId || null,
         });
 
-      if (error) throw error;
+      if (createError) {
+        console.error('[Onboarding] Organization creation error:', createError);
+        throw new Error(`Failed to create organization: ${createError.message}`);
+      }
 
-      toast({ title: 'Organization created!', description: 'Starting onboarding...' });
-      queryClient.invalidateQueries({ queryKey: ['organization'] });
+      if (!orgId) {
+        throw new Error('Organization was created but no ID was returned. Please contact support.');
+      }
+
+      console.log('[Onboarding] Organization created successfully:', orgId);
+
+      // Step 4: Verify the organization was created with settings
+      const { data: verifyOrg, error: verifyError } = await supabase
+        .from('organizations')
+        .select('id, name, slug')
+        .eq('id', orgId)
+        .single();
+
+      if (verifyError || !verifyOrg) {
+        console.error('[Onboarding] Verification error:', verifyError);
+        throw new Error('Organization created but verification failed. Please refresh and try again.');
+      }
+
+      // Step 5: Verify site_settings were created
+      const { data: settings, error: settingsError } = await supabase
+        .from('site_settings')
+        .select('key')
+        .eq('organization_id', orgId)
+        .limit(5);
+
+      if (settingsError) {
+        console.warn('[Onboarding] Settings verification warning:', settingsError);
+      } else {
+        console.log('[Onboarding] Settings created:', settings?.length, 'records');
+      }
+
+      // Step 6: Verify onboarding steps were created
+      const { data: onboardingSteps, error: onboardingError } = await supabase
+        .from('organization_onboarding')
+        .select('step_name')
+        .eq('organization_id', orgId);
+
+      if (onboardingError) {
+        console.warn('[Onboarding] Onboarding steps verification warning:', onboardingError);
+      } else {
+        console.log('[Onboarding] Onboarding steps created:', onboardingSteps?.map(s => s.step_name));
+      }
+
+      toast({ 
+        title: 'Organization created!', 
+        description: 'Setting up your site. Redirecting to onboarding...' 
+      });
       
+      // Invalidate all caches to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['organization'] });
+      queryClient.invalidateQueries({ queryKey: ['site-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['onboarding-steps'] });
+      
+      console.log('[Onboarding] Organization creation complete, returning ID:', orgId);
       return orgId as string;
+      
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      const errorMsg = error.message || 'An unexpected error occurred. Please try again.';
+      console.error('[Onboarding] Creation failed:', error);
+      setError(errorMsg);
+      toast({ 
+        title: 'Organization Creation Failed', 
+        description: errorMsg, 
+        variant: 'destructive' 
+      });
       return null;
     } finally {
       setCreating(false);
@@ -142,13 +227,23 @@ export const useCreateOrganization = () => {
   };
 
   const checkSlugAvailability = useCallback(async (slug: string): Promise<boolean> => {
-    const { data } = await supabase.rpc('is_slug_available', { _slug: slug });
-    return data as boolean;
+    try {
+      const { data, error } = await supabase.rpc('is_slug_available', { _slug: slug });
+      if (error) {
+        console.error('[Onboarding] Slug availability check failed:', error);
+        return false;
+      }
+      return data as boolean;
+    } catch (error) {
+      console.error('[Onboarding] Slug availability check error:', error);
+      return false;
+    }
   }, []);
 
   return {
     createOrganization,
     checkSlugAvailability,
     creating,
+    error,
   };
 };
