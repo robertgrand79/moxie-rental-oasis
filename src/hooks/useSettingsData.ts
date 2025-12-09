@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
 export const useSettingsData = () => {
-  const { settings, loading, saveSetting, error } = useStableSiteSettings();
+  const { settings, loading, saveSetting, error } = useSimplifiedSiteSettings();
 
   const [siteData, setSiteData] = useState({
     siteName: '',

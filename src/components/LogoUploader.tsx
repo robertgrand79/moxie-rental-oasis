@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Image, Trash2, Save, Loader2 } from 'lucide-react';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
 const LogoUploader = () => {
   const [logo, setLogo] = useState<string | null>(null);
@@ -15,7 +15,7 @@ const LogoUploader = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const { settings, saveSetting, loading } = useStableSiteSettings();
+  const { settings, saveSetting, loading } = useSimplifiedSiteSettings();
 
   // Load from database settings
   useEffect(() => {

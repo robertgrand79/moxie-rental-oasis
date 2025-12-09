@@ -5,10 +5,10 @@ import { Palette, Type, Image } from 'lucide-react';
 import ColorCustomizer from '@/components/ColorCustomizer';
 import FontCustomizer from '@/components/FontCustomizer';
 import LogoUploader from '@/components/LogoUploader';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
 const AppearanceSettingsPanel = () => {
-  const { saveSetting } = useStableSiteSettings();
+  const { saveSetting } = useSimplifiedSiteSettings();
 
   return (
     <div className="space-y-6">

@@ -1,5 +1,5 @@
 
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useHeroSettings } from '@/components/home/hooks/useHeroSettings';
 import { useSiteMetaTags } from '@/hooks/useSiteMetaTags';
 import { useHeroImagePreload } from '@/hooks/useHeroImagePreload';
@@ -9,7 +9,7 @@ import { useLocation } from 'react-router-dom';
 import SecurityProvider from '@/components/SecurityProvider';
 
 const SiteHead = () => {
-  const { settings } = useStableSiteSettings();
+  const { settings } = useSimplifiedSiteSettings();
   const { settings: heroSettings } = useHeroSettings();
   const location = useLocation();
 

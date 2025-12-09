@@ -4,14 +4,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, CheckCircle, RefreshCw, Settings } from 'lucide-react';
 import { analyticsService } from '@/services/analytics/analyticsService';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
 
 const AnalyticsStatusIndicator = () => {
   const [isDemoMode, setIsDemoMode] = useState(true);
   const [gaStatus, setGaStatus] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { settings } = useStableSiteSettings();
+  const { settings } = useSimplifiedSiteSettings();
   
   // Load Google Analytics for this page
   useGoogleAnalytics(settings.googleAnalyticsId || '');

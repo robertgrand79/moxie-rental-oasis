@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageSquare, Lock, Plug, CheckCircle2, AlertCircle, Map, Bot } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationOperations } from '@/hooks/useOrganizationOperations';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import AssistantSettingsTab from '@/components/admin/settings/AssistantSettingsTab';
 
 const ConfigStatus = ({ configured }: { configured: boolean }) => (
@@ -29,7 +29,7 @@ const ConfigStatus = ({ configured }: { configured: boolean }) => (
 const IntegrationsSettingsPanel = () => {
   const { organization, isOrgAdmin, refetch } = useCurrentOrganization();
   const { updateOrganization, updating } = useOrganizationOperations();
-  const { settings, saveSetting } = useStableSiteSettings();
+  const { settings, saveSetting } = useSimplifiedSiteSettings();
   
   const [formData, setFormData] = useState({
     openphone_api_key: '',

@@ -2,7 +2,7 @@
 import React from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
 import { CheckCircle } from 'lucide-react';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
 interface QuickSetupProgressProps {
   isBasicComplete: boolean;
@@ -11,7 +11,7 @@ interface QuickSetupProgressProps {
 }
 
 const QuickSetupProgress = ({ isBasicComplete, isHeroComplete, isSocialComplete }: QuickSetupProgressProps) => {
-  const { settings } = useStableSiteSettings();
+  const { settings } = useSimplifiedSiteSettings();
   
   const isEmailSetupComplete = settings.emailSetupVerified === 'true' || settings.emailSetupVerified === true;
 
