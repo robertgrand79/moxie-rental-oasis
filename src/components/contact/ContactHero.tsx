@@ -68,23 +68,27 @@ const ContactHero = () => {
             We'd love to hear from you. Send us a message and we'll respond as soon as possible.
           </p>
           
-          {/* Quick Contact Cards */}
+          {/* Quick Contact Cards - only show cards with data */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-            <div className="bg-background/10 backdrop-blur-sm rounded-lg p-6 text-center">
-              <div className="bg-background/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
-                <Phone className="h-6 w-6 text-icon-emerald" />
+            {currentSettings.phone && (
+              <div className="bg-background/10 backdrop-blur-sm rounded-lg p-6 text-center">
+                <div className="bg-background/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                  <Phone className="h-6 w-6 text-icon-emerald" />
+                </div>
+                <h3 className="font-semibold mb-2">Call Us</h3>
+                <p className="text-sm text-muted-foreground">{currentSettings.phone}</p>
               </div>
-              <h3 className="font-semibold mb-2">Call Us</h3>
-              <p className="text-sm text-muted-foreground">{currentSettings.phone}</p>
-            </div>
+            )}
             
-            <div className="bg-background/10 backdrop-blur-sm rounded-lg p-6 text-center">
-              <div className="bg-background/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
-                <Mail className="h-6 w-6 text-icon-amber" />
+            {currentSettings.contactEmail && (
+              <div className="bg-background/10 backdrop-blur-sm rounded-lg p-6 text-center">
+                <div className="bg-background/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                  <Mail className="h-6 w-6 text-icon-amber" />
+                </div>
+                <h3 className="font-semibold mb-2">Email Us</h3>
+                <p className="text-sm text-muted-foreground">{currentSettings.contactEmail}</p>
               </div>
-              <h3 className="font-semibold mb-2">Email Us</h3>
-              <p className="text-sm text-muted-foreground">{currentSettings.contactEmail}</p>
-            </div>
+            )}
             
             <div className="bg-background/10 backdrop-blur-sm rounded-lg p-6 text-center">
               <div className="bg-background/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">

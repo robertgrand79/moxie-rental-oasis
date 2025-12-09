@@ -84,8 +84,8 @@ export const useTenantDetection = (): TenantDetectionResult => {
         setLoading(true);
         setError(null);
 
+        // First try: Use detected identifier from URL
         if (detectedIdentifier) {
-          // Try to find organization by slug or custom domain
           const { data, error: fetchError } = await supabase
             .from('organizations')
             .select('id, name, slug, logo_url, website, custom_domain, is_active, template_type')
@@ -98,7 +98,27 @@ export const useTenantDetection = (): TenantDetectionResult => {
           }
 
           if (data) {
+            // Store tenant slug in sessionStorage for persistence across navigation
+            sessionStorage.setItem('current_tenant_slug', data.slug);
             setTenant(data as TenantInfo);
+            setIsDefaultTenant(false);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Second try: Check sessionStorage for previously detected tenant
+        const storedSlug = sessionStorage.getItem('current_tenant_slug');
+        if (storedSlug && !isAdminRoute) {
+          const { data: storedTenant, error: storedError } = await supabase
+            .from('organizations')
+            .select('id, name, slug, logo_url, website, custom_domain, is_active, template_type')
+            .eq('slug', storedSlug)
+            .eq('is_active', true)
+            .maybeSingle();
+
+          if (!storedError && storedTenant) {
+            setTenant(storedTenant as TenantInfo);
             setIsDefaultTenant(false);
             setLoading(false);
             return;
