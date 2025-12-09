@@ -1,8 +1,7 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,7 +18,7 @@ serve(async (req) => {
 
     console.log('Received unified AI chat request:', { message, historyLength: conversationHistory.length });
 
-    const systemPrompt = `You are an AI content assistant for a vacation rental website in Eugene, Oregon. You help with:
+    const systemPrompt = `You are an AI content assistant for a vacation rental website. You help with:
 
 1. **Content Generation**: Create POI (points of interest), events, lifestyle content, and website copy
 2. **Content Enhancement**: Improve existing content with better descriptions, missing information
@@ -44,9 +43,8 @@ serve(async (req) => {
 - **Lifestyle**: Experience content with title, description, category, activity type
 - **Site Content**: Website copy, meta descriptions, page content
 
-Always be helpful, proactive, and focused on creating high-quality content for vacation rental guests visiting Eugene, Oregon.`;
+Always be helpful, proactive, and focused on creating high-quality content for vacation rental guests.`;
 
-    // Analyze the message to determine intent and content type
     const contentTypeMatch = message.toLowerCase();
     let shouldGenerateContent = false;
     let contentType = '';
@@ -78,22 +76,39 @@ Always be helpful, proactive, and focused on creating high-quality content for v
       { role: 'user', content: message }
     ];
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: messages,
-        temperature: 0.7,
         max_tokens: 1000,
       }),
     });
 
+    if (response.status === 429) {
+      console.error('Rate limit exceeded');
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (response.status === 402) {
+      console.error('Payment required - AI credits exhausted');
+      return new Response(JSON.stringify({ error: 'AI credits exhausted. Please contact support.' }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('AI Gateway error:', response.status, errorText);
+      throw new Error(`AI Gateway error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -101,40 +116,39 @@ Always be helpful, proactive, and focused on creating high-quality content for v
 
     let generatedContent = null;
 
-    // If the message suggests content generation, create sample content
     if (shouldGenerateContent && (contentTypeMatch.includes('generate') || contentTypeMatch.includes('create'))) {
       if (contentType === 'poi') {
         generatedContent = {
           type: 'poi',
           data: [
             {
-              name: 'Eugene Saturday Market',
-              description: 'A vibrant outdoor market featuring local artisans, fresh produce, and live music. Open year-round on Saturdays, this beloved Eugene institution showcases the best of local culture and craftsmanship.',
-              address: '8th Ave & Oak St, Eugene, OR',
+              name: 'Local Saturday Market',
+              description: 'A vibrant outdoor market featuring local artisans, fresh produce, and live music. Open year-round on Saturdays, this beloved institution showcases the best of local culture and craftsmanship.',
+              address: 'Downtown Area',
               category: 'shopping',
-              phone: '(541) 686-8885',
-              website_url: 'https://eugenesaturdaymarket.org',
+              phone: '(555) 123-4567',
+              website_url: 'https://example.com/market',
               rating: 4.8,
               price_level: 2
             }
           ],
-          preview: 'Generated 1 POI: Eugene Saturday Market - A vibrant outdoor market featuring local artisans...'
+          preview: 'Generated 1 POI: Local Saturday Market - A vibrant outdoor market featuring local artisans...'
         };
       } else if (contentType === 'events') {
         generatedContent = {
           type: 'events',
           data: [
             {
-              title: 'Oregon Country Fair',
-              description: 'An annual three-day festival celebrating arts, crafts, music, and community. Experience unique performances, artisan crafts, and delicious food in a magical forest setting.',
+              title: 'Annual Arts Festival',
+              description: 'An annual three-day festival celebrating arts, crafts, music, and community. Experience unique performances, artisan crafts, and delicious food.',
               event_date: '2024-07-12',
               end_date: '2024-07-14',
-              location: 'Veneta, OR (near Eugene)',
+              location: 'Downtown Area',
               category: 'festival',
               price_range: '$25-50'
             }
           ],
-          preview: 'Generated 1 Event: Oregon Country Fair - An annual three-day festival celebrating arts...'
+          preview: 'Generated 1 Event: Annual Arts Festival - An annual three-day festival celebrating arts...'
         };
       }
     }
