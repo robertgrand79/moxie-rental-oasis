@@ -1,25 +1,30 @@
 
 import React from 'react';
 import { Coffee, Star, TreePine } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const FinalFeaturesSection = () => {
+  const { settings } = useTenantSettings();
+
+  const sectionTitle = settings.finalFeatureSectionTitle || 'Why Choose Us';
+
   const features = [
     {
       icon: Coffee,
-      title: "Local Eugene Culture",
-      description: "Immerse yourself in Eugene's artisan coffee culture, vibrant markets, and passionate college town spirit.",
+      title: settings.finalFeature1Title || "Local Culture",
+      description: settings.finalFeature1Description || "Experience the unique local culture and community atmosphere during your stay.",
       color: "text-icon-amber"
     },
     {
       icon: Star,
-      title: "Local Expert Hosts",
-      description: "Our Eugene-based team provides insider knowledge and curated guides to the city's hidden gems.",
+      title: settings.finalFeature2Title || "Expert Hosts",
+      description: settings.finalFeature2Description || "Our local team provides insider knowledge and curated guides to help you explore.",
       color: "text-icon-purple"
     },
     {
       icon: TreePine,
-      title: "Pacific Northwest Access",
-      description: "Perfect location for exploring Oregon's wine country, natural trails, and the broader Pacific Northwest.",
+      title: settings.finalFeature3Title || "Prime Location",
+      description: settings.finalFeature3Description || "Perfect location for exploring the surrounding area and local attractions.",
       color: "text-icon-green"
     }
   ];
@@ -31,7 +36,7 @@ const FinalFeaturesSection = () => {
           {/* Section Header */}
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              The Moxie Difference
+              {sectionTitle}
             </h2>
             <div className="w-16 h-1 bg-gradient-to-r from-gradient-from to-gradient-accent-from mx-auto mb-6 rounded-full"></div>
           </div>

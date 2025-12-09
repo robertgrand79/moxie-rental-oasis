@@ -31,6 +31,22 @@ interface TenantSettings {
   missionDescription?: string;
   // Location settings
   heroLocationText?: string;
+  // Home page section settings
+  propertiesSectionTitle?: string;
+  propertiesSectionDescription?: string;
+  testimonialsSectionDescription?: string;
+  amenitiesSectionDescription?: string;
+  lifestyleSectionTitle?: string;
+  lifestyleSectionDescription?: string;
+  finalFeatureSectionTitle?: string;
+  finalFeature1Title?: string;
+  finalFeature1Description?: string;
+  finalFeature2Title?: string;
+  finalFeature2Description?: string;
+  finalFeature3Title?: string;
+  finalFeature3Description?: string;
+  newsletterTitle?: string;
+  newsletterDescription?: string;
   [key: string]: string | undefined;
 }
 

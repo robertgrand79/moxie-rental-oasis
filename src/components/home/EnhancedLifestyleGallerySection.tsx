@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useLifestyleGallery } from '@/hooks/useLifestyleGallery';
 import { useMutation } from '@tanstack/react-query';
 import { useContentAnalytics } from '@/hooks/useContentAnalytics';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 import LifestyleSearchControls from './lifestyle/LifestyleSearchControls';
 import LifestyleGalleryGrid from './lifestyle/LifestyleGalleryGrid';
 import LifestyleGalleryLoadingState from './lifestyle/LifestyleGalleryLoadingState';
@@ -23,6 +24,11 @@ const EnhancedLifestyleGallerySection = () => {
   
   const { galleryItems, isLoading } = useLifestyleGallery();
   const { trackInteraction } = useContentAnalytics();
+  const { settings } = useTenantSettings();
+
+  const sectionTitle = settings.lifestyleSectionTitle || 'Experience the Area Like a Local';
+  const sectionDescription = settings.lifestyleSectionDescription || 
+    'Discover the vibrant culture, outdoor adventures, and local attractions';
 
   // Track view mutations with enhanced metadata
   const trackView = useMutation({
@@ -89,9 +95,9 @@ const EnhancedLifestyleGallerySection = () => {
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Experience Eugene Like a Local</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">{sectionTitle}</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover the vibrant culture, outdoor adventures, and culinary delights that make Eugene special
+            {sectionDescription}
           </p>
         </div>
 

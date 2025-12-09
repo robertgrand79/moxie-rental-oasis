@@ -6,8 +6,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, MessageSquare, Plane } from 'lucide-react';
 import { EnhancedNewsletterFormProps, NewsletterFormData } from './types';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const StreamlinedNewsletterForm: React.FC<EnhancedNewsletterFormProps> = ({ onSubmit, isLoading }) => {
+  const { settings } = useTenantSettings();
+
+  const newsletterTitle = settings.newsletterTitle || 'Stay Connected';
+  const newsletterDescription = settings.newsletterDescription || 
+    'Get travel tips, local secrets, and exclusive updates.';
   const [formData, setFormData] = useState<NewsletterFormData>({
     email: '',
     name: '',
@@ -41,10 +47,10 @@ const StreamlinedNewsletterForm: React.FC<EnhancedNewsletterFormProps> = ({ onSu
       <CardHeader className="text-center pb-4">
         <CardTitle className="text-xl font-bold text-foreground flex items-center justify-center gap-2 mb-2">
           <Plane className="h-5 w-5 text-primary" />
-          Stay Connected with Moxie Travel
+          {newsletterTitle}
         </CardTitle>
         <CardDescription className="text-sm text-muted-foreground">
-          Get travel tips, local secrets, and updates from Robert & Shelly.
+          {newsletterDescription}
         </CardDescription>
       </CardHeader>
 
