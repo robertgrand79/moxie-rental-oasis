@@ -22,6 +22,9 @@ const ModernHeroSection = () => {
     );
   }
 
+  // Use dynamic explore text from settings or fallback
+  const exploreText = settings.heroExploreText || 'Explore the Area';
+
   return (
     <section className="relative h-screen w-full overflow-hidden bg-black">
       {/* Animated Background */}
@@ -44,10 +47,14 @@ const ModernHeroSection = () => {
                 <span className="bg-gradient-to-r from-white via-blue-100 to-accent bg-clip-text text-transparent">
                   {settings.heroTitle}
                 </span>
-                <br />
-                <span className="bg-gradient-to-r from-accent via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                  {settings.heroSubtitle}
-                </span>
+                {settings.heroSubtitle && (
+                  <>
+                    <br />
+                    <span className="bg-gradient-to-r from-accent via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                      {settings.heroSubtitle}
+                    </span>
+                  </>
+                )}
               </h1>
               
               <p className="text-xl lg:text-2xl text-gray-200 leading-relaxed max-w-3xl mx-auto">
@@ -73,7 +80,7 @@ const ModernHeroSection = () => {
                 <div className="text-3xl lg:text-4xl font-bold text-white mb-1">
                   {metrics && !isRatingLoading 
                     ? `${metrics.totalReviews >= 100 ? `${Math.floor(metrics.totalReviews / 10) * 10}+` : `${metrics.totalReviews}+`}`
-                    : '90+'
+                    : '0+'
                   }
                 </div>
                 <div className="flex items-center justify-center mb-2">
@@ -91,11 +98,13 @@ const ModernHeroSection = () => {
               </div>
             </div>
 
-            {/* Location Badge */}
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/5 backdrop-blur-xl border border-white/10">
-              <MapPin className="w-5 h-5 text-accent" />
-              <span className="text-white font-medium">{settings.heroLocationText}</span>
-            </div>
+            {/* Location Badge - only show if configured */}
+            {settings.heroLocationText && (
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/5 backdrop-blur-xl border border-white/10">
+                <MapPin className="w-5 h-5 text-accent" />
+                <span className="text-white font-medium">{settings.heroLocationText}</span>
+              </div>
+            )}
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
@@ -117,7 +126,7 @@ const ModernHeroSection = () => {
                 className="border-2 border-white/30 bg-white/10 backdrop-blur-xl text-white hover:bg-white/20 font-semibold px-8 py-4 text-lg rounded-full"
               >
                 <Link to="/experiences">
-                  <span>Explore Eugene</span>
+                  <span>{exploreText}</span>
                 </Link>
               </Button>
             </div>

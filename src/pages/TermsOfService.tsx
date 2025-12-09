@@ -2,8 +2,15 @@
 import React from 'react';
 import Footer from '@/components/Footer';
 import NavBar from '@/components/NavBar';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const TermsOfService = () => {
+  const { settings } = useTenantSettings();
+  const siteName = settings.site_name || 'Our Company';
+  const contactEmail = settings.contact_email || '';
+  const contactPhone = settings.contact_phone || '';
+  const address = settings.address || '';
+
   return (
     <>
       <NavBar />
@@ -16,7 +23,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
                 <p>
-                  These Terms govern your reservation and stay with Moxie Vacation Rentals ("we") at the booked property. By booking, you agree to all below.
+                  These Terms govern your reservation and stay with {siteName} ("we") at the booked property. By booking, you agree to all below.
                 </p>
               </section>
 
@@ -27,7 +34,7 @@ const TermsOfService = () => {
                   <li><strong>Deposit:</strong> 25% of total due at booking to secure dates.</li>
                   <li><strong>Balance:</strong> Remaining 75% due 30 days before check-in; unpaid reservations cancel automatically.</li>
                   <li><strong>Security Deposit:</strong> $300 refundable held on card 7 days before arrival.</li>
-                  <li><strong>Cleaning Fee:</strong> $125 per stay, charged at booking.</li>
+                  <li><strong>Cleaning Fee:</strong> Charged per stay at booking.</li>
                   <li><strong>Payment Methods:</strong> Major credit/debit cards, PayPal, ACH.</li>
                 </ul>
               </section>
@@ -54,7 +61,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">5. Guest Obligations</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li><strong>Occupancy:</strong> Max 6 guests. Unregistered additional guests incur $25/person/night.</li>
+                  <li><strong>Occupancy:</strong> Max guests per property. Unregistered additional guests incur $25/person/night.</li>
                   <li><strong>House Rules:</strong> No smoking, no parties/events. Quiet hours 10 PM–8 AM.</li>
                   <li><strong>Cleanliness:</strong> Leave property tidy. Excess cleaning or violation of rules = $100 fee.</li>
                   <li><strong>Damages:</strong> Report immediately. Repair/replacement costs beyond security deposit billed to guest.</li>
@@ -64,8 +71,8 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">6. Pets</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li><strong>Allowed:</strong> 1 dog ≤ 50 lbs with advance approval.</li>
-                  <li><strong>Fee:</strong> $75 per stay.</li>
+                  <li><strong>Policy:</strong> Pet policies vary by property. Check listing for details.</li>
+                  <li><strong>Fee:</strong> Pet fees may apply per stay.</li>
                   <li><strong>Exempt:</strong> Service animals with proper documentation.</li>
                 </ul>
               </section>
@@ -88,7 +95,7 @@ const TermsOfService = () => {
 
               <section>
                 <h2 className="text-2xl font-semibold mb-4">9. Governing Law</h2>
-                <p>Oregon law applies. Disputes in Lane County courts.</p>
+                <p>Local law applies. Disputes handled in local courts.</p>
               </section>
 
               <section>
@@ -99,9 +106,10 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">11. Contact</h2>
                 <div>
-                  <p><strong>Moxie Vacation Rentals</strong></p>
-                  <p>2472 Willamette St, Eugene, OR 97405</p>
-                  <p>Phone: 541-255-1698</p>
+                  <p><strong>{siteName}</strong></p>
+                  {address && <p>{address}</p>}
+                  {contactPhone && <p>Phone: {contactPhone}</p>}
+                  {contactEmail && <p>Email: {contactEmail}</p>}
                 </div>
               </section>
 

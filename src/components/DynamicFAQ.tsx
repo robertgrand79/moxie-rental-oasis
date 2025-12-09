@@ -10,10 +10,16 @@ import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { getDefaultPages } from '@/data/defaultPages';
 import { toast } from '@/hooks/use-toast';
 import SecureContentRenderer from '@/components/SecureContentRenderer';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const DynamicFAQ = () => {
   const { user } = useAuth();
   const { organization } = useCurrentOrganization();
+  const { settings } = useTenantSettings();
+  
+  // Get contact info from tenant settings
+  const contactEmail = settings.contact_email || '';
+  const contactPhone = settings.contact_phone || '';
   
   const { data: faqPage, isLoading, error, refetch } = useQuery({
     queryKey: ['page', 'faq', organization?.id],
@@ -64,6 +70,18 @@ const DynamicFAQ = () => {
     }
   };
 
+  // Build contact message based on available info
+  const getContactMessage = () => {
+    if (contactEmail && contactPhone) {
+      return `Can't find what you're looking for? Contact us at ${contactEmail} or call ${contactPhone}.`;
+    } else if (contactEmail) {
+      return `Can't find what you're looking for? Contact us at ${contactEmail}.`;
+    } else if (contactPhone) {
+      return `Can't find what you're looking for? Call us at ${contactPhone}.`;
+    }
+    return "Can't find what you're looking for? Please contact us for more information.";
+  };
+
   if (isLoading) {
     return <LoadingState variant="page" message="Loading FAQ..." />;
   }
@@ -85,7 +103,7 @@ const DynamicFAQ = () => {
             )}
             <div className="mt-8 pt-8 border-t border-border">
               <p className="text-sm text-muted-foreground">
-                Can't find what you're looking for? Contact us at gabby@moxievacationrentals.com or call 541-255-1545.
+                {getContactMessage()}
               </p>
             </div>
           </div>
@@ -122,7 +140,7 @@ const DynamicFAQ = () => {
 
           <div className="mt-12 pt-8 border-t border-border">
             <p className="text-sm text-muted-foreground">
-              Can't find what you're looking for? Contact us at gabby@moxievacationrentals.com or call 541-255-1545.
+              {getContactMessage()}
             </p>
           </div>
         </div>

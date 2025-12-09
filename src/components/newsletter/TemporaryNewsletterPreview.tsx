@@ -27,7 +27,7 @@ const TemporaryNewsletterPreview = ({ subject, content }: TemporaryNewsletterPre
               Newsletter Preview (Visual Only)
             </CardTitle>
             <CardDescription>
-              Visual preview of your newsletter with Moxie's professional design
+              Visual preview of your newsletter with professional design
             </CardDescription>
           </div>
           <div className="flex gap-2">
@@ -58,7 +58,7 @@ const TemporaryNewsletterPreview = ({ subject, content }: TemporaryNewsletterPre
             <h4 className="font-medium text-yellow-800">Send Feature Temporarily Unavailable</h4>
             <p className="text-sm text-yellow-700 mt-1">
               The newsletter send functionality is temporarily disabled due to build issues. 
-              You can still preview how your newsletter will look with Moxie's professional design.
+              You can still preview how your newsletter will look with professional design.
             </p>
           </div>
         </div>
@@ -68,11 +68,11 @@ const TemporaryNewsletterPreview = ({ subject, content }: TemporaryNewsletterPre
           {/* Email Client Header */}
           <div className="bg-white border-b px-4 py-3 text-sm">
             <div className="flex justify-between items-center text-gray-600">
-              <span>From: Moxie Vacation Rentals &lt;newsletter@moxievacationrentals.com&gt;</span>
+              <span>From: Your Company &lt;newsletter@yoursite.com&gt;</span>
               <span>📧</span>
             </div>
             <div className="font-semibold text-gray-800 mt-1">
-              Subject: {subject || 'Your Eugene Newsletter'}
+              Subject: {subject || 'Your Newsletter'}
             </div>
             {preheader && (
               <div className="text-xs text-gray-500 mt-1">
@@ -104,10 +104,10 @@ const TemporaryNewsletterPreview = ({ subject, content }: TemporaryNewsletterPre
               <Eye className="h-4 w-4" />
             </div>
             <div>
-              <h4 className="font-semibold text-gray-800">Enhanced with Moxie Design</h4>
+              <h4 className="font-semibold text-gray-800">Enhanced Design</h4>
               <p className="text-sm text-gray-600 mt-1">
                 Your newsletter includes branded headers, responsive design, property showcases, 
-                and professional styling that reflects Moxie's Eugene-focused vacation rental expertise.
+                and professional styling that reflects your vacation rental expertise.
               </p>
             </div>
           </div>

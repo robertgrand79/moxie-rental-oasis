@@ -40,7 +40,7 @@ const TravelNewsletterSignup = () => {
       if (formData.smsOptIn) methods.push('SMS');
       
       toast({
-        title: "🎉 Welcome to Moxie Travel!",
+        title: "🎉 Welcome!",
         description: `You'll receive updates via ${methods.join(' and ')}.`,
       });
     } catch (error: any) {

@@ -1,8 +1,14 @@
 import React from 'react';
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const PrivacyPolicy = () => {
+  const { settings } = useTenantSettings();
+  const siteName = settings.site_name || 'Our Company';
+  const contactEmail = settings.contact_email || '';
+  const address = settings.address || '';
+
   return (
     <>
       <NavBar />
@@ -21,7 +27,7 @@ const PrivacyPolicy = () => {
                   We may collect information about your computer, including your IP address, operating system and browser type using Google Analytics, this is to improve browsing for everyone and does not identify any individual. You can learn more about how data is collected with Analytics here.
                 </p>
                 <p className="mb-4">
-                  When ordering or registering on our site, as appropriate, you may be asked to enter your: name, e-mail address, mailing address or phone number. You may, however, visit our site anonymously. We transfer information about you if Moxie Vacation Rentals is acquired by or merged with another company. In this event, Moxie Vacation Rentals will notify you before information about you is transferred and becomes subject to a different privacy policy.
+                  When ordering or registering on our site, as appropriate, you may be asked to enter your: name, e-mail address, mailing address or phone number. You may, however, visit our site anonymously. We transfer information about you if {siteName} is acquired by or merged with another company. In this event, {siteName} will notify you before information about you is transferred and becomes subject to a different privacy policy.
                 </p>
               </section>
 
@@ -88,7 +94,7 @@ const PrivacyPolicy = () => {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">Remarketing</h2>
                 <p className="mb-4">
-                  Moxie Vacation Rentals also may use 3rd party vendor re-marketing tracking cookies, including but not limited to the Google Adwords tracking cookie. This means we will continue to show ads to you across the internet, specifically on the Google Content Network (GCN). As always we respect your privacy and are not collecting any identifiable information through the use of Google's or any other 3rd party remarketing system.
+                  {siteName} also may use 3rd party vendor re-marketing tracking cookies, including but not limited to the Google Adwords tracking cookie. This means we will continue to show ads to you across the internet, specifically on the Google Content Network (GCN). As always we respect your privacy and are not collecting any identifiable information through the use of Google's or any other 3rd party remarketing system.
                 </p>
                 <p className="mb-4">
                   The third-party vendors, including Facebook and Google, whose services we use – will place cookies on web browsers in order to serve ads based on past visits to our website. – Third party vendors, including Google, use cookies to serve ads based on a user's prior visits to your website. This allows us to make special offers and continue to market our services to those who have shown interest in our service.
@@ -104,7 +110,7 @@ const PrivacyPolicy = () => {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">This website may use Google AdWords</h2>
                 <p className="mb-4">
-                  This website uses the Google AdWords remarketing service to advertise on third party websites (including Google) to previous visitors to our site. It could mean that we advertise to previous visitors who haven't completed a task on our site, for example using the contact form to make an inquiry. This could be in the form of an advertisement on the Google search results page or a site in the Google Display Network. Third-party vendors, including Google, use cookies to serve ads based on someone's past visits to the Moxie Vacation Rentals website. Of course, any data collected will be used in accordance with our own privacy policy and Google's privacy policy.
+                  This website uses the Google AdWords remarketing service to advertise on third party websites (including Google) to previous visitors to our site. It could mean that we advertise to previous visitors who haven't completed a task on our site, for example using the contact form to make an inquiry. This could be in the form of an advertisement on the Google search results page or a site in the Google Display Network. Third-party vendors, including Google, use cookies to serve ads based on someone's past visits to the {siteName} website. Of course, any data collected will be used in accordance with our own privacy policy and Google's privacy policy.
                 </p>
               </section>
 
@@ -146,11 +152,11 @@ const PrivacyPolicy = () => {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">Contacting Us</h2>
                 <p className="mb-4">
-                  If there are any questions regarding this privacy policy you may email us at gabby@staymoxie.com
+                  If there are any questions regarding this privacy policy you may email us at {contactEmail || 'our contact email'}
                 </p>
                 <p className="mb-4">
-                  Moxie Vacation Rentals<br />
-                  Eugene, OR USA
+                  {siteName}<br />
+                  {address || 'Our Address'}
                 </p>
               </section>
             </div>
