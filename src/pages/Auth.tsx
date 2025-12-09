@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { AlertTriangle, Database, RefreshCw, Wifi, WifiOff } from 'lucide-react';
@@ -17,7 +18,11 @@ const Auth = () => {
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
   const [debugInfo, setDebugInfo] = useState('');
   const { signIn, signUp, user, isAdmin, loading, roleLoading, databaseStatus, retryAuth } = useAuth();
+  const { isOrgAdmin, loading: orgLoading } = useCurrentOrganization();
   const navigate = useNavigate();
+
+  // Check if user has any admin access (legacy admin OR organization admin)
+  const hasAdminAccess = isAdmin || isOrgAdmin();
 
   useEffect(() => {
     // Debug logging
@@ -25,7 +30,10 @@ const Auth = () => {
       User: ${user?.email || 'None'}
       Loading: ${loading}
       Role Loading: ${roleLoading}
-      Is Admin: ${isAdmin}
+      Org Loading: ${orgLoading}
+      Is Admin (legacy): ${isAdmin}
+      Is Org Admin: ${isOrgAdmin()}
+      Has Admin Access: ${hasAdminAccess}
       Database Connected: ${databaseStatus.isConnected}
       Database Error: ${databaseStatus.error || 'None'}
       Current Time: ${new Date().toLocaleTimeString()}
@@ -37,19 +45,22 @@ const Auth = () => {
       console.log('🎯 Auth complete, checking role...', { 
         hasUser: !!user, 
         isAdmin, 
+        isOrgAdmin: isOrgAdmin(),
+        hasAdminAccess,
         roleLoading,
+        orgLoading,
         userEmail: user.email 
       });
       
-      // If role is still loading, wait a bit more
-      if (roleLoading) {
-        console.log('⏳ Role still loading, waiting...');
+      // If role or org is still loading, wait
+      if (roleLoading || orgLoading) {
+        console.log('⏳ Role/org still loading, waiting...');
         return;
       }
       
       // Role loading complete, redirect
       console.log('🚀 Redirecting user...');
-      if (isAdmin) {
+      if (hasAdminAccess) {
         console.log('👑 Redirecting admin to /admin');
         navigate('/admin', { replace: true });
       } else {
@@ -57,7 +68,7 @@ const Auth = () => {
         navigate('/', { replace: true });
       }
     }
-  }, [user, isAdmin, loading, roleLoading, navigate, databaseStatus]);
+  }, [user, isAdmin, hasAdminAccess, loading, roleLoading, orgLoading, navigate, databaseStatus, isOrgAdmin]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,7 +155,7 @@ const Auth = () => {
   };
 
   // Show loading state while auth is being determined
-  if (user && (loading || roleLoading)) {
+  if (user && (loading || roleLoading || orgLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
         <Card className="w-full max-w-md">
