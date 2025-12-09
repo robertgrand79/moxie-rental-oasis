@@ -31,11 +31,17 @@ export const useTenantDetection = (): TenantDetectionResult => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDefaultTenant, setIsDefaultTenant] = useState(false);
+  const [pathname, setPathname] = useState(window.location.pathname);
+
+  // Track pathname changes
+  useEffect(() => {
+    setPathname(window.location.pathname);
+  }, []);
 
   // Check if we're on an admin route - admin routes should use OrganizationContext instead
   const isAdminRoute = useMemo(() => {
-    return window.location.pathname.startsWith('/admin');
-  }, []);
+    return pathname.startsWith('/admin');
+  }, [pathname]);
 
   // Detect tenant identifier from URL
   const detectedIdentifier = useMemo(() => {
@@ -107,21 +113,26 @@ export const useTenantDetection = (): TenantDetectionResult => {
           }
         }
 
-        // Second try: Check sessionStorage for previously detected tenant
-        const storedSlug = sessionStorage.getItem('current_tenant_slug');
-        if (storedSlug && !isAdminRoute) {
-          const { data: storedTenant, error: storedError } = await supabase
-            .from('organizations')
-            .select('id, name, slug, logo_url, website, custom_domain, is_active, template_type')
-            .eq('slug', storedSlug)
-            .eq('is_active', true)
+        // Third try: If user is logged in, use their organization
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && !isAdminRoute) {
+          const { data: membership } = await supabase
+            .from('organization_members')
+            .select('organization:organizations(id, name, slug, logo_url, website, custom_domain, is_active, template_type)')
+            .eq('user_id', user.id)
+            .order('joined_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
 
-          if (!storedError && storedTenant) {
-            setTenant(storedTenant as TenantInfo);
-            setIsDefaultTenant(false);
-            setLoading(false);
-            return;
+          if (membership?.organization) {
+            const orgData = membership.organization as unknown as TenantInfo;
+            if (orgData.is_active) {
+              sessionStorage.setItem('current_tenant_slug', orgData.slug);
+              setTenant(orgData);
+              setIsDefaultTenant(false);
+              setLoading(false);
+              return;
+            }
           }
         }
 
