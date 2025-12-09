@@ -52,10 +52,10 @@ export const adminMenuItems = [
         description: 'Newsletter campaigns and subscribers'
       },
       {
-        title: 'AI Assistant',
+        title: 'Stay Moxie Assistant',
         href: '/admin/ai-assistant',
         icon: Sparkles,
-        description: 'Generate social media posts from your content'
+        description: 'Your AI-powered assistant for content and productivity'
       }
     ]
   },

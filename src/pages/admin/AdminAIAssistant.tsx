@@ -9,7 +9,7 @@ import QuickPromptsTab from '@/components/admin/ai-assistant/QuickPromptsTab';
 const AdminAIAssistant = () => {
   return (
     <AdminPageWrapper
-      title="AI Assistant"
+      title="Stay Moxie Assistant"
       description="Your AI-powered content and productivity hub"
     >
       <div className="p-6">
