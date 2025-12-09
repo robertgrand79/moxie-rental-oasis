@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Users, X } from 'lucide-react';
 
 interface User {
@@ -25,20 +26,35 @@ const TaskAssignmentForm = ({ taskId, selectedUserIds, onUserSelectionChange }: 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (organization?.id) {
+      fetchUsers();
+    }
+  }, [organization?.id]);
 
   const fetchUsers = async () => {
+    if (!organization?.id) return;
+    
     try {
+      // Fetch organization members with their profile info (organization-scoped)
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, email, full_name')
-        .order('full_name', { ascending: true });
+        .from('organization_members')
+        .select('user_id, profiles!inner(id, email, full_name)')
+        .eq('organization_id', organization.id)
+        .order('profiles(full_name)', { ascending: true });
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Map the joined data to User interface
+      const mappedUsers: User[] = (data || []).map(member => ({
+        id: (member.profiles as any).id,
+        email: (member.profiles as any).email,
+        full_name: (member.profiles as any).full_name,
+      }));
+      
+      setUsers(mappedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -75,7 +91,7 @@ const TaskAssignmentForm = ({ taskId, selectedUserIds, onUserSelectionChange }: 
     return (
       <div className="space-y-2">
         <Label>Task Assignments</Label>
-        <div className="text-sm text-gray-500">Loading users...</div>
+        <div className="text-sm text-muted-foreground">Loading users...</div>
       </div>
     );
   }
@@ -116,7 +132,7 @@ const TaskAssignmentForm = ({ taskId, selectedUserIds, onUserSelectionChange }: 
         </CardHeader>
         <CardContent className="max-h-60 overflow-y-auto space-y-2">
           {users.length === 0 ? (
-            <div className="text-sm text-gray-500">No users available</div>
+            <div className="text-sm text-muted-foreground">No users available</div>
           ) : (
             users.map(user => (
               <div key={user.id} className="flex items-center space-x-2">
@@ -138,7 +154,7 @@ const TaskAssignmentForm = ({ taskId, selectedUserIds, onUserSelectionChange }: 
       </Card>
 
       {selectedUserIds.length === 0 && (
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-muted-foreground">
           No users assigned. Select users from the list above to assign them to this task.
         </div>
       )}
