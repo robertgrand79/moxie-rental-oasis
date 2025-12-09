@@ -7,6 +7,7 @@ import { TenantProvider } from './contexts/TenantContext';
 import { StaticSettingsProvider } from './contexts/StaticSettingsContext';
 import { PlatformProvider } from './contexts/PlatformContext';
 import AppRoutes from './components/routing/AppRoutes';
+import PublicChatWidget from './components/public/PublicChatWidget';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -29,6 +30,7 @@ function App() {
                 <StaticSettingsProvider>
                   <Router>
                     <AppRoutes />
+                    <PublicChatWidget />
                   </Router>
                 </StaticSettingsProvider>
               </TenantProvider>

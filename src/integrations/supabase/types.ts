@@ -160,6 +160,47 @@ export type Database = {
         }
         Relationships: []
       }
+      assistant_settings: {
+        Row: {
+          bubble_color: string
+          created_at: string
+          display_name: string
+          id: string
+          is_enabled: boolean
+          organization_id: string
+          updated_at: string
+          welcome_message: string
+        }
+        Insert: {
+          bubble_color?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_enabled?: boolean
+          organization_id: string
+          updated_at?: string
+          welcome_message?: string
+        }
+        Update: {
+          bubble_color?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_enabled?: boolean
+          organization_id?: string
+          updated_at?: string
+          welcome_message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       availability_blocks: {
         Row: {
           block_type: string
