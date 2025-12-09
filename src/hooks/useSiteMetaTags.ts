@@ -6,12 +6,13 @@ import { SettingsState } from './settings/types';
 export const useSiteMetaTags = (settings: SettingsState) => {
   const location = useLocation();
   
-  const siteTitle = settings.siteTitle || 'Moxie Vacation Rentals';
-  const metaDescription = settings.metaDescription || 'Your Home Base for Living Like a Local in Eugene - Discover Eugene, Oregon through thoughtfully curated vacation rentals.';
+  // Use generic defaults instead of Moxie-specific branding
+  const siteTitle = settings.siteTitle || 'Vacation Rentals';
+  const metaDescription = settings.metaDescription || 'Discover vacation rentals in our beautiful area.';
   const ogTitle = settings.ogTitle || siteTitle;
   const ogDescription = settings.ogDescription || metaDescription;
-  const ogImage = settings.ogImage || 'https://lovable.dev/opengraph-image-p98pqg.png';
-  const favicon = settings.favicon || '/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png';
+  const ogImage = settings.ogImage || '';
+  const favicon = settings.favicon || '/favicon.ico';
 
   const isHomePage = location.pathname === '/';
 
@@ -49,7 +50,9 @@ export const useSiteMetaTags = (settings: SettingsState) => {
 
       updateMetaTag('og:title', ogTitle);
       updateMetaTag('og:description', ogDescription);
-      updateMetaTag('og:image', ogImage);
+      if (ogImage) {
+        updateMetaTag('og:image', ogImage);
+      }
 
     } catch (error) {
       console.error('SiteHead: Critical error in meta tags setup:', error);

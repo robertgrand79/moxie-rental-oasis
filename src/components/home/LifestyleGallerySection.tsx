@@ -6,6 +6,8 @@ import { MapPin, Camera } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface GalleryItem {
   id: string;
@@ -26,19 +28,31 @@ const categoryLabels = {
 
 const LifestyleGallerySection = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { tenantId } = useTenant();
+  const { settings } = useTenantSettings();
+
+  // Dynamic section text from tenant settings
+  const locationName = settings.heroLocationText || settings.location || 'the Area';
+  const sectionTitle = settings.lifestyleSectionTitle || `Experience ${locationName} Like a Local`;
+  const sectionDescription = settings.lifestyleSectionDescription || 
+    `Discover the vibrant culture, outdoor adventures, and culinary delights that make ${locationName} special`;
 
   const { data: galleryItems = [], isLoading } = useQuery({
-    queryKey: ['lifestyle-gallery'],
+    queryKey: ['lifestyle-gallery', tenantId],
     queryFn: async () => {
+      if (!tenantId) return [];
+      
       const { data, error } = await supabase
         .from('lifestyle_gallery')
         .select('*')
         .eq('is_active', true)
+        .eq('organization_id', tenantId)
         .order('display_order', { ascending: true });
       
       if (error) throw error;
       return data as GalleryItem[];
-    }
+    },
+    enabled: !!tenantId
   });
 
   const categories = ['all', ...Object.keys(categoryLabels)];
@@ -49,14 +63,14 @@ const LifestyleGallerySection = () => {
 
   if (isLoading) {
     return (
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-muted/50">
         <div className="container mx-auto px-4">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto mb-8"></div>
+            <div className="h-8 bg-muted rounded w-1/3 mx-auto mb-4"></div>
+            <div className="h-4 bg-muted rounded w-1/2 mx-auto mb-8"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>
+                <div key={i} className="h-64 bg-muted rounded-lg"></div>
               ))}
             </div>
           </div>
@@ -65,13 +79,18 @@ const LifestyleGallerySection = () => {
     );
   }
 
+  // Don't render section if no gallery items
+  if (galleryItems.length === 0) {
+    return null;
+  }
+
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-muted/50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Experience Eugene Like a Local</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover the vibrant culture, outdoor adventures, and culinary delights that make Eugene special
+          <h2 className="text-3xl font-bold text-foreground mb-4">{sectionTitle}</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            {sectionDescription}
           </p>
         </div>
 
@@ -113,18 +132,18 @@ const LifestyleGallerySection = () => {
               </div>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
                     {item.title}
                   </h3>
                   <Badge variant="secondary" className="text-xs ml-2">
                     {categoryLabels[item.category as keyof typeof categoryLabels]}
                   </Badge>
                 </div>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
                   {item.description}
                 </p>
                 {item.location && (
-                  <div className="flex items-center text-gray-500 text-xs">
+                  <div className="flex items-center text-muted-foreground text-xs">
                     <MapPin className="h-3 w-3 mr-1" />
                     <span>{item.location}</span>
                   </div>
@@ -136,7 +155,7 @@ const LifestyleGallerySection = () => {
 
         {filteredItems.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500">No items found in this category.</p>
+            <p className="text-muted-foreground">No items found in this category.</p>
           </div>
         )}
       </div>
