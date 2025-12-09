@@ -155,7 +155,7 @@ const NewsletterEditorForm = ({
                 <div>
                   <h4 className="font-semibold text-blue-900">Real-Time Preview</h4>
                   <p className="text-sm text-blue-800 mt-1">
-                    Your content automatically includes Moxie's branding and professional design. 
+                    Your content automatically includes your branding and professional design. 
                     See the live preview as you type on the right.
                   </p>
                 </div>

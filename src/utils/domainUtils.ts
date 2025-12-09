@@ -17,7 +17,8 @@ export const isAdminDomain = (): boolean => {
   return hostname.includes('lovable.app') || 
          hostname === 'localhost' || 
          hostname === '127.0.0.1' ||
-         hostname.includes('staymoxie.com') ||
+         // Platform domain check
+         hostname.includes('staymoxie') ||
          // Allow any custom domain (tenant domains)
          !hostname.includes('localhost');
 };
