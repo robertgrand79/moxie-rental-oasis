@@ -26,15 +26,34 @@ export const useRatingMetrics = () => {
 
       console.log('🔄 Fetching rating metrics for tenant:', tenantId);
       
-      // Query testimonials that belong to tenant's properties
+      // Step 1: Get property IDs for this tenant
+      const { data: properties, error: propsError } = await supabase
+        .from('properties')
+        .select('id')
+        .eq('organization_id', tenantId);
+      
+      if (propsError) {
+        console.error('❌ Error fetching properties:', propsError);
+        throw propsError;
+      }
+
+      const propertyIds = properties?.map(p => p.id) || [];
+      
+      if (propertyIds.length === 0) {
+        return {
+          averageRating: 0,
+          totalReviews: 0,
+          formattedRating: '0.0',
+          reviewText: '0 Reviews'
+        };
+      }
+
+      // Step 2: Fetch testimonials for those properties
       const { data, error } = await supabase
         .from('testimonials')
-        .select(`
-          rating,
-          properties!inner(organization_id)
-        `)
+        .select('rating')
+        .in('property_id', propertyIds)
         .eq('is_active', true)
-        .eq('properties.organization_id', tenantId)
         .not('rating', 'is', null);
       
       if (error) {
@@ -44,7 +63,7 @@ export const useRatingMetrics = () => {
 
       const totalReviews = data?.length || 0;
       const averageRating = totalReviews > 0 
-        ? data.reduce((sum, item) => sum + item.rating, 0) / totalReviews 
+        ? data.reduce((sum, item) => sum + (item.rating || 0), 0) / totalReviews 
         : 0;
 
       const formattedRating = averageRating.toFixed(1);
