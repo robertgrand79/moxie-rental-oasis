@@ -1,34 +1,33 @@
-
 export interface NewsletterTemplate {
   id: string;
   title: string;
   description: string;
   prompt: string;
   category: 'weekly' | 'property' | 'events' | 'seasonal';
-  icon: string; // Changed from React.ReactNode to string
+  icon: string;
 }
 
-export const newsletterTemplates: NewsletterTemplate[] = [
+export const getNewsletterTemplates = (siteName: string, location: string): NewsletterTemplate[] => [
   {
     id: 'weekly-digest',
     title: 'Weekly Local Digest',
     description: 'Curated local events and attractions for guests',
     category: 'weekly',
-    icon: 'calendar', // Changed to string identifier
-    prompt: `Create a visually engaging weekly newsletter for Moxie Vacation Rentals guests featuring:
+    icon: 'calendar',
+    prompt: `Create a visually engaging weekly newsletter for ${siteName} guests featuring:
 
 **Structure the content with clear sections:**
 
 **Welcome Section:**
-- Warm greeting for new and returning guests to Eugene
+- Warm greeting for new and returning guests to ${location}
 - Brief overview of this week's highlights
 
 **Local Attractions This Week:**
-- 3-4 must-visit Eugene attractions with brief descriptions
+- 3-4 must-visit ${location} attractions with brief descriptions
 - Include why each is special and perfect for vacation rental guests
 
 **Upcoming Events:**
-- 2-3 exciting events happening in Eugene this week
+- 2-3 exciting events happening in ${location} this week
 - Include dates, times, and what makes each event unique
 
 **Hidden Gem Spotlight:**
@@ -36,7 +35,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 - Explain why locals love it and how to find it
 
 **Weather & Packing Tips:**
-- Current weather forecast for Eugene
+- Current weather forecast for ${location}
 - Practical packing suggestions for activities
 
 **Dining Recommendations:**
@@ -50,7 +49,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 **Style Guidelines:**
 - Use warm, welcoming, and locally-focused tone
 - Write in short, scannable paragraphs
-- Include specific Eugene location names and details
+- Include specific ${location} location names and details
 - Create excitement about exploring the area
 - Format with clear headings and bullet points where appropriate`
   },
@@ -60,7 +59,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
     description: 'Showcase a specific property with local context',
     category: 'property',
     icon: 'home',
-    prompt: `Create a property spotlight newsletter for Moxie Vacation Rentals featuring:
+    prompt: `Create a property spotlight newsletter for ${siteName} featuring:
 
 **Structure with clear sections:**
 
@@ -82,7 +81,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 **Ideal Guest Experiences:**
 - Perfect scenarios: couples' getaways, family vacations, business travelers
 - Specific activities and experiences available from this location
-- How the property enhances their Eugene experience
+- How the property enhances their ${location} experience
 
 **Guest Love Stories:**
 - Include a compelling guest testimonial or review highlight
@@ -102,24 +101,24 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 **Explore More Options:**
 - Cross-sell other properties for different experiences
 - Mention variety in our portfolio
-- Encourage exploration of all Moxie offerings
+- Encourage exploration of all ${siteName} offerings
 
 **Style Guidelines:**
 - Aspirational and detailed writing style
-- Help readers envision their perfect Eugene getaway
+- Help readers envision their perfect ${location} getaway
 - Use specific details and vivid descriptions
 - Include practical information with inspirational content`
   },
   {
     id: 'seasonal-guide',
-    title: 'Seasonal Eugene Guide',
+    title: 'Seasonal Guide',
     description: 'Seasonal activities and experiences guide',
     category: 'seasonal',
     icon: 'map-pin',
-    prompt: `Create a comprehensive seasonal guide newsletter for Moxie Vacation Rentals featuring:
+    prompt: `Create a comprehensive seasonal guide newsletter for ${siteName} featuring:
 
 **Current Season Highlights:**
-- What makes this season special in Eugene, Oregon
+- What makes this season special in ${location}
 - Unique opportunities only available during this time
 - Why now is the perfect time to visit
 
@@ -135,7 +134,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 
 **Weather & Preparation Guide:**
 - Detailed weather expectations for the season
-- Essential packing checklist for Eugene visitors
+- Essential packing checklist for ${location} visitors
 - Tips for making the most of current conditions
 
 **Seasonal Dining & Local Flavors:**
@@ -151,7 +150,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 **Photography & Instagram Spots:**
 - Most beautiful locations for seasonal photography
 - Best times of day for stunning shots
-- Hidden spots that showcase Eugene's seasonal beauty
+- Hidden spots that showcase ${location}'s seasonal beauty
 
 **Exclusive Seasonal Packages:**
 - Special seasonal rates and package deals
@@ -159,13 +158,13 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 - Limited-time offers that enhance the seasonal experience
 
 **Local Insider Tips:**
-- Secrets that only Eugene locals know about this season
+- Secrets that only ${location} locals know about this season
 - Best times to visit popular spots to avoid crowds
 - Free or budget-friendly seasonal activities
 
 **Style Guidelines:**
 - Informative and inspiring tone
-- Position Moxie as the local expert for seasonal Eugene experiences
+- Position ${siteName} as the local expert for seasonal ${location} experiences
 - Use specific seasonal details and current information
 - Include practical tips with inspirational content
 - Write in an enthusiastic but knowledgeable voice`
@@ -176,17 +175,17 @@ export const newsletterTemplates: NewsletterTemplate[] = [
     description: 'Feature guest experiences and testimonials',
     category: 'weekly',
     icon: 'star',
-    prompt: `Create an engaging guest story newsletter for Moxie Vacation Rentals featuring:
+    prompt: `Create an engaging guest story newsletter for ${siteName} featuring:
 
 **Featured Guest Experience:**
 - Compelling guest story from a recent stay
-- What brought them to Eugene and why they chose Moxie
+- What brought them to ${location} and why they chose ${siteName}
 - Timeline of their visit with highlights
 
 **Property Experience Highlights:**
 - Which property they stayed in and why it was perfect
 - Specific amenities and features they loved most
-- How the property enhanced their Eugene experience
+- How the property enhanced their ${location} experience
 
 **Local Discoveries:**
 - Unique local places they discovered during their visit
@@ -196,11 +195,11 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 **Memorable Moments:**
 - Specific experiences that made their stay special
 - Unexpected discoveries or delightful surprises
-- How their Eugene experience exceeded expectations
+- How their ${location} experience exceeded expectations
 
 **Guest Recommendations:**
 - What they suggest other visitors should not miss
-- Tips and advice for future Moxie guests
+- Tips and advice for future ${siteName} guests
 - Best times to visit or special considerations
 
 **Photo Highlights:**
@@ -210,7 +209,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 
 **Travel Style Insights:**
 - What type of travelers they are (adventure, relaxation, culture, etc.)
-- How Moxie properties matched their travel preferences
+- How ${siteName} properties matched their travel preferences
 - Why they chose vacation rentals over hotels
 
 **Similar Experiences Available:**
@@ -237,14 +236,14 @@ export const newsletterTemplates: NewsletterTemplate[] = [
   },
   {
     id: 'events-roundup',
-    title: 'Eugene Events Roundup',
+    title: 'Events Roundup',
     description: 'Comprehensive local events and activities',
     category: 'events',
     icon: 'calendar',
-    prompt: `Create a comprehensive events roundup newsletter for Moxie Vacation Rentals featuring:
+    prompt: `Create a comprehensive events roundup newsletter for ${siteName} featuring:
 
 **This Month's Signature Events:**
-- Top 3-4 can't-miss events happening in Eugene this month
+- Top 3-4 can't-miss events happening in ${location} this month
 - Include dates, times, locations, and ticket information
 - Explain why each event is special and worth attending
 
@@ -276,7 +275,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 - Perfect events for couples and romantic evenings
 - Fine dining special events and wine experiences
 - Cultural performances ideal for date nights
-- Unique Eugene experiences for couples
+- Unique ${location} experiences for couples
 
 **Budget-Friendly & Free Activities:**
 - Completely free events and entertainment
@@ -286,7 +285,7 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 
 **Seasonal Celebrations:**
 - Holiday and seasonal community events
-- Traditional Eugene celebrations and festivals
+- Traditional ${location} celebrations and festivals
 - Weather-dependent activities and backup plans
 - Special seasonal markets and pop-ups
 
@@ -299,23 +298,27 @@ export const newsletterTemplates: NewsletterTemplate[] = [
 **Local Insider Access:**
 - VIP experiences or behind-the-scenes opportunities
 - How to get the best tickets or avoid crowds
-- Local secrets for enjoying events like a Eugene resident
+- Local secrets for enjoying events like a ${location} resident
 - Transportation tips and parking advice
 
 **Style Guidelines:**
 - Comprehensive and exciting tone
-- Position our properties as the perfect base for experiencing Eugene's vibrant event scene
+- Position our properties as the perfect base for experiencing ${location}'s vibrant event scene
 - Include practical details alongside inspirational content
 - Use enthusiastic but informative language
 - Organize information clearly for easy scanning and planning`
   }
 ];
 
-export const quickPrompts = [
-  "Create a warm welcome newsletter highlighting Eugene's charm for first-time visitors with local recommendations",
-  "Write about Eugene's best-kept secrets and hidden gems that only locals know about",
-  "Feature this weekend's top events in Eugene with insider tips for the best experience", 
-  "Highlight family-friendly outdoor activities and attractions perfect for vacation rental guests",
-  "Showcase Eugene's vibrant food and dining scene with must-try restaurants and experiences",
-  "Create a romantic getaway guide for couples featuring intimate experiences in Eugene"
+export const getQuickPrompts = (location: string): string[] => [
+  `Create a warm welcome newsletter highlighting ${location}'s charm for first-time visitors with local recommendations`,
+  `Write about ${location}'s best-kept secrets and hidden gems that only locals know about`,
+  `Feature this weekend's top events in ${location} with insider tips for the best experience`, 
+  `Highlight family-friendly outdoor activities and attractions perfect for vacation rental guests`,
+  `Showcase ${location}'s vibrant food and dining scene with must-try restaurants and experiences`,
+  `Create a romantic getaway guide for couples featuring intimate experiences in ${location}`
 ];
+
+// Keep backward compatibility exports
+export const newsletterTemplates = getNewsletterTemplates('Our Vacation Rentals', 'the area');
+export const quickPrompts = getQuickPrompts('the area');

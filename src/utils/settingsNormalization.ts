@@ -8,6 +8,8 @@ export const normalizeSettingsKeys = (settingsMap: Record<string, any>) => ({
   contactEmail: settingsMap.contactEmail || settingsMap.contact_email || '',
   phone: settingsMap.phone || settingsMap.contact_phone || '',
   address: settingsMap.address || '',
+  heroLocationText: settingsMap.heroLocationText || settingsMap.hero_location_text || '',
+  logoUrl: settingsMap.logoUrl || settingsMap.logo_url || '',
   socialMedia: settingsMap.socialMedia || {
     facebook: settingsMap.social_facebook || '',
     instagram: settingsMap.social_instagram || '',
@@ -24,6 +26,8 @@ export const ALL_SETTING_KEYS = [
   'contactEmail', 'contact_email',
   'phone', 'contact_phone',
   'address',
+  'heroLocationText', 'hero_location_text',
+  'logoUrl', 'logo_url',
   'socialMedia',
   'social_facebook', 'social_instagram', 'social_twitter'
 ];
