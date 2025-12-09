@@ -24,18 +24,11 @@ export const measurePerformance = () => {
 
 // Preload critical resources
 export const preloadCriticalResources = () => {
-  const criticalImages = [
-    '/lovable-uploads/7471f968-e7b4-49d2-9281-852c85dc81e4.png', // Logo
-    '/lovable-uploads/bd92da84-2272-4ac5-aa53-6b9afc089fa2.png'  // Family photo
-  ];
-
-  criticalImages.forEach((src) => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = src;
-    document.head.appendChild(link);
-  });
+  // Static image preloading removed - images are now loaded dynamically per-tenant
+  // from site_settings (logos, hero images). Dynamic preloading is handled by:
+  // - useHeroImagePreloading hook for hero section images
+  // - Site settings fetching for tenant logos
+  // Preloading hardcoded paths caused 404 warnings for non-existent demo images.
 };
 
 // Optimize bundle loading with dynamic imports
