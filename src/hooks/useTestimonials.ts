@@ -58,11 +58,11 @@ export const useTestimonials = () => {
       console.log('🔄 Fetching testimonials...');
       if (orgPropertyIds.length === 0) return [];
       
-      // Filter testimonials by organization's property IDs (or null for global ones)
+      // Filter testimonials by organization's property IDs only (no global/null property_id)
       const { data, error } = await supabase
         .from('testimonials')
         .select('*')
-        .or(`property_id.is.null,property_id.in.(${orgPropertyIds.join(',')})`)
+        .in('property_id', orgPropertyIds)
         .order('display_order', { ascending: true });
       
       if (error) {
