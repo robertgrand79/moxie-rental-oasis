@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronLeft, Eye } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Eye, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const sectionPreviewUrls: Record<string, string> = {
+  basic: '/',
+  hero: '/',
+  contact: '/contact',
+  seo: '/',
+};
 
 interface SettingsLivePreviewProps {
   section: 'basic' | 'hero' | 'contact' | 'seo';
@@ -177,7 +184,16 @@ const SettingsLivePreview = ({ section, data }: SettingsLivePreviewProps) => {
         <div className="p-4">
           {renderPreview()}
         </div>
-        <div className="p-4 border-t bg-muted/30">
+        <div className="p-4 border-t bg-muted/30 space-y-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => window.open(sectionPreviewUrls[section] || '/', '_blank')}
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Open Full Preview
+          </Button>
           <p className="text-[10px] text-muted-foreground text-center">
             Updates as you type
           </p>
