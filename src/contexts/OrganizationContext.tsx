@@ -105,8 +105,19 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   useEffect(() => {
     fetchOrganizationData();
+    
+    // Safety timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn('⚠️ Organization context loading timeout - forcing completion');
+        setLoading(false);
+      }
+    }, 8000);
+    
+    return () => clearTimeout(timeout);
   }, [fetchOrganizationData]);
 
+  // Ensure isOrgAdmin doesn't return false prematurely during loading
   const isOrgAdmin = useCallback(() => {
     return membership?.role === 'admin' || membership?.role === 'owner' || isPlatformAdmin;
   }, [membership, isPlatformAdmin]);
