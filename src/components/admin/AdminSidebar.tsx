@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -11,13 +11,35 @@ import { adminMenuItems } from './sidebar/adminMenuItems';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
 
 const AdminSidebar = () => {
   const isMobile = useIsMobile();
   const { settings } = useSimplifiedSiteSettings();
   const { organization } = useCurrentOrganization();
+  const { isPlatformAdmin } = usePlatformAdmin();
   
   const logoUrl = settings.siteLogo || organization?.logo_url;
+
+  // Filter menu items based on platform admin status
+  const filteredMenuItems = useMemo(() => {
+    return adminMenuItems
+      .map(section => {
+        if (section.title === 'Platform Administration') {
+          const filteredItems = section.items.filter(item => {
+            if (item.title === 'Super Admin Panel') {
+              return isPlatformAdmin === true;
+            }
+            return true;
+          });
+          
+          if (filteredItems.length === 0) return null;
+          return { ...section, items: filteredItems };
+        }
+        return section;
+      })
+      .filter(Boolean) as typeof adminMenuItems;
+  }, [isPlatformAdmin]);
 
   return (
     <Sidebar>
@@ -46,7 +68,7 @@ const AdminSidebar = () => {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {adminMenuItems.map((section) => (
+        {filteredMenuItems.map((section) => (
           <AdminSidebarSection 
             key={section.title}
             title={section.title} 
