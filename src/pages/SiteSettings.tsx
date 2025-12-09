@@ -5,7 +5,7 @@ import { Palette, Type, Image, Share, MapPin, Calendar, Camera, Star } from 'luc
 import ColorCustomizer from '@/components/ColorCustomizer';
 import FontCustomizer from '@/components/FontCustomizer';
 import LogoUploader from '@/components/LogoUploader';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import StableBasicSettingsTab from '@/components/admin/settings/StableBasicSettingsTab';
 import SocialSettingsTab from '@/components/admin/settings/SocialSettingsTab';
 import SEOSettingsTab from '@/components/admin/settings/SEOSettingsTab';
@@ -15,7 +15,7 @@ import { TestimonialsManager, GalleryTab, PointsOfInterestTab, EventsTab } from 
 import SettingsErrorBoundary from '@/components/admin/settings/SettingsErrorBoundary';
 
 const SiteSettings = () => {
-  const { settings, loading, saveSetting } = useStableSiteSettings();
+  const { settings, loading, saveSetting } = useSimplifiedSiteSettings();
 
   const handleSaveSeoSettings = async () => {
     const success = await saveSetting('siteTitle', settings.siteTitle);

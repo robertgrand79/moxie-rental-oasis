@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useStableSiteSettings } from '@/hooks/useStableSiteSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
 interface DebugInfoPanelProps {
   siteData: any;
@@ -10,7 +10,7 @@ interface DebugInfoPanelProps {
 
 const DebugInfoPanel = ({ siteData, isUserEditing }: DebugInfoPanelProps) => {
   const { user } = useAuth();
-  const { settings } = useStableSiteSettings();
+  const { settings } = useSimplifiedSiteSettings();
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
