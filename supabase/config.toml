@@ -112,6 +112,9 @@ verify_jwt = false
 [functions.create-customer-portal-session]
 verify_jwt = false
 
+[functions.generate-social-post]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323
