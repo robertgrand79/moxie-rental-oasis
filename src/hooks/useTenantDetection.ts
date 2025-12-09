@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 interface TenantInfo {
@@ -27,20 +28,36 @@ interface TenantDetectionResult {
  * 3. Defaults to the first active organization if none detected
  */
 export const useTenantDetection = (): TenantDetectionResult => {
+  const location = useLocation(); // React Router hook - updates on every navigation
+  const pathname = location.pathname;
+  
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDefaultTenant, setIsDefaultTenant] = useState(false);
-  const [pathname, setPathname] = useState(window.location.pathname);
-
-  // Track pathname changes
-  useEffect(() => {
-    setPathname(window.location.pathname);
-  }, []);
+  
+  // Track previous admin route state to detect transitions
+  const wasAdminRoute = useRef(pathname.startsWith('/admin'));
 
   // Check if we're on an admin route - admin routes should use OrganizationContext instead
   const isAdminRoute = useMemo(() => {
     return pathname.startsWith('/admin');
+  }, [pathname]);
+
+  // Reset tenant state when transitioning between admin and public routes
+  useEffect(() => {
+    const currentlyAdmin = pathname.startsWith('/admin');
+    
+    if (wasAdminRoute.current !== currentlyAdmin) {
+      console.log('🔄 Route transition detected:', wasAdminRoute.current ? 'admin → public' : 'public → admin');
+      
+      // Clear tenant state to force re-detection
+      setTenant(null);
+      setLoading(true);
+      sessionStorage.removeItem('current_tenant_slug');
+      
+      wasAdminRoute.current = currentlyAdmin;
+    }
   }, [pathname]);
 
   // Detect tenant identifier from URL

@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
@@ -41,7 +40,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   };
 
   const backUrl = getBackToSiteUrl();
-  const isExternalUrl = backUrl.startsWith('http');
+  
   return (
     <div className="min-h-screen bg-muted/30 w-full">
       <SidebarProvider defaultOpen={!isMobile}>
@@ -57,19 +56,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                   asChild 
                   className={isMobile ? 'min-h-[44px]' : ''}
                 >
-                  {isExternalUrl ? (
-                    <a href={backUrl} className="flex items-center gap-2">
-                      <ArrowLeft className="h-4 w-4" />
-                      <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
-                      <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                    </a>
-                  ) : (
-                    <Link to={backUrl} className="flex items-center gap-2">
-                      <ArrowLeft className="h-4 w-4" />
-                      <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
-                      <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                    </Link>
-                  )}
+                  {/* Always use <a> tag to force full page reload for clean tenant detection */}
+                  <a href={backUrl} className="flex items-center gap-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
+                    <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
+                  </a>
                 </EnhancedButton>
                 
                 {/* Organization context badge */}
