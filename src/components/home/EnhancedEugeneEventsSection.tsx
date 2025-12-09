@@ -134,6 +134,7 @@ const EnhancedEugeneEventsSection = () => {
     );
   }
 
+  // Hide section entirely if no events for this tenant
   if (filteredEvents.length === 0 && searchTerm === '' && selectedCategory === 'all' && timeFilter === 'upcoming') {
     return null;
   }
@@ -142,7 +143,7 @@ const EnhancedEugeneEventsSection = () => {
     <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">What's Happening in Eugene</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">What's Happening</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Discover upcoming events and activities during your stay
           </p>
