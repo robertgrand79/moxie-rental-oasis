@@ -30,8 +30,8 @@ const AuthSection = () => {
         title: 'Signed out',
         description: 'You have been successfully signed out.'
       });
-      // Force page reload to ensure clean state
-      window.location.href = '/';
+      // Redirect to sign-in page
+      window.location.href = '/auth';
     }
   };
 

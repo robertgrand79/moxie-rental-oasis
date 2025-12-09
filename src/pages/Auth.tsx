@@ -38,35 +38,31 @@ const Auth = () => {
         return;
       }
       
-      // Role loading complete, redirect with org context
-      if (hasAdminAccess) {
-        // Fetch user's organization to include in redirect
-        const fetchOrgAndRedirect = async () => {
-          try {
-            const { data: membership } = await supabase
-              .from('organization_members')
-              .select('organization:organizations(slug)')
-              .eq('user_id', user.id)
-              .order('joined_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            
-            const orgSlug = (membership?.organization as { slug?: string })?.slug;
-            
-            if (orgSlug) {
-              window.location.href = `/admin?org=${orgSlug}`;
-            } else {
-              navigate('/admin', { replace: true });
-            }
-          } catch (err) {
-            console.error('Error fetching org for redirect:', err);
+      // Tenant auth page - always redirect to admin dashboard
+      // Fetch user's organization to include in redirect
+      const fetchOrgAndRedirect = async () => {
+        try {
+          const { data: membership } = await supabase
+            .from('organization_members')
+            .select('organization:organizations(slug)')
+            .eq('user_id', user.id)
+            .order('joined_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          const orgSlug = (membership?.organization as { slug?: string })?.slug;
+          
+          if (orgSlug) {
+            window.location.href = `/admin?org=${orgSlug}`;
+          } else {
             navigate('/admin', { replace: true });
           }
-        };
-        fetchOrgAndRedirect();
-      } else {
-        navigate('/', { replace: true });
-      }
+        } catch (err) {
+          console.error('Error fetching org for redirect:', err);
+          navigate('/admin', { replace: true });
+        }
+      };
+      fetchOrgAndRedirect();
     }
   }, [user, isAdmin, hasAdminAccess, loading, roleLoading, orgLoading, navigate]);
 
