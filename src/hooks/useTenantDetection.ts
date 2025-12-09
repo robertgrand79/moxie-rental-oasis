@@ -71,6 +71,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
     const urlParams = new URLSearchParams(window.location.search);
     const orgSlug = urlParams.get('org');
     if (orgSlug) {
+      console.log('🏷️ Tenant from URL param:', orgSlug);
       return orgSlug;
     }
 
@@ -81,23 +82,13 @@ export const useTenantDetection = (): TenantDetectionResult => {
         !hostname.includes('localhost') && 
         !hostname.includes('127.0.0.1')) {
       // It's a custom domain - use the full hostname
+      console.log('🏷️ Tenant from custom domain:', hostname);
       return hostname;
     }
     
-    // Check for subdomain on lovable.app
-    if (hostname.includes('lovable.app')) {
-      const parts = hostname.split('.');
-      // Format: subdomain.lovable.app or project-id.lovable.app
-      if (parts.length >= 3) {
-        const subdomain = parts[0];
-        // Skip if it's the main project subdomain (contains project ID pattern)
-        if (subdomain.length < 20) {
-          return subdomain;
-        }
-      }
-    }
-    
-    // No specific tenant detected - will use default
+    // On Lovable preview or localhost WITHOUT explicit tenant - this is platform site
+    // Return null to indicate no tenant (platform site will handle it)
+    console.log('🌐 No explicit tenant detected - platform site mode');
     return null;
   }, [isAdminRoute]);
 
@@ -198,25 +189,14 @@ export const useTenantDetection = (): TenantDetectionResult => {
           return;
         }
 
-        // Fallback for public routes: Get the default/first active organization
-        const { data: defaultOrg, error: defaultError } = await supabase
-          .from('organizations')
-          .select('id, name, slug, logo_url, website, custom_domain, is_active, template_type')
-          .eq('is_active', true)
-          .order('created_at', { ascending: true })
-          .limit(1)
-          .maybeSingle();
-
-        if (!isMounted) return;
-
-        if (defaultError) {
-          console.error('Error fetching default tenant:', defaultError);
-          setError('Failed to load tenant information');
-        } else if (defaultOrg) {
-          setTenant(defaultOrg as TenantInfo);
-          setIsDefaultTenant(true);
-        } else {
-          setError('No active organizations found');
+        // No explicit tenant detected and no user organization found
+        // This means we're on the platform site - don't fallback to first org
+        // The PlatformContext will handle showing platform content
+        console.log('📭 No tenant detected - platform site will handle display');
+        if (isMounted) {
+          setTenant(null);
+          setIsDefaultTenant(false);
+          setLoading(false);
         }
 
       } catch (err) {

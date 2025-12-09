@@ -26,16 +26,21 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   // Determine the "Back to Site" destination based on organization context
   const getBackToSiteUrl = () => {
-    // If organization has a website configured, use that
+    // Priority 1: If organization has a custom domain, use that
+    if (organization?.custom_domain) {
+      const domain = organization.custom_domain;
+      return domain.startsWith('http') ? domain : `https://${domain}`;
+    }
+    // Priority 2: If organization has a website configured, use that
     if (organization?.website) {
-      // Ensure it starts with http
       const website = organization.website;
       return website.startsWith('http') ? website : `https://${website}`;
     }
-    // Fallback: use query param to hint tenant context
+    // Priority 3: Use query param to hint tenant context on shared domain
     if (organization?.slug) {
       return `/?org=${organization.slug}`;
     }
+    // Fallback: Go to platform site (no tenant context)
     return '/';
   };
 
