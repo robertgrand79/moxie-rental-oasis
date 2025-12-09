@@ -9,15 +9,9 @@ import {
   HardHat,
   Calendar,
   MapPin,
-  Camera,
   Star,
-  Image,
-  BarChart,
-  Users,
-  Shield,
   Settings,
-  Database,
-  TestTube,
+  Shield,
   AlertTriangle,
   MessageSquare,
   ClipboardList,
@@ -152,19 +146,13 @@ export const adminMenuItems = [
     ]
   },
   {
-    title: 'Settings',
+    title: 'Configuration',
     items: [
       {
-        title: 'User & Access Management',
-        href: '/admin/user-access-management',
-        icon: Users,
-        description: 'Manage users, roles, permissions, and access control'
-      },
-      {
-        title: 'Site Settings',
+        title: 'Settings',
         href: '/admin/settings',
         icon: Settings,
-        description: 'Configure site settings and preferences'
+        description: 'Site, organization, integrations, team & access'
       }
     ]
   },
@@ -176,12 +164,6 @@ export const adminMenuItems = [
         href: '/admin/platform',
         icon: Shield,
         description: 'Platform-wide organization management (Super Admins only)'
-      },
-      {
-        title: 'Organization Settings',
-        href: '/admin/organization',
-        icon: Database,
-        description: 'Manage your organization settings and members'
       }
     ]
   }

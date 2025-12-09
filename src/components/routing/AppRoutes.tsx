@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import { usePlatform } from '@/contexts/PlatformContext';
 
 // Platform pages
@@ -46,8 +46,7 @@ import AdminDashboard from '@/pages/admin/AdminDashboard';
 import BlogManagement from '@/pages/BlogManagement';
 import AdminProperties from '@/pages/admin/AdminProperties';
 import AdminPageManagement from '@/pages/admin/AdminPageManagement';
-import AdminSiteSettingsRedesigned from '@/pages/admin/AdminSiteSettingsRedesigned';
-import AdminUserAccessManagement from '@/pages/admin/AdminUserAccessManagement';
+import AdminSettingsHub from '@/pages/admin/AdminSettingsHub';
 import AdminNewsletterManagement from '@/pages/admin/AdminNewsletterManagement';
 import AdminEvents from '@/pages/admin/AdminEvents';
 import AdminPlaces from '@/pages/admin/AdminPlaces';
@@ -65,7 +64,6 @@ import AdminTurnoProblems from '@/pages/admin/AdminTurnoProblems';
 import AdminPriceLabs from '@/pages/admin/AdminPriceLabs';
 import GuestExperiencePage from '@/pages/admin/GuestExperiencePage';
 import AdminChecklists from '@/pages/admin/AdminChecklists';
-import AdminOrganization from '@/pages/admin/AdminOrganization';
 import SuperAdminPanel from '@/pages/admin/SuperAdminPanel';
 import OrganizationSignup from '@/pages/onboarding/OrganizationSignup';
 import OnboardingWizard from '@/pages/onboarding/OnboardingWizard';
@@ -98,8 +96,10 @@ const AppRoutes: React.FC = () => {
           <Route path="blog" element={<BlogManagement />} />
           <Route path="properties" element={<AdminProperties />} />
           <Route path="pages" element={<AdminPageManagement />} />
-          <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
-          <Route path="user-access-management" element={<AdminUserAccessManagement />} />
+          <Route path="settings" element={<AdminSettingsHub />} />
+          {/* Redirects for old routes */}
+          <Route path="user-access-management" element={<Navigate to="/admin/settings" replace />} />
+          <Route path="organization" element={<Navigate to="/admin/settings" replace />} />
           <Route path="newsletter" element={<AdminNewsletterManagement />} />
           <Route path="events" element={<AdminEvents />} />
           <Route path="places" element={<AdminPlaces />} />
@@ -117,7 +117,6 @@ const AppRoutes: React.FC = () => {
           <Route path="host/communication" element={<HostCommunicationPage />} />
           <Route path="guest-experience" element={<GuestExperiencePage />} />
           <Route path="profile" element={<AdminProfile />} />
-          <Route path="organization" element={<AdminOrganization />} />
           <Route path="platform" element={<SuperAdminPanel />} />
         </Route>
 
@@ -167,8 +166,10 @@ const AppRoutes: React.FC = () => {
         <Route path="blog" element={<BlogManagement />} />
         <Route path="properties" element={<AdminProperties />} />
         <Route path="pages" element={<AdminPageManagement />} />
-        <Route path="settings" element={<AdminSiteSettingsRedesigned />} />
-        <Route path="user-access-management" element={<AdminUserAccessManagement />} />
+        <Route path="settings" element={<AdminSettingsHub />} />
+        {/* Redirects for old routes */}
+        <Route path="user-access-management" element={<Navigate to="/admin/settings" replace />} />
+        <Route path="organization" element={<Navigate to="/admin/settings" replace />} />
         <Route path="newsletter" element={<AdminNewsletterManagement />} />
         <Route path="events" element={<AdminEvents />} />
         <Route path="places" element={<AdminPlaces />} />
@@ -186,7 +187,6 @@ const AppRoutes: React.FC = () => {
         <Route path="host/communication" element={<HostCommunicationPage />} />
         <Route path="guest-experience" element={<GuestExperiencePage />} />
         <Route path="profile" element={<AdminProfile />} />
-        <Route path="organization" element={<AdminOrganization />} />
         <Route path="platform" element={<SuperAdminPanel />} />
       </Route>
 
