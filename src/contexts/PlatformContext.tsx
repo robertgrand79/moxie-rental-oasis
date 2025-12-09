@@ -44,14 +44,14 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
     // 2. Lovable preview URL WITHOUT explicit tenant (?org=) parameter
     // 3. localhost WITHOUT explicit tenant parameter (for dev)
     // 4. Explicit ?platform=true parameter
+    // Platform site only when:
+    // 1. Explicit ?platform=true parameter
+    // 2. staymoxie.com or www.staymoxie.com domain
+    // Lovable preview and localhost now default to TENANT site
     const isPlatformSite = 
       forcePlatform ||
       hostname === PLATFORM_DOMAIN ||
-      hostname === `www.${PLATFORM_DOMAIN}` ||
-      // Lovable preview URL without explicit tenant = Platform site
-      (hostname.includes('lovable.app') && !hasExplicitTenant) ||
-      // localhost without explicit tenant = Platform site
-      ((hostname === 'localhost' || hostname === '127.0.0.1') && !hasExplicitTenant);
+      hostname === `www.${PLATFORM_DOMAIN}`;
     
     console.log('🌐 Platform detection:', { 
       hostname, 
