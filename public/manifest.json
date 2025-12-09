@@ -1,8 +1,7 @@
-
 {
-  "name": "Moxie Vacation Rentals",
-  "short_name": "Moxie Rentals",
-  "description": "Your Home Base for Living Like a Local in Eugene",
+  "name": "Stay Moxie",
+  "short_name": "Stay Moxie",
+  "description": "Modern vacation rental management platform",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
