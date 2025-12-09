@@ -43,10 +43,10 @@ const EnhancedNewsletterForm: React.FC<EnhancedNewsletterFormProps> = ({ onSubmi
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2 mb-2 group-hover:text-primary transition-colors">
           <Plane className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
-          Stay Connected with Moxie Travel
+          Stay Connected
         </CardTitle>
         <CardDescription className="text-sm text-muted-foreground">
-          Choose how you'd like to receive travel tips, local secrets, and updates from Robert & Shelly.
+          Choose how you'd like to receive travel tips, local secrets, and exclusive updates.
         </CardDescription>
       </CardHeader>
 

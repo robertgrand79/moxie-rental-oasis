@@ -18,7 +18,7 @@ const NewsletterPreviewHeader = ({ viewMode, onViewModeChange }: NewsletterPrevi
           Newsletter Preview
         </CardTitle>
         <CardDescription>
-          Preview your newsletter with Moxie's professional design
+          Preview your newsletter with professional design
         </CardDescription>
       </div>
       <div className="flex gap-2">

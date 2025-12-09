@@ -1,32 +1,44 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
+// Generic defaults - no hardcoded brand references
 const DEFAULT_HERO_SETTINGS = {
-  heroTitle: 'Your Home Away From Home',
-  heroSubtitle: 'in Eugene',
-  heroDescription: 'Discover premium vacation rentals in the heart of Oregon\'s most beautiful city.',
-  heroLocationText: 'Eugene, Oregon',
+  heroTitle: 'Welcome',
+  heroSubtitle: '',
+  heroDescription: 'Discover our premium vacation rental properties.',
+  heroLocationText: '',
   heroCTAText: 'View Properties',
-  heroBackgroundImage: ''
+  heroBackgroundImage: '',
+  heroExploreText: 'Explore the Area'
 };
 
 export const useHeroSettings = () => {
+  const { tenantId, loading: tenantLoading } = useTenant();
+
   const { data: heroSettings, isLoading, error: queryError } = useQuery({
-    queryKey: ['hero-settings'], 
+    queryKey: ['hero-settings', tenantId], 
     queryFn: async () => {
-      console.log('🔄 Fetching hero settings from database...');
+      if (!tenantId) {
+        console.log('🔄 No tenant ID, using defaults');
+        return DEFAULT_HERO_SETTINGS;
+      }
+
+      console.log('🔄 Fetching hero settings for tenant:', tenantId);
       
       const { data, error } = await supabase
         .from('site_settings')
         .select('key, value')
+        .eq('organization_id', tenantId)
         .in('key', [
           'heroTitle',
           'heroSubtitle', 
           'heroDescription',
           'heroLocationText',
           'heroCTAText',
-          'heroBackgroundImage'
+          'heroBackgroundImage',
+          'heroExploreText'
         ]);
 
       if (error) {
@@ -53,17 +65,18 @@ export const useHeroSettings = () => {
       console.log('✅ Final hero settings:', finalSettings);
       return finalSettings;
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes - longer caching
-    gcTime: 15 * 60 * 1000, // Keep in cache for 15 minutes
+    enabled: !tenantLoading,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     refetchInterval: false,
-    retry: 1, // Reduced retries for faster fallback
-    refetchOnWindowFocus: false, // Prevent unnecessary refetches
-    refetchOnMount: false // Use cached data when available
+    retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
   });
 
   return {
     settings: heroSettings || DEFAULT_HERO_SETTINGS,
-    isLoading,
+    isLoading: tenantLoading || isLoading,
     error: queryError
   };
 };
