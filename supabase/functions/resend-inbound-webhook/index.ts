@@ -1,9 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Webhook } from "https://esm.sh/svix@1.15.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, svix-id, svix-timestamp, svix-signature",
 };
 
 interface ResendInboundEmail {
@@ -29,24 +30,78 @@ serve(async (req) => {
   }
 
   try {
+    // Get the raw body for signature verification
+    const rawBody = await req.text();
+    
+    // Verify webhook signature
+    const webhookSecret = Deno.env.get("RESEND_WEBHOOK_SECRET");
+    if (!webhookSecret) {
+      console.error("RESEND_WEBHOOK_SECRET not configured");
+      return new Response(
+        JSON.stringify({ error: "Webhook secret not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const svixId = req.headers.get("svix-id");
+    const svixTimestamp = req.headers.get("svix-timestamp");
+    const svixSignature = req.headers.get("svix-signature");
+
+    if (!svixId || !svixTimestamp || !svixSignature) {
+      console.error("Missing Svix headers for webhook verification");
+      return new Response(
+        JSON.stringify({ error: "Missing webhook signature headers" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify the webhook signature
+    const wh = new Webhook(webhookSecret);
+    let payload: { type: string; data: ResendInboundEmail };
+    
+    try {
+      payload = wh.verify(rawBody, {
+        "svix-id": svixId,
+        "svix-timestamp": svixTimestamp,
+        "svix-signature": svixSignature,
+      }) as { type: string; data: ResendInboundEmail };
+    } catch (err) {
+      console.error("Webhook signature verification failed:", err);
+      return new Response(
+        JSON.stringify({ error: "Invalid webhook signature" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Webhook signature verified successfully");
+
+    // Handle the email.received event
+    if (payload.type !== "email.received") {
+      console.log(`Ignoring webhook event type: ${payload.type}`);
+      return new Response(
+        JSON.stringify({ success: true, message: "Event type ignored" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const emailData = payload.data;
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const payload: ResendInboundEmail = await req.json();
-    
     console.log("Received inbound email webhook:", {
-      from: payload.from,
-      to: payload.to,
-      subject: payload.subject,
+      from: emailData.from,
+      to: emailData.to,
+      subject: emailData.subject,
     });
 
     // Extract sender email from the "from" field (format: "Name <email@domain.com>" or just "email@domain.com")
-    const fromMatch = payload.from.match(/<(.+)>/) || [null, payload.from];
+    const fromMatch = emailData.from?.match(/<(.+)>/) || [null, emailData.from];
     const senderEmail = fromMatch[1]?.toLowerCase().trim();
 
     if (!senderEmail) {
-      console.error("Could not extract sender email from:", payload.from);
+      console.error("Could not extract sender email from:", emailData.from);
       return new Response(
         JSON.stringify({ error: "Invalid sender email" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -68,10 +123,10 @@ serve(async (req) => {
     }
 
     // Get message content - prefer text, fallback to stripped HTML
-    let messageContent = payload.text || "";
-    if (!messageContent && payload.html) {
+    let messageContent = emailData.text || "";
+    if (!messageContent && emailData.html) {
       // Basic HTML stripping
-      messageContent = payload.html
+      messageContent = emailData.html
         .replace(/<[^>]*>/g, "")
         .replace(/&nbsp;/g, " ")
         .replace(/&amp;/g, "&")
@@ -90,7 +145,7 @@ serve(async (req) => {
         .insert({
           reservation_id: reservation.id,
           message_type: "email",
-          subject: payload.subject || "(No Subject)",
+          subject: emailData.subject || "(No Subject)",
           message_content: messageContent,
           direction: "inbound",
           sender_email: senderEmail,
@@ -98,11 +153,11 @@ serve(async (req) => {
           delivery_status: "received",
           sent_at: new Date().toISOString(),
           raw_email_data: {
-            from: payload.from,
-            to: payload.to,
-            cc: payload.cc,
-            headers: payload.headers,
-            has_attachments: (payload.attachments?.length || 0) > 0,
+            from: emailData.from,
+            to: emailData.to,
+            cc: emailData.cc,
+            headers: emailData.headers,
+            has_attachments: (emailData.attachments?.length || 0) > 0,
           },
         })
         .select()
@@ -134,7 +189,7 @@ serve(async (req) => {
       
       console.log("Orphaned inbound email - no matching reservation:", {
         from: senderEmail,
-        subject: payload.subject,
+        subject: emailData.subject,
         content_preview: messageContent.substring(0, 200),
       });
 
