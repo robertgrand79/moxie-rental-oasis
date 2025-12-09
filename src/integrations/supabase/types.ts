@@ -160,34 +160,119 @@ export type Database = {
         }
         Relationships: []
       }
+      assistant_conversations: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          id: string
+          message_count: number | null
+          metadata: Json | null
+          organization_id: string
+          session_id: string
+          started_at: string
+          visitor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          message_count?: number | null
+          metadata?: Json | null
+          organization_id: string
+          session_id: string
+          started_at?: string
+          visitor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          message_count?: number | null
+          metadata?: Json | null
+          organization_id?: string
+          session_id?: string
+          started_at?: string
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_conversations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+          tool_calls: Json | null
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+          tool_calls?: Json | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          tool_calls?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assistant_settings: {
         Row: {
           bubble_color: string
           created_at: string
+          custom_faqs: Json | null
           display_name: string
           id: string
           is_enabled: boolean
           organization_id: string
+          personality: string | null
           updated_at: string
           welcome_message: string
         }
         Insert: {
           bubble_color?: string
           created_at?: string
+          custom_faqs?: Json | null
           display_name?: string
           id?: string
           is_enabled?: boolean
           organization_id: string
+          personality?: string | null
           updated_at?: string
           welcome_message?: string
         }
         Update: {
           bubble_color?: string
           created_at?: string
+          custom_faqs?: Json | null
           display_name?: string
           id?: string
           is_enabled?: boolean
           organization_id?: string
+          personality?: string | null
           updated_at?: string
           welcome_message?: string
         }
