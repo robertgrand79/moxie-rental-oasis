@@ -22,6 +22,15 @@ interface TenantSettings {
   // Blog settings
   blogTitle?: string;
   blogDescription?: string;
+  // About page settings
+  aboutTitle?: string;
+  aboutDescription?: string;
+  aboutImageUrl?: string;
+  founderNames?: string;
+  missionStatement?: string;
+  missionDescription?: string;
+  // Location settings
+  heroLocationText?: string;
   [key: string]: string | undefined;
 }
 

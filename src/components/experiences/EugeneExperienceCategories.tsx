@@ -2,54 +2,58 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mountain, Trees, Utensils, Palette, Baby, Camera } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const EugeneExperienceCategories = () => {
-  const eugeneCategories = [
+  const { settings } = useTenantSettings();
+  const locationText = settings.heroLocationText || 'the Area';
+
+  const categories = [
     {
       icon: Trees,
       title: "Nature & Outdoors",
-      description: "Explore Eugene's beautiful parks, trails, and natural areas.",
-      activities: ["Spencer Butte Hiking", "Hendricks Park Gardens", "Alton Baker Park", "McKenzie River Trail"]
+      description: "Explore beautiful parks, trails, and natural areas.",
+      activities: ["Hiking Trails", "Gardens & Parks", "Nature Reserves", "Scenic Overlooks"]
     },
     {
       icon: Utensils,
       title: "Food & Drink",
-      description: "Discover Eugene's vibrant culinary scene and local breweries.",
-      activities: ["Downtown Restaurants", "Local Breweries", "Farmers Markets", "Food Truck Pods"]
+      description: "Discover the vibrant culinary scene and local favorites.",
+      activities: ["Local Restaurants", "Craft Breweries", "Farmers Markets", "Cafes & Bakeries"]
     },
     {
       icon: Palette,
       title: "Arts & Culture",
-      description: "Experience Eugene's rich arts community and cultural attractions.",
-      activities: ["Jordan Schnitzer Museum", "Hult Center", "Street Art Tours", "Local Galleries"]
+      description: "Experience the rich arts community and cultural attractions.",
+      activities: ["Museums", "Live Performances", "Art Galleries", "Historic Sites"]
     },
     {
       icon: Mountain,
       title: "Outdoor Adventures",
-      description: "Active pursuits and adventure sports in and around Eugene.",
-      activities: ["Bike Trails", "Rock Climbing", "River Activities", "Golf Courses"]
+      description: "Active pursuits and adventure sports in the region.",
+      activities: ["Bike Trails", "Water Activities", "Golf Courses", "Adventure Tours"]
     },
     {
       icon: Camera,
       title: "Sightseeing",
-      description: "Must-see landmarks and scenic spots around Eugene.",
-      activities: ["University Campus", "Historic Districts", "Scenic Drives", "Photography Spots"]
+      description: "Must-see landmarks and scenic spots.",
+      activities: ["Landmarks", "Scenic Drives", "Photography Spots", "Historic Districts"]
     },
     {
       icon: Baby,
       title: "Family Activities",
-      description: "Fun activities and attractions perfect for families with children.",
-      activities: ["Science Factory", "Splash! at Lively Park", "Playgrounds", "Family Events"]
+      description: "Fun activities and attractions perfect for families.",
+      activities: ["Children's Museums", "Parks & Playgrounds", "Family Events", "Interactive Attractions"]
     }
   ];
 
   return (
-    <div className="mb-16">
+    <div className="container mx-auto px-4 mb-16">
       <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
-        What to Do in Eugene
+        What to Do in {locationText}
       </h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {eugeneCategories.map((category, index) => {
+        {categories.map((category, index) => {
           const IconComponent = category.icon;
           return (
             <Card key={index} className="hover:shadow-lg transition-shadow">

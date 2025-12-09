@@ -1,8 +1,16 @@
 
 import React from 'react';
 import { Target, Mountain, Coffee } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const MissionSection = () => {
+  const { settings } = useTenantSettings();
+  const siteName = settings.site_name || 'our company';
+  const missionStatement = settings.missionStatement || 
+    `Our mission at ${siteName} is to create remarkable vacation experiences. We aim to combine outdoor adventures, culinary delights, and stylish accommodations to offer our guests a truly unforgettable stay.`;
+  const missionDescription = settings.missionDescription || 
+    'With our expertise in hospitality, home improvement, and interior design, we are dedicated to providing exceptional service and curating experiences that reflect the unique charm of our destinations.';
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
       <div className="max-w-4xl mx-auto">
@@ -16,15 +24,11 @@ const MissionSection = () => {
           </div>
           
           <p className="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto mb-4">
-            Our mission at Moxie Vacation Rentals is to create remarkable vacation experiences that embody 
-            the spirit of Oregon. We aim to combine outdoor adventures, culinary delights, and stylish 
-            accommodations to offer our guests a truly unforgettable stay.
+            {missionStatement}
           </p>
           
           <p className="text-gray-600 leading-relaxed max-w-2xl mx-auto">
-            With our expertise in hospitality, home improvement, and interior design, we are dedicated to 
-            providing exceptional service and curating experiences that reflect the unique charm of the 
-            Pacific Northwest.
+            {missionDescription}
           </p>
         </div>
 
@@ -36,7 +40,7 @@ const MissionSection = () => {
             </div>
             <h4 className="text-xl font-semibold text-gray-900 mb-3">Outdoor Adventures</h4>
             <p className="text-gray-600 leading-relaxed">
-              From hiking trails to scenic waterfalls, we'll guide you to Oregon's most breathtaking 
+              From hiking trails to scenic views, we'll guide you to the most breathtaking 
               outdoor experiences and hidden natural gems.
             </p>
           </div>
@@ -47,8 +51,8 @@ const MissionSection = () => {
             </div>
             <h4 className="text-xl font-semibold text-gray-900 mb-3">Culinary Delights</h4>
             <p className="text-gray-600 leading-relaxed">
-              Discover Eugene's vibrant food scene, from artisan coffee shops to farm-to-table restaurants 
-              and local breweries that define Pacific Northwest cuisine.
+              Discover the vibrant food scene, from artisan coffee shops to farm-to-table restaurants 
+              and local breweries that define regional cuisine.
             </p>
           </div>
         </div>
