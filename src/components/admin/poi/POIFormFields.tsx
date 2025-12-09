@@ -71,7 +71,7 @@ const POIFormFields = ({
           id="address"
           value={formData.address}
           onChange={(e) => onAddressChange(e.target.value)}
-          placeholder="123 Main St, Eugene, OR"
+          placeholder="123 Main St, City, State"
         />
       </div>
 

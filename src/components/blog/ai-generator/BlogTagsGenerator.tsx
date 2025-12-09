@@ -22,14 +22,14 @@ const BlogTagsGenerator = ({
   const [customTopic, setCustomTopic] = useState('');
 
   const tagSuggestions = [
-    'eugene oregon, travel, vacation rental',
-    'eugene restaurants, local dining, food guide',
-    'eugene attractions, things to do, sightseeing',
-    'eugene outdoors, hiking, nature, recreation',
-    'eugene events, local culture, entertainment',
-    'eugene accommodation, where to stay, lodging',
-    'eugene family activities, kids friendly, family fun',
-    'eugene shopping, local businesses, retail'
+    'travel, vacation rental, getaway',
+    'local restaurants, dining, food guide',
+    'attractions, things to do, sightseeing',
+    'outdoors, hiking, nature, recreation',
+    'local events, culture, entertainment',
+    'accommodation, where to stay, lodging',
+    'family activities, kids friendly, family fun',
+    'shopping, local businesses, retail'
   ];
 
   const generateTagsFromSuggestion = (suggestion: string) => {
@@ -39,7 +39,7 @@ const BlogTagsGenerator = ({
   const generateCustomTags = () => {
     if (customTopic.trim()) {
       // Create tags based on custom topic
-      const baseTags = 'eugene, oregon, travel';
+      const baseTags = 'travel, vacation, local';
       const customTags = customTopic.toLowerCase()
         .split(/[,\s]+/)
         .filter(tag => tag.trim())
@@ -54,7 +54,7 @@ const BlogTagsGenerator = ({
 
   const generateSmartTags = () => {
     // Generate tags based on current title and content
-    let smartTags = 'eugene, oregon, travel';
+    let smartTags = 'travel, vacation, local';
     
     if (currentTitle) {
       if (currentTitle.toLowerCase().includes('restaurant') || currentTitle.toLowerCase().includes('food')) {
@@ -82,7 +82,7 @@ const BlogTagsGenerator = ({
           Smart Tags Generator
         </CardTitle>
         <CardDescription>
-          Generate relevant, SEO-friendly tags for your Eugene travel blog post
+          Generate relevant, SEO-friendly tags for your travel blog post
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -20,7 +20,7 @@ const ChatWidget = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hi! I\'m your Moxie Travel assistant. How can I help you with your vacation rental needs today?',
+      text: 'Hi! I\'m your travel assistant. How can I help you with your vacation rental needs today?',
       isUser: false,
       timestamp: new Date(),
     },
@@ -114,7 +114,7 @@ const ChatWidget = () => {
       <div className="flex items-center justify-between p-4 text-white rounded-t-lg" style={{ backgroundColor: '#a7adb2' }}>
         <div className="flex items-center space-x-2">
           <MessageCircle className="h-5 w-5" />
-          <h3 className="font-semibold">Moxie Travel Assistant</h3>
+          <h3 className="font-semibold">Travel Assistant</h3>
         </div>
         <div className="flex items-center space-x-1">
           <Button
