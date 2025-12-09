@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 import { Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
 
@@ -18,14 +19,21 @@ const PlatformAuth: React.FC = () => {
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
   const { signIn, signUp, user, loading, roleLoading } = useAuth();
+  const { organization, loading: orgLoading } = useCurrentOrganization();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect authenticated users to organization setup
-    if (user && !loading && !roleLoading) {
-      navigate('/signup', { replace: true });
+    // Redirect authenticated users based on organization status
+    if (user && !loading && !roleLoading && !orgLoading) {
+      if (organization?.slug) {
+        // User has organization - go to their admin dashboard
+        window.location.href = `/admin?org=${organization.slug}`;
+      } else {
+        // User needs to create organization
+        navigate('/signup', { replace: true });
+      }
     }
-  }, [user, loading, roleLoading, navigate]);
+  }, [user, loading, roleLoading, orgLoading, organization, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,10 +93,11 @@ const PlatformAuth: React.FC = () => {
       } else {
         toast({
           title: 'Account Created!',
-          description: 'Welcome to StayMoxie! Let\'s set up your organization.',
+          description: 'Please check your email to verify your account before signing in.',
+          duration: 8000,
         });
-        // Navigate to organization setup after successful signup
-        navigate('/signup', { replace: true });
+        // Don't navigate immediately - email confirmation required
+        // User will come back after email verification and login
       }
     } catch (error) {
       toast({
@@ -101,7 +110,7 @@ const PlatformAuth: React.FC = () => {
     }
   };
 
-  if (user && (loading || roleLoading)) {
+  if (user && (loading || roleLoading || orgLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

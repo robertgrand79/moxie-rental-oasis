@@ -25,10 +25,10 @@ const OrganizationSignup = () => {
 
   // Redirect if already has organization
   useEffect(() => {
-    if (!authLoading && !orgLoading && organization) {
-      navigate('/admin/onboarding');
+    if (!authLoading && !orgLoading && organization?.slug) {
+      window.location.href = `/admin/onboarding?org=${organization.slug}`;
     }
-  }, [organization, authLoading, orgLoading, navigate]);
+  }, [organization, authLoading, orgLoading]);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -80,7 +80,8 @@ const OrganizationSignup = () => {
       templateId: getTemplateId() 
     });
     if (orgId) {
-      navigate('/admin/onboarding');
+      // Use full page reload to ensure context picks up new org
+      window.location.href = `/admin/onboarding?org=${slug}`;
     }
   };
 
