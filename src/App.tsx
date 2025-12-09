@@ -8,6 +8,7 @@ import { StaticSettingsProvider } from './contexts/StaticSettingsContext';
 import { PlatformProvider } from './contexts/PlatformContext';
 import AppRoutes from './components/routing/AppRoutes';
 import PublicChatWidget from './components/public/PublicChatWidget';
+import GlobalFontsProvider from './components/GlobalFontsProvider';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -28,10 +29,12 @@ function App() {
             <QueryClientProvider client={queryClient}>
               <TenantProvider>
                 <StaticSettingsProvider>
-                  <Router>
-                    <AppRoutes />
-                    <PublicChatWidget />
-                  </Router>
+                  <GlobalFontsProvider>
+                    <Router>
+                      <AppRoutes />
+                      <PublicChatWidget />
+                    </Router>
+                  </GlobalFontsProvider>
                 </StaticSettingsProvider>
               </TenantProvider>
             </QueryClientProvider>
