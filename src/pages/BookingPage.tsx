@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useProperties } from '@/hooks/useProperties';
+import { useTenantProperties } from '@/hooks/useTenantProperties';
 import { Calendar, Search, Home, Star } from 'lucide-react';
 import GuestBookingWidget from '@/components/booking/GuestBookingWidget';
 import AvailabilityDisplay from '@/components/booking/AvailabilityDisplay';
@@ -15,7 +15,7 @@ import { useTenantSettings } from '@/hooks/useTenantSettings';
 const BookingPage = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
   const [activeTab, setActiveTab] = useState('book');
-  const { properties, loading } = useProperties();
+  const { properties, loading } = useTenantProperties();
   const { settings } = useTenantSettings();
   const property = properties?.find(p => p.id === propertyId);
 

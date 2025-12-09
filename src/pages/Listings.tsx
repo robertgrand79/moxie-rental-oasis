@@ -4,11 +4,11 @@ import PropertyShowcase from '@/components/PropertyShowcase';
 import PropertyMap from '@/components/PropertyMap';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import { MapPin, Headphones, Calendar } from 'lucide-react';
-import { useProperties } from '@/hooks/useProperties';
+import { useTenantProperties } from '@/hooks/useTenantProperties';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const Listings = () => {
-  const { properties } = useProperties();
+  const { properties } = useTenantProperties();
   const { settings } = useTenantSettings();
   
   const locationText = settings.heroLocationText || 'your destination';

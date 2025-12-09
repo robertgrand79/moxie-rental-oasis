@@ -1,13 +1,13 @@
 
 import React from 'react';
 import PropertyList from '@/components/PropertyList';
-import { useProperties } from '@/hooks/useProperties';
+import { useTenantProperties } from '@/hooks/useTenantProperties';
 import LoadingState from '@/components/ui/loading-state';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const Properties = () => {
-  const { properties, loading } = useProperties();
+  const { properties, loading } = useTenantProperties();
   const { settings } = useTenantSettings();
 
   // Dynamic location text from tenant settings

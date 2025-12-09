@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { MapPin, Bed, Bath, Users, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useProperties } from '@/hooks/useProperties';
+import { useTenantProperties } from '@/hooks/useTenantProperties';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 const PropertyShowcase = () => {
-  const { properties, loading } = useProperties();
+  const { properties, loading } = useTenantProperties();
   const { settings } = useTenantSettings();
 
   // Dynamic location text from tenant settings
