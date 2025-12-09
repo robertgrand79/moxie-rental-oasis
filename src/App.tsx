@@ -13,20 +13,20 @@ import GlobalFontsProvider from './components/GlobalFontsProvider';
 function App() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <PlatformProvider>
-        <OrganizationProvider>
-          <TenantProvider>
-            <StaticSettingsProvider>
-              <GlobalFontsProvider>
-                <Router>
+      <Router>
+        <PlatformProvider>
+          <OrganizationProvider>
+            <TenantProvider>
+              <StaticSettingsProvider>
+                <GlobalFontsProvider>
                   <AppRoutes />
                   <PublicChatWidget />
-                </Router>
-              </GlobalFontsProvider>
-            </StaticSettingsProvider>
-          </TenantProvider>
-        </OrganizationProvider>
-      </PlatformProvider>
+                </GlobalFontsProvider>
+              </StaticSettingsProvider>
+            </TenantProvider>
+          </OrganizationProvider>
+        </PlatformProvider>
+      </Router>
     </div>
   );
 }
