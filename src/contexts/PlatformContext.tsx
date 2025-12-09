@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 
 // Platform domain configuration
 const PLATFORM_DOMAIN = 'staymoxie.com';
@@ -22,13 +23,15 @@ interface PlatformProviderProps {
 }
 
 export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) => {
+  const location = useLocation();
+  
   const value = useMemo(() => {
     if (typeof window === 'undefined') {
       return { isPlatformSite: false, isTenantSite: true, platformDomain: PLATFORM_DOMAIN };
     }
 
     const hostname = window.location.hostname;
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
     
     // Check for explicit tenant indicator via ?org= parameter
     const hasExplicitTenant = !!urlParams.get('org');
@@ -54,7 +57,8 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
       hostname, 
       hasExplicitTenant, 
       isPlatformSite,
-      forcePlatform 
+      forcePlatform,
+      search: location.search
     });
     
     return {
@@ -62,7 +66,7 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
       isTenantSite: !isPlatformSite,
       platformDomain: PLATFORM_DOMAIN,
     };
-  }, []);
+  }, [location.search]);
 
   return (
     <PlatformContext.Provider value={value}>
