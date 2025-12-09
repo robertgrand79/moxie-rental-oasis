@@ -116,6 +116,11 @@ export const getOptimizedImageUrl = (
 ): string => {
   if (!baseUrl) return baseUrl;
   
+  // Silently return relative paths - they can't be optimized but are valid
+  if (baseUrl.startsWith('/') || baseUrl.startsWith('./') || baseUrl.startsWith('../')) {
+    return baseUrl;
+  }
+  
   // Check if the URL is relative or not a valid URL for optimization
   try {
     const url = new URL(baseUrl);
