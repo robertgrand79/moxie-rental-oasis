@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { createContext, useContext, useMemo, useState, useEffect } from 'react';
 
 // Platform domain configuration
 const PLATFORM_DOMAIN = 'staymoxie.com';
@@ -23,7 +22,22 @@ interface PlatformProviderProps {
 }
 
 export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) => {
-  const location = useLocation();
+  // Use state + effect to ensure we read window.location AFTER hydration
+  // This fixes timing issues where React Router's location.search isn't available on first render
+  const [locationSearch, setLocationSearch] = useState('');
+  
+  useEffect(() => {
+    // Read directly from window.location on mount
+    setLocationSearch(window.location.search);
+    
+    // Also listen for popstate to handle browser back/forward
+    const handlePopState = () => {
+      setLocationSearch(window.location.search);
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
   
   const value = useMemo(() => {
     if (typeof window === 'undefined') {
@@ -31,7 +45,9 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
     }
 
     const hostname = window.location.hostname;
-    const urlParams = new URLSearchParams(location.search);
+    // Use window.location.search directly as fallback for initial render
+    const searchString = locationSearch || window.location.search;
+    const urlParams = new URLSearchParams(searchString);
     
     // Check for explicit tenant indicator via ?org= parameter
     const hasExplicitTenant = !!urlParams.get('org');
@@ -46,6 +62,7 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
     // Platform site ONLY when:
     // 1. Explicit ?platform=true parameter
     // 2. Exactly staymoxie.com or www.staymoxie.com (NOT subdomains like moxie.staymoxie.com)
+    // 3. AND no explicit ?org= parameter
     // Subdomains and custom domains are TENANT sites
     const isPlatformSite = 
       forcePlatform ||
@@ -60,7 +77,9 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
       hasExplicitTenant, 
       isPlatformSite,
       forcePlatform,
-      search: location.search
+      search: searchString,
+      locationSearchState: locationSearch,
+      windowSearch: window.location.search
     });
     
     return {
@@ -68,7 +87,7 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
       isTenantSite: !isPlatformSite,
       platformDomain: PLATFORM_DOMAIN,
     };
-  }, [location.search]);
+  }, [locationSearch]);
 
   return (
     <PlatformContext.Provider value={value}>

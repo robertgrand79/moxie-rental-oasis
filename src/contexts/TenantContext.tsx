@@ -19,6 +19,7 @@ interface TenantContextType {
   isDefaultTenant: boolean;
   tenantId: string | null;
   isSingleProperty: boolean;
+  detectedIdentifier: string | null;
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -36,7 +37,7 @@ export const useTenant = () => {
  * for public-facing pages based on domain/subdomain.
  */
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { tenant, loading, error, isDefaultTenant } = useTenantDetection();
+  const { tenant, loading, error, isDefaultTenant, detectedIdentifier } = useTenantDetection();
 
   const value: TenantContextType = {
     tenant,
@@ -45,6 +46,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     isDefaultTenant,
     tenantId: tenant?.id ?? null,
     isSingleProperty: tenant?.template_type === 'single_property',
+    detectedIdentifier,
   };
 
   return (
