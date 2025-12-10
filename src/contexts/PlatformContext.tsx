@@ -39,22 +39,24 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
     // Check for explicit platform mode
     const forcePlatform = urlParams.get('platform') === 'true';
     
-    // Determine if this is the platform site:
-    // 1. staymoxie.com or www.staymoxie.com
-    // 2. Lovable preview URL WITHOUT explicit tenant (?org=) parameter
-    // 3. localhost WITHOUT explicit tenant parameter (for dev)
-    // 4. Explicit ?platform=true parameter
-    // Platform site only when:
+    // Check if this is a subdomain of staymoxie.com (tenant site)
+    const isSubdomain = hostname.endsWith(`.${PLATFORM_DOMAIN}`) && 
+                        !hostname.startsWith('www.');
+    
+    // Platform site ONLY when:
     // 1. Explicit ?platform=true parameter
-    // 2. staymoxie.com or www.staymoxie.com domain
-    // Lovable preview and localhost now default to TENANT site
+    // 2. Exactly staymoxie.com or www.staymoxie.com (NOT subdomains like moxie.staymoxie.com)
+    // Subdomains and custom domains are TENANT sites
     const isPlatformSite = 
       forcePlatform ||
-      hostname === PLATFORM_DOMAIN ||
-      hostname === `www.${PLATFORM_DOMAIN}`;
+      (!isSubdomain && !hasExplicitTenant && (
+        hostname === PLATFORM_DOMAIN ||
+        hostname === `www.${PLATFORM_DOMAIN}`
+      ));
     
     console.log('🌐 Platform detection:', { 
       hostname, 
+      isSubdomain,
       hasExplicitTenant, 
       isPlatformSite,
       forcePlatform,

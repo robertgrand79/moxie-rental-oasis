@@ -231,6 +231,15 @@ const DomainSettingsTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Info Alert */}
+      <Alert>
+        <Globe className="h-4 w-4" />
+        <AlertDescription>
+          Every organization gets an automatic subdomain at <strong>{organization?.slug}.staymoxie.com</strong>. 
+          You can also connect your own custom domain (e.g., myrentals.com).
+        </AlertDescription>
+      </Alert>
+
       {/* Current Domains */}
       <Card>
         <CardHeader>
@@ -245,9 +254,15 @@ const DomainSettingsTab = () => {
           <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
             <div>
               <p className="font-medium">Default Subdomain</p>
-              <p className="text-sm text-muted-foreground">
+              <a 
+                href={`https://${organization?.slug}.staymoxie.com`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline flex items-center gap-1"
+              >
                 {organization?.slug}.staymoxie.com
-              </p>
+                <ExternalLink className="h-3 w-3" />
+              </a>
             </div>
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
               <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -260,7 +275,15 @@ const DomainSettingsTab = () => {
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div>
                 <p className="font-medium">Custom Domain</p>
-                <p className="text-sm text-muted-foreground">{organization.custom_domain}</p>
+                <a 
+                  href={`https://${organization.custom_domain}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                >
+                  {organization.custom_domain}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
               </div>
               <div className="flex items-center gap-2">
                 {getStatusBadge()}
