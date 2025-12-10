@@ -5381,6 +5381,20 @@ export type Database = {
           logo_url: string
           name: string
           slug: string
+          template_type: string
+          website: string
+        }[]
+      }
+      get_primary_template_organization: {
+        Args: never
+        Returns: {
+          custom_domain: string
+          id: string
+          is_active: boolean
+          logo_url: string
+          name: string
+          slug: string
+          template_type: string
           website: string
         }[]
       }
