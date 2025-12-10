@@ -5359,6 +5359,23 @@ export type Database = {
         Args: { _property_id: string }
         Returns: string
       }
+      get_reservation_by_id_and_email: {
+        Args: { p_guest_email: string; p_reservation_id: string }
+        Returns: {
+          booking_status: string
+          check_in_date: string
+          check_in_instructions: string
+          check_out_date: string
+          created_at: string
+          guest_count: number
+          guest_name: string
+          id: string
+          payment_status: string
+          property_id: string
+          special_requests: string
+          total_amount: number
+        }[]
+      }
       get_user_organization_id: { Args: { _user_id: string }; Returns: string }
       has_platform_role: {
         Args: {
