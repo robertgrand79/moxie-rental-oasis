@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Settings, Receipt } from 'lucide-react';
+import { Building2, Settings, Receipt, Globe } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationOperations } from '@/hooks/useOrganizationOperations';
 import BillingSubscriptionTab from '@/components/admin/organization/BillingSubscriptionTab';
+import DomainSettingsTab from './DomainSettingsTab';
 
 const OrganizationSettingsPanel = () => {
   const { organization, membership, isPlatformAdmin, loading, isOrgAdmin, refetch } = useCurrentOrganization();
@@ -81,6 +82,10 @@ const OrganizationSettingsPanel = () => {
             <Settings className="h-4 w-4" />
             General
           </TabsTrigger>
+          <TabsTrigger value="domain" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            Domain
+          </TabsTrigger>
           <TabsTrigger value="billing" className="flex items-center gap-2">
             <Receipt className="h-4 w-4" />
             Billing & Subscription
@@ -134,6 +139,10 @@ const OrganizationSettingsPanel = () => {
               </form>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="domain" className="mt-6">
+          <DomainSettingsTab />
         </TabsContent>
 
         <TabsContent value="billing" className="mt-6">
