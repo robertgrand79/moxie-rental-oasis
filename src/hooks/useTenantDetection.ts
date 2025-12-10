@@ -142,21 +142,21 @@ export const useTenantDetection = (): TenantDetectionResult => {
         if (detectedIdentifier) {
           logTenant('Trying URL identifier:', detectedIdentifier);
           
+          // Use RPC function to bypass RLS for public tenant lookups
           const { data, error: fetchError } = await supabase
-            .from('organizations')
-            .select('id, name, slug, logo_url, website, custom_domain, is_active, template_type')
-            .or(`slug.eq.${detectedIdentifier},custom_domain.eq.${detectedIdentifier}`)
-            .eq('is_active', true)
-            .maybeSingle();
+            .rpc('get_organization_by_identifier', { _identifier: detectedIdentifier });
 
           if (fetchError) {
             logTenant('URL identifier lookup error:', fetchError.message);
           }
 
-          if (data && isMounted) {
-            logTenant('✅ Tenant resolved from URL:', { id: data.id, name: data.name, slug: data.slug });
-            sessionStorage.setItem('current_tenant_slug', data.slug);
-            setTenant(data as TenantInfo);
+          // RPC returns array, get first result
+          const orgData = Array.isArray(data) ? data[0] : data;
+          
+          if (orgData && isMounted) {
+            logTenant('✅ Tenant resolved from URL:', { id: orgData.id, name: orgData.name, slug: orgData.slug });
+            sessionStorage.setItem('current_tenant_slug', orgData.slug);
+            setTenant(orgData as TenantInfo);
             setIsDefaultTenant(false);
             setLoading(false);
             return;
@@ -230,18 +230,16 @@ export const useTenantDetection = (): TenantDetectionResult => {
         // This ensures the public site works on Lovable preview without requiring login
         logTenant('Trying fallback to primary template organization...');
         
-        const { data: templateOrg, error: templateError } = await supabase
-          .from('organizations')
-          .select('id, name, slug, logo_url, website, custom_domain, is_active, template_type')
-          .eq('is_template', true)
-          .eq('is_active', true)
-          .order('created_at', { ascending: true })
-          .limit(1)
-          .maybeSingle();
+        // Use RPC function to bypass RLS for public template lookup
+        const { data: templateData, error: templateError } = await supabase
+          .rpc('get_primary_template_organization');
 
         if (templateError) {
           logTenant('Template org lookup error:', templateError.message);
         }
+
+        // RPC returns array, get first result
+        const templateOrg = Array.isArray(templateData) ? templateData[0] : templateData;
 
         if (templateOrg && isMounted) {
           logTenant('✅ Tenant resolved from template fallback:', { id: templateOrg.id, name: templateOrg.name, slug: templateOrg.slug });
