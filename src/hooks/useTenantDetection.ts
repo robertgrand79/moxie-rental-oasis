@@ -83,11 +83,23 @@ export const useTenantDetection = (): TenantDetectionResult => {
     }
 
     const hostname = window.location.hostname;
+    const PLATFORM_DOMAIN = 'staymoxie.com';
     
-    // Check if it's a custom domain
+    // Check for subdomain of staymoxie.com (e.g., moxie.staymoxie.com)
+    if (hostname.endsWith(`.${PLATFORM_DOMAIN}`)) {
+      const subdomain = hostname.replace(`.${PLATFORM_DOMAIN}`, '');
+      if (subdomain && subdomain !== 'www') {
+        logTenant('Tenant from subdomain:', subdomain);
+        return subdomain; // Returns slug to match against organizations.slug
+      }
+    }
+    
+    // Check if it's a custom domain (not staymoxie.com, not Lovable, not localhost)
     if (!hostname.includes('lovable.app') && 
         !hostname.includes('localhost') && 
-        !hostname.includes('127.0.0.1')) {
+        !hostname.includes('127.0.0.1') &&
+        hostname !== PLATFORM_DOMAIN &&
+        hostname !== `www.${PLATFORM_DOMAIN}`) {
       const cleanHostname = hostname.replace(/^www\./, '');
       logTenant('Tenant from custom domain:', cleanHostname);
       return cleanHostname;
