@@ -121,6 +121,9 @@ verify_jwt = false
 [functions.create-chat-session]
 verify_jwt = false
 
+[functions.verify-domain-dns]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323
