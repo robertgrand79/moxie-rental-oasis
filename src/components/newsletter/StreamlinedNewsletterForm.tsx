@@ -43,7 +43,7 @@ const StreamlinedNewsletterForm: React.FC<EnhancedNewsletterFormProps> = ({ onSu
   };
 
   return (
-    <Card className="bg-card border-border shadow-lg max-w-md mx-auto">
+    <Card className="bg-card border-border shadow-lg max-w-2xl w-full mx-auto">
       <CardHeader className="text-center pb-4">
         <CardTitle className="text-xl font-bold text-foreground flex items-center justify-center gap-2 mb-2">
           <Plane className="h-5 w-5 text-primary" />

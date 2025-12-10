@@ -9,7 +9,7 @@ import WhyChooseUsSection from '@/components/home/WhyChooseUsSection';
 import AmenitiesSection from '@/components/home/AmenitiesSection';
 import SocialProofSection from '@/components/home/SocialProofSection';
 import LocalInfoSection from '@/components/home/LocalInfoSection';
-import EnhancedLifestyleGallerySection from '@/components/home/EnhancedLifestyleGallerySection';
+
 import EnhancedWhatsNearbySection from '@/components/home/EnhancedWhatsNearbySection';
 import EnhancedLocalEventsSection from '@/components/home/EnhancedLocalEventsSection';
 import BookingBenefitsSection from '@/components/home/BookingBenefitsSection';
@@ -44,7 +44,7 @@ const Index = () => {
         <WhyChooseUsSection />
         <AmenitiesSection />
         <LocalInfoSection />
-        <EnhancedLifestyleGallerySection />
+        
         
         {/* Newsletter Section - Added before What's Nearby */}
         <section className="py-20 relative">
