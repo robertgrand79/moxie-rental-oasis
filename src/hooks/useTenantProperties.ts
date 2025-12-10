@@ -26,12 +26,17 @@ interface Property {
  * Hook to fetch properties for the current tenant.
  */
 export const useTenantProperties = () => {
-  const { tenantId, loading: tenantLoading } = useTenant();
+  const { tenantId, tenant, loading: tenantLoading } = useTenant();
 
   const query = useQuery({
     queryKey: ['tenant-properties', tenantId],
     queryFn: async (): Promise<Property[]> => {
-      if (!tenantId) return [];
+      if (!tenantId) {
+        console.log('🏠 [TenantProperties] No tenantId, returning empty array');
+        return [];
+      }
+
+      console.log('🏠 [TenantProperties] Fetching properties for org:', tenantId, tenant?.name);
 
       const { data, error } = await supabase
         .from('properties')
@@ -40,14 +45,15 @@ export const useTenantProperties = () => {
         .order('display_order', { ascending: true, nullsFirst: false });
 
       if (error) {
-        console.error('Error fetching tenant properties:', error);
+        console.error('🏠 [TenantProperties] Error:', error.message);
         throw error;
       }
 
+      console.log('🏠 [TenantProperties] Loaded', data?.length ?? 0, 'properties');
       return data as Property[];
     },
     enabled: !!tenantId && !tenantLoading,
-    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    staleTime: 2 * 60 * 1000,
   });
 
   return {
