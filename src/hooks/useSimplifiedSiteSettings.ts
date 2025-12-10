@@ -32,7 +32,9 @@ export const useSimplifiedSiteSettings = () => {
 
     try {
       setError(null);
-      console.log('[Settings] Fetching from database for organization:', organization.id);
+      console.log('📥 [Settings] ========== FETCH START ==========');
+      console.log('📥 [Settings] Organization ID:', organization.id);
+      console.log('📥 [Settings] Organization Name:', organization.name);
       
       const { data, error: fetchError } = await supabase
         .from('site_settings')
@@ -40,7 +42,7 @@ export const useSimplifiedSiteSettings = () => {
         .eq('organization_id', organization.id);
 
       if (fetchError) {
-        console.error('[Settings] Fetch error:', fetchError);
+        console.error('📥 [Settings] ❌ Fetch error:', fetchError);
         setError(`Failed to fetch settings: ${fetchError.message}`);
         toast({
           title: 'Settings Load Error',
@@ -50,14 +52,17 @@ export const useSimplifiedSiteSettings = () => {
         return;
       }
 
+      console.log('📥 [Settings] Raw rows from DB:', data?.length || 0);
+      console.log('📥 [Settings] Sample keys:', data?.slice(0, 5).map(r => r.key));
+
       const settingsMap = parseSettingsFromDatabase(data || []);
+      console.log('📥 [Settings] Parsed settings map keys:', Object.keys(settingsMap));
       
       // Clear Facebook Pixel ID to disable it and eliminate console warnings
       if (settingsMap.facebookPixelId) {
-        console.log('[Settings] Disabling Facebook Pixel to eliminate console warnings');
+        console.log('📥 [Settings] Disabling Facebook Pixel');
         settingsMap.facebookPixelId = '';
         
-        // Update in database immediately
         await supabase
           .from('site_settings')
           .update({ value: '' })
@@ -67,7 +72,13 @@ export const useSimplifiedSiteSettings = () => {
       
       const newSettings = mergeWithDefaults(settingsMap, defaultSettings);
       
-      console.log('[Settings] Settings loaded successfully:', newSettings);
+      console.log('📥 [Settings] ✅ Final merged settings:');
+      console.log('📥 [Settings]   siteName:', newSettings.siteName);
+      console.log('📥 [Settings]   tagline:', newSettings.tagline);
+      console.log('📥 [Settings]   heroTitle:', newSettings.heroTitle);
+      console.log('📥 [Settings]   contactEmail:', newSettings.contactEmail);
+      console.log('📥 [Settings] ========== FETCH END ==========');
+      
       setSettings(newSettings);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -106,15 +117,24 @@ export const useSimplifiedSiteSettings = () => {
     setSaving(prev => ({ ...prev, [key]: true }));
     
     try {
-      console.log(`[Settings] Saving ${key} for org ${organization.id}:`, value);
+      console.log('💾 [Settings] ========== SAVE START ==========');
+      console.log('💾 [Settings] Key:', key);
+      console.log('💾 [Settings] Value:', value);
+      console.log('💾 [Settings] Organization ID:', organization.id);
 
       // Check if setting exists for this organization
-      const { data: existing } = await supabase
+      const { data: existing, error: checkError } = await supabase
         .from('site_settings')
-        .select('id')
+        .select('id, key, value')
         .eq('key', key)
         .eq('organization_id', organization.id)
         .maybeSingle();
+
+      if (checkError) {
+        console.error('💾 [Settings] ❌ Error checking existing:', checkError);
+      }
+      
+      console.log('💾 [Settings] Existing row:', existing ? `ID: ${existing.id}` : 'None (will insert)');
 
       const settingData = {
         value,
@@ -123,12 +143,15 @@ export const useSimplifiedSiteSettings = () => {
 
       let result;
       if (existing) {
+        console.log('💾 [Settings] Updating existing row...');
         result = await supabase
           .from('site_settings')
           .update(settingData)
           .eq('key', key)
-          .eq('organization_id', organization.id);
+          .eq('organization_id', organization.id)
+          .select();
       } else {
+        console.log('💾 [Settings] Inserting new row...');
         result = await supabase
           .from('site_settings')
           .insert({
@@ -136,11 +159,12 @@ export const useSimplifiedSiteSettings = () => {
             ...settingData,
             created_by: user.id,
             organization_id: organization.id
-          });
+          })
+          .select();
       }
 
       if (result.error) {
-        console.error(`[Settings] Save error for ${key}:`, result.error);
+        console.error('💾 [Settings] ❌ Save error for', key, ':', result.error);
         toast({
           title: 'Save Error',
           description: `Failed to save ${key}: ${result.error.message}`,
@@ -149,14 +173,16 @@ export const useSimplifiedSiteSettings = () => {
         return false;
       }
 
+      console.log('💾 [Settings] ✅ Saved successfully:', result.data);
+
       // Update local state immediately
       setSettings(prev => ({ ...prev, [key]: value }));
-      console.log(`[Settings] Successfully saved ${key}`);
+      console.log('💾 [Settings] Local state updated');
+      console.log('💾 [Settings] ========== SAVE END ==========');
       
       // Force a refetch for hero background image to update cache
       if (key === 'heroBackgroundImage') {
-        console.log('[Settings] Hero image updated, triggering cache refresh');
-        // Small delay to allow database to settle
+        console.log('💾 [Settings] Hero image updated, triggering cache refresh');
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('heroImageUpdated'));
         }, 500);
