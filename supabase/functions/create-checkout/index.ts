@@ -42,32 +42,35 @@ serve(async (req) => {
     let stripeAccountId = null;
     
     if (propertyId) {
-      // Check if property has its own Stripe configuration
-      const { data: property, error: propError } = await supabaseClient
-        .from('properties')
-        .select('stripe_secret_key, stripe_account_id, organization_id')
-        .eq('id', propertyId)
-        .single();
+      // Check if property has its own Stripe configuration (from secure credentials table)
+      const { data: propertyCredentials } = await supabaseClient
+        .rpc('get_property_stripe_credentials', { p_property_id: propertyId });
 
-      if (propError) {
-        logStep("Error fetching property", propError);
-      } else if (property?.stripe_secret_key) {
+      if (propertyCredentials && propertyCredentials.length > 0 && propertyCredentials[0].stripe_secret_key) {
         // Use property-specific Stripe account
-        activeStripeKey = property.stripe_secret_key;
-        stripeAccountId = property.stripe_account_id;
+        activeStripeKey = propertyCredentials[0].stripe_secret_key;
+        stripeAccountId = propertyCredentials[0].stripe_account_id;
         logStep("Using property-specific Stripe account", { stripeAccountId });
-      } else if (property?.organization_id) {
+      } else {
         // Check if organization has Stripe configuration
-        const { data: org, error: orgError } = await supabaseClient
-          .from('organizations')
-          .select('stripe_secret_key, stripe_account_id')
-          .eq('id', property.organization_id)
+        const { data: property } = await supabaseClient
+          .from('properties')
+          .select('organization_id')
+          .eq('id', propertyId)
           .single();
 
-        if (!orgError && org?.stripe_secret_key) {
-          activeStripeKey = org.stripe_secret_key;
-          stripeAccountId = org.stripe_account_id;
-          logStep("Using organization-wide Stripe account", { stripeAccountId });
+        if (property?.organization_id) {
+          const { data: org, error: orgError } = await supabaseClient
+            .from('organizations')
+            .select('stripe_secret_key, stripe_account_id')
+            .eq('id', property.organization_id)
+            .single();
+
+          if (!orgError && org?.stripe_secret_key) {
+            activeStripeKey = org.stripe_secret_key;
+            stripeAccountId = org.stripe_account_id;
+            logStep("Using organization-wide Stripe account", { stripeAccountId });
+          }
         }
       }
     }
