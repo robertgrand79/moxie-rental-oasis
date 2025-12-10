@@ -63,7 +63,16 @@ export const useCreateEvent = () => {
 
   return useMutation({
     mutationFn: async (event: Partial<Event> & { title: string; event_date: string; created_by: string }) => {
-      if (!organization?.id) throw new Error('No organization context');
+      if (!organization?.id) {
+        console.error('❌ Event creation failed: No organization context');
+        throw new Error('No organization context. Please ensure you are logged in and belong to an organization.');
+      }
+      
+      console.log('📝 Creating event:', { 
+        title: event.title, 
+        organization_id: organization.id,
+        created_by: event.created_by 
+      });
       
       const { data, error } = await supabase
         .from('eugene_events')
@@ -71,7 +80,17 @@ export const useCreateEvent = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error creating event:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+      
+      console.log('✅ Event created successfully:', data?.id);
       return data;
     },
     onSuccess: () => {
@@ -81,11 +100,12 @@ export const useCreateEvent = () => {
         description: 'The event has been successfully created.',
       });
     },
-    onError: (error) => {
-      console.error('Error creating event:', error);
+    onError: (error: any) => {
+      console.error('❌ Event creation mutation error:', error);
+      const errorMessage = error?.message || 'Failed to create event. Please try again.';
       toast({
-        title: 'Error',
-        description: 'Failed to create event. Please try again.',
+        title: 'Error creating event',
+        description: errorMessage,
         variant: 'destructive',
       });
     },

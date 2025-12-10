@@ -111,18 +111,17 @@ const PointsOfInterestDisplay = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {featuredPOIs.map((poi) => (
               <Card key={poi.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300">
-                {poi.image_url && (
-                  <div className="relative overflow-hidden">
-                    <OptimizedImage
-                      src={poi.image_url}
-                      alt={poi.name}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <Badge className="bg-blue-600 text-white">Featured</Badge>
-                    </div>
+                <div className="relative overflow-hidden">
+                  <OptimizedImage
+                    src={poi.image_url || ''}
+                    alt={poi.name}
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    fallbackIcon={true}
+                  />
+                  <div className="absolute top-4 left-4">
+                    <Badge className="bg-blue-600 text-white">Featured</Badge>
                   </div>
-                )}
+                </div>
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-lg text-gray-900 mb-2">{poi.name}</h3>
                   {poi.description && (
@@ -221,20 +220,19 @@ const PointsOfInterestDisplay = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredAndSortedPOIs.map((poi) => (
           <Card key={poi.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-            {poi.image_url && (
-              <div className="relative overflow-hidden">
-                <OptimizedImage
-                  src={poi.image_url}
-                  alt={poi.name}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute top-4 left-4">
-                  <Badge variant="secondary" className="bg-white/90 text-gray-900">
-                    {poi.category}
-                  </Badge>
-                </div>
+            <div className="relative overflow-hidden">
+              <OptimizedImage
+                src={poi.image_url || ''}
+                alt={poi.name}
+                className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                fallbackIcon={true}
+              />
+              <div className="absolute top-4 left-4">
+                <Badge variant="secondary" className="bg-white/90 text-gray-900">
+                  {poi.category}
+                </Badge>
               </div>
-            )}
+            </div>
             
             <CardContent className="p-4">
               <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">

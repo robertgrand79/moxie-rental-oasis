@@ -43,42 +43,34 @@ const EventCard = ({ event }: EventCardProps) => {
 
   return (
     <Card className={`group overflow-hidden hover:shadow-lg transition-all duration-300 bg-white ${isEventPast ? 'opacity-75' : ''}`}>
-      {event.image_url && (
-        <div className="relative overflow-hidden">
-          <OptimizedImage
-            src={event.image_url}
-            alt={event.title}
-            className={`w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300 ${isEventPast ? 'grayscale-[30%]' : ''}`}
-          />
-          <div className="absolute top-4 left-4 flex gap-2">
-            <Badge variant="secondary" className="bg-white/90 text-gray-900">
-              {categoryLabels[event.category as keyof typeof categoryLabels] || event.category}
-            </Badge>
-            {isEventPast && (
-              <Badge variant="outline" className="bg-white/90 text-gray-600 border-gray-300">
-                Past Event
-              </Badge>
-            )}
-          </div>
-          {event.is_featured && (
-            <div className="absolute top-4 right-4">
-              <Badge className="bg-blue-600 text-white">Featured</Badge>
-            </div>
-          )}
-        </div>
-      )}
-      
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className={`font-semibold group-hover:text-blue-600 transition-colors ${isEventPast ? 'text-gray-600' : 'text-gray-900'}`}>
-            {event.title}
-          </h3>
-          {isEventPast && !event.image_url && (
-            <Badge variant="outline" className="text-gray-600 border-gray-300 ml-2">
+      <div className="relative overflow-hidden">
+        <OptimizedImage
+          src={event.image_url || ''}
+          alt={event.title}
+          className={`w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300 ${isEventPast ? 'grayscale-[30%]' : ''}`}
+          fallbackIcon={true}
+        />
+        <div className="absolute top-4 left-4 flex gap-2">
+          <Badge variant="secondary" className="bg-white/90 text-gray-900">
+            {categoryLabels[event.category as keyof typeof categoryLabels] || event.category}
+          </Badge>
+          {isEventPast && (
+            <Badge variant="outline" className="bg-white/90 text-gray-600 border-gray-300">
               Past Event
             </Badge>
           )}
         </div>
+        {event.is_featured && (
+          <div className="absolute top-4 right-4">
+            <Badge className="bg-blue-600 text-white">Featured</Badge>
+          </div>
+        )}
+      </div>
+      
+      <CardContent className="p-4">
+        <h3 className={`font-semibold group-hover:text-blue-600 transition-colors mb-2 ${isEventPast ? 'text-gray-600' : 'text-gray-900'}`}>
+          {event.title}
+        </h3>
 
         {event.description && (
           <p className="text-gray-600 text-sm mb-3 line-clamp-3">
