@@ -26,10 +26,8 @@ const TenantDebugBanner: React.FC = () => {
     });
   }, []);
 
-  // Only show in development or when ?debug=true
-  const showDebug = window.location.search.includes('debug=true') || 
-                    window.location.hostname.includes('lovable.app') ||
-                    window.location.hostname.includes('localhost');
+  // Only show when ?debug=true is explicitly set
+  const showDebug = window.location.search.includes('debug=true');
 
   if (!showDebug || dismissed) {
     return null;
