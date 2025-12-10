@@ -67,4 +67,12 @@ export interface SettingsState {
   // Typography
   fontPairing: string;
   fontScale: string;
+  
+  // About page
+  aboutTitle: string;
+  aboutDescription: string;
+  aboutImageUrl: string;
+  founderNames: string;
+  missionStatement: string;
+  missionDescription: string;
 }

@@ -42,5 +42,12 @@ export const defaultSettings: SettingsState = {
   customCss: '',
   mapboxToken: '',
   fontPairing: 'playfair-source',
-  fontScale: 'default'
+  fontScale: 'default',
+  // About page
+  aboutTitle: '',
+  aboutDescription: '',
+  aboutImageUrl: '',
+  founderNames: '',
+  missionStatement: '',
+  missionDescription: ''
 };

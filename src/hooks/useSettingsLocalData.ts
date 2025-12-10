@@ -24,6 +24,13 @@ interface LocalDataState {
       googlePlaces: string;
     };
     emailSetupVerified: boolean;
+    // About page fields
+    aboutTitle: string;
+    aboutDescription: string;
+    aboutImageUrl: string;
+    founderNames: string;
+    missionStatement: string;
+    missionDescription: string;
   };
   seoData: {
     siteTitle: string;
@@ -66,7 +73,14 @@ export const useSettingsLocalData = (settings: SettingsState, loading: boolean) 
         twitter: '',
         googlePlaces: ''
       },
-      emailSetupVerified: Boolean(settings.emailSetupVerified === true || settings.emailSetupVerified === 'true')
+      emailSetupVerified: Boolean(settings.emailSetupVerified === true || settings.emailSetupVerified === 'true'),
+      // About page fields
+      aboutTitle: settings.aboutTitle || '',
+      aboutDescription: settings.aboutDescription || '',
+      aboutImageUrl: settings.aboutImageUrl || '',
+      founderNames: settings.founderNames || '',
+      missionStatement: settings.missionStatement || '',
+      missionDescription: settings.missionDescription || ''
     },
     seoData: {
       siteTitle: settings.siteTitle || '',
@@ -111,7 +125,14 @@ export const useSettingsLocalData = (settings: SettingsState, loading: boolean) 
             twitter: '',
             googlePlaces: ''
           },
-          emailSetupVerified: Boolean(settings.emailSetupVerified === true || settings.emailSetupVerified === 'true')
+          emailSetupVerified: Boolean(settings.emailSetupVerified === true || settings.emailSetupVerified === 'true'),
+          // About page fields
+          aboutTitle: settings.aboutTitle || '',
+          aboutDescription: settings.aboutDescription || '',
+          aboutImageUrl: settings.aboutImageUrl || '',
+          founderNames: settings.founderNames || '',
+          missionStatement: settings.missionStatement || '',
+          missionDescription: settings.missionDescription || ''
         },
         seoData: {
           siteTitle: settings.siteTitle || '',

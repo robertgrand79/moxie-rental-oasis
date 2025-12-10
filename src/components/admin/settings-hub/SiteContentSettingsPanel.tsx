@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useSettingsLocalData } from '@/hooks/useSettingsLocalData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Image, Phone, FileText, BarChart } from 'lucide-react';
+import { Building2, Image, Phone, FileText, BarChart, Users } from 'lucide-react';
 import GeneralInformationSettings from '@/components/admin/settings/GeneralInformationSettings';
 import HeroSectionSettings from '@/components/admin/settings/HeroSectionSettings';
 import ContactInformationSettings from '@/components/admin/settings/ContactInformationSettings';
 import SEOSettingsTab from '@/components/admin/settings/SEOSettingsTab';
 import AnalyticsSettingsTab from '@/components/admin/settings/AnalyticsSettingsTab';
+import AboutPageSettings from '@/components/admin/settings/AboutPageSettings';
 
 const SiteContentSettingsPanel = () => {
   const {
@@ -72,6 +73,21 @@ const SiteContentSettingsPanel = () => {
     }
   };
 
+  const handleSaveAboutPage = async () => {
+    setSaving(prev => ({ ...prev, about: true }));
+    try {
+      const fieldsToSave = ['aboutTitle', 'aboutDescription', 'aboutImageUrl', 'founderNames', 'missionStatement', 'missionDescription'];
+      for (const field of fieldsToSave) {
+        const value = localData.siteData[field];
+        if (value !== undefined) {
+          await saveSetting(field, value);
+        }
+      }
+    } finally {
+      setSaving(prev => ({ ...prev, about: false }));
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-8">
@@ -96,7 +112,7 @@ const SiteContentSettingsPanel = () => {
 
   return (
     <Tabs defaultValue="general" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-auto gap-1 p-1">
+      <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 h-auto gap-1 p-1">
         <TabsTrigger value="general" className="flex items-center gap-2 py-2">
           <Building2 className="h-4 w-4" />
           <span className="hidden sm:inline">General</span>
@@ -104,6 +120,10 @@ const SiteContentSettingsPanel = () => {
         <TabsTrigger value="hero" className="flex items-center gap-2 py-2">
           <Image className="h-4 w-4" />
           <span className="hidden sm:inline">Hero</span>
+        </TabsTrigger>
+        <TabsTrigger value="about" className="flex items-center gap-2 py-2">
+          <Users className="h-4 w-4" />
+          <span className="hidden sm:inline">About</span>
         </TabsTrigger>
         <TabsTrigger value="contact" className="flex items-center gap-2 py-2">
           <Phone className="h-4 w-4" />
@@ -142,6 +162,22 @@ const SiteContentSettingsPanel = () => {
           onInputChange={handleInputChange}
           onSave={handleSaveHeroSection}
           saving={{ heroSection: saving.hero || false }}
+        />
+      </TabsContent>
+
+      <TabsContent value="about" className="space-y-6">
+        <AboutPageSettings
+          localData={{
+            aboutTitle: localData.siteData.aboutTitle || '',
+            aboutDescription: localData.siteData.aboutDescription || '',
+            aboutImageUrl: localData.siteData.aboutImageUrl || '',
+            founderNames: localData.siteData.founderNames || '',
+            missionStatement: localData.siteData.missionStatement || '',
+            missionDescription: localData.siteData.missionDescription || ''
+          }}
+          onInputChange={handleInputChange}
+          onSave={handleSaveAboutPage}
+          saving={saving.about || false}
         />
       </TabsContent>
 
