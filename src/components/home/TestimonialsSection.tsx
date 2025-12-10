@@ -37,7 +37,12 @@ const TestimonialsSection = () => {
   const { data: testimonialResult, isLoading, isFetching } = useQuery({
     queryKey: ['testimonials-featured', page, tenantId],
     queryFn: async () => {
-      if (!tenantId) return { data: [], count: 0 };
+      if (!tenantId) {
+        console.log('⭐ [Testimonials] No tenantId, returning empty');
+        return { data: [], count: 0 };
+      }
+      
+      console.log('⭐ [Testimonials] Fetching for org:', tenantId);
       
       // Step 1: Get property IDs for this tenant
       const { data: properties } = await supabase
@@ -46,6 +51,7 @@ const TestimonialsSection = () => {
         .eq('organization_id', tenantId);
       
       const propertyIds = properties?.map(p => p.id) || [];
+      console.log('⭐ [Testimonials] Found', propertyIds.length, 'properties');
       
       if (propertyIds.length === 0) {
         return { data: [], count: 0 };
@@ -60,8 +66,12 @@ const TestimonialsSection = () => {
         .order('created_at', { ascending: false })
         .range(page * pageSize, (page + 1) * pageSize - 1);
       
-      if (error) throw error;
+      if (error) {
+        console.error('⭐ [Testimonials] Error:', error.message);
+        throw error;
+      }
       
+      console.log('⭐ [Testimonials] Loaded', data?.length ?? 0, 'reviews (total:', count, ')');
       return { data: data as Testimonial[], count: count || 0 };
     },
     enabled: !!tenantId

@@ -60,7 +60,12 @@ export const useTenantSettings = () => {
   const query = useQuery({
     queryKey: ['tenant-settings', tenantId],
     queryFn: async (): Promise<TenantSettings> => {
-      if (!tenantId) return {};
+      if (!tenantId) {
+        console.log('⚙️ [TenantSettings] No tenantId, returning empty settings');
+        return {};
+      }
+
+      console.log('⚙️ [TenantSettings] Fetching settings for org:', tenantId, tenant?.name);
 
       const { data, error } = await supabase
         .from('site_settings')
@@ -68,7 +73,7 @@ export const useTenantSettings = () => {
         .eq('organization_id', tenantId);
 
       if (error) {
-        console.error('Error fetching tenant settings:', error);
+        console.error('⚙️ [TenantSettings] Error:', error.message);
         throw error;
       }
 
@@ -80,18 +85,20 @@ export const useTenantSettings = () => {
         });
       }
 
+      console.log('⚙️ [TenantSettings] Loaded', data?.length ?? 0, 'settings');
       return settings;
     },
     enabled: !!tenantId && !tenantLoading,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Merge tenant info with settings
+  // Merge tenant info with settings - look for both camelCase and snake_case keys
   const mergedSettings: TenantSettings = {
     ...query.data,
-    // Use tenant logo if no site-specific logo
-    logo_url: query.data?.logo_url || tenant?.logo_url || undefined,
-    site_name: query.data?.site_name || tenant?.name || undefined,
+    // Use tenant logo if no site-specific logo (check both key formats)
+    logo_url: query.data?.logo_url || query.data?.logoUrl || query.data?.siteLogo || tenant?.logo_url || undefined,
+    // Use site name from settings or tenant name (check both key formats)
+    site_name: query.data?.site_name || query.data?.siteName || tenant?.name || undefined,
   };
 
   return {

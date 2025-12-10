@@ -21,14 +21,25 @@ interface TenantDetectionResult {
   detectedIdentifier: string | null;
 }
 
+// Debug logging helper
+const logTenant = (message: string, data?: any) => {
+  const prefix = '🏢 [TenantDetection]';
+  if (data !== undefined) {
+    console.log(`${prefix} ${message}`, data);
+  } else {
+    console.log(`${prefix} ${message}`);
+  }
+};
+
 /**
  * Detects the current tenant based on:
- * 1. Custom domain (e.g., moxievacationrentals.com)
- * 2. Subdomain (e.g., moxie.lovable.app)
- * 3. Defaults to the first active organization if none detected
+ * 1. URL query param (?org=slug)
+ * 2. Custom domain (e.g., moxievacationrentals.com)
+ * 3. User's organization membership (if logged in)
+ * 4. Falls back to primary template organization for preview/development
  */
 export const useTenantDetection = (): TenantDetectionResult => {
-  const location = useLocation(); // React Router hook - updates on every navigation
+  const location = useLocation();
   const pathname = location.pathname;
   
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
@@ -36,13 +47,9 @@ export const useTenantDetection = (): TenantDetectionResult => {
   const [error, setError] = useState<string | null>(null);
   const [isDefaultTenant, setIsDefaultTenant] = useState(false);
   
-  // Track previous admin route state to detect transitions
   const wasAdminRoute = useRef(pathname.startsWith('/admin'));
-  
-  // Track force re-detection after logout
   const forceRedetect = useRef(false);
 
-  // Check if we're on an admin route - admin routes should use OrganizationContext instead
   const isAdminRoute = useMemo(() => {
     return pathname.startsWith('/admin');
   }, [pathname]);
@@ -52,58 +59,51 @@ export const useTenantDetection = (): TenantDetectionResult => {
     const currentlyAdmin = pathname.startsWith('/admin');
     
     if (wasAdminRoute.current !== currentlyAdmin) {
-      console.log('🔄 Route transition detected:', wasAdminRoute.current ? 'admin → public' : 'public → admin');
-      
-      // Clear tenant state to force re-detection
+      logTenant('Route transition:', wasAdminRoute.current ? 'admin → public' : 'public → admin');
       setTenant(null);
       setLoading(true);
       sessionStorage.removeItem('current_tenant_slug');
-      
       wasAdminRoute.current = currentlyAdmin;
     }
   }, [pathname]);
 
   // Detect tenant identifier from URL
   const detectedIdentifier = useMemo(() => {
-    // On admin routes, don't detect tenant from URL - let OrganizationContext handle it
     if (isAdminRoute) {
+      logTenant('Admin route - skipping URL-based detection');
       return null;
     }
 
-    // Check for org query parameter first (used by "Back to Site" button)
+    // Check for ?org= query parameter first
     const urlParams = new URLSearchParams(window.location.search);
     const orgSlug = urlParams.get('org');
     if (orgSlug) {
-      console.log('🏷️ Tenant from URL param:', orgSlug);
+      logTenant('Tenant from ?org= param:', orgSlug);
       return orgSlug;
     }
 
     const hostname = window.location.hostname;
     
-    // Check if it's a custom domain (not lovable.app or localhost)
+    // Check if it's a custom domain
     if (!hostname.includes('lovable.app') && 
         !hostname.includes('localhost') && 
         !hostname.includes('127.0.0.1')) {
-      // It's a custom domain - strip www. prefix for consistent DB matching
       const cleanHostname = hostname.replace(/^www\./, '');
-      console.log('🏷️ Tenant from custom domain:', cleanHostname);
+      logTenant('Tenant from custom domain:', cleanHostname);
       return cleanHostname;
     }
     
-    // On Lovable preview or localhost WITHOUT explicit tenant - this is platform site
-    // Return null to indicate no tenant (platform site will handle it)
-    console.log('🌐 No explicit tenant detected - platform site mode');
+    // On Lovable preview or localhost - no explicit tenant identifier
+    logTenant('No explicit tenant in URL (hostname:', hostname + ')');
     return null;
   }, [isAdminRoute]);
 
-  // Listen for auth state changes to trigger re-detection when user logs out
+  // Listen for auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
-        console.log('🔄 User signed out, triggering tenant re-detection from domain');
+        logTenant('User signed out - triggering re-detection');
         sessionStorage.removeItem('current_tenant_slug');
-        // Set flag to force re-detection, then trigger loading state
-        // This ensures we re-detect from custom_domain instead of clearing tenant
         forceRedetect.current = true;
         setLoading(true);
       }
@@ -113,23 +113,23 @@ export const useTenantDetection = (): TenantDetectionResult => {
   }, []);
 
   useEffect(() => {
-    // Skip if not loading and no force flag
     if (!loading && !forceRedetect.current) {
       return;
     }
     
-    // Clear force flag
     forceRedetect.current = false;
-    
     let isMounted = true;
     
     const fetchTenant = async () => {
       try {
         setLoading(true);
         setError(null);
+        logTenant('Starting tenant detection...');
 
-        // First try: Use detected identifier from URL
+        // Strategy 1: Use explicit identifier from URL (slug or custom_domain)
         if (detectedIdentifier) {
+          logTenant('Trying URL identifier:', detectedIdentifier);
+          
           const { data, error: fetchError } = await supabase
             .from('organizations')
             .select('id, name, slug, logo_url, website, custom_domain, is_active, template_type')
@@ -138,24 +138,31 @@ export const useTenantDetection = (): TenantDetectionResult => {
             .maybeSingle();
 
           if (fetchError) {
-            console.error('Error fetching tenant:', fetchError);
+            logTenant('URL identifier lookup error:', fetchError.message);
           }
 
           if (data && isMounted) {
+            logTenant('✅ Tenant resolved from URL:', { id: data.id, name: data.name, slug: data.slug });
             sessionStorage.setItem('current_tenant_slug', data.slug);
             setTenant(data as TenantInfo);
             setIsDefaultTenant(false);
             setLoading(false);
             return;
+          } else {
+            logTenant('URL identifier not found in database');
           }
         }
 
-        // Try user organization with a 3-second timeout to prevent hanging
+        // Strategy 2: Check logged-in user's organization (with timeout)
         if (!isAdminRoute) {
+          logTenant('Trying user organization membership...');
+          
           const userOrgPromise = (async (): Promise<TenantInfo | null> => {
             try {
               const { data: { user } } = await supabase.auth.getUser();
               if (user) {
+                logTenant('User authenticated:', user.id);
+                
                 const { data: membership } = await supabase
                   .from('organization_members')
                   .select('organization:organizations(id, name, slug, logo_url, website, custom_domain, is_active, template_type)')
@@ -173,18 +180,21 @@ export const useTenantDetection = (): TenantDetectionResult => {
               }
               return null;
             } catch (err) {
-              console.warn('Error checking user organization:', err);
+              logTenant('User org lookup error:', err);
               return null;
             }
           })();
 
-          // Race between user org detection and a 3-second timeout
           const userOrg = await Promise.race([
             userOrgPromise,
-            new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
+            new Promise<null>((resolve) => setTimeout(() => {
+              logTenant('User org lookup timeout (3s)');
+              resolve(null);
+            }, 3000))
           ]);
 
           if (userOrg && isMounted) {
+            logTenant('✅ Tenant resolved from user membership:', { id: userOrg.id, name: userOrg.name, slug: userOrg.slug });
             sessionStorage.setItem('current_tenant_slug', userOrg.slug);
             setTenant(userOrg);
             setIsDefaultTenant(false);
@@ -193,8 +203,9 @@ export const useTenantDetection = (): TenantDetectionResult => {
           }
         }
 
-        // On admin routes, don't fallback to any organization - let OrganizationContext handle it
+        // On admin routes, stop here
         if (isAdminRoute) {
+          logTenant('Admin route - no fallback, OrganizationContext will handle');
           if (isMounted) {
             setTenant(null);
             setIsDefaultTenant(false);
@@ -203,10 +214,33 @@ export const useTenantDetection = (): TenantDetectionResult => {
           return;
         }
 
-        // No explicit tenant detected and no user organization found
-        // This means we're on the platform site - don't fallback to first org
-        // The PlatformContext will handle showing platform content
-        console.log('📭 No tenant detected - platform site will handle display');
+        // Strategy 3: Fallback to primary template organization for preview/development
+        // This ensures the public site works on Lovable preview without requiring login
+        logTenant('Trying fallback to primary template organization...');
+        
+        const { data: templateOrg, error: templateError } = await supabase
+          .from('organizations')
+          .select('id, name, slug, logo_url, website, custom_domain, is_active, template_type')
+          .eq('is_template', true)
+          .eq('is_active', true)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (templateError) {
+          logTenant('Template org lookup error:', templateError.message);
+        }
+
+        if (templateOrg && isMounted) {
+          logTenant('✅ Tenant resolved from template fallback:', { id: templateOrg.id, name: templateOrg.name, slug: templateOrg.slug });
+          setTenant(templateOrg as TenantInfo);
+          setIsDefaultTenant(true);
+          setLoading(false);
+          return;
+        }
+
+        // No tenant found at all
+        logTenant('⚠️ No tenant could be resolved');
         if (isMounted) {
           setTenant(null);
           setIsDefaultTenant(false);
@@ -214,21 +248,18 @@ export const useTenantDetection = (): TenantDetectionResult => {
         }
 
       } catch (err) {
-        console.error('Error in tenant detection:', err);
+        logTenant('Detection error:', err);
         if (isMounted) {
           setError(err instanceof Error ? err.message : 'Unknown error');
-        }
-      } finally {
-        if (isMounted) {
           setLoading(false);
         }
       }
     };
 
-    // Overall safety timeout - ensure loading never stays stuck forever
+    // Safety timeout
     const safetyTimeout = setTimeout(() => {
       if (isMounted && loading) {
-        console.warn('Tenant detection safety timeout reached, forcing load complete');
+        logTenant('⚠️ Safety timeout reached (8s), forcing load complete');
         setLoading(false);
       }
     }, 8000);
@@ -240,6 +271,19 @@ export const useTenantDetection = (): TenantDetectionResult => {
       clearTimeout(safetyTimeout);
     };
   }, [detectedIdentifier, isAdminRoute, loading]);
+
+  // Log current state for debugging
+  useEffect(() => {
+    if (!loading) {
+      logTenant('Current state:', {
+        tenantId: tenant?.id ?? 'none',
+        tenantName: tenant?.name ?? 'none',
+        tenantSlug: tenant?.slug ?? 'none',
+        isDefaultTenant,
+        detectedIdentifier: detectedIdentifier ?? 'none'
+      });
+    }
+  }, [tenant, loading, isDefaultTenant, detectedIdentifier]);
 
   return {
     tenant,
