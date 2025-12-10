@@ -15,7 +15,9 @@ import {
   Building2, 
   Home,
   Loader2,
-  ExternalLink
+  Sparkles,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -33,7 +35,7 @@ const BillingSubscriptionTab = () => {
   const { organization, refetch } = useCurrentOrganization();
   const { toast } = useToast();
   const [isCreatingPortal, setIsCreatingPortal] = useState(false);
-  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [subscribingTo, setSubscribingTo] = useState<string | null>(null);
 
   // Fetch available templates
   const { data: templates } = useQuery({
@@ -50,7 +52,6 @@ const BillingSubscriptionTab = () => {
   });
 
   const currentTemplate = templates?.find(t => t.slug === organization?.template_type);
-  const upgradeTemplate = templates?.find(t => t.slug === 'multi_property');
 
   const formatPrice = (cents: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -59,16 +60,27 @@ const BillingSubscriptionTab = () => {
     }).format(cents / 100);
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | null) => {
+    if (!status) {
+      return <Badge variant="outline">No Subscription</Badge>;
+    }
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
       active: 'default',
       trialing: 'secondary',
       past_due: 'destructive',
       canceled: 'outline',
+      free: 'outline',
+    };
+    const labels: Record<string, string> = {
+      active: 'Active',
+      trialing: 'Trial',
+      past_due: 'Past Due',
+      canceled: 'Canceled',
+      free: 'Free',
     };
     return (
       <Badge variant={variants[status] || 'outline'}>
-        {status === 'trialing' ? 'Trial' : status?.charAt(0).toUpperCase() + status?.slice(1)}
+        {labels[status] || status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
   };
@@ -101,17 +113,17 @@ const BillingSubscriptionTab = () => {
     }
   };
 
-  const handleUpgrade = async (templateSlug: string) => {
+  const handleSubscribe = async (templateSlug: string) => {
     if (!organization) return;
     
-    setIsUpgrading(true);
+    setSubscribingTo(templateSlug);
     try {
       const { data, error } = await supabase.functions.invoke('platform-subscription-checkout', {
         body: {
           organizationId: organization.id,
           templateSlug,
-          successUrl: `${window.location.origin}/admin/organization?subscription=success`,
-          cancelUrl: `${window.location.origin}/admin/organization?subscription=cancelled`,
+          successUrl: `${window.location.origin}/admin/settings/organization?subscription=success`,
+          cancelUrl: `${window.location.origin}/admin/settings/organization?subscription=cancelled`,
         },
       });
 
@@ -123,26 +135,30 @@ const BillingSubscriptionTab = () => {
       console.error('Error creating checkout session:', error);
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to start upgrade',
+        description: error instanceof Error ? error.message : 'Failed to start subscription',
         variant: 'destructive',
       });
     } finally {
-      setIsUpgrading(false);
+      setSubscribingTo(null);
     }
   };
 
   if (!organization) return null;
 
-  const isOnSingleProperty = organization.template_type === 'single_property';
+  // Determine subscription status
   const hasActiveSubscription = ['active', 'trialing'].includes(organization.subscription_status || '');
+  const needsSubscription = !hasActiveSubscription;
+  const isCanceled = organization.subscription_status === 'canceled';
+  const isPastDue = organization.subscription_status === 'past_due';
+  const hasStripeCustomer = !!(organization as any).stripe_customer_id;
 
   return (
     <div className="space-y-6">
-      {/* Current Plan */}
+      {/* Current Status Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            {isOnSingleProperty ? (
+            {organization.template_type === 'single_property' ? (
               <Home className="h-5 w-5" />
             ) : (
               <Building2 className="h-5 w-5" />
@@ -155,21 +171,27 @@ const BillingSubscriptionTab = () => {
           <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
             <div>
               <h3 className="font-semibold text-lg">
-                {currentTemplate?.name || organization.subscription_tier || 'Free'}
+                {hasActiveSubscription 
+                  ? (currentTemplate?.name || organization.subscription_tier || 'Active Plan')
+                  : 'No Active Plan'
+                }
               </h3>
               <p className="text-sm text-muted-foreground">
-                {currentTemplate?.description || 'No active subscription'}
+                {hasActiveSubscription 
+                  ? (currentTemplate?.description || 'Your current subscription')
+                  : 'Choose a plan below to get started'
+                }
               </p>
             </div>
             <div className="text-right">
-              {currentTemplate && (
+              {hasActiveSubscription && currentTemplate && (
                 <p className="text-2xl font-bold">
                   {formatPrice(currentTemplate.monthly_price_cents)}
                   <span className="text-sm font-normal text-muted-foreground">/month</span>
                 </p>
               )}
               <div className="mt-1">
-                {getStatusBadge(organization.subscription_status || 'free')}
+                {getStatusBadge(organization.subscription_status)}
               </div>
             </div>
           </div>
@@ -184,8 +206,48 @@ const BillingSubscriptionTab = () => {
             </div>
           )}
 
-          {/* Features */}
-          {currentTemplate?.features && (
+          {/* Past Due Warning */}
+          {isPastDue && (
+            <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              <div className="flex-1">
+                <p className="font-medium text-destructive">Payment Past Due</p>
+                <p className="text-sm text-muted-foreground">
+                  Please update your payment method to continue your subscription.
+                </p>
+              </div>
+              {hasStripeCustomer && (
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={handleOpenCustomerPortal}
+                  disabled={isCreatingPortal}
+                >
+                  {isCreatingPortal ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    'Update Payment'
+                  )}
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Canceled Notice */}
+          {isCanceled && (
+            <div className="flex items-center gap-3 p-4 bg-muted border rounded-lg">
+              <RefreshCw className="h-5 w-5 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="font-medium">Subscription Canceled</p>
+                <p className="text-sm text-muted-foreground">
+                  Reactivate your subscription to regain access to all features.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Features for active subscriptions */}
+          {hasActiveSubscription && currentTemplate?.features && (
             <div className="pt-2">
               <p className="text-sm font-medium mb-2">Included features:</p>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -201,8 +263,8 @@ const BillingSubscriptionTab = () => {
         </CardContent>
       </Card>
 
-      {/* Billing Actions */}
-      {hasActiveSubscription && (organization as any).stripe_customer_id && (
+      {/* Billing Actions for Active Subscribers */}
+      {hasActiveSubscription && hasStripeCustomer && (
         <Card>
           <CardHeader>
             <CardTitle>Billing Management</CardTitle>
@@ -239,71 +301,180 @@ const BillingSubscriptionTab = () => {
         </Card>
       )}
 
-      {/* Upgrade Option */}
-      {isOnSingleProperty && upgradeTemplate && (
+      {/* Choose Your Plan - Show for all orgs without active subscription */}
+      {needsSubscription && templates && templates.length > 0 && (
         <>
           <Separator />
           <Card className="border-primary/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <ArrowUpRight className="h-5 w-5 text-primary" />
-                Upgrade Your Plan
+                <Sparkles className="h-5 w-5 text-primary" />
+                {isCanceled ? 'Reactivate Your Subscription' : 'Choose Your Plan'}
               </CardTitle>
               <CardDescription>
-                Unlock more features with a Multi-Property subscription
+                {isCanceled 
+                  ? 'Select a plan to reactivate your subscription and continue using all features'
+                  : 'Select the plan that best fits your needs'
+                }
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-lg">{upgradeTemplate.name}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {upgradeTemplate.description}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-primary">
-                    {formatPrice(upgradeTemplate.monthly_price_cents)}
-                    <span className="text-sm font-normal text-muted-foreground">/month</span>
-                  </p>
-                </div>
+            <CardContent>
+              <div className="grid gap-6 md:grid-cols-2">
+                {templates.map((template) => {
+                  const isCurrentType = template.slug === organization.template_type;
+                  const isSubscribing = subscribingTo === template.slug;
+                  
+                  return (
+                    <div
+                      key={template.id}
+                      className={`relative p-6 rounded-lg border-2 transition-all ${
+                        isCurrentType 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      {isCurrentType && (
+                        <Badge className="absolute -top-2 left-4 bg-primary">
+                          Recommended
+                        </Badge>
+                      )}
+                      
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          {template.slug === 'single_property' ? (
+                            <Home className="h-5 w-5 text-primary" />
+                          ) : (
+                            <Building2 className="h-5 w-5 text-primary" />
+                          )}
+                          <h3 className="font-semibold text-lg">{template.name}</h3>
+                        </div>
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {template.description}
+                      </p>
+                      
+                      <div className="mb-4">
+                        <span className="text-3xl font-bold">
+                          {formatPrice(template.monthly_price_cents)}
+                        </span>
+                        <span className="text-muted-foreground">/month</span>
+                      </div>
+                      
+                      <ul className="space-y-2 mb-6">
+                        {template.features.slice(0, 5).map((feature, i) => (
+                          <li key={i} className="flex items-center gap-2 text-sm">
+                            <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                            <span className="text-muted-foreground">{feature}</span>
+                          </li>
+                        ))}
+                        {template.features.length > 5 && (
+                          <li className="text-sm text-muted-foreground pl-6">
+                            + {template.features.length - 5} more features
+                          </li>
+                        )}
+                      </ul>
+                      
+                      <Button 
+                        className="w-full"
+                        variant={isCurrentType ? 'default' : 'outline'}
+                        onClick={() => handleSubscribe(template.slug)}
+                        disabled={isSubscribing || subscribingTo !== null}
+                      >
+                        {isSubscribing ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <ArrowUpRight className="h-4 w-4 mr-2" />
+                            Subscribe Now
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
-
-              {/* Upgrade features */}
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {upgradeTemplate.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-primary" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <Button 
-                onClick={() => handleUpgrade('multi_property')}
-                disabled={isUpgrading}
-                className="w-full sm:w-auto"
-              >
-                {isUpgrading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <ArrowUpRight className="h-4 w-4 mr-2" />
-                )}
-                Upgrade to Multi-Property
-              </Button>
             </CardContent>
           </Card>
         </>
       )}
 
-      {/* Downgrade / Cancel Notice */}
+      {/* Upgrade Option for Single Property with Active Subscription */}
+      {hasActiveSubscription && organization.template_type === 'single_property' && templates && (
+        <>
+          {(() => {
+            const upgradeTemplate = templates.find(t => t.slug === 'multi_property');
+            if (!upgradeTemplate) return null;
+            
+            return (
+              <>
+                <Separator />
+                <Card className="border-primary/30">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ArrowUpRight className="h-5 w-5 text-primary" />
+                      Upgrade Your Plan
+                    </CardTitle>
+                    <CardDescription>
+                      Unlock more features with a Multi-Property subscription
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-5 w-5 text-primary" />
+                          <h3 className="font-semibold text-lg">{upgradeTemplate.name}</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {upgradeTemplate.description}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-primary">
+                          {formatPrice(upgradeTemplate.monthly_price_cents)}
+                          <span className="text-sm font-normal text-muted-foreground">/month</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {upgradeTemplate.features.map((feature, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <CheckCircle2 className="h-4 w-4 text-primary" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Button 
+                      onClick={() => handleSubscribe('multi_property')}
+                      disabled={subscribingTo !== null}
+                      className="w-full sm:w-auto"
+                    >
+                      {subscribingTo === 'multi_property' ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <ArrowUpRight className="h-4 w-4 mr-2" />
+                      )}
+                      Upgrade to Multi-Property
+                    </Button>
+                  </CardContent>
+                </Card>
+              </>
+            );
+          })()}
+        </>
+      )}
+
+      {/* Support Notice */}
       <Card>
         <CardContent className="py-4">
           <p className="text-sm text-muted-foreground text-center">
-            Need to downgrade or cancel your subscription?{' '}
+            Need help with your subscription?{' '}
             <a href="mailto:support@staymoxie.com" className="text-primary hover:underline">
               Contact support@staymoxie.com
             </a>
