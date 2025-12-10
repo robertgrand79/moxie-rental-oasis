@@ -3228,10 +3228,6 @@ export type Database = {
           price_per_night: number | null
           pricelabs_listing_id: string | null
           service_fee_percentage: number | null
-          stripe_account_id: string | null
-          stripe_publishable_key: string | null
-          stripe_secret_key: string | null
-          stripe_webhook_secret: string | null
           title: string
           updated_at: string
         }
@@ -3257,10 +3253,6 @@ export type Database = {
           price_per_night?: number | null
           pricelabs_listing_id?: string | null
           service_fee_percentage?: number | null
-          stripe_account_id?: string | null
-          stripe_publishable_key?: string | null
-          stripe_secret_key?: string | null
-          stripe_webhook_secret?: string | null
           title: string
           updated_at?: string
         }
@@ -3286,10 +3278,6 @@ export type Database = {
           price_per_night?: number | null
           pricelabs_listing_id?: string | null
           service_fee_percentage?: number | null
-          stripe_account_id?: string | null
-          stripe_publishable_key?: string | null
-          stripe_secret_key?: string | null
-          stripe_webhook_secret?: string | null
           title?: string
           updated_at?: string
         }
@@ -3684,6 +3672,47 @@ export type Database = {
             foreignKeyName: "property_reservations_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_stripe_credentials: {
+        Row: {
+          created_at: string
+          id: string
+          property_id: string
+          stripe_account_id: string | null
+          stripe_publishable_key: string | null
+          stripe_secret_key: string | null
+          stripe_webhook_secret: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          property_id: string
+          stripe_account_id?: string | null
+          stripe_publishable_key?: string | null
+          stripe_secret_key?: string | null
+          stripe_webhook_secret?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          property_id?: string
+          stripe_account_id?: string | null
+          stripe_publishable_key?: string | null
+          stripe_secret_key?: string | null
+          stripe_webhook_secret?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_stripe_credentials_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
             referencedRelation: "properties"
             referencedColumns: ["id"]
           },
@@ -5358,6 +5387,15 @@ export type Database = {
       get_property_organization_id: {
         Args: { _property_id: string }
         Returns: string
+      }
+      get_property_stripe_credentials: {
+        Args: { p_property_id: string }
+        Returns: {
+          stripe_account_id: string
+          stripe_publishable_key: string
+          stripe_secret_key: string
+          stripe_webhook_secret: string
+        }[]
       }
       get_reservation_by_id_and_email: {
         Args: { p_guest_email: string; p_reservation_id: string }

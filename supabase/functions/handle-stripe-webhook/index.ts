@@ -53,60 +53,54 @@ serve(async (req) => {
 
     // Determine which webhook secret to use for verification
     let webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    let stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     
     if (propertyId) {
-      // Check property-specific webhook secret
-      const { data: property } = await supabaseClient
-        .from('properties')
-        .select('stripe_webhook_secret, organization_id')
-        .eq('id', propertyId)
-        .single();
+      // Check property-specific credentials from secure table
+      const { data: propertyCredentials } = await supabaseClient
+        .rpc('get_property_stripe_credentials', { p_property_id: propertyId });
 
-      if (property?.stripe_webhook_secret) {
-        webhookSecret = property.stripe_webhook_secret;
-        logStep("Using property-specific webhook secret");
-      } else if (property?.organization_id) {
-        // Check organization webhook secret
-        const { data: org } = await supabaseClient
-          .from('organizations')
-          .select('stripe_webhook_secret')
-          .eq('id', property.organization_id)
+      if (propertyCredentials && propertyCredentials.length > 0) {
+        const creds = propertyCredentials[0];
+        if (creds.stripe_webhook_secret) {
+          webhookSecret = creds.stripe_webhook_secret;
+          logStep("Using property-specific webhook secret");
+        }
+        if (creds.stripe_secret_key) {
+          stripeKey = creds.stripe_secret_key;
+          logStep("Using property-specific Stripe key");
+        }
+      }
+      
+      // Fallback to organization credentials
+      if (!webhookSecret || webhookSecret === Deno.env.get("STRIPE_WEBHOOK_SECRET")) {
+        const { data: property } = await supabaseClient
+          .from('properties')
+          .select('organization_id')
+          .eq('id', propertyId)
           .single();
 
-        if (org?.stripe_webhook_secret) {
-          webhookSecret = org.stripe_webhook_secret;
-          logStep("Using organization webhook secret");
+        if (property?.organization_id) {
+          const { data: org } = await supabaseClient
+            .from('organizations')
+            .select('stripe_webhook_secret, stripe_secret_key')
+            .eq('id', property.organization_id)
+            .single();
+
+          if (org?.stripe_webhook_secret) {
+            webhookSecret = org.stripe_webhook_secret;
+            logStep("Using organization webhook secret");
+          }
+          if (org?.stripe_secret_key) {
+            stripeKey = org.stripe_secret_key;
+            logStep("Using organization Stripe key");
+          }
         }
       }
     }
 
     if (!webhookSecret) {
       throw new Error("No webhook secret configured");
-    }
-
-    // Get appropriate Stripe key for verification
-    let stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    
-    if (propertyId) {
-      const { data: property } = await supabaseClient
-        .from('properties')
-        .select('stripe_secret_key, organization_id')
-        .eq('id', propertyId)
-        .single();
-
-      if (property?.stripe_secret_key) {
-        stripeKey = property.stripe_secret_key;
-      } else if (property?.organization_id) {
-        const { data: org } = await supabaseClient
-          .from('organizations')
-          .select('stripe_secret_key')
-          .eq('id', property.organization_id)
-          .single();
-
-        if (org?.stripe_secret_key) {
-          stripeKey = org.stripe_secret_key;
-        }
-      }
     }
 
     if (!stripeKey) {

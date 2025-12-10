@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,8 +25,33 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
   const [saving, setSaving] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [hasStripeConfigured, setHasStripeConfigured] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const webhookUrl = "https://joiovubyokikqjytxtuv.supabase.co/functions/v1/handle-stripe-webhook";
+
+  // Check if property has Stripe credentials configured (securely)
+  useEffect(() => {
+    const checkStripeConfig = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('property_stripe_credentials')
+          .select('id')
+          .eq('property_id', property.id)
+          .maybeSingle();
+
+        if (!error && data) {
+          setHasStripeConfigured(true);
+        }
+      } catch (err) {
+        console.error('Error checking Stripe config:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkStripeConfig();
+  }, [property.id]);
 
   const handleCopyWebhookUrl = async () => {
     await navigator.clipboard.writeText(webhookUrl);
@@ -34,10 +59,6 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
     toast.success('Webhook URL copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
   };
-
-  // Check if property has Stripe configured (we can't see the actual keys, but we can check if they exist)
-  const initialHasStripeConfigured = !!(property as any).stripe_secret_key || !!(property as any).stripe_publishable_key;
-  const [localHasStripeConfigured, setLocalHasStripeConfigured] = useState(initialHasStripeConfigured);
 
   const handleSave = async () => {
     if (!formData.stripeSecretKey && !formData.stripePublishableKey) {
@@ -47,19 +68,23 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
 
     setSaving(true);
     try {
+      // Use upsert to create or update the credentials
       const { error } = await supabase
-        .from('properties')
-        .update({
+        .from('property_stripe_credentials')
+        .upsert({
+          property_id: property.id,
           stripe_secret_key: formData.stripeSecretKey || null,
           stripe_publishable_key: formData.stripePublishableKey || null,
           stripe_webhook_secret: formData.stripeWebhookSecret || null,
           stripe_account_id: formData.stripeAccountId || null,
-        })
-        .eq('id', property.id);
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'property_id'
+        });
 
       if (error) throw error;
 
-      setLocalHasStripeConfigured(true);
+      setHasStripeConfigured(true);
       toast.success('Stripe settings saved successfully');
       setFormData({
         stripeSecretKey: '',
@@ -79,18 +104,13 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
     setClearing(true);
     try {
       const { error } = await supabase
-        .from('properties')
-        .update({
-          stripe_secret_key: null,
-          stripe_publishable_key: null,
-          stripe_webhook_secret: null,
-          stripe_account_id: null,
-        })
-        .eq('id', property.id);
+        .from('property_stripe_credentials')
+        .delete()
+        .eq('property_id', property.id);
 
       if (error) throw error;
 
-      setLocalHasStripeConfigured(false);
+      setHasStripeConfigured(false);
       toast.success('Stripe settings cleared - will use organization defaults');
     } catch (error) {
       console.error('Error clearing Stripe settings:', error);
@@ -99,6 +119,16 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
       setClearing(false);
     }
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-32">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -120,7 +150,7 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
           </AlertDescription>
         </Alert>
 
-        {localHasStripeConfigured && (
+        {hasStripeConfigured && (
           <Alert className="border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
@@ -235,7 +265,7 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
               'Save Payment Settings'
             )}
           </Button>
-          {localHasStripeConfigured && (
+          {hasStripeConfigured && (
             <Button variant="outline" onClick={handleClear} disabled={saving || clearing}>
               {clearing ? (
                 <>

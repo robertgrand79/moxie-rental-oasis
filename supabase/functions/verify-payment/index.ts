@@ -43,29 +43,35 @@ serve(async (req) => {
 
     logStep("Reservation found", { propertyId: reservation.property_id });
 
-    // Get property-specific Stripe key
+    // Get property-specific Stripe key using secure function
     let stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     
-    const { data: property } = await supabaseClient
-      .from("properties")
-      .select("stripe_secret_key, organization_id")
-      .eq("id", reservation.property_id)
-      .single();
+    // First try property-specific credentials from secure table
+    const { data: propertyCredentials } = await supabaseClient
+      .rpc('get_property_stripe_credentials', { p_property_id: reservation.property_id });
 
-    if (property?.stripe_secret_key) {
-      stripeKey = property.stripe_secret_key;
+    if (propertyCredentials && propertyCredentials.length > 0 && propertyCredentials[0].stripe_secret_key) {
+      stripeKey = propertyCredentials[0].stripe_secret_key;
       logStep("Using property-specific Stripe key");
-    } else if (property?.organization_id) {
-      // Try organization-level Stripe key
-      const { data: org } = await supabaseClient
-        .from("organizations")
-        .select("stripe_secret_key")
-        .eq("id", property.organization_id)
+    } else {
+      // Fallback to organization-level Stripe key
+      const { data: property } = await supabaseClient
+        .from("properties")
+        .select("organization_id")
+        .eq("id", reservation.property_id)
         .single();
-      
-      if (org?.stripe_secret_key) {
-        stripeKey = org.stripe_secret_key;
-        logStep("Using organization-level Stripe key");
+
+      if (property?.organization_id) {
+        const { data: org } = await supabaseClient
+          .from("organizations")
+          .select("stripe_secret_key")
+          .eq("id", property.organization_id)
+          .single();
+        
+        if (org?.stripe_secret_key) {
+          stripeKey = org.stripe_secret_key;
+          logStep("Using organization-level Stripe key");
+        }
       }
     }
 
