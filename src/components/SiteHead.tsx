@@ -17,15 +17,14 @@ const SiteHead = () => {
   const isAnalyticsPage = location.pathname === '/admin/analytics';
   const shouldLoadAnalytics = !isAdminPage || isMetricsPage || isAnalyticsPage;
   
-  if (shouldLoadAnalytics) {
-    useThirdPartyScripts(
-      settings.googleTagManagerId || '',
-      settings.facebookPixelId || '',
-      settings.customHeaderScripts || '',
-      settings.customFooterScripts || '',
-      settings.customCss || ''
-    );
-  }
+  // Hooks must be called unconditionally - pass empty strings when not loading
+  useThirdPartyScripts(
+    shouldLoadAnalytics ? (settings.googleTagManagerId || '') : '',
+    shouldLoadAnalytics ? (settings.facebookPixelId || '') : '',
+    shouldLoadAnalytics ? (settings.customHeaderScripts || '') : '',
+    shouldLoadAnalytics ? (settings.customFooterScripts || '') : '',
+    shouldLoadAnalytics ? (settings.customCss || '') : ''
+  );
 
   return (
     <SecurityProvider>
