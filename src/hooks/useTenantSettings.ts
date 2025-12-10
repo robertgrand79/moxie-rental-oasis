@@ -93,13 +93,16 @@ export const useTenantSettings = () => {
   });
 
   // Merge tenant info with settings - look for both camelCase and snake_case keys
+  // siteLogo is the key used by LogoUploader, so check it first
   const mergedSettings: TenantSettings = {
     ...query.data,
-    // Use tenant logo if no site-specific logo (check both key formats)
-    logo_url: query.data?.logo_url || query.data?.logoUrl || query.data?.siteLogo || tenant?.logo_url || undefined,
+    // Use tenant logo if no site-specific logo (check siteLogo first as that's what LogoUploader saves)
+    logo_url: query.data?.siteLogo || query.data?.logo_url || query.data?.logoUrl || tenant?.logo_url || undefined,
     // Use site name from settings or tenant name (check both key formats)
     site_name: query.data?.site_name || query.data?.siteName || tenant?.name || undefined,
   };
+  
+  console.log('🖼️ [TenantSettings] Logo resolved:', mergedSettings.logo_url ? 'Found' : 'Not configured');
 
   return {
     settings: mergedSettings,
