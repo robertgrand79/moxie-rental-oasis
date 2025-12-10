@@ -8,6 +8,7 @@ import AppRoutes from './components/routing/AppRoutes';
 import PublicChatWidget from './components/public/PublicChatWidget';
 import GlobalFontsProvider from './components/GlobalFontsProvider';
 import TenantDebugBanner from './components/debug/TenantDebugBanner';
+import SiteHead from './components/SiteHead';
 
 // Note: QueryClient is created in main.tsx - single instance for entire app
 
@@ -19,6 +20,7 @@ function App() {
           <OrganizationProvider>
             <TenantProvider>
               <TenantDebugBanner />
+              <SiteHead />
               <StaticSettingsProvider>
                 <GlobalFontsProvider>
                   <AppRoutes />
