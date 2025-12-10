@@ -80,16 +80,35 @@ serve(async (req) => {
         productId = product.id;
         logStep(`Created Stripe product`, { productId });
       } else {
-        // Update existing product
-        await stripe.products.update(productId, {
-          name: `StayMoxie - ${template.name}`,
-          description: template.description || `${template.name} subscription plan`,
-          metadata: {
-            template_id: template.id,
-            template_slug: template.slug
+        // Try to update existing product, create new one if it doesn't exist
+        try {
+          await stripe.products.update(productId, {
+            name: `StayMoxie - ${template.name}`,
+            description: template.description || `${template.name} subscription plan`,
+            metadata: {
+              template_id: template.id,
+              template_slug: template.slug
+            }
+          });
+          logStep(`Updated Stripe product`, { productId });
+        } catch (updateError: any) {
+          if (updateError.message?.includes('No such product')) {
+            logStep(`Product not found in Stripe, creating new one`, { oldProductId: productId });
+            const product = await stripe.products.create({
+              name: `StayMoxie - ${template.name}`,
+              description: template.description || `${template.name} subscription plan`,
+              metadata: {
+                template_id: template.id,
+                template_slug: template.slug
+              }
+            });
+            productId = product.id;
+            priceId = null; // Reset price since we have a new product
+            logStep(`Created new Stripe product`, { productId });
+          } else {
+            throw updateError;
           }
-        });
-        logStep(`Updated Stripe product`, { productId });
+        }
       }
 
       // Create new price if none exists or if price changed
