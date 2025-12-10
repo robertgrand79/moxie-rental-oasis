@@ -49,6 +49,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
   
   const wasAdminRoute = useRef(pathname.startsWith('/admin'));
   const forceRedetect = useRef(false);
+  const hasInitialized = useRef(false);
 
   const isAdminRoute = useMemo(() => {
     return pathname.startsWith('/admin');
@@ -64,6 +65,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
       setLoading(true);
       sessionStorage.removeItem('current_tenant_slug');
       wasAdminRoute.current = currentlyAdmin;
+      hasInitialized.current = false; // Reset to allow re-detection
     }
   }, [pathname]);
 
@@ -125,16 +127,22 @@ export const useTenantDetection = (): TenantDetectionResult => {
   }, []);
 
   useEffect(() => {
-    if (!loading && !forceRedetect.current) {
+    // Skip if already initialized and no force redetect needed
+    if (hasInitialized.current && !forceRedetect.current) {
       return;
     }
     
+    // Mark as initialized and reset force flag
+    hasInitialized.current = true;
     forceRedetect.current = false;
     let isMounted = true;
     
     const fetchTenant = async () => {
       try {
-        setLoading(true);
+        // Ensure loading is true at start of detection
+        if (!loading) {
+          setLoading(true);
+        }
         setError(null);
         logTenant('Starting tenant detection...');
 
@@ -280,7 +288,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
       isMounted = false;
       clearTimeout(safetyTimeout);
     };
-  }, [detectedIdentifier, isAdminRoute, loading]);
+  }, [detectedIdentifier, isAdminRoute]);
 
   // Log current state for debugging
   useEffect(() => {
