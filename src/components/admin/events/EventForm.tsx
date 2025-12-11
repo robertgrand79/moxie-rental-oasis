@@ -2,18 +2,20 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Download, Loader2 } from 'lucide-react';
+import { X, Download, Loader2, Upload, ImageIcon, Link, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Event, useCreateEvent, useUpdateEvent } from '@/hooks/useEvents';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchWebsiteImage } from '@/lib/api/fetchWebsiteImage';
 import { toast } from 'sonner';
+import { useEventImageUpload } from '@/hooks/useEventImageUpload';
+import { cn } from '@/lib/utils';
 
 const eventSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -46,6 +48,9 @@ const EventForm = ({ event, onClose }: EventFormProps) => {
   const createEvent = useCreateEvent();
   const updateEvent = useUpdateEvent();
   const [isFetchingImage, setIsFetchingImage] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showManualUrl, setShowManualUrl] = useState(false);
+  const { uploadEventImage, uploading } = useEventImageUpload();
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
@@ -262,19 +267,107 @@ const EventForm = ({ event, onClose }: EventFormProps) => {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="image_url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://example.com/image.jpg" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              {/* Event Image Section */}
+              <div className="space-y-3">
+                <FormLabel>Event Image</FormLabel>
+                
+                {/* Current Image Preview */}
+                {form.watch('image_url') && (
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border">
+                    <img
+                      src={form.watch('image_url')}
+                      alt="Event preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={() => form.setValue('image_url', '')}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 )}
-              />
+
+                {/* Drag and Drop Upload Zone */}
+                {!form.watch('image_url') && (
+                  <div
+                    className={cn(
+                      "border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer",
+                      isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50",
+                      uploading && "opacity-50 pointer-events-none"
+                    )}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      const file = e.dataTransfer.files[0];
+                      if (file) {
+                        const url = await uploadEventImage(file);
+                        if (url) form.setValue('image_url', url);
+                      }
+                    }}
+                    onClick={() => document.getElementById('event-image-input')?.click()}
+                  >
+                    <input
+                      id="event-image-input"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = await uploadEventImage(file);
+                          if (url) form.setValue('image_url', url);
+                        }
+                      }}
+                    />
+                    {uploading ? (
+                      <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin text-muted-foreground" />
+                    ) : (
+                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      {uploading ? 'Uploading...' : 'Drag & drop an image here, or click to browse'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">JPEG, PNG, WebP, GIF up to 10MB</p>
+                  </div>
+                )}
+
+                {/* Manual URL Input Toggle */}
+                {!form.watch('image_url') && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowManualUrl(!showManualUrl)}
+                      className="text-xs"
+                    >
+                      <Link className="h-3 w-3 mr-1" />
+                      {showManualUrl ? 'Hide' : 'Enter URL manually'}
+                    </Button>
+                  </div>
+                )}
+
+                {showManualUrl && !form.watch('image_url') && (
+                  <FormField
+                    control={form.control}
+                    name="image_url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="https://example.com/image.jpg" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
 
               <FormField
                 control={form.control}
@@ -289,18 +382,22 @@ const EventForm = ({ event, onClose }: EventFormProps) => {
                       <Button
                         type="button"
                         variant="outline"
-                        size="icon"
                         onClick={handleFetchImage}
-                        disabled={isFetchingImage}
-                        title="Fetch image from website"
+                        disabled={isFetchingImage || !form.watch('website_url')}
+                        title="Download image from website"
+                        className="shrink-0"
                       >
                         {isFetchingImage ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
                         ) : (
-                          <Download className="h-4 w-4" />
+                          <Download className="h-4 w-4 mr-2" />
                         )}
+                        Fetch Image
                       </Button>
                     </div>
+                    <FormDescription>
+                      Enter the event's website URL and click "Fetch Image" to automatically download and save the event image
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
