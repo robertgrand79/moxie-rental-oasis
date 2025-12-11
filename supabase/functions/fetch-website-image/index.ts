@@ -97,6 +97,9 @@ serve(async (req) => {
       );
     }
 
+    // Normalize URL - replace backslashes with forward slashes (some websites use Windows-style paths)
+    imageUrl = imageUrl.replace(/\\/g, '/');
+
     // Resolve relative URLs
     if (imageUrl.startsWith('//')) {
       // Protocol-relative URL
