@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -63,6 +63,29 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
       display_order: place?.display_order || 0,
     },
   });
+
+  // Reset form when place data changes (for edit mode)
+  useEffect(() => {
+    if (place) {
+      form.reset({
+        name: place.name || '',
+        description: place.description || '',
+        category: place.category || '',
+        subcategory: place.subcategory || '',
+        address: place.address || '',
+        location_text: place.location_text || '',
+        phone: place.phone || '',
+        website_url: place.website_url || '',
+        rating: place.rating || 0,
+        price_level: place.price_level || 1,
+        image_url: place.image_url || '',
+        activity_type: place.activity_type || '',
+        is_featured: place.is_featured || false,
+        status: place.status || 'published',
+        display_order: place.display_order || 0,
+      });
+    }
+  }, [place, form]);
 
   const onSubmit = (data: PlaceFormData) => {
     if (place) {
