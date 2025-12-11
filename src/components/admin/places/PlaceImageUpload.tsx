@@ -173,28 +173,26 @@ const PlaceImageUpload = ({ currentImageUrl, websiteUrl, onImageChange, disabled
           type="button"
           variant="outline"
           size="sm"
+          onClick={handleFetchImage}
+          disabled={!websiteUrl || isFetchingImage || disabled || uploading}
+        >
+          {isFetchingImage ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4 mr-2" />
+          )}
+          Fetch from Website
+        </Button>
+        
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
           onClick={() => setShowManualInput(!showManualInput)}
           disabled={disabled || uploading}
         >
           {showManualInput ? 'Hide URL Input' : 'Enter URL Manually'}
         </Button>
-        
-        {websiteUrl && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleFetchImage}
-            disabled={isFetchingImage || disabled || uploading}
-          >
-            {isFetchingImage ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4 mr-2" />
-            )}
-            Fetch from Website
-          </Button>
-        )}
       </div>
 
       {showManualInput && (
