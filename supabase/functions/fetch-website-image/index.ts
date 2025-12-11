@@ -32,7 +32,18 @@ serve(async (req) => {
     });
 
     if (!pageResponse.ok) {
-      throw new Error(`Failed to fetch website: ${pageResponse.status}`);
+      const errorMessages: Record<number, string> = {
+        404: 'Website not found. Please check the URL is correct.',
+        403: 'Website is blocking access. Please copy the image URL manually.',
+        500: 'Website is experiencing issues. Please try again later.',
+        502: 'Website is temporarily unavailable. Please try again later.',
+        503: 'Website is temporarily unavailable. Please try again later.',
+      };
+      const message = errorMessages[pageResponse.status] || `Could not access website (error ${pageResponse.status})`;
+      return new Response(
+        JSON.stringify({ error: message }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const html = await pageResponse.text();
