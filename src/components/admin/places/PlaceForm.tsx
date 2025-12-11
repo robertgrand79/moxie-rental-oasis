@@ -9,10 +9,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Place, useCreatePlace, useUpdatePlace } from '@/hooks/usePlaces';
 import { useAuth } from '@/contexts/AuthContext';
-
+import PlaceImageUpload from './PlaceImageUpload';
 const placeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
@@ -248,24 +248,18 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
                       <FormControl>
                         <Input placeholder="https://example.com" {...field} />
                       </FormControl>
+                      <FormDescription>Used to auto-fetch place image</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="image_url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://example.com/image.jpg" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              <PlaceImageUpload
+                currentImageUrl={form.watch('image_url') || ''}
+                websiteUrl={form.watch('website_url') || ''}
+                onImageChange={(url) => form.setValue('image_url', url)}
+                disabled={createPlace.isPending || updatePlace.isPending}
               />
 
               <div className="grid grid-cols-3 gap-4">
