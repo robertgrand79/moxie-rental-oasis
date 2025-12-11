@@ -92,8 +92,8 @@ serve(async (req) => {
 
     if (!imageUrl) {
       return new Response(
-        JSON.stringify({ error: 'No suitable image found on the website' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'No suitable image found on the website. Please enter the image URL manually.' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
