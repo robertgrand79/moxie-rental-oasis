@@ -74,7 +74,12 @@ const OptimizedImage = ({
   };
 
   const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    // Silently handle errors for external images that block hotlinking
+    const img = e.currentTarget;
+    // If optimized URL fails, try original URL as fallback
+    if (img.src !== src && src) {
+      img.src = src;
+      return;
+    }
     setHasError(true);
     setIsLoaded(false);
   };
