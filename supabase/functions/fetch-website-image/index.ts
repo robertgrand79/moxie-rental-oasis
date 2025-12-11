@@ -102,16 +102,34 @@ serve(async (req) => {
 
     console.log(`[fetch-website-image] Downloading image: ${imageUrl}`);
 
-    // Download the image
+    // Download the image with browser-like headers to avoid hotlink protection
     const imageResponse = await fetch(imageUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
         'Referer': websiteUrl,
+        'Origin': new URL(websiteUrl).origin,
+        'Sec-Fetch-Dest': 'image',
+        'Sec-Fetch-Mode': 'no-cors',
+        'Sec-Fetch-Site': 'same-origin',
+        'Cache-Control': 'no-cache',
       },
     });
 
     if (!imageResponse.ok) {
+      console.error(`[fetch-website-image] Image download failed with status ${imageResponse.status}`);
+      // Return a more helpful error for hotlink protection
+      if (imageResponse.status === 403) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'This website blocks automatic image fetching. Please copy the image URL manually or download and upload the image.',
+            status: 403 
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       throw new Error(`Failed to download image: ${imageResponse.status}`);
     }
 
