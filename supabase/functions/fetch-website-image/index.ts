@@ -87,10 +87,15 @@ serve(async (req) => {
     }
 
     // Resolve relative URLs
-    if (imageUrl.startsWith('/')) {
+    if (imageUrl.startsWith('//')) {
+      // Protocol-relative URL
+      imageUrl = `https:${imageUrl}`;
+    } else if (imageUrl.startsWith('/')) {
+      // Absolute path
       const url = new URL(websiteUrl);
       imageUrl = `${url.origin}${imageUrl}`;
     } else if (!imageUrl.startsWith('http')) {
+      // Relative path
       const url = new URL(websiteUrl);
       imageUrl = `${url.origin}/${imageUrl}`;
     }
@@ -100,8 +105,9 @@ serve(async (req) => {
     // Download the image
     const imageResponse = await fetch(imageUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; ImageFetcher/1.0)',
-        'Accept': 'image/*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        'Referer': websiteUrl,
       },
     });
 
