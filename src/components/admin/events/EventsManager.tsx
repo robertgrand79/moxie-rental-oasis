@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Plus, Calendar, Music, Trees, UtensilsCrossed, Palette, Trophy, Users } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, Calendar, Music, Trees, UtensilsCrossed, Palette, Trophy, Users, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +9,7 @@ import EventsGrid from './EventsGrid';
 import EventsListView from './EventsListView';
 import EventsViewToggle from './EventsViewToggle';
 import EventForm from './EventForm';
+import { isEventPast, isEventUpcoming } from '@/utils/eventDateUtils';
 
 const EventsManager = () => {
   const { events, isLoading } = useEvents();
@@ -16,6 +17,7 @@ const EventsManager = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [timeFilter, setTimeFilter] = useState<'upcoming' | 'archived'>('upcoming');
 
   const categories = [
     { value: 'all', label: 'All Events', icon: Calendar, shortLabel: 'All' },
@@ -27,9 +29,20 @@ const EventsManager = () => {
     { value: 'community', label: 'Community', icon: Users, shortLabel: 'Community' },
   ];
 
+  // Split events into upcoming and archived
+  const { upcomingEvents, archivedEvents } = useMemo(() => {
+    const upcoming = events.filter(isEventUpcoming);
+    const archived = events.filter(isEventPast);
+    return { upcomingEvents: upcoming, archivedEvents: archived };
+  }, [events]);
+
+  // Get events based on time filter
+  const timeFilteredEvents = timeFilter === 'upcoming' ? upcomingEvents : archivedEvents;
+
+  // Apply category filter
   const filteredEvents = selectedCategory === 'all' 
-    ? events 
-    : events.filter(event => event.category === selectedCategory);
+    ? timeFilteredEvents 
+    : timeFilteredEvents.filter(event => event.category === selectedCategory);
 
   const handleEdit = (event: Event) => {
     setEditingEvent(event);
@@ -72,7 +85,28 @@ const EventsManager = () => {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
+          {/* Time-based tabs (Upcoming / Archived) */}
+          <Tabs value={timeFilter} onValueChange={(v) => setTimeFilter(v as 'upcoming' | 'archived')}>
+            <TabsList className="w-auto">
+              <TabsTrigger value="upcoming" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>Upcoming Events</span>
+                <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium">
+                  {upcomingEvents.length}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="archived" className="flex items-center gap-2">
+                <Archive className="h-4 w-4" />
+                <span>Archived</span>
+                <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                  {archivedEvents.length}
+                </span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {/* Category filter tabs */}
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
             <TabsList className="grid w-full grid-cols-7 h-auto">
               {categories.map((category) => (
@@ -89,7 +123,13 @@ const EventsManager = () => {
 
             {categories.map((category) => (
               <TabsContent key={category.value} value={category.value} className="mt-6">
-                {view === 'grid' ? (
+                {filteredEvents.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    {timeFilter === 'upcoming' 
+                      ? 'No upcoming events in this category.' 
+                      : 'No archived events in this category.'}
+                  </div>
+                ) : view === 'grid' ? (
                   <EventsGrid events={filteredEvents} onEdit={handleEdit} />
                 ) : (
                   <EventsListView events={filteredEvents} onEdit={handleEdit} />
