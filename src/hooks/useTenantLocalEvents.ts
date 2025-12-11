@@ -62,15 +62,25 @@ export const useTenantLocalEvents = (timeFilter: string = 'all', categoryFilter:
   const filteredEvents = allEvents.filter(event => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const eventDate = new Date(event.event_date);
-    eventDate.setHours(0, 0, 0, 0);
+    
+    // Parse YYYY-MM-DD string directly to avoid UTC timezone shift
+    const [year, month, day] = event.event_date.split('-').map(Number);
+    const eventDate = new Date(year, month - 1, day);
+    
+    // For multi-day events, use end_date for "past" determination
+    let endDate = eventDate;
+    if (event.end_date) {
+      const [endYear, endMonth, endDay] = event.end_date.split('-').map(Number);
+      endDate = new Date(endYear, endMonth - 1, endDay);
+    }
 
     // Time filtering
     let timeMatch = true;
     if (timeFilter === 'upcoming') {
-      timeMatch = eventDate >= today;
+      // Event is upcoming if end_date (or event_date) is today or later
+      timeMatch = endDate >= today;
     } else if (timeFilter === 'past') {
-      timeMatch = eventDate < today;
+      timeMatch = endDate < today;
     }
 
     // Category filtering

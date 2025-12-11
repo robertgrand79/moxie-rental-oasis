@@ -30,12 +30,22 @@ const EventCard = ({ event }: EventCardProps) => {
     return format(startDate, 'MMM d, yyyy');
   };
 
-  // Check if event is in the past
+  // Check if event is in the past - parse date without timezone conversion
   const isPastEvent = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const eventDate = new Date(event.event_date);
-    eventDate.setHours(0, 0, 0, 0);
+    
+    // Parse YYYY-MM-DD string directly to avoid UTC timezone shift
+    const [year, month, day] = event.event_date.split('-').map(Number);
+    const eventDate = new Date(year, month - 1, day); // month is 0-indexed
+    
+    // Also check end_date if it exists (multi-day events)
+    if (event.end_date) {
+      const [endYear, endMonth, endDay] = event.end_date.split('-').map(Number);
+      const endDate = new Date(endYear, endMonth - 1, endDay);
+      return endDate < today;
+    }
+    
     return eventDate < today;
   };
 
