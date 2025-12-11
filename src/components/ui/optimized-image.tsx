@@ -3,6 +3,11 @@ import { cn } from '@/lib/utils';
 import { Images, Loader2 } from 'lucide-react';
 import { getOptimizedImageUrl, supportsWebP } from '@/utils/imageOptimization';
 
+// Check if URL is a Supabase storage URL
+const isSupabaseUrl = (url: string): boolean => {
+  return url.includes('supabase.co') || url.includes('supabase.in');
+};
+
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
@@ -90,20 +95,21 @@ const OptimizedImage = ({
     );
   }
 
-  // Generate optimized URL
-  const optimizedSrc = webpSupported !== null ? getOptimizedImageUrl(src, {
+  // For external URLs, use original src directly without optimization
+  const isExternal = !isSupabaseUrl(src);
+  const optimizedSrc = isExternal ? src : (webpSupported !== null ? getOptimizedImageUrl(src, {
     width,
     height,
     quality,
     format: webpSupported ? 'webp' : 'jpeg'
-  }) : src;
+  }) : src);
 
-  // Generate srcSet for responsive images
+  // Only generate srcSet for Supabase URLs
   const generateSrcSet = () => {
-    if (!width || webpSupported === null) return undefined;
+    if (!width || webpSupported === null || isExternal) return undefined;
     
     const format = webpSupported ? 'webp' : 'jpeg';
-    const breakpoints = [0.5, 1, 1.5, 2]; // Different density ratios
+    const breakpoints = [0.5, 1, 1.5, 2];
     
     return breakpoints
       .map(ratio => {
@@ -145,6 +151,8 @@ const OptimizedImage = ({
           alt={alt}
           onLoad={handleLoad}
           onError={handleError}
+          referrerPolicy="no-referrer"
+          crossOrigin={isExternal ? "anonymous" : undefined}
           className={cn(
             "w-full h-full object-cover transition-all duration-500",
             isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"
