@@ -152,7 +152,6 @@ const OptimizedImage = ({
           onLoad={handleLoad}
           onError={handleError}
           referrerPolicy="no-referrer"
-          crossOrigin={isExternal ? "anonymous" : undefined}
           className={cn(
             "w-full h-full object-cover transition-all duration-500",
             isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"
