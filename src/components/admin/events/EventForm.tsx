@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X } from 'lucide-react';
+import { X, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Event, useCreateEvent, useUpdateEvent } from '@/hooks/useEvents';
 import { useAuth } from '@/contexts/AuthContext';
+import { fetchWebsiteImage } from '@/lib/api/fetchWebsiteImage';
+import { toast } from 'sonner';
 
 const eventSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -43,6 +45,7 @@ const EventForm = ({ event, onClose }: EventFormProps) => {
   const { user } = useAuth();
   const createEvent = useCreateEvent();
   const updateEvent = useUpdateEvent();
+  const [isFetchingImage, setIsFetchingImage] = useState(false);
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
@@ -83,6 +86,25 @@ const EventForm = ({ event, onClose }: EventFormProps) => {
         },
         { onSuccess: onClose }
       );
+    }
+  };
+
+  const handleFetchImage = async () => {
+    const websiteUrl = form.getValues('website_url');
+    if (!websiteUrl) {
+      toast.error('Please enter a website URL first');
+      return;
+    }
+
+    setIsFetchingImage(true);
+    try {
+      const imageUrl = await fetchWebsiteImage(websiteUrl);
+      form.setValue('image_url', imageUrl);
+      toast.success('Image fetched and uploaded successfully');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to fetch image');
+    } finally {
+      setIsFetchingImage(false);
     }
   };
 
@@ -254,21 +276,37 @@ const EventForm = ({ event, onClose }: EventFormProps) => {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="website_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Website URL</FormLabel>
+              <FormField
+                control={form.control}
+                name="website_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website URL</FormLabel>
+                    <div className="flex gap-2">
                       <FormControl>
                         <Input placeholder="https://example.com" {...field} />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleFetchImage}
+                        disabled={isFetchingImage}
+                        title="Fetch image from website"
+                      >
+                        {isFetchingImage ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="ticket_url"
@@ -282,21 +320,21 @@ const EventForm = ({ event, onClose }: EventFormProps) => {
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <FormField
-                control={form.control}
-                name="price_range"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price Range</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Free, $10-20, $50+" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="price_range"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price Range</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Free, $10-20, $50+" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <FormField
