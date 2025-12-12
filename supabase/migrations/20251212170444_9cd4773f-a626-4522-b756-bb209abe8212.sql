@@ -1,0 +1,5 @@
+UPDATE property_stripe_credentials 
+SET 
+  stripe_secret_key = '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',
+  stripe_publishable_key = 'pk_live_51QcvhxGAwUDxWBEXg8NixqBbUKOqll3kMWgKIUFWI1jD1eospVnI52oNvBiheqzh4rVf6HS0ITukhgAEitdDZyCR0069iPE7Fs'
+WHERE property_id = 'a8a54056-a9e2-4d8e-b3ae-cf039d17f5cb';
