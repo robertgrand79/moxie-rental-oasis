@@ -36,7 +36,7 @@ const AdminWorkOrders = () => {
     filteredWorkOrders,
   } = useWorkOrderFilters(workOrders);
 
-  const { totalWorkOrders, pendingWorkOrders, completedWorkOrders } = useWorkOrderStats(workOrders);
+  const { totalWorkOrders, pendingWorkOrders, inProgressWorkOrders, completedWorkOrders } = useWorkOrderStats(workOrders);
 
   // UI State
   const [isWorkOrderPanelOpen, setIsWorkOrderPanelOpen] = useState(false);
@@ -94,6 +94,7 @@ const AdminWorkOrders = () => {
       <ModernWorkOrdersHeader
         totalWorkOrders={totalWorkOrders}
         pendingWorkOrders={pendingWorkOrders}
+        inProgressWorkOrders={inProgressWorkOrders}
         completedWorkOrders={completedWorkOrders}
         onCreateWorkOrder={handleCreateWorkOrder}
         statusFilter={statusFilter}
@@ -105,6 +106,7 @@ const AdminWorkOrders = () => {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onRefresh={refreshData}
+        workOrders={filteredWorkOrders}
       />
 
 

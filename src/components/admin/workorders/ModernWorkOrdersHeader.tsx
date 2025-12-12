@@ -28,10 +28,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { WorkOrder } from '@/hooks/useWorkOrderManagement';
+import { format } from 'date-fns';
 
 interface ModernWorkOrdersHeaderProps {
   totalWorkOrders: number;
   pendingWorkOrders: number;
+  inProgressWorkOrders: number;
   completedWorkOrders: number;
   onCreateWorkOrder: () => void;
   statusFilter: string;
@@ -43,11 +46,13 @@ interface ModernWorkOrdersHeaderProps {
   viewMode: 'grid' | 'table';
   onViewModeChange: (mode: 'grid' | 'table') => void;
   onRefresh: () => void;
+  workOrders: WorkOrder[];
 }
 
 const ModernWorkOrdersHeader = ({
   totalWorkOrders,
   pendingWorkOrders,
+  inProgressWorkOrders,
   completedWorkOrders,
   onCreateWorkOrder,
   statusFilter,
@@ -59,16 +64,62 @@ const ModernWorkOrdersHeader = ({
   viewMode,
   onViewModeChange,
   onRefresh,
+  workOrders,
 }: ModernWorkOrdersHeaderProps) => {
-  const inProgressWorkOrders = totalWorkOrders - pendingWorkOrders - completedWorkOrders;
+
+  const handleExportCSV = () => {
+    if (workOrders.length === 0) return;
+
+    const headers = [
+      'Work Order #',
+      'Title',
+      'Status',
+      'Priority',
+      'Property',
+      'Contractor',
+      'Created Date',
+      'Due Date',
+      'Completed Date',
+      'Estimated Cost',
+      'Actual Cost',
+      'Description'
+    ];
+
+    const rows = workOrders.map(wo => [
+      wo.work_order_number || '',
+      wo.title || '',
+      wo.status || '',
+      wo.priority || '',
+      wo.property?.title || '',
+      wo.contractor?.name || '',
+      wo.created_at ? format(new Date(wo.created_at), 'yyyy-MM-dd') : '',
+      wo.estimated_completion_date ? format(new Date(wo.estimated_completion_date), 'yyyy-MM-dd') : '',
+      wo.completed_at ? format(new Date(wo.completed_at), 'yyyy-MM-dd') : '',
+      wo.estimated_cost?.toString() || '',
+      wo.actual_cost?.toString() || '',
+      (wo.description || '').replace(/"/g, '""')
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `work-orders-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
 
   return (
     <div className="space-y-6">
       {/* Title and Action */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Work Orders</h1>
-          <p className="text-gray-600 mt-1">Manage property maintenance and repairs</p>
+          <h1 className="text-3xl font-bold text-foreground">Work Orders</h1>
+          <p className="text-muted-foreground mt-1">Manage property maintenance and repairs</p>
         </div>
         <Button onClick={onCreateWorkOrder} size="lg" className="shadow-lg">
           <Plus className="h-5 w-5 mr-2" />
@@ -78,11 +129,11 @@ const ModernWorkOrdersHeader = ({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 border shadow-sm">
+        <div className="bg-card rounded-xl p-4 border shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-gray-900">{totalWorkOrders}</p>
+              <p className="text-sm font-medium text-muted-foreground">Total</p>
+              <p className="text-2xl font-bold text-foreground">{totalWorkOrders}</p>
             </div>
             <div className="p-2 bg-blue-50 rounded-lg">
               <Grid3X3 className="h-5 w-5 text-blue-600" />
@@ -90,10 +141,10 @@ const ModernWorkOrdersHeader = ({
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border shadow-sm">
+        <div className="bg-card rounded-xl p-4 border shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
+              <p className="text-sm font-medium text-muted-foreground">Pending</p>
               <p className="text-2xl font-bold text-orange-600">{pendingWorkOrders}</p>
             </div>
             <div className="p-2 bg-orange-50 rounded-lg">
@@ -102,10 +153,10 @@ const ModernWorkOrdersHeader = ({
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border shadow-sm">
+        <div className="bg-card rounded-xl p-4 border shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">In Progress</p>
+              <p className="text-sm font-medium text-muted-foreground">In Progress</p>
               <p className="text-2xl font-bold text-blue-600">{inProgressWorkOrders}</p>
             </div>
             <div className="p-2 bg-blue-50 rounded-lg">
@@ -114,10 +165,10 @@ const ModernWorkOrdersHeader = ({
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border shadow-sm">
+        <div className="bg-card rounded-xl p-4 border shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Completed</p>
+              <p className="text-sm font-medium text-muted-foreground">Completed</p>
               <p className="text-2xl font-bold text-green-600">{completedWorkOrders}</p>
             </div>
             <div className="p-2 bg-green-50 rounded-lg">
@@ -128,12 +179,12 @@ const ModernWorkOrdersHeader = ({
       </div>
 
       {/* Controls */}
-      <div className="bg-white rounded-xl p-4 border shadow-sm">
+      <div className="bg-card rounded-xl p-4 border shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
           <div className="flex flex-1 gap-4 w-full lg:w-auto">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search work orders..."
                 value={searchQuery}
@@ -176,7 +227,7 @@ const ModernWorkOrdersHeader = ({
 
           {/* View Controls */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center bg-muted rounded-lg p-1">
               <Button
                 variant={viewMode === 'grid' ?'default' : 'ghost'}
                 size="sm"
@@ -207,7 +258,7 @@ const ModernWorkOrdersHeader = ({
                   Refresh
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportCSV}>
                   <Download className="h-4 w-4 mr-2" />
                   Export to CSV
                 </DropdownMenuItem>
