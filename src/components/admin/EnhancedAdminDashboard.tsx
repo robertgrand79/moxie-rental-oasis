@@ -85,53 +85,59 @@ const EnhancedAdminDashboard = () => {
       <div className="space-y-3 animate-fade-in">
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Today's Activity</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <LogIn className="h-6 w-6 text-green-500" />
+          <Link to="/admin/host/bookings">
+            <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <LogIn className="h-6 w-6 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold">{analytics.checkInsToday}</p>
+                    <p className="text-sm text-muted-foreground">Check-ins today</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-3xl font-bold">{analytics.checkInsToday}</p>
-                  <p className="text-sm text-muted-foreground">Check-ins today</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-                  <LogOut className="h-6 w-6 text-orange-500" />
+          <Link to="/admin/host/bookings">
+            <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+                    <LogOut className="h-6 w-6 text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold">{analytics.checkOutsToday}</p>
+                    <p className="text-sm text-muted-foreground">Check-outs today</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-3xl font-bold">{analytics.checkOutsToday}</p>
-                  <p className="text-sm text-muted-foreground">Check-outs today</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
-                  analytics.openWorkOrders > 0 ? 'bg-red-500/10' : 'bg-muted'
-                }`}>
-                  <Wrench className={`h-6 w-6 ${
-                    analytics.openWorkOrders > 0 ? 'text-red-500' : 'text-muted-foreground'
-                  }`} />
+          <Link to="/admin/work-orders">
+            <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                    analytics.openWorkOrders > 0 ? 'bg-red-500/10' : 'bg-muted'
+                  }`}>
+                    <Wrench className={`h-6 w-6 ${
+                      analytics.openWorkOrders > 0 ? 'text-red-500' : 'text-muted-foreground'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className={`text-3xl font-bold ${
+                      analytics.openWorkOrders > 0 ? 'text-red-500' : ''
+                    }`}>{analytics.openWorkOrders}</p>
+                    <p className="text-sm text-muted-foreground">Open work orders</p>
+                  </div>
                 </div>
-                <div>
-                  <p className={`text-3xl font-bold ${
-                    analytics.openWorkOrders > 0 ? 'text-red-500' : ''
-                  }`}>{analytics.openWorkOrders}</p>
-                  <p className="text-sm text-muted-foreground">Open work orders</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
 
@@ -139,50 +145,56 @@ const EnhancedAdminDashboard = () => {
       <div className="space-y-3 animate-fade-in" style={{ animationDelay: '100ms' }}>
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">This Month</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-violet-500/10 flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-violet-500" />
+          <Link to="/admin/host/bookings">
+            <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-violet-500/10 flex items-center justify-center">
+                    <Calendar className="h-6 w-6 text-violet-500" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold">{analytics.bookingsThisMonth}</p>
+                    <p className="text-sm text-muted-foreground">New bookings</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-3xl font-bold">{analytics.bookingsThisMonth}</p>
-                  <p className="text-sm text-muted-foreground">New bookings</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-emerald-500" />
+          <Link to="/admin/host/bookings">
+            <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <DollarSign className="h-6 w-6 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold">{formatCurrency(analytics.revenueThisMonth)}</p>
+                    <p className="text-sm text-muted-foreground">Revenue</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-3xl font-bold">{formatCurrency(analytics.revenueThisMonth)}</p>
-                  <p className="text-sm text-muted-foreground">Revenue</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <Mail className="h-6 w-6 text-blue-500" />
+          <Link to="/admin/newsletter">
+            <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                    <Mail className="h-6 w-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold">{analytics.totalSubscribers}</p>
+                    <p className="text-sm text-muted-foreground">Subscribers</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-3xl font-bold">{analytics.totalSubscribers}</p>
-                  <p className="text-sm text-muted-foreground">Subscribers</p>
-                </div>
-              </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                +{analytics.subscribersThisMonth} this month
-              </p>
-            </CardContent>
-          </Card>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  +{analytics.subscribersThisMonth} this month
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
 
@@ -192,37 +204,41 @@ const EnhancedAdminDashboard = () => {
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Reputation</h3>
           <div className="grid grid-cols-2 gap-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-amber-500/10 flex items-center justify-center">
-                    <Star className="h-6 w-6 text-amber-500" />
+            <Link to="/admin/testimonials">
+              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-full bg-amber-500/10 flex items-center justify-center">
+                      <Star className="h-6 w-6 text-amber-500" />
+                    </div>
+                    <div>
+                      <p className="text-3xl font-bold">
+                        {analytics.averageRating !== null 
+                          ? analytics.averageRating.toFixed(1) 
+                          : '—'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Avg rating</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-3xl font-bold">
-                      {analytics.averageRating !== null 
-                        ? analytics.averageRating.toFixed(1) 
-                        : '—'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Avg rating</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-primary" />
+            <Link to="/admin/testimonials">
+              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Users className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-3xl font-bold">{analytics.totalReviews}</p>
+                      <p className="text-sm text-muted-foreground">Reviews</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-3xl font-bold">{analytics.totalReviews}</p>
-                    <p className="text-sm text-muted-foreground">Reviews</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </div>
 
