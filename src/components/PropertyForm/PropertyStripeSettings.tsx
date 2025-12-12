@@ -7,11 +7,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Property } from '@/types/property';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { CreditCard, Eye, EyeOff, CheckCircle, AlertTriangle, Loader2, Trash2, Copy, Check } from 'lucide-react';
+import { CreditCard, Eye, EyeOff, CheckCircle, AlertTriangle, Loader2, Trash2, Copy, Check, Save } from 'lucide-react';
 
 interface PropertyStripeSettingsProps {
   property: Property;
 }
+
+type StripeField = 'stripe_secret_key' | 'stripe_publishable_key' | 'stripe_webhook_secret' | 'stripe_account_id';
 
 export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps) => {
   const [formData, setFormData] = useState({
@@ -23,6 +25,7 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
   const [showSecretKey, setShowSecretKey] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingField, setSavingField] = useState<StripeField | null>(null);
   const [clearing, setClearing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [hasStripeConfigured, setHasStripeConfigured] = useState(false);
@@ -58,6 +61,34 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
     setCopied(true);
     toast.success('Webhook URL copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveField = async (fieldName: string, fieldValue: string, dbColumn: StripeField, formKey: keyof typeof formData) => {
+    if (!fieldValue.trim()) {
+      toast.error(`Please enter a value for ${fieldName}`);
+      return;
+    }
+
+    setSavingField(dbColumn);
+    try {
+      const { error } = await supabase
+        .from('property_stripe_credentials')
+        .update({ 
+          [dbColumn]: fieldValue, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('property_id', property.id);
+
+      if (error) throw error;
+      
+      toast.success(`${fieldName} updated successfully`);
+      setFormData(prev => ({ ...prev, [formKey]: '' }));
+    } catch (error) {
+      console.error(`Error updating ${fieldName}:`, error);
+      toast.error(`Failed to update ${fieldName}`);
+    } finally {
+      setSavingField(null);
+    }
   };
 
   const handleSave = async () => {
@@ -120,6 +151,8 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
     }
   };
 
+  const isAnySaving = saving || clearing || savingField !== null;
+
   if (loading) {
     return (
       <Card>
@@ -154,46 +187,88 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
           <Alert className="border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              This property has custom Stripe settings configured. Enter new values below to update, or clear to use organization defaults.
+              This property has custom Stripe settings configured. Use the individual "Update" buttons to update specific fields.
             </AlertDescription>
           </Alert>
         )}
 
         <div className="space-y-4">
+          {/* Secret Key */}
           <div className="space-y-2">
             <Label htmlFor="stripeSecretKey">Stripe Secret Key</Label>
-            <div className="relative">
-              <Input
-                id="stripeSecretKey"
-                type={showSecretKey ? 'text' : 'password'}
-                placeholder="sk_live_..."
-                value={formData.stripeSecretKey}
-                onChange={(e) => setFormData(prev => ({ ...prev, stripeSecretKey: e.target.value }))}
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowSecretKey(!showSecretKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showSecretKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  id="stripeSecretKey"
+                  type={showSecretKey ? 'text' : 'password'}
+                  placeholder="sk_live_..."
+                  value={formData.stripeSecretKey}
+                  onChange={(e) => setFormData(prev => ({ ...prev, stripeSecretKey: e.target.value }))}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSecretKey(!showSecretKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showSecretKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {hasStripeConfigured && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleSaveField('Secret Key', formData.stripeSecretKey, 'stripe_secret_key', 'stripeSecretKey')}
+                  disabled={isAnySaving || !formData.stripeSecretKey.trim()}
+                  className="shrink-0"
+                >
+                  {savingField === 'stripe_secret_key' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  <span className="ml-1">Update</span>
+                </Button>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">Found in your Stripe Dashboard → Developers → API keys</p>
           </div>
 
+          {/* Publishable Key */}
           <div className="space-y-2">
             <Label htmlFor="stripePublishableKey">Stripe Publishable Key</Label>
-            <Input
-              id="stripePublishableKey"
-              type="text"
-              placeholder="pk_live_..."
-              value={formData.stripePublishableKey}
-              onChange={(e) => setFormData(prev => ({ ...prev, stripePublishableKey: e.target.value }))}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="stripePublishableKey"
+                type="text"
+                placeholder="pk_live_..."
+                value={formData.stripePublishableKey}
+                onChange={(e) => setFormData(prev => ({ ...prev, stripePublishableKey: e.target.value }))}
+                className="flex-1"
+              />
+              {hasStripeConfigured && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleSaveField('Publishable Key', formData.stripePublishableKey, 'stripe_publishable_key', 'stripePublishableKey')}
+                  disabled={isAnySaving || !formData.stripePublishableKey.trim()}
+                  className="shrink-0"
+                >
+                  {savingField === 'stripe_publishable_key' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  <span className="ml-1">Update</span>
+                </Button>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">This key is safe to expose in frontend code</p>
           </div>
 
+          {/* Webhook URL */}
           <div className="space-y-2">
             <Label>Webhook Endpoint URL</Label>
             <div className="flex items-center gap-2">
@@ -219,54 +294,97 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
             </p>
           </div>
 
+          {/* Webhook Secret */}
           <div className="space-y-2">
             <Label htmlFor="stripeWebhookSecret">Stripe Webhook Secret</Label>
-            <div className="relative">
-              <Input
-                id="stripeWebhookSecret"
-                type={showWebhookSecret ? 'text' : 'password'}
-                placeholder="whsec_..."
-                value={formData.stripeWebhookSecret}
-                onChange={(e) => setFormData(prev => ({ ...prev, stripeWebhookSecret: e.target.value }))}
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowWebhookSecret(!showWebhookSecret)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showWebhookSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  id="stripeWebhookSecret"
+                  type={showWebhookSecret ? 'text' : 'password'}
+                  placeholder="whsec_..."
+                  value={formData.stripeWebhookSecret}
+                  onChange={(e) => setFormData(prev => ({ ...prev, stripeWebhookSecret: e.target.value }))}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowWebhookSecret(!showWebhookSecret)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showWebhookSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {hasStripeConfigured && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleSaveField('Webhook Secret', formData.stripeWebhookSecret, 'stripe_webhook_secret', 'stripeWebhookSecret')}
+                  disabled={isAnySaving || !formData.stripeWebhookSecret.trim()}
+                  className="shrink-0"
+                >
+                  {savingField === 'stripe_webhook_secret' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  <span className="ml-1">Update</span>
+                </Button>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">Found in Stripe Dashboard → Developers → Webhooks → Select endpoint → Signing secret</p>
           </div>
 
+          {/* Account ID */}
           <div className="space-y-2">
             <Label htmlFor="stripeAccountId">Stripe Account ID (Optional)</Label>
-            <Input
-              id="stripeAccountId"
-              type="text"
-              placeholder="acct_..."
-              value={formData.stripeAccountId}
-              onChange={(e) => setFormData(prev => ({ ...prev, stripeAccountId: e.target.value }))}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="stripeAccountId"
+                type="text"
+                placeholder="acct_..."
+                value={formData.stripeAccountId}
+                onChange={(e) => setFormData(prev => ({ ...prev, stripeAccountId: e.target.value }))}
+                className="flex-1"
+              />
+              {hasStripeConfigured && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleSaveField('Account ID', formData.stripeAccountId, 'stripe_account_id', 'stripeAccountId')}
+                  disabled={isAnySaving || !formData.stripeAccountId.trim()}
+                  className="shrink-0"
+                >
+                  {savingField === 'stripe_account_id' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  <span className="ml-1">Update</span>
+                </Button>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">Only needed for Stripe Connect setups</p>
           </div>
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Button type="button" onClick={handleSave} disabled={saving || clearing}>
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save Payment Settings'
-            )}
-          </Button>
+          {!hasStripeConfigured && (
+            <Button type="button" onClick={handleSave} disabled={isAnySaving}>
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Payment Settings'
+              )}
+            </Button>
+          )}
           {hasStripeConfigured && (
-            <Button type="button" variant="outline" onClick={handleClear} disabled={saving || clearing}>
+            <Button type="button" variant="outline" onClick={handleClear} disabled={isAnySaving}>
               {clearing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -275,7 +393,7 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
               ) : (
                 <>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Clear Settings
+                  Clear All Settings
                 </>
               )}
             </Button>
