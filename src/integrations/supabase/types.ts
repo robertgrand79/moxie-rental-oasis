@@ -5209,10 +5209,7 @@ export type Database = {
           source: string
           special_instructions: string | null
           status: string
-          task_id: string | null
           title: string
-          turno_last_modified: string | null
-          turno_property_id: string | null
           updated_at: string
           work_order_number: string
         }
@@ -5241,10 +5238,7 @@ export type Database = {
           source?: string
           special_instructions?: string | null
           status?: string
-          task_id?: string | null
           title: string
-          turno_last_modified?: string | null
-          turno_property_id?: string | null
           updated_at?: string
           work_order_number: string
         }
@@ -5273,10 +5267,7 @@ export type Database = {
           source?: string
           special_instructions?: string | null
           status?: string
-          task_id?: string | null
           title?: string
-          turno_last_modified?: string | null
-          turno_property_id?: string | null
           updated_at?: string
           work_order_number?: string
         }
@@ -5300,13 +5291,6 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "work_orders_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
