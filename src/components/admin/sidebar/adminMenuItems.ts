@@ -139,12 +139,6 @@ export const adminMenuItems = [
         description: 'Manage contractors and service providers'
       },
       {
-        title: 'Turno Problems',
-        href: '/admin/turno-problems',
-        icon: AlertTriangle,
-        description: 'Manage problems from Turno field service'
-      },
-      {
         title: 'Checklists',
         href: '/admin/checklists',
         icon: ClipboardList,
