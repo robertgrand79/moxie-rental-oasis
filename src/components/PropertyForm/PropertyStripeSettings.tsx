@@ -255,7 +255,7 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Button onClick={handleSave} disabled={saving || clearing}>
+          <Button type="button" onClick={handleSave} disabled={saving || clearing}>
             {saving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -266,7 +266,7 @@ export const PropertyStripeSettings = ({ property }: PropertyStripeSettingsProps
             )}
           </Button>
           {hasStripeConfigured && (
-            <Button variant="outline" onClick={handleClear} disabled={saving || clearing}>
+            <Button type="button" variant="outline" onClick={handleClear} disabled={saving || clearing}>
               {clearing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
