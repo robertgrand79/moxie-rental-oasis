@@ -67,17 +67,13 @@ const HeroBackground = ({ imageUrl, children }: HeroBackgroundProps) => {
     };
   }, [imageUrl, preloadState]);
 
-  // Show skeleton loading only when we have an image URL and haven't tested it yet
+  // Show neutral background while image is loading
   if (imageUrl && !imageStatus.tested) {
     return (
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-hero-gradient-from to-hero-gradient-to"></div>
-        <div className="relative z-10 text-center text-hero-text px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-          <div className="space-y-8 animate-pulse">
-            <div className="h-16 bg-hero-text/10 rounded-lg animate-pulse"></div>
-            <div className="h-8 bg-hero-text/10 rounded-lg animate-pulse"></div>
-            <div className="h-12 bg-hero-text/10 rounded-full w-48 mx-auto animate-pulse"></div>
-          </div>
+        <div className="absolute inset-0 bg-black/80"></div>
+        <div className="relative z-10">
+          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
         </div>
       </section>
     );
