@@ -11,11 +11,11 @@ interface HeroImagePreviewProps {
 
 const HeroImagePreview = ({ imageUrl, isUploading, onRemove }: HeroImagePreviewProps) => {
   return (
-    <div className="relative">
+    <div className="relative bg-muted rounded-md p-2 flex items-center justify-center min-h-32">
       <img
         src={imageUrl}
         alt="Hero background preview"
-        className="w-full h-40 object-cover rounded-md"
+        className="max-w-full max-h-48 object-contain rounded"
         onError={(e) => {
           console.error('Image failed to load:', imageUrl);
           const target = e.target as HTMLImageElement;
