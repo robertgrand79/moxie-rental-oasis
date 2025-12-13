@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Bot, Save, Loader2, Plus, Trash2, MessageSquare, Sparkles, Palette } from 'lucide-react';
+import { Bot, Save, Loader2, Plus, Trash2, MessageSquare, Sparkles, Palette, FileText } from 'lucide-react';
+import { PropertyDocumentsTab } from './PropertyDocumentsTab';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -177,7 +178,7 @@ const AssistantSettingsTab = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />
             <span className="hidden sm:inline">General</span>
@@ -193,6 +194,10 @@ const AssistantSettingsTab = () => {
           <TabsTrigger value="faqs" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             <span className="hidden sm:inline">FAQs</span>
+          </TabsTrigger>
+          <TabsTrigger value="documents" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">Documents</span>
           </TabsTrigger>
         </TabsList>
 
@@ -577,6 +582,10 @@ const AssistantSettingsTab = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <PropertyDocumentsTab />
         </TabsContent>
       </Tabs>
 
