@@ -1,22 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User, Minimize2 } from 'lucide-react';
+import { MessageCircle, X, Send, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { cn } from '@/lib/utils';
 import { useLocation } from 'react-router-dom';
+import ChatAvatar from '@/components/chat/ChatAvatar';
+import { AvatarType } from '@/components/chat/avatars';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
+type ChatStyle = 'modern' | 'minimal' | 'playful' | 'elegant';
+
 interface AssistantSettings {
   is_enabled: boolean;
   display_name: string;
   welcome_message: string;
   bubble_color: string;
+  avatar_type: AvatarType;
+  chat_style: ChatStyle;
 }
 
 // Generate unique session ID
@@ -36,6 +42,7 @@ const PublicChatWidget = () => {
   if (location.pathname.startsWith('/admin')) {
     return null;
   }
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -76,7 +83,11 @@ const PublicChatWidget = () => {
       .maybeSingle();
 
     if (!error && data) {
-      setSettings(data);
+      setSettings({
+        ...data,
+        avatar_type: (data.avatar_type as AvatarType) || 'concierge',
+        chat_style: (data.chat_style as ChatStyle) || 'modern'
+      });
     }
   };
 
@@ -135,12 +146,67 @@ const PublicChatWidget = () => {
 
   if (!settings?.is_enabled) return null;
 
-  const bubbleStyle = { backgroundColor: settings.bubble_color };
+  const avatarType = settings.avatar_type || 'concierge';
+  const chatStyle = settings.chat_style || 'modern';
+  const bubbleColor = settings.bubble_color;
+
+  // Style configurations based on chat_style
+  const getStyleClasses = () => {
+    switch (chatStyle) {
+      case 'modern':
+        return {
+          window: 'bg-background/95 backdrop-blur-xl border shadow-2xl',
+          header: 'bg-gradient-to-r',
+          bubble: 'rounded-2xl shadow-lg',
+          userMessage: 'rounded-2xl rounded-br-sm',
+          assistantMessage: 'rounded-2xl rounded-bl-sm bg-muted',
+          inputArea: 'border-t bg-background/80 backdrop-blur',
+        };
+      case 'minimal':
+        return {
+          window: 'bg-background border-2 shadow-lg',
+          header: '',
+          bubble: 'rounded-full shadow-md',
+          userMessage: 'rounded-xl',
+          assistantMessage: 'rounded-xl bg-muted/50',
+          inputArea: 'border-t-2',
+        };
+      case 'playful':
+        return {
+          window: 'bg-background border-2 shadow-2xl rounded-3xl',
+          header: 'rounded-t-3xl',
+          bubble: 'rounded-full shadow-xl scale-105 hover:scale-110 transition-transform',
+          userMessage: 'rounded-3xl rounded-br-lg',
+          assistantMessage: 'rounded-3xl rounded-bl-lg bg-muted',
+          inputArea: 'border-t',
+        };
+      case 'elegant':
+        return {
+          window: 'bg-background border shadow-xl',
+          header: '',
+          bubble: 'rounded-xl shadow-lg',
+          userMessage: 'rounded-xl rounded-br-sm',
+          assistantMessage: 'rounded-xl rounded-bl-sm bg-muted/30 border',
+          inputArea: 'border-t bg-muted/10',
+        };
+      default:
+        return {
+          window: 'bg-background border shadow-2xl',
+          header: '',
+          bubble: 'rounded-full shadow-lg',
+          userMessage: 'rounded-2xl rounded-br-sm',
+          assistantMessage: 'rounded-2xl rounded-bl-sm bg-muted',
+          inputArea: 'border-t',
+        };
+    }
+  };
+
+  const styles = getStyleClasses();
 
   // Render markdown-style links
   const renderContent = (content: string) => {
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    const parts = [];
+    const parts: React.ReactNode[] = [];
     let lastIndex = 0;
     let match;
 
@@ -176,15 +242,16 @@ const PublicChatWidget = () => {
         <button
           onClick={() => setIsOpen(true)}
           className={cn(
-            "fixed z-50 rounded-full shadow-lg flex items-center justify-center text-white",
-            "hover:scale-105 active:scale-95 transition-all duration-200",
-            "h-12 w-12 sm:h-14 sm:w-14",
-            "bottom-4 right-4 sm:bottom-6 sm:right-6"
+            "fixed z-50 flex items-center justify-center text-white",
+            "hover:scale-105 active:scale-95 transition-all duration-300",
+            "bottom-4 right-4 sm:bottom-6 sm:right-6",
+            styles.bubble,
+            chatStyle === 'playful' ? 'h-16 w-16 sm:h-18 sm:w-18' : 'h-14 w-14 sm:h-16 sm:w-16'
           )}
-          style={bubbleStyle}
+          style={{ backgroundColor: bubbleColor }}
           aria-label="Open chat"
         >
-          <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+          <ChatAvatar type={avatarType} size={chatStyle === 'playful' ? 44 : 40} />
         </button>
       )}
 
@@ -192,39 +259,54 @@ const PublicChatWidget = () => {
       {isOpen && (
         <div 
           className={cn(
-            "fixed z-50 bg-background border shadow-2xl flex flex-col overflow-hidden transition-all duration-300",
+            "fixed z-50 flex flex-col overflow-hidden transition-all duration-300",
+            styles.window,
             // Mobile: full screen with safe area padding
             "inset-0 sm:inset-auto",
             // Desktop: positioned bottom-right
             "sm:bottom-4 sm:right-4 md:bottom-6 md:right-6",
-            "sm:w-[360px] sm:max-w-[calc(100vw-2rem)]",
-            "sm:rounded-xl",
-            isMinimized ? "sm:h-14" : "sm:h-[500px] sm:max-h-[calc(100vh-3rem)]"
+            "sm:w-[380px] sm:max-w-[calc(100vw-2rem)]",
+            chatStyle === 'playful' ? 'sm:rounded-3xl' : 'sm:rounded-2xl',
+            isMinimized ? "sm:h-16" : "sm:h-[520px] sm:max-h-[calc(100vh-3rem)]"
           )}
         >
           {/* Header */}
           <div
             className={cn(
               "flex items-center justify-between px-4 py-3 text-white flex-shrink-0",
-              "safe-area-top"
+              "safe-area-top",
+              styles.header
             )}
-            style={bubbleStyle}
+            style={{ 
+              backgroundColor: bubbleColor,
+              backgroundImage: chatStyle === 'modern' 
+                ? `linear-gradient(135deg, ${bubbleColor}, ${bubbleColor}dd)` 
+                : undefined 
+            }}
           >
-            <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              <span className="font-medium">{settings.display_name}</span>
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "flex items-center justify-center",
+                chatStyle === 'playful' && "animate-bounce"
+              )}>
+                <ChatAvatar type={avatarType} size={36} />
+              </div>
+              <div>
+                <span className="font-semibold">{settings.display_name}</span>
+                <p className="text-xs opacity-80">Online now</p>
+              </div>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="hover:bg-white/20 rounded p-1.5 transition-colors hidden sm:block"
+                className="hover:bg-white/20 rounded-lg p-2 transition-colors hidden sm:block"
                 aria-label={isMinimized ? "Expand chat" : "Minimize chat"}
               >
                 <Minimize2 className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="hover:bg-white/20 rounded p-1.5 transition-colors"
+                className="hover:bg-white/20 rounded-lg p-2 transition-colors"
                 aria-label="Close chat"
               >
                 <X className="h-5 w-5" />
@@ -235,63 +317,94 @@ const PublicChatWidget = () => {
           {!isMinimized && (
             <>
               {/* Messages */}
-              <ScrollArea className="flex-1 p-3 sm:p-4" ref={scrollRef}>
+              <ScrollArea className="flex-1 p-4" ref={scrollRef}>
                 {messages.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8 px-4">
-                    <Bot className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm">{settings.welcome_message}</p>
+                  <div className="text-center py-8 px-4">
+                    <div className={cn(
+                      "mx-auto mb-4 flex items-center justify-center",
+                      chatStyle === 'playful' && "animate-bounce"
+                    )}>
+                      <ChatAvatar type={avatarType} size={80} />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">{settings.display_name}</h3>
+                    <p className="text-sm text-muted-foreground">{settings.welcome_message}</p>
+                    
+                    {/* Quick action suggestions */}
+                    <div className="mt-6 flex flex-wrap gap-2 justify-center">
+                      {['Check-in info', 'Amenities', 'Location'].map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          onClick={() => {
+                            setInput(suggestion);
+                            inputRef.current?.focus();
+                          }}
+                          className={cn(
+                            "text-xs px-3 py-1.5 rounded-full border transition-colors",
+                            "hover:bg-muted hover:border-primary/50",
+                            chatStyle === 'playful' && "rounded-full",
+                            chatStyle === 'elegant' && "border-muted-foreground/30"
+                          )}
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {messages.map((msg, idx) => (
                       <div
                         key={idx}
                         className={cn(
                           "flex gap-2",
-                          msg.role === 'user' ? 'justify-end' : 'justify-start'
+                          msg.role === 'user' ? 'justify-end' : 'justify-start',
+                          "animate-fade-in"
                         )}
                       >
                         {msg.role === 'assistant' && (
-                          <div
-                            className="h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 text-white"
-                            style={bubbleStyle}
-                          >
-                            <Bot className="h-4 w-4" />
+                          <div className="flex-shrink-0">
+                            <ChatAvatar type={avatarType} size={32} />
                           </div>
                         )}
                         <div
                           className={cn(
-                            "max-w-[80%] sm:max-w-[75%] rounded-2xl px-3 py-2 text-sm",
+                            "max-w-[80%] px-4 py-2.5 text-sm",
                             msg.role === 'user'
-                              ? 'text-white rounded-br-md'
-                              : 'bg-muted rounded-bl-md'
+                              ? cn(styles.userMessage, 'text-white')
+                              : styles.assistantMessage
                           )}
-                          style={msg.role === 'user' ? bubbleStyle : undefined}
+                          style={msg.role === 'user' ? { backgroundColor: bubbleColor } : undefined}
                         >
-                          <p className="whitespace-pre-wrap break-words">
+                          <p className="whitespace-pre-wrap break-words leading-relaxed">
                             {renderContent(msg.content)}
                           </p>
                         </div>
                         {msg.role === 'user' && (
-                          <div className="h-7 w-7 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                            <User className="h-4 w-4" />
+                          <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs font-medium">You</span>
                           </div>
                         )}
                       </div>
                     ))}
                     {isLoading && (
-                      <div className="flex gap-2">
-                        <div
-                          className="h-7 w-7 rounded-full flex items-center justify-center text-white"
-                          style={bubbleStyle}
-                        >
-                          <Bot className="h-4 w-4 animate-pulse" />
+                      <div className="flex gap-2 animate-fade-in">
+                        <div className="flex-shrink-0">
+                          <ChatAvatar type={avatarType} size={32} className="animate-pulse" />
                         </div>
-                        <div className="bg-muted rounded-2xl rounded-bl-md px-3 py-2">
-                          <div className="flex gap-1">
-                            <span className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce" />
-                            <span className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:0.1s]" />
-                            <span className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <div className={cn(styles.assistantMessage, "px-4 py-3")}>
+                          <div className="flex gap-1.5">
+                            <span 
+                              className="h-2 w-2 rounded-full animate-bounce" 
+                              style={{ backgroundColor: bubbleColor, opacity: 0.7 }} 
+                            />
+                            <span 
+                              className="h-2 w-2 rounded-full animate-bounce [animation-delay:0.15s]" 
+                              style={{ backgroundColor: bubbleColor, opacity: 0.7 }} 
+                            />
+                            <span 
+                              className="h-2 w-2 rounded-full animate-bounce [animation-delay:0.3s]" 
+                              style={{ backgroundColor: bubbleColor, opacity: 0.7 }} 
+                            />
                           </div>
                         </div>
                       </div>
@@ -301,7 +414,7 @@ const PublicChatWidget = () => {
               </ScrollArea>
 
               {/* Input */}
-              <div className={cn("p-3 border-t flex-shrink-0", "safe-area-bottom")}>
+              <div className={cn("p-3 flex-shrink-0", styles.inputArea, "safe-area-bottom")}>
                 <div className="flex gap-2 items-end">
                   <textarea
                     ref={inputRef}
@@ -311,18 +424,22 @@ const PublicChatWidget = () => {
                     placeholder="Type a message..."
                     rows={1}
                     className={cn(
-                      "flex-1 min-h-[40px] max-h-[100px] resize-none rounded-xl border border-input",
-                      "bg-background px-3 py-2 text-sm ring-offset-background",
+                      "flex-1 min-h-[44px] max-h-[100px] resize-none border border-input",
+                      "bg-background px-4 py-2.5 text-sm ring-offset-background",
                       "placeholder:text-muted-foreground focus-visible:outline-none",
-                      "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                      chatStyle === 'playful' ? 'rounded-2xl' : 'rounded-xl'
                     )}
                   />
                   <Button
                     onClick={sendMessage}
                     disabled={!input.trim() || isLoading}
                     size="icon"
-                    className="h-10 w-10 rounded-xl flex-shrink-0"
-                    style={bubbleStyle}
+                    className={cn(
+                      "h-11 w-11 flex-shrink-0 transition-transform hover:scale-105",
+                      chatStyle === 'playful' ? 'rounded-2xl' : 'rounded-xl'
+                    )}
+                    style={{ backgroundColor: bubbleColor }}
                   >
                     <Send className="h-4 w-4" />
                   </Button>

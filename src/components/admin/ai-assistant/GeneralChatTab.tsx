@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Trash2, Bot, User } from 'lucide-react';
+import { Send, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import ChatAvatar from '@/components/chat/ChatAvatar';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -70,15 +71,18 @@ const GeneralChatTab = () => {
   };
 
   return (
-    <div className="flex flex-col h-[600px] border rounded-lg bg-card">
+    <div className="flex flex-col h-[600px] border rounded-2xl bg-card overflow-hidden shadow-lg">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" />
-          <span className="font-medium">AI Assistant</span>
+      <div className="flex items-center justify-between px-5 py-4 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+        <div className="flex items-center gap-3">
+          <ChatAvatar type="advisor" size={40} />
+          <div>
+            <span className="font-semibold">AI Assistant</span>
+            <p className="text-xs text-muted-foreground">Ready to help</p>
+          </div>
         </div>
         {messages.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={clearChat}>
+          <Button variant="ghost" size="sm" onClick={clearChat} className="text-muted-foreground hover:text-destructive">
             <Trash2 className="h-4 w-4 mr-1" />
             Clear
           </Button>
@@ -88,55 +92,52 @@ const GeneralChatTab = () => {
       {/* Messages */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         {messages.length === 0 ? (
-          <div className="text-center text-muted-foreground py-12">
-            <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <div className="text-center text-muted-foreground py-12 px-4">
+            <ChatAvatar type="advisor" size={80} className="mx-auto mb-4" />
             <p className="text-lg font-medium mb-2">Hi! I'm your AI Assistant.</p>
-            <p className="text-sm">I can help you with:</p>
-            <ul className="text-sm mt-2 space-y-1">
-              <li>• Drafting emails and guest responses</li>
-              <li>• Brainstorming content ideas</li>
-              <li>• Writing property descriptions</li>
-              <li>• Answering questions about your business</li>
-            </ul>
+            <p className="text-sm mb-4">I can help you with:</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {['Draft emails', 'Guest responses', 'Content ideas', 'Property descriptions'].map((item) => (
+                <span key={item} className="text-xs px-3 py-1.5 rounded-full bg-muted border">
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
               >
                 {msg.role === 'assistant' && (
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Bot className="h-4 w-4 text-primary" />
-                  </div>
+                  <ChatAvatar type="advisor" size={32} />
                 )}
                 <div
-                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
                     msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
+                      ? 'bg-primary text-primary-foreground rounded-br-sm'
+                      : 'bg-muted rounded-bl-sm'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
                 </div>
                 {msg.role === 'user' && (
                   <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                    <User className="h-4 w-4" />
+                    <span className="text-xs font-medium">You</span>
                   </div>
                 )}
               </div>
             ))}
             {isLoading && (
-              <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-primary animate-pulse" />
-                </div>
-                <div className="bg-muted rounded-lg px-4 py-2">
-                  <div className="flex gap-1">
-                    <span className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce" />
-                    <span className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:0.1s]" />
-                    <span className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="flex gap-3 animate-fade-in">
+                <ChatAvatar type="advisor" size={32} className="animate-pulse" />
+                <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3">
+                  <div className="flex gap-1.5">
+                    <span className="h-2 w-2 bg-primary/50 rounded-full animate-bounce" />
+                    <span className="h-2 w-2 bg-primary/50 rounded-full animate-bounce [animation-delay:0.15s]" />
+                    <span className="h-2 w-2 bg-primary/50 rounded-full animate-bounce [animation-delay:0.3s]" />
                   </div>
                 </div>
               </div>
@@ -146,17 +147,21 @@ const GeneralChatTab = () => {
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-4 border-t">
+      <div className="p-4 border-t bg-muted/30">
         <div className="flex gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
-            className="resize-none min-h-[44px] max-h-32"
+            className="resize-none min-h-[44px] max-h-32 rounded-xl"
             rows={1}
           />
-          <Button onClick={sendMessage} disabled={!input.trim() || isLoading}>
+          <Button 
+            onClick={sendMessage} 
+            disabled={!input.trim() || isLoading}
+            className="rounded-xl h-11 w-11"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>
