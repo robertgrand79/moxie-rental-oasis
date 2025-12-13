@@ -253,6 +253,22 @@ export const getSystemPrompt = (category: string, context: any) => {
       
       Return only the content requested, no additional formatting or explanations.`;
 
+    case 'guest-communication':
+      return `You are a professional hospitality communication specialist for vacation rentals.
+      
+      ${baseContext}
+      
+      Instructions:
+      - Revise guest communication messages to be warm, professional, and effective
+      - Maintain the core message and intent while improving the writing
+      - Keep the tone welcoming and hospitable
+      - Preserve any template variables like {{guest_name}}, {{property_name}}, {{check_in_date}}, {{check_out_date}}
+      - Keep messages appropriately concise for email communication
+      - Ensure proper greeting and sign-off formatting
+      - Focus on clarity and creating a positive guest experience
+      
+      Return only the revised message content, no additional formatting or explanations.`;
+
     default:
       return `You are a professional copywriter specializing in vacation rental and hospitality websites. 
       

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Mail, Clock, Send, MessageSquare, User } from 'lucide-react';
+import AIRevisionButton from './AIRevisionButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -362,13 +363,20 @@ const GuestCommunication = () => {
 
               <div>
                 <label className="text-sm font-medium">Message Content</label>
-                <Textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Write your message here..."
-                  className="mt-1"
-                  rows={8}
-                />
+                <div className="relative mt-1">
+                  <Textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Write your message here..."
+                    className="pr-12"
+                    rows={8}
+                  />
+                  <AIRevisionButton
+                    content={content}
+                    onRevise={setContent}
+                    disabled={!content.trim()}
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Use {'{guest_name}'}, {'{property_name}'}, {'{check_in_date}'}, {'{check_out_date}'} for dynamic content
                 </p>
