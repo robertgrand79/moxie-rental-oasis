@@ -4,8 +4,14 @@ import HostAvatar from './HostAvatar';
 import AdvisorAvatar from './AdvisorAvatar';
 import GuideAvatar from './GuideAvatar';
 import AssistantAvatar from './AssistantAvatar';
+import ChefAvatar from './ChefAvatar';
+import CaptainAvatar from './CaptainAvatar';
+import RangerAvatar from './RangerAvatar';
+import ArtistAvatar from './ArtistAvatar';
+import LocalAvatar from './LocalAvatar';
+import SommelierAvatar from './SommelierAvatar';
 
-export type AvatarType = 'concierge' | 'traveler' | 'host' | 'advisor' | 'guide' | 'assistant';
+export type AvatarType = 'concierge' | 'traveler' | 'host' | 'advisor' | 'guide' | 'assistant' | 'chef' | 'captain' | 'ranger' | 'artist' | 'local' | 'sommelier';
 
 export const avatarComponents: Record<AvatarType, React.ComponentType<{ size?: number; className?: string }>> = {
   concierge: ConciergeAvatar,
@@ -14,6 +20,12 @@ export const avatarComponents: Record<AvatarType, React.ComponentType<{ size?: n
   advisor: AdvisorAvatar,
   guide: GuideAvatar,
   assistant: AssistantAvatar,
+  chef: ChefAvatar,
+  captain: CaptainAvatar,
+  ranger: RangerAvatar,
+  artist: ArtistAvatar,
+  local: LocalAvatar,
+  sommelier: SommelierAvatar,
 };
 
 export const avatarInfo: Record<AvatarType, { name: string; description: string }> = {
@@ -41,6 +53,30 @@ export const avatarInfo: Record<AvatarType, { name: string; description: string 
     name: 'The Assistant',
     description: 'Friendly and cheerful general helper',
   },
+  chef: {
+    name: 'The Chef',
+    description: 'Passionate about local cuisine and restaurant tips',
+  },
+  captain: {
+    name: 'The Captain',
+    description: 'Expert on coastal activities and water adventures',
+  },
+  ranger: {
+    name: 'The Ranger',
+    description: 'Nature expert who knows every trail and wildlife spot',
+  },
+  artist: {
+    name: 'The Artist',
+    description: 'Knows all the galleries and creative experiences',
+  },
+  local: {
+    name: 'The Local',
+    description: 'Born and raised here, knows all the hidden gems',
+  },
+  sommelier: {
+    name: 'The Sommelier',
+    description: 'Curated taste for wine country and fine experiences',
+  },
 };
 
 export {
@@ -50,4 +86,10 @@ export {
   AdvisorAvatar,
   GuideAvatar,
   AssistantAvatar,
+  ChefAvatar,
+  CaptainAvatar,
+  RangerAvatar,
+  ArtistAvatar,
+  LocalAvatar,
+  SommelierAvatar,
 };

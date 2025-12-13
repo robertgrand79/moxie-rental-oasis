@@ -261,7 +261,7 @@ const AssistantSettingsTab = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {(Object.keys(avatarInfo) as AvatarType[]).map((type) => (
                   <button
                     key={type}
