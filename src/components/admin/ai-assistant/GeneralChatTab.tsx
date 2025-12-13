@@ -6,6 +6,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import ChatAvatar from '@/components/chat/ChatAvatar';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { AvatarType } from '@/components/chat/avatars';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -13,10 +15,32 @@ interface Message {
 }
 
 const GeneralChatTab = () => {
+  const { organization } = useCurrentOrganization();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [avatarType, setAvatarType] = useState<AvatarType>('advisor');
+  const [displayName, setDisplayName] = useState('AI Assistant');
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Fetch assistant settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!organization?.id) return;
+      
+      const { data } = await supabase
+        .from('assistant_settings')
+        .select('avatar_type, display_name')
+        .eq('organization_id', organization.id)
+        .maybeSingle();
+      
+      if (data) {
+        setAvatarType((data.avatar_type as AvatarType) || 'advisor');
+        setDisplayName(data.display_name || 'AI Assistant');
+      }
+    };
+    fetchSettings();
+  }, [organization?.id]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -75,9 +99,9 @@ const GeneralChatTab = () => {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b bg-gradient-to-r from-primary/5 to-primary/10">
         <div className="flex items-center gap-3">
-          <ChatAvatar type="advisor" size={40} />
+          <ChatAvatar type={avatarType} size={40} />
           <div>
-            <span className="font-semibold">AI Assistant</span>
+            <span className="font-semibold">{displayName}</span>
             <p className="text-xs text-muted-foreground">Ready to help</p>
           </div>
         </div>
@@ -93,8 +117,8 @@ const GeneralChatTab = () => {
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         {messages.length === 0 ? (
           <div className="text-center text-muted-foreground py-12 px-4">
-            <ChatAvatar type="advisor" size={80} className="mx-auto mb-4" />
-            <p className="text-lg font-medium mb-2">Hi! I'm your AI Assistant.</p>
+            <ChatAvatar type={avatarType} size={80} className="mx-auto mb-4" />
+            <p className="text-lg font-medium mb-2">Hi! I'm your {displayName}.</p>
             <p className="text-sm mb-4">I can help you with:</p>
             <div className="flex flex-wrap gap-2 justify-center">
               {['Draft emails', 'Guest responses', 'Content ideas', 'Property descriptions'].map((item) => (
@@ -112,7 +136,7 @@ const GeneralChatTab = () => {
                 className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
               >
                 {msg.role === 'assistant' && (
-                  <ChatAvatar type="advisor" size={32} />
+                  <ChatAvatar type={avatarType} size={32} />
                 )}
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
@@ -132,7 +156,7 @@ const GeneralChatTab = () => {
             ))}
             {isLoading && (
               <div className="flex gap-3 animate-fade-in">
-                <ChatAvatar type="advisor" size={32} className="animate-pulse" />
+                <ChatAvatar type={avatarType} size={32} className="animate-pulse" />
                 <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3">
                   <div className="flex gap-1.5">
                     <span className="h-2 w-2 bg-primary/50 rounded-full animate-bounce" />
