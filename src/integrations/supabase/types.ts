@@ -3513,6 +3513,60 @@ export type Database = {
           },
         ]
       }
+      property_documents: {
+        Row: {
+          created_at: string
+          document_type: string | null
+          extracted_text: string | null
+          file_path: string
+          file_size: number | null
+          id: string
+          organization_id: string
+          property_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_type?: string | null
+          extracted_text?: string | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          organization_id: string
+          property_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string | null
+          extracted_text?: string | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          organization_id?: string
+          property_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_documents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_fees: {
         Row: {
           created_at: string | null

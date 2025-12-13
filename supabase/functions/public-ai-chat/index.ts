@@ -18,13 +18,31 @@ interface PropertyContext {
   description: string;
   location: string;
   city: string;
+  state: string;
+  address: string;
   bedrooms: number;
   bathrooms: number;
   maxGuests: number;
   pricePerNight: number;
   cleaningFee: number;
   serviceFeePercentage: number;
-  amenities: string;
+  amenities: string[];
+  propertyType: string;
+}
+
+interface GuidebookContent {
+  welcomeMessage?: string;
+  checkInInstructions?: string;
+  checkOutInstructions?: string;
+  houseRules?: string[];
+  wifiDetails?: { networkName?: string; password?: string };
+  amenities?: string[];
+  localRecommendations?: {
+    restaurants?: { name: string; description?: string }[];
+    activities?: { name: string; description?: string }[];
+    shopping?: { name: string; description?: string }[];
+  };
+  emergencyContacts?: { name: string; phone: string; role?: string }[];
 }
 
 interface FAQ {
@@ -36,6 +54,43 @@ interface AssistantConfig {
   personality: string;
   faqs: FAQ[];
   displayName: string;
+}
+
+interface POI {
+  name: string;
+  category: string;
+  description: string;
+  address: string;
+  distance: string;
+  phone: string;
+  website: string;
+  hours: string;
+}
+
+interface LocalEvent {
+  title: string;
+  event_date: string;
+  time_start: string;
+  location: string;
+  description: string;
+  ticket_url: string;
+}
+
+interface PropertyDocument {
+  title: string;
+  document_type: string;
+  extracted_text: string;
+  property_id: string | null;
+}
+
+interface SiteSettings {
+  siteName?: string;
+  tagline?: string;
+  description?: string;
+  aboutDescription?: string;
+  contactEmail?: string;
+  phone?: string;
+  address?: string;
 }
 
 const PERSONALITY_PROMPTS: Record<string, string> = {
@@ -243,8 +298,9 @@ async function aggregatePropertyContext(
 ): Promise<PropertyContext[]> {
   const { data: properties } = await supabase
     .from('properties')
-    .select('id, title, slug, description, location, city, bedrooms, bathrooms, max_guests, price_per_night, cleaning_fee, service_fee_percentage, amenities')
-    .eq('organization_id', organizationId);
+    .select('id, title, slug, description, location, city, state, address, bedrooms, bathrooms, max_guests, price_per_night, cleaning_fee, service_fee_percentage, amenities, property_type')
+    .eq('organization_id', organizationId)
+    .eq('is_active', true);
 
   return (properties || []).map(p => ({
     id: p.id,
@@ -253,14 +309,103 @@ async function aggregatePropertyContext(
     description: p.description || '',
     location: p.location || '',
     city: p.city || '',
+    state: p.state || '',
+    address: p.address || '',
     bedrooms: p.bedrooms || 0,
     bathrooms: p.bathrooms || 0,
     maxGuests: p.max_guests || 0,
     pricePerNight: p.price_per_night || 0,
     cleaningFee: p.cleaning_fee || 0,
     serviceFeePercentage: p.service_fee_percentage || 0,
-    amenities: p.amenities || '',
+    amenities: Array.isArray(p.amenities) ? p.amenities : (p.amenities ? String(p.amenities).split(',').map(a => a.trim()) : []),
+    propertyType: p.property_type || 'Vacation Rental',
   }));
+}
+
+async function fetchGuidebooks(
+  supabase: ReturnType<typeof createClient>,
+  propertyIds: string[]
+): Promise<Map<string, GuidebookContent>> {
+  if (propertyIds.length === 0) return new Map();
+  
+  const { data } = await supabase
+    .from('property_guidebooks')
+    .select('property_id, content')
+    .in('property_id', propertyIds)
+    .eq('is_active', true);
+  
+  const map = new Map<string, GuidebookContent>();
+  for (const g of data || []) {
+    if (g.content) {
+      map.set(g.property_id, g.content as unknown as GuidebookContent);
+    }
+  }
+  return map;
+}
+
+async function fetchPOIs(
+  supabase: ReturnType<typeof createClient>,
+  organizationId: string
+): Promise<POI[]> {
+  const { data } = await supabase
+    .from('points_of_interest')
+    .select('name, category, description, address, distance, phone, website, hours')
+    .eq('organization_id', organizationId)
+    .eq('is_active', true)
+    .limit(50);
+  
+  return (data || []) as POI[];
+}
+
+async function fetchLocalEvents(
+  supabase: ReturnType<typeof createClient>,
+  organizationId: string
+): Promise<LocalEvent[]> {
+  const today = new Date().toISOString().split('T')[0];
+  const { data } = await supabase
+    .from('local_events')
+    .select('title, event_date, time_start, location, description, ticket_url')
+    .eq('organization_id', organizationId)
+    .eq('is_active', true)
+    .gte('event_date', today)
+    .order('event_date', { ascending: true })
+    .limit(15);
+  
+  return (data || []) as LocalEvent[];
+}
+
+async function fetchPropertyDocuments(
+  supabase: ReturnType<typeof createClient>,
+  organizationId: string
+): Promise<PropertyDocument[]> {
+  const { data } = await supabase
+    .from('property_documents')
+    .select('title, document_type, extracted_text, property_id')
+    .eq('organization_id', organizationId)
+    .not('extracted_text', 'is', null);
+  
+  return (data || []) as PropertyDocument[];
+}
+
+async function fetchSiteSettings(
+  supabase: ReturnType<typeof createClient>,
+  organizationId: string
+): Promise<SiteSettings> {
+  const { data } = await supabase
+    .from('site_settings')
+    .select('key, value')
+    .eq('organization_id', organizationId);
+  
+  const settings: SiteSettings = {};
+  for (const setting of data || []) {
+    try {
+      settings[setting.key as keyof SiteSettings] = 
+        typeof setting.value === 'string' ? JSON.parse(setting.value) : setting.value;
+    } catch {
+      settings[setting.key as keyof SiteSettings] = setting.value;
+    }
+  }
+  return settings;
 }
 
 async function fetchAssistantConfig(
@@ -276,7 +421,7 @@ async function fetchAssistantConfig(
   return {
     personality: data?.personality || 'friendly',
     faqs: (data?.custom_faqs as FAQ[]) || [],
-    displayName: data?.display_name || 'AI Assistant'
+    displayName: data?.display_name || 'Stay Moxie Assistant'
   };
 }
 
@@ -289,7 +434,6 @@ async function logConversation(
   toolCalls?: any[]
 ) {
   try {
-    // Get or create conversation
     let { data: conversation } = await supabase
       .from('assistant_conversations')
       .select('id, message_count')
@@ -306,13 +450,11 @@ async function logConversation(
     }
 
     if (conversation) {
-      // Insert messages
       await supabase.from('assistant_messages').insert([
         { conversation_id: conversation.id, role: 'user', content: userMessage },
         { conversation_id: conversation.id, role: 'assistant', content: assistantResponse, tool_calls: toolCalls }
       ]);
 
-      // Update message count
       await supabase
         .from('assistant_conversations')
         .update({ message_count: (conversation.message_count || 0) + 2 })
@@ -325,63 +467,185 @@ async function logConversation(
 
 function buildSystemPrompt(
   properties: PropertyContext[],
+  guidebooks: Map<string, GuidebookContent>,
+  pois: POI[],
+  events: LocalEvent[],
+  documents: PropertyDocument[],
+  siteSettings: SiteSettings,
   config: AssistantConfig,
   siteName?: string
 ): string {
-  const businessName = siteName || 'our vacation rental company';
+  const businessName = siteSettings.siteName || siteName || 'our vacation rental company';
   const personalityPrompt = PERSONALITY_PROMPTS[config.personality] || PERSONALITY_PROMPTS.friendly;
-  const propertyList = properties.map(p => `- ${p.title}`).join('\n');
 
-  // Build FAQ section
-  let faqSection = '';
+  let prompt = `You are ${config.displayName}, a knowledgeable AI concierge for ${businessName}. ${personalityPrompt}
+
+`;
+
+  // About section
+  if (siteSettings.tagline || siteSettings.description || siteSettings.aboutDescription) {
+    prompt += `# ABOUT ${businessName.toUpperCase()}\n`;
+    if (siteSettings.tagline) prompt += `${siteSettings.tagline}\n`;
+    if (siteSettings.description) prompt += `${siteSettings.description}\n`;
+    if (siteSettings.aboutDescription) prompt += `${siteSettings.aboutDescription}\n`;
+    prompt += '\n';
+  }
+
+  // Contact info
+  if (siteSettings.contactEmail || siteSettings.phone || siteSettings.address) {
+    prompt += `# CONTACT INFORMATION\n`;
+    if (siteSettings.contactEmail) prompt += `- Email: ${siteSettings.contactEmail}\n`;
+    if (siteSettings.phone) prompt += `- Phone: ${siteSettings.phone}\n`;
+    if (siteSettings.address) prompt += `- Address: ${siteSettings.address}\n`;
+    prompt += '\n';
+  }
+
+  // Properties section with full details
+  if (properties.length > 0) {
+    prompt += `# OUR PROPERTIES\n\n`;
+    
+    for (const p of properties) {
+      const guidebook = guidebooks.get(p.id);
+      const propertyDocs = documents.filter(d => d.property_id === p.id);
+      
+      prompt += `## ${p.title}\n`;
+      prompt += `- **Location**: ${p.address || p.location}${p.city ? `, ${p.city}` : ''}${p.state ? `, ${p.state}` : ''}\n`;
+      prompt += `- **Type**: ${p.propertyType}\n`;
+      prompt += `- **Accommodations**: ${p.bedrooms} bedrooms, ${p.bathrooms} bathrooms, sleeps ${p.maxGuests} guests\n`;
+      prompt += `- **Pricing**: $${p.pricePerNight}/night${p.cleaningFee > 0 ? ` + $${p.cleaningFee} cleaning fee` : ''}\n`;
+      
+      if (p.description) {
+        prompt += `- **Description**: ${p.description}\n`;
+      }
+      
+      if (p.amenities.length > 0) {
+        prompt += `- **Amenities**: ${p.amenities.join(', ')}\n`;
+      }
+      
+      // Guidebook details
+      if (guidebook) {
+        prompt += `\n### House Details for ${p.title}\n`;
+        
+        if (guidebook.welcomeMessage) {
+          prompt += `**Welcome**: ${guidebook.welcomeMessage}\n`;
+        }
+        if (guidebook.checkInInstructions) {
+          prompt += `**Check-in**: ${guidebook.checkInInstructions}\n`;
+        }
+        if (guidebook.checkOutInstructions) {
+          prompt += `**Check-out**: ${guidebook.checkOutInstructions}\n`;
+        }
+        if (guidebook.houseRules && guidebook.houseRules.length > 0) {
+          prompt += `**House Rules**: ${guidebook.houseRules.join('; ')}\n`;
+        }
+        if (guidebook.wifiDetails) {
+          prompt += `**WiFi**: Network: ${guidebook.wifiDetails.networkName || 'Ask host'}, Password: ${guidebook.wifiDetails.password || 'Ask host'}\n`;
+        }
+        if (guidebook.emergencyContacts && guidebook.emergencyContacts.length > 0) {
+          prompt += `**Emergency Contacts**: ${guidebook.emergencyContacts.map(c => `${c.name} (${c.role || 'Contact'}): ${c.phone}`).join(', ')}\n`;
+        }
+        
+        // Guidebook local recommendations
+        if (guidebook.localRecommendations) {
+          const recs = guidebook.localRecommendations;
+          if (recs.restaurants && recs.restaurants.length > 0) {
+            prompt += `**Host's Restaurant Picks**: ${recs.restaurants.map(r => r.name).join(', ')}\n`;
+          }
+          if (recs.activities && recs.activities.length > 0) {
+            prompt += `**Host's Activity Picks**: ${recs.activities.map(a => a.name).join(', ')}\n`;
+          }
+        }
+      }
+      
+      // Property-specific documents
+      if (propertyDocs.length > 0) {
+        prompt += `\n### Additional Information for ${p.title}\n`;
+        for (const doc of propertyDocs) {
+          prompt += `[${doc.document_type || 'Document'}: ${doc.title}]\n${doc.extracted_text}\n\n`;
+        }
+      }
+      
+      prompt += '\n';
+    }
+  }
+
+  // Points of Interest section
+  if (pois.length > 0) {
+    prompt += `# LOCAL AREA - PLACES TO VISIT\n\n`;
+    
+    const poiByCategory: Record<string, POI[]> = {};
+    for (const poi of pois) {
+      const cat = poi.category || 'Other';
+      if (!poiByCategory[cat]) poiByCategory[cat] = [];
+      poiByCategory[cat].push(poi);
+    }
+    
+    for (const [category, categoryPois] of Object.entries(poiByCategory)) {
+      prompt += `## ${category}\n`;
+      for (const poi of categoryPois) {
+        prompt += `- **${poi.name}**`;
+        if (poi.distance) prompt += ` (${poi.distance})`;
+        prompt += '\n';
+        if (poi.description) prompt += `  ${poi.description}\n`;
+        if (poi.address) prompt += `  Address: ${poi.address}\n`;
+        if (poi.hours) prompt += `  Hours: ${poi.hours}\n`;
+        if (poi.phone) prompt += `  Phone: ${poi.phone}\n`;
+      }
+      prompt += '\n';
+    }
+  }
+
+  // Events section
+  if (events.length > 0) {
+    prompt += `# UPCOMING LOCAL EVENTS\n\n`;
+    for (const event of events.slice(0, 10)) {
+      prompt += `- **${event.title}** - ${event.event_date}`;
+      if (event.time_start) prompt += ` at ${event.time_start}`;
+      prompt += '\n';
+      if (event.location) prompt += `  Location: ${event.location}\n`;
+      if (event.description) {
+        const desc = event.description.length > 150 ? event.description.substring(0, 150) + '...' : event.description;
+        prompt += `  ${desc}\n`;
+      }
+      if (event.ticket_url) prompt += `  Tickets: ${event.ticket_url}\n`;
+    }
+    prompt += '\n';
+  }
+
+  // Organization-wide documents
+  const orgDocs = documents.filter(d => !d.property_id);
+  if (orgDocs.length > 0) {
+    prompt += `# ADDITIONAL INFORMATION\n\n`;
+    for (const doc of orgDocs) {
+      prompt += `## ${doc.title} (${doc.document_type || 'General'})\n${doc.extracted_text}\n\n`;
+    }
+  }
+
+  // Custom FAQs
   if (config.faqs.length > 0) {
-    faqSection = '\n\n# FREQUENTLY ASKED QUESTIONS\n' + config.faqs.map(faq => 
-      `**Q: ${faq.question}**\nA: ${faq.answer}`
-    ).join('\n\n');
+    prompt += `# FREQUENTLY ASKED QUESTIONS\n\n`;
+    for (const faq of config.faqs) {
+      prompt += `**Q: ${faq.question}**\nA: ${faq.answer}\n\n`;
+    }
   }
 
-  if (properties.length === 0) {
-    return `You are ${config.displayName}, a helpful AI assistant for ${businessName}. ${personalityPrompt}
+  // Policies and behavior
+  prompt += `# POLICIES
+- Standard check-in: 4:00 PM | Check-out: 11:00 AM (unless specified otherwise in property details)
+- Same-day turnover is allowed
+- Pets: Contact host to confirm pet policy
+- Direct booking is encouraged for best rates
 
-If you don't have specific property information, encourage visitors to contact the host or browse the website.
+# YOUR BEHAVIOR
+- You have comprehensive knowledge about all properties, the local area, events, and recommendations
+- When asked about a specific property, provide detailed information from above
+- Use your tools to check real-time availability and pricing when guests ask about dates
+- Recommend local restaurants, activities, and events based on the POI and events data
+- If you genuinely don't have specific information, offer to connect them with the host
+- Keep responses helpful, informative, and ${config.personality}
+- Never make up information that isn't provided above`;
 
-Standard policies:
-- Check-in: 4:00 PM | Check-out: 11:00 AM
-- Pets: Contact host for pet policy
-- Cancellation: Contact host for details${faqSection}`;
-  }
-
-  const propertyContexts = properties.map(p => {
-    const amenities = p.amenities ? p.amenities.split(',').slice(0, 10).map(a => a.trim()).join(', ') : 'Contact for details';
-    return `## ${p.title}
-- Location: ${p.location}${p.city ? `, ${p.city}` : ''}
-- ${p.bedrooms} BR | ${p.bathrooms} BA | Max ${p.maxGuests} guests
-- $${p.pricePerNight}/night${p.cleaningFee > 0 ? ` + $${p.cleaningFee} cleaning` : ''}
-- Amenities: ${amenities}`;
-  }).join('\n\n');
-
-  return `You are ${config.displayName}, a helpful AI booking assistant for ${businessName}. ${personalityPrompt}
-
-# PROPERTIES
-${propertyList}
-
-# PROPERTY DETAILS
-${propertyContexts}
-
-# BOOKING TOOLS
-You can check real-time availability, get pricing breakdowns, and generate booking links. Use these tools when guests ask about dates or want to book.
-
-# POLICIES
-- Check-in: 4:00 PM | Check-out: 11:00 AM
-- Same-day turnover allowed
-- Pets: Contact host to confirm
-- Direct booking encouraged${faqSection}
-
-# GUIDELINES
-- Use tools for availability/pricing queries
-- Keep responses helpful and ${config.personality}
-- Never invent information
-- Provide booking links when ready to book`;
+  return prompt;
 }
 
 serve(async (req) => {
@@ -407,30 +671,78 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
     let propertyContext: PropertyContext[] = [];
+    let guidebooks = new Map<string, GuidebookContent>();
+    let pois: POI[] = [];
+    let events: LocalEvent[] = [];
+    let documents: PropertyDocument[] = [];
+    let siteSettings: SiteSettings = {};
     let siteName: string | undefined;
     let siteUrl: string | undefined;
-    let assistantConfig: AssistantConfig = { personality: 'friendly', faqs: [], displayName: 'AI Assistant' };
+    let assistantConfig: AssistantConfig = { personality: 'friendly', faqs: [], displayName: 'Stay Moxie Assistant' };
     let supabase: ReturnType<typeof createClient> | null = null;
 
     if (supabaseUrl && supabaseServiceKey && organizationId) {
       supabase = createClient(supabaseUrl, supabaseServiceKey);
-      propertyContext = await aggregatePropertyContext(supabase, organizationId);
-      assistantConfig = await fetchAssistantConfig(supabase, organizationId);
       
-      const { data: orgData } = await supabase
-        .from('organizations')
-        .select('name, website')
-        .eq('id', organizationId)
-        .single();
+      // Fetch all context in parallel for efficiency
+      const [
+        propertiesResult,
+        poisResult,
+        eventsResult,
+        documentsResult,
+        siteSettingsResult,
+        assistantConfigResult,
+        orgResult
+      ] = await Promise.all([
+        aggregatePropertyContext(supabase, organizationId),
+        fetchPOIs(supabase, organizationId),
+        fetchLocalEvents(supabase, organizationId),
+        fetchPropertyDocuments(supabase, organizationId),
+        fetchSiteSettings(supabase, organizationId),
+        fetchAssistantConfig(supabase, organizationId),
+        supabase.from('organizations').select('name, website').eq('id', organizationId).single()
+      ]);
       
-      if (orgData) {
-        siteName = orgData.name;
-        siteUrl = orgData.website;
+      propertyContext = propertiesResult;
+      pois = poisResult;
+      events = eventsResult;
+      documents = documentsResult;
+      siteSettings = siteSettingsResult;
+      assistantConfig = assistantConfigResult;
+      
+      // Fetch guidebooks for properties
+      if (propertyContext.length > 0) {
+        guidebooks = await fetchGuidebooks(supabase, propertyContext.map(p => p.id));
       }
+      
+      if (orgResult.data) {
+        siteName = orgResult.data.name;
+        siteUrl = orgResult.data.website;
+      }
+
+      console.log('Fetched comprehensive context:', {
+        properties: propertyContext.length,
+        guidebooks: guidebooks.size,
+        pois: pois.length,
+        events: events.length,
+        documents: documents.length,
+        siteSettings: Object.keys(siteSettings).length
+      });
     }
 
-    const systemPrompt = buildSystemPrompt(propertyContext, assistantConfig, siteName);
+    const systemPrompt = buildSystemPrompt(
+      propertyContext, 
+      guidebooks, 
+      pois, 
+      events, 
+      documents, 
+      siteSettings, 
+      assistantConfig, 
+      siteName
+    );
     const currentDate = new Date().toISOString().split('T')[0];
+
+    console.log('System prompt length:', systemPrompt.length);
 
     const messages = [
       { role: "system", content: `${systemPrompt}\n\nToday is ${currentDate}.` },
