@@ -11,7 +11,7 @@ import { DateSelectionStep } from './DateSelectionStep';
 import { GuestDetailsStep } from './GuestDetailsStep';
 import { ReviewStep } from './ReviewStep';
 import { useBookingCharges } from '@/hooks/useBookingCharges';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Loader2 } from 'lucide-react';
 
 interface GuestBookingWidgetProps {
   property: Property;
@@ -50,6 +50,8 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
     specialRequests: ''
   });
   const [dateRangeValid, setDateRangeValid] = useState(true);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStage, setPaymentStage] = useState<'idle' | 'creating' | 'redirecting'>('idle');
   
   const { toast } = useToast();
   const createReservationMutation = useCreateReservation();
@@ -117,6 +119,9 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
   const handleConfirmBooking = async () => {
     if (!selectedDates || !charges) return;
 
+    setIsProcessingPayment(true);
+    setPaymentStage('creating');
+
     try {
       const reservationData = {
         property_id: property.id,
@@ -135,10 +140,7 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
 
       const reservation = await createReservationMutation.mutateAsync(reservationData);
       
-      toast({
-        title: "Processing Payment",
-        description: "Redirecting to secure payment...",
-      });
+      setPaymentStage('redirecting');
 
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
         body: {
@@ -166,12 +168,20 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
       }
     } catch (error: any) {
       console.error('Booking error:', error);
+      setIsProcessingPayment(false);
+      setPaymentStage('idle');
       toast({
         title: "Booking Failed",
         description: error.message || "Failed to create booking. Please try again.",
         variant: "destructive"
       });
     }
+  };
+
+  const getButtonText = () => {
+    if (paymentStage === 'creating') return 'Creating reservation...';
+    if (paymentStage === 'redirecting') return 'Redirecting to payment...';
+    return 'Confirm & Pay';
   };
 
   const renderComplete = () => (
@@ -283,9 +293,12 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
                 onClick={handleConfirmBooking}
                 size="lg"
                 className="flex-1"
-                disabled={createReservationMutation.isPending || !charges}
+                disabled={isProcessingPayment || !charges}
               >
-                {createReservationMutation.isPending ? 'Processing...' : 'Confirm & Pay'}
+                {isProcessingPayment && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {getButtonText()}
               </Button>
             )}
           </div>
