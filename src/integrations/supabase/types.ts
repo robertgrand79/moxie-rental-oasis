@@ -241,7 +241,9 @@ export type Database = {
       }
       assistant_settings: {
         Row: {
+          avatar_type: string | null
           bubble_color: string
+          chat_style: string | null
           created_at: string
           custom_faqs: Json | null
           display_name: string
@@ -253,7 +255,9 @@ export type Database = {
           welcome_message: string
         }
         Insert: {
+          avatar_type?: string | null
           bubble_color?: string
+          chat_style?: string | null
           created_at?: string
           custom_faqs?: Json | null
           display_name?: string
@@ -265,7 +269,9 @@ export type Database = {
           welcome_message?: string
         }
         Update: {
+          avatar_type?: string | null
           bubble_color?: string
+          chat_style?: string | null
           created_at?: string
           custom_faqs?: Json | null
           display_name?: string
