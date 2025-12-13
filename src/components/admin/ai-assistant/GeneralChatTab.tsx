@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Trash2 } from 'lucide-react';
+import { Send, Trash2, MessageSquare, Home, Megaphone, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,6 +14,65 @@ interface Message {
   content: string;
 }
 
+interface QuickPrompt {
+  title: string;
+  prompt: string;
+}
+
+interface PromptCategory {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  prompts: QuickPrompt[];
+}
+
+const quickPromptCategories: PromptCategory[] = [
+  {
+    id: 'guest',
+    name: 'Guest',
+    icon: MessageSquare,
+    prompts: [
+      { title: 'Welcome Message', prompt: 'Write a warm, friendly welcome message for guests checking into a vacation rental. Include check-in time (4 PM), WiFi info placeholder, and local tips.' },
+      { title: 'Check-out Instructions', prompt: 'Write clear and friendly check-out instructions for guests. Include 11 AM checkout time, key return process, and thank you message.' },
+      { title: 'Late Check-out Response', prompt: 'Draft a polite response to a guest requesting late check-out. Be helpful but explain availability depends on next booking.' },
+      { title: 'Review Response', prompt: 'Write a professional thank you response to a positive guest review. Keep it warm and personal.' },
+    ]
+  },
+  {
+    id: 'property',
+    name: 'Property',
+    icon: Home,
+    prompts: [
+      { title: 'Property Description', prompt: 'Write a compelling vacation rental property description. Highlight comfort, location, and unique features. Make it inviting and descriptive.' },
+      { title: 'Amenity Highlights', prompt: 'Create an engaging amenities section for a vacation rental listing. Organize by category (kitchen, entertainment, outdoor, etc.).' },
+      { title: 'Neighborhood Guide', prompt: 'Write a neighborhood guide for vacation rental guests. Include nearby restaurants, attractions, and local tips.' },
+      { title: 'House Rules', prompt: 'Write clear but friendly house rules for a vacation rental. Cover noise, pets, smoking, and guest policies.' },
+    ]
+  },
+  {
+    id: 'marketing',
+    name: 'Marketing',
+    icon: Megaphone,
+    prompts: [
+      { title: 'Holiday Promotion', prompt: 'Write promotional copy for a holiday special offer on vacation rentals. Create urgency while staying professional.' },
+      { title: 'Last-Minute Deal', prompt: 'Create marketing copy for a last-minute booking discount. Emphasize the value and limited availability.' },
+      { title: 'New Amenity Announcement', prompt: 'Draft an announcement for new amenities added to a vacation rental. Make it exciting and highlight guest benefits.' },
+      { title: 'Email Newsletter', prompt: 'Write engaging newsletter content for vacation rental subscribers. Include seasonal highlights and booking reminders.' },
+    ]
+  },
+  {
+    id: 'operations',
+    name: 'Operations',
+    icon: ClipboardList,
+    prompts: [
+      { title: 'Cleaning Checklist', prompt: 'Generate a detailed cleaning checklist for vacation rental turnover. Cover all rooms and include often-missed items.' },
+      { title: 'Maintenance Report', prompt: 'Create a template for maintenance inspection notes. Include categories for HVAC, plumbing, appliances, and exterior.' },
+      { title: 'Contractor Instructions', prompt: 'Write clear work order instructions for a contractor. Include access info, scope of work, and completion requirements.' },
+      { title: 'Inventory List', prompt: 'Create a comprehensive inventory checklist for a vacation rental. Include kitchen, linens, and amenity supplies.' },
+    ]
+  },
+];
+
 const GeneralChatTab = () => {
   const { organization } = useCurrentOrganization();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -21,6 +80,7 @@ const GeneralChatTab = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [avatarType, setAvatarType] = useState<AvatarType>('advisor');
   const [displayName, setDisplayName] = useState('Stay Moxie Assistant');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Fetch assistant settings
@@ -54,6 +114,7 @@ const GeneralChatTab = () => {
     const userMessage: Message = { role: 'user', content: input.trim() };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setActiveCategory(null);
     setIsLoading(true);
 
     try {
@@ -92,6 +153,15 @@ const GeneralChatTab = () => {
 
   const clearChat = () => {
     setMessages([]);
+  };
+
+  const handleQuickPrompt = (prompt: QuickPrompt) => {
+    setInput(prompt.prompt);
+    setActiveCategory(null);
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    setActiveCategory(activeCategory === categoryId ? null : categoryId);
   };
 
   return (
@@ -171,13 +241,51 @@ const GeneralChatTab = () => {
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-4 border-t bg-muted/30">
-        <div className="flex gap-2">
+      <div className="border-t bg-muted/30">
+        {/* Quick Prompt Categories */}
+        <div className="px-4 pt-3 pb-2">
+          <div className="flex gap-2 flex-wrap">
+            {quickPromptCategories.map(category => {
+              const IconComponent = category.icon;
+              return (
+                <Button
+                  key={category.id}
+                  variant={activeCategory === category.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => toggleCategory(category.id)}
+                  className="text-xs h-7"
+                >
+                  <IconComponent className="h-3 w-3 mr-1" />
+                  {category.name}
+                </Button>
+              );
+            })}
+          </div>
+          
+          {/* Active Category Prompts */}
+          {activeCategory && (
+            <div className="mt-2 flex gap-2 flex-wrap">
+              {quickPromptCategories
+                .find(c => c.id === activeCategory)
+                ?.prompts.map((prompt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleQuickPrompt(prompt)}
+                    className="text-xs px-2.5 py-1.5 rounded-md bg-background border hover:bg-accent transition-colors"
+                  >
+                    {prompt.title}
+                  </button>
+                ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-2 px-4 pb-4">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
+            placeholder="Type your message or select a quick prompt above..."
             className="resize-none min-h-[44px] max-h-32 rounded-xl"
             rows={1}
           />
