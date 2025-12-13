@@ -39,6 +39,7 @@ const Index = () => {
         </section>
         
         <CompactPropertyShowcase />
+        <BookingBenefitsSection />
         <TestimonialsSection />
         <SocialProofSection />
         <WhyChooseUsSection />
@@ -57,7 +58,6 @@ const Index = () => {
         </section>
         
         <EnhancedWhatsNearbySection />
-        <BookingBenefitsSection />
         <FinalFeaturesSection />
       </main>
     </BackgroundWrapper>
