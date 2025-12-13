@@ -8,8 +8,7 @@ import {
   Palette, 
   Users, 
   Plug, 
-  CreditCard,
-  MapPin
+  CreditCard
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
@@ -57,13 +56,6 @@ const settingsTiles = [
     description: 'Stripe configuration, PriceLabs pricing',
     icon: CreditCard,
     href: '/admin/settings/payments',
-  },
-  {
-    id: 'content',
-    title: 'Local Content',
-    description: 'Events, places, testimonials & reviews',
-    icon: MapPin,
-    href: '/admin/settings/local-content',
   },
 ];
 

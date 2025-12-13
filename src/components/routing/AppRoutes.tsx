@@ -116,7 +116,6 @@ const AppRoutes: React.FC = () => {
           <Route path="settings/team" element={<TeamAccessSettingsPage />} />
           <Route path="settings/integrations" element={<IntegrationsSettingsPage />} />
           <Route path="settings/payments" element={<PaymentsSettingsPage />} />
-          <Route path="settings/local-content" element={<LocalContentSettingsPage />} />
           {/* Redirects for old routes */}
           <Route path="user-access-management" element={<Navigate to="/admin/settings" replace />} />
           <Route path="organization" element={<Navigate to="/admin/settings" replace />} />
