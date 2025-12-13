@@ -66,12 +66,12 @@ export const useHeroSettings = () => {
       return finalSettings;
     },
     enabled: !tenantLoading,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
+    staleTime: 30 * 1000, // 30 seconds - allow faster updates
+    gcTime: 60 * 1000,
     refetchInterval: false,
     retry: 1,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   return {

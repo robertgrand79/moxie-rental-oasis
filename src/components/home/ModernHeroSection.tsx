@@ -27,8 +27,8 @@ const ModernHeroSection = () => {
 
   return (
     <section className="relative h-screen w-full overflow-hidden bg-black">
-      {/* Animated Background */}
-      <AnimatedBackground />
+      {/* Animated Background with optional hero image */}
+      <AnimatedBackground imageUrl={settings.heroBackgroundImage} />
       
       {/* Main Content Container - Centered */}
       <div className="relative z-10 h-full flex items-center justify-center">
