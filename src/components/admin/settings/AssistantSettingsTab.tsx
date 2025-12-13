@@ -92,7 +92,7 @@ const AssistantSettingsTab = () => {
       setSettings({
         organization_id: organization.id,
         is_enabled: false,
-        display_name: 'AI Assistant',
+        display_name: 'Stay Moxie Assistant',
         welcome_message: 'Hi! I\'m your AI assistant. How can I help you today?',
         bubble_color: '#3B82F6',
         personality: 'friendly',
@@ -230,7 +230,7 @@ const AssistantSettingsTab = () => {
                   onChange={(e) =>
                     setSettings({ ...settings, display_name: e.target.value })
                   }
-                  placeholder="AI Assistant"
+                  placeholder="Stay Moxie Assistant"
                 />
               </div>
 

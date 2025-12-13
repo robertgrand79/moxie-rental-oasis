@@ -20,7 +20,7 @@ const GeneralChatTab = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [avatarType, setAvatarType] = useState<AvatarType>('advisor');
-  const [displayName, setDisplayName] = useState('AI Assistant');
+  const [displayName, setDisplayName] = useState('Stay Moxie Assistant');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Fetch assistant settings
