@@ -427,6 +427,27 @@ const AssistantSettingsTab = () => {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Input area preview */}
+                  <div className="px-3 py-2 border-t bg-muted/30">
+                    <div className="flex gap-2 items-center">
+                      <div className={cn(
+                        "flex-1 px-3 py-1.5 text-xs text-muted-foreground bg-background border",
+                        settings.chat_style === 'playful' ? 'rounded-2xl' : 'rounded-lg'
+                      )}>
+                        Type a message...
+                      </div>
+                      <div 
+                        className={cn(
+                          "h-7 w-7 flex items-center justify-center rounded-full",
+                          settings.chat_style === 'playful' ? 'rounded-xl' : 'rounded-lg'
+                        )}
+                        style={{ backgroundColor: settings.bubble_color }}
+                      >
+                        <ChatAvatar type={settings.avatar_type} size={18} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Floating bubble preview */}
