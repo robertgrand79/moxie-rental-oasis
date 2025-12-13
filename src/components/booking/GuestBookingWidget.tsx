@@ -11,7 +11,8 @@ import { DateSelectionStep } from './DateSelectionStep';
 import { GuestDetailsStep } from './GuestDetailsStep';
 import { ReviewStep } from './ReviewStep';
 import { useBookingCharges } from '@/hooks/useBookingCharges';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Loader2, ExternalLink } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface GuestBookingWidgetProps {
   property: Property;
@@ -51,7 +52,8 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
   });
   const [dateRangeValid, setDateRangeValid] = useState(true);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentStage, setPaymentStage] = useState<'idle' | 'creating' | 'redirecting'>('idle');
+  const [paymentStage, setPaymentStage] = useState<'idle' | 'creating' | 'redirecting' | 'blocked'>('idle');
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   
   const { toast } = useToast();
   const createReservationMutation = useCreateReservation();
@@ -163,12 +165,20 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
 
       if (checkoutData?.url) {
         console.log('[CHECKOUT] Redirecting to Stripe:', checkoutData.url);
-        // Use window.open as fallback if in iframe (Lovable preview)
-        if (window.self !== window.top) {
-          window.open(checkoutData.url, '_blank');
-        } else {
+        setCheckoutUrl(checkoutData.url);
+        
+        // Try redirect - this may be blocked in iframes or by popup blockers
+        try {
           window.location.href = checkoutData.url;
+        } catch (e) {
+          console.log('[CHECKOUT] Direct redirect failed, showing fallback button');
         }
+        
+        // After 2.5 seconds, if we're still here, show the fallback button
+        setTimeout(() => {
+          setPaymentStage('blocked');
+        }, 2500);
+        
         return;
       } else {
         console.error('[CHECKOUT] No URL in response:', checkoutData);
@@ -189,8 +199,38 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
   const getButtonText = () => {
     if (paymentStage === 'creating') return 'Creating reservation...';
     if (paymentStage === 'redirecting') return 'Redirecting to payment...';
+    if (paymentStage === 'blocked') return 'Continue to Payment';
     return 'Confirm & Pay';
   };
+
+  // Fallback UI when redirect is blocked
+  const renderPaymentFallback = () => (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardContent className="p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <CheckCircle className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-semibold">Reservation Created!</h3>
+            <p className="text-sm text-muted-foreground">Click below to complete your payment</p>
+          </div>
+        </div>
+        <a 
+          href={checkoutUrl!} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-6 rounded-md font-medium transition-colors"
+        >
+          Continue to Payment
+          <ExternalLink className="w-4 h-4" />
+        </a>
+        <p className="text-xs text-muted-foreground text-center">
+          You'll be redirected to Stripe to complete your secure payment
+        </p>
+      </CardContent>
+    </Card>
+  );
 
   const renderComplete = () => (
     <div className="text-center space-y-6 py-12 max-w-2xl mx-auto">
@@ -296,7 +336,7 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
                 Continue
               </Button>
             )}
-            {step === 3 && (
+            {step === 3 && paymentStage !== 'blocked' && (
               <Button
                 onClick={handleConfirmBooking}
                 size="lg"
@@ -309,6 +349,7 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
                 {getButtonText()}
               </Button>
             )}
+            {step === 3 && paymentStage === 'blocked' && checkoutUrl && renderPaymentFallback()}
           </div>
         </div>
 
