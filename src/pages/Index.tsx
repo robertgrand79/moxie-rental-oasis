@@ -42,6 +42,7 @@ const Index = () => {
         <TestimonialsSection />
         <SocialProofSection />
         <WhyChooseUsSection />
+        <EnhancedLocalEventsSection />
         <AmenitiesSection />
         <LocalInfoSection />
         
@@ -56,7 +57,6 @@ const Index = () => {
         </section>
         
         <EnhancedWhatsNearbySection />
-        <EnhancedLocalEventsSection />
         <BookingBenefitsSection />
         <FinalFeaturesSection />
       </main>
