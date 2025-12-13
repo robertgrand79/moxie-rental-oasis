@@ -66,15 +66,6 @@ const PropertyPhotoModal = ({
           </VisuallyHidden>
         </DialogHeader>
         <div className="relative w-full h-full bg-black">
-          {/* Close button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white"
-          >
-            <X className="h-6 w-6" />
-          </Button>
 
           {/* Navigation arrows */}
           {images.length > 1 && (
