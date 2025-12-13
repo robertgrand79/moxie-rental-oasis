@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Building2, Globe, Palette, Users, Plug, CreditCard, MapPin } from 'lucide-react';
+import { Building2, Globe, Palette, Users, Plug, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const settingsTabs = [
@@ -10,7 +10,6 @@ const settingsTabs = [
   { id: 'team', label: 'Team', href: '/admin/settings/team', icon: Users },
   { id: 'integrations', label: 'Integrations', href: '/admin/settings/integrations', icon: Plug },
   { id: 'payments', label: 'Payments', href: '/admin/settings/payments', icon: CreditCard },
-  { id: 'local-content', label: 'Local Content', href: '/admin/settings/local-content', icon: MapPin },
 ];
 
 const SettingsNavTabs: React.FC = () => {
