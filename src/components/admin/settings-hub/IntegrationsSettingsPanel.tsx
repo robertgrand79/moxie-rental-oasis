@@ -271,17 +271,17 @@ const IntegrationsSettingsPanel = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="openphone_phone_number">QUO Phone Number</Label>
+                    <Label htmlFor="openphone_phone_number">QUO Phone Number ID</Label>
                     <Input
                       id="openphone_phone_number"
-                      type="tel"
-                      placeholder="+1 (555) 123-4567"
+                      type="text"
+                      placeholder="PNxxxxxxxxxxxxxxxxxxxxxxxx"
                       value={formData.openphone_phone_number}
                       onChange={(e) => setFormData({ ...formData, openphone_phone_number: e.target.value })}
                       disabled={!isOrgAdmin() || loading}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Your QUO number used for sending/receiving SMS
+                      Phone Number ID from QUO dashboard (starts with "PN", found under phone number settings)
                     </p>
                   </div>
 
