@@ -90,6 +90,34 @@ const IntegrationsSettingsPanel = () => {
     }
   }, [organization, settings]);
 
+  // Auto-fetch phone numbers on load if there's a saved PN ID and API key is configured
+  useEffect(() => {
+    const autoFetchPhones = async () => {
+      if (!organization?.id) return;
+      if (!configuredKeys.openphone_api_key) return;
+      if (phoneNumbers.length > 0) return; // Already fetched
+      
+      const org = organization as typeof organization & { openphone_phone_number?: string };
+      if (!org.openphone_phone_number?.startsWith('PN')) return; // No saved PN ID
+      
+      setFetchingPhones(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('fetch-quo-phone-numbers', {
+          body: { organizationId: organization.id }
+        });
+        if (error) throw error;
+        if (data.error) throw new Error(data.error);
+        setPhoneNumbers(data.phoneNumbers || []);
+      } catch (err: any) {
+        console.error('Error auto-fetching phone numbers:', err);
+      } finally {
+        setFetchingPhones(false);
+      }
+    };
+    
+    autoFetchPhones();
+  }, [organization?.id, configuredKeys.openphone_api_key]);
+
   const openphoneWebhookUrl = organization 
     ? `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/openphone-webhook?org=${organization.id}`
     : '';
