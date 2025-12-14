@@ -90,10 +90,17 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Log full payload for debugging
+    console.log("Full email payload received:", JSON.stringify(emailData, null, 2));
+
     console.log("Received inbound email webhook:", {
       from: emailData.from,
       to: emailData.to,
       subject: emailData.subject,
+      hasText: !!emailData.text,
+      hasHtml: !!emailData.html,
+      textLength: emailData.text?.length || 0,
+      htmlLength: emailData.html?.length || 0,
     });
 
     // Extract sender email from the "from" field (format: "Name <email@domain.com>" or just "email@domain.com")
