@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, Lock, Plug, CheckCircle2, AlertCircle, Map, Bot, Shield, Loader2, Copy, ExternalLink } from 'lucide-react';
+import { MessageSquare, Lock, Plug, CheckCircle2, AlertCircle, Map, Bot, Shield, Loader2, Copy, ExternalLink, Phone } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useSecureApiKeys } from '@/hooks/useSecureApiKeys';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
@@ -47,6 +48,9 @@ const IntegrationsSettingsPanel = () => {
     openweather_api_key: '',
     mapboxToken: '',
   });
+
+  const [phoneNumbers, setPhoneNumbers] = useState<Array<{ id: string; formattedNumber: string; name: string }>>([]);
+  const [fetchingPhones, setFetchingPhones] = useState(false);
 
   const [configuredKeys, setConfiguredKeys] = useState({
     openphone_api_key: false,
@@ -272,16 +276,91 @@ const IntegrationsSettingsPanel = () => {
 
                   <div>
                     <Label htmlFor="openphone_phone_number">QUO Phone Number ID</Label>
-                    <Input
-                      id="openphone_phone_number"
-                      type="text"
-                      placeholder="PNxxxxxxxxxxxxxxxxxxxxxxxx"
-                      value={formData.openphone_phone_number}
-                      onChange={(e) => setFormData({ ...formData, openphone_phone_number: e.target.value })}
-                      disabled={!isOrgAdmin() || loading}
-                    />
+                    <div className="flex gap-2 mt-1">
+                      {phoneNumbers.length > 0 ? (
+                        <Select
+                          value={formData.openphone_phone_number}
+                          onValueChange={(value) => setFormData({ ...formData, openphone_phone_number: value })}
+                          disabled={!isOrgAdmin() || loading}
+                        >
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Select a phone number" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {phoneNumbers.map((pn) => (
+                              <SelectItem key={pn.id} value={pn.id}>
+                                {pn.formattedNumber} - {pn.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          id="openphone_phone_number"
+                          type="text"
+                          placeholder="PNxxxxxxxxxxxxxxxxxxxxxxxx"
+                          value={formData.openphone_phone_number}
+                          onChange={(e) => setFormData({ ...formData, openphone_phone_number: e.target.value })}
+                          disabled={!isOrgAdmin() || loading}
+                          className="flex-1"
+                        />
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={async () => {
+                          if (!organization?.id && !configuredKeys.openphone_api_key && !formData.openphone_api_key) {
+                            toast({
+                              title: "API Key Required",
+                              description: "Please enter and save your QUO API key first",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          setFetchingPhones(true);
+                          try {
+                            const { data, error } = await supabase.functions.invoke('fetch-quo-phone-numbers', {
+                              body: { organizationId: organization?.id }
+                            });
+                            if (error) throw error;
+                            if (data.error) throw new Error(data.error);
+                            setPhoneNumbers(data.phoneNumbers || []);
+                            if (data.phoneNumbers?.length === 0) {
+                              toast({
+                                title: "No Phone Numbers",
+                                description: "No phone numbers found in your QUO account",
+                              });
+                            } else {
+                              toast({
+                                title: "Phone Numbers Loaded",
+                                description: `Found ${data.phoneNumbers.length} phone number(s)`,
+                              });
+                            }
+                          } catch (err: any) {
+                            console.error('Error fetching phone numbers:', err);
+                            toast({
+                              title: "Failed to Fetch",
+                              description: err.message || "Could not fetch phone numbers from QUO",
+                              variant: "destructive",
+                            });
+                          } finally {
+                            setFetchingPhones(false);
+                          }
+                        }}
+                        disabled={!isOrgAdmin() || fetchingPhones}
+                      >
+                        {fetchingPhones ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Phone className="h-4 w-4" />
+                        )}
+                        <span className="ml-2">{phoneNumbers.length > 0 ? 'Refresh' : 'Fetch'}</span>
+                      </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Phone Number ID from QUO dashboard (starts with "PN", found under phone number settings)
+                      {phoneNumbers.length > 0 
+                        ? "Select a phone number from the dropdown above"
+                        : "Click 'Fetch' to load phone numbers from your QUO account (requires API key to be saved first)"}
                     </p>
                   </div>
 
