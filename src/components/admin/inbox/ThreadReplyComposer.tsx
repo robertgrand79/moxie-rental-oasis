@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InboxThread, ThreadReservation } from '@/hooks/useGuestInbox';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
@@ -29,10 +29,15 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
   const [channel, setChannel] = useState<'email' | 'sms' | 'both'>('email');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-  const [selectedReservationId, setSelectedReservationId] = useState<string>(
-    reservations[0]?.id || ''
-  );
+  const [selectedReservationId, setSelectedReservationId] = useState<string>('');
   const [sending, setSending] = useState(false);
+
+  // Sync selectedReservationId when reservations load
+  useEffect(() => {
+    if (reservations.length > 0 && !selectedReservationId) {
+      setSelectedReservationId(reservations[0].id);
+    }
+  }, [reservations, selectedReservationId]);
 
   const canSendEmail = !!thread.guest_email;
   const canSendSms = !!thread.guest_phone;
