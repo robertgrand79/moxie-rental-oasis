@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -107,12 +108,48 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log("[send-guest-email] Email settings:", { fromEmail, fromName, replyTo });
 
-    // Get Resend API key (global only for now)
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    // Get Resend API key - first try organization-level, then fall back to global
+    let resendApiKey = "";
+
+    if (orgId) {
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("resend_api_key")
+        .eq("id", orgId)
+        .single();
+
+      if (org?.resend_api_key) {
+        resendApiKey = org.resend_api_key;
+        console.log("[send-guest-email] Found organization Resend API key");
+        
+        // Decrypt if encrypted
+        if (isEncrypted(resendApiKey)) {
+          try {
+            resendApiKey = await decryptApiKey(resendApiKey);
+            console.log("[send-guest-email] Successfully decrypted organization Resend API key");
+          } catch (decryptError) {
+            console.error("[send-guest-email] Failed to decrypt Resend API key:", decryptError);
+            resendApiKey = "";
+          }
+        }
+      }
+    }
+
+    // Fall back to global secret if org key not available
     if (!resendApiKey) {
-      console.error("[send-guest-email] RESEND_API_KEY not configured");
+      resendApiKey = Deno.env.get("RESEND_API_KEY") || "";
+      if (resendApiKey) {
+        console.log("[send-guest-email] Using global RESEND_API_KEY");
+      }
+    }
+
+    if (!resendApiKey) {
+      console.error("[send-guest-email] No Resend API key configured");
       return new Response(
-        JSON.stringify({ success: false, error: "Email service not configured" }),
+        JSON.stringify({ 
+          success: false, 
+          error: "No Resend API key configured. Please add your Resend API key in Organization Settings > Integrations." 
+        }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
