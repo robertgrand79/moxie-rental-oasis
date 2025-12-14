@@ -21,6 +21,7 @@ interface InboxSidebarProps {
   snoozedCount: number;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  isMobile?: boolean;
 }
 
 const filterOptions: { value: InboxFilter; label: string; icon: React.ReactNode }[] = [
@@ -39,9 +40,13 @@ const InboxSidebar: React.FC<InboxSidebarProps> = ({
   snoozedCount,
   searchQuery,
   onSearchChange,
+  isMobile = false,
 }) => {
   return (
-    <div className="w-56 border-r bg-muted/30 flex flex-col">
+    <div className={cn(
+      "border-r bg-muted/30 flex flex-col h-full",
+      isMobile ? "w-full" : "w-56"
+    )}>
       {/* Header */}
       <div className="p-4 border-b">
         <h2 className="font-semibold text-lg flex items-center gap-2">
@@ -58,20 +63,21 @@ const InboxSidebar: React.FC<InboxSidebarProps> = ({
             placeholder="Search guests..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-8 h-9"
+            className={cn("pl-8", isMobile ? "h-11" : "h-9")}
           />
         </div>
       </div>
 
       {/* Filter buttons */}
-      <nav className="flex-1 p-2 space-y-1">
+      <nav className="flex-1 p-2 space-y-1 overflow-auto">
         {filterOptions.map((option) => (
           <Button
             key={option.value}
             variant={filter === option.value ? 'secondary' : 'ghost'}
             className={cn(
               'w-full justify-start gap-2',
-              filter === option.value && 'bg-secondary'
+              filter === option.value && 'bg-secondary',
+              isMobile && 'h-12 text-base'
             )}
             onClick={() => onFilterChange(option.value)}
           >

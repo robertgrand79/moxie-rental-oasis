@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { InboxThread, ThreadReservation, ThreadMessage } from '@/hooks/useGuestInbox';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
 }) => {
   const { toast } = useToast();
   const { organization } = useCurrentOrganization();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [channel, setChannel] = useState<'email' | 'sms' | 'both'>('email');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -44,12 +45,10 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
   // Pre-fill subject and channel when replying to a specific message
   useEffect(() => {
     if (replyToMessage) {
-      // Set channel based on original message type
       if (replyToMessage.message_type === 'sms') {
         setChannel('sms');
       } else {
         setChannel('email');
-        // Pre-fill subject with Re: prefix
         if (replyToMessage.subject && replyToMessage.subject !== 'SMS Message') {
           const reSubject = replyToMessage.subject.startsWith('Re:') 
             ? replyToMessage.subject 
@@ -59,6 +58,11 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
       }
     }
   }, [replyToMessage]);
+
+  // Auto-focus textarea on mount
+  useEffect(() => {
+    setTimeout(() => textareaRef.current?.focus(), 100);
+  }, []);
 
   const canSendEmail = !!thread.guest_email;
   const canSendSms = !!thread.guest_phone;
@@ -96,7 +100,6 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
     try {
       const results = { email: false, sms: false };
 
-      // Send email
       if ((channel === 'email' || channel === 'both') && canSendEmail) {
         const { data, error } = await supabase.functions.invoke('send-guest-email', {
           body: {
@@ -111,10 +114,8 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
         if (error) throw error;
         if (!data?.success) throw new Error(data?.error || 'Email send failed');
         results.email = true;
-        // Communication is stored by the edge function
       }
 
-      // Send SMS
       if ((channel === 'sms' || channel === 'both') && canSendSms) {
         const { data, error } = await supabase.functions.invoke('send-sms', {
           body: {
@@ -128,7 +129,6 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
         if (!data?.success) throw new Error(data?.error || 'SMS send failed');
         results.sms = true;
 
-        // Save to guest_communications
         await supabase.from('guest_communications').insert({
           reservation_id: selectedReservationId,
           thread_id: thread.id,
@@ -167,24 +167,24 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
 
   return (
     <div className="space-y-3">
-      {/* Channel selector */}
-      <div className="flex items-center gap-4">
-        <Label className="shrink-0">Send via:</Label>
+      {/* Channel selector - responsive layout */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+        <Label className="shrink-0 text-sm">Send via:</Label>
         <ToggleGroup
           type="single"
           value={channel}
           onValueChange={(v) => v && setChannel(v as typeof channel)}
-          className="justify-start"
+          className="justify-start flex-wrap"
         >
-          <ToggleGroupItem value="email" disabled={!canSendEmail}>
+          <ToggleGroupItem value="email" disabled={!canSendEmail} className="h-9 px-3">
             <Mail className="h-4 w-4 mr-1" />
             Email
           </ToggleGroupItem>
-          <ToggleGroupItem value="sms" disabled={!canSendSms}>
+          <ToggleGroupItem value="sms" disabled={!canSendSms} className="h-9 px-3">
             <Phone className="h-4 w-4 mr-1" />
             SMS
           </ToggleGroupItem>
-          <ToggleGroupItem value="both" disabled={!canSendEmail || !canSendSms}>
+          <ToggleGroupItem value="both" disabled={!canSendEmail || !canSendSms} className="h-9 px-3">
             Both
           </ToggleGroupItem>
         </ToggleGroup>
@@ -192,10 +192,10 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
 
       {/* Reservation selector */}
       {reservations.length > 1 && (
-        <div className="flex items-center gap-4">
-          <Label className="shrink-0">Reservation:</Label>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <Label className="shrink-0 text-sm">Reservation:</Label>
           <Select value={selectedReservationId} onValueChange={setSelectedReservationId}>
-            <SelectTrigger className="flex-1">
+            <SelectTrigger className="flex-1 h-10">
               <SelectValue placeholder="Select reservation" />
             </SelectTrigger>
             <SelectContent>
@@ -215,31 +215,42 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
           placeholder="Subject"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
+          className="h-10"
         />
       )}
 
       {/* Message content */}
       <Textarea
+        ref={textareaRef}
         placeholder="Type your message..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         rows={4}
-        className="resize-none"
+        className="resize-none min-h-[100px]"
       />
 
-      {/* Actions */}
-      <div className="flex items-center justify-end gap-2">
-        <Button variant="outline" onClick={onCancel} disabled={sending}>
+      {/* Actions - stack on mobile */}
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
+        <Button 
+          variant="outline" 
+          onClick={onCancel} 
+          disabled={sending}
+          className="h-11 sm:h-10"
+        >
           <X className="h-4 w-4 mr-1" />
           Cancel
         </Button>
-        <Button onClick={handleSend} disabled={sending}>
+        <Button 
+          onClick={handleSend} 
+          disabled={sending}
+          className="h-11 sm:h-10"
+        >
           {sending ? (
             <Loader2 className="h-4 w-4 mr-1 animate-spin" />
           ) : (
             <Send className="h-4 w-4 mr-1" />
           )}
-          Send
+          Send Message
         </Button>
       </div>
     </div>
