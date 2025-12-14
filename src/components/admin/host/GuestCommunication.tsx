@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Mail, Clock, Send, MessageSquare, User } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Calendar, Mail, Clock, Send, MessageSquare, User, Phone } from 'lucide-react';
 import AIRevisionButton from './AIRevisionButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +15,6 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
-
 interface GuestCommunication {
   id: string;
   reservation_id: string;
@@ -101,12 +101,15 @@ ${siteName} Team`
   }
 });
 
+type DeliveryChannel = 'email' | 'sms' | 'both';
+
 const GuestCommunication = () => {
   const [selectedReservation, setSelectedReservation] = useState<string>('');
   const [messageType, setMessageType] = useState<string>('custom');
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [scheduledFor, setScheduledFor] = useState('');
+  const [channel, setChannel] = useState<DeliveryChannel>('email');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { settings } = useTenantSettings();
@@ -173,10 +176,11 @@ const GuestCommunication = () => {
           id,
           guest_name,
           guest_email,
+          guest_phone,
           check_in_date,
           check_out_date,
           check_in_instructions,
-          properties:properties!inner(title)
+          properties:properties!inner(title, organization_id)
         `)
         .in('property_id', orgPropertyIds)
         .eq('booking_status', 'confirmed')
@@ -201,28 +205,57 @@ const GuestCommunication = () => {
       subject: string;
       message_content: string;
       scheduled_for?: string;
+      channel: DeliveryChannel;
+      guest_phone?: string;
+      organization_id?: string;
     }) => {
-      // First create the communication record
-      const { data, error } = await supabase
-        .from('guest_communications')
-        .insert({
-          ...messageData,
-          delivery_status: messageData.scheduled_for ? 'scheduled' : 'sent',
-          sent_at: messageData.scheduled_for ? null : new Date().toISOString(),
-        })
-        .select()
-        .single();
+      const results: { email?: boolean; sms?: boolean } = {};
 
-      if (error) throw error;
+      // Send email if channel is email or both
+      if (messageData.channel === 'email' || messageData.channel === 'both') {
+        const { data, error } = await supabase
+          .from('guest_communications')
+          .insert({
+            reservation_id: messageData.reservation_id,
+            message_type: messageData.message_type,
+            subject: messageData.subject,
+            message_content: messageData.message_content,
+            scheduled_for: messageData.scheduled_for || null,
+            delivery_status: messageData.scheduled_for ? 'scheduled' : 'sent',
+            sent_at: messageData.scheduled_for ? null : new Date().toISOString(),
+          })
+          .select()
+          .single();
 
-      // For immediate sending, we would integrate with email service here
-      // For demonstration, we'll just mark it as sent
-      return data;
+        if (error) throw error;
+        results.email = true;
+      }
+
+      // Send SMS if channel is sms or both
+      if ((messageData.channel === 'sms' || messageData.channel === 'both') && messageData.guest_phone) {
+        const { data, error } = await supabase.functions.invoke('send-sms', {
+          body: {
+            to: messageData.guest_phone,
+            message: messageData.message_content,
+            organizationId: messageData.organization_id,
+          },
+        });
+
+        if (error) throw error;
+        if (!data?.success) throw new Error(data?.error || 'SMS send failed');
+        results.sms = true;
+      }
+
+      return results;
     },
-    onSuccess: () => {
+    onSuccess: (results) => {
+      const channels = [];
+      if (results.email) channels.push('Email');
+      if (results.sms) channels.push('SMS');
+      
       toast({
         title: "Success",
-        description: "Message sent successfully",
+        description: `Message sent via ${channels.join(' & ')}`,
       });
       queryClient.invalidateQueries({ queryKey: ['guest-communications'] });
       // Reset form
@@ -231,11 +264,12 @@ const GuestCommunication = () => {
       setSubject('');
       setContent('');
       setScheduledFor('');
+      setChannel('email');
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to send message",
+        description: error.message || "Failed to send message",
         variant: "destructive",
       });
     },
@@ -267,10 +301,29 @@ const GuestCommunication = () => {
   const selectedReservationData = reservations.find(r => r.id === selectedReservation);
 
   const handleSendMessage = () => {
-    if (!selectedReservation || !subject || !content) {
+    // Subject only required for email
+    if (!selectedReservation || !content) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "Please select a reservation and enter a message",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if ((channel === 'email' || channel === 'both') && !subject) {
+      toast({
+        title: "Error",
+        description: "Subject is required for email",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if ((channel === 'sms' || channel === 'both') && !selectedReservationData?.guest_phone) {
+      toast({
+        title: "Error",
+        description: "Guest has no phone number on file for SMS",
         variant: "destructive",
       });
       return;
@@ -285,6 +338,9 @@ const GuestCommunication = () => {
       subject: processedSubject,
       message_content: processedContent,
       scheduled_for: scheduledFor || undefined,
+      channel,
+      guest_phone: selectedReservationData?.guest_phone,
+      organization_id: selectedReservationData?.properties?.organization_id,
     });
   };
 
@@ -352,14 +408,43 @@ const GuestCommunication = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium">Subject</label>
-                <Input
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Message subject"
-                  className="mt-1"
-                />
+                <label className="text-sm font-medium">Delivery Channel</label>
+                <ToggleGroup
+                  type="single"
+                  value={channel}
+                  onValueChange={(value) => value && setChannel(value as DeliveryChannel)}
+                  className="mt-1 justify-start"
+                >
+                  <ToggleGroupItem value="email" aria-label="Email only" className="gap-1.5">
+                    <Mail className="h-4 w-4" />
+                    Email
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="sms" aria-label="SMS only" className="gap-1.5">
+                    <Phone className="h-4 w-4" />
+                    SMS
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="both" aria-label="Both Email and SMS" className="gap-1.5">
+                    <Mail className="h-4 w-4" />
+                    <Phone className="h-4 w-4" />
+                    Both
+                  </ToggleGroupItem>
+                </ToggleGroup>
+                {(channel === 'sms' || channel === 'both') && selectedReservationData && !selectedReservationData.guest_phone && (
+                  <p className="text-xs text-destructive mt-1">⚠️ No phone number on file for this guest</p>
+                )}
               </div>
+
+              {(channel === 'email' || channel === 'both') && (
+                <div>
+                  <label className="text-sm font-medium">Subject</label>
+                  <Input
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    placeholder="Message subject"
+                    className="mt-1"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="text-sm font-medium">Message Content</label>
