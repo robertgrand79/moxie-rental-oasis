@@ -50,7 +50,7 @@ serve(async (req: Request): Promise<Response> => {
         check_out_date,
         properties (
           id,
-          name,
+          title,
           organization_id
         )
       `)
@@ -68,7 +68,7 @@ serve(async (req: Request): Promise<Response> => {
     console.log("[send-guest-email] Reservation found:", { 
       guestEmail: reservation.guest_email, 
       guestName: reservation.guest_name,
-      propertyName: reservation.properties?.name 
+      propertyTitle: reservation.properties?.title 
     });
 
     if (!reservation.guest_email) {
@@ -138,11 +138,11 @@ serve(async (req: Request): Promise<Response> => {
     
     <div style="white-space: pre-wrap;">${message}</div>
     
-    ${reservation.properties?.name ? `
+    ${reservation.properties?.title ? `
     <div style="margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #3b82f6;">
       <p style="margin: 0; font-weight: 600; color: #1e40af;">Your Reservation</p>
       <p style="margin: 8px 0 0 0; color: #64748b;">
-        ${reservation.properties.name}<br>
+        ${reservation.properties.title}<br>
         ${reservation.check_in_date ? `Check-in: ${new Date(reservation.check_in_date).toLocaleDateString()}` : ''}<br>
         ${reservation.check_out_date ? `Check-out: ${new Date(reservation.check_out_date).toLocaleDateString()}` : ''}
       </p>
