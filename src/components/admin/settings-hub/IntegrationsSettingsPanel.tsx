@@ -275,7 +275,7 @@ const IntegrationsSettingsPanel = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="openphone_phone_number">QUO Phone Number ID</Label>
+                    <Label htmlFor="openphone_phone_number">QUO Phone Number</Label>
                     <div className="flex gap-2 mt-1">
                       {phoneNumbers.length > 0 ? (
                         <Select
@@ -298,7 +298,7 @@ const IntegrationsSettingsPanel = () => {
                         <Input
                           id="openphone_phone_number"
                           type="text"
-                          placeholder="PNxxxxxxxxxxxxxxxxxxxxxxxx"
+                          placeholder="Click 'Fetch' to load phone numbers"
                           value={formData.openphone_phone_number}
                           onChange={(e) => setFormData({ ...formData, openphone_phone_number: e.target.value })}
                           disabled={!isOrgAdmin() || loading}
@@ -358,11 +358,24 @@ const IntegrationsSettingsPanel = () => {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {phoneNumbers.length > 0 
-                        ? "Select a phone number from the dropdown above"
-                        : "Click 'Fetch' to load phone numbers from your QUO account (requires API key to be saved first)"}
+                      Click 'Fetch' to load phone numbers from your QUO account (requires API key to be saved first)
                     </p>
                   </div>
+
+                  {formData.openphone_phone_number?.startsWith('PN') && (
+                    <div>
+                      <Label>Phone Number ID</Label>
+                      <Input
+                        type="text"
+                        value={formData.openphone_phone_number}
+                        readOnly
+                        className="mt-1 font-mono text-xs bg-muted"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        This ID is used for sending SMS messages
+                      </p>
+                    </div>
+                  )}
 
                   <div>
                     <Label>Webhook URL (for inbound SMS)</Label>
