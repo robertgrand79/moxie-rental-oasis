@@ -43,6 +43,11 @@ export const defaultSettings: SettingsState = {
   mapboxToken: '',
   fontPairing: 'playfair-source',
   fontScale: 'default',
+  // Email Styling
+  emailHeaderColor: '#3b82f6',
+  emailHeaderColorEnd: '#1d4ed8',
+  emailAccentColor: '#3b82f6',
+  emailFooterColor: '#f8fafc',
   // About page
   aboutTitle: '',
   aboutDescription: '',
