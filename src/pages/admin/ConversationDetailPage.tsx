@@ -125,6 +125,7 @@ const ConversationDetailPage = () => {
         <MessageThread
           thread={thread}
           messages={messages}
+          reservations={reservations}
           loading={loadingData}
           onStatusChange={handleStatusChange}
           onSnooze={handleSnooze}

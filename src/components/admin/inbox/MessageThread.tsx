@@ -27,6 +27,7 @@ import ThreadReplyComposer from './ThreadReplyComposer';
 interface MessageThreadProps {
   thread: InboxThread;
   messages: ThreadMessage[];
+  reservations: ThreadReservation[];
   loading: boolean;
   onStatusChange: (status: InboxThread['status']) => Promise<void>;
   onSnooze: (until: Date | null) => Promise<void>;
@@ -36,6 +37,7 @@ interface MessageThreadProps {
 const MessageThread: React.FC<MessageThreadProps> = ({
   thread,
   messages,
+  reservations,
   loading,
   onStatusChange,
   onSnooze,
@@ -63,8 +65,8 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     }
   };
 
-  // Build reservations from thread context (we'd need to pass this or fetch it)
-  const reservations: ThreadReservation[] = [];
+  // Use first reservation as selected if available
+  const [selectedReservationId] = useState<string>(reservations[0]?.id || '');
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
