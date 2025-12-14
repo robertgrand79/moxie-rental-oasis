@@ -79,19 +79,38 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`📱 Sending SMS to ${to}: ${message.substring(0, 50)}...`);
 
-    // Send SMS via QUO API (OpenPhone)
-    const smsResponse = await fetch('https://api.openphone.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openPhoneApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        to: [to],
-        text: message,
-        from: from || undefined, // Use default QUO number if not specified
-      }),
-    });
+    const payload = {
+      to: [to],
+      text: message,
+      from: from || undefined, // Use default QUO number if not specified
+    };
+
+    // Track whether we used an org-level key first
+    const usedOrgKeyFirst = !!effectiveOrgId && !!openPhoneApiKey;
+
+    // Helper to actually send the SMS with a given key
+    const sendWithKey = async (apiKey: string) => {
+      return fetch('https://api.openphone.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+    };
+
+    // First attempt with current key (org-level if present, otherwise global)
+    let smsResponse = await sendWithKey(openPhoneApiKey);
+
+    // If org-level key fails with 401, try falling back to global key once
+    if (smsResponse.status === 401 && usedOrgKeyFirst) {
+      const globalKey = Deno.env.get('OPENPHONE_API_KEY');
+      if (globalKey && globalKey !== openPhoneApiKey) {
+        console.warn('Org-level QUO API key failed with 401. Retrying with global OPENPHONE_API_KEY...');
+        smsResponse = await sendWithKey(globalKey);
+      }
+    }
 
     if (!smsResponse.ok) {
       const errorText = await smsResponse.text();
