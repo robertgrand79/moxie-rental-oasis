@@ -286,24 +286,37 @@ export function useGuestInbox() {
   useEffect(() => {
     if (!organization?.id) return;
 
-    const channel = supabase
-      .channel('inbox-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'guest_inbox_threads',
-          filter: `organization_id=eq.${organization.id}`
-        },
-        () => {
-          fetchThreads();
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    try {
+      channel = supabase
+        .channel('inbox-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'guest_inbox_threads',
+            filter: `organization_id=eq.${organization.id}`
+          },
+          () => {
+            fetchThreads();
+          }
+        )
+        .subscribe();
+    } catch (error) {
+      // WebSocket may be blocked in preview/iframe environments
+      console.warn('Realtime subscription unavailable:', error);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }
     };
   }, [organization?.id, fetchThreads]);
 
