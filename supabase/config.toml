@@ -130,6 +130,9 @@ verify_jwt = false
 [functions.openphone-webhook]
 verify_jwt = false
 
+[functions.send-guest-email]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323

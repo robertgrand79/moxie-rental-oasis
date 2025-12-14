@@ -74,26 +74,18 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
       if ((channel === 'email' || channel === 'both') && canSendEmail) {
         const { data, error } = await supabase.functions.invoke('send-guest-email', {
           body: {
-            reservation_id: selectedReservationId,
+            reservationId: selectedReservationId,
             subject,
-            message_content: message,
+            message,
+            threadId: thread.id,
+            organizationId: organization?.id,
           },
         });
 
         if (error) throw error;
+        if (!data?.success) throw new Error(data?.error || 'Email send failed');
         results.email = true;
-
-        // Save to guest_communications
-        await supabase.from('guest_communications').insert({
-          reservation_id: selectedReservationId,
-          thread_id: thread.id,
-          message_type: 'email',
-          subject,
-          message_content: message,
-          delivery_status: 'sent',
-          sent_at: new Date().toISOString(),
-          direction: 'outbound',
-        });
+        // Communication is stored by the edge function
       }
 
       // Send SMS
