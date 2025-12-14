@@ -1437,15 +1437,18 @@ export type Database = {
           created_at: string
           delivery_status: string | null
           direction: string | null
+          external_message_id: string | null
           id: string
           is_read: boolean | null
           message_content: string
           message_type: string
           raw_email_data: Json | null
+          raw_platform_data: Json | null
           reservation_id: string
           scheduled_for: string | null
           sender_email: string | null
           sent_at: string | null
+          source_platform: string | null
           subject: string
           thread_id: string | null
         }
@@ -1453,15 +1456,18 @@ export type Database = {
           created_at?: string
           delivery_status?: string | null
           direction?: string | null
+          external_message_id?: string | null
           id?: string
           is_read?: boolean | null
           message_content: string
           message_type: string
           raw_email_data?: Json | null
+          raw_platform_data?: Json | null
           reservation_id: string
           scheduled_for?: string | null
           sender_email?: string | null
           sent_at?: string | null
+          source_platform?: string | null
           subject: string
           thread_id?: string | null
         }
@@ -1469,15 +1475,18 @@ export type Database = {
           created_at?: string
           delivery_status?: string | null
           direction?: string | null
+          external_message_id?: string | null
           id?: string
           is_read?: boolean | null
           message_content?: string
           message_type?: string
           raw_email_data?: Json | null
+          raw_platform_data?: Json | null
           reservation_id?: string
           scheduled_for?: string | null
           sender_email?: string | null
           sent_at?: string | null
+          source_platform?: string | null
           subject?: string
           thread_id?: string | null
         }
@@ -1500,6 +1509,8 @@ export type Database = {
       }
       guest_inbox_threads: {
         Row: {
+          ai_summary: string | null
+          ai_summary_updated_at: string | null
           created_at: string
           guest_email: string | null
           guest_identifier: string
@@ -1511,10 +1522,13 @@ export type Database = {
           last_message_preview: string | null
           organization_id: string
           reservation_count: number | null
+          snoozed_until: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          ai_summary?: string | null
+          ai_summary_updated_at?: string | null
           created_at?: string
           guest_email?: string | null
           guest_identifier: string
@@ -1526,10 +1540,13 @@ export type Database = {
           last_message_preview?: string | null
           organization_id: string
           reservation_count?: number | null
+          snoozed_until?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          ai_summary?: string | null
+          ai_summary_updated_at?: string | null
           created_at?: string
           guest_email?: string | null
           guest_identifier?: string
@@ -1541,6 +1558,7 @@ export type Database = {
           last_message_preview?: string | null
           organization_id?: string
           reservation_count?: number | null
+          snoozed_until?: string | null
           status?: string
           updated_at?: string
         }

@@ -6,24 +6,34 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { 
   Star, 
   CheckCircle, 
-  Clock, 
   Mail, 
   Phone, 
   MessageSquare,
   Calendar,
   Home,
   Send,
-  Sparkles
+  Sparkles,
+  AlarmClock,
+  MoreHorizontal,
+  Loader2
 } from 'lucide-react';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow, format, addHours, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import ThreadReplyComposer from './ThreadReplyComposer';
 
 interface ConversationThreadProps {
   thread: InboxThread | null;
   onStatusChange: (threadId: string, status: InboxThread['status']) => Promise<boolean>;
+  onSnooze: (threadId: string, until: Date | null) => Promise<boolean>;
+  onGenerateSummary: (threadId: string, messages: ThreadMessage[]) => Promise<string | null>;
   fetchMessages: (threadId: string) => Promise<ThreadMessage[]>;
   fetchReservations: (guestEmail: string, organizationId: string) => Promise<ThreadReservation[]>;
 }
@@ -31,6 +41,8 @@ interface ConversationThreadProps {
 const ConversationThread: React.FC<ConversationThreadProps> = ({
   thread,
   onStatusChange,
+  onSnooze,
+  onGenerateSummary,
   fetchMessages,
   fetchReservations,
 }) => {
@@ -39,11 +51,14 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
   const [reservations, setReservations] = useState<ThreadReservation[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [showComposer, setShowComposer] = useState(false);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
 
   const loadThreadData = useCallback(async () => {
     if (!thread || !organization?.id) return;
 
     setLoadingMessages(true);
+    setAiSummary(thread.ai_summary);
     try {
       const [msgs, res] = await Promise.all([
         fetchMessages(thread.id),
@@ -61,6 +76,16 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
   useEffect(() => {
     loadThreadData();
   }, [loadThreadData]);
+
+  const handleGenerateSummary = async () => {
+    if (!thread || messages.length === 0) return;
+    setGeneratingSummary(true);
+    const summary = await onGenerateSummary(thread.id, messages);
+    if (summary) {
+      setAiSummary(summary);
+    }
+    setGeneratingSummary(false);
+  };
 
   if (!thread) {
     return (
@@ -83,6 +108,16 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
     onStatusChange(thread.id, thread.status === 'resolved' ? 'active' : 'resolved');
   };
 
+  const handleSnooze = (hours: number | null) => {
+    if (hours === null) {
+      onSnooze(thread.id, null);
+    } else {
+      onSnooze(thread.id, addHours(new Date(), hours));
+    }
+  };
+
+  const isSnoozed = thread.snoozed_until && new Date(thread.snoozed_until) > new Date();
+
   return (
     <div className="flex-1 flex">
       {/* Main conversation area */}
@@ -90,8 +125,14 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
         {/* Header */}
         <div className="p-4 border-b flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-lg">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
               {thread.guest_name || thread.guest_email || 'Unknown Guest'}
+              {isSnoozed && (
+                <Badge variant="outline" className="text-xs">
+                  <AlarmClock className="h-3 w-3 mr-1" />
+                  Snoozed until {format(new Date(thread.snoozed_until!), 'MMM d, h:mm a')}
+                </Badge>
+              )}
             </h3>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               {thread.guest_email && (
@@ -125,8 +166,41 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
               onClick={handleMarkResolved}
             >
               <CheckCircle className="h-4 w-4 mr-1" />
-              {thread.status === 'resolved' ? 'Resolved' : 'Mark Resolved'}
+              {thread.status === 'resolved' ? 'Resolved' : 'Resolve'}
             </Button>
+            
+            {/* More actions dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleSnooze(1)}>
+                  <AlarmClock className="h-4 w-4 mr-2" />
+                  Snooze 1 hour
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSnooze(4)}>
+                  <AlarmClock className="h-4 w-4 mr-2" />
+                  Snooze 4 hours
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSnooze(24)}>
+                  <AlarmClock className="h-4 w-4 mr-2" />
+                  Snooze 1 day
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSnooze(72)}>
+                  <AlarmClock className="h-4 w-4 mr-2" />
+                  Snooze 3 days
+                </DropdownMenuItem>
+                {isSnoozed && (
+                  <DropdownMenuItem onClick={() => handleSnooze(null)}>
+                    <AlarmClock className="h-4 w-4 mr-2" />
+                    Remove snooze
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -160,7 +234,7 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
                         : 'bg-muted'
                     )}
                   >
-                    {/* Message type indicator */}
+                    {/* Message type and source indicator */}
                     <div className={cn(
                       'flex items-center gap-1 text-xs mb-1',
                       message.direction === 'outbound' ? 'text-primary-foreground/70' : 'text-muted-foreground'
@@ -171,6 +245,11 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
                         <Mail className="h-3 w-3" />
                       )}
                       <span>{message.message_type.toUpperCase()}</span>
+                      {message.source_platform && message.source_platform !== 'direct' && (
+                        <Badge variant="outline" className="ml-1 text-xs py-0 h-4">
+                          {message.source_platform}
+                        </Badge>
+                      )}
                       {message.subject && message.subject !== 'SMS Message' && (
                         <span className="ml-1">• {message.subject}</span>
                       )}
@@ -221,7 +300,40 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
       </div>
 
       {/* Right sidebar - Guest details */}
-      <div className="w-72 border-l bg-muted/10 p-4 space-y-4">
+      <div className="w-72 border-l bg-muted/10 p-4 space-y-4 overflow-y-auto">
+        {/* AI Summary */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-medium text-sm text-muted-foreground">AI Summary</h4>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleGenerateSummary}
+              disabled={generatingSummary || messages.length === 0}
+            >
+              {generatingSummary ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          {aiSummary ? (
+            <p className="text-sm text-muted-foreground bg-muted/50 p-2 rounded-lg">
+              {aiSummary}
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">
+              {messages.length > 0 
+                ? 'Click the sparkle to generate a summary'
+                : 'No messages to summarize'
+              }
+            </p>
+          )}
+        </div>
+
+        <Separator />
+
         <div>
           <h4 className="font-medium text-sm text-muted-foreground mb-2">Guest Info</h4>
           <div className="space-y-2 text-sm">

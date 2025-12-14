@@ -8,7 +8,8 @@ import {
   Clock, 
   CheckCircle, 
   Star, 
-  Search 
+  Search,
+  AlarmClock
 } from 'lucide-react';
 import { InboxFilter } from '@/hooks/useGuestInbox';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,7 @@ interface InboxSidebarProps {
   filter: InboxFilter;
   onFilterChange: (filter: InboxFilter) => void;
   unreadCount: number;
+  snoozedCount: number;
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }
@@ -25,6 +27,7 @@ const filterOptions: { value: InboxFilter; label: string; icon: React.ReactNode 
   { value: 'all', label: 'All Messages', icon: <Inbox className="h-4 w-4" /> },
   { value: 'unread', label: 'Unread', icon: <Mail className="h-4 w-4" /> },
   { value: 'awaiting_reply', label: 'Awaiting Reply', icon: <Clock className="h-4 w-4" /> },
+  { value: 'snoozed', label: 'Snoozed', icon: <AlarmClock className="h-4 w-4" /> },
   { value: 'resolved', label: 'Resolved', icon: <CheckCircle className="h-4 w-4" /> },
   { value: 'starred', label: 'Starred', icon: <Star className="h-4 w-4" /> },
 ];
@@ -33,6 +36,7 @@ const InboxSidebar: React.FC<InboxSidebarProps> = ({
   filter,
   onFilterChange,
   unreadCount,
+  snoozedCount,
   searchQuery,
   onSearchChange,
 }) => {
@@ -76,6 +80,11 @@ const InboxSidebar: React.FC<InboxSidebarProps> = ({
             {option.value === 'unread' && unreadCount > 0 && (
               <Badge variant="destructive" className="ml-auto h-5 px-1.5 text-xs">
                 {unreadCount}
+              </Badge>
+            )}
+            {option.value === 'snoozed' && snoozedCount > 0 && (
+              <Badge variant="outline" className="ml-auto h-5 px-1.5 text-xs">
+                {snoozedCount}
               </Badge>
             )}
           </Button>

@@ -4,7 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Star, Clock, MessageSquare } from 'lucide-react';
+import { Mail, Phone, Star, Clock, MessageSquare, AlarmClock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ConversationListProps {
@@ -74,6 +74,9 @@ const ConversationList: React.FC<ConversationListProps> = ({
                   </span>
                   {thread.status === 'starred' && (
                     <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
+                  )}
+                  {thread.snoozed_until && new Date(thread.snoozed_until) > new Date() && (
+                    <AlarmClock className="h-3.5 w-3.5 text-muted-foreground" />
                   )}
                   {thread.status === 'awaiting_reply' && (
                     <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 text-orange-600 border-orange-300">
