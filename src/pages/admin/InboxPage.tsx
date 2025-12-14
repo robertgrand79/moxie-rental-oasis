@@ -16,7 +16,10 @@ const InboxPage = () => {
     fetchThreadReservations,
     updateThreadStatus,
     markAsRead,
+    snoozeThread,
+    generateAISummary,
     getUnreadCount,
+    getSnoozedCount,
   } = useGuestInbox();
 
   const [selectedThread, setSelectedThread] = useState<InboxThread | null>(null);
@@ -35,6 +38,7 @@ const InboxPage = () => {
         filter={filter}
         onFilterChange={setFilter}
         unreadCount={getUnreadCount()}
+        snoozedCount={getSnoozedCount()}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
@@ -51,6 +55,8 @@ const InboxPage = () => {
       <ConversationThread
         thread={selectedThread}
         onStatusChange={updateThreadStatus}
+        onSnooze={snoozeThread}
+        onGenerateSummary={generateAISummary}
         fetchMessages={fetchThreadMessages}
         fetchReservations={fetchThreadReservations}
       />

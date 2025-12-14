@@ -17,6 +17,9 @@ export interface InboxThread {
   reservation_count: number;
   created_at: string;
   updated_at: string;
+  snoozed_until: string | null;
+  ai_summary: string | null;
+  ai_summary_updated_at: string | null;
 }
 
 export interface ThreadMessage {
@@ -31,6 +34,8 @@ export interface ThreadMessage {
   sent_at: string | null;
   created_at: string;
   sender_email: string | null;
+  source_platform: string | null;
+  external_message_id: string | null;
 }
 
 export interface ThreadReservation {
@@ -47,7 +52,7 @@ export interface ThreadReservation {
   };
 }
 
-export type InboxFilter = 'all' | 'unread' | 'awaiting_reply' | 'resolved' | 'starred';
+export type InboxFilter = 'all' | 'unread' | 'awaiting_reply' | 'resolved' | 'starred' | 'snoozed';
 
 export function useGuestInbox() {
   const { organization } = useCurrentOrganization();
@@ -77,6 +82,8 @@ export function useGuestInbox() {
         query = query.eq('status', 'resolved');
       } else if (filter === 'starred') {
         query = query.eq('status', 'starred');
+      } else if (filter === 'snoozed') {
+        query = query.not('snoozed_until', 'is', null);
       }
 
       const { data, error } = await query;
@@ -185,8 +192,90 @@ export function useGuestInbox() {
     return true;
   }, []);
 
+  const snoozeThread = useCallback(async (threadId: string, until: Date | null) => {
+    const { error } = await supabase
+      .from('guest_inbox_threads')
+      .update({ 
+        snoozed_until: until ? until.toISOString() : null,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', threadId);
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to snooze thread',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    setThreads(prev => prev.map(t => 
+      t.id === threadId ? { ...t, snoozed_until: until?.toISOString() || null } : t
+    ));
+    toast({
+      title: until ? 'Thread snoozed' : 'Snooze removed',
+      description: until ? `Will reappear ${until.toLocaleDateString()}` : 'Thread is now active',
+    });
+    return true;
+  }, [toast]);
+
+  const generateAISummary = useCallback(async (threadId: string, messages: ThreadMessage[]) => {
+    if (messages.length === 0) return null;
+
+    try {
+      const messageHistory = messages.map(m => 
+        `[${m.direction === 'inbound' ? 'Guest' : 'Host'}] ${m.message_content}`
+      ).join('\n');
+
+      const { data, error } = await supabase.functions.invoke('ai-unified-chat', {
+        body: {
+          message: `Summarize this guest conversation in 2-3 sentences. Focus on key requests, issues, and their resolution status:\n\n${messageHistory}`,
+          systemPrompt: 'You are a helpful assistant that summarizes guest communications for property managers. Be concise and highlight action items.',
+        },
+      });
+
+      if (error) throw error;
+
+      const summary = data?.response || data?.message || null;
+      
+      if (summary) {
+        await supabase
+          .from('guest_inbox_threads')
+          .update({ 
+            ai_summary: summary,
+            ai_summary_updated_at: new Date().toISOString(),
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', threadId);
+
+        setThreads(prev => prev.map(t => 
+          t.id === threadId ? { 
+            ...t, 
+            ai_summary: summary,
+            ai_summary_updated_at: new Date().toISOString()
+          } : t
+        ));
+      }
+
+      return summary;
+    } catch (error) {
+      console.error('Error generating AI summary:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate AI summary',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  }, [toast]);
+
   const getUnreadCount = useCallback(() => {
     return threads.filter(t => !t.is_read).length;
+  }, [threads]);
+
+  const getSnoozedCount = useCallback(() => {
+    return threads.filter(t => t.snoozed_until && new Date(t.snoozed_until) > new Date()).length;
   }, [threads]);
 
   useEffect(() => {
@@ -230,6 +319,9 @@ export function useGuestInbox() {
     fetchThreadReservations,
     updateThreadStatus,
     markAsRead,
+    snoozeThread,
+    generateAISummary,
     getUnreadCount,
+    getSnoozedCount,
   };
 }
