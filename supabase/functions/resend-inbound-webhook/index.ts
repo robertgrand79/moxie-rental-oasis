@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Webhook } from "https://esm.sh/svix@1.15.0";
+import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,6 +9,7 @@ const corsHeaders = {
 };
 
 interface ResendInboundEmail {
+  email_id: string;
   from: string;
   to: string[];
   cc?: string[];
@@ -21,6 +23,16 @@ interface ResendInboundEmail {
     content_type: string;
     content: string;
   }>;
+}
+
+interface ResendEmailResponse {
+  id: string;
+  from: string;
+  to: string[];
+  subject: string;
+  text?: string;
+  html?: string;
+  created_at: string;
 }
 
 serve(async (req) => {
@@ -85,25 +97,20 @@ serve(async (req) => {
     }
 
     const emailData = payload.data;
+    const emailId = emailData.email_id;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Log full payload for debugging
-    console.log("Full email payload received:", JSON.stringify(emailData, null, 2));
-
-    console.log("Received inbound email webhook:", {
+    console.log("Webhook payload received:", {
+      emailId,
       from: emailData.from,
       to: emailData.to,
       subject: emailData.subject,
-      hasText: !!emailData.text,
-      hasHtml: !!emailData.html,
-      textLength: emailData.text?.length || 0,
-      htmlLength: emailData.html?.length || 0,
     });
 
-    // Extract sender email from the "from" field (format: "Name <email@domain.com>" or just "email@domain.com")
+    // Extract sender email
     const fromMatch = emailData.from?.match(/<(.+)>/) || [null, emailData.from];
     const senderEmail = fromMatch[1]?.toLowerCase().trim();
 
@@ -115,6 +122,91 @@ serve(async (req) => {
       );
     }
 
+    // Get recipient domain to find organization
+    const recipientEmail = emailData.to?.[0];
+    const recipientDomain = recipientEmail?.split('@')[1]?.toLowerCase();
+    
+    console.log("Looking up organization for domain:", recipientDomain);
+
+    // Find organization by matching email domain
+    let resendApiKey = Deno.env.get("RESEND_API_KEY") || "";
+    
+    if (recipientDomain) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('id, resend_api_key')
+        .or(`website.ilike.%${recipientDomain}%,custom_domain.ilike.%${recipientDomain}%`)
+        .single();
+      
+      if (org?.resend_api_key) {
+        try {
+          resendApiKey = isEncrypted(org.resend_api_key) 
+            ? await decryptApiKey(org.resend_api_key) 
+            : org.resend_api_key;
+          console.log("Using organization-level Resend API key");
+        } catch (e) {
+          console.warn("Failed to decrypt org API key, using global:", e);
+        }
+      }
+    }
+
+    // Fetch full email content from Resend API
+    let messageContent = "";
+    
+    if (emailId && resendApiKey) {
+      console.log("Fetching full email content from Resend API for email:", emailId);
+      
+      try {
+        const emailResponse = await fetch(`https://api.resend.com/emails/${emailId}`, {
+          headers: { 
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json'
+          },
+        });
+        
+        if (emailResponse.ok) {
+          const fullEmailData: ResendEmailResponse = await emailResponse.json();
+          console.log("Full email data received:", {
+            hasText: !!fullEmailData.text,
+            hasHtml: !!fullEmailData.html,
+            textLength: fullEmailData.text?.length || 0,
+            htmlLength: fullEmailData.html?.length || 0,
+          });
+          
+          messageContent = fullEmailData.text || "";
+          if (!messageContent && fullEmailData.html) {
+            // Basic HTML stripping
+            messageContent = fullEmailData.html
+              .replace(/<[^>]*>/g, "")
+              .replace(/&nbsp;/g, " ")
+              .replace(/&amp;/g, "&")
+              .replace(/&lt;/g, "<")
+              .replace(/&gt;/g, ">")
+              .trim();
+          }
+        } else {
+          console.error("Failed to fetch email content:", emailResponse.status, await emailResponse.text());
+        }
+      } catch (e) {
+        console.error("Error fetching email content from Resend:", e);
+      }
+    }
+
+    // Fallback to webhook data if API fetch failed
+    if (!messageContent) {
+      messageContent = emailData.text || "";
+      if (!messageContent && emailData.html) {
+        messageContent = emailData.html
+          .replace(/<[^>]*>/g, "")
+          .replace(/&nbsp;/g, " ")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .trim();
+      }
+    }
+
+    console.log("Final message content length:", messageContent.length);
     console.log("Looking up reservations for sender:", senderEmail);
 
     // Find reservation(s) associated with this email address
@@ -127,19 +219,6 @@ serve(async (req) => {
 
     if (reservationError) {
       console.error("Error fetching reservations:", reservationError);
-    }
-
-    // Get message content - prefer text, fallback to stripped HTML
-    let messageContent = emailData.text || "";
-    if (!messageContent && emailData.html) {
-      // Basic HTML stripping
-      messageContent = emailData.html
-        .replace(/<[^>]*>/g, "")
-        .replace(/&nbsp;/g, " ")
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .trim();
     }
 
     // Store the inbound email
