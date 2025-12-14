@@ -434,17 +434,17 @@ const AdminOrganization = () => {
               <CardHeader>
                 <CardTitle>Communications Settings</CardTitle>
                 <CardDescription>
-                  Configure SMS (OpenPhone) and Email (Resend) API keys for guest messaging.
+                  Configure SMS (QUO) and Email (Resend) API keys for guest messaging.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleUpdateCommunications} className="space-y-4">
                   <div>
-                    <Label htmlFor="openphone_api_key">OpenPhone API Key</Label>
+                    <Label htmlFor="openphone_api_key">QUO API Key</Label>
                     <Input
                       id="openphone_api_key"
                       type="password"
-                      placeholder="Enter your OpenPhone API key"
+                      placeholder="Enter your QUO API key"
                       value={formData.openphone_api_key}
                       onChange={(e) => setFormData({ ...formData, openphone_api_key: e.target.value })}
                       disabled={!isOrgAdmin()}

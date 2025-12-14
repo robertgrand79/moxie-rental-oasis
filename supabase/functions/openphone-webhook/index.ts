@@ -39,23 +39,23 @@ const handler = async (req: Request): Promise<Response> => {
     const orgId = url.searchParams.get("org");
 
     if (!orgId) {
-      console.error("[OpenPhone Webhook] Missing org parameter");
+      console.error("[QUO Webhook] Missing org parameter");
       return new Response(
         JSON.stringify({ error: "Missing org parameter" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("[OpenPhone Webhook] Processing for organization:", orgId);
+    console.log("[QUO Webhook] Processing for organization:", orgId);
 
     // Parse webhook payload
     const payload: OpenPhoneWebhookEvent = await req.json();
-    console.log("[OpenPhone Webhook] Event type:", payload.type);
-    console.log("[OpenPhone Webhook] Payload:", JSON.stringify(payload, null, 2));
+    console.log("[QUO Webhook] Event type:", payload.type);
+    console.log("[QUO Webhook] Payload:", JSON.stringify(payload, null, 2));
 
     // Only process inbound messages
     if (payload.type !== "message.received") {
-      console.log("[OpenPhone Webhook] Ignoring event type:", payload.type);
+      console.log("[QUO Webhook] Ignoring event type:", payload.type);
       return new Response(
         JSON.stringify({ success: true, message: "Event type ignored" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -67,8 +67,8 @@ const handler = async (req: Request): Promise<Response> => {
     const messageBody = message.body;
     const receivedAt = message.createdAt;
 
-    console.log("[OpenPhone Webhook] Inbound SMS from:", senderPhone);
-    console.log("[OpenPhone Webhook] Message body:", messageBody);
+    console.log("[QUO Webhook] Inbound SMS from:", senderPhone);
+    console.log("[QUO Webhook] Message body:", messageBody);
 
     // Get organization's properties
     const { data: properties, error: propsError } = await supabase
@@ -77,12 +77,12 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("organization_id", orgId);
 
     if (propsError) {
-      console.error("[OpenPhone Webhook] Error fetching properties:", propsError);
+      console.error("[QUO Webhook] Error fetching properties:", propsError);
       throw propsError;
     }
 
     const propertyIds = properties?.map(p => p.id) || [];
-    console.log("[OpenPhone Webhook] Organization property IDs:", propertyIds);
+    console.log("[QUO Webhook] Organization property IDs:", propertyIds);
 
     // Normalize phone number for matching (remove non-digits except leading +)
     const normalizePhone = (phone: string) => {
@@ -98,7 +98,7 @@ const handler = async (req: Request): Promise<Response> => {
       .order("created_at", { ascending: false });
 
     if (resError) {
-      console.error("[OpenPhone Webhook] Error fetching reservations:", resError);
+      console.error("[QUO Webhook] Error fetching reservations:", resError);
       throw resError;
     }
 
@@ -110,7 +110,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (!matchingReservation) {
-      console.log("[OpenPhone Webhook] No matching reservation found for phone:", senderPhone);
+      console.log("[QUO Webhook] No matching reservation found for phone:", senderPhone);
       // Store as orphan message or log - for now just acknowledge
       return new Response(
         JSON.stringify({ 
@@ -122,7 +122,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log("[OpenPhone Webhook] Found matching reservation:", matchingReservation.id);
+    console.log("[QUO Webhook] Found matching reservation:", matchingReservation.id);
 
     // Store inbound SMS in guest_communications
     const { data: communication, error: insertError } = await supabase
@@ -142,11 +142,11 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (insertError) {
-      console.error("[OpenPhone Webhook] Error inserting communication:", insertError);
+      console.error("[QUO Webhook] Error inserting communication:", insertError);
       throw insertError;
     }
 
-    console.log("[OpenPhone Webhook] Stored inbound SMS:", communication.id);
+    console.log("[QUO Webhook] Stored inbound SMS:", communication.id);
 
     return new Response(
       JSON.stringify({ 
@@ -159,7 +159,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error) {
-    console.error("[OpenPhone Webhook] Error:", error);
+    console.error("[QUO Webhook] Error:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

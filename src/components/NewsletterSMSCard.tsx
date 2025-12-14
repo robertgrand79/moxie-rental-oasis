@@ -93,7 +93,7 @@ const NewsletterSMSCard = () => {
           </div>
           <div className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-blue-500" />
-            <span>Powered by OpenPhone for reliable delivery</span>
+            <span>Powered by QUO for reliable delivery</span>
           </div>
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-purple-500" />
