@@ -2604,6 +2604,8 @@ export type Database = {
           onboarding_completed: boolean | null
           onboarding_step: number | null
           openphone_api_key: string | null
+          openphone_phone_number: string | null
+          openphone_webhook_secret: string | null
           openweather_api_key: string | null
           pricelabs_api_key: string | null
           resend_api_key: string | null
@@ -2637,6 +2639,8 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
           openphone_api_key?: string | null
+          openphone_phone_number?: string | null
+          openphone_webhook_secret?: string | null
           openweather_api_key?: string | null
           pricelabs_api_key?: string | null
           resend_api_key?: string | null
@@ -2670,6 +2674,8 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
           openphone_api_key?: string | null
+          openphone_phone_number?: string | null
+          openphone_webhook_secret?: string | null
           openweather_api_key?: string | null
           pricelabs_api_key?: string | null
           resend_api_key?: string | null

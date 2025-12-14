@@ -127,6 +127,9 @@ verify_jwt = false
 [functions.fetch-website-image]
 verify_jwt = false
 
+[functions.openphone-webhook]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323

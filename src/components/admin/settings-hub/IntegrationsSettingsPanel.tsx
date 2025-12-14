@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, Lock, Plug, CheckCircle2, AlertCircle, Map, Bot, Shield, Loader2 } from 'lucide-react';
+import { MessageSquare, Lock, Plug, CheckCircle2, AlertCircle, Map, Bot, Shield, Loader2, Copy, ExternalLink } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useSecureApiKeys } from '@/hooks/useSecureApiKeys';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import AssistantSettingsTab from '@/components/admin/settings/AssistantSettingsTab';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const ConfigStatus = ({ configured }: { configured: boolean }) => (
   <span className={`flex items-center gap-1 text-sm ${configured ? 'text-green-600' : 'text-muted-foreground'}`}>
@@ -30,9 +32,11 @@ const IntegrationsSettingsPanel = () => {
   const { organization, isOrgAdmin, refetch } = useCurrentOrganization();
   const { setApiKey, loading } = useSecureApiKeys();
   const { settings, saveSetting } = useSimplifiedSiteSettings();
+  const { toast } = useToast();
   
   const [formData, setFormData] = useState({
     openphone_api_key: '',
+    openphone_phone_number: '',
     resend_api_key: '',
     seam_api_key: '',
     seam_webhook_secret: '',
@@ -57,6 +61,7 @@ const IntegrationsSettingsPanel = () => {
     if (organization) {
       const org = organization as typeof organization & {
         openphone_api_key?: string;
+        openphone_phone_number?: string;
         resend_api_key?: string;
         seam_api_key?: string;
         turno_api_token?: string;
@@ -75,10 +80,23 @@ const IntegrationsSettingsPanel = () => {
       
       setFormData(prev => ({
         ...prev,
+        openphone_phone_number: org.openphone_phone_number || '',
         mapboxToken: settings?.mapboxToken || '',
       }));
     }
   }, [organization, settings]);
+
+  const openphoneWebhookUrl = organization 
+    ? `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/openphone-webhook?org=${organization.id}`
+    : '';
+
+  const copyWebhookUrl = () => {
+    navigator.clipboard.writeText(openphoneWebhookUrl);
+    toast({
+      title: "Copied!",
+      description: "Webhook URL copied to clipboard",
+    });
+  };
 
   const handleUpdateCommunications = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +110,19 @@ const IntegrationsSettingsPanel = () => {
     if (formData.resend_api_key) {
       success = await setApiKey(organization.id, 'resend_api_key', formData.resend_api_key) && success;
     }
+    
+    // Update phone number directly in organizations table
+    if (formData.openphone_phone_number !== (organization as any).openphone_phone_number) {
+      const { error } = await supabase
+        .from('organizations')
+        .update({ openphone_phone_number: formData.openphone_phone_number })
+        .eq('id', organization.id);
+      
+      if (error) {
+        console.error('Error updating phone number:', error);
+        success = false;
+      }
+    }
 
     if (success) {
       setFormData(prev => ({
@@ -100,6 +131,10 @@ const IntegrationsSettingsPanel = () => {
         resend_api_key: '',
       }));
       refetch();
+      toast({
+        title: "Settings saved",
+        description: "Communications settings updated successfully",
+      });
     }
   };
 
@@ -215,35 +250,100 @@ const IntegrationsSettingsPanel = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleUpdateCommunications} className="space-y-4">
-                <div>
-                  <Label htmlFor="openphone_api_key">OpenPhone API Key</Label>
-                  <Input
-                    id="openphone_api_key"
-                    type="password"
-                    placeholder={configuredKeys.openphone_api_key ? '••••••••••••••••' : 'Enter your OpenPhone API key'}
-                    value={formData.openphone_api_key}
-                    onChange={(e) => setFormData({ ...formData, openphone_api_key: e.target.value })}
-                    disabled={!isOrgAdmin() || loading}
-                  />
-                  <div className="mt-1">
-                    <ConfigStatus configured={configuredKeys.openphone_api_key} />
+              <form onSubmit={handleUpdateCommunications} className="space-y-6">
+                {/* OpenPhone Section */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">OpenPhone SMS</h4>
+                  
+                  <div>
+                    <Label htmlFor="openphone_api_key">OpenPhone API Key</Label>
+                    <Input
+                      id="openphone_api_key"
+                      type="password"
+                      placeholder={configuredKeys.openphone_api_key ? '••••••••••••••••' : 'Enter your OpenPhone API key'}
+                      value={formData.openphone_api_key}
+                      onChange={(e) => setFormData({ ...formData, openphone_api_key: e.target.value })}
+                      disabled={!isOrgAdmin() || loading}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={configuredKeys.openphone_api_key} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="openphone_phone_number">OpenPhone Phone Number</Label>
+                    <Input
+                      id="openphone_phone_number"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      value={formData.openphone_phone_number}
+                      onChange={(e) => setFormData({ ...formData, openphone_phone_number: e.target.value })}
+                      disabled={!isOrgAdmin() || loading}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your OpenPhone number used for sending/receiving SMS
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label>Webhook URL (for inbound SMS)</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        value={openphoneWebhookUrl}
+                        readOnly
+                        className="font-mono text-xs bg-muted"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={copyWebhookUrl}
+                        title="Copy webhook URL"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="mt-2 p-3 bg-muted/50 rounded-md text-xs space-y-1">
+                      <p className="font-medium">To receive inbound SMS in your inbox:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                        <li>Go to OpenPhone Settings → Webhooks</li>
+                        <li>Click "Add Webhook"</li>
+                        <li>Paste the webhook URL above</li>
+                        <li>Select event: <code className="bg-background px-1 rounded">message.received</code></li>
+                        <li>Save the webhook</li>
+                      </ol>
+                      <a 
+                        href="https://www.openphone.com/docs/webhooks" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-primary hover:underline mt-2"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        OpenPhone Webhooks Documentation
+                      </a>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="resend_api_key">Resend API Key</Label>
-                  <Input
-                    id="resend_api_key"
-                    type="password"
-                    placeholder={configuredKeys.resend_api_key ? '••••••••••••••••' : 'Enter your Resend API key'}
-                    value={formData.resend_api_key}
-                    onChange={(e) => setFormData({ ...formData, resend_api_key: e.target.value })}
-                    disabled={!isOrgAdmin() || loading}
-                  />
-                  <div className="mt-1">
-                    <ConfigStatus configured={configuredKeys.resend_api_key} />
+
+                {/* Resend Section */}
+                <div className="space-y-4 pt-4 border-t">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Resend Email</h4>
+                  <div>
+                    <Label htmlFor="resend_api_key">Resend API Key</Label>
+                    <Input
+                      id="resend_api_key"
+                      type="password"
+                      placeholder={configuredKeys.resend_api_key ? '••••••••••••••••' : 'Enter your Resend API key'}
+                      value={formData.resend_api_key}
+                      onChange={(e) => setFormData({ ...formData, resend_api_key: e.target.value })}
+                      disabled={!isOrgAdmin() || loading}
+                    />
+                    <div className="mt-1">
+                      <ConfigStatus configured={configuredKeys.resend_api_key} />
+                    </div>
                   </div>
                 </div>
+
                 {isOrgAdmin() && (
                   <Button type="submit" disabled={loading}>
                     {loading ? (
