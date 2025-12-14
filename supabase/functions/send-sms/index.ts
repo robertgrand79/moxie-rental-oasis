@@ -77,12 +77,34 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('QUO API key not configured. Please add your QUO API key in Organization Settings or Supabase dashboard.');
     }
 
-    console.log(`📱 Sending SMS to ${to}: ${message.substring(0, 50)}...`);
+    // Format phone number to E.164 format (must start with +)
+    let formattedTo = to.trim();
+    if (!formattedTo.startsWith('+')) {
+      // Assume US number if no country code
+      formattedTo = formattedTo.startsWith('1') ? `+${formattedTo}` : `+1${formattedTo}`;
+    }
+
+    // Get the "from" phone number - required by QUO API
+    let fromPhoneId = from;
+    if (!fromPhoneId && effectiveOrgId) {
+      const { data: org } = await supabaseClient
+        .from('organizations')
+        .select('openphone_phone_number')
+        .eq('id', effectiveOrgId)
+        .single();
+      fromPhoneId = org?.openphone_phone_number;
+    }
+
+    if (!fromPhoneId) {
+      throw new Error('No sender phone number configured. Please add your QUO phone number ID in Organization Settings.');
+    }
+
+    console.log(`📱 Sending SMS from ${fromPhoneId} to ${formattedTo}: ${message.substring(0, 50)}...`);
 
     const payload = {
-      to: [to],
-      content: message, // QUO API uses 'content' not 'text'
-      from: from || undefined, // Use default QUO number if not specified
+      to: [formattedTo],
+      content: message,
+      from: fromPhoneId,
     };
 
     // Track whether we used an org-level key first
