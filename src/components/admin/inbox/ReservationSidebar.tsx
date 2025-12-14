@@ -54,7 +54,7 @@ const ReservationSidebar: React.FC<ReservationSidebarProps> = ({
                 <Home className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="font-medium text-sm">
-                    {activeReservation.property?.name || 'Unknown Property'}
+                    {activeReservation.property?.title || 'Unknown Property'}
                   </p>
                 </div>
               </div>
@@ -108,7 +108,7 @@ const ReservationSidebar: React.FC<ReservationSidebarProps> = ({
                     }`}
                   >
                     <p className="font-medium truncate">
-                      {res.property?.name || 'Unknown Property'}
+                      {res.property?.title || 'Unknown Property'}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(res.check_in_date), 'MMM d')} - {format(new Date(res.check_out_date), 'MMM d')}

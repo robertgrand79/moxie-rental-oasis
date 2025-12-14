@@ -180,7 +180,7 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
             <SelectContent>
               {reservations.map((res) => (
                 <SelectItem key={res.id} value={res.id}>
-                  {res.property?.name} - {new Date(res.check_in_date).toLocaleDateString()}
+                  {res.property?.title} - {new Date(res.check_in_date).toLocaleDateString()}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -48,7 +48,7 @@ export interface ThreadReservation {
   check_out_date: string;
   booking_status: string;
   property?: {
-    name: string;
+    title: string;
   };
 }
 
@@ -142,7 +142,7 @@ export function useGuestInbox() {
         check_in_date,
         check_out_date,
         booking_status,
-        properties:property_id (name)
+        properties:property_id (title)
       `)
       .eq('guest_email', guestEmail)
       .order('check_in_date', { ascending: false });
@@ -154,7 +154,7 @@ export function useGuestInbox() {
 
     return data.map(r => ({
       ...r,
-      property: r.properties ? { name: (r.properties as any).name } : undefined
+      property: r.properties ? { title: (r.properties as any).title } : undefined
     })) as ThreadReservation[];
   }, []);
 
