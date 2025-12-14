@@ -370,7 +370,7 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
                   <div className="flex items-center gap-2 mb-1">
                     <Home className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="font-medium truncate">
-                      {res.property?.name || 'Unknown Property'}
+                      {res.property?.title || 'Unknown Property'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
