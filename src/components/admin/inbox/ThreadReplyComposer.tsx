@@ -195,13 +195,18 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <Label className="shrink-0 text-sm">Reservation:</Label>
           <Select value={selectedReservationId} onValueChange={setSelectedReservationId}>
-            <SelectTrigger className="flex-1 h-10">
+            <SelectTrigger className="flex-1 h-12 sm:h-10">
               <SelectValue placeholder="Select reservation" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper" className="z-[100]">
               {reservations.map((res) => (
-                <SelectItem key={res.id} value={res.id}>
-                  {res.property?.title} - {new Date(res.check_in_date).toLocaleDateString()}
+                <SelectItem key={res.id} value={res.id} className="py-3">
+                  <div className="flex flex-col">
+                    <span className="font-medium">{res.property?.title}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(res.check_in_date).toLocaleDateString()}
+                    </span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
