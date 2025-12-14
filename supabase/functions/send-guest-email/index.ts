@@ -86,13 +86,17 @@ serve(async (req: Request): Promise<Response> => {
     let fromEmail = "noreply@moxievacationrentals.com";
     let fromName = "Moxie Vacation Rentals";
     let replyTo = "reply@inbound.moxievacationrentals.com";
+    let siteName = "Moxie Vacation Rentals";
+    let contactEmail = "";
+    let contactPhone = "";
+    let contactAddress = "";
 
     if (orgId) {
       const { data: settings } = await supabase
         .from("site_settings")
         .select("key, value")
         .eq("organization_id", orgId)
-        .in("key", ["emailFromAddress", "emailFromName", "emailReplyTo", "siteName"]);
+        .in("key", ["emailFromAddress", "emailFromName", "emailReplyTo", "siteName", "contactEmail", "phone", "address"]);
 
       if (settings) {
         const settingsMap = settings.reduce((acc: Record<string, string>, s: { key: string; value: string }) => {
@@ -101,8 +105,12 @@ serve(async (req: Request): Promise<Response> => {
         }, {});
 
         fromEmail = settingsMap.emailFromAddress || fromEmail;
-        fromName = settingsMap.emailFromName || settingsMap.siteName || fromName;
+        fromName = settingsMap.siteName || settingsMap.emailFromName || fromName;
         replyTo = settingsMap.emailReplyTo || replyTo;
+        siteName = settingsMap.siteName || fromName;
+        contactEmail = settingsMap.contactEmail || "";
+        contactPhone = settingsMap.phone || "";
+        contactAddress = settingsMap.address || "";
       }
     }
 
@@ -156,7 +164,16 @@ serve(async (req: Request): Promise<Response> => {
 
     const resend = new Resend(resendApiKey);
 
-    // Build professional HTML email
+    // Build contact info section for footer
+    const contactInfoLines = [];
+    if (contactEmail) contactInfoLines.push(`Email: ${contactEmail}`);
+    if (contactPhone) contactInfoLines.push(`Phone: ${contactPhone}`);
+    if (contactAddress) contactInfoLines.push(contactAddress);
+    const contactInfoHtml = contactInfoLines.length > 0 
+      ? `<p style="margin: 8px 0 0; color: #6b7280; font-size: 13px;">${contactInfoLines.join('<br>')}</p>` 
+      : '';
+
+    // Build professional HTML email with lighter colors
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -165,20 +182,20 @@ serve(async (req: Request): Promise<Response> => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 12px 12px 0 0;">
-    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">${fromName}</h1>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+  <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; border-radius: 12px 12px 0 0;">
+    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">${siteName}</h1>
   </div>
   
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
-    <p style="margin-top: 0;">Hi ${reservation.guest_name || 'Guest'},</p>
+    <p style="margin-top: 0; color: #374151;">Hi ${reservation.guest_name || 'Guest'},</p>
     
-    <div style="white-space: pre-wrap;">${message}</div>
+    <div style="white-space: pre-wrap; color: #374151;">${message}</div>
     
     ${reservation.properties?.title ? `
-    <div style="margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #3b82f6;">
+    <div style="margin-top: 24px; padding: 16px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
       <p style="margin: 0; font-weight: 600; color: #1e40af;">Your Reservation</p>
-      <p style="margin: 8px 0 0 0; color: #64748b;">
+      <p style="margin: 8px 0 0 0; color: #475569;">
         ${reservation.properties.title}<br>
         ${reservation.check_in_date ? `Check-in: ${new Date(reservation.check_in_date).toLocaleDateString()}` : ''}<br>
         ${reservation.check_out_date ? `Check-out: ${new Date(reservation.check_out_date).toLocaleDateString()}` : ''}
@@ -187,9 +204,10 @@ serve(async (req: Request): Promise<Response> => {
     ` : ''}
   </div>
   
-  <div style="background: #f8fafc; padding: 20px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb; border-top: none; text-align: center;">
-    <p style="margin: 0; color: #64748b; font-size: 14px;">
-      This email was sent by ${fromName}.<br>
+  <div style="background: #f8fafc; padding: 24px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb; border-top: none; text-align: center;">
+    <p style="margin: 0; font-weight: 600; color: #374151; font-size: 15px;">${siteName}</p>
+    ${contactInfoHtml}
+    <p style="margin: 16px 0 0; color: #9ca3af; font-size: 12px;">
       Simply reply to this email if you have any questions.
     </p>
   </div>
