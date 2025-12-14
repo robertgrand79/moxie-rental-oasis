@@ -372,8 +372,8 @@ const GuestCommunication = () => {
           <CardDescription>Send an email or SMS to your guests</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Row 1: Reservation, Message Type, Channel */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Row 1: Reservation, Message Type */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium">Select Reservation</label>
               <Select value={selectedReservation} onValueChange={setSelectedReservation}>
@@ -406,33 +406,34 @@ const GuestCommunication = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            <div>
-              <label className="text-sm font-medium">Delivery Channel</label>
-              <ToggleGroup
-                type="single"
-                value={channel}
-                onValueChange={(value) => value && setChannel(value as DeliveryChannel)}
-                className="mt-1 justify-start"
-              >
-                <ToggleGroupItem value="email" aria-label="Email only" className="gap-1.5">
-                  <Mail className="h-4 w-4" />
-                  Email
-                </ToggleGroupItem>
-                <ToggleGroupItem value="sms" aria-label="SMS only" className="gap-1.5">
-                  <Phone className="h-4 w-4" />
-                  SMS
-                </ToggleGroupItem>
-                <ToggleGroupItem value="both" aria-label="Both Email and SMS" className="gap-1.5">
-                  <Mail className="h-4 w-4" />
-                  <Phone className="h-4 w-4" />
-                  Both
-                </ToggleGroupItem>
-              </ToggleGroup>
-              {(channel === 'sms' || channel === 'both') && selectedReservationData && !selectedReservationData.guest_phone && (
-                <p className="text-xs text-destructive mt-1">⚠️ No phone number on file for this guest</p>
-              )}
-            </div>
+          {/* Row 2: Delivery Channel */}
+          <div>
+            <label className="text-sm font-medium">Delivery Channel</label>
+            <ToggleGroup
+              type="single"
+              value={channel}
+              onValueChange={(value) => value && setChannel(value as DeliveryChannel)}
+              className="mt-1 justify-start"
+            >
+              <ToggleGroupItem value="email" aria-label="Email only" className="gap-1.5">
+                <Mail className="h-4 w-4" />
+                Email
+              </ToggleGroupItem>
+              <ToggleGroupItem value="sms" aria-label="SMS only" className="gap-1.5">
+                <Phone className="h-4 w-4" />
+                SMS
+              </ToggleGroupItem>
+              <ToggleGroupItem value="both" aria-label="Both Email and SMS" className="gap-1.5">
+                <Mail className="h-4 w-4" />
+                <Phone className="h-4 w-4" />
+                Both
+              </ToggleGroupItem>
+            </ToggleGroup>
+            {(channel === 'sms' || channel === 'both') && selectedReservationData && !selectedReservationData.guest_phone && (
+              <p className="text-xs text-destructive mt-1">⚠️ No phone number on file for this guest</p>
+            )}
           </div>
 
           {/* Row 2: Subject (conditional) */}
