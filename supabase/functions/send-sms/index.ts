@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
+import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -57,6 +57,10 @@ const handler = async (req: Request): Promise<Response> => {
         .single();
       openPhoneApiKey = org?.openphone_api_key;
       if (openPhoneApiKey) {
+        // Decrypt if stored encrypted
+        if (isEncrypted(openPhoneApiKey)) {
+          openPhoneApiKey = await decryptApiKey(openPhoneApiKey);
+        }
         console.log('Using organization-level OpenPhone API key');
       }
     }
