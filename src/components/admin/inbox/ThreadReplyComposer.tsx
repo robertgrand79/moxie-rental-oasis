@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { InboxThread, ThreadReservation } from '@/hooks/useGuestInbox';
+import { InboxThread, ThreadReservation, ThreadMessage } from '@/hooks/useGuestInbox';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +14,7 @@ import { Mail, Phone, Send, X, Loader2 } from 'lucide-react';
 interface ThreadReplyComposerProps {
   thread: InboxThread;
   reservations: ThreadReservation[];
+  replyToMessage?: ThreadMessage | null;
   onSent: () => void;
   onCancel: () => void;
 }
@@ -21,6 +22,7 @@ interface ThreadReplyComposerProps {
 const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
   thread,
   reservations,
+  replyToMessage,
   onSent,
   onCancel,
 }) => {
@@ -38,6 +40,25 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
       setSelectedReservationId(reservations[0].id);
     }
   }, [reservations, selectedReservationId]);
+
+  // Pre-fill subject and channel when replying to a specific message
+  useEffect(() => {
+    if (replyToMessage) {
+      // Set channel based on original message type
+      if (replyToMessage.message_type === 'sms') {
+        setChannel('sms');
+      } else {
+        setChannel('email');
+        // Pre-fill subject with Re: prefix
+        if (replyToMessage.subject && replyToMessage.subject !== 'SMS Message') {
+          const reSubject = replyToMessage.subject.startsWith('Re:') 
+            ? replyToMessage.subject 
+            : `Re: ${replyToMessage.subject}`;
+          setSubject(reSubject);
+        }
+      }
+    }
+  }, [replyToMessage]);
 
   const canSendEmail = !!thread.guest_email;
   const canSendSms = !!thread.guest_phone;

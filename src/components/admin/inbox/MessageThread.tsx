@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { InboxThread, ThreadMessage, ThreadReservation } from '@/hooks/useGuestInbox';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,7 +18,8 @@ import {
   MessageSquare,
   Send,
   AlarmClock,
-  MoreHorizontal
+  MoreHorizontal,
+  Reply
 } from 'lucide-react';
 import { format, addHours } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -45,8 +46,19 @@ const MessageThread: React.FC<MessageThreadProps> = ({
 }) => {
   const { organization } = useCurrentOrganization();
   const [showComposer, setShowComposer] = useState(false);
+  const [replyContext, setReplyContext] = useState<ThreadMessage | null>(null);
+  const composerRef = useRef<HTMLDivElement>(null);
 
   const isSnoozed = thread.snoozed_until && new Date(thread.snoozed_until) > new Date();
+
+  const handleQuickReply = (message: ThreadMessage) => {
+    setReplyContext(message);
+    setShowComposer(true);
+    // Scroll to composer after a brief delay to allow it to render
+    setTimeout(() => {
+      composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 100);
+  };
 
   const handleToggleStar = () => {
     const newStatus = thread.status === 'starred' ? 'active' : 'starred';
@@ -201,15 +213,28 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                   {/* Message content */}
                   <p className="text-sm whitespace-pre-wrap">{message.message_content}</p>
                   
-                  {/* Timestamp */}
+                  {/* Timestamp and Reply button */}
                   <div className={cn(
-                    'text-xs mt-1',
+                    'flex items-center justify-between gap-2 text-xs mt-1',
                     message.direction === 'outbound' ? 'text-primary-foreground/60' : 'text-muted-foreground'
                   )}>
-                    {message.sent_at 
-                      ? format(new Date(message.sent_at), 'MMM d, h:mm a')
-                      : format(new Date(message.created_at), 'MMM d, h:mm a')
-                    }
+                    <span>
+                      {message.sent_at 
+                        ? format(new Date(message.sent_at), 'MMM d, h:mm a')
+                        : format(new Date(message.created_at), 'MMM d, h:mm a')
+                      }
+                    </span>
+                    {message.direction === 'inbound' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 px-1.5 text-xs opacity-70 hover:opacity-100 -mr-1"
+                        onClick={() => handleQuickReply(message)}
+                      >
+                        <Reply className="h-3 w-3 mr-1" />
+                        Reply
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -219,16 +244,21 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       </ScrollArea>
 
       {/* Reply composer */}
-      <div className="border-t p-4 bg-background shrink-0">
+      <div ref={composerRef} className="border-t p-4 bg-background shrink-0">
         {showComposer ? (
           <ThreadReplyComposer
             thread={thread}
             reservations={reservations}
+            replyToMessage={replyContext}
             onSent={() => {
               setShowComposer(false);
+              setReplyContext(null);
               onRefresh();
             }}
-            onCancel={() => setShowComposer(false)}
+            onCancel={() => {
+              setShowComposer(false);
+              setReplyContext(null);
+            }}
           />
         ) : (
           <Button
