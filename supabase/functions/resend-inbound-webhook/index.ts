@@ -157,7 +157,7 @@ serve(async (req) => {
       console.log("Fetching full email content from Resend API for email:", emailId);
       
       try {
-        const emailResponse = await fetch(`https://api.resend.com/emails/${emailId}`, {
+        const emailResponse = await fetch(`https://api.resend.com/emails/receiving/${emailId}`, {
           headers: { 
             'Authorization': `Bearer ${resendApiKey}`,
             'Content-Type': 'application/json'
