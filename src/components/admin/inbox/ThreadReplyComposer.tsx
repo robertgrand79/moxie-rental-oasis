@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { InboxThread, ThreadReservation } from '@/hooks/useGuestInbox';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
   onCancel,
 }) => {
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
   const [channel, setChannel] = useState<'email' | 'sms' | 'both'>('email');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -100,6 +102,7 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
           body: {
             to: thread.guest_phone,
             message,
+            organizationId: organization?.id,
           },
         });
 
