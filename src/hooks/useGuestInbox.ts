@@ -115,6 +115,30 @@ export function useGuestInbox() {
     }
   }, [organization?.id, filter, searchQuery, toast]);
 
+  // Fetch a single thread by ID (for direct navigation after refresh)
+  const fetchThreadById = useCallback(async (threadId: string): Promise<InboxThread | null> => {
+    if (!organization?.id) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('guest_inbox_threads')
+        .select('*')
+        .eq('id', threadId)
+        .eq('organization_id', organization.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching thread:', error);
+        return null;
+      }
+
+      return data as InboxThread;
+    } catch (error) {
+      console.error('Error fetching thread:', error);
+      return null;
+    }
+  }, [organization?.id]);
+
   const fetchThreadMessages = useCallback(async (threadId: string) => {
     const { data, error } = await supabase
       .from('guest_communications')
@@ -328,6 +352,7 @@ export function useGuestInbox() {
     searchQuery,
     setSearchQuery,
     fetchThreads,
+    fetchThreadById,
     fetchThreadMessages,
     fetchThreadReservations,
     updateThreadStatus,
