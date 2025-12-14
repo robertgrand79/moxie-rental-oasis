@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGuestInbox, InboxThread } from '@/hooks/useGuestInbox';
 import InboxSidebar from '@/components/admin/inbox/InboxSidebar';
-import ConversationList from '@/components/admin/inbox/ConversationList';
-import ConversationThread from '@/components/admin/inbox/ConversationThread';
+import InboxConversationList from '@/components/admin/inbox/InboxConversationList';
 
 const InboxPage = () => {
+  const navigate = useNavigate();
   const {
     threads,
     loading,
@@ -12,23 +13,12 @@ const InboxPage = () => {
     setFilter,
     searchQuery,
     setSearchQuery,
-    fetchThreadMessages,
-    fetchThreadReservations,
-    updateThreadStatus,
-    markAsRead,
-    snoozeThread,
-    generateAISummary,
     getUnreadCount,
     getSnoozedCount,
   } = useGuestInbox();
 
-  const [selectedThread, setSelectedThread] = useState<InboxThread | null>(null);
-
-  const handleSelectThread = async (thread: InboxThread) => {
-    setSelectedThread(thread);
-    if (!thread.is_read) {
-      await markAsRead(thread.id);
-    }
+  const handleSelectThread = (thread: InboxThread) => {
+    navigate(`/admin/host/inbox/${thread.id}`);
   };
 
   return (
@@ -43,22 +33,11 @@ const InboxPage = () => {
         onSearchChange={setSearchQuery}
       />
 
-      {/* Conversation list */}
-      <ConversationList
+      {/* Full-width conversation list */}
+      <InboxConversationList
         threads={threads}
         loading={loading}
-        selectedThreadId={selectedThread?.id}
         onSelectThread={handleSelectThread}
-      />
-
-      {/* Thread detail / conversation view */}
-      <ConversationThread
-        thread={selectedThread}
-        onStatusChange={updateThreadStatus}
-        onSnooze={snoozeThread}
-        onGenerateSummary={generateAISummary}
-        fetchMessages={fetchThreadMessages}
-        fetchReservations={fetchThreadReservations}
       />
     </div>
   );
