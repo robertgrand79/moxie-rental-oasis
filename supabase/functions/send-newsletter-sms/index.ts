@@ -85,12 +85,12 @@ const handler = async (req: Request): Promise<Response> => {
         const smsResponse = await fetch('https://api.openphone.com/v1/messages', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${openPhoneApiKey}`,
+            'Authorization': openPhoneApiKey, // QUO API does NOT use Bearer prefix
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             to: [subscriber.phone],
-            text: personalizedMessage,
+            content: personalizedMessage, // QUO API uses 'content' not 'text'
           }),
         });
 

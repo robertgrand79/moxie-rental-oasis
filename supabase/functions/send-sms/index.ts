@@ -81,7 +81,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const payload = {
       to: [to],
-      text: message,
+      content: message, // QUO API uses 'content' not 'text'
       from: from || undefined, // Use default QUO number if not specified
     };
 
@@ -93,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
       return fetch('https://api.openphone.com/v1/messages', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': apiKey, // QUO API does NOT use Bearer prefix
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
