@@ -246,21 +246,21 @@ const IntegrationsSettingsPanel = () => {
             <CardHeader>
               <CardTitle>Communications</CardTitle>
               <CardDescription>
-                Configure SMS (OpenPhone) and Email (Resend) API keys for guest messaging.
+                Configure SMS (QUO) and Email (Resend) API keys for guest messaging.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleUpdateCommunications} className="space-y-6">
-                {/* OpenPhone Section */}
+                {/* QUO SMS Section */}
                 <div className="space-y-4">
-                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">OpenPhone SMS</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">QUO SMS</h4>
                   
                   <div>
-                    <Label htmlFor="openphone_api_key">OpenPhone API Key</Label>
+                    <Label htmlFor="openphone_api_key">QUO API Key</Label>
                     <Input
                       id="openphone_api_key"
                       type="password"
-                      placeholder={configuredKeys.openphone_api_key ? '••••••••••••••••' : 'Enter your OpenPhone API key'}
+                      placeholder={configuredKeys.openphone_api_key ? '••••••••••••••••' : 'Enter your QUO API key'}
                       value={formData.openphone_api_key}
                       onChange={(e) => setFormData({ ...formData, openphone_api_key: e.target.value })}
                       disabled={!isOrgAdmin() || loading}
@@ -271,7 +271,7 @@ const IntegrationsSettingsPanel = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="openphone_phone_number">OpenPhone Phone Number</Label>
+                    <Label htmlFor="openphone_phone_number">QUO Phone Number</Label>
                     <Input
                       id="openphone_phone_number"
                       type="tel"
@@ -281,7 +281,7 @@ const IntegrationsSettingsPanel = () => {
                       disabled={!isOrgAdmin() || loading}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Your OpenPhone number used for sending/receiving SMS
+                      Your QUO number used for sending/receiving SMS
                     </p>
                   </div>
 
@@ -306,7 +306,7 @@ const IntegrationsSettingsPanel = () => {
                     <div className="mt-2 p-3 bg-muted/50 rounded-md text-xs space-y-1">
                       <p className="font-medium">To receive inbound SMS in your inbox:</p>
                       <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                        <li>Go to OpenPhone Settings → Webhooks</li>
+                        <li>Go to QUO Settings → Webhooks</li>
                         <li>Click "Add Webhook"</li>
                         <li>Paste the webhook URL above</li>
                         <li>Select event: <code className="bg-background px-1 rounded">message.received</code></li>
@@ -319,7 +319,7 @@ const IntegrationsSettingsPanel = () => {
                         className="inline-flex items-center gap-1 text-primary hover:underline mt-2"
                       >
                         <ExternalLink className="h-3 w-3" />
-                        OpenPhone Webhooks Documentation
+                        QUO Webhooks Documentation
                       </a>
                     </div>
                   </div>

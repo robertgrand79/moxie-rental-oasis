@@ -179,7 +179,7 @@ const Features: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
             {[
               'Stripe', 'PriceLabs', 'SEAM', 'Airbnb', 'VRBO', 'Booking.com',
-              'Resend', 'OpenPhone', 'Turno', 'Google Calendar', 'Twilio', 'Zapier'
+              'Resend', 'QUO', 'Turno', 'Google Calendar', 'Twilio', 'Zapier'
             ].map((integration) => (
               <div key={integration} className="p-4 bg-background rounded-xl shadow-sm border border-border">
                 <div className="text-sm font-medium">{integration}</div>

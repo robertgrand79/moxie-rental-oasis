@@ -52,7 +52,7 @@ export const useNewsletterSMS = () => {
       let errorMessage = "Failed to send SMS newsletter.";
       
       if (err.message?.includes("API key")) {
-        errorMessage = "OpenPhone API key issue. Please check your configuration.";
+        errorMessage = "QUO API key issue. Please check your configuration.";
       } else if (err.message?.includes("rate limit")) {
         errorMessage = "SMS rate limit exceeded. Please wait before trying again.";
       } else if (err.message) {

@@ -199,7 +199,7 @@ export const TemplatePreviewModal = ({
                   <SettingRow label="Stripe" value={organization.stripe_secret_key} />
                   <SettingRow label="PriceLabs" value={organization.pricelabs_api_key} />
                   <SettingRow label="Resend (Email)" value={organization.resend_api_key} />
-                  <SettingRow label="OpenPhone (SMS)" value={organization.openphone_api_key} />
+                  <SettingRow label="QUO (SMS)" value={organization.openphone_api_key} />
                   <SettingRow label="SEAM (Smart Home)" value={organization.seam_api_key} />
                   <SettingRow label="Turno (Cleaning)" value={organization.turno_api_token} />
                 </div>

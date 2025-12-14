@@ -70,12 +70,12 @@ const handler = async (req: Request): Promise<Response> => {
     }
     
     if (!openPhoneApiKey) {
-      throw new Error('OPENPHONE_API_KEY not configured. Please add your OpenPhone API key in Organization Settings or Supabase dashboard.');
+      throw new Error('QUO API key not configured. Please add your QUO API key in Organization Settings or Supabase dashboard.');
     }
 
     console.log(`📱 Sending SMS to ${to}: ${message.substring(0, 50)}...`);
 
-    // Send SMS via OpenPhone API
+    // Send SMS via QUO API (OpenPhone)
     const smsResponse = await fetch('https://api.openphone.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -85,19 +85,19 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         to: [to],
         text: message,
-        from: from || undefined, // Use default OpenPhone number if not specified
+        from: from || undefined, // Use default QUO number if not specified
       }),
     });
 
     if (!smsResponse.ok) {
       const errorText = await smsResponse.text();
-      console.error(`❌ OpenPhone API error: ${smsResponse.status} ${smsResponse.statusText}`, errorText);
+      console.error(`❌ QUO API error: ${smsResponse.status} ${smsResponse.statusText}`, errorText);
       
       let errorMessage = 'Failed to send SMS';
       if (smsResponse.status === 401) {
-        errorMessage = 'Invalid OpenPhone API key. Please check your API key configuration.';
+        errorMessage = 'Invalid QUO API key. Please check your API key configuration.';
       } else if (smsResponse.status === 403) {
-        errorMessage = 'OpenPhone API access denied. Please check your account permissions.';
+        errorMessage = 'QUO API access denied. Please check your account permissions.';
       } else if (smsResponse.status === 429) {
         errorMessage = 'SMS rate limit exceeded. Please try again later.';
       }
