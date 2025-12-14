@@ -1447,6 +1447,7 @@ export type Database = {
           sender_email: string | null
           sent_at: string | null
           subject: string
+          thread_id: string | null
         }
         Insert: {
           created_at?: string
@@ -1462,6 +1463,7 @@ export type Database = {
           sender_email?: string | null
           sent_at?: string | null
           subject: string
+          thread_id?: string | null
         }
         Update: {
           created_at?: string
@@ -1477,6 +1479,7 @@ export type Database = {
           sender_email?: string | null
           sent_at?: string | null
           subject?: string
+          thread_id?: string | null
         }
         Relationships: [
           {
@@ -1484,6 +1487,69 @@ export type Database = {
             columns: ["reservation_id"]
             isOneToOne: false
             referencedRelation: "property_reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_communications_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "guest_inbox_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_inbox_threads: {
+        Row: {
+          created_at: string
+          guest_email: string | null
+          guest_identifier: string
+          guest_name: string | null
+          guest_phone: string | null
+          id: string
+          is_read: boolean
+          last_message_at: string | null
+          last_message_preview: string | null
+          organization_id: string
+          reservation_count: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          guest_email?: string | null
+          guest_identifier: string
+          guest_name?: string | null
+          guest_phone?: string | null
+          id?: string
+          is_read?: boolean
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          organization_id: string
+          reservation_count?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          guest_email?: string | null
+          guest_identifier?: string
+          guest_name?: string | null
+          guest_phone?: string | null
+          id?: string
+          is_read?: boolean
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          organization_id?: string
+          reservation_count?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_inbox_threads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -5422,6 +5488,15 @@ export type Database = {
         Returns: Json
       }
       generate_work_order_number: { Args: never; Returns: string }
+      get_or_create_inbox_thread: {
+        Args: {
+          p_guest_email: string
+          p_guest_name?: string
+          p_guest_phone?: string
+          p_organization_id: string
+        }
+        Returns: string
+      }
       get_organization_by_identifier: {
         Args: { _identifier: string }
         Returns: {

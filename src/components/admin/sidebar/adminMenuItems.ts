@@ -104,10 +104,10 @@ export const adminMenuItems = [
         description: 'View bookings, pricing calendar, PriceLabs integration, and external calendar sync'
       },
       {
-        title: 'Guest Communication',
-        href: '/admin/host/communication',
+        title: 'Guest Inbox',
+        href: '/admin/host/inbox',
         icon: Mail,
-        description: 'Send messages and manage guest correspondence'
+        description: 'Unified inbox for all guest communications'
       },
       {
         title: 'Guest Experience',
