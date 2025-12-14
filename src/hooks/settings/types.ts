@@ -68,6 +68,12 @@ export interface SettingsState {
   fontPairing: string;
   fontScale: string;
   
+  // Email Styling
+  emailHeaderColor: string;
+  emailHeaderColorEnd: string;
+  emailAccentColor: string;
+  emailFooterColor: string;
+  
   // About page
   aboutTitle: string;
   aboutDescription: string;

@@ -5,7 +5,8 @@ import MessageTemplatesTab from '@/components/guest-experience/MessageTemplatesT
 import MessagingRulesTab from '@/components/guest-experience/MessagingRulesTab';
 import ScheduledQueueTab from '@/components/guest-experience/ScheduledQueueTab';
 import GuidebooksTab from '@/components/guest-experience/GuidebooksTab';
-import { Clock, Send, FileText, Book } from 'lucide-react';
+import EmailStylingTab from '@/components/guest-experience/EmailStylingTab';
+import { Clock, Send, FileText, Book, Palette } from 'lucide-react';
 
 const GuestExperiencePage = () => {
   return (
@@ -15,7 +16,7 @@ const GuestExperiencePage = () => {
     >
       <div className="p-6">
         <Tabs defaultValue="rules" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+          <TabsList className="grid w-full grid-cols-5 lg:w-[750px]">
             <TabsTrigger value="rules" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
               <span className="hidden sm:inline">Rules</span>
@@ -36,6 +37,11 @@ const GuestExperiencePage = () => {
               <span className="hidden sm:inline">Guidebooks</span>
               <span className="sm:hidden">Guides</span>
             </TabsTrigger>
+            <TabsTrigger value="email-style" className="flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              <span className="hidden sm:inline">Email Style</span>
+              <span className="sm:hidden">Style</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="rules" className="mt-6">
@@ -52,6 +58,10 @@ const GuestExperiencePage = () => {
 
           <TabsContent value="guidebooks" className="mt-6">
             <GuidebooksTab />
+          </TabsContent>
+
+          <TabsContent value="email-style" className="mt-6">
+            <EmailStylingTab />
           </TabsContent>
         </Tabs>
       </div>

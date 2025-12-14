@@ -90,13 +90,23 @@ serve(async (req: Request): Promise<Response> => {
     let contactEmail = "";
     let contactPhone = "";
     let contactAddress = "";
+    
+    // Email styling defaults
+    let emailHeaderColor = "#3b82f6";
+    let emailHeaderColorEnd = "#1d4ed8";
+    let emailAccentColor = "#3b82f6";
+    let emailFooterColor = "#f8fafc";
 
     if (orgId) {
       const { data: settings } = await supabase
         .from("site_settings")
         .select("key, value")
         .eq("organization_id", orgId)
-        .in("key", ["emailFromAddress", "emailFromName", "emailReplyTo", "siteName", "contactEmail", "phone", "address"]);
+        .in("key", [
+          "emailFromAddress", "emailFromName", "emailReplyTo", "siteName", 
+          "contactEmail", "phone", "address",
+          "emailHeaderColor", "emailHeaderColorEnd", "emailAccentColor", "emailFooterColor"
+        ]);
 
       if (settings) {
         const settingsMap = settings.reduce((acc: Record<string, string>, s: { key: string; value: string }) => {
@@ -111,10 +121,17 @@ serve(async (req: Request): Promise<Response> => {
         contactEmail = settingsMap.contactEmail || "";
         contactPhone = settingsMap.phone || "";
         contactAddress = settingsMap.address || "";
+        
+        // Email styling
+        emailHeaderColor = settingsMap.emailHeaderColor || emailHeaderColor;
+        emailHeaderColorEnd = settingsMap.emailHeaderColorEnd || emailHeaderColorEnd;
+        emailAccentColor = settingsMap.emailAccentColor || emailAccentColor;
+        emailFooterColor = settingsMap.emailFooterColor || emailFooterColor;
       }
     }
 
     console.log("[send-guest-email] Email settings:", { fromEmail, fromName, replyTo });
+    console.log("[send-guest-email] Email styling:", { emailHeaderColor, emailHeaderColorEnd, emailAccentColor, emailFooterColor });
 
     // Get Resend API key - first try organization-level, then fall back to global
     let resendApiKey = "";
@@ -173,7 +190,7 @@ serve(async (req: Request): Promise<Response> => {
       ? `<p style="margin: 8px 0 0; color: #6b7280; font-size: 13px;">${contactInfoLines.join('<br>')}</p>` 
       : '';
 
-    // Build professional HTML email with lighter colors
+    // Build professional HTML email with dynamic colors
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -183,7 +200,7 @@ serve(async (req: Request): Promise<Response> => {
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
-  <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; border-radius: 12px 12px 0 0;">
+  <div style="background: linear-gradient(135deg, ${emailHeaderColor} 0%, ${emailHeaderColorEnd} 100%); padding: 30px; border-radius: 12px 12px 0 0;">
     <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">${siteName}</h1>
   </div>
   
@@ -193,7 +210,7 @@ serve(async (req: Request): Promise<Response> => {
     <div style="white-space: pre-wrap; color: #374151;">${message}</div>
     
     ${reservation.properties?.title ? `
-    <div style="margin-top: 24px; padding: 16px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+    <div style="margin-top: 24px; padding: 16px; background: #eff6ff; border-radius: 8px; border-left: 4px solid ${emailAccentColor};">
       <p style="margin: 0; font-weight: 600; color: #1e40af;">Your Reservation</p>
       <p style="margin: 8px 0 0 0; color: #475569;">
         ${reservation.properties.title}<br>
@@ -204,7 +221,7 @@ serve(async (req: Request): Promise<Response> => {
     ` : ''}
   </div>
   
-  <div style="background: #f8fafc; padding: 24px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb; border-top: none; text-align: center;">
+  <div style="background: ${emailFooterColor}; padding: 24px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb; border-top: none; text-align: center;">
     <p style="margin: 0; font-weight: 600; color: #374151; font-size: 15px;">${siteName}</p>
     ${contactInfoHtml}
     <p style="margin: 16px 0 0; color: #9ca3af; font-size: 12px;">
