@@ -139,6 +139,26 @@ const handler = async (req: Request): Promise<Response> => {
       console.error(`❌ QUO API error: ${smsResponse.status} ${smsResponse.statusText}`, errorText);
       
       let errorMessage = 'Failed to send SMS';
+
+      // Try to provide more specific QUO error messages
+      try {
+        const parsed = JSON.parse(errorText);
+        const errors = parsed?.errors as Array<{ path?: string; message?: string }> | undefined;
+
+        if (Array.isArray(errors)) {
+          const fromError = errors.find((e) => e.path === '/from');
+          const toError = errors.find((e) => e.path === '/to/0');
+
+          if (fromError) {
+            errorMessage = 'Invalid QUO sender ID. Please use the Phone Number ID from QUO (starts with "PN") in Organization Settings.';
+          } else if (toError) {
+            errorMessage = 'Invalid recipient phone number. QUO requires E.164 format like +15415551234.';
+          }
+        }
+      } catch {
+        // If parsing fails, fall back to generic message set above
+      }
+
       if (smsResponse.status === 401) {
         errorMessage = 'Invalid QUO API key. Please check your API key configuration.';
       } else if (smsResponse.status === 403) {
