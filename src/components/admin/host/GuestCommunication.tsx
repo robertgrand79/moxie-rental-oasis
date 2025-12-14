@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Calendar, Mail, Clock, Send, MessageSquare, User, Phone } from 'lucide-react';
@@ -15,6 +14,7 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+
 interface GuestCommunication {
   id: string;
   reservation_id: string;
@@ -356,152 +356,161 @@ const GuestCommunication = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Guest Communication</h1>
-          <p className="text-muted-foreground">Send messages to your guests and manage communication</p>
-        </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Send className="h-4 w-4 mr-2" />
-              New Message
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Send Guest Message</DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Select Reservation</label>
-                <Select value={selectedReservation} onValueChange={setSelectedReservation}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Choose a guest reservation..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {reservations.map((reservation) => (
-                      <SelectItem key={reservation.id} value={reservation.id}>
-                        {reservation.guest_name} - {reservation.properties.title} 
-                        ({format(new Date(reservation.check_in_date), 'MMM dd')})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold">Guest Communication</h1>
+        <p className="text-muted-foreground">Send messages to your guests and manage communication</p>
+      </div>
 
-              <div>
-                <label className="text-sm font-medium">Message Type</label>
-                <Select value={messageType} onValueChange={handleTemplateSelect}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="welcome">Welcome Message</SelectItem>
-                    <SelectItem value="check_in">Check-in Instructions</SelectItem>
-                    <SelectItem value="check_out">Check-out Thank You</SelectItem>
-                    <SelectItem value="follow_up">Follow-up Message</SelectItem>
-                    <SelectItem value="custom">Custom Message</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      {/* Compose Message Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Send className="h-5 w-5" />
+            Compose Message
+          </CardTitle>
+          <CardDescription>Send an email or SMS to your guests</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Row 1: Reservation, Message Type, Channel */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium">Select Reservation</label>
+              <Select value={selectedReservation} onValueChange={setSelectedReservation}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Choose a guest..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {reservations.map((reservation) => (
+                    <SelectItem key={reservation.id} value={reservation.id}>
+                      {reservation.guest_name} - {reservation.properties.title} 
+                      ({format(new Date(reservation.check_in_date), 'MMM dd')})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div>
-                <label className="text-sm font-medium">Delivery Channel</label>
-                <ToggleGroup
-                  type="single"
-                  value={channel}
-                  onValueChange={(value) => value && setChannel(value as DeliveryChannel)}
-                  className="mt-1 justify-start"
-                >
-                  <ToggleGroupItem value="email" aria-label="Email only" className="gap-1.5">
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="sms" aria-label="SMS only" className="gap-1.5">
-                    <Phone className="h-4 w-4" />
-                    SMS
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="both" aria-label="Both Email and SMS" className="gap-1.5">
-                    <Mail className="h-4 w-4" />
-                    <Phone className="h-4 w-4" />
-                    Both
-                  </ToggleGroupItem>
-                </ToggleGroup>
-                {(channel === 'sms' || channel === 'both') && selectedReservationData && !selectedReservationData.guest_phone && (
-                  <p className="text-xs text-destructive mt-1">⚠️ No phone number on file for this guest</p>
-                )}
-              </div>
+            <div>
+              <label className="text-sm font-medium">Message Type</label>
+              <Select value={messageType} onValueChange={handleTemplateSelect}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="welcome">Welcome Message</SelectItem>
+                  <SelectItem value="check_in">Check-in Instructions</SelectItem>
+                  <SelectItem value="check_out">Check-out Thank You</SelectItem>
+                  <SelectItem value="follow_up">Follow-up Message</SelectItem>
+                  <SelectItem value="custom">Custom Message</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-              {(channel === 'email' || channel === 'both') && (
-                <div>
-                  <label className="text-sm font-medium">Subject</label>
-                  <Input
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Message subject"
-                    className="mt-1"
-                  />
-                </div>
+            <div>
+              <label className="text-sm font-medium">Delivery Channel</label>
+              <ToggleGroup
+                type="single"
+                value={channel}
+                onValueChange={(value) => value && setChannel(value as DeliveryChannel)}
+                className="mt-1 justify-start"
+              >
+                <ToggleGroupItem value="email" aria-label="Email only" className="gap-1.5">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </ToggleGroupItem>
+                <ToggleGroupItem value="sms" aria-label="SMS only" className="gap-1.5">
+                  <Phone className="h-4 w-4" />
+                  SMS
+                </ToggleGroupItem>
+                <ToggleGroupItem value="both" aria-label="Both Email and SMS" className="gap-1.5">
+                  <Mail className="h-4 w-4" />
+                  <Phone className="h-4 w-4" />
+                  Both
+                </ToggleGroupItem>
+              </ToggleGroup>
+              {(channel === 'sms' || channel === 'both') && selectedReservationData && !selectedReservationData.guest_phone && (
+                <p className="text-xs text-destructive mt-1">⚠️ No phone number on file for this guest</p>
               )}
+            </div>
+          </div>
 
-              <div>
-                <label className="text-sm font-medium">Message Content</label>
-                <div className="relative mt-1">
-                  <Textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Write your message here..."
-                    className="pr-12"
-                    rows={8}
-                  />
-                  <AIRevisionButton
-                    content={content}
-                    onRevise={setContent}
-                    disabled={!content.trim()}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Use {'{guest_name}'}, {'{property_name}'}, {'{check_in_date}'}, {'{check_out_date}'} for dynamic content
+          {/* Row 2: Subject (conditional) */}
+          {(channel === 'email' || channel === 'both') && (
+            <div>
+              <label className="text-sm font-medium">Subject</label>
+              <Input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Message subject"
+                className="mt-1"
+              />
+            </div>
+          )}
+
+          {/* Row 3: Message Content */}
+          <div>
+            <label className="text-sm font-medium">Message Content</label>
+            <div className="relative mt-1">
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Write your message here..."
+                className="pr-12"
+                rows={6}
+              />
+              <AIRevisionButton
+                content={content}
+                onRevise={setContent}
+                disabled={!content.trim()}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Use {'{guest_name}'}, {'{property_name}'}, {'{check_in_date}'}, {'{check_out_date}'} for dynamic content
+            </p>
+          </div>
+
+          {/* Row 4: Schedule and Preview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium">Schedule for Later (optional)</label>
+              <Input
+                type="datetime-local"
+                value={scheduledFor}
+                onChange={(e) => setScheduledFor(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+
+            {selectedReservationData && (
+              <div className="bg-muted p-3 rounded-md">
+                <p className="text-sm font-medium">Preview for:</p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedReservationData.guest_name} - {selectedReservationData.properties.title}
                 </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Schedule for Later (optional)</label>
-                <Input
-                  type="datetime-local"
-                  value={scheduledFor}
-                  onChange={(e) => setScheduledFor(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-
-              {selectedReservationData && (
-                <div className="bg-muted p-3 rounded-md">
-                  <p className="text-sm font-medium">Preview for:</p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedReservationData.guest_name} - {selectedReservationData.properties.title}
-                  </p>
+                {(channel === 'email' || channel === 'both') && subject && (
                   <div className="mt-2 p-2 bg-background rounded border">
-                    <p className="text-sm font-medium">Subject:</p>
+                    <p className="text-xs font-medium">Subject:</p>
                     <p className="text-sm">{processTemplate(subject, selectedReservationData)}</p>
                   </div>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2">
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={sendMessage.isPending}
-                >
-                  {sendMessage.isPending ? 'Sending...' : (scheduledFor ? 'Schedule Message' : 'Send Message')}
-                </Button>
+                )}
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            )}
+          </div>
+
+          {/* Send Button */}
+          <div className="flex justify-end pt-2">
+            <Button
+              onClick={handleSendMessage}
+              disabled={sendMessage.isPending || !selectedReservation || !content}
+              size="lg"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {sendMessage.isPending ? 'Sending...' : (scheduledFor ? 'Schedule Message' : 'Send Message')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Communications History */}
       <Card>
