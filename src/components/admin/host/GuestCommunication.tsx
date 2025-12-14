@@ -243,6 +243,23 @@ const GuestCommunication = () => {
 
         if (error) throw error;
         if (!data?.success) throw new Error(data?.error || 'SMS send failed');
+        
+        // Save SMS to guest_communications for history tracking
+        // Only insert if we didn't already insert for email (avoid duplicate for 'both' channel)
+        if (messageData.channel === 'sms') {
+          await supabase
+            .from('guest_communications')
+            .insert({
+              reservation_id: messageData.reservation_id,
+              message_type: 'sms',
+              subject: 'SMS Message',
+              message_content: messageData.message_content,
+              delivery_status: 'delivered',
+              sent_at: new Date().toISOString(),
+              direction: 'outbound',
+            });
+        }
+        
         results.sms = true;
       }
 
