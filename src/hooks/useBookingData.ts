@@ -25,11 +25,12 @@ const useOrganizationPropertyIds = () => {
 };
 
 // Reservations - Updated to use property_reservations table with organization filtering
-export const useReservations = (propertyId?: string, status?: string) => {
+// Excludes incomplete bookings (pending payment + pending status) by default
+export const useReservations = (propertyId?: string, status?: string, includeAbandoned = false) => {
   const { data: orgPropertyIds = [] } = useOrganizationPropertyIds();
   
   return useQuery({
-    queryKey: ['property-reservations', propertyId, status, orgPropertyIds],
+    queryKey: ['property-reservations', propertyId, status, orgPropertyIds, includeAbandoned],
     queryFn: async () => {
       let query = supabase.from('property_reservations').select('*');
       
@@ -45,6 +46,12 @@ export const useReservations = (propertyId?: string, status?: string) => {
       
       if (status) {
         query = query.eq('booking_status', status);
+      }
+      
+      // Exclude incomplete bookings (abandoned Stripe checkouts) unless explicitly requested
+      // These are reservations where both payment_status and booking_status are 'pending'
+      if (!includeAbandoned) {
+        query = query.not('payment_status', 'eq', 'pending').or('booking_status.neq.pending');
       }
       
       const { data, error } = await query.order('created_at', { ascending: false });

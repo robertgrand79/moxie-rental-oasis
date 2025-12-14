@@ -183,13 +183,17 @@ serve(async (req) => {
         logStep("Processing checkout.session.expired", { sessionId: session.id });
 
         if (reservationId) {
-          const { error: updateError } = await supabaseClient
+          // Delete abandoned reservation instead of marking as failed
+          const { error: deleteError } = await supabaseClient
             .from("property_reservations")
-            .update({ payment_status: "failed" })
-            .eq("id", reservationId);
+            .delete()
+            .eq("id", reservationId)
+            .eq("payment_status", "pending"); // Only delete if still pending
 
-          if (updateError) {
-            logStep("Error updating reservation", updateError);
+          if (deleteError) {
+            logStep("Error deleting abandoned reservation", deleteError);
+          } else {
+            logStep("Abandoned reservation deleted", { reservationId });
           }
         }
         break;
