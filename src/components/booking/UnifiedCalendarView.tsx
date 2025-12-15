@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,8 @@ import {
   Users,
   Calendar,
   Eye,
-  Home
+  Home,
+  Loader2
 } from 'lucide-react';
 import { useProperties } from '@/hooks/useProperties';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -56,12 +57,14 @@ export const UnifiedCalendarView: React.FC = () => {
     today.setDate(today.getDate() - 3); // Start 3 days before today
     return today;
   });
-  const [daysToShow] = useState(21);
+  const [daysToShow, setDaysToShow] = useState(21);
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
   const [propertySearch, setPropertySearch] = useState('');
   const [showPricing, setShowPricing] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isLoadingRef = useRef(false);
 
   const { properties = [] } = useProperties();
   const queryClient = useQueryClient();
@@ -219,6 +222,56 @@ export const UnifiedCalendarView: React.FC = () => {
     return groups;
   }, [columns]);
 
+  // Infinite scroll handler
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container || isLoadingRef.current) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    const scrollRight = scrollWidth - scrollLeft - clientWidth;
+
+    // Near right edge - load future dates
+    if (scrollRight < 150) {
+      isLoadingRef.current = true;
+      setIsLoadingMore(true);
+      setDaysToShow(prev => prev + 14);
+      setTimeout(() => {
+        isLoadingRef.current = false;
+        setIsLoadingMore(false);
+      }, 300);
+    }
+
+    // Near left edge - load past dates
+    if (scrollLeft < 150) {
+      isLoadingRef.current = true;
+      setIsLoadingMore(true);
+      const previousScrollWidth = container.scrollWidth;
+      
+      setStartDate(prev => addDays(prev, -14));
+      setDaysToShow(prev => prev + 14);
+      
+      // Maintain scroll position after prepending dates
+      requestAnimationFrame(() => {
+        const newScrollWidth = container.scrollWidth;
+        const addedWidth = newScrollWidth - previousScrollWidth;
+        container.scrollLeft = scrollLeft + addedWidth;
+        setTimeout(() => {
+          isLoadingRef.current = false;
+          setIsLoadingMore(false);
+        }, 300);
+      });
+    }
+  }, []);
+
+  // Attach scroll listener
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
   return (
     <Card className="overflow-hidden">
       {/* Header Controls */}
@@ -305,10 +358,18 @@ export const UnifiedCalendarView: React.FC = () => {
       </div>
 
       {/* Calendar Grid - Horizontal scrollable container */}
-      <div className="overflow-x-auto" ref={scrollContainerRef}>
+      <div className="overflow-x-auto relative" ref={scrollContainerRef}>
+        {/* Loading indicator */}
+        {isLoadingMore && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs flex items-center gap-2 shadow-lg">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Loading dates...
+          </div>
+        )}
+        
         <div className="flex" style={{ minWidth: `${256 + columns.length * 64}px` }}>
-          {/* Property Column - Sticky left */}
-          <div className="sticky left-0 z-20 w-64 flex-shrink-0 border-r bg-background">
+          {/* Property Column - Sticky left with shadow */}
+          <div className="sticky left-0 z-30 w-64 flex-shrink-0 border-r bg-background shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
             {/* Property Header */}
             <div className="h-16 border-b flex items-center px-3 bg-muted/30">
               <span className="text-sm text-muted-foreground flex items-center gap-2">
