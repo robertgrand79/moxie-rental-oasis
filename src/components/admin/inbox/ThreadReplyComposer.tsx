@@ -77,7 +77,8 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
       return;
     }
 
-    if (!selectedReservationId) {
+    // Only require reservation if reservations exist
+    if (reservations.length > 0 && !selectedReservationId) {
       toast({
         title: 'Error',
         description: 'Please select a reservation',
@@ -103,7 +104,9 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
       if ((channel === 'email' || channel === 'both') && canSendEmail) {
         const { data, error } = await supabase.functions.invoke('send-guest-email', {
           body: {
-            reservationId: selectedReservationId,
+            reservationId: selectedReservationId || null,
+            recipientEmail: thread.guest_email,
+            recipientName: thread.guest_name || 'Guest',
             subject,
             message,
             threadId: thread.id,
@@ -129,16 +132,19 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
         if (!data?.success) throw new Error(data?.error || 'SMS send failed');
         results.sms = true;
 
-        await supabase.from('guest_communications').insert({
-          reservation_id: selectedReservationId,
-          thread_id: thread.id,
-          message_type: 'sms',
-          subject: 'SMS Message',
-          message_content: message,
-          delivery_status: 'delivered',
-          sent_at: new Date().toISOString(),
-          direction: 'outbound',
-        });
+        // Store SMS in guest_communications (only if we have a reservation)
+        if (selectedReservationId) {
+          await supabase.from('guest_communications').insert({
+            reservation_id: selectedReservationId,
+            thread_id: thread.id,
+            message_type: 'sms',
+            subject: 'SMS Message',
+            message_content: message,
+            delivery_status: 'delivered',
+            sent_at: new Date().toISOString(),
+            direction: 'outbound',
+          });
+        }
       }
 
       toast({
