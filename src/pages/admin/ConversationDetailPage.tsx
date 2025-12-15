@@ -72,9 +72,8 @@ const ConversationDetailPage = () => {
     try {
       const [msgs, res] = await Promise.all([
         fetchThreadMessages(thread.id),
-        thread.guest_email 
-          ? fetchThreadReservations(thread.guest_email, organization.id) 
-          : Promise.resolve([])
+        // Search by both email AND phone for better matching
+        fetchThreadReservations(thread.guest_email, thread.guest_phone, organization.id)
       ]);
       setMessages(msgs);
       setReservations(res);
