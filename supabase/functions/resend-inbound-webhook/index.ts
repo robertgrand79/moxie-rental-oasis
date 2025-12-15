@@ -225,11 +225,38 @@ serve(async (req) => {
     if (reservations && reservations.length > 0) {
       // Associate with the most recent reservation
       const reservation = reservations[0];
+
+      // Get property to find organization
+      const { data: property } = await supabase
+        .from("properties")
+        .select("organization_id")
+        .eq("id", reservation.property_id)
+        .single();
+
+      // Get or create inbox thread for this guest
+      let threadId = null;
+      if (property?.organization_id) {
+        const { data: tid, error: threadError } = await supabase
+          .rpc('get_or_create_inbox_thread', {
+            p_organization_id: property.organization_id,
+            p_guest_email: senderEmail,
+            p_guest_name: reservation.guest_name,
+            p_guest_phone: null,
+          });
+        
+        if (threadError) {
+          console.error("Error getting/creating thread:", threadError);
+        } else {
+          threadId = tid;
+          console.log("Thread ID:", threadId);
+        }
+      }
       
       const { data: insertedComm, error: insertError } = await supabase
         .from("guest_communications")
         .insert({
           reservation_id: reservation.id,
+          thread_id: threadId,
           message_type: "email",
           subject: emailData.subject || "(No Subject)",
           message_content: messageContent,

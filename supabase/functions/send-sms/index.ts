@@ -173,6 +173,10 @@ const handler = async (req: Request): Promise<Response> => {
     const smsResult = await smsResponse.json();
     console.log('✅ SMS sent successfully:', smsResult);
 
+    // Store the outbound SMS in guest_communications if we have context
+    // Note: This requires the caller to provide reservationId and threadId
+    // For now, the send-sms function focuses on sending - storage is handled by the caller
+
     return new Response(
       JSON.stringify({ 
         success: true, 

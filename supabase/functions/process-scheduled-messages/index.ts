@@ -229,6 +229,24 @@ serve(async (req) => {
         let sent = false;
         let errorMessage = "";
 
+        // Get or create inbox thread for this guest
+        let threadId = null;
+        if (organizationId) {
+          const { data: tid, error: threadError } = await supabase
+            .rpc('get_or_create_inbox_thread', {
+              p_organization_id: organizationId,
+              p_guest_email: reservation.guest_email,
+              p_guest_name: reservation.guest_name,
+              p_guest_phone: reservation.guest_phone,
+            });
+          
+          if (threadError) {
+            console.error("Error getting/creating thread:", threadError);
+          } else {
+            threadId = tid;
+          }
+        }
+
         // Send email
         if ((deliveryChannel === "email" || deliveryChannel === "both") && reservation.guest_email) {
           if (resend) {
@@ -251,6 +269,22 @@ serve(async (req) => {
 
               console.log(`Email sent to ${reservation.guest_email}:`, emailResult);
               sent = true;
+
+              // Store in guest_communications
+              await supabase
+                .from("guest_communications")
+                .insert({
+                  reservation_id: reservation.id,
+                  thread_id: threadId,
+                  message_type: "email",
+                  direction: "outbound",
+                  subject: subject,
+                  message_content: content,
+                  sender_email: fromEmail,
+                  delivery_status: "sent",
+                  sent_at: new Date().toISOString(),
+                  external_message_id: emailResult?.data?.id || null,
+                });
             } catch (emailError) {
               console.error(`Email send error:`, emailError);
               errorMessage = `Email failed: ${emailError.message}`;
@@ -289,6 +323,23 @@ serve(async (req) => {
               if (smsResponse.ok) {
                 console.log(`SMS sent to ${reservation.guest_phone}`);
                 sent = true;
+
+                // Store in guest_communications
+                const smsResult = await smsResponse.json();
+                await supabase
+                  .from("guest_communications")
+                  .insert({
+                    reservation_id: reservation.id,
+                    thread_id: threadId,
+                    message_type: "sms",
+                    direction: "outbound",
+                    subject: `SMS to ${reservation.guest_name || reservation.guest_phone}`,
+                    message_content: content.substring(0, 1600),
+                    sender_email: null,
+                    delivery_status: "sent",
+                    sent_at: new Date().toISOString(),
+                    external_message_id: smsResult?.id || null,
+                  });
               } else {
                 const smsError = await smsResponse.text();
                 console.error(`SMS send error:`, smsError);

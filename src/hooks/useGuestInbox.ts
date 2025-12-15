@@ -154,8 +154,18 @@ export function useGuestInbox() {
     return data as ThreadMessage[];
   }, []);
 
-  const fetchThreadReservations = useCallback(async (guestEmail: string, organizationId: string) => {
-    const { data, error } = await supabase
+  const fetchThreadReservations = useCallback(async (
+    guestEmail: string | null, 
+    guestPhone: string | null,
+    organizationId: string
+  ) => {
+    // Need at least one identifier to search
+    if (!guestEmail && !guestPhone) {
+      console.log('No guest email or phone to fetch reservations');
+      return [];
+    }
+
+    let query = supabase
       .from('property_reservations')
       .select(`
         id,
@@ -167,16 +177,30 @@ export function useGuestInbox() {
         check_out_date,
         booking_status,
         properties:property_id (title)
-      `)
-      .eq('guest_email', guestEmail)
-      .order('check_in_date', { ascending: false });
+      `);
+
+    // Build OR condition for email OR phone matching
+    if (guestEmail && guestPhone) {
+      // Normalize phone for comparison - remove non-digits
+      const normalizedPhone = guestPhone.replace(/\D/g, '').slice(-10);
+      query = query.or(`guest_email.ilike.${guestEmail},guest_phone.ilike.%${normalizedPhone}%`);
+    } else if (guestEmail) {
+      query = query.ilike('guest_email', guestEmail);
+    } else if (guestPhone) {
+      const normalizedPhone = guestPhone.replace(/\D/g, '').slice(-10);
+      query = query.ilike('guest_phone', `%${normalizedPhone}%`);
+    }
+
+    const { data, error } = await query.order('check_in_date', { ascending: false });
 
     if (error) {
       console.error('Error fetching reservations:', error);
       return [];
     }
 
-    return data.map(r => ({
+    console.log(`Found ${data?.length || 0} reservations for guest email: ${guestEmail}, phone: ${guestPhone}`);
+
+    return (data || []).map(r => ({
       ...r,
       property: r.properties ? { title: (r.properties as any).title } : undefined
     })) as ThreadReservation[];

@@ -124,11 +124,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("[QUO Webhook] Found matching reservation:", matchingReservation.id);
 
+    // Get or create inbox thread for this guest
+    const { data: threadId, error: threadError } = await supabase
+      .rpc('get_or_create_inbox_thread', {
+        p_organization_id: orgId,
+        p_guest_email: matchingReservation.guest_email,
+        p_guest_name: matchingReservation.guest_name,
+        p_guest_phone: senderPhone,
+      });
+
+    if (threadError) {
+      console.error("[QUO Webhook] Error getting/creating thread:", threadError);
+    } else {
+      console.log("[QUO Webhook] Thread ID:", threadId);
+    }
+
     // Store inbound SMS in guest_communications
     const { data: communication, error: insertError } = await supabase
       .from("guest_communications")
       .insert({
         reservation_id: matchingReservation.id,
+        thread_id: threadId || null,
         message_type: "sms",
         subject: `SMS from ${matchingReservation.guest_name || senderPhone}`,
         message_content: messageBody,
