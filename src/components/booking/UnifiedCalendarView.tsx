@@ -357,8 +357,8 @@ export const UnifiedCalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* Calendar Grid - Horizontal scrollable container */}
-      <div className="overflow-x-auto relative" ref={scrollContainerRef}>
+      {/* Calendar Grid - Two column layout: Fixed property column + Scrollable dates */}
+      <div className="flex relative">
         {/* Loading indicator */}
         {isLoadingMore && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs flex items-center gap-2 shadow-lg">
@@ -366,67 +366,65 @@ export const UnifiedCalendarView: React.FC = () => {
             Loading dates...
           </div>
         )}
-        
-        <div className="flex" style={{ minWidth: `${256 + columns.length * 64}px` }}>
-          {/* Property Column - Sticky left with shadow */}
-          <div className="sticky left-0 z-30 w-64 flex-shrink-0 border-r bg-background shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
-            {/* Property Header */}
-            <div className="h-16 border-b flex items-center px-3 bg-muted/30">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Home className="h-4 w-4" />
-                Property name
-              </span>
-            </div>
-            
-            {/* Property Rows */}
-            {filteredProperties.map(property => (
-              <PropertyRowLabel key={property.id} property={property} />
-            ))}
+
+        {/* Property Column - Fixed, never scrolls */}
+        <div className="w-64 flex-shrink-0 border-r bg-background shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)] z-10">
+          {/* Property Header */}
+          <div className="h-16 border-b flex items-center px-3 bg-muted/30">
+            <span className="text-sm text-muted-foreground flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              Property name
+            </span>
           </div>
+          
+          {/* Property Rows */}
+          {filteredProperties.map(property => (
+            <PropertyRowLabel key={property.id} property={property} />
+          ))}
+        </div>
 
-          {/* Calendar Area */}
-          <div className="flex-1">
-            {/* Date Headers */}
-            <div className="border-b bg-muted/30">
-              <div className="flex" style={{ width: `${columns.length * 64}px` }}>
-                {columns.map((col) => (
-                  <div 
-                    key={col.dateStr}
-                    className={cn(
-                      "w-16 flex-shrink-0 text-center py-2 border-r border-border/30",
-                      col.isToday && "bg-primary/10"
-                    )}
-                  >
-                    {col.dayNumber === 1 && (
-                      <div className="text-xs text-muted-foreground -mt-1">{col.monthAbbr}</div>
-                    )}
-                    <div className={cn(
-                      "text-lg font-semibold",
-                      col.isToday && "text-primary"
-                    )}>
-                      {col.dayNumber}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{col.dayOfWeek}</div>
+        {/* Calendar Area - Scrollable horizontally */}
+        <div className="flex-1 overflow-x-auto" ref={scrollContainerRef}>
+          {/* Date Headers */}
+          <div className="border-b bg-muted/30">
+            <div className="flex" style={{ width: `${columns.length * 64}px` }}>
+              {columns.map((col) => (
+                <div 
+                  key={col.dateStr}
+                  className={cn(
+                    "w-16 flex-shrink-0 text-center py-2 border-r border-border/30",
+                    col.isToday && "bg-primary/10"
+                  )}
+                >
+                  {col.dayNumber === 1 && (
+                    <div className="text-xs text-muted-foreground -mt-1">{col.monthAbbr}</div>
+                  )}
+                  <div className={cn(
+                    "text-lg font-semibold",
+                    col.isToday && "text-primary"
+                  )}>
+                    {col.dayNumber}
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Calendar Rows */}
-            <div style={{ width: `${columns.length * 64}px` }}>
-              {filteredProperties.map(property => (
-                <PropertyRow 
-                  key={property.id}
-                  property={property}
-                  columns={columns}
-                  bookings={getBookingsForProperty(property.id)}
-                  pricingData={pricingData}
-                  showPricing={showPricing}
-                  updatePricing={updatePricing}
-                  queryClient={queryClient}
-                />
+                  <div className="text-xs text-muted-foreground">{col.dayOfWeek}</div>
+                </div>
               ))}
             </div>
+          </div>
+
+          {/* Calendar Rows */}
+          <div style={{ width: `${columns.length * 64}px` }}>
+            {filteredProperties.map(property => (
+              <PropertyRow 
+                key={property.id}
+                property={property}
+                columns={columns}
+                bookings={getBookingsForProperty(property.id)}
+                pricingData={pricingData}
+                showPricing={showPricing}
+                updatePricing={updatePricing}
+                queryClient={queryClient}
+              />
+            ))}
           </div>
         </div>
       </div>
