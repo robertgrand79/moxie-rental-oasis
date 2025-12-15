@@ -273,7 +273,7 @@ export const UnifiedCalendarView: React.FC = () => {
   }, [handleScroll]);
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       {/* Header Controls */}
       <div className="border-b p-4 flex flex-wrap items-center justify-between gap-4 bg-background">
         <div className="flex items-center gap-3">
@@ -357,8 +357,11 @@ export const UnifiedCalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* Calendar Grid - Single scrollable container with sticky property column */}
-      <div className="relative overflow-x-auto" ref={scrollContainerRef}>
+      {/* Calendar Grid - scroll container is the Card (fixes sticky) */}
+      <Card
+        ref={scrollContainerRef}
+        className="relative overflow-x-auto rounded-none border-0 shadow-none bg-transparent"
+      >
         {/* Loading indicator */}
         {isLoadingMore && (
           <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs flex items-center gap-2 shadow-lg">
@@ -378,7 +381,7 @@ export const UnifiedCalendarView: React.FC = () => {
                 Property name
               </span>
             </div>
-            
+
             {/* Property Rows */}
             {filteredProperties.map(property => (
               <PropertyRowLabel key={property.id} property={property} />
@@ -430,7 +433,7 @@ export const UnifiedCalendarView: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Property Legend - Dynamic based on organization properties */}
       <div className="border-t p-3 flex flex-wrap items-center gap-4 text-sm bg-muted/20">
