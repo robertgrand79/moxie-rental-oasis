@@ -9,7 +9,9 @@ const corsHeaders = {
 };
 
 interface SendGuestEmailRequest {
-  reservationId: string;
+  reservationId?: string | null;
+  recipientEmail?: string;
+  recipientName?: string;
   subject: string;
   message: string;
   threadId?: string;
@@ -22,13 +24,13 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { reservationId, subject, message, threadId, organizationId }: SendGuestEmailRequest = await req.json();
+    const { reservationId, recipientEmail, recipientName, subject, message, threadId, organizationId }: SendGuestEmailRequest = await req.json();
 
-    console.log("[send-guest-email] Request received:", { reservationId, subject, threadId, organizationId });
+    console.log("[send-guest-email] Request received:", { reservationId, recipientEmail, subject, threadId, organizationId });
 
-    if (!reservationId || !subject || !message) {
+    if (!subject || !message) {
       return new Response(
-        JSON.stringify({ success: false, error: "Missing required fields: reservationId, subject, message" }),
+        JSON.stringify({ success: false, error: "Missing required fields: subject, message" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -38,49 +40,59 @@ serve(async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch reservation details
-    const { data: reservation, error: reservationError } = await supabase
-      .from("property_reservations")
-      .select(`
-        id,
-        guest_name,
-        guest_email,
-        guest_phone,
-        property_id,
-        check_in_date,
-        check_out_date,
-        properties (
-          id,
-          title,
-          organization_id
-        )
-      `)
-      .eq("id", reservationId)
-      .single();
+    // Variables for guest info and organization
+    let guestEmail = recipientEmail;
+    let guestName = recipientName || 'Guest';
+    let propertyTitle: string | null = null;
+    let checkInDate: string | null = null;
+    let checkOutDate: string | null = null;
+    let orgId = organizationId;
 
-    if (reservationError || !reservation) {
-      console.error("[send-guest-email] Reservation not found:", reservationError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Reservation not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // If reservationId provided, fetch reservation details
+    if (reservationId) {
+      const { data: reservation, error: reservationError } = await supabase
+        .from("property_reservations")
+        .select(`
+          id,
+          guest_name,
+          guest_email,
+          guest_phone,
+          property_id,
+          check_in_date,
+          check_out_date,
+          properties (
+            id,
+            title,
+            organization_id
+          )
+        `)
+        .eq("id", reservationId)
+        .single();
+
+      if (reservationError || !reservation) {
+        console.log("[send-guest-email] Reservation not found, using direct recipient info");
+      } else {
+        guestEmail = reservation.guest_email || guestEmail;
+        guestName = reservation.guest_name || guestName;
+        propertyTitle = reservation.properties?.title || null;
+        checkInDate = reservation.check_in_date;
+        checkOutDate = reservation.check_out_date;
+        orgId = orgId || reservation.properties?.organization_id;
+        
+        console.log("[send-guest-email] Reservation found:", { 
+          guestEmail, 
+          guestName,
+          propertyTitle 
+        });
+      }
     }
 
-    console.log("[send-guest-email] Reservation found:", { 
-      guestEmail: reservation.guest_email, 
-      guestName: reservation.guest_name,
-      propertyTitle: reservation.properties?.title 
-    });
-
-    if (!reservation.guest_email) {
+    if (!guestEmail) {
       return new Response(
-        JSON.stringify({ success: false, error: "Guest has no email address" }),
+        JSON.stringify({ success: false, error: "No recipient email address provided" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // Get organization ID from reservation or request
-    const orgId = organizationId || reservation.properties?.organization_id;
 
     // Fetch organization email settings
     let fromEmail = "noreply@moxievacationrentals.com";
@@ -205,17 +217,17 @@ serve(async (req: Request): Promise<Response> => {
   </div>
   
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
-    <p style="margin-top: 0; color: #374151;">Hi ${reservation.guest_name || 'Guest'},</p>
+    <p style="margin-top: 0; color: #374151;">Hi ${guestName},</p>
     
     <div style="white-space: pre-wrap; color: #374151;">${message}</div>
     
-    ${reservation.properties?.title ? `
+    ${propertyTitle ? `
     <div style="margin-top: 24px; padding: 16px; background: #eff6ff; border-radius: 8px; border-left: 4px solid ${emailAccentColor};">
       <p style="margin: 0; font-weight: 600; color: #1e40af;">Your Reservation</p>
       <p style="margin: 8px 0 0 0; color: #475569;">
-        ${reservation.properties.title}<br>
-        ${reservation.check_in_date ? `Check-in: ${new Date(reservation.check_in_date).toLocaleDateString()}` : ''}<br>
-        ${reservation.check_out_date ? `Check-out: ${new Date(reservation.check_out_date).toLocaleDateString()}` : ''}
+        ${propertyTitle}<br>
+        ${checkInDate ? `Check-in: ${new Date(checkInDate).toLocaleDateString()}` : ''}<br>
+        ${checkOutDate ? `Check-out: ${new Date(checkOutDate).toLocaleDateString()}` : ''}
       </p>
     </div>
     ` : ''}
@@ -233,11 +245,11 @@ serve(async (req: Request): Promise<Response> => {
     `;
 
     // Send email via Resend
-    console.log("[send-guest-email] Sending email to:", reservation.guest_email);
+    console.log("[send-guest-email] Sending email to:", guestEmail);
     
     const emailResponse = await resend.emails.send({
       from: `${fromName} <${fromEmail}>`,
-      to: [reservation.guest_email],
+      to: [guestEmail],
       reply_to: replyTo,
       subject: subject,
       html: htmlContent,
@@ -253,28 +265,30 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Store the communication in database
-    const { error: insertError } = await supabase
-      .from("guest_communications")
-      .insert({
-        reservation_id: reservationId,
-        thread_id: threadId || null,
-        message_type: "email",
-        direction: "outbound",
-        subject: subject,
-        message_content: message,
-        sender_email: fromEmail,
-        delivery_status: "sent",
-        sent_at: new Date().toISOString(),
-        external_message_id: emailResponse.data?.id || null,
-      });
+    // Store the communication in database (only if we have a reservationId)
+    if (reservationId) {
+      const { error: insertError } = await supabase
+        .from("guest_communications")
+        .insert({
+          reservation_id: reservationId,
+          thread_id: threadId || null,
+          message_type: "email",
+          direction: "outbound",
+          subject: subject,
+          message_content: message,
+          sender_email: fromEmail,
+          delivery_status: "sent",
+          sent_at: new Date().toISOString(),
+          external_message_id: emailResponse.data?.id || null,
+        });
 
-    if (insertError) {
-      console.error("[send-guest-email] Failed to store communication:", insertError);
-      // Don't fail the request, email was sent successfully
+      if (insertError) {
+        console.error("[send-guest-email] Failed to store communication:", insertError);
+        // Don't fail the request, email was sent successfully
+      }
     }
 
-    console.log("[send-guest-email] Email sent successfully to:", reservation.guest_email);
+    console.log("[send-guest-email] Email sent successfully to:", guestEmail);
 
     return new Response(
       JSON.stringify({ 
