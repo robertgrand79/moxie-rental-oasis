@@ -1444,7 +1444,7 @@ export type Database = {
           message_type: string
           raw_email_data: Json | null
           raw_platform_data: Json | null
-          reservation_id: string
+          reservation_id: string | null
           scheduled_for: string | null
           sender_email: string | null
           sent_at: string | null
@@ -1463,7 +1463,7 @@ export type Database = {
           message_type: string
           raw_email_data?: Json | null
           raw_platform_data?: Json | null
-          reservation_id: string
+          reservation_id?: string | null
           scheduled_for?: string | null
           sender_email?: string | null
           sent_at?: string | null
@@ -1482,7 +1482,7 @@ export type Database = {
           message_type?: string
           raw_email_data?: Json | null
           raw_platform_data?: Json | null
-          reservation_id?: string
+          reservation_id?: string | null
           scheduled_for?: string | null
           sender_email?: string | null
           sent_at?: string | null

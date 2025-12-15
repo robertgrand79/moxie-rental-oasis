@@ -109,47 +109,95 @@ const handler = async (req: Request): Promise<Response> => {
       return normalizedGuestPhone === normalizedSenderPhone;
     });
 
-    if (!matchingReservation) {
-      console.log("[QUO Webhook] No matching reservation found for phone:", senderPhone);
-      // Store as orphan message or log - for now just acknowledge
+    let threadId: string | null = null;
+    let guestName: string | null = null;
+    let guestEmail: string | null = null;
+    let reservationId: string | null = null;
+
+    if (matchingReservation) {
+      console.log("[QUO Webhook] Found matching reservation:", matchingReservation.id);
+      reservationId = matchingReservation.id;
+      guestName = matchingReservation.guest_name;
+      guestEmail = matchingReservation.guest_email;
+
+      // Get or create inbox thread for this guest
+      const { data: tid, error: threadError } = await supabase
+        .rpc('get_or_create_inbox_thread', {
+          p_organization_id: orgId,
+          p_guest_email: guestEmail,
+          p_guest_name: guestName,
+          p_guest_phone: senderPhone,
+        });
+
+      if (threadError) {
+        console.error("[QUO Webhook] Error getting/creating thread:", threadError);
+      } else {
+        threadId = tid;
+        console.log("[QUO Webhook] Thread ID:", threadId);
+      }
+    } else {
+      // No reservation found - look for existing thread by phone number
+      console.log("[QUO Webhook] No reservation, checking for existing thread by phone:", normalizedSenderPhone);
+      
+      const { data: existingThread, error: threadLookupError } = await supabase
+        .from("guest_inbox_threads")
+        .select("id, guest_name, guest_email")
+        .eq("organization_id", orgId)
+        .or(`guest_phone.ilike.%${normalizedSenderPhone}%,guest_identifier.ilike.%${normalizedSenderPhone}%`)
+        .maybeSingle();
+
+      if (threadLookupError) {
+        console.error("[QUO Webhook] Error looking up thread:", threadLookupError);
+      }
+
+      if (existingThread) {
+        console.log("[QUO Webhook] Found existing thread by phone:", existingThread.id);
+        threadId = existingThread.id;
+        guestName = existingThread.guest_name;
+        guestEmail = existingThread.guest_email;
+      } else {
+        // Create a new thread for this unknown sender
+        console.log("[QUO Webhook] Creating new thread for unknown sender");
+        const { data: newThreadId, error: createThreadError } = await supabase
+          .rpc('get_or_create_inbox_thread', {
+            p_organization_id: orgId,
+            p_guest_email: null,
+            p_guest_name: `Unknown (${senderPhone})`,
+            p_guest_phone: senderPhone,
+          });
+
+        if (createThreadError) {
+          console.error("[QUO Webhook] Error creating thread:", createThreadError);
+        } else {
+          threadId = newThreadId;
+          guestName = `Unknown (${senderPhone})`;
+          console.log("[QUO Webhook] Created new thread:", threadId);
+        }
+      }
+    }
+
+    // Store inbound SMS in guest_communications (reservation_id can be null)
+    if (!threadId) {
+      console.error("[QUO Webhook] No thread available, cannot store message");
       return new Response(
         JSON.stringify({ 
-          success: true, 
-          message: "Message received but no matching reservation found",
-          phone: senderPhone 
+          success: false, 
+          error: "Could not create or find thread for message"
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("[QUO Webhook] Found matching reservation:", matchingReservation.id);
-
-    // Get or create inbox thread for this guest
-    const { data: threadId, error: threadError } = await supabase
-      .rpc('get_or_create_inbox_thread', {
-        p_organization_id: orgId,
-        p_guest_email: matchingReservation.guest_email,
-        p_guest_name: matchingReservation.guest_name,
-        p_guest_phone: senderPhone,
-      });
-
-    if (threadError) {
-      console.error("[QUO Webhook] Error getting/creating thread:", threadError);
-    } else {
-      console.log("[QUO Webhook] Thread ID:", threadId);
-    }
-
-    // Store inbound SMS in guest_communications
     const { data: communication, error: insertError } = await supabase
       .from("guest_communications")
       .insert({
-        reservation_id: matchingReservation.id,
-        thread_id: threadId || null,
+        reservation_id: reservationId, // Can be null
+        thread_id: threadId,
         message_type: "sms",
-        subject: `SMS from ${matchingReservation.guest_name || senderPhone}`,
+        subject: `SMS from ${guestName || senderPhone}`,
         message_content: messageBody,
         direction: "inbound",
-        sender_email: senderPhone, // Using sender_email field for phone since there's no sender_phone column
+        sender_email: senderPhone,
         delivery_status: "delivered",
         is_read: false,
         sent_at: receivedAt,
@@ -164,12 +212,25 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("[QUO Webhook] Stored inbound SMS:", communication.id);
 
+    // Update thread with latest message info
+    await supabase
+      .from("guest_inbox_threads")
+      .update({
+        last_message_at: receivedAt,
+        last_message_preview: messageBody.substring(0, 100),
+        status: 'awaiting_reply',
+        is_read: false,
+        snoozed_until: null,
+      })
+      .eq("id", threadId);
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: "Inbound SMS stored successfully",
         communicationId: communication.id,
-        reservationId: matchingReservation.id
+        threadId: threadId,
+        reservationId: reservationId
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
