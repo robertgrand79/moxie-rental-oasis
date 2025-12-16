@@ -61,7 +61,7 @@ export function useGuestInbox() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<InboxFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
-
+  const [hideUnknown, setHideUnknown] = useState(true);
   const fetchThreads = useCallback(async () => {
     if (!organization?.id) return;
 
@@ -92,6 +92,13 @@ export function useGuestInbox() {
 
       let filteredData = data || [];
 
+      // Filter out unknown senders (no email and name starts with "Unknown")
+      if (hideUnknown) {
+        filteredData = filteredData.filter(thread =>
+          !(thread.guest_name?.startsWith('Unknown') && !thread.guest_email)
+        );
+      }
+
       // Apply search filter client-side
       if (searchQuery.trim()) {
         const search = searchQuery.toLowerCase();
@@ -113,7 +120,7 @@ export function useGuestInbox() {
     } finally {
       setLoading(false);
     }
-  }, [organization?.id, filter, searchQuery, toast]);
+  }, [organization?.id, filter, searchQuery, hideUnknown, toast]);
 
   // Fetch a single thread by ID (for direct navigation after refresh)
   const fetchThreadById = useCallback(async (threadId: string): Promise<InboxThread | null> => {
@@ -375,6 +382,8 @@ export function useGuestInbox() {
     setFilter,
     searchQuery,
     setSearchQuery,
+    hideUnknown,
+    setHideUnknown,
     fetchThreads,
     fetchThreadById,
     fetchThreadMessages,

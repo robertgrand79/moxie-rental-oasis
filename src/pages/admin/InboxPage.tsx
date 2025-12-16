@@ -17,6 +17,8 @@ const InboxPage = () => {
     setFilter,
     searchQuery,
     setSearchQuery,
+    hideUnknown,
+    setHideUnknown,
     getUnreadCount,
     getSnoozedCount,
   } = useGuestInbox();
@@ -41,6 +43,8 @@ const InboxPage = () => {
           snoozedCount={getSnoozedCount()}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          hideUnknown={hideUnknown}
+          onHideUnknownChange={setHideUnknown}
         />
       </div>
 
@@ -61,6 +65,8 @@ const InboxPage = () => {
               snoozedCount={getSnoozedCount()}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
+              hideUnknown={hideUnknown}
+              onHideUnknownChange={setHideUnknown}
               isMobile
             />
           </SheetContent>

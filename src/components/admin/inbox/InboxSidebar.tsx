@@ -2,6 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { 
   Inbox, 
   Mail, 
@@ -9,11 +10,11 @@ import {
   CheckCircle, 
   Star, 
   Search,
-  AlarmClock
+  AlarmClock,
+  UserX
 } from 'lucide-react';
 import { InboxFilter } from '@/hooks/useGuestInbox';
 import { cn } from '@/lib/utils';
-
 interface InboxSidebarProps {
   filter: InboxFilter;
   onFilterChange: (filter: InboxFilter) => void;
@@ -21,6 +22,8 @@ interface InboxSidebarProps {
   snoozedCount: number;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  hideUnknown: boolean;
+  onHideUnknownChange: (value: boolean) => void;
   isMobile?: boolean;
 }
 
@@ -40,6 +43,8 @@ const InboxSidebar: React.FC<InboxSidebarProps> = ({
   snoozedCount,
   searchQuery,
   onSearchChange,
+  hideUnknown,
+  onHideUnknownChange,
   isMobile = false,
 }) => {
   return (
@@ -96,6 +101,23 @@ const InboxSidebar: React.FC<InboxSidebarProps> = ({
           </Button>
         ))}
       </nav>
+
+      {/* Hide unknown senders toggle */}
+      <div className="p-3 border-t">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <UserX className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">Hide unknown</span>
+          </div>
+          <Switch 
+            checked={hideUnknown} 
+            onCheckedChange={onHideUnknownChange}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">
+          Hide senders without reservations
+        </p>
+      </div>
     </div>
   );
 };
