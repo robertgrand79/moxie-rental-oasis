@@ -269,7 +269,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await databaseStatus.checkConnection();
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
@@ -285,14 +285,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('✅ Sign in successful');
       
-      // Update last_login_at timestamp
-      try {
-        await supabase
+      // Update last_login_at timestamp using user ID (required by RLS policy)
+      if (data?.user?.id) {
+        const { error: updateError } = await supabase
           .from('profiles')
           .update({ last_login_at: new Date().toISOString() })
-          .eq('email', email);
-      } catch (loginUpdateError) {
-        console.warn('Failed to update last_login_at:', loginUpdateError);
+          .eq('id', data.user.id);
+        
+        if (updateError) {
+          console.warn('Failed to update last_login_at:', updateError);
+        } else {
+          console.log('✅ Last login timestamp updated');
+        }
       }
 
       return { error: null };
