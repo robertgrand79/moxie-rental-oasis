@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { BlogPost, ContentType } from '@/types/blogPost';
 
@@ -50,6 +51,7 @@ interface UseBlogFormOptions {
 
 export const useBlogForm = ({ post, onSubmit }: UseBlogFormOptions) => {
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
   const [uploadedImage, setUploadedImage] = useState<string | null>(post?.image_url || null);
   const [content, setContent] = useState(post?.content || '');
   const [autoSavedPost, setAutoSavedPost] = useState<BlogPost | null>(post || null);
@@ -106,6 +108,7 @@ export const useBlogForm = ({ post, onSubmit }: UseBlogFormOptions) => {
       author: watchedValues.author,
       image_url: uploadedImage || undefined,
       image_credit: watchedValues.image_credit || undefined,
+      organization_id: organization?.id,
       // Content type fields
       content_type: watchedValues.content_type,
       category: watchedValues.category,
@@ -163,6 +166,7 @@ export const useBlogForm = ({ post, onSubmit }: UseBlogFormOptions) => {
       tags: data.tags ? data.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag) : [],
       author: finalAuthor,
       published_at: data.published_at ? data.published_at.toISOString() : null,
+      organization_id: organization?.id,
       slug: data.title ? data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : 'untitled',
       // Content type specific data
       content_type: data.content_type,
