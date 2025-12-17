@@ -16,6 +16,7 @@ import {
   MessageSquare,
   ClipboardList,
   Sparkles,
+  Bell,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -27,6 +28,12 @@ export const adminMenuItems = [
         href: '/admin',
         icon: BarChart3,
         description: 'Main admin dashboard with analytics'
+      },
+      {
+        title: 'Notifications',
+        href: '/admin/notifications',
+        icon: Bell,
+        description: 'View and manage your notifications'
       }
     ]
   },

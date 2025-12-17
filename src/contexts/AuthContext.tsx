@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useDatabase } from '@/hooks/useDatabase';
+import { toast } from '@/hooks/use-toast';
 
 interface Profile {
   id: string;
@@ -296,6 +297,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.warn('Failed to update last_login_at:', updateError);
         } else {
           console.log('✅ Last login timestamp updated');
+        }
+
+        // Check for unread notifications and show welcome toast
+        try {
+          const { count, error: notifError } = await supabase
+            .from('admin_notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('is_read', false)
+            .eq('is_archived', false);
+          
+          if (!notifError && count !== null) {
+            const firstName = data.user.user_metadata?.full_name?.split(' ')[0] || 'back';
+            if (count > 0) {
+              toast({
+                title: `Welcome ${firstName}!`,
+                description: `You have ${count} unread notification${count !== 1 ? 's' : ''}`,
+              });
+            } else {
+              toast({
+                title: `Welcome ${firstName}!`,
+                description: "You're all caught up - no new notifications",
+              });
+            }
+          }
+        } catch (notifErr) {
+          console.warn('Failed to fetch notification count:', notifErr);
         }
       }
 
