@@ -5,19 +5,29 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { AlertTriangle, RefreshCw, Loader2 } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Loader2, Mail } from 'lucide-react';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
-  const { signIn, signUp, user, isAdmin, loading, roleLoading, databaseStatus } = useAuth();
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const { signIn, signUp, resetPassword, user, isAdmin, loading, roleLoading, databaseStatus } = useAuth();
   const { isOrgAdmin, loading: orgLoading } = useCurrentOrganization();
   const { settings, loading: settingsLoading } = useTenantSettings();
   const navigate = useNavigate();
@@ -138,6 +148,38 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordLoading(true);
+
+    try {
+      const { error } = await resetPassword(forgotPasswordEmail);
+      
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Check your email',
+          description: 'If an account exists with this email, you will receive a password reset link.',
+        });
+        setForgotPasswordOpen(false);
+        setForgotPasswordEmail('');
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setForgotPasswordLoading(false);
+    }
+  };
+
   // Show loading state while auth is being determined
   if (user && (loading || roleLoading || orgLoading)) {
     return (
@@ -239,6 +281,18 @@ const Auth = () => {
                       className="h-11"
                     />
                   </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotPasswordEmail(loginData.email);
+                        setForgotPasswordOpen(true);
+                      }}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                   <Button 
                     type="submit" 
                     className="w-full h-11" 
@@ -325,6 +379,50 @@ const Auth = () => {
             </p>
           </div>
         </div>
+
+        {/* Forgot Password Dialog */}
+        <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <Mail className="h-6 w-6 text-primary" />
+              </div>
+              <DialogTitle className="text-center">Reset your password</DialogTitle>
+              <DialogDescription className="text-center">
+                Enter your email address and we'll send you a link to reset your password.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgot-email">Email</Label>
+                <Input
+                  id="forgot-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  required
+                  disabled={forgotPasswordLoading}
+                  className="h-11"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full h-11" 
+                disabled={forgotPasswordLoading}
+              >
+                {forgotPasswordLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Send Reset Link'
+                )}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         {/* Right side - Hero image/gradient (hidden on mobile) */}
         <div 

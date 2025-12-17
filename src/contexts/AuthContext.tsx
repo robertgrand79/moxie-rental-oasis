@@ -23,6 +23,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
   databaseStatus: {
     isConnected: boolean;
     isChecking: boolean;
@@ -329,6 +330,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
+  const resetPassword = async (email: string) => {
+    console.log('🔑 Requesting password reset for:', email);
+    
+    const redirectUrl = `${window.location.origin}/reset-password`;
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
+    
+    if (error) {
+      console.error('❌ Password reset error:', error);
+    } else {
+      console.log('✅ Password reset email sent');
+    }
+    
+    return { error };
+  };
+
   const retryAuth = () => {
     if (authRetryCount < 3) {
       console.log('🔄 Retrying authentication...', authRetryCount + 1);
@@ -364,6 +383,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
+    resetPassword,
     databaseStatus: {
       isConnected: databaseStatus.isConnected,
       isChecking: databaseStatus.isChecking,

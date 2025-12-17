@@ -24,6 +24,7 @@ import Blog from '@/pages/Blog';
 import BlogPost from '@/pages/BlogPost';
 import SearchResults from '@/pages/SearchResults';
 import Auth from '@/pages/Auth';
+import ResetPassword from '@/pages/ResetPassword';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
@@ -97,6 +98,7 @@ const AppRoutes: React.FC = () => {
           <Route path="blog" element={<PlatformBlog />} />
           <Route path="auth" element={<PlatformAuth />} />
           <Route path="login" element={<PlatformAuth />} />
+          <Route path="reset-password" element={<ResetPassword />} />
         </Route>
 
         {/* Shared Onboarding Routes */}
@@ -167,6 +169,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/search-results" element={<SearchResults />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
