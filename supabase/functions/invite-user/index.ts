@@ -75,23 +75,69 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Generate invitation token
-    const invitationToken = crypto.randomUUID();
-
-    // Check if user already exists
+    // Check if user already exists in profiles
     const { data: existingUser } = await supabaseClient
       .from('profiles')
-      .select('email')
+      .select('id, email, full_name')
       .eq('email', email)
       .single();
 
     if (existingUser) {
+      // User exists - check if they're already in this organization
+      const { data: existingMembership } = await supabaseClient
+        .from('organization_members')
+        .select('id')
+        .eq('user_id', existingUser.id)
+        .eq('organization_id', organizationId)
+        .single();
+
+      if (existingMembership) {
+        return new Response(
+          JSON.stringify({ error: 'User is already a member of this organization' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Add existing user directly to organization
+      const { error: addMemberError } = await supabaseClient
+        .from('organization_members')
+        .insert({
+          organization_id: organizationId,
+          user_id: existingUser.id,
+          role: role,
+        });
+
+      if (addMemberError) {
+        console.error('Error adding member to organization:', addMemberError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to add user to organization' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Log the action
+      await supabaseClient
+        .from('user_audit_logs')
+        .insert({
+          action: 'user_added_to_organization',
+          target_user_email: email,
+          performed_by: user.id,
+          details: { role, full_name, organization_id: organizationId, existing_user: true }
+        });
+
+      console.log('Existing user added to organization:', existingUser.id);
+
       return new Response(
-        JSON.stringify({ error: 'User with this email already exists' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: true, 
+          message: `${email} has been added to the organization`,
+          added_directly: true
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    // User doesn't exist - create invitation for new user
     // Check if invitation already exists for this org
     const { data: existingInvitation } = await supabaseClient
       .from('user_invitations')
@@ -107,6 +153,9 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Generate invitation token
+    const invitationToken = crypto.randomUUID();
 
     // Create invitation record with organization context
     const { data: invitation, error: inviteError } = await supabaseClient
