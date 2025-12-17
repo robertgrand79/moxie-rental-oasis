@@ -136,6 +136,9 @@ verify_jwt = false
 [functions.send-daily-recap]
 verify_jwt = false
 
+[functions.send-instant-notification]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323
