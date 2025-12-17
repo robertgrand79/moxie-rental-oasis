@@ -53,6 +53,69 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notifications: {
+        Row: {
+          action_url: string | null
+          category: string
+          created_at: string | null
+          id: string
+          is_archived: boolean | null
+          is_read: boolean | null
+          message: string
+          metadata: Json | null
+          notification_type: string
+          organization_id: string
+          priority: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          action_url?: string | null
+          category: string
+          created_at?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          organization_id: string
+          priority?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          action_url?: string | null
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          organization_id?: string
+          priority?: string | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_analytics: {
         Row: {
           created_at: string
@@ -2364,6 +2427,60 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          email_digest: boolean | null
+          email_instant: boolean | null
+          id: string
+          in_app: boolean | null
+          notification_type: string
+          organization_id: string
+          sms: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email_digest?: boolean | null
+          email_instant?: boolean | null
+          id?: string
+          in_app?: boolean | null
+          notification_type: string
+          organization_id: string
+          sms?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email_digest?: boolean | null
+          email_instant?: boolean | null
+          id?: string
+          in_app?: boolean | null
+          notification_type?: string
+          organization_id?: string
+          sms?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       office_assignments: {
         Row: {
