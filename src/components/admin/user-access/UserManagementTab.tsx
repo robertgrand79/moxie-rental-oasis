@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2, Search, Download } from 'lucide-react';
+import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2, Search, Download, Link } from 'lucide-react';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,11 +23,13 @@ import { useUserManagement } from '@/hooks/useUserManagement';
 import UserInviteModal from '@/components/admin/UserInviteModal';
 import UserProfileModal from '@/components/admin/UserProfileModal';
 import UserPermissionDiagnostics from '@/components/admin/UserPermissionDiagnostics';
+import AddExistingUserModal from '@/components/admin/AddExistingUserModal';
 import { useAuth } from '@/contexts/AuthContext';
 
 const UserManagementTab = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isAddExistingUserModalOpen, setIsAddExistingUserModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -36,6 +38,7 @@ const UserManagementTab = () => {
     users, 
     loading, 
     error, 
+    fetchUsers,
     updateUserProfile,
     updateUserRole, 
     deleteUser, 
@@ -174,6 +177,13 @@ const UserManagementTab = () => {
           <Button variant="outline" onClick={exportUsers}>
             <Download className="h-4 w-4 mr-2" />
             Export
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsAddExistingUserModalOpen(true)}
+          >
+            <Link className="h-4 w-4 mr-2" />
+            Add Existing User
           </Button>
           <EnhancedButton
             onClick={() => setIsInviteModalOpen(true)}
@@ -350,6 +360,11 @@ const UserManagementTab = () => {
         onClose={() => setIsProfileModalOpen(false)}
         user={selectedUser}
         onUpdate={updateUserProfile}
+      />
+      <AddExistingUserModal
+        isOpen={isAddExistingUserModalOpen}
+        onClose={() => setIsAddExistingUserModalOpen(false)}
+        onSuccess={fetchUsers}
       />
     </div>
   );

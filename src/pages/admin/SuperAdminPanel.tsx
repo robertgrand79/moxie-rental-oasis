@@ -37,6 +37,7 @@ import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripe
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
 import TemplateOrganizations from '@/components/admin/superadmin/TemplateOrganizations';
 import SubscriptionControls from '@/components/admin/superadmin/SubscriptionControls';
+import PlatformUsersTab from '@/components/admin/superadmin/PlatformUsersTab';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -296,6 +297,10 @@ const SuperAdminPanel = () => {
               <Building2 className="h-4 w-4" />
               Organizations
             </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Users
+            </TabsTrigger>
             <TabsTrigger value="templates" className="flex items-center gap-2">
               <Layout className="h-4 w-4" />
               Templates
@@ -404,6 +409,10 @@ const SuperAdminPanel = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="users" className="mt-6 space-y-6">
+            <PlatformUsersTab />
           </TabsContent>
 
           <TabsContent value="templates" className="mt-6 space-y-6">
