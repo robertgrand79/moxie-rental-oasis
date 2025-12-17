@@ -5189,6 +5189,7 @@ export type Database = {
           id: string
           invitation_token: string
           invited_by: string
+          organization_id: string | null
           role: string
           updated_at: string
         }
@@ -5201,6 +5202,7 @@ export type Database = {
           id?: string
           invitation_token: string
           invited_by: string
+          organization_id?: string | null
           role?: string
           updated_at?: string
         }
@@ -5213,10 +5215,19 @@ export type Database = {
           id?: string
           invitation_token?: string
           invited_by?: string
+          organization_id?: string | null
           role?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
