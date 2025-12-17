@@ -13,6 +13,7 @@ interface AutoSaveData {
   author: string;
   image_url?: string;
   image_credit?: string;
+  organization_id?: string;
   // Content type fields
   content_type?: ContentType;
   category?: string;
@@ -73,6 +74,7 @@ export const useAutoSave = ({
         status: 'draft' as const,
         author: data.author || 'Admin',
         published_at: null,
+        organization_id: data.organization_id || null,
         slug: (data.title || 'untitled-draft').toLowerCase()
           .replace(/\s+/g, '-')
           .replace(/[^a-z0-9-]/g, '')
