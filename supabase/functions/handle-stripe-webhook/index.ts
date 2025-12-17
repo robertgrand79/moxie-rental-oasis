@@ -118,6 +118,16 @@ serve(async (req) => {
       throw new Error(`Webhook signature verification failed: ${err.message}`);
     }
 
+    // Helper function to get organization ID from property
+    const getOrganizationId = async (propId: string): Promise<string | null> => {
+      const { data: prop } = await supabaseClient
+        .from('properties')
+        .select('organization_id')
+        .eq('id', propId)
+        .single();
+      return prop?.organization_id || null;
+    };
+
     // Handle the event
     switch (event.type) {
       case "checkout.session.completed": {
@@ -144,34 +154,92 @@ serve(async (req) => {
 
         logStep("Reservation marked as paid", { reservationId });
 
-        // Get reservation details to create availability block
+        // Get reservation details to create availability block and notifications
         const { data: reservation, error: fetchError } = await supabaseClient
           .from("property_reservations")
-          .select("check_in_date, check_out_date, guest_name")
+          .select("check_in_date, check_out_date, guest_name, guest_email, total_amount, property_id")
           .eq("id", reservationId)
           .single();
 
         if (fetchError) {
           logStep("Error fetching reservation for availability block", fetchError);
-        } else if (reservation && propertyId) {
-          // Create availability block for direct booking
-          const { error: blockError } = await supabaseClient
-            .from("availability_blocks")
-            .insert({
-              property_id: propertyId,
-              start_date: reservation.check_in_date,
-              end_date: reservation.check_out_date,
-              block_type: 'booked',
-              source_platform: 'direct',
-              external_booking_id: reservationId,
-              notes: `Direct Booking - ${reservation.guest_name}`,
-              sync_status: 'synced'
-            });
+        } else if (reservation) {
+          const effectivePropertyId = propertyId || reservation.property_id;
+          
+          if (effectivePropertyId) {
+            // Create availability block for direct booking
+            const { error: blockError } = await supabaseClient
+              .from("availability_blocks")
+              .insert({
+                property_id: effectivePropertyId,
+                start_date: reservation.check_in_date,
+                end_date: reservation.check_out_date,
+                block_type: 'booked',
+                source_platform: 'direct',
+                external_booking_id: reservationId,
+                notes: `Direct Booking - ${reservation.guest_name}`,
+                sync_status: 'synced'
+              });
 
-          if (blockError) {
-            logStep("Error creating availability block", blockError);
-          } else {
-            logStep("Availability block created", { reservationId, propertyId });
+            if (blockError) {
+              logStep("Error creating availability block", blockError);
+            } else {
+              logStep("Availability block created", { reservationId, propertyId: effectivePropertyId });
+            }
+
+            // Create notifications for new booking and payment
+            const organizationId = await getOrganizationId(effectivePropertyId);
+            if (organizationId) {
+              // Get property name for notification
+              const { data: propertyData } = await supabaseClient
+                .from('properties')
+                .select('name')
+                .eq('id', effectivePropertyId)
+                .single();
+              const propertyName = propertyData?.name || 'Property';
+
+              // Create new booking notification
+              await supabaseClient.from('admin_notifications').insert({
+                organization_id: organizationId,
+                user_id: null,
+                notification_type: 'new_booking',
+                category: 'bookings',
+                title: 'New Booking Confirmed',
+                message: `${reservation.guest_name} booked ${propertyName} for ${reservation.check_in_date} to ${reservation.check_out_date}`,
+                action_url: `/admin/host/bookings`,
+                priority: 'high',
+                metadata: {
+                  reservation_id: reservationId,
+                  property_id: effectivePropertyId,
+                  guest_name: reservation.guest_name,
+                  guest_email: reservation.guest_email,
+                  check_in: reservation.check_in_date,
+                  check_out: reservation.check_out_date,
+                  total_amount: reservation.total_amount
+                }
+              });
+              logStep("New booking notification created");
+
+              // Create payment received notification
+              await supabaseClient.from('admin_notifications').insert({
+                organization_id: organizationId,
+                user_id: null,
+                notification_type: 'payment_received',
+                category: 'payments',
+                title: 'Payment Received',
+                message: `$${reservation.total_amount?.toFixed(2) || '0.00'} received from ${reservation.guest_name} for ${propertyName}`,
+                action_url: `/admin/host/bookings`,
+                priority: 'normal',
+                metadata: {
+                  reservation_id: reservationId,
+                  property_id: effectivePropertyId,
+                  amount: reservation.total_amount,
+                  guest_name: reservation.guest_name,
+                  stripe_session_id: session.id
+                }
+              });
+              logStep("Payment received notification created");
+            }
           }
         }
 
@@ -204,6 +272,13 @@ serve(async (req) => {
         logStep("Processing payment_intent.payment_failed", { paymentIntentId: paymentIntent.id });
 
         if (reservationId) {
+          // Get reservation details before updating
+          const { data: reservation } = await supabaseClient
+            .from("property_reservations")
+            .select("guest_name, guest_email, property_id, total_amount")
+            .eq("id", reservationId)
+            .single();
+
           const { error: updateError } = await supabaseClient
             .from("property_reservations")
             .update({ payment_status: "failed" })
@@ -211,6 +286,39 @@ serve(async (req) => {
 
           if (updateError) {
             logStep("Error updating reservation", updateError);
+          }
+
+          // Create payment failed notification
+          if (reservation?.property_id) {
+            const organizationId = await getOrganizationId(reservation.property_id);
+            if (organizationId) {
+              const { data: propertyData } = await supabaseClient
+                .from('properties')
+                .select('name')
+                .eq('id', reservation.property_id)
+                .single();
+              const propertyName = propertyData?.name || 'Property';
+
+              await supabaseClient.from('admin_notifications').insert({
+                organization_id: organizationId,
+                user_id: null,
+                notification_type: 'payment_failed',
+                category: 'payments',
+                title: 'Payment Failed',
+                message: `Payment of $${reservation.total_amount?.toFixed(2) || '0.00'} failed for ${reservation.guest_name} at ${propertyName}`,
+                action_url: `/admin/host/bookings`,
+                priority: 'urgent',
+                metadata: {
+                  reservation_id: reservationId,
+                  property_id: reservation.property_id,
+                  guest_name: reservation.guest_name,
+                  guest_email: reservation.guest_email,
+                  amount: reservation.total_amount,
+                  stripe_payment_intent_id: paymentIntent.id
+                }
+              });
+              logStep("Payment failed notification created");
+            }
           }
         }
         break;

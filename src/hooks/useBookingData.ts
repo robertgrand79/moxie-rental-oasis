@@ -106,9 +106,17 @@ export const useUpdateReservation = () => {
 
 export const useDeleteReservation = () => {
   const queryClient = useQueryClient();
+  const { organization } = useCurrentOrganization();
   
   return useMutation({
     mutationFn: async (reservationId: string) => {
+      // First get reservation details for the cancellation notification
+      const { data: reservation } = await supabase
+        .from('property_reservations')
+        .select('guest_name, guest_email, property_id, check_in_date, check_out_date, total_amount')
+        .eq('id', reservationId)
+        .single();
+      
       // Delete associated availability blocks - handle both direct bookings and external calendar imports
       // Direct bookings: external_booking_id = reservationId
       // External imports: external_booking_id = reservationId@something.com
@@ -128,6 +136,41 @@ export const useDeleteReservation = () => {
         .eq('id', reservationId);
       
       if (error) throw error;
+
+      // Create cancellation notification if we have org context and reservation details
+      if (organization?.id && reservation) {
+        // Get property name
+        let propertyName = 'Property';
+        if (reservation.property_id) {
+          const { data: propertyData } = await supabase
+            .from('properties')
+            .select('title')
+            .eq('id', reservation.property_id)
+            .single();
+          propertyName = propertyData?.title || 'Property';
+        }
+
+        await supabase.from('admin_notifications').insert({
+          organization_id: organization.id,
+          user_id: null,
+          notification_type: 'booking_cancelled',
+          category: 'bookings',
+          title: 'Booking Cancelled',
+          message: `Booking for ${reservation.guest_name} at ${propertyName} (${reservation.check_in_date} - ${reservation.check_out_date}) has been cancelled`,
+          action_url: `/admin/host/bookings`,
+          priority: 'normal',
+          metadata: {
+            reservation_id: reservationId,
+            property_id: reservation.property_id,
+            guest_name: reservation.guest_name,
+            guest_email: reservation.guest_email,
+            check_in: reservation.check_in_date,
+            check_out: reservation.check_out_date,
+            total_amount: reservation.total_amount
+          }
+        });
+      }
+      
       return { success: true };
     },
     onSuccess: () => {

@@ -87,10 +87,40 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        const recipients = members.map((m: any) => ({
-          email: m.profiles.email,
-          name: m.profiles.full_name || "Team Member",
-        }));
+        // Filter recipients by their notification preferences (email_digest enabled)
+        const recipientsWithPrefs: { email: string; name: string; userId: string }[] = [];
+        
+        for (const m of members as any[]) {
+          // Check if user has email_digest enabled for any notification type
+          const { data: prefs } = await supabase
+            .from("notification_preferences")
+            .select("email_digest")
+            .eq("user_id", m.user_id)
+            .eq("email_digest", true)
+            .limit(1);
+          
+          // Include user if they have at least one notification type with email_digest enabled
+          // or if they have no preferences set (default to included)
+          const { count: prefCount } = await supabase
+            .from("notification_preferences")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", m.user_id);
+          
+          if (!prefCount || prefCount === 0 || (prefs && prefs.length > 0)) {
+            recipientsWithPrefs.push({
+              email: m.profiles.email,
+              name: m.profiles.full_name || "Team Member",
+              userId: m.user_id,
+            });
+          }
+        }
+
+        if (recipientsWithPrefs.length === 0) {
+          console.log(`No recipients opted into daily digest for ${org.name}`);
+          continue;
+        }
+
+        const recipients = recipientsWithPrefs.map(r => ({ email: r.email, name: r.name }));
 
         // Get organization properties
         const { data: properties } = await supabase

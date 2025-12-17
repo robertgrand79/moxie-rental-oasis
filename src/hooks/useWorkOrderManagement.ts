@@ -165,6 +165,28 @@ export const useWorkOrderManagement = () => {
         title: 'Success',
         description: 'Work order created successfully',
       });
+
+      // Create notification for new work order
+      if (organization?.id && data) {
+        const workOrder = data as WorkOrder;
+        const propertyName = workOrder.property?.title || 'Unknown Property';
+        await supabase.from('admin_notifications').insert({
+          organization_id: organization.id,
+          user_id: null, // Notify all org admins
+          notification_type: 'work_order_created',
+          category: 'operations',
+          title: 'New Work Order Created',
+          message: `Work order "${workOrder.title}" created for ${propertyName}`,
+          action_url: `/admin/work-orders`,
+          priority: workOrder.priority === 'urgent' ? 'high' : 'normal',
+          metadata: {
+            work_order_id: workOrder.id,
+            work_order_number: workOrder.work_order_number,
+            property_id: workOrder.property_id,
+            priority: workOrder.priority
+          }
+        });
+      }
       
       return data;
     } catch (error) {
@@ -180,6 +202,9 @@ export const useWorkOrderManagement = () => {
 
   const updateWorkOrder = async (id: string, updates: Partial<WorkOrder>) => {
     try {
+      // Get current work order to check status change
+      const currentWorkOrder = workOrders.find(wo => wo.id === id);
+      
       // Remove fields that don't belong in the database update
       const { property, contractor, ...cleanUpdates } = updates as any;
 
@@ -201,6 +226,27 @@ export const useWorkOrderManagement = () => {
         title: 'Success',
         description: 'Work order updated successfully',
       });
+
+      // Create notification if work order was completed
+      if (organization?.id && data && currentWorkOrder?.status !== 'completed' && updates.status === 'completed') {
+        const workOrder = data as WorkOrder;
+        const propertyName = workOrder.property?.title || 'Unknown Property';
+        await supabase.from('admin_notifications').insert({
+          organization_id: organization.id,
+          user_id: null,
+          notification_type: 'work_order_completed',
+          category: 'operations',
+          title: 'Work Order Completed',
+          message: `Work order "${workOrder.title}" at ${propertyName} has been completed`,
+          action_url: `/admin/work-orders`,
+          priority: 'normal',
+          metadata: {
+            work_order_id: workOrder.id,
+            work_order_number: workOrder.work_order_number,
+            property_id: workOrder.property_id
+          }
+        });
+      }
       
       return data;
     } catch (error) {
