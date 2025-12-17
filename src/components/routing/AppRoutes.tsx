@@ -70,6 +70,7 @@ import AdminAIAssistant from '@/pages/admin/AdminAIAssistant';
 import GuidebookEditorPage from '@/pages/admin/GuidebookEditorPage';
 import InboxPage from '@/pages/admin/InboxPage';
 import ConversationDetailPage from '@/pages/admin/ConversationDetailPage';
+import NotificationsPage from '@/pages/admin/NotificationsPage';
 import OrganizationSignup from '@/pages/onboarding/OrganizationSignup';
 import OnboardingWizard from '@/pages/onboarding/OnboardingWizard';
 
@@ -107,8 +108,9 @@ const AppRoutes: React.FC = () => {
 
         {/* Shared Admin Routes */}
         <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
-          <Route index element={<AdminDashboard />} />
+        <Route index element={<AdminDashboard />} />
         <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="notifications" element={<NotificationsPage />} />
         <Route path="blog" element={<BlogManagement />} />
         <Route path="properties" element={<AdminProperties />} />
         <Route path="properties/:propertyId" element={<AdminProperties />} />
@@ -192,6 +194,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
         <Route index element={<AdminDashboard />} />
         <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="notifications" element={<NotificationsPage />} />
         <Route path="blog" element={<BlogManagement />} />
         <Route path="properties" element={<AdminProperties />} />
         <Route path="properties/:propertyId" element={<AdminProperties />} />
