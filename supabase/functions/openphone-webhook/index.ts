@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createAdminNotification, NOTIFICATION_TYPES, NOTIFICATION_CATEGORIES } from '../_shared/notifications.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -223,6 +224,23 @@ const handler = async (req: Request): Promise<Response> => {
         snoozed_until: null,
       })
       .eq("id", threadId);
+
+    // Create notification for inbound guest message
+    await createAdminNotification(supabase, {
+      organizationId: orgId,
+      notificationType: NOTIFICATION_TYPES.GUEST_MESSAGE,
+      category: NOTIFICATION_CATEGORIES.COMMUNICATIONS,
+      title: `New SMS from ${guestName || senderPhone}`,
+      message: messageBody.substring(0, 200) + (messageBody.length > 200 ? '...' : ''),
+      actionUrl: `/admin/host/inbox/${threadId}`,
+      metadata: {
+        thread_id: threadId,
+        reservation_id: reservationId,
+        sender_phone: senderPhone,
+        message_type: 'sms',
+      },
+      priority: 'normal',
+    });
 
     return new Response(
       JSON.stringify({ 

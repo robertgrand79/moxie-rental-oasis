@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { createAdminNotification, NOTIFICATION_TYPES, NOTIFICATION_CATEGORIES } from '../_shared/notifications.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -68,7 +69,7 @@ async function syncReservation(data: any, platform: string) {
     // Find the property by external ID
     const { data: properties, error: propertyError } = await supabase
       .from('properties')
-      .select('id')
+      .select('id, name, organization_id')
       .contains('external_property_ids', { [platform]: data.property_id });
 
     if (propertyError || !properties?.length) {
@@ -76,7 +77,8 @@ async function syncReservation(data: any, platform: string) {
       return;
     }
 
-    const propertyId = properties[0].id;
+    const property = properties[0];
+    const propertyId = property.id;
 
     // Prepare reservation data
     const reservationData = {
@@ -107,6 +109,27 @@ async function syncReservation(data: any, platform: string) {
       console.error('Error syncing reservation:', reservationError);
     } else {
       console.log('Successfully synced reservation:', reservationData.external_booking_id);
+      
+      // Create notification for new booking
+      if (property.organization_id) {
+        await createAdminNotification(supabase, {
+          organizationId: property.organization_id,
+          notificationType: NOTIFICATION_TYPES.NEW_BOOKING,
+          category: NOTIFICATION_CATEGORIES.BOOKINGS,
+          title: `New Booking from ${platform.toUpperCase()}`,
+          message: `${reservationData.guest_name} booked ${property.name} for ${reservationData.check_in_date} to ${reservationData.check_out_date}`,
+          actionUrl: `/admin/reservations`,
+          metadata: {
+            property_id: propertyId,
+            guest_name: reservationData.guest_name,
+            check_in: reservationData.check_in_date,
+            check_out: reservationData.check_out_date,
+            total_amount: reservationData.total_amount,
+            platform,
+          },
+          priority: 'normal',
+        });
+      }
     }
 
     // Create availability block

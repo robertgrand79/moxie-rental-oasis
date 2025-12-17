@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Webhook } from "https://esm.sh/svix@1.15.0";
 import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
+import { createAdminNotification, NOTIFICATION_TYPES, NOTIFICATION_CATEGORIES } from '../_shared/notifications.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -282,6 +283,25 @@ serve(async (req) => {
       }
 
       console.log(`✓ Inbound email stored for reservation ${reservation.id}:`, insertedComm?.id);
+
+      // Create notification for inbound guest email
+      if (property?.organization_id) {
+        await createAdminNotification(supabase, {
+          organizationId: property.organization_id,
+          notificationType: NOTIFICATION_TYPES.GUEST_MESSAGE,
+          category: NOTIFICATION_CATEGORIES.COMMUNICATIONS,
+          title: `New Email from ${reservation.guest_name}`,
+          message: emailData.subject || "(No Subject)",
+          actionUrl: `/admin/host/inbox/${threadId}`,
+          metadata: {
+            thread_id: threadId,
+            reservation_id: reservation.id,
+            sender_email: senderEmail,
+            message_type: 'email',
+          },
+          priority: 'normal',
+        });
+      }
 
       return new Response(
         JSON.stringify({
