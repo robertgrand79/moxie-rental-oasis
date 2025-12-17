@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { Organization, OrganizationMember } from '@/types/organizations';
@@ -26,25 +26,47 @@ export const useCurrentOrganization = () => {
 };
 
 export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [membership, setMembership] = useState<OrganizationMember | null>(null);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const retryCountRef = useRef(0);
+  const isFetchingRef = useRef(false);
 
-  const fetchOrganizationData = useCallback(async () => {
-    if (!user) {
+  const fetchOrganizationData = useCallback(async (isRetry = false) => {
+    // Require both user AND session for RLS to work properly
+    if (!user || !session) {
+      console.log('🏢 No user or session, clearing organization state');
       setOrganization(null);
       setMembership(null);
       setIsPlatformAdmin(false);
       setLoading(false);
+      retryCountRef.current = 0;
       return;
     }
 
+    // Prevent duplicate fetches
+    if (isFetchingRef.current && !isRetry) {
+      console.log('🏢 Fetch already in progress, skipping');
+      return;
+    }
+
+    isFetchingRef.current = true;
+
     try {
       setError(null);
-      setLoading(true);
+      if (!isRetry) {
+        setLoading(true);
+      }
+
+      // Small delay to let JWT token settle after session change
+      if (!isRetry) {
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+
+      console.log('🏢 Fetching organization data for user:', user.email);
 
       // Fetch organization membership (most recent) and platform admin status in parallel
       const [membershipResult, platformAdminResult] = await Promise.all([
@@ -67,17 +89,18 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       ]);
 
       if (membershipResult.error) {
-        console.error('Error fetching organization membership:', membershipResult.error);
+        console.error('❌ Error fetching organization membership:', membershipResult.error);
         throw membershipResult.error;
       }
 
       if (platformAdminResult.error && platformAdminResult.error.code !== 'PGRST116') {
-        console.error('Error fetching platform admin status:', platformAdminResult.error);
+        console.error('⚠️ Error fetching platform admin status:', platformAdminResult.error);
       }
 
       // Set organization and membership data
       if (membershipResult.data) {
         const memberData = membershipResult.data as any;
+        console.log('✅ Organization found:', memberData.organization?.name);
         setMembership({
           id: memberData.id,
           organization_id: memberData.organization_id,
@@ -87,7 +110,18 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           joined_at: memberData.joined_at,
         });
         setOrganization(memberData.organization as Organization);
+        retryCountRef.current = 0;
       } else {
+        // No organization found - retry once if this is first attempt
+        if (retryCountRef.current === 0 && !isRetry) {
+          console.log('⚠️ No organization found, will retry in 500ms...');
+          retryCountRef.current = 1;
+          isFetchingRef.current = false;
+          setTimeout(() => fetchOrganizationData(true), 500);
+          return;
+        }
+        
+        console.log('🏢 No organization membership found after retry');
         setMembership(null);
         setOrganization(null);
       }
@@ -96,12 +130,13 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setIsPlatformAdmin(!!platformAdminResult.data);
 
     } catch (err) {
-      console.error('Error in fetchOrganizationData:', err);
+      console.error('💥 Error in fetchOrganizationData:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch organization data');
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
     }
-  }, [user]);
+  }, [user, session]);
 
   useEffect(() => {
     fetchOrganizationData();
