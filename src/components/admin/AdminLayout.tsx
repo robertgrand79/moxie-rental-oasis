@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
+import NotificationBell from './notifications/NotificationBell';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -50,8 +51,13 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                   </a>
                 </EnhancedButton>
                 
-                {/* Organization context badge */}
-                {!isMobile && <OrganizationBadge />}
+                <div className="flex items-center gap-2">
+                  {/* Notification Bell */}
+                  <NotificationBell />
+                  
+                  {/* Organization context badge */}
+                  {!isMobile && <OrganizationBadge />}
+                </div>
               </div>
             </header>
             <main className={`flex-1 overflow-auto ${isMobile ? 'p-4' : 'p-8'}`}>
