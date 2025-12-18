@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Palette, Type, Image, Share, MapPin, Calendar, Camera, Star } from 'lucide-react';
 import ColorCustomizer from '@/components/ColorCustomizer';
@@ -10,7 +9,6 @@ import StableBasicSettingsTab from '@/components/admin/settings/StableBasicSetti
 import SocialSettingsTab from '@/components/admin/settings/SocialSettingsTab';
 import SEOSettingsTab from '@/components/admin/settings/SEOSettingsTab';
 import AnalyticsSettingsTab from '@/components/admin/settings/AnalyticsSettingsTab';
-import MapsSettingsTab from '@/components/admin/settings/MapsSettingsTab';
 import { TestimonialsManager, GalleryTab, PointsOfInterestTab, EventsTab } from '@/components/admin/settings/ContentManagementTabs';
 import SettingsErrorBoundary from '@/components/admin/settings/SettingsErrorBoundary';
 
@@ -24,11 +22,6 @@ const SiteSettings = () => {
 
   const handleSaveAnalyticsSettings = async () => {
     const success = await saveSetting('googleAnalyticsId', settings.googleAnalyticsId);
-    return success;
-  };
-
-  const handleSaveMapboxToken = async () => {
-    const success = await saveSetting('mapboxToken', settings.mapboxToken);
     return success;
   };
 
@@ -56,7 +49,7 @@ const SiteSettings = () => {
 
         <SettingsErrorBoundary>
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-11">
+            <TabsList className="grid w-full grid-cols-10">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="testimonials">
                 <Star className="h-4 w-4 mr-1" />
@@ -80,10 +73,6 @@ const SiteSettings = () => {
               </TabsTrigger>
               <TabsTrigger value="seo">SEO & Meta</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="maps">
-                <MapPin className="h-4 w-4 mr-1" />
-                Maps
-              </TabsTrigger>
               <TabsTrigger value="colors">
                 <Palette className="h-4 w-4 mr-1" />
                 Colors
@@ -144,15 +133,6 @@ const SiteSettings = () => {
                 onSave={handleSaveAnalyticsSettings}
               />
             </TabsContent>
-
-            <TabsContent value="maps">
-              <MapsSettingsTab
-                mapboxToken={settings.mapboxToken}
-                setMapboxToken={() => {}}
-                onSave={handleSaveMapboxToken}
-              />
-            </TabsContent>
-
             <TabsContent value="colors">
               <ColorCustomizer />
             </TabsContent>

@@ -1,9 +1,8 @@
-
 import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Property } from '@/types/property';
-import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface PropertyMapProps {
@@ -14,20 +13,18 @@ interface PropertyMapProps {
 const PropertyMap = ({ properties, selectedProperty }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const { settings } = useSimplifiedSiteSettings();
+  const { data: platformConfig, isLoading } = usePlatformConfig();
   const { settings: tenantSettings } = useTenantSettings();
   
   const siteName = tenantSettings.site_name || 'Our Office';
+  const mapboxToken = platformConfig?.mapboxToken;
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    // Get mapbox token from settings
-    const mapboxToken = settings.mapboxToken;
-    
     // Skip map initialization if no token is configured
     if (!mapboxToken || mapboxToken.trim() === '') {
-      console.warn('Mapbox token not configured in site settings');
+      console.warn('Mapbox token not configured');
       return;
     }
 
@@ -77,28 +74,29 @@ const PropertyMap = ({ properties, selectedProperty }: PropertyMapProps) => {
         map.current = null;
       }
     };
-  }, [properties, selectedProperty, settings.mapboxToken, siteName]);
+  }, [properties, selectedProperty, mapboxToken, siteName]);
 
-  // Show placeholder if no mapbox token is configured
-  if (!settings.mapboxToken || settings.mapboxToken.trim() === '') {
+  // Show loading state
+  if (isLoading) {
     return (
       <div 
-        className="w-full h-96 rounded-lg border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center"
+        className="w-full h-96 rounded-lg border border-border shadow-sm bg-muted/50 flex items-center justify-center animate-pulse"
         style={{ minHeight: '400px' }}
       >
-        <div className="text-center text-gray-500">
-          <div className="text-lg mb-2">🗺️</div>
-          <p className="text-sm">Map requires Mapbox token configuration</p>
-          <p className="text-xs mt-1">Please configure in Admin Settings</p>
-        </div>
+        <p className="text-muted-foreground">Loading map...</p>
       </div>
     );
+  }
+
+  // Hide map if no token configured
+  if (!mapboxToken || mapboxToken.trim() === '') {
+    return null;
   }
 
   return (
     <div 
       ref={mapContainer} 
-      className="w-full h-96 rounded-lg border border-gray-200 shadow-sm"
+      className="w-full h-96 rounded-lg border border-border shadow-sm"
       style={{ minHeight: '400px' }}
     />
   );

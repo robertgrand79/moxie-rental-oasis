@@ -94,7 +94,6 @@ import AIAssistantSettingsPage from '@/pages/admin/settings/AIAssistantSettingsP
 import CommunicationsSettingsPage from '@/pages/admin/settings/CommunicationsSettingsPage';
 import SmartHomeSettingsPage from '@/pages/admin/settings/SmartHomeSettingsPage';
 import ServicesSettingsPage from '@/pages/admin/settings/ServicesSettingsPage';
-import MapsSettingsPage from '@/pages/admin/settings/MapsSettingsPage';
 import StripeSettingsPage from '@/pages/admin/settings/StripeSettingsPage';
 import PriceLabsSettingsPage from '@/pages/admin/settings/PriceLabsSettingsPage';
 
@@ -151,7 +150,6 @@ const AppRoutes: React.FC = () => {
           <Route path="settings/communications" element={<CommunicationsSettingsPage />} />
           <Route path="settings/smart-home" element={<SmartHomeSettingsPage />} />
           <Route path="settings/services" element={<ServicesSettingsPage />} />
-          <Route path="settings/maps" element={<MapsSettingsPage />} />
           <Route path="settings/stripe" element={<StripeSettingsPage />} />
           <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
           {/* Redirects for old settings routes */}
@@ -259,7 +257,6 @@ const AppRoutes: React.FC = () => {
         <Route path="settings/communications" element={<CommunicationsSettingsPage />} />
         <Route path="settings/smart-home" element={<SmartHomeSettingsPage />} />
         <Route path="settings/services" element={<ServicesSettingsPage />} />
-        <Route path="settings/maps" element={<MapsSettingsPage />} />
         <Route path="settings/stripe" element={<StripeSettingsPage />} />
         <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
         {/* Redirects for old settings routes */}
