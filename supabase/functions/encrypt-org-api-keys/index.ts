@@ -17,7 +17,6 @@ const API_KEY_COLUMNS = [
   'openphone_api_key',
   'resend_api_key',
   'turno_api_key',
-  'apify_api_key',
   'openweather_api_key',
   'mapbox_api_key',
 ];

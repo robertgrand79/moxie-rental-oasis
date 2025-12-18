@@ -119,7 +119,7 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
 
       if (error) throw error;
 
-      setPreviewOrg(data as Organization);
+      setPreviewOrg(data as unknown as Organization);
       setPreviewOpen(true);
     } catch (error) {
       console.error('Failed to load organization details:', error);

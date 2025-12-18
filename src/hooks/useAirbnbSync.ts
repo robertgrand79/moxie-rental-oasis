@@ -11,16 +11,13 @@ interface SyncResult {
   totalReviews?: number;
 }
 
-type ScraperType = 'apify' | 'firecrawl';
-
 export const useAirbnbSync = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const { toast } = useToast();
 
   const syncReviews = async (
     propertyId: string, 
-    airbnbUrl?: string,
-    scraper: ScraperType = 'firecrawl'
+    airbnbUrl?: string
   ): Promise<SyncResult | null> => {
     if (isSyncing) {
       toast({
@@ -33,12 +30,8 @@ export const useAirbnbSync = () => {
 
     setIsSyncing(true);
 
-    const functionName = scraper === 'firecrawl' 
-      ? 'scrape-airbnb-firecrawl' 
-      : 'scrape-airbnb-reviews';
-
     try {
-      const { data, error } = await supabase.functions.invoke(functionName, {
+      const { data, error } = await supabase.functions.invoke('scrape-airbnb-firecrawl', {
         body: { propertyId, airbnbUrl },
       });
 

@@ -17,13 +17,13 @@ const ConfigStatus = ({ configured }: { configured: boolean }) => (
 const ServicesSettingsPage = () => {
   const { organization, isOrgAdmin, refetch } = useCurrentOrganization();
   const { setApiKey, loading } = useSecureApiKeys();
-  const [formData, setFormData] = useState({ turno_api_token: '', apify_api_key: '', openweather_api_key: '' });
-  const [configuredKeys, setConfiguredKeys] = useState({ turno_api_token: false, apify_api_key: false, openweather_api_key: false });
+  const [formData, setFormData] = useState({ turno_api_token: '', openweather_api_key: '' });
+  const [configuredKeys, setConfiguredKeys] = useState({ turno_api_token: false, openweather_api_key: false });
 
   useEffect(() => {
     if (organization) {
       const org = organization as any;
-      setConfiguredKeys({ turno_api_token: !!org.turno_api_token, apify_api_key: !!org.apify_api_key, openweather_api_key: !!org.openweather_api_key });
+      setConfiguredKeys({ turno_api_token: !!org.turno_api_token, openweather_api_key: !!org.openweather_api_key });
     }
   }, [organization]);
 
@@ -32,9 +32,8 @@ const ServicesSettingsPage = () => {
     if (!organization) return;
     let success = true;
     if (formData.turno_api_token) success = await setApiKey(organization.id, 'turno_api_key', formData.turno_api_token) && success;
-    if (formData.apify_api_key) success = await setApiKey(organization.id, 'apify_api_key', formData.apify_api_key) && success;
     if (formData.openweather_api_key) success = await setApiKey(organization.id, 'openweather_api_key', formData.openweather_api_key) && success;
-    if (success) { setFormData({ turno_api_token: '', apify_api_key: '', openweather_api_key: '' }); refetch(); }
+    if (success) { setFormData({ turno_api_token: '', openweather_api_key: '' }); refetch(); }
   };
 
   if (!organization) return <SettingsSidebarLayout title="Services" description="Third-party services"><div className="text-center py-8">No organization found</div></SettingsSidebarLayout>;
@@ -46,11 +45,10 @@ const ServicesSettingsPage = () => {
           <Shield className="h-5 w-5 text-green-600" /><span className="text-sm text-green-700 dark:text-green-300">API keys are encrypted at rest</span>
         </div>
         <Card>
-          <CardHeader><CardTitle>Services</CardTitle><CardDescription>Configure Turno, Apify, and OpenWeather.</CardDescription></CardHeader>
+          <CardHeader><CardTitle>Services</CardTitle><CardDescription>Configure Turno and OpenWeather integrations.</CardDescription></CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div><Label>Turno API Key</Label><Input type="password" placeholder={configuredKeys.turno_api_token ? '••••••••' : 'Enter key'} value={formData.turno_api_token} onChange={(e) => setFormData({ ...formData, turno_api_token: e.target.value })} disabled={!isOrgAdmin() || loading} /><ConfigStatus configured={configuredKeys.turno_api_token} /></div>
-              <div><Label>Apify API Key</Label><Input type="password" placeholder={configuredKeys.apify_api_key ? '••••••••' : 'Enter key'} value={formData.apify_api_key} onChange={(e) => setFormData({ ...formData, apify_api_key: e.target.value })} disabled={!isOrgAdmin() || loading} /><ConfigStatus configured={configuredKeys.apify_api_key} /></div>
               <div><Label>OpenWeather API Key</Label><Input type="password" placeholder={configuredKeys.openweather_api_key ? '••••••••' : 'Enter key'} value={formData.openweather_api_key} onChange={(e) => setFormData({ ...formData, openweather_api_key: e.target.value })} disabled={!isOrgAdmin() || loading} /><ConfigStatus configured={configuredKeys.openweather_api_key} /></div>
               {isOrgAdmin() && <Button type="submit" disabled={loading}>{loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : 'Save Settings'}</Button>}
             </form>
