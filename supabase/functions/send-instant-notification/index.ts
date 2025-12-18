@@ -59,22 +59,27 @@ const handler = async (req: Request): Promise<Response> => {
         }];
       }
     } else {
-      // Organization-wide notification - send to admins/owners
-      const { data: members } = await supabase
+      // Organization-wide notification - send to admins/owners (using separate queries to avoid FK join issues)
+      const { data: orgMembers } = await supabase
         .from("organization_members")
-        .select(`
-          user_id,
-          profiles!inner(id, email, phone, full_name)
-        `)
+        .select("user_id, role")
         .eq("organization_id", payload.organization_id)
         .in("role", ["admin", "owner"]);
 
-      recipients = (members || []).map((m: any) => ({
-        user_id: m.profiles.id,
-        email: m.profiles.email,
-        phone: m.profiles.phone,
-        full_name: m.profiles.full_name || "Team Member",
-      }));
+      if (orgMembers && orgMembers.length > 0) {
+        const userIds = orgMembers.map(m => m.user_id);
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, email, phone, full_name")
+          .in("id", userIds);
+
+        recipients = (profiles || []).map(p => ({
+          user_id: p.id,
+          email: p.email,
+          phone: p.phone,
+          full_name: p.full_name || "Team Member",
+        }));
+      }
     }
 
     console.log(`[Instant Notification] Found ${recipients.length} recipients`);
