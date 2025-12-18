@@ -1,8 +1,8 @@
-
 import React from 'react';
 import LocalExperienceHero from '@/components/experiences/LocalExperienceHero';
 import EugeneExperienceCategories from '@/components/experiences/EugeneExperienceCategories';
 import LocalHighlights from '@/components/experiences/LocalHighlights';
+import POIMap from '@/components/experiences/POIMap';
 import PointsOfInterestDisplay from '@/components/experiences/PointsOfInterestDisplay';
 import LocalFavorites from '@/components/experiences/LocalFavorites';
 import LocalExploreGuide from '@/components/experiences/LocalExploreGuide';
@@ -14,6 +14,7 @@ const Experiences = () => {
       <LocalExperienceHero />
       <EugeneExperienceCategories />
       <LocalHighlights />
+      <POIMap />
       <PointsOfInterestDisplay />
       <LocalFavorites />
       <LocalExploreGuide />
