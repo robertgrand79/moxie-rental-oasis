@@ -47,7 +47,7 @@ import AdminDashboard from '@/pages/admin/AdminDashboard';
 import BlogManagement from '@/pages/BlogManagement';
 import AdminProperties from '@/pages/admin/AdminProperties';
 import AdminPageManagement from '@/pages/admin/AdminPageManagement';
-import AdminSettingsHub from '@/pages/admin/AdminSettingsHub';
+
 import AdminNewsletterManagement from '@/pages/admin/AdminNewsletterManagement';
 import AdminEvents from '@/pages/admin/AdminEvents';
 import AdminPlaces from '@/pages/admin/AdminPlaces';
@@ -130,16 +130,40 @@ const AppRoutes: React.FC = () => {
         <Route path="properties" element={<AdminProperties />} />
         <Route path="properties/:propertyId" element={<AdminProperties />} />
         <Route path="pages" element={<AdminPageManagement />} />
-          <Route path="settings" element={<AdminSettingsHub />} />
-          <Route path="settings/organization" element={<OrganizationSettingsPage />} />
-          <Route path="settings/site-content" element={<SiteContentSettingsPage />} />
-          <Route path="settings/appearance" element={<AppearanceSettingsPage />} />
-          <Route path="settings/team" element={<TeamAccessSettingsPage />} />
-          <Route path="settings/integrations" element={<IntegrationsSettingsPage />} />
-          <Route path="settings/payments" element={<PaymentsSettingsPage />} />
+          <Route path="settings" element={<Navigate to="/admin/settings/general" replace />} />
+          {/* Flattened settings routes */}
+          <Route path="settings/general" element={<GeneralSettingsPage />} />
+          <Route path="settings/domain" element={<DomainSettingsPage />} />
+          <Route path="settings/billing" element={<BillingSettingsPage />} />
+          <Route path="settings/site-info" element={<SiteInfoSettingsPage />} />
+          <Route path="settings/hero" element={<HeroSettingsPage />} />
+          <Route path="settings/about" element={<AboutSettingsPage />} />
+          <Route path="settings/contact" element={<ContactSettingsPage />} />
+          <Route path="settings/seo" element={<SEOSettingsPage />} />
+          <Route path="settings/analytics" element={<AnalyticsSettingsPage />} />
+          <Route path="settings/colors" element={<ColorsSettingsPage />} />
+          <Route path="settings/fonts" element={<FontsSettingsPage />} />
+          <Route path="settings/branding" element={<BrandingSettingsPage />} />
+          <Route path="settings/users" element={<UsersSettingsPage />} />
+          <Route path="settings/roles" element={<RolesSettingsPage />} />
+          <Route path="settings/notifications-settings" element={<NotificationsSettingsPage />} />
+          <Route path="settings/ai-assistant" element={<AIAssistantSettingsPage />} />
+          <Route path="settings/communications" element={<CommunicationsSettingsPage />} />
+          <Route path="settings/smart-home" element={<SmartHomeSettingsPage />} />
+          <Route path="settings/services" element={<ServicesSettingsPage />} />
+          <Route path="settings/maps" element={<MapsSettingsPage />} />
+          <Route path="settings/stripe" element={<StripeSettingsPage />} />
+          <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
+          {/* Redirects for old settings routes */}
+          <Route path="settings/organization" element={<Navigate to="/admin/settings/general" replace />} />
+          <Route path="settings/site-content" element={<Navigate to="/admin/settings/site-info" replace />} />
+          <Route path="settings/appearance" element={<Navigate to="/admin/settings/colors" replace />} />
+          <Route path="settings/team" element={<Navigate to="/admin/settings/users" replace />} />
+          <Route path="settings/integrations" element={<Navigate to="/admin/settings/ai-assistant" replace />} />
+          <Route path="settings/payments" element={<Navigate to="/admin/settings/stripe" replace />} />
           {/* Redirects for old routes */}
-          <Route path="user-access-management" element={<Navigate to="/admin/settings" replace />} />
-          <Route path="organization" element={<Navigate to="/admin/settings" replace />} />
+          <Route path="user-access-management" element={<Navigate to="/admin/settings/users" replace />} />
+          <Route path="organization" element={<Navigate to="/admin/settings/general" replace />} />
           <Route path="newsletter" element={<AdminNewsletterManagement />} />
           <Route path="events" element={<AdminEvents />} />
           <Route path="places" element={<AdminPlaces />} />
@@ -214,17 +238,41 @@ const AppRoutes: React.FC = () => {
         <Route path="properties" element={<AdminProperties />} />
         <Route path="properties/:propertyId" element={<AdminProperties />} />
         <Route path="pages" element={<AdminPageManagement />} />
-        <Route path="settings" element={<AdminSettingsHub />} />
-        <Route path="settings/organization" element={<OrganizationSettingsPage />} />
-        <Route path="settings/site-content" element={<SiteContentSettingsPage />} />
-        <Route path="settings/appearance" element={<AppearanceSettingsPage />} />
-        <Route path="settings/team" element={<TeamAccessSettingsPage />} />
-        <Route path="settings/integrations" element={<IntegrationsSettingsPage />} />
-        <Route path="settings/payments" element={<PaymentsSettingsPage />} />
-        <Route path="settings/local-content" element={<LocalContentSettingsPage />} />
+        <Route path="settings" element={<Navigate to="/admin/settings/general" replace />} />
+        {/* Flattened settings routes */}
+        <Route path="settings/general" element={<GeneralSettingsPage />} />
+        <Route path="settings/domain" element={<DomainSettingsPage />} />
+        <Route path="settings/billing" element={<BillingSettingsPage />} />
+        <Route path="settings/site-info" element={<SiteInfoSettingsPage />} />
+        <Route path="settings/hero" element={<HeroSettingsPage />} />
+        <Route path="settings/about" element={<AboutSettingsPage />} />
+        <Route path="settings/contact" element={<ContactSettingsPage />} />
+        <Route path="settings/seo" element={<SEOSettingsPage />} />
+        <Route path="settings/analytics" element={<AnalyticsSettingsPage />} />
+        <Route path="settings/colors" element={<ColorsSettingsPage />} />
+        <Route path="settings/fonts" element={<FontsSettingsPage />} />
+        <Route path="settings/branding" element={<BrandingSettingsPage />} />
+        <Route path="settings/users" element={<UsersSettingsPage />} />
+        <Route path="settings/roles" element={<RolesSettingsPage />} />
+        <Route path="settings/notifications-settings" element={<NotificationsSettingsPage />} />
+        <Route path="settings/ai-assistant" element={<AIAssistantSettingsPage />} />
+        <Route path="settings/communications" element={<CommunicationsSettingsPage />} />
+        <Route path="settings/smart-home" element={<SmartHomeSettingsPage />} />
+        <Route path="settings/services" element={<ServicesSettingsPage />} />
+        <Route path="settings/maps" element={<MapsSettingsPage />} />
+        <Route path="settings/stripe" element={<StripeSettingsPage />} />
+        <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
+        {/* Redirects for old settings routes */}
+        <Route path="settings/organization" element={<Navigate to="/admin/settings/general" replace />} />
+        <Route path="settings/site-content" element={<Navigate to="/admin/settings/site-info" replace />} />
+        <Route path="settings/appearance" element={<Navigate to="/admin/settings/colors" replace />} />
+        <Route path="settings/team" element={<Navigate to="/admin/settings/users" replace />} />
+        <Route path="settings/integrations" element={<Navigate to="/admin/settings/ai-assistant" replace />} />
+        <Route path="settings/payments" element={<Navigate to="/admin/settings/stripe" replace />} />
+        <Route path="settings/local-content" element={<Navigate to="/admin/settings/site-info" replace />} />
         {/* Redirects for old routes */}
-        <Route path="user-access-management" element={<Navigate to="/admin/settings" replace />} />
-        <Route path="organization" element={<Navigate to="/admin/settings" replace />} />
+        <Route path="user-access-management" element={<Navigate to="/admin/settings/users" replace />} />
+        <Route path="organization" element={<Navigate to="/admin/settings/general" replace />} />
         <Route path="newsletter" element={<AdminNewsletterManagement />} />
         <Route path="events" element={<AdminEvents />} />
         <Route path="places" element={<AdminPlaces />} />
