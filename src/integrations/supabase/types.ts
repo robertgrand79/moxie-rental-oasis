@@ -4992,7 +4992,7 @@ export type Database = {
           booking_platform: string | null
           content: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           display_order: number | null
           external_review_id: string | null
           guest_avatar_url: string | null
@@ -5013,7 +5013,7 @@ export type Database = {
           booking_platform?: string | null
           content?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           display_order?: number | null
           external_review_id?: string | null
           guest_avatar_url?: string | null
@@ -5034,7 +5034,7 @@ export type Database = {
           booking_platform?: string | null
           content?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           display_order?: number | null
           external_review_id?: string | null
           guest_avatar_url?: string | null

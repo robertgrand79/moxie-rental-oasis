@@ -50,9 +50,9 @@ serve(async (req) => {
       try {
         console.log(`Syncing property: ${property.title} (${property.id})`);
 
-        // Call the scrape function
+        // Call the Firecrawl-based scrape function
         const scrapeResponse = await fetch(
-          `${supabaseUrl}/functions/v1/scrape-airbnb-reviews`,
+          `${supabaseUrl}/functions/v1/scrape-airbnb-firecrawl`,
           {
             method: 'POST',
             headers: {
