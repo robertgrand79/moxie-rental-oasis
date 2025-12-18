@@ -218,13 +218,14 @@ serve(async (req) => {
           property_id: propId,
           guest_name: review.reviewerName || 'Anonymous Guest',
           guest_location: review.reviewerLocation || null,
-          guest_image_url: review.reviewerAvatar || null,
+          guest_avatar_url: review.reviewerAvatar || null,
           review_text: review.comment,
           rating: review.rating || 5,
           stay_date: stayDate,
-          source: 'airbnb',
+          booking_platform: 'airbnb',
           external_review_id: `firecrawl_${review.reviewerName?.replace(/\s+/g, '_')}_${review.comment?.substring(0, 20)?.replace(/\s+/g, '_')}`,
-          is_featured: false
+          is_featured: false,
+          created_by: null // System-imported review
         };
       });
 
