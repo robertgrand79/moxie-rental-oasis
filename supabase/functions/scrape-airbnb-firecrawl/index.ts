@@ -63,21 +63,21 @@ serve(async (req) => {
     if (!listingUrl && propertyId) {
       const { data: property, error: propError } = await supabase
         .from('properties')
-        .select('airbnb_listing_id, name')
+        .select('airbnb_listing_url, name')
         .eq('id', propertyId)
         .single();
 
-      if (propError || !property?.airbnb_listing_id) {
+      if (propError || !property?.airbnb_listing_url) {
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: 'Property not found or no Airbnb listing ID configured' 
+            error: 'Property not found or no Airbnb listing URL configured' 
           }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      listingUrl = property.airbnb_listing_id;
+      listingUrl = property.airbnb_listing_url;
       console.log(`Found Airbnb URL for ${property.name}: ${listingUrl}`);
     }
 
