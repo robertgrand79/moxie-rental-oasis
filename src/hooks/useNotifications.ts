@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface AdminNotification {
   id: string;
@@ -24,6 +25,7 @@ export const useNotifications = () => {
   const { organization } = useCurrentOrganization();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   // Fetch notifications
   const { data: notifications = [], isLoading, refetch } = useQuery({
@@ -107,7 +109,13 @@ export const useNotifications = () => {
   useEffect(() => {
     if (!organization?.id || !user?.id) return;
 
-    const channelName = `admin-notifications-${organization.id}-${user.id}`;
+    // Clean up existing channel before creating new one
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    const channelName = `admin-notifications-${organization.id}-${user.id}-${Date.now()}`;
     const channel = supabase
       .channel(channelName)
       .on(
@@ -128,10 +136,15 @@ export const useNotifications = () => {
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
-  }, [organization?.id, user?.id, queryClient]);
+  }, [organization?.id, user?.id]);
 
   return {
     notifications,
