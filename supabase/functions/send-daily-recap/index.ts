@@ -71,18 +71,32 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         console.log(`Processing organization: ${org.name} (${org.id})`);
         
-        // Get organization members with admin/owner roles
-        const { data: members } = await supabase
+        // Get organization members with admin/owner roles (using separate queries to avoid FK join issues)
+        const { data: orgMembers } = await supabase
           .from("organization_members")
-          .select(`
-            user_id,
-            role,
-            profiles!inner(email, full_name)
-          `)
+          .select("user_id, role")
           .eq("organization_id", org.id)
           .in("role", ["admin", "owner"]);
 
-        if (!members || members.length === 0) {
+        if (!orgMembers || orgMembers.length === 0) {
+          console.log(`No admin/owner members found for ${org.name}`);
+          continue;
+        }
+
+        // Fetch profiles separately
+        const userIds = orgMembers.map(m => m.user_id);
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, email, full_name")
+          .in("id", userIds);
+
+        // Map profiles to members
+        const members = orgMembers.map(m => ({
+          ...m,
+          profiles: profiles?.find(p => p.id === m.user_id) || { email: null, full_name: null }
+        }));
+
+        if (members.length === 0) {
           console.log(`No admin/owner members found for ${org.name}`);
           continue;
         }
