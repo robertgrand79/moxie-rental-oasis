@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useTenantPointsOfInterest } from '@/hooks/useTenantPointsOfInterest';
-import { useTenantSettings } from '@/hooks/useTenantSettings';
-import { MapPin, Star } from 'lucide-react';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
+import { MapPin } from 'lucide-react';
 
 const CATEGORY_COLORS: Record<string, string> = {
   restaurant: '#EF4444',  // Red
@@ -26,8 +26,10 @@ const POIMap = () => {
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const { pointsOfInterest, isLoading: poisLoading } = useTenantPointsOfInterest();
-  const { settings, loading: settingsLoading } = useTenantSettings();
+  const { data: platformConfig, isLoading: configLoading } = usePlatformConfig();
   const [mapLoaded, setMapLoaded] = useState(false);
+  
+  const mapboxToken = platformConfig?.mapboxToken;
 
   // Filter POIs with valid coordinates
   const validPOIs = pointsOfInterest.filter(
@@ -48,10 +50,10 @@ const POIMap = () => {
       map.current = null;
     }
 
-    if (!mapContainer.current || !settings?.mapboxToken || validPOIs.length === 0) return;
+    if (!mapContainer.current || !mapboxToken || validPOIs.length === 0) return;
 
     // Set access token
-    mapboxgl.accessToken = settings.mapboxToken;
+    mapboxgl.accessToken = mapboxToken;
 
     // Calculate bounds from POIs
     const bounds = new mapboxgl.LngLatBounds();
@@ -168,9 +170,9 @@ const POIMap = () => {
       }
       setMapLoaded(false);
     };
-  }, [settings?.mapboxToken, JSON.stringify(validPOIs)]);
+  }, [mapboxToken, JSON.stringify(validPOIs)]);
 
-  const isLoading = poisLoading || settingsLoading;
+  const isLoading = poisLoading || configLoading;
 
   if (isLoading) {
     return (
@@ -184,19 +186,8 @@ const POIMap = () => {
     );
   }
 
-  if (!settings?.mapboxToken) {
-    return (
-      <section className="py-16 px-4 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="h-[300px] rounded-xl bg-muted flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Interactive map coming soon</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
+  if (!mapboxToken) {
+    return null; // No token configured at platform level
   }
 
   if (validPOIs.length === 0) {
