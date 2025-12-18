@@ -140,50 +140,6 @@ export type Database = {
         }
         Relationships: []
       }
-      airbnb_sync_log: {
-        Row: {
-          created_at: string | null
-          error_message: string | null
-          id: string
-          last_sync_at: string | null
-          next_sync_at: string | null
-          property_id: string | null
-          reviews_found: number | null
-          reviews_imported: number | null
-          sync_status: string
-        }
-        Insert: {
-          created_at?: string | null
-          error_message?: string | null
-          id?: string
-          last_sync_at?: string | null
-          next_sync_at?: string | null
-          property_id?: string | null
-          reviews_found?: number | null
-          reviews_imported?: number | null
-          sync_status?: string
-        }
-        Update: {
-          created_at?: string | null
-          error_message?: string | null
-          id?: string
-          last_sync_at?: string | null
-          next_sync_at?: string | null
-          property_id?: string | null
-          reviews_found?: number | null
-          reviews_imported?: number | null
-          sync_status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "airbnb_sync_log_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       api_status: {
         Row: {
           created_at: string

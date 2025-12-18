@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,8 +12,6 @@ import TestimonialsList from './testimonials/TestimonialsList';
 import TestimonialsGrid from './testimonials/TestimonialsGrid';
 import TestimonialsViewToggle from './testimonials/TestimonialsViewToggle';
 import TestimonialsLoadingState from './testimonials/TestimonialsLoadingState';
-import SyncAllPropertiesButton from './SyncAllPropertiesButton';
-
 
 const TestimonialsManager = () => {
   const { testimonials, isLoading, createTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
@@ -141,7 +138,6 @@ const TestimonialsManager = () => {
 
   const propertyTabs = getPropertyTabs();
 
-
   // Listen for reset event from navigation
   useEffect(() => {
     const handleReset = () => {
@@ -168,7 +164,6 @@ const TestimonialsManager = () => {
             </CardDescription>
           </div>
           <div className="flex items-center space-x-3">
-            <SyncAllPropertiesButton />
             <TestimonialsViewToggle view={view} onViewChange={setView} />
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
