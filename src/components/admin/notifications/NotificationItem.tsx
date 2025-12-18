@@ -91,7 +91,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <p className={cn(
-            'text-sm line-clamp-1',
+            'text-sm line-clamp-2',
             !notification.is_read && 'font-medium'
           )}>
             {notification.title}

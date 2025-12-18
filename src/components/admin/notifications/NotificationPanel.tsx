@@ -27,7 +27,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
   onClose,
 }) => {
   return (
-    <div className="w-80 sm:w-96">
+    <div className="w-96 sm:w-[420px]">
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b">
         <h3 className="font-semibold text-sm">Notifications</h3>
