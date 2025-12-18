@@ -344,8 +344,9 @@ export function useGuestInbox() {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     try {
+      const channelName = `inbox-updates-${organization.id}-${Date.now()}`;
       channel = supabase
-        .channel('inbox-updates')
+        .channel(channelName)
         .on(
           'postgres_changes',
           {
