@@ -1,12 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { AnalyticsData, GAInitializationStatus, GAHealthCheck } from './types';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export class GoogleAnalyticsService {
   private gaInitialized = false;
   private gaId: string | null = null;
   private initializationPromise: Promise<boolean> | null = null;
-  private settingsSubscription: any = null;
+  private settingsSubscription: RealtimeChannel | null = null;
   private scriptLoadListener: ((event: Event) => void) | null = null;
   private debugMode = true; // Enable detailed debugging
 
@@ -176,12 +177,18 @@ export class GoogleAnalyticsService {
   private setupSettingsListener() {
     // Clean up existing subscription
     if (this.settingsSubscription) {
-      this.settingsSubscription.unsubscribe();
+      try {
+        supabase.removeChannel(this.settingsSubscription);
+      } catch (error) {
+        this.debugLog('⚠️ Error removing GA settings channel (ignored)', error);
+      }
+      this.settingsSubscription = null;
     }
 
     // Listen for changes to GA settings
+    const channelName = `ga-settings-changes-${Date.now()}`;
     this.settingsSubscription = supabase
-      .channel('ga-settings-changes')
+      .channel(channelName)
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -436,7 +443,11 @@ export class GoogleAnalyticsService {
   // Cleanup method
   destroy() {
     if (this.settingsSubscription) {
-      this.settingsSubscription.unsubscribe();
+      try {
+        supabase.removeChannel(this.settingsSubscription);
+      } catch (error) {
+        this.debugLog('⚠️ Error removing GA settings channel during destroy (ignored)', error);
+      }
       this.settingsSubscription = null;
     }
     
