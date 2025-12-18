@@ -139,11 +139,11 @@ const handler = async (req: Request): Promise<Response> => {
         // Get organization properties
         const { data: properties } = await supabase
           .from("properties")
-          .select("id, name")
+          .select("id, title")
           .eq("organization_id", org.id);
 
         const propertyIds = properties?.map(p => p.id) || [];
-        const propertyMap = new Map(properties?.map(p => [p.id, p.name]) || []);
+        const propertyMap = new Map(properties?.map(p => [p.id, p.title]) || []);
 
         if (propertyIds.length === 0) {
           console.log(`No properties found for ${org.name}`);
