@@ -63,7 +63,7 @@ serve(async (req) => {
     if (!listingUrl && propertyId) {
       const { data: property, error: propError } = await supabase
         .from('properties')
-        .select('airbnb_listing_url, name')
+        .select('airbnb_listing_url, title')
         .eq('id', propertyId)
         .single();
 
@@ -78,7 +78,7 @@ serve(async (req) => {
       }
 
       listingUrl = property.airbnb_listing_url;
-      console.log(`Found Airbnb URL for ${property.name}: ${listingUrl}`);
+      console.log(`Found Airbnb URL for ${property.title}: ${listingUrl}`);
     }
 
     // Ensure URL is properly formatted
