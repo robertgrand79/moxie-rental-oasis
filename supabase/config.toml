@@ -73,9 +73,6 @@ verify_jwt = false
 [functions.calendar-export]
 verify_jwt = false
 
-[functions.scrape-airbnb-reviews]
-verify_jwt = false
-
 [functions.scrape-airbnb-firecrawl]
 verify_jwt = false
 

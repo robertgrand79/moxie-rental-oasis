@@ -37,7 +37,6 @@ const AdminOrganization = () => {
     turno_api_token: '',
     turno_api_secret: '',
     turno_partner_id: '',
-    apify_api_key: '',
     openweather_api_key: '',
   });
 
@@ -59,7 +58,6 @@ const AdminOrganization = () => {
         turno_api_token: '',
         turno_api_secret: '',
         turno_partner_id: '',
-        apify_api_key: '',
         openweather_api_key: '',
       });
     }
@@ -129,7 +127,6 @@ const AdminOrganization = () => {
       turno_api_token: formData.turno_api_token || undefined,
       turno_api_secret: formData.turno_api_secret || undefined,
       turno_partner_id: formData.turno_partner_id || undefined,
-      apify_api_key: formData.apify_api_key || undefined,
       openweather_api_key: formData.openweather_api_key || undefined,
     });
     refetch();
@@ -203,7 +200,6 @@ const AdminOrganization = () => {
     turno_api_token?: string;
     turno_api_secret?: string;
     turno_partner_id?: string;
-    apify_api_key?: string;
     openweather_api_key?: string;
   };
 
@@ -594,38 +590,6 @@ const AdminOrganization = () => {
                   {isOrgAdmin() && (
                     <Button type="submit" disabled={updating}>
                       {updating ? 'Saving...' : 'Update Turno Settings'}
-                    </Button>
-                  )}
-                </form>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Apify (Airbnb Reviews Scraping)</CardTitle>
-                <CardDescription>
-                  Configure Apify API for automated Airbnb review imports.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleUpdateIntegrations} className="space-y-4">
-                  <div>
-                    <Label htmlFor="apify_api_key">Apify API Key</Label>
-                    <Input
-                      id="apify_api_key"
-                      type="password"
-                      placeholder="Enter your Apify API key"
-                      value={formData.apify_api_key}
-                      onChange={(e) => setFormData({ ...formData, apify_api_key: e.target.value })}
-                      disabled={!isOrgAdmin()}
-                    />
-                    <div className="mt-1">
-                      <ConfigStatus configured={!!org.apify_api_key} />
-                    </div>
-                  </div>
-                  {isOrgAdmin() && (
-                    <Button type="submit" disabled={updating}>
-                      {updating ? 'Saving...' : 'Update Apify Settings'}
                     </Button>
                   )}
                 </form>

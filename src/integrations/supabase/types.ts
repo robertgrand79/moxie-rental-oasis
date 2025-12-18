@@ -2794,7 +2794,6 @@ export type Database = {
       }
       organizations: {
         Row: {
-          apify_api_key: string | null
           created_at: string | null
           custom_domain: string | null
           id: string
@@ -2829,7 +2828,6 @@ export type Database = {
           website: string | null
         }
         Insert: {
-          apify_api_key?: string | null
           created_at?: string | null
           custom_domain?: string | null
           id?: string
@@ -2864,7 +2862,6 @@ export type Database = {
           website?: string | null
         }
         Update: {
-          apify_api_key?: string | null
           created_at?: string | null
           custom_domain?: string | null
           id?: string
