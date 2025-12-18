@@ -41,17 +41,24 @@ export const addSecurityHeaders = (): void => {
     connect-src 'self' 
       https://*.supabase.co 
       https://*.google-analytics.com 
-      https://*.stripe.com;
+      https://*.stripe.com
+      https://api.mapbox.com
+      https://*.mapbox.com
+      https://*.tiles.mapbox.com
+      https://events.mapbox.com;
     frame-src 'self' 
       https://*.stripe.com;
-    img-src 'self' data: blob:
+    img-src 'self' data: blob: https:
       https://*.supabase.co
       https://*.googletagmanager.com 
-      https://*.google-analytics.com;
+      https://*.google-analytics.com
+      https://*.mapbox.com;
     style-src 'self' 'unsafe-inline' 
       https://fonts.googleapis.com;
     font-src 'self' 
       https://fonts.gstatic.com;
+    worker-src 'self' blob:;
+    child-src 'self' blob:;
   `.replace(/\s+/g, ' ').trim();
   
   if (!document.querySelector('meta[http-equiv="Content-Security-Policy"]')) {
