@@ -22,8 +22,9 @@ serve(async (req) => {
     const signature = req.headers.get('seam-signature');
     const body = await req.text();
     
-    if (!verifyWebhookSignature(signature, body, seamWebhookSecret)) {
-      console.error('Invalid webhook signature');
+    const isValid = await verifyWebhookSignature(signature, body, seamWebhookSecret);
+    if (!isValid) {
+      console.error('Invalid webhook signature - signature:', signature?.substring(0, 20) + '...');
       return new Response('Invalid signature', { status: 401 });
     }
 
@@ -58,18 +59,61 @@ serve(async (req) => {
   }
 });
 
-function verifyWebhookSignature(signature: string | null, body: string, secret: string): boolean {
+async function verifyWebhookSignature(
+  signature: string | null, 
+  body: string, 
+  secret: string
+): Promise<boolean> {
   if (!signature) {
+    console.warn('Missing webhook signature');
     return false;
   }
 
+  if (!secret) {
+    console.warn('Missing SEAM_WEBHOOK_SECRET - skipping verification in development');
+    return true; // Allow in development without secret
+  }
+
   try {
-    // Seam webhook signature verification
-    // This is a simplified version - implement proper HMAC verification based on Seam's documentation
-    const expectedSignature = signature.replace('sha256=', '');
+    const encoder = new TextEncoder();
     
-    // For now, just check if signature exists (implement proper verification)
-    return signature.length > 0;
+    // Import the secret key for HMAC-SHA256
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    
+    // Compute the expected signature
+    const signatureBuffer = await crypto.subtle.sign(
+      'HMAC', 
+      key, 
+      encoder.encode(body)
+    );
+    
+    // Convert to hex string
+    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    
+    // Extract actual signature (handle 'sha256=' prefix if present)
+    const actualSignature = signature.replace(/^sha256=/, '').toLowerCase();
+    
+    // Compare signatures
+    if (actualSignature.length !== expectedSignature.length) {
+      console.error('Signature length mismatch');
+      return false;
+    }
+    
+    // Constant-time comparison to prevent timing attacks
+    let result = 0;
+    for (let i = 0; i < actualSignature.length; i++) {
+      result |= actualSignature.charCodeAt(i) ^ expectedSignature.charCodeAt(i);
+    }
+    
+    return result === 0;
   } catch (error) {
     console.error('Signature verification error:', error);
     return false;
