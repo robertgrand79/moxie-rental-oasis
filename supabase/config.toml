@@ -76,6 +76,9 @@ verify_jwt = false
 [functions.scrape-airbnb-reviews]
 verify_jwt = false
 
+[functions.scrape-airbnb-firecrawl]
+verify_jwt = false
+
 [functions.scheduled-airbnb-sync]
 verify_jwt = false
 
