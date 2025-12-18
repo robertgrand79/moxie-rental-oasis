@@ -167,7 +167,7 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
     );
   }
 
-  // Show workspace setup if no workspace configured
+  // Show message to configure in settings if no workspace
   if (!workspace) {
     return (
       <Card className="w-full">
@@ -181,10 +181,21 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <WorkspaceSetup 
-            property={property} 
-            onWorkspaceCreated={loadWorkspaceAndDevices}
-          />
+          <div className="text-center py-8 space-y-4">
+            <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground" />
+            <div>
+              <h3 className="font-medium text-lg">No Workspace Connected</h3>
+              <p className="text-muted-foreground mt-1">
+                Configure your Seam workspace in Settings → Smart Home to manage smart devices for this property.
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/admin/settings/smart-home'}
+            >
+              Go to Smart Home Settings
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
