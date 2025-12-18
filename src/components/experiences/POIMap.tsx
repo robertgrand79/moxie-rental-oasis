@@ -40,117 +40,135 @@ const POIMap = () => {
   const categories = [...new Set(validPOIs.map(poi => poi.category || 'other'))];
 
   useEffect(() => {
+    // Cleanup first if map already exists
+    if (map.current) {
+      markersRef.current.forEach(marker => marker.remove());
+      markersRef.current = [];
+      map.current.remove();
+      map.current = null;
+    }
+
     if (!mapContainer.current || !settings?.mapboxToken || validPOIs.length === 0) return;
 
-    // Initialize map
+    // Set access token
     mapboxgl.accessToken = settings.mapboxToken;
 
     // Calculate bounds from POIs
     const bounds = new mapboxgl.LngLatBounds();
     validPOIs.forEach(poi => {
       // Handle potentially positive longitudes that should be negative (US West Coast)
-      const lng = poi.longitude > 0 && poi.longitude > 100 ? -poi.longitude : poi.longitude;
-      bounds.extend([lng, poi.latitude]);
+      const lng = poi.longitude! > 0 && poi.longitude! > 100 ? -poi.longitude! : poi.longitude!;
+      bounds.extend([lng, poi.latitude!]);
     });
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      bounds: bounds,
-      fitBoundsOptions: { padding: 50, maxZoom: 14 },
-    });
-
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    map.current.on('load', () => {
-      setMapLoaded(true);
-
-      // Add markers for each POI
-      validPOIs.forEach(poi => {
-        const category = poi.category || 'other';
-        const color = CATEGORY_COLORS[category] || CATEGORY_COLORS.other;
-        
-        // Handle potentially positive longitudes
-        const lng = poi.longitude > 0 && poi.longitude > 100 ? -poi.longitude : poi.longitude;
-
-        // Create custom marker element
-        const el = document.createElement('div');
-        el.className = 'poi-marker';
-        el.style.cssText = `
-          width: 32px;
-          height: 32px;
-          background-color: ${color};
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          border: 2px solid white;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        `;
-
-        // Create popup content
-        const popupContent = `
-          <div style="max-width: 250px; font-family: system-ui, -apple-system, sans-serif;">
-            <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 600;">${poi.name}</h3>
-            <span style="
-              display: inline-block;
-              padding: 2px 8px;
-              background-color: ${color}20;
-              color: ${color};
-              border-radius: 12px;
-              font-size: 12px;
-              font-weight: 500;
-              margin-bottom: 8px;
-            ">${CATEGORY_LABELS[category] || category}</span>
-            ${poi.rating ? `
-              <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="${color}" stroke="${color}">
-                  <polygon points="12,2 15,9 22,9 17,14 19,22 12,18 5,22 7,14 2,9 9,9"/>
-                </svg>
-                <span style="font-size: 14px; font-weight: 500;">${poi.rating}</span>
-              </div>
-            ` : ''}
-            ${poi.address ? `<p style="margin: 0 0 8px; font-size: 13px; color: #666;">${poi.address}</p>` : ''}
-            ${poi.description ? `<p style="margin: 0 0 8px; font-size: 13px; color: #444;">${poi.description.substring(0, 100)}${poi.description.length > 100 ? '...' : ''}</p>` : ''}
-            <a 
-              href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(poi.address || poi.name)}" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style="
-                display: inline-block;
-                padding: 6px 12px;
-                background-color: ${color};
-                color: white;
-                text-decoration: none;
-                border-radius: 6px;
-                font-size: 13px;
-                font-weight: 500;
-              "
-            >Get Directions</a>
-          </div>
-        `;
-
-        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent);
-
-        const marker = new mapboxgl.Marker({ element: el })
-          .setLngLat([lng, poi.latitude])
-          .setPopup(popup)
-          .addTo(map.current!);
-
-        markersRef.current.push(marker);
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        bounds: bounds,
+        fitBoundsOptions: { padding: 50, maxZoom: 14 },
       });
-    });
+
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      map.current.on('load', () => {
+        setMapLoaded(true);
+
+        // Add markers for each POI
+        validPOIs.forEach(poi => {
+          const category = poi.category || 'other';
+          const color = CATEGORY_COLORS[category] || CATEGORY_COLORS.other;
+          
+          // Handle potentially positive longitudes
+          const lng = poi.longitude! > 0 && poi.longitude! > 100 ? -poi.longitude! : poi.longitude!;
+
+          // Create custom marker element
+          const el = document.createElement('div');
+          el.className = 'poi-marker';
+          el.style.cssText = `
+            width: 32px;
+            height: 32px;
+            background-color: ${color};
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          `;
+
+          // Create popup content
+          const popupContent = `
+            <div style="max-width: 250px; font-family: system-ui, -apple-system, sans-serif;">
+              <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 600;">${poi.name}</h3>
+              <span style="
+                display: inline-block;
+                padding: 2px 8px;
+                background-color: ${color}20;
+                color: ${color};
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: 500;
+                margin-bottom: 8px;
+              ">${CATEGORY_LABELS[category] || category}</span>
+              ${poi.rating ? `
+                <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="${color}" stroke="${color}">
+                    <polygon points="12,2 15,9 22,9 17,14 19,22 12,18 5,22 7,14 2,9 9,9"/>
+                  </svg>
+                  <span style="font-size: 14px; font-weight: 500;">${poi.rating}</span>
+                </div>
+              ` : ''}
+              ${poi.address ? `<p style="margin: 0 0 8px; font-size: 13px; color: #666;">${poi.address}</p>` : ''}
+              ${poi.description ? `<p style="margin: 0 0 8px; font-size: 13px; color: #444;">${poi.description.substring(0, 100)}${poi.description.length > 100 ? '...' : ''}</p>` : ''}
+              <a 
+                href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(poi.address || poi.name)}" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style="
+                  display: inline-block;
+                  padding: 6px 12px;
+                  background-color: ${color};
+                  color: white;
+                  text-decoration: none;
+                  border-radius: 6px;
+                  font-size: 13px;
+                  font-weight: 500;
+                "
+              >Get Directions</a>
+            </div>
+          `;
+
+          const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent);
+
+          const marker = new mapboxgl.Marker({ element: el })
+            .setLngLat([lng, poi.latitude!])
+            .setPopup(popup)
+            .addTo(map.current!);
+
+          markersRef.current.push(marker);
+        });
+      });
+
+      map.current.on('error', (e) => {
+        console.error('Mapbox error:', e.error);
+      });
+    } catch (error) {
+      console.error('Failed to initialize map:', error);
+    }
 
     return () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
-      map.current?.remove();
-      map.current = null;
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
       setMapLoaded(false);
     };
-  }, [settings?.mapboxToken, validPOIs.length]);
+  }, [settings?.mapboxToken, JSON.stringify(validPOIs)]);
 
   const isLoading = poisLoading || settingsLoading;
 
