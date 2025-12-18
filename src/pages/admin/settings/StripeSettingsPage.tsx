@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, CheckCircle2, AlertCircle, Loader2, Copy, Check, ChevronDown, Building2, Home, Trash2, Eye, EyeOff, Save } from 'lucide-react';
+import { Shield, CheckCircle2, AlertCircle, Loader2, Copy, Check, ChevronDown, Building2, Home, Trash2, Eye, EyeOff, Save, Info } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useSecureApiKeys } from '@/hooks/useSecureApiKeys';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Property } from '@/types/property';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const WEBHOOK_URL = "https://joiovubyokikqjytxtuv.supabase.co/functions/v1/handle-stripe-webhook";
 
@@ -159,6 +160,14 @@ const PropertyStripeCard = ({ property }: { property: Property }) => {
 
   return (
     <div className="space-y-4 pt-2">
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          Only configure property-specific Stripe if this property uses a different Stripe account (e.g., separate LLC). 
+          Leave empty to use your organization's default Stripe account.
+        </AlertDescription>
+      </Alert>
+
       {hasStripeConfigured && (
         <div className="flex items-center gap-2 p-2 rounded bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
           <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -199,6 +208,7 @@ const PropertyStripeCard = ({ property }: { property: Property }) => {
               </Button>
             )}
           </div>
+          <p className="text-xs text-muted-foreground">Found in your Stripe Dashboard → Developers → API keys</p>
         </div>
 
         {/* Publishable Key */}
@@ -224,6 +234,7 @@ const PropertyStripeCard = ({ property }: { property: Property }) => {
               </Button>
             )}
           </div>
+          <p className="text-xs text-muted-foreground">This key is safe to expose in frontend code</p>
         </div>
 
         {/* Webhook Secret */}
@@ -258,6 +269,7 @@ const PropertyStripeCard = ({ property }: { property: Property }) => {
               </Button>
             )}
           </div>
+          <p className="text-xs text-muted-foreground">Found in Stripe Dashboard → Developers → Webhooks → Select endpoint → Signing secret</p>
         </div>
 
         {/* Account ID */}
@@ -283,6 +295,7 @@ const PropertyStripeCard = ({ property }: { property: Property }) => {
               </Button>
             )}
           </div>
+          <p className="text-xs text-muted-foreground">Only needed for Stripe Connect setups</p>
         </div>
       </div>
 
