@@ -74,14 +74,29 @@ import NotificationsPage from '@/pages/admin/NotificationsPage';
 import OrganizationSignup from '@/pages/onboarding/OrganizationSignup';
 import OnboardingWizard from '@/pages/onboarding/OnboardingWizard';
 
-// Settings pages
-import OrganizationSettingsPage from '@/pages/admin/settings/OrganizationSettingsPage';
-import SiteContentSettingsPage from '@/pages/admin/settings/SiteContentSettingsPage';
-import AppearanceSettingsPage from '@/pages/admin/settings/AppearanceSettingsPage';
-import TeamAccessSettingsPage from '@/pages/admin/settings/TeamAccessSettingsPage';
-import IntegrationsSettingsPage from '@/pages/admin/settings/IntegrationsSettingsPage';
-import PaymentsSettingsPage from '@/pages/admin/settings/PaymentsSettingsPage';
-import LocalContentSettingsPage from '@/pages/admin/settings/LocalContentSettingsPage';
+// Settings pages - Flattened sidebar navigation
+import GeneralSettingsPage from '@/pages/admin/settings/GeneralSettingsPage';
+import DomainSettingsPage from '@/pages/admin/settings/DomainSettingsPage';
+import BillingSettingsPage from '@/pages/admin/settings/BillingSettingsPage';
+import SiteInfoSettingsPage from '@/pages/admin/settings/SiteInfoSettingsPage';
+import HeroSettingsPage from '@/pages/admin/settings/HeroSettingsPage';
+import AboutSettingsPage from '@/pages/admin/settings/AboutSettingsPage';
+import ContactSettingsPage from '@/pages/admin/settings/ContactSettingsPage';
+import SEOSettingsPage from '@/pages/admin/settings/SEOSettingsPage';
+import AnalyticsSettingsPage from '@/pages/admin/settings/AnalyticsSettingsPage';
+import ColorsSettingsPage from '@/pages/admin/settings/ColorsSettingsPage';
+import FontsSettingsPage from '@/pages/admin/settings/FontsSettingsPage';
+import BrandingSettingsPage from '@/pages/admin/settings/BrandingSettingsPage';
+import UsersSettingsPage from '@/pages/admin/settings/UsersSettingsPage';
+import RolesSettingsPage from '@/pages/admin/settings/RolesSettingsPage';
+import NotificationsSettingsPage from '@/pages/admin/settings/NotificationsSettingsPage';
+import AIAssistantSettingsPage from '@/pages/admin/settings/AIAssistantSettingsPage';
+import CommunicationsSettingsPage from '@/pages/admin/settings/CommunicationsSettingsPage';
+import SmartHomeSettingsPage from '@/pages/admin/settings/SmartHomeSettingsPage';
+import ServicesSettingsPage from '@/pages/admin/settings/ServicesSettingsPage';
+import MapsSettingsPage from '@/pages/admin/settings/MapsSettingsPage';
+import StripeSettingsPage from '@/pages/admin/settings/StripeSettingsPage';
+import PriceLabsSettingsPage from '@/pages/admin/settings/PriceLabsSettingsPage';
 
 const AppRoutes: React.FC = () => {
   const { isPlatformSite } = usePlatform();
