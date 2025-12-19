@@ -55,6 +55,7 @@ export interface Contractor {
   rating?: number;
   notes?: string;
   is_active: boolean;
+  sms_opt_in?: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;

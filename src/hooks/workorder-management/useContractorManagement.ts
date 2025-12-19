@@ -13,6 +13,7 @@ export interface Contractor {
   address?: string;
   rating?: number;
   is_active: boolean;
+  sms_opt_in?: boolean;
   notes?: string;
   created_by: string;
   created_at: string;
