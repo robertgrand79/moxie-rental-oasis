@@ -207,6 +207,45 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // Detect language of incoming message using AI
+    let detectedLanguage: string | null = null;
+    if (messageBody && messageBody.length > 10) {
+      try {
+        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+        if (LOVABLE_API_KEY) {
+          const langResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash",
+              messages: [
+                { 
+                  role: "system", 
+                  content: 'Detect the language of this text. Return ONLY the ISO 639-1 two-letter code (e.g., "en", "es", "fr", "de", "zh", "ja"). Nothing else.' 
+                },
+                { role: "user", content: messageBody }
+              ],
+              max_tokens: 10,
+            }),
+          });
+
+          if (langResponse.ok) {
+            const langData = await langResponse.json();
+            const langCode = langData.choices?.[0]?.message?.content?.trim().toLowerCase();
+            if (langCode && langCode.length === 2) {
+              detectedLanguage = langCode;
+              console.log("[QUO Webhook] Detected language:", detectedLanguage);
+            }
+          }
+        }
+      } catch (langError) {
+        console.error("[QUO Webhook] Language detection error:", langError);
+      }
+    }
+
     // Store inbound SMS in guest_communications (reservation_id can be null)
     if (!threadId) {
       console.error("[QUO Webhook] No thread available, cannot store message");
@@ -232,6 +271,7 @@ const handler = async (req: Request): Promise<Response> => {
         delivery_status: "delivered",
         is_read: false,
         sent_at: receivedAt,
+        detected_language: detectedLanguage,
       })
       .select()
       .single();
@@ -243,16 +283,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("[QUO Webhook] Stored inbound SMS:", communication.id);
 
-    // Update thread with latest message info
+    // Update thread with latest message info and detected language
+    const threadUpdate: any = {
+      last_message_at: receivedAt,
+      last_message_preview: messageBody.substring(0, 100),
+      status: 'awaiting_reply',
+      is_read: false,
+      snoozed_until: null,
+    };
+    
+    // Only update detected_language if we detected a non-English language
+    if (detectedLanguage && detectedLanguage !== 'en') {
+      threadUpdate.detected_language = detectedLanguage;
+    }
+
     await supabase
       .from("guest_inbox_threads")
-      .update({
-        last_message_at: receivedAt,
-        last_message_preview: messageBody.substring(0, 100),
-        status: 'awaiting_reply',
-        is_read: false,
-        snoozed_until: null,
-      })
+      .update(threadUpdate)
       .eq("id", threadId);
 
     // Create notification for inbound guest message

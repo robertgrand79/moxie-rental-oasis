@@ -1455,12 +1455,14 @@ export type Database = {
         Row: {
           created_at: string
           delivery_status: string | null
+          detected_language: string | null
           direction: string | null
           external_message_id: string | null
           id: string
           is_read: boolean | null
           message_content: string
           message_type: string
+          original_content: string | null
           raw_email_data: Json | null
           raw_platform_data: Json | null
           reservation_id: string | null
@@ -1470,16 +1472,19 @@ export type Database = {
           source_platform: string | null
           subject: string
           thread_id: string | null
+          translated_language: string | null
         }
         Insert: {
           created_at?: string
           delivery_status?: string | null
+          detected_language?: string | null
           direction?: string | null
           external_message_id?: string | null
           id?: string
           is_read?: boolean | null
           message_content: string
           message_type: string
+          original_content?: string | null
           raw_email_data?: Json | null
           raw_platform_data?: Json | null
           reservation_id?: string | null
@@ -1489,16 +1494,19 @@ export type Database = {
           source_platform?: string | null
           subject: string
           thread_id?: string | null
+          translated_language?: string | null
         }
         Update: {
           created_at?: string
           delivery_status?: string | null
+          detected_language?: string | null
           direction?: string | null
           external_message_id?: string | null
           id?: string
           is_read?: boolean | null
           message_content?: string
           message_type?: string
+          original_content?: string | null
           raw_email_data?: Json | null
           raw_platform_data?: Json | null
           reservation_id?: string | null
@@ -1508,6 +1516,7 @@ export type Database = {
           source_platform?: string | null
           subject?: string
           thread_id?: string | null
+          translated_language?: string | null
         }
         Relationships: [
           {
@@ -1531,6 +1540,7 @@ export type Database = {
           ai_summary: string | null
           ai_summary_updated_at: string | null
           created_at: string
+          detected_language: string | null
           guest_email: string | null
           guest_identifier: string
           guest_name: string | null
@@ -1549,6 +1559,7 @@ export type Database = {
           ai_summary?: string | null
           ai_summary_updated_at?: string | null
           created_at?: string
+          detected_language?: string | null
           guest_email?: string | null
           guest_identifier: string
           guest_name?: string | null
@@ -1567,6 +1578,7 @@ export type Database = {
           ai_summary?: string | null
           ai_summary_updated_at?: string | null
           created_at?: string
+          detected_language?: string | null
           guest_email?: string | null
           guest_identifier?: string
           guest_name?: string | null
@@ -2168,6 +2180,8 @@ export type Database = {
       }
       messaging_rules: {
         Row: {
+          ai_personalization: boolean | null
+          ai_personalization_context: string | null
           created_at: string
           created_by: string | null
           delivery_channel: string
@@ -2183,6 +2197,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_personalization?: boolean | null
+          ai_personalization_context?: string | null
           created_at?: string
           created_by?: string | null
           delivery_channel?: string
@@ -2198,6 +2214,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_personalization?: boolean | null
+          ai_personalization_context?: string | null
           created_at?: string
           created_by?: string | null
           delivery_channel?: string
@@ -3842,6 +3860,7 @@ export type Database = {
           currency: string | null
           guest_count: number
           guest_email: string
+          guest_language: string | null
           guest_name: string
           guest_phone: string | null
           id: string
@@ -3866,6 +3885,7 @@ export type Database = {
           currency?: string | null
           guest_count?: number
           guest_email: string
+          guest_language?: string | null
           guest_name: string
           guest_phone?: string | null
           id?: string
@@ -3890,6 +3910,7 @@ export type Database = {
           currency?: string | null
           guest_count?: number
           guest_email?: string
+          guest_language?: string | null
           guest_name?: string
           guest_phone?: string | null
           id?: string

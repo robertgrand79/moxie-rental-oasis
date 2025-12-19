@@ -139,6 +139,24 @@ verify_jwt = false
 [functions.geocode-address]
 verify_jwt = false
 
+[functions.generate-message-template]
+verify_jwt = false
+
+[functions.generate-inbox-reply]
+verify_jwt = false
+
+[functions.translate-message]
+verify_jwt = false
+
+[functions.public-ai-chat]
+verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false
+
+[functions.ai-unified-chat]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323

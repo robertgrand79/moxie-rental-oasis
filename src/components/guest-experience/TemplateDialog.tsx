@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { Sparkles, Loader2, Wand2 } from 'lucide-react';
 
 interface MessageTemplate {
   id: string;
@@ -71,7 +73,9 @@ const TEMPLATE_VARIABLES = [
 const TemplateDialog: React.FC<TemplateDialogProps> = ({ open, onOpenChange, template }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { organization } = useCurrentOrganization();
   const isEditing = !!template;
+  const [isGenerating, setIsGenerating] = useState(false);
   
   // Use organization-scoped properties
   const { properties } = usePropertyFetch();
@@ -157,6 +161,50 @@ const TemplateDialog: React.FC<TemplateDialogProps> = ({ open, onOpenChange, tem
       const currentValue = watch('content');
       const newValue = currentValue.substring(0, start) + variable + currentValue.substring(end);
       setValue('content', newValue);
+    }
+  };
+
+  const handleAIGenerate = async (action: 'generate' | 'improve') => {
+    if (!organization?.id) {
+      toast({ title: 'Organization not found', variant: 'destructive' });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-message-template', {
+        body: {
+          organizationId: organization.id,
+          templateType: watch('category') as any,
+          description: watch('name'),
+          existingContent: action === 'improve' ? watch('content') : undefined,
+          action,
+          propertyId: watch('property_id') !== 'global' ? watch('property_id') : undefined,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.subject) {
+        setValue('subject', data.subject);
+      }
+      if (data?.content) {
+        setValue('content', data.content);
+      }
+
+      toast({ 
+        title: action === 'generate' ? 'Template generated!' : 'Template improved!',
+        description: 'Review and customize as needed.'
+      });
+    } catch (error: any) {
+      console.error('AI generation error:', error);
+      toast({ 
+        title: 'AI generation failed', 
+        description: error.message || 'Please try again',
+        variant: 'destructive' 
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -253,9 +301,30 @@ const TemplateDialog: React.FC<TemplateDialogProps> = ({ open, onOpenChange, tem
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="template-content">Message Content</Label>
-              <span className="text-xs text-muted-foreground">
-                Click variables below to insert
-              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAIGenerate('generate')}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Sparkles className="h-4 w-4 mr-1" />}
+                  AI Generate
+                </Button>
+                {watch('content') && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleAIGenerate('improve')}
+                    disabled={isGenerating}
+                  >
+                    <Wand2 className="h-4 w-4 mr-1" />
+                    Improve
+                  </Button>
+                )}
+              </div>
             </div>
             <Textarea
               id="template-content"

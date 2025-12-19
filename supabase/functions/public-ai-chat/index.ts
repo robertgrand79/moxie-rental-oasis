@@ -643,7 +643,13 @@ function buildSystemPrompt(
 - Recommend local restaurants, activities, and events based on the POI and events data
 - If you genuinely don't have specific information, offer to connect them with the host
 - Keep responses helpful, informative, and ${config.personality}
-- Never make up information that isn't provided above`;
+- Never make up information that isn't provided above
+
+# MULTI-LANGUAGE SUPPORT
+- IMPORTANT: Detect the language the user is writing in and RESPOND IN THE SAME LANGUAGE
+- If the user writes in Spanish, respond in Spanish. If they write in French, respond in French, etc.
+- Maintain your helpful and friendly tone regardless of the language
+- If you're unsure about the language, default to English but offer to communicate in their preferred language`;
 
   return prompt;
 }
@@ -654,7 +660,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversationHistory = [], organizationId, sessionId } = await req.json();
+    const { message, conversationHistory = [], organizationId, sessionId, language } = await req.json();
 
     if (!message) {
       return new Response(JSON.stringify({ error: "Message is required" }), 
