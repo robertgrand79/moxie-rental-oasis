@@ -38,7 +38,7 @@ export interface Place {
 export const usePlaces = () => {
   const { organization } = useCurrentOrganization();
   
-  const { data: places = [], isLoading, error } = useQuery({
+  const { data: places = [], isLoading, error, refetch } = useQuery({
     queryKey: ['places', organization?.id],
     queryFn: async () => {
       if (!organization?.id) return [];
@@ -59,7 +59,7 @@ export const usePlaces = () => {
     enabled: !!organization?.id
   });
 
-  return { places, isLoading, error };
+  return { places, isLoading, error, refetch };
 };
 
 export const useCreatePlace = () => {
