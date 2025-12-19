@@ -399,14 +399,14 @@ const SmartHomeSettingsPage = () => {
 
   if (!organization) {
     return (
-      <SettingsSidebarLayout title="Smart Home" description="Configure smart home integrations">
+      <SettingsSidebarLayout title="Smart Home" description="Configure smart home integrations" icon={Home}>
         <div className="text-center py-8">No organization found</div>
       </SettingsSidebarLayout>
     );
   }
 
   return (
-    <SettingsSidebarLayout title="Smart Home" description="Configure smart home integrations">
+    <SettingsSidebarLayout title="Smart Home" description="Configure smart home integrations" icon={Home}>
       <div className="space-y-6">
         <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
           <Shield className="h-5 w-5 text-green-600" />
