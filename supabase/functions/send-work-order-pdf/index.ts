@@ -129,8 +129,22 @@ serve(async (req) => {
     const acknowledgeUrl = `${supabaseUrl}/functions/v1/acknowledge-work-orders?token=${token}`;
     console.log("Acknowledge URL generated:", acknowledgeUrl);
 
-    // Generate email content with acknowledge URL
-    const emailContent = generateWorkOrderEmailContent(workOrder, acknowledgeUrl);
+    // Get or create contractor portal token
+    let portalUrl: string | undefined;
+    if (workOrder.contractor?.id) {
+      const { data: portalToken, error: portalError } = await supabase
+        .rpc('get_or_create_contractor_token', { p_contractor_id: workOrder.contractor.id });
+      
+      if (portalError) {
+        console.error("Error getting contractor portal token:", portalError);
+      } else if (portalToken) {
+        portalUrl = `https://moxievacationrentals.com/contractor/${portalToken}`;
+        console.log("Portal URL generated for contractor");
+      }
+    }
+
+    // Generate email content with acknowledge URL and portal URL
+    const emailContent = generateWorkOrderEmailContent(workOrder, acknowledgeUrl, portalUrl);
 
     console.log("Email content generated successfully, length:", emailContent.length);
 

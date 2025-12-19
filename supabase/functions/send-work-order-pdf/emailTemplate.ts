@@ -1,5 +1,5 @@
 
-export function generateWorkOrderEmailContent(workOrder: any, acknowledgeUrl?: string): string {
+export function generateWorkOrderEmailContent(workOrder: any, acknowledgeUrl?: string, portalUrl?: string): string {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not specified';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -318,6 +318,17 @@ export function generateWorkOrderEmailContent(workOrder: any, acknowledgeUrl?: s
               Click the button above to confirm you've received this work order
             </p>
           </div>
+          ${portalUrl ? `
+          <div style="text-align: center; margin: 20px 0; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <a href="${portalUrl}" 
+               style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 16px; text-decoration: none;">
+              📋 View All My Work Orders
+            </a>
+            <p style="font-size: 13px; color: #6b7280; margin-top: 10px;">
+              Access your contractor portal to view all assigned work orders, update status, and upload completion photos
+            </p>
+          </div>
+          ` : ''}
           ` : `
           <div class="confirmation-card">
             <div class="confirmation-title">Please Confirm Receipt</div>
