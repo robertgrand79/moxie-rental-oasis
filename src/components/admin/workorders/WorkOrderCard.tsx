@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardFooter, EnhancedCardHeader } from '@/components/ui/enhanced-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,12 +10,9 @@ import {
   Building, 
   Edit, 
   Trash2, 
-  Mail, 
-  Clock,
+  Send,
   MoreVertical,
-  AlertCircle,
-  CheckCircle2,
-  MessageSquare
+  ChevronDown
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -54,29 +50,22 @@ const WorkOrderCard = ({
   isSelected = false,
   onSelect,
 }: WorkOrderCardProps) => {
-  const priorityColors = {
-    low: 'bg-green-100 text-green-800 border-green-200',
-    medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    high: 'bg-orange-100 text-orange-800 border-orange-200',
-    critical: 'bg-red-100 text-red-800 border-red-200',
+  const priorityConfig = {
+    low: { dot: 'bg-emerald-500', text: 'text-emerald-700' },
+    medium: { dot: 'bg-amber-500', text: 'text-amber-700' },
+    high: { dot: 'bg-orange-500', text: 'text-orange-700' },
+    critical: { dot: 'bg-red-500', text: 'text-red-700' },
   };
 
-  const statusColors = {
-    draft: 'bg-gray-100 text-gray-800',
-    sent: 'bg-blue-100 text-blue-800',
-    acknowledged: 'bg-purple-100 text-purple-800',
-    in_progress: 'bg-orange-100 text-orange-800',
-    completed: 'bg-green-100 text-green-800',
-    invoiced: 'bg-indigo-100 text-indigo-800',
-    paid: 'bg-emerald-100 text-emerald-800',
-    cancelled: 'bg-red-100 text-red-800',
-  };
-
-  const getPriorityIcon = (priority: string) => {
-    if (priority === 'critical' || priority === 'high') {
-      return <AlertCircle className="h-4 w-4" />;
-    }
-    return <CheckCircle2 className="h-4 w-4" />;
+  const statusConfig = {
+    draft: { bg: 'bg-muted', text: 'text-muted-foreground' },
+    sent: { bg: 'bg-blue-50', text: 'text-blue-700' },
+    acknowledged: { bg: 'bg-purple-50', text: 'text-purple-700' },
+    in_progress: { bg: 'bg-amber-50', text: 'text-amber-700' },
+    completed: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
+    invoiced: { bg: 'bg-indigo-50', text: 'text-indigo-700' },
+    paid: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
+    cancelled: { bg: 'bg-red-50', text: 'text-red-700' },
   };
 
   const handleStatusClick = (newStatus: string) => {
@@ -91,87 +80,171 @@ const WorkOrderCard = ({
 
   const hasEmail = !!workOrder.contractor?.email;
   const hasPhone = !!workOrder.contractor?.phone;
+  const canSend = hasEmail || hasPhone;
+  const isSending = isEmailing || isTexting;
+
+  const priority = workOrder.priority as keyof typeof priorityConfig;
+  const status = workOrder.status as keyof typeof statusConfig;
 
   return (
-    <EnhancedCard 
-      variant="elevated" 
-      hover={true}
+    <div 
       className={cn(
-        "group relative overflow-hidden transition-all",
+        "group bg-card border rounded-xl p-4 transition-all hover:shadow-md hover:border-primary/20",
         isSelected && "ring-2 ring-primary ring-offset-2"
       )}
     >
-      {/* Selection checkbox */}
-      {onSelect && (
-        <div 
-          className="absolute top-3 left-3 z-10"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={handleCheckboxChange}
-            className="h-5 w-5 bg-white border-2 shadow-sm"
-          />
-        </div>
-      )}
-
-      {/* Priority indicator stripe */}
-      <div className={`absolute top-0 left-0 w-1 h-full ${
-        workOrder.priority === 'critical' ? 'bg-red-500' :
-        workOrder.priority === 'high' ? 'bg-orange-500' :
-        workOrder.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-      }`} />
-
-      <EnhancedCardHeader className={cn("pb-3", onSelect && "pl-10")}>
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0 mr-2">
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <Badge variant="outline" className="font-mono text-xs flex-shrink-0">
-                {workOrder.work_order_number}
-              </Badge>
-              <Badge className={`${priorityColors[workOrder.priority as keyof typeof priorityColors]} flex-shrink-0`}>
-                {getPriorityIcon(workOrder.priority)}
-                <span className="ml-1 capitalize">{workOrder.priority}</span>
-              </Badge>
+      {/* Header Row */}
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2 min-w-0">
+          {onSelect && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={handleCheckboxChange}
+                className="h-4 w-4"
+              />
             </div>
-            <h3 className="font-semibold text-lg text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-              {workOrder.title}
-            </h3>
-            <p className="text-sm text-gray-600 line-clamp-2 mt-1">
-              {workOrder.description}
-            </p>
+          )}
+          <span className="font-mono text-xs text-muted-foreground">
+            {workOrder.work_order_number}
+          </span>
+          <span className="text-muted-foreground">•</span>
+          <div className="flex items-center gap-1.5">
+            <span className={cn("w-2 h-2 rounded-full", priorityConfig[priority]?.dot)} />
+            <span className={cn("text-xs font-medium capitalize", priorityConfig[priority]?.text)}>
+              {workOrder.priority}
+            </span>
           </div>
+        </div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={cn(
+                "h-7 w-7 p-0 transition-opacity",
+                statusConfig[status]?.bg,
+                statusConfig[status]?.text
+              )}
+            >
+              <span className="text-xs font-medium capitalize mr-0.5">
+                {workOrder.status.replace('_', ' ')}
+              </span>
+              <ChevronDown className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {Object.keys(statusConfig).map((s) => (
+              <DropdownMenuItem
+                key={s}
+                onClick={() => handleStatusClick(s)}
+                disabled={isUpdating}
+                className={workOrder.status === s ? 'bg-muted' : ''}
+              >
+                <span className="capitalize">{s.replace('_', ' ')}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Title */}
+      <h3 className="font-medium text-foreground mb-3 line-clamp-2">
+        {workOrder.title}
+      </h3>
+
+      {/* Metadata */}
+      <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
+        {workOrder.contractor && (
+          <div className="flex items-center gap-2">
+            <User className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">
+              {workOrder.contractor.name}
+              {workOrder.contractor.company_name && (
+                <span className="opacity-70"> ({workOrder.contractor.company_name})</span>
+              )}
+            </span>
+          </div>
+        )}
+        
+        {workOrder.property && (
+          <div className="flex items-center gap-2">
+            <Building className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{workOrder.property.title}</span>
+          </div>
+        )}
+        
+        {workOrder.estimated_completion_date && (
+          <div className="flex items-center gap-2">
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            <span>Due {format(new Date(workOrder.estimated_completion_date), 'MMM d, yyyy')}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Footer Actions */}
+      <div className="flex items-center justify-between pt-3 border-t">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => onEdit(workOrder)}
+          className="h-8 text-muted-foreground hover:text-foreground"
+        >
+          <Edit className="h-3.5 w-3.5 mr-1.5" />
+          Edit
+        </Button>
+        
+        <div className="flex items-center gap-1">
+          {canSend && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  disabled={isSending}
+                  className="h-8"
+                >
+                  <Send className="h-3.5 w-3.5 mr-1.5" />
+                  {isSending ? 'Sending...' : 'Send'}
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {hasEmail && (
+                  <DropdownMenuItem 
+                    onClick={() => onSend(workOrder, 'email')}
+                    disabled={isEmailing}
+                  >
+                    Send Email
+                  </DropdownMenuItem>
+                )}
+                {hasPhone && (
+                  <DropdownMenuItem 
+                    onClick={() => onSend(workOrder, 'sms')}
+                    disabled={isTexting}
+                  >
+                    Send Text
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(workOrder)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Details
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => onSend(workOrder, 'email')}
-                disabled={!hasEmail || isEmailing}
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                {isEmailing ? 'Sending...' : 'Send Email'}
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => onSend(workOrder, 'sms')}
-                disabled={!hasPhone || isTexting}
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                {isTexting ? 'Sending...' : 'Send Text'}
+                View Details
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => onDelete(workOrder.id)}
-                className="text-red-600 hover:text-red-700"
+                className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
@@ -179,116 +252,8 @@ const WorkOrderCard = ({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </EnhancedCardHeader>
-
-      <EnhancedCardContent className={cn("space-y-4", onSelect && "pl-10")}>
-        {/* Status with quick actions */}
-        <div className="flex items-center justify-between">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Badge 
-                className={`${statusColors[workOrder.status as keyof typeof statusColors]} cursor-pointer hover:opacity-80 transition-opacity`}
-                variant="outline"
-              >
-                {workOrder.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-              </Badge>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {Object.keys(statusColors).map((status) => (
-                <DropdownMenuItem
-                  key={status}
-                  onClick={() => handleStatusClick(status)}
-                  disabled={isUpdating}
-                  className={workOrder.status === status ? 'bg-gray-100' : ''}
-                >
-                  <Badge className={statusColors[status as keyof typeof statusColors]}>
-                    {status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </Badge>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Details */}
-        <div className="space-y-2 text-sm">
-          {workOrder.contractor && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <User className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">
-                {workOrder.contractor.name}
-                {workOrder.contractor.company_name && (
-                  <span className="text-gray-500 ml-1">({workOrder.contractor.company_name})</span>
-                )}
-              </span>
-            </div>
-          )}
-          
-          {workOrder.property && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <Building className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">{workOrder.property.title}</span>
-            </div>
-          )}
-          
-          {workOrder.estimated_completion_date && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <Calendar className="h-4 w-4 flex-shrink-0" />
-              <span>Due {format(new Date(workOrder.estimated_completion_date), 'MMM dd, yyyy')}</span>
-            </div>
-          )}
-          
-          <div className="flex items-center gap-2 text-gray-500">
-            <Clock className="h-4 w-4 flex-shrink-0" />
-            <span>Created {format(new Date(workOrder.created_at), 'MMM dd, yyyy')}</span>
-          </div>
-        </div>
-      </EnhancedCardContent>
-
-      <EnhancedCardFooter className={cn("pt-3 border-t", onSelect && "pl-10")}>
-        <div className="flex items-center justify-between w-full gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onEdit(workOrder)}
-            className="flex items-center gap-1"
-          >
-            <Edit className="h-3 w-3" />
-            Edit
-          </Button>
-          
-          <div className="flex items-center gap-1">
-            {hasEmail && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => onSend(workOrder, 'email')}
-                disabled={isEmailing}
-                className="flex items-center gap-1"
-                title="Send via Email"
-              >
-                <Mail className="h-3 w-3" />
-                {isEmailing ? '...' : 'Email'}
-              </Button>
-            )}
-            
-            {hasPhone && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => onSend(workOrder, 'sms')}
-                disabled={isTexting}
-                className="flex items-center gap-1"
-                title="Send via Text"
-              >
-                <MessageSquare className="h-3 w-3" />
-                {isTexting ? '...' : 'Text'}
-              </Button>
-            )}
-          </div>
-        </div>
-      </EnhancedCardFooter>
-    </EnhancedCard>
+      </div>
+    </div>
   );
 };
 

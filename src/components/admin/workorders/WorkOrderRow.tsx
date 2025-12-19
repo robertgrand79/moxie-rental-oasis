@@ -1,15 +1,20 @@
 
 import React from 'react';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import InteractiveWorkOrderStatusBadge from './InteractiveWorkOrderStatusBadge';
-import InteractiveWorkOrderPriorityBadge from './InteractiveWorkOrderPriorityBadge';
-import WorkOrderActions from './WorkOrderActions';
 import { cn } from '@/lib/utils';
 import { SendMethod } from '@/hooks/useWorkOrderEmail';
+import { MoreHorizontal, Send, Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface WorkOrderRowProps {
   workOrder: WorkOrder;
@@ -25,6 +30,24 @@ interface WorkOrderRowProps {
   onSelect?: (workOrderId: string, selected: boolean) => void;
 }
 
+const priorityConfig = {
+  low: { dot: 'bg-emerald-500', text: 'text-emerald-700' },
+  medium: { dot: 'bg-amber-500', text: 'text-amber-700' },
+  high: { dot: 'bg-orange-500', text: 'text-orange-700' },
+  critical: { dot: 'bg-red-500', text: 'text-red-700' },
+};
+
+const statusConfig = {
+  draft: { bg: 'bg-muted', text: 'text-muted-foreground' },
+  sent: { bg: 'bg-blue-50', text: 'text-blue-700' },
+  acknowledged: { bg: 'bg-purple-50', text: 'text-purple-700' },
+  in_progress: { bg: 'bg-amber-50', text: 'text-amber-700' },
+  completed: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  invoiced: { bg: 'bg-indigo-50', text: 'text-indigo-700' },
+  paid: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  cancelled: { bg: 'bg-red-50', text: 'text-red-700' },
+};
+
 const WorkOrderRow = ({
   workOrder,
   onWorkOrderClick,
@@ -39,81 +62,148 @@ const WorkOrderRow = ({
   onSelect,
 }: WorkOrderRowProps) => {
   const isUpdating = updatingWorkOrders.has(workOrder.id);
+  const hasEmail = !!workOrder.contractor?.email;
+  const hasPhone = !!workOrder.contractor?.phone;
+  const canSend = hasEmail || hasPhone;
+  const isSending = isEmailing || isTexting;
+
+  const priority = workOrder.priority as keyof typeof priorityConfig;
+  const status = workOrder.status as keyof typeof statusConfig;
 
   const handleCheckboxChange = (checked: boolean) => {
     onSelect?.(workOrder.id, checked);
   };
 
+  const handleStatusClick = (newStatus: string) => {
+    if (newStatus !== workOrder.status && !isUpdating) {
+      onStatusChange(workOrder.id, newStatus);
+    }
+  };
+
   return (
     <TableRow 
       className={cn(
-        "cursor-pointer hover:bg-gray-50",
+        "cursor-pointer hover:bg-muted/50",
         isSelected && "bg-primary/5"
       )}
       onClick={() => onWorkOrderClick(workOrder)}
     >
       {onSelect && (
-        <TableCell onClick={(e) => e.stopPropagation()}>
+        <TableCell onClick={(e) => e.stopPropagation()} className="w-10">
           <Checkbox
             checked={isSelected}
             onCheckedChange={handleCheckboxChange}
-            className="translate-y-[2px]"
           />
         </TableCell>
       )}
-      <TableCell className="font-medium">
+      
+      <TableCell className="font-mono text-xs text-muted-foreground">
         {workOrder.work_order_number}
       </TableCell>
-      <TableCell className="max-w-[200px] truncate">
-        {workOrder.title}
+      
+      <TableCell className="max-w-[200px]">
+        <span className="font-medium truncate block">{workOrder.title}</span>
       </TableCell>
-      <TableCell>
-        {workOrder.property?.title || 'No property'}
+      
+      <TableCell className="text-muted-foreground">
+        {workOrder.property?.title || '—'}
       </TableCell>
+      
       <TableCell>
         {workOrder.contractor ? (
-          <div>
-            <div className="font-medium">{workOrder.contractor.name}</div>
-            <div className="text-sm text-gray-500">{workOrder.contractor.company_name}</div>
-          </div>
+          <span className="text-sm">{workOrder.contractor.name}</span>
         ) : (
-          'Unassigned'
+          <span className="text-muted-foreground">Unassigned</span>
         )}
       </TableCell>
+      
       <TableCell onClick={(e) => e.stopPropagation()}>
-        <InteractiveWorkOrderStatusBadge
-          status={workOrder.status}
-          workOrderId={workOrder.id}
-          onStatusChange={onStatusChange}
-          isUpdating={isUpdating}
-        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button 
+              className={cn(
+                "px-2 py-1 rounded text-xs font-medium capitalize",
+                statusConfig[status]?.bg,
+                statusConfig[status]?.text
+              )}
+            >
+              {workOrder.status.replace('_', ' ')}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {Object.keys(statusConfig).map((s) => (
+              <DropdownMenuItem
+                key={s}
+                onClick={() => handleStatusClick(s)}
+                disabled={isUpdating}
+              >
+                <span className="capitalize">{s.replace('_', ' ')}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
+      
       <TableCell onClick={(e) => e.stopPropagation()}>
-        <InteractiveWorkOrderPriorityBadge
-          priority={workOrder.priority}
-          workOrderId={workOrder.id}
-          onPriorityChange={onPriorityChange}
-          isUpdating={isUpdating}
-        />
+        <div className="flex items-center gap-1.5">
+          <span className={cn("w-2 h-2 rounded-full", priorityConfig[priority]?.dot)} />
+          <span className={cn("text-xs capitalize", priorityConfig[priority]?.text)}>
+            {workOrder.priority}
+          </span>
+        </div>
       </TableCell>
-      <TableCell>
+      
+      <TableCell className="text-muted-foreground text-sm">
         {workOrder.estimated_completion_date 
-          ? format(new Date(workOrder.estimated_completion_date), 'MMM dd, yyyy')
-          : 'Not set'
+          ? format(new Date(workOrder.estimated_completion_date), 'MMM d')
+          : '—'
         }
       </TableCell>
-      <TableCell>
-        {format(new Date(workOrder.created_at), 'MMM dd, yyyy')}
-      </TableCell>
+      
       <TableCell onClick={(e) => e.stopPropagation()}>
-        <WorkOrderActions
-          workOrder={workOrder}
-          onWorkOrderClick={onWorkOrderClick}
-          onDeleteWorkOrder={onDeleteWorkOrder}
-          isEmailing={isEmailing}
-          isTexting={isTexting}
-          onSendWorkOrder={onSendWorkOrder}
-        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onWorkOrderClick(workOrder)}>
+              View / Edit
+            </DropdownMenuItem>
+            {canSend && (
+              <>
+                <DropdownMenuSeparator />
+                {hasEmail && (
+                  <DropdownMenuItem 
+                    onClick={() => onSendWorkOrder(workOrder, 'email')}
+                    disabled={isEmailing}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    {isEmailing ? 'Sending...' : 'Send Email'}
+                  </DropdownMenuItem>
+                )}
+                {hasPhone && (
+                  <DropdownMenuItem 
+                    onClick={() => onSendWorkOrder(workOrder, 'sms')}
+                    disabled={isTexting}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    {isTexting ? 'Sending...' : 'Send Text'}
+                  </DropdownMenuItem>
+                )}
+              </>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => onDeleteWorkOrder(workOrder.id)}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   );

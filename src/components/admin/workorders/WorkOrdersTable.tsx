@@ -52,28 +52,26 @@ const WorkOrdersTable = ({
   const allSelected = workOrders.length > 0 && selectedWorkOrders.size === workOrders.length;
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-xl border bg-card">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
             {onSelectWorkOrder && (
-              <TableHead className="w-[50px]">
+              <TableHead className="w-10">
                 <Checkbox
                   checked={allSelected}
                   onCheckedChange={onSelectAll}
-                  className="translate-y-[2px]"
                 />
               </TableHead>
             )}
-            <TableHead>Work Order #</TableHead>
+            <TableHead className="w-24">WO #</TableHead>
             <TableHead>Title</TableHead>
             <TableHead>Property</TableHead>
             <TableHead>Contractor</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
+            <TableHead className="w-28">Status</TableHead>
+            <TableHead className="w-24">Priority</TableHead>
+            <TableHead className="w-20">Due</TableHead>
+            <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
