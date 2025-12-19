@@ -1,38 +1,48 @@
 import React, { useState } from 'react';
-import { Plus, MapPin, UtensilsCrossed, Trees, Music, ShoppingBag, Bed, Heart, Loader2, Navigation } from 'lucide-react';
+import { Plus, MapPin, Loader2, Navigation, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePlaces, Place } from '@/hooks/usePlaces';
+import { usePlaceCategories } from '@/hooks/usePlaceCategories';
 import PlacesGrid from './PlacesGrid';
 import PlacesListView from './PlacesListView';
 import PlacesViewToggle from './PlacesViewToggle';
 import PlaceForm from './PlaceForm';
+import CategoryManager from './CategoryManager';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import * as LucideIcons from 'lucide-react';
 
 const PlacesManager = () => {
   const { places, isLoading, refetch } = usePlaces();
+  const { categories: dbCategories, isLoading: categoriesLoading } = usePlaceCategories();
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [isBatchGeocoding, setIsBatchGeocoding] = useState(false);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
 
   // Count places missing coordinates
   const placesWithoutCoords = places.filter(
     p => p.address && (!p.latitude || !p.longitude)
   ).length;
 
+  // Build categories from database
   const categories = [
-    { value: 'all', label: 'All Places', icon: MapPin },
-    { value: 'dining', label: 'Dining', icon: UtensilsCrossed },
-    { value: 'outdoor', label: 'Outdoor', icon: Trees },
-    { value: 'entertainment', label: 'Entertainment', icon: Music },
-    { value: 'shopping', label: 'Shopping', icon: ShoppingBag },
-    { value: 'accommodation', label: 'Accommodation', icon: Bed },
-    { value: 'lifestyle', label: 'Lifestyle', icon: Heart },
+    { value: 'all', label: 'All Places', icon: 'MapPin' },
+    ...dbCategories.map(cat => ({
+      value: cat.slug,
+      label: cat.name,
+      icon: cat.icon,
+    })),
   ];
+
+  const getIconComponent = (iconName: string) => {
+    const IconComponent = (LucideIcons as any)[iconName];
+    return IconComponent || LucideIcons.MapPin;
+  };
 
   const filteredPlaces = selectedCategory === 'all' 
     ? places 
@@ -89,6 +99,19 @@ const PlacesManager = () => {
     );
   }
 
+  if (showCategoryManager) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={() => setShowCategoryManager(false)}>
+            ← Back to Places
+          </Button>
+        </div>
+        <CategoryManager />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <Card>
@@ -100,6 +123,14 @@ const PlacesManager = () => {
             </p>
           </div>
           <div className="flex items-center space-x-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCategoryManager(true)}
+              className="flex items-center space-x-2"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Categories</span>
+            </Button>
             {placesWithoutCoords > 0 && (
               <Button 
                 variant="outline" 
@@ -124,17 +155,20 @@ const PlacesManager = () => {
         </CardHeader>
         <CardContent>
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="grid w-full grid-cols-7 h-auto">
-              {categories.map((category) => (
-                <TabsTrigger 
-                  key={category.value} 
-                  value={category.value}
-                  className="flex items-center justify-center gap-2 px-2 py-3 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground"
-                >
-                  <category.icon className="h-4 w-4 flex-shrink-0" />
-                  <span className="hidden lg:inline whitespace-nowrap">{category.label}</span>
-                </TabsTrigger>
-              ))}
+            <TabsList className={`grid w-full h-auto`} style={{ gridTemplateColumns: `repeat(${Math.min(categories.length, 8)}, 1fr)` }}>
+              {categories.map((category) => {
+                const IconComponent = getIconComponent(category.icon);
+                return (
+                  <TabsTrigger 
+                    key={category.value} 
+                    value={category.value}
+                    className="flex items-center justify-center gap-2 px-2 py-3 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground"
+                  >
+                    <IconComponent className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden lg:inline whitespace-nowrap">{category.label}</span>
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
 
             {categories.map((category) => (
