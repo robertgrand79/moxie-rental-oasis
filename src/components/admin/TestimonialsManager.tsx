@@ -158,7 +158,7 @@ const TestimonialsManager = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Customer Testimonials</CardTitle>
+            <CardTitle>Reviews</CardTitle>
             <CardDescription>
               Manage guest reviews and testimonials displayed on your homepage
             </CardDescription>
