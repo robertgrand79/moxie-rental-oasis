@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
-import { Plus, FileText, Calendar, MapPin, Heart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BlogPost, ContentType, CONTENT_TYPE_LABELS } from '@/types/blogPost';
+import React, { useState, useMemo } from 'react';
+import { BlogPost } from '@/types/blogPost';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
+import ModernBlogsHeader from './ModernBlogsHeader';
 import BlogsGrid from './BlogsGrid';
 import BlogsListView from './BlogsListView';
-import BlogsViewToggle from './BlogsViewToggle';
+import BlogDetailPanel from './BlogDetailPanel';
 import BlogForm from '@/components/BlogForm';
 import { toast } from 'sonner';
 
@@ -26,21 +23,63 @@ const BlogsManager = ({
   editingPost = null, 
   onCloseForm 
 }: BlogsManagerProps) => {
-  const { blogPosts, loading, deleteBlogPost, updateBlogPost } = useBlogPosts({ publishedOnly: false });
-  const [selectedContentType, setSelectedContentType] = useState<string>('all');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const { blogPosts, loading, deleteBlogPost, updateBlogPost, refetch } = useBlogPosts({ publishedOnly: false });
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [contentTypeFilter, setContentTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [viewingPost, setViewingPost] = useState<BlogPost | null>(null);
 
-  const contentTypes = [
-    { value: 'all', label: 'All Posts', icon: FileText },
-    { value: 'article', label: CONTENT_TYPE_LABELS.article, icon: FileText },
-    { value: 'event', label: CONTENT_TYPE_LABELS.event, icon: Calendar },
-    { value: 'poi', label: CONTENT_TYPE_LABELS.poi, icon: MapPin },
-    { value: 'lifestyle', label: CONTENT_TYPE_LABELS.lifestyle, icon: Heart },
-  ];
+  // Calculate stats
+  const stats = useMemo(() => {
+    const published = blogPosts.filter(p => p.status === 'published').length;
+    const draft = blogPosts.filter(p => p.status === 'draft').length;
+    const featured = blogPosts.filter(p => p.is_featured).length;
+    
+    // Find top content type
+    const typeCounts = blogPosts.reduce((acc, post) => {
+      acc[post.content_type] = (acc[post.content_type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const topType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+    
+    return {
+      total: blogPosts.length,
+      published,
+      draft,
+      featured,
+      topType,
+    };
+  }, [blogPosts]);
 
-  const filteredPosts = selectedContentType === 'all' 
-    ? blogPosts 
-    : blogPosts.filter(post => post.content_type === selectedContentType);
+  // Filter posts
+  const filteredPosts = useMemo(() => {
+    return blogPosts.filter(post => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          post.title.toLowerCase().includes(query) ||
+          post.author.toLowerCase().includes(query) ||
+          post.excerpt?.toLowerCase().includes(query) ||
+          post.tags?.some(tag => tag.toLowerCase().includes(query));
+        if (!matchesSearch) return false;
+      }
+      
+      // Content type filter
+      if (contentTypeFilter !== 'all' && post.content_type !== contentTypeFilter) {
+        return false;
+      }
+      
+      // Status filter
+      if (statusFilter !== 'all' && post.status !== statusFilter) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [blogPosts, searchQuery, contentTypeFilter, statusFilter]);
 
   const handleEdit = (post: BlogPost) => {
     if (onEdit) {
@@ -75,6 +114,38 @@ const BlogsManager = ({
     }
   };
 
+  const handleUnpublish = async (postId: string) => {
+    try {
+      await updateBlogPost(postId, { 
+        status: 'draft',
+        published_at: null
+      });
+      toast.success('Blog post unpublished');
+    } catch (error) {
+      toast.error('Failed to unpublish blog post');
+    }
+  };
+
+  const handleViewDetails = (post: BlogPost) => {
+    setViewingPost(post);
+  };
+
+  const handleCloseDetails = () => {
+    setViewingPost(null);
+  };
+
+  const handleEditFromDetails = () => {
+    if (viewingPost) {
+      handleEdit(viewingPost);
+      setViewingPost(null);
+    }
+  };
+
+  const handleRefresh = () => {
+    refetch();
+    toast.success('Blog posts refreshed');
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -85,62 +156,51 @@ const BlogsManager = ({
 
   return (
     <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Blog Management</CardTitle>
-            <p className="text-muted-foreground mt-1">
-              Manage all your blog posts, articles, events, places, and lifestyle content
-            </p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <BlogsViewToggle view={view} onViewChange={setView} />
-            <Button 
-              onClick={handleAddNew} 
-              className="flex items-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add Blog Post</span>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={selectedContentType} onValueChange={setSelectedContentType}>
-            <TabsList className="grid w-full grid-cols-5 h-auto">
-              {contentTypes.map((contentType) => (
-                <TabsTrigger 
-                  key={contentType.value} 
-                  value={contentType.value}
-                  className="flex items-center justify-center gap-2 px-2 py-3 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground"
-                >
-                  <contentType.icon className="h-4 w-4 flex-shrink-0" />
-                  <span className="hidden lg:inline whitespace-nowrap">{contentType.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+      <ModernBlogsHeader
+        totalPosts={stats.total}
+        publishedPosts={stats.published}
+        draftPosts={stats.draft}
+        featuredPosts={stats.featured}
+        topContentType={stats.topType}
+        onAddPost={handleAddNew}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        contentTypeFilter={contentTypeFilter}
+        onContentTypeFilterChange={setContentTypeFilter}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onRefresh={handleRefresh}
+      />
 
-            {contentTypes.map((contentType) => (
-              <TabsContent key={contentType.value} value={contentType.value} className="mt-6">
-                {view === 'grid' ? (
-                  <BlogsGrid 
-                    posts={filteredPosts} 
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onPublish={handlePublish}
-                  />
-                ) : (
-                  <BlogsListView 
-                    posts={filteredPosts} 
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onPublish={handlePublish}
-                  />
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </CardContent>
-      </Card>
+      {viewMode === 'grid' ? (
+        <BlogsGrid 
+          posts={filteredPosts} 
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onPublish={handlePublish}
+          onUnpublish={handleUnpublish}
+          onViewDetails={handleViewDetails}
+        />
+      ) : (
+        <BlogsListView 
+          posts={filteredPosts} 
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onPublish={handlePublish}
+          onUnpublish={handleUnpublish}
+          onViewDetails={handleViewDetails}
+        />
+      )}
+
+      {viewingPost && (
+        <BlogDetailPanel
+          post={viewingPost}
+          onClose={handleCloseDetails}
+          onEdit={handleEditFromDetails}
+        />
+      )}
 
       {showForm && onCloseForm && (
         <BlogForm
