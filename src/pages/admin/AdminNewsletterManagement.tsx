@@ -1,14 +1,11 @@
-
 import React, { useCallback } from 'react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
-import NewsletterManagementTabs from '@/components/newsletter/NewsletterManagementTabs';
+import ModernNewsletterPage from '@/components/admin/newsletter/ModernNewsletterPage';
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminNewsletterManagement = () => {
   // State reset handler for sidebar navigation
   const resetToDefaultState = useCallback(() => {
-    // Newsletter tabs will reset to default "create" tab
-    // This forces a re-render of NewsletterManagementTabs component
     window.dispatchEvent(new CustomEvent('resetNewsletterTabs'));
   }, []);
 
@@ -21,7 +18,7 @@ const AdminNewsletterManagement = () => {
       description="Create, send, and manage your newsletter campaigns"
     >
       <div className="p-6">
-        <NewsletterManagementTabs />
+        <ModernNewsletterPage />
       </div>
     </AdminPageWrapper>
   );
