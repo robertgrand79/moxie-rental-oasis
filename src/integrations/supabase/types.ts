@@ -784,6 +784,41 @@ export type Database = {
         }
         Relationships: []
       }
+      contractor_access_tokens: {
+        Row: {
+          contractor_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_accessed_at: string | null
+          token: string
+        }
+        Insert: {
+          contractor_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_accessed_at?: string | null
+          token?: string
+        }
+        Update: {
+          contractor_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_accessed_at?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_access_tokens_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractors: {
         Row: {
           address: string | null
@@ -5513,6 +5548,7 @@ export type Database = {
           completed_at: string | null
           completion_photos: string[] | null
           contractor_id: string | null
+          contractor_notes: string | null
           created_at: string
           created_by: string | null
           description: string
@@ -5542,6 +5578,7 @@ export type Database = {
           completed_at?: string | null
           completion_photos?: string[] | null
           contractor_id?: string | null
+          contractor_notes?: string | null
           created_at?: string
           created_by?: string | null
           description: string
@@ -5571,6 +5608,7 @@ export type Database = {
           completed_at?: string | null
           completion_photos?: string[] | null
           contractor_id?: string | null
+          contractor_notes?: string | null
           created_at?: string
           created_by?: string | null
           description?: string
@@ -5676,6 +5714,10 @@ export type Database = {
         Returns: Json
       }
       generate_work_order_number: { Args: never; Returns: string }
+      get_or_create_contractor_token: {
+        Args: { p_contractor_id: string }
+        Returns: string
+      }
       get_or_create_inbox_thread: {
         Args: {
           p_guest_email: string
