@@ -9,7 +9,6 @@ import {
   Building, 
   Edit, 
   Trash2, 
-  Send,
   MoreVertical,
   ChevronDown,
   Eye,
@@ -24,6 +23,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { SendMethod } from '@/hooks/useWorkOrderEmail';
 
@@ -220,35 +224,51 @@ const WorkOrderCard = ({
         </div>
         
         <div className="flex items-center gap-1">
-          {/* Email button */}
-          {hasEmail && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => onSend(workOrder, 'email')}
-              disabled={isEmailing}
-              className="h-8"
-              title="Send Email"
-            >
-              <Mail className="h-3.5 w-3.5 mr-1.5" />
-              {isEmailing ? '...' : 'Email'}
-            </Button>
-          )}
+          {/* Email button - always visible */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onSend(workOrder, 'email')}
+                  disabled={isEmailing || !hasEmail}
+                  className="h-8"
+                >
+                  <Mail className="h-3.5 w-3.5 mr-1.5" />
+                  {isEmailing ? '...' : 'Email'}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!hasEmail && (
+              <TooltipContent>
+                {!workOrder.contractor ? 'Assign a contractor first' : 'Contractor has no email'}
+              </TooltipContent>
+            )}
+          </Tooltip>
           
-          {/* Text button */}
-          {hasPhone && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => onSend(workOrder, 'sms')}
-              disabled={isTexting}
-              className="h-8"
-              title="Send Text"
-            >
-              <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
-              {isTexting ? '...' : 'Text'}
-            </Button>
-          )}
+          {/* Text button - always visible */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onSend(workOrder, 'sms')}
+                  disabled={isTexting || !hasPhone}
+                  className="h-8"
+                >
+                  <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
+                  {isTexting ? '...' : 'Text'}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!hasPhone && (
+              <TooltipContent>
+                {!workOrder.contractor ? 'Assign a contractor first' : 'Contractor has no phone'}
+              </TooltipContent>
+            )}
+          </Tooltip>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

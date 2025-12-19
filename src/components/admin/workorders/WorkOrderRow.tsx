@@ -7,7 +7,7 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { SendMethod } from '@/hooks/useWorkOrderEmail';
-import { MoreHorizontal, Send, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Mail, MessageSquare, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface WorkOrderRowProps {
   workOrder: WorkOrder;
@@ -161,49 +166,74 @@ const WorkOrderRow = ({
       </TableCell>
       
       <TableCell onClick={(e) => e.stopPropagation()}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onWorkOrderClick(workOrder)}>
-              View / Edit
-            </DropdownMenuItem>
-            {canSend && (
-              <>
-                <DropdownMenuSeparator />
-                {hasEmail && (
-                  <DropdownMenuItem 
-                    onClick={() => onSendWorkOrder(workOrder, 'email')}
-                    disabled={isEmailing}
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    {isEmailing ? 'Sending...' : 'Send Email'}
-                  </DropdownMenuItem>
-                )}
-                {hasPhone && (
-                  <DropdownMenuItem 
-                    onClick={() => onSendWorkOrder(workOrder, 'sms')}
-                    disabled={isTexting}
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    {isTexting ? 'Sending...' : 'Send Text'}
-                  </DropdownMenuItem>
-                )}
-              </>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={() => onDeleteWorkOrder(workOrder.id)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-1">
+          {/* Email button - always visible */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onSendWorkOrder(workOrder, 'email')}
+                  disabled={isEmailing || !hasEmail}
+                  className="h-8 w-8 p-0"
+                >
+                  <Mail className="h-4 w-4" />
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              {!hasEmail 
+                ? (!workOrder.contractor ? 'Assign a contractor first' : 'Contractor has no email')
+                : 'Send Email'
+              }
+            </TooltipContent>
+          </Tooltip>
+          
+          {/* Text button - always visible */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onSendWorkOrder(workOrder, 'sms')}
+                  disabled={isTexting || !hasPhone}
+                  className="h-8 w-8 p-0"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              {!hasPhone 
+                ? (!workOrder.contractor ? 'Assign a contractor first' : 'Contractor has no phone')
+                : 'Send Text'
+              }
+            </TooltipContent>
+          </Tooltip>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onWorkOrderClick(workOrder)}>
+                View / Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => onDeleteWorkOrder(workOrder.id)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </TableCell>
     </TableRow>
   );
