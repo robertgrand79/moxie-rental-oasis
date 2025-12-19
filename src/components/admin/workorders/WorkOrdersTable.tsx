@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import WorkOrderRow from './WorkOrderRow';
 
 interface WorkOrdersTableProps {
@@ -19,6 +20,9 @@ interface WorkOrdersTableProps {
   emailingWorkOrders: Set<string>;
   onEmailWorkOrder: (workOrder: WorkOrder) => void;
   updatingWorkOrders?: Set<string>;
+  selectedWorkOrders?: Set<string>;
+  onSelectWorkOrder?: (workOrderId: string, selected: boolean) => void;
+  onSelectAll?: () => void;
 }
 
 const WorkOrdersTable = ({
@@ -30,6 +34,9 @@ const WorkOrdersTable = ({
   emailingWorkOrders,
   onEmailWorkOrder,
   updatingWorkOrders,
+  selectedWorkOrders = new Set(),
+  onSelectWorkOrder,
+  onSelectAll,
 }: WorkOrdersTableProps) => {
   if (workOrders.length === 0) {
     return (
@@ -39,11 +46,22 @@ const WorkOrdersTable = ({
     );
   }
 
+  const allSelected = workOrders.length > 0 && selectedWorkOrders.size === workOrders.length;
+
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
+            {onSelectWorkOrder && (
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={onSelectAll}
+                  className="translate-y-[2px]"
+                />
+              </TableHead>
+            )}
             <TableHead>Work Order #</TableHead>
             <TableHead>Title</TableHead>
             <TableHead>Property</TableHead>
@@ -67,6 +85,8 @@ const WorkOrdersTable = ({
               isEmailing={emailingWorkOrders.has(workOrder.id)}
               onEmailWorkOrder={onEmailWorkOrder}
               updatingWorkOrders={updatingWorkOrders}
+              isSelected={selectedWorkOrders.has(workOrder.id)}
+              onSelect={onSelectWorkOrder}
             />
           ))}
         </TableBody>
