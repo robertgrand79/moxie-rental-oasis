@@ -29,6 +29,8 @@ const propertySchema = z.object({
   pricePerNight: z.number().min(1, 'Price must be greater than 0'),
   airbnbListingUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   amenities: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 interface PropertyFormProps {
