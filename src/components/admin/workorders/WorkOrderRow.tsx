@@ -2,11 +2,13 @@
 import React from 'react';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import InteractiveWorkOrderStatusBadge from './InteractiveWorkOrderStatusBadge';
 import InteractiveWorkOrderPriorityBadge from './InteractiveWorkOrderPriorityBadge';
 import WorkOrderActions from './WorkOrderActions';
+import { cn } from '@/lib/utils';
 
 interface WorkOrderRowProps {
   workOrder: WorkOrder;
@@ -17,6 +19,8 @@ interface WorkOrderRowProps {
   isEmailing: boolean;
   onEmailWorkOrder: (workOrder: WorkOrder) => void;
   updatingWorkOrders?: Set<string>;
+  isSelected?: boolean;
+  onSelect?: (workOrderId: string, selected: boolean) => void;
 }
 
 const WorkOrderRow = ({
@@ -28,14 +32,32 @@ const WorkOrderRow = ({
   isEmailing,
   onEmailWorkOrder,
   updatingWorkOrders = new Set(),
+  isSelected = false,
+  onSelect,
 }: WorkOrderRowProps) => {
   const isUpdating = updatingWorkOrders.has(workOrder.id);
 
+  const handleCheckboxChange = (checked: boolean) => {
+    onSelect?.(workOrder.id, checked);
+  };
+
   return (
     <TableRow 
-      className="cursor-pointer hover:bg-gray-50"
+      className={cn(
+        "cursor-pointer hover:bg-gray-50",
+        isSelected && "bg-primary/5"
+      )}
       onClick={() => onWorkOrderClick(workOrder)}
     >
+      {onSelect && (
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={handleCheckboxChange}
+            className="translate-y-[2px]"
+          />
+        </TableCell>
+      )}
       <TableCell className="font-medium">
         {workOrder.work_order_number}
       </TableCell>

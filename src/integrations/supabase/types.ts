@@ -5423,6 +5423,51 @@ export type Database = {
           },
         ]
       }
+      work_order_acknowledgments: {
+        Row: {
+          acknowledged_at: string | null
+          contractor_id: string | null
+          created_at: string | null
+          id: string
+          organization_id: string | null
+          token: string
+          work_order_ids: string[]
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          contractor_id?: string | null
+          created_at?: string | null
+          id?: string
+          organization_id?: string | null
+          token: string
+          work_order_ids: string[]
+        }
+        Update: {
+          acknowledged_at?: string | null
+          contractor_id?: string | null
+          created_at?: string | null
+          id?: string
+          organization_id?: string | null
+          token?: string
+          work_order_ids?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_order_acknowledgments_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_acknowledgments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_order_status_history: {
         Row: {
           changed_at: string

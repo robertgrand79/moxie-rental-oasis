@@ -11,6 +11,8 @@ interface WorkOrdersGridProps {
   onStatusChange: (workOrderId: string, status: string) => void;
   emailingWorkOrders: Set<string>;
   updatingWorkOrders: Set<string>;
+  selectedWorkOrders?: Set<string>;
+  onSelectWorkOrder?: (workOrderId: string, selected: boolean) => void;
 }
 
 const WorkOrdersGrid = ({
@@ -21,6 +23,8 @@ const WorkOrdersGrid = ({
   onStatusChange,
   emailingWorkOrders,
   updatingWorkOrders,
+  selectedWorkOrders = new Set(),
+  onSelectWorkOrder,
 }: WorkOrdersGridProps) => {
   if (workOrders.length === 0) {
     return (
@@ -48,6 +52,8 @@ const WorkOrdersGrid = ({
           onStatusChange={onStatusChange}
           isEmailing={emailingWorkOrders.has(workOrder.id)}
           isUpdating={updatingWorkOrders.has(workOrder.id)}
+          isSelected={selectedWorkOrders.has(workOrder.id)}
+          onSelect={onSelectWorkOrder}
         />
       ))}
     </div>
