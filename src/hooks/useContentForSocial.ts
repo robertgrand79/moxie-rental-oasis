@@ -60,8 +60,9 @@ export function useContentForSocial(contentType: ContentType | null) {
           break;
         }
         case 'point_of_interest': {
+          // Now queries the consolidated 'places' table
           const { data } = await supabase
-            .from('points_of_interest')
+            .from('places')
             .select('id, name')
             .eq('organization_id', organization.id)
             .eq('is_active', true)

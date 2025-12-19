@@ -10,6 +10,7 @@ export interface PointOfInterest {
   latitude: number;
   longitude: number;
   category: string;
+  subcategory?: string;
   phone: string;
   website_url: string;
   image_url: string;
@@ -22,6 +23,7 @@ export interface PointOfInterest {
   is_active: boolean;
   display_order: number;
   status: string;
+  show_on_map: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -31,6 +33,7 @@ export interface PointOfInterest {
 /**
  * Hook to fetch points of interest for the current tenant (public-facing).
  * Uses TenantContext which works for unauthenticated users.
+ * Now queries the consolidated 'places' table with show_on_map filter.
  */
 export const useTenantPointsOfInterest = () => {
   const { tenantId, loading: tenantLoading } = useTenant();
@@ -41,10 +44,11 @@ export const useTenantPointsOfInterest = () => {
       if (!tenantId) return [];
 
       const { data, error } = await supabase
-        .from('points_of_interest')
+        .from('places')
         .select('*')
         .eq('organization_id', tenantId)
         .eq('is_active', true)
+        .eq('show_on_map', true)
         .order('display_order', { ascending: true });
 
       if (error) {

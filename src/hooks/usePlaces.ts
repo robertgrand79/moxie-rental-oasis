@@ -24,6 +24,11 @@ export interface Place {
   display_order?: number;
   status: 'published' | 'draft';
   activity_type?: string;
+  // New POI-specific fields
+  distance_from_properties?: number;
+  walking_time?: number;
+  driving_time?: number;
+  show_on_map?: boolean;
   created_at?: string;
   updated_at?: string;
   created_by?: string;
@@ -77,6 +82,8 @@ export const useCreatePlace = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['places'] });
+      queryClient.invalidateQueries({ queryKey: ['points-of-interest'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-points-of-interest'] });
       toast({
         title: 'Place created',
         description: 'The place has been successfully created.',
@@ -111,6 +118,8 @@ export const useUpdatePlace = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['places'] });
+      queryClient.invalidateQueries({ queryKey: ['points-of-interest'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-points-of-interest'] });
       toast({
         title: 'Place updated',
         description: 'The place has been successfully updated.',
@@ -142,6 +151,8 @@ export const useDeletePlace = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['places'] });
+      queryClient.invalidateQueries({ queryKey: ['points-of-interest'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-points-of-interest'] });
       toast({
         title: 'Place deleted',
         description: 'The place has been successfully deleted.',
