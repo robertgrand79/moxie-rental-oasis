@@ -12,6 +12,7 @@ import WorkOrderSidePanel from '@/components/admin/workorders/WorkOrderSidePanel
 import SelectionActionBar from '@/components/admin/workorders/SelectionActionBar';
 import ContractorSelectModal from '@/components/admin/workorders/ContractorSelectModal';
 import LoadingState from '@/components/ui/loading-state';
+import { SendMethod } from '@/hooks/useWorkOrderEmail';
 
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
@@ -21,11 +22,12 @@ const AdminWorkOrders = () => {
     contractors,
     loading,
     emailingWorkOrders,
+    textingWorkOrders,
     updatingWorkOrders,
     handleSaveWorkOrder,
     handleDeleteWorkOrder,
     handleStatusChange,
-    handleEmailWorkOrder,
+    handleSendWorkOrder,
     refreshData,
   } = useWorkOrderOperations();
 
@@ -116,6 +118,11 @@ const AdminWorkOrders = () => {
     setEditingWorkOrder(null);
   };
 
+  // Wrapper to handle sending with method
+  const onSendWorkOrder = useCallback((workOrder: WorkOrder, method: SendMethod) => {
+    handleSendWorkOrder(workOrder, method);
+  }, [handleSendWorkOrder]);
+
   // State reset handler for sidebar navigation
   const resetToDefaultState = useCallback(() => {
     setIsWorkOrderPanelOpen(false);
@@ -160,9 +167,10 @@ const AdminWorkOrders = () => {
           workOrders={filteredWorkOrders}
           onWorkOrderEdit={handleEditWorkOrder}
           onDeleteWorkOrder={handleDeleteWorkOrder}
-          onEmailWorkOrder={handleEmailWorkOrder}
+          onSendWorkOrder={onSendWorkOrder}
           onStatusChange={handleStatusChange}
           emailingWorkOrders={emailingWorkOrders}
+          textingWorkOrders={textingWorkOrders}
           updatingWorkOrders={updatingWorkOrders}
           selectedWorkOrders={selectedWorkOrders}
           onSelectWorkOrder={handleSelectWorkOrder}
@@ -176,7 +184,8 @@ const AdminWorkOrders = () => {
             onPriorityChange={handleStatusChange}
             onDeleteWorkOrder={handleDeleteWorkOrder}
             emailingWorkOrders={emailingWorkOrders}
-            onEmailWorkOrder={handleEmailWorkOrder}
+            textingWorkOrders={textingWorkOrders}
+            onSendWorkOrder={onSendWorkOrder}
             updatingWorkOrders={updatingWorkOrders}
             selectedWorkOrders={selectedWorkOrders}
             onSelectWorkOrder={handleSelectWorkOrder}

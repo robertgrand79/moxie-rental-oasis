@@ -9,6 +9,7 @@ import InteractiveWorkOrderStatusBadge from './InteractiveWorkOrderStatusBadge';
 import InteractiveWorkOrderPriorityBadge from './InteractiveWorkOrderPriorityBadge';
 import WorkOrderActions from './WorkOrderActions';
 import { cn } from '@/lib/utils';
+import { SendMethod } from '@/hooks/useWorkOrderEmail';
 
 interface WorkOrderRowProps {
   workOrder: WorkOrder;
@@ -17,7 +18,8 @@ interface WorkOrderRowProps {
   onPriorityChange: (workOrderId: string, priority: string) => void;
   onDeleteWorkOrder: (workOrderId: string) => void;
   isEmailing: boolean;
-  onEmailWorkOrder: (workOrder: WorkOrder) => void;
+  isTexting: boolean;
+  onSendWorkOrder: (workOrder: WorkOrder, method: SendMethod) => void;
   updatingWorkOrders?: Set<string>;
   isSelected?: boolean;
   onSelect?: (workOrderId: string, selected: boolean) => void;
@@ -30,7 +32,8 @@ const WorkOrderRow = ({
   onPriorityChange,
   onDeleteWorkOrder,
   isEmailing,
-  onEmailWorkOrder,
+  isTexting,
+  onSendWorkOrder,
   updatingWorkOrders = new Set(),
   isSelected = false,
   onSelect,
@@ -108,7 +111,8 @@ const WorkOrderRow = ({
           onWorkOrderClick={onWorkOrderClick}
           onDeleteWorkOrder={onDeleteWorkOrder}
           isEmailing={isEmailing}
-          onEmailWorkOrder={onEmailWorkOrder}
+          isTexting={isTexting}
+          onSendWorkOrder={onSendWorkOrder}
         />
       </TableCell>
     </TableRow>

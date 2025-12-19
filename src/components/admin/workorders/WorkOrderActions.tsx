@@ -15,15 +15,18 @@ import {
   Eye, 
   Edit, 
   Trash2, 
-  Send
+  Mail,
+  MessageSquare
 } from 'lucide-react';
+import { SendMethod } from '@/hooks/useWorkOrderEmail';
 
 interface WorkOrderActionsProps {
   workOrder: WorkOrder;
   onWorkOrderClick: (workOrder: WorkOrder) => void;
   onDeleteWorkOrder: (workOrderId: string) => void;
   isEmailing: boolean;
-  onEmailWorkOrder: (workOrder: WorkOrder) => void;
+  isTexting: boolean;
+  onSendWorkOrder: (workOrder: WorkOrder, method: SendMethod) => void;
 }
 
 const WorkOrderActions = ({
@@ -31,8 +34,12 @@ const WorkOrderActions = ({
   onWorkOrderClick,
   onDeleteWorkOrder,
   isEmailing,
-  onEmailWorkOrder,
+  isTexting,
+  onSendWorkOrder,
 }: WorkOrderActionsProps) => {
+  const hasEmail = !!workOrder.contractor?.email;
+  const hasPhone = !!workOrder.contractor?.phone;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -53,18 +60,18 @@ const WorkOrderActions = ({
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
-          onClick={() => onEmailWorkOrder(workOrder)}
-          disabled={!workOrder.contractor?.email || isEmailing}
+          onClick={() => onSendWorkOrder(workOrder, 'email')}
+          disabled={!hasEmail || isEmailing}
         >
-          <Send className="mr-2 h-4 w-4" />
-          {isEmailing ? 'Sending...' : (
-            <span>
-              Send
-              {workOrder.contractor?.phone && (
-                <span className="text-xs text-muted-foreground ml-1">(Email + SMS)</span>
-              )}
-            </span>
-          )}
+          <Mail className="mr-2 h-4 w-4" />
+          {isEmailing ? 'Sending...' : 'Send Email'}
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => onSendWorkOrder(workOrder, 'sms')}
+          disabled={!hasPhone || isTexting}
+        >
+          <MessageSquare className="mr-2 h-4 w-4" />
+          {isTexting ? 'Sending...' : 'Send Text'}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 

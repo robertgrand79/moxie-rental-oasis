@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useWorkOrderManagement, WorkOrder } from '@/hooks/useWorkOrderManagement';
-import { useWorkOrderEmail } from '@/hooks/useWorkOrderEmail';
+import { useWorkOrderEmail, SendMethod } from '@/hooks/useWorkOrderEmail';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -16,7 +16,11 @@ export const useWorkOrderOperations = () => {
     refreshData,
   } = useWorkOrderManagement();
 
-  const { emailingWorkOrders, handleEmailWorkOrder: sendEmailWorkOrder } = useWorkOrderEmail();
+  const { 
+    emailingWorkOrders, 
+    textingWorkOrders,
+    handleSendWorkOrder: sendWorkOrder 
+  } = useWorkOrderEmail();
   const { toast } = useToast();
 
   const [updatingWorkOrders, setUpdatingWorkOrders] = useState<Set<string>>(new Set());
@@ -95,8 +99,13 @@ export const useWorkOrderOperations = () => {
     }
   };
 
+  const handleSendWorkOrder = async (workOrder: WorkOrder, method: SendMethod = 'both') => {
+    await sendWorkOrder(workOrder, handleStatusChange, method);
+  };
+
+  // Legacy function for backwards compatibility
   const handleEmailWorkOrder = async (workOrder: WorkOrder) => {
-    await sendEmailWorkOrder(workOrder, handleStatusChange);
+    await sendWorkOrder(workOrder, handleStatusChange, 'both');
   };
 
   return {
@@ -104,10 +113,12 @@ export const useWorkOrderOperations = () => {
     contractors,
     loading,
     emailingWorkOrders,
+    textingWorkOrders,
     updatingWorkOrders,
     handleSaveWorkOrder,
     handleDeleteWorkOrder,
     handleStatusChange,
+    handleSendWorkOrder,
     handleEmailWorkOrder,
     refreshData,
   };

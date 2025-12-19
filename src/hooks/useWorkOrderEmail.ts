@@ -4,15 +4,20 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 
+export type SendMethod = 'email' | 'sms' | 'both';
+
 export const useWorkOrderEmail = () => {
   const [emailingWorkOrders, setEmailingWorkOrders] = useState<Set<string>>(new Set());
+  const [textingWorkOrders, setTextingWorkOrders] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
-  const handleEmailWorkOrder = async (
+  const handleSendWorkOrder = async (
     workOrder: WorkOrder, 
-    onStatusChange: (workOrderId: string, status: string) => void
+    onStatusChange: (workOrderId: string, status: string) => void,
+    sendMethod: SendMethod = 'both'
   ) => {
-    if (!workOrder.contractor?.email) {
+    // Validate based on send method
+    if ((sendMethod === 'email' || sendMethod === 'both') && !workOrder.contractor?.email) {
       toast({
         title: 'Error',
         description: 'This work order has no contractor email assigned',
@@ -21,13 +26,34 @@ export const useWorkOrderEmail = () => {
       return;
     }
 
-    setEmailingWorkOrders(prev => new Set(prev).add(workOrder.id));
+    if ((sendMethod === 'sms' || sendMethod === 'both') && !workOrder.contractor?.phone) {
+      if (sendMethod === 'sms') {
+        toast({
+          title: 'Error',
+          description: 'This contractor has no phone number configured',
+          variant: 'destructive',
+        });
+        return;
+      }
+      // If 'both' but no phone, just send email
+      if (sendMethod === 'both' && workOrder.contractor?.email) {
+        sendMethod = 'email';
+      }
+    }
+
+    // Track loading states
+    if (sendMethod === 'email' || sendMethod === 'both') {
+      setEmailingWorkOrders(prev => new Set(prev).add(workOrder.id));
+    }
+    if (sendMethod === 'sms' || sendMethod === 'both') {
+      setTextingWorkOrders(prev => new Set(prev).add(workOrder.id));
+    }
 
     try {
-      console.log('Sending work order email for:', workOrder.work_order_number);
+      console.log('Sending work order:', workOrder.work_order_number, 'via:', sendMethod);
       
       const { data, error } = await supabase.functions.invoke('send-work-order-pdf', {
-        body: { workOrderId: workOrder.id }
+        body: { workOrderId: workOrder.id, sendMethod }
       });
 
       if (error) {
@@ -35,34 +61,55 @@ export const useWorkOrderEmail = () => {
         throw error;
       }
 
-      console.log('Email sent successfully:', data);
+      console.log('Send result:', data);
 
-      toast({
-        title: 'Success',
-        description: `Work order email sent to ${workOrder.contractor.email}. They will confirm receipt by replying to the email.`,
-      });
+      // Build success message
+      let successMessage = '';
+      if (data.emailSent && data.smsSent) {
+        successMessage = `Work order sent to ${workOrder.contractor?.email} (email) and ${workOrder.contractor?.phone} (SMS)`;
+      } else if (data.emailSent) {
+        successMessage = `Work order email sent to ${workOrder.contractor?.email}`;
+      } else if (data.smsSent) {
+        successMessage = `Work order SMS sent to ${workOrder.contractor?.phone}`;
+      }
+
+      if (successMessage) {
+        toast({
+          title: 'Success',
+          description: successMessage,
+        });
+      }
+
+      // Show SMS error if email succeeded but SMS failed
+      if (data.emailSent && !data.smsSent && sendMethod === 'both' && data.smsError) {
+        toast({
+          title: 'SMS Warning',
+          description: `Email sent, but SMS failed: ${data.smsError}`,
+          variant: 'destructive',
+        });
+      }
 
       // If status was draft, it will be updated to sent by the edge function
-      if (workOrder.status === 'draft') {
+      if (workOrder.status === 'draft' && (data.emailSent || data.smsSent)) {
         onStatusChange(workOrder.id, 'sent');
       }
 
-    } catch (error) {
-      console.error('Error sending work order email:', error);
+    } catch (error: any) {
+      console.error('Error sending work order:', error);
       
       // More specific error handling
-      let errorMessage = 'Failed to send work order email';
+      let errorMessage = 'Failed to send work order';
       
       if (error?.message?.includes('403')) {
-        errorMessage = 'Email sending failed: Sender email not verified. Please contact system administrator.';
+        errorMessage = 'Sending failed: Sender not verified. Please contact system administrator.';
       } else if (error?.message?.includes('API key')) {
-        errorMessage = 'Email configuration error. Please contact system administrator.';
+        errorMessage = 'Configuration error. Please contact system administrator.';
       } else if (error?.message?.includes('not found')) {
         errorMessage = 'Work order data not found. Please try again.';
       }
       
       toast({
-        title: 'Email Error',
+        title: 'Send Error',
         description: errorMessage,
         variant: 'destructive',
       });
@@ -72,11 +119,26 @@ export const useWorkOrderEmail = () => {
         newSet.delete(workOrder.id);
         return newSet;
       });
+      setTextingWorkOrders(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(workOrder.id);
+        return newSet;
+      });
     }
+  };
+
+  // Legacy function for backwards compatibility
+  const handleEmailWorkOrder = async (
+    workOrder: WorkOrder, 
+    onStatusChange: (workOrderId: string, status: string) => void
+  ) => {
+    return handleSendWorkOrder(workOrder, onStatusChange, 'both');
   };
 
   return {
     emailingWorkOrders,
+    textingWorkOrders,
     handleEmailWorkOrder,
+    handleSendWorkOrder,
   };
 };
