@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Shield, CheckCircle2, AlertCircle, Loader2, Plug } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useSecureApiKeys } from '@/hooks/useSecureApiKeys';
 
@@ -36,10 +36,10 @@ const ServicesSettingsPage = () => {
     if (success) { setFormData({ turno_api_token: '', openweather_api_key: '' }); refetch(); }
   };
 
-  if (!organization) return <SettingsSidebarLayout title="Services" description="Third-party services"><div className="text-center py-8">No organization found</div></SettingsSidebarLayout>;
+  if (!organization) return <SettingsSidebarLayout title="Services" description="Third-party services" icon={Plug}><div className="text-center py-8">No organization found</div></SettingsSidebarLayout>;
 
   return (
-    <SettingsSidebarLayout title="Services" description="Third-party service integrations">
+    <SettingsSidebarLayout title="Services" description="Third-party service integrations" icon={Plug}>
       <div className="space-y-6">
         <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
           <Shield className="h-5 w-5 text-green-600" /><span className="text-sm text-green-700 dark:text-green-300">API keys are encrypted at rest</span>

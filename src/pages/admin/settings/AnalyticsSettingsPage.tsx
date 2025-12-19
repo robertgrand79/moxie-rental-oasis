@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BarChart3 } from 'lucide-react';
 import SettingsSidebarLayout from '@/components/admin/settings/SettingsSidebarLayout';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useSettingsLocalData } from '@/hooks/useSettingsLocalData';
@@ -27,7 +28,11 @@ const AnalyticsSettingsPage = () => {
 
   if (loading) {
     return (
-      <SettingsSidebarLayout title="Analytics" description="Configure analytics tracking">
+      <SettingsSidebarLayout 
+        title="Analytics" 
+        description="Configure analytics tracking"
+        icon={BarChart3}
+      >
         <div className="text-center py-8 text-muted-foreground">Loading settings...</div>
       </SettingsSidebarLayout>
     );
@@ -35,14 +40,22 @@ const AnalyticsSettingsPage = () => {
 
   if (error) {
     return (
-      <SettingsSidebarLayout title="Analytics" description="Configure analytics tracking">
+      <SettingsSidebarLayout 
+        title="Analytics" 
+        description="Configure analytics tracking"
+        icon={BarChart3}
+      >
         <div className="text-center py-8 text-destructive">Error loading settings: {error}</div>
       </SettingsSidebarLayout>
     );
   }
 
   return (
-    <SettingsSidebarLayout title="Analytics" description="Configure analytics tracking">
+    <SettingsSidebarLayout 
+      title="Analytics" 
+      description="Configure analytics tracking"
+      icon={BarChart3}
+    >
       <AnalyticsSettingsTab
         analyticsData={localData.analyticsData}
         setAnalyticsData={(data) => setLocalData((prev: any) => ({ ...prev, analyticsData: data }))}

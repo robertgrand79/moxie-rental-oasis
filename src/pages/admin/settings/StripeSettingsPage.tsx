@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, CheckCircle2, AlertCircle, Loader2, Copy, Check, ChevronDown, Building2, Home, Trash2, Eye, EyeOff, Save, Info } from 'lucide-react';
+import { Shield, CheckCircle2, AlertCircle, Loader2, Copy, Check, ChevronDown, Building2, Home, Trash2, Eye, EyeOff, Save, Info, CreditCard } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useSecureApiKeys } from '@/hooks/useSecureApiKeys';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
@@ -373,10 +373,10 @@ const StripeSettingsPage = () => {
     if (success) { setFormData({ stripe_secret_key: '', stripe_publishable_key: '', stripe_webhook_secret: '' }); refetch(); }
   };
 
-  if (!organization) return <SettingsSidebarLayout title="Stripe" description="Payment processing"><div className="text-center py-8">No organization found</div></SettingsSidebarLayout>;
+  if (!organization) return <SettingsSidebarLayout title="Stripe" description="Payment processing" icon={CreditCard}><div className="text-center py-8">No organization found</div></SettingsSidebarLayout>;
 
   return (
-    <SettingsSidebarLayout title="Stripe" description="Configure payment processing">
+    <SettingsSidebarLayout title="Stripe" description="Configure payment processing" icon={CreditCard}>
       <div className="space-y-6">
         {/* Security Notice */}
         <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Layout } from 'lucide-react';
 import SettingsSidebarLayout from '@/components/admin/settings/SettingsSidebarLayout';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useSettingsLocalData } from '@/hooks/useSettingsLocalData';
@@ -33,7 +34,11 @@ const HeroSettingsPage = () => {
 
   if (loading) {
     return (
-      <SettingsSidebarLayout title="Hero Section" description="Configure your homepage hero">
+      <SettingsSidebarLayout 
+        title="Hero Section" 
+        description="Configure your homepage hero"
+        icon={Layout}
+      >
         <div className="text-center py-8 text-muted-foreground">Loading settings...</div>
       </SettingsSidebarLayout>
     );
@@ -41,14 +46,22 @@ const HeroSettingsPage = () => {
 
   if (error) {
     return (
-      <SettingsSidebarLayout title="Hero Section" description="Configure your homepage hero">
+      <SettingsSidebarLayout 
+        title="Hero Section" 
+        description="Configure your homepage hero"
+        icon={Layout}
+      >
         <div className="text-center py-8 text-destructive">Error loading settings: {error}</div>
       </SettingsSidebarLayout>
     );
   }
 
   return (
-    <SettingsSidebarLayout title="Hero Section" description="Configure your homepage hero">
+    <SettingsSidebarLayout 
+      title="Hero Section" 
+      description="Configure your homepage hero"
+      icon={Layout}
+    >
       <HeroSectionSettings
         localData={{
           heroTitle: localData.siteData.heroTitle || '',

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Users } from 'lucide-react';
 import SettingsSidebarLayout from '@/components/admin/settings/SettingsSidebarLayout';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useSettingsLocalData } from '@/hooks/useSettingsLocalData';
@@ -33,7 +34,11 @@ const AboutSettingsPage = () => {
 
   if (loading) {
     return (
-      <SettingsSidebarLayout title="About Page" description="Configure your about page content">
+      <SettingsSidebarLayout 
+        title="About Page" 
+        description="Configure your about page content"
+        icon={Users}
+      >
         <div className="text-center py-8 text-muted-foreground">Loading settings...</div>
       </SettingsSidebarLayout>
     );
@@ -41,14 +46,22 @@ const AboutSettingsPage = () => {
 
   if (error) {
     return (
-      <SettingsSidebarLayout title="About Page" description="Configure your about page content">
+      <SettingsSidebarLayout 
+        title="About Page" 
+        description="Configure your about page content"
+        icon={Users}
+      >
         <div className="text-center py-8 text-destructive">Error loading settings: {error}</div>
       </SettingsSidebarLayout>
     );
   }
 
   return (
-    <SettingsSidebarLayout title="About Page" description="Configure your about page content">
+    <SettingsSidebarLayout 
+      title="About Page" 
+      description="Configure your about page content"
+      icon={Users}
+    >
       <AboutPageSettings
         localData={{
           aboutTitle: localData.siteData.aboutTitle || '',

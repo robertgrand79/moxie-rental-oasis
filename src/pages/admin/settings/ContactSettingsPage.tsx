@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Phone } from 'lucide-react';
 import SettingsSidebarLayout from '@/components/admin/settings/SettingsSidebarLayout';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useSettingsLocalData } from '@/hooks/useSettingsLocalData';
@@ -33,7 +34,11 @@ const ContactSettingsPage = () => {
 
   if (loading) {
     return (
-      <SettingsSidebarLayout title="Contact Info" description="Configure your contact information">
+      <SettingsSidebarLayout 
+        title="Contact Info" 
+        description="Configure your contact information"
+        icon={Phone}
+      >
         <div className="text-center py-8 text-muted-foreground">Loading settings...</div>
       </SettingsSidebarLayout>
     );
@@ -41,14 +46,22 @@ const ContactSettingsPage = () => {
 
   if (error) {
     return (
-      <SettingsSidebarLayout title="Contact Info" description="Configure your contact information">
+      <SettingsSidebarLayout 
+        title="Contact Info" 
+        description="Configure your contact information"
+        icon={Phone}
+      >
         <div className="text-center py-8 text-destructive">Error loading settings: {error}</div>
       </SettingsSidebarLayout>
     );
   }
 
   return (
-    <SettingsSidebarLayout title="Contact Info" description="Configure your contact information">
+    <SettingsSidebarLayout 
+      title="Contact Info" 
+      description="Configure your contact information"
+      icon={Phone}
+    >
       <ContactInformationSettings
         localData={{
           contactEmail: localData.siteData.contactEmail || '',

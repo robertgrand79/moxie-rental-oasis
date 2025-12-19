@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, CheckCircle2, AlertCircle, Loader2, Copy, ExternalLink, Phone } from 'lucide-react';
+import { Shield, CheckCircle2, AlertCircle, Loader2, Copy, ExternalLink, Phone, MessageSquare } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useSecureApiKeys } from '@/hooks/useSecureApiKeys';
@@ -146,14 +146,18 @@ const CommunicationsSettingsPage = () => {
 
   if (!organization) {
     return (
-      <SettingsSidebarLayout title="Communications" description="Configure SMS and Email">
+      <SettingsSidebarLayout 
+        title="Communications" 
+        description="Configure SMS and Email"
+        icon={MessageSquare}
+      >
         <div className="text-center py-8">No organization found</div>
       </SettingsSidebarLayout>
     );
   }
 
   return (
-    <SettingsSidebarLayout title="Communications" description="Configure SMS and Email">
+    <SettingsSidebarLayout title="Communications" description="Configure SMS and Email" icon={MessageSquare}>
       <div className="space-y-6">
         <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
           <Shield className="h-5 w-5 text-green-600" />

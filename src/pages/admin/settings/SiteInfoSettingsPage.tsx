@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FileText } from 'lucide-react';
 import SettingsSidebarLayout from '@/components/admin/settings/SettingsSidebarLayout';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useSettingsLocalData } from '@/hooks/useSettingsLocalData';
@@ -33,7 +34,11 @@ const SiteInfoSettingsPage = () => {
 
   if (loading) {
     return (
-      <SettingsSidebarLayout title="Site Info" description="Basic site information">
+      <SettingsSidebarLayout 
+        title="Site Info" 
+        description="Basic site information"
+        icon={FileText}
+      >
         <div className="text-center py-8 text-muted-foreground">Loading settings...</div>
       </SettingsSidebarLayout>
     );
@@ -41,14 +46,22 @@ const SiteInfoSettingsPage = () => {
 
   if (error) {
     return (
-      <SettingsSidebarLayout title="Site Info" description="Basic site information">
+      <SettingsSidebarLayout 
+        title="Site Info" 
+        description="Basic site information"
+        icon={FileText}
+      >
         <div className="text-center py-8 text-destructive">Error loading settings: {error}</div>
       </SettingsSidebarLayout>
     );
   }
 
   return (
-    <SettingsSidebarLayout title="Site Info" description="Basic site information">
+    <SettingsSidebarLayout 
+      title="Site Info" 
+      description="Basic site information"
+      icon={FileText}
+    >
       <GeneralInformationSettings
         siteData={localData.siteData}
         onInputChange={handleInputChange}

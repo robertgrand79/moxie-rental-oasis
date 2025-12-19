@@ -1,18 +1,17 @@
 import React from 'react';
-import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
-import SettingsPageLayout from '@/components/admin/settings/SettingsPageLayout';
+import { UserPlus } from 'lucide-react';
+import SettingsSidebarLayout from '@/components/admin/settings/SettingsSidebarLayout';
 import TeamAccessSettingsPanel from '@/components/admin/settings-hub/TeamAccessSettingsPanel';
 
 const TeamAccessSettingsPage: React.FC = () => {
   return (
-    <AdminPageWrapper title="Team & Access Settings" description="Manage your team">
-      <SettingsPageLayout
-        title="Team & Access"
-        description="Users, roles, permissions, access control"
-      >
-        <TeamAccessSettingsPanel />
-      </SettingsPageLayout>
-    </AdminPageWrapper>
+    <SettingsSidebarLayout 
+      title="Team & Access" 
+      description="Users, roles, permissions, access control"
+      icon={UserPlus}
+    >
+      <TeamAccessSettingsPanel />
+    </SettingsSidebarLayout>
   );
 };
 
