@@ -166,6 +166,7 @@ const AppRoutes: React.FC = () => {
           <Route path="events" element={<AdminEvents />} />
           <Route path="places" element={<AdminPlaces />} />
           <Route path="reviews" element={<AdminReviews />} />
+          <Route path="testimonials" element={<Navigate to="/admin/reviews" replace />} />
           <Route path="work-orders" element={<AdminWorkOrders />} />
           <Route path="contractors" element={<AdminContractors />} />
           <Route path="turno-problems" element={<AdminTurnoProblems />} />
@@ -274,6 +275,7 @@ const AppRoutes: React.FC = () => {
         <Route path="events" element={<AdminEvents />} />
         <Route path="places" element={<AdminPlaces />} />
         <Route path="reviews" element={<AdminReviews />} />
+        <Route path="testimonials" element={<Navigate to="/admin/reviews" replace />} />
         <Route path="work-orders" element={<AdminWorkOrders />} />
         <Route path="contractors" element={<AdminContractors />} />
         <Route path="turno-problems" element={<AdminTurnoProblems />} />
