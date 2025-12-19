@@ -82,8 +82,8 @@ export const adminMenuItems = [
         description: 'Manage restaurants, attractions, activities, and local places'
       },
       {
-        title: 'Testimonials',
-        href: '/admin/testimonials',
+        title: 'Reviews',
+        href: '/admin/reviews',
         icon: Star,
         description: 'Guest reviews and testimonials'
       }
