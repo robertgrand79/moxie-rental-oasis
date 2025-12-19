@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Place, useCreatePlace, useUpdatePlace } from '@/hooks/usePlaces';
+import { usePlaceCategories } from '@/hooks/usePlaceCategories';
 import { useAuth } from '@/contexts/AuthContext';
 import PlaceImageUpload from './PlaceImageUpload';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,6 +50,7 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
   const { user } = useAuth();
   const createPlace = useCreatePlace();
   const updatePlace = useUpdatePlace();
+  const { categories, isLoading: categoriesLoading } = usePlaceCategories();
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [coordinates, setCoordinates] = useState<{ latitude: number | null; longitude: number | null }>({
     latitude: place?.latitude || null,
@@ -167,14 +169,7 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
     }
   };
 
-  const categories = [
-    { value: 'dining', label: 'Dining' },
-    { value: 'outdoor', label: 'Outdoor' },
-    { value: 'entertainment', label: 'Entertainment' },
-    { value: 'shopping', label: 'Shopping' },
-    { value: 'accommodation', label: 'Accommodation' },
-    { value: 'lifestyle', label: 'Lifestyle' },
-  ];
+  // Categories are now fetched dynamically from the database
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -209,16 +204,16 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={categoriesLoading}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
+                            <SelectValue placeholder={categoriesLoading ? "Loading..." : "Select category"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {categories.map((category) => (
-                            <SelectItem key={category.value} value={category.value}>
-                              {category.label}
+                            <SelectItem key={category.slug} value={category.slug}>
+                              {category.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
