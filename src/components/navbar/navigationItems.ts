@@ -9,14 +9,14 @@ import {
   Shield,
   ArrowLeft,
   Mail,
-  Star
+  Compass
 } from 'lucide-react';
 
 export const navigationItems = [
   { name: 'Home', href: '/', title: 'Home', icon: Home },
   { name: 'Properties', href: '/properties', title: 'Properties', icon: Building2 },
   { name: 'About', href: '/about', title: 'About', icon: Info },
-  { name: 'Experiences', href: '/experiences', title: 'Experiences', icon: Star },
+  { name: 'Explore', href: '/experiences', title: 'Explore', icon: Compass },
   { name: 'Events', href: '/events', title: 'Events', icon: Calendar },
   { name: 'Blog', href: '/blog', title: 'Blog', icon: BookOpen },
   { name: 'Contact', href: '/contact', title: 'Contact', icon: Mail },

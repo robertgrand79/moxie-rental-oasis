@@ -59,7 +59,7 @@ const BlogSidebar = ({ featuredPost, showFeatured }: BlogSidebarProps) => {
             View All Blog Posts →
           </Link>
           <Link to="/experiences" className="block text-primary hover:text-primary/80 text-sm">
-            Local Experiences →
+            Explore Local Area →
           </Link>
           <Link to="/events" className="block text-primary hover:text-primary/80 text-sm">
             Upcoming Events →
