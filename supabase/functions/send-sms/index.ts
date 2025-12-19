@@ -79,10 +79,19 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Format phone number to E.164 format (must start with +)
     let formattedTo = to.trim();
-    if (!formattedTo.startsWith('+')) {
+    
+    // Strip all non-numeric characters except leading +
+    const hasPlus = formattedTo.startsWith('+');
+    formattedTo = formattedTo.replace(/[^\d]/g, ''); // Remove all non-digits
+    
+    if (hasPlus) {
+      formattedTo = `+${formattedTo}`;
+    } else {
       // Assume US number if no country code
       formattedTo = formattedTo.startsWith('1') ? `+${formattedTo}` : `+1${formattedTo}`;
     }
+    
+    console.log(`📞 Formatted phone: ${to} → ${formattedTo}`);
 
     // Get the "from" phone number - required by QUO API
     let fromPhoneId = from;
