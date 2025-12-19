@@ -106,8 +106,28 @@ serve(async (req) => {
       organization_id: workOrder.organization_id ?? workOrder.property?.organization_id ?? null,
     });
 
-    // Generate email content
-    const emailContent = generateWorkOrderEmailContent(workOrder);
+    // Create acknowledgment record with unique token
+    const token = crypto.randomUUID();
+    const { error: ackError } = await supabase
+      .from("work_order_acknowledgments")
+      .insert({
+        work_order_id: workOrderId,
+        contractor_id: workOrder.contractor?.id || null,
+        token: token,
+      });
+
+    if (ackError) {
+      console.error("Error creating acknowledgment record:", ackError);
+      // Continue anyway - email can still be sent
+    }
+
+    // Generate acknowledge URL
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const acknowledgeUrl = `${supabaseUrl}/functions/v1/acknowledge-work-orders?token=${token}`;
+    console.log("Acknowledge URL generated:", acknowledgeUrl);
+
+    // Generate email content with acknowledge URL
+    const emailContent = generateWorkOrderEmailContent(workOrder, acknowledgeUrl);
 
     console.log("Email content generated successfully, length:", emailContent.length);
 
