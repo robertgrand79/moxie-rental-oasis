@@ -15,7 +15,7 @@ import {
   Eye, 
   Edit, 
   Trash2, 
-  Mail
+  Send
 } from 'lucide-react';
 
 interface WorkOrderActionsProps {
@@ -56,8 +56,15 @@ const WorkOrderActions = ({
           onClick={() => onEmailWorkOrder(workOrder)}
           disabled={!workOrder.contractor?.email || isEmailing}
         >
-          <Mail className="mr-2 h-4 w-4" />
-          {isEmailing ? 'Sending...' : 'Email PDF'}
+          <Send className="mr-2 h-4 w-4" />
+          {isEmailing ? 'Sending...' : (
+            <span>
+              Send
+              {workOrder.contractor?.phone && (
+                <span className="text-xs text-muted-foreground ml-1">(Email + SMS)</span>
+              )}
+            </span>
+          )}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
