@@ -87,11 +87,14 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { workOrderId } = await req.json();
+    const { workOrderId, sendMethod = 'both' } = await req.json();
+    // sendMethod can be 'email', 'sms', or 'both' (default)
 
     if (!workOrderId) {
       throw new Error("Work order ID is required");
     }
+
+    console.log("Starting send process for work order:", workOrderId, "method:", sendMethod);
 
     console.log("Starting email send process for work order:", workOrderId);
 
@@ -148,23 +151,33 @@ serve(async (req) => {
 
     console.log("Email content generated successfully, length:", emailContent.length);
 
-    // Resolve key
-    const resendApiKey = await resolveResendApiKey(supabase, workOrder);
+    // Send email if requested
+    let emailSent = false;
+    if (sendMethod === 'email' || sendMethod === 'both') {
+      // Resolve key
+      const resendApiKey = await resolveResendApiKey(supabase, workOrder);
 
-    // Send email via Resend
-    console.log("Sending email to contractor:", workOrder.contractor?.email);
-    await sendWorkOrderEmail(workOrder, emailContent, resendApiKey);
+      // Send email via Resend
+      console.log("Sending email to contractor:", workOrder.contractor?.email);
+      await sendWorkOrderEmail(workOrder, emailContent, resendApiKey);
+      emailSent = true;
+      console.log("Work order email sent successfully");
+    }
 
-    // Update work order status if needed
-    await updateWorkOrderStatus(supabase, workOrderId, workOrder.status);
+    // Update work order status if needed (if we sent anything)
+    if (sendMethod === 'email' || sendMethod === 'both') {
+      await updateWorkOrderStatus(supabase, workOrderId, workOrder.status);
+    }
 
-    console.log("Work order email sent successfully");
-
-    // Send SMS notification if contractor has a phone number and SMS opted in
+    // Send SMS notification if requested and contractor has a phone number
     let smsSent = false;
     let smsError: string | null = null;
     
-    if (workOrder.contractor?.phone && workOrder.contractor?.sms_opt_in !== false) {
+    const shouldSendSms = (sendMethod === 'sms' || sendMethod === 'both') && 
+      workOrder.contractor?.phone && 
+      workOrder.contractor?.sms_opt_in !== false;
+
+    if (shouldSendSms) {
       try {
         console.log("Sending SMS notification to contractor:", workOrder.contractor.phone);
         
@@ -206,6 +219,11 @@ Reply YES to confirm receipt.`;
         if (smsResponse.ok) {
           smsSent = true;
           console.log("SMS notification sent successfully");
+          
+          // Update work order status if only SMS was sent
+          if (sendMethod === 'sms') {
+            await updateWorkOrderStatus(supabase, workOrderId, workOrder.status);
+          }
         } else {
           const smsResult = await smsResponse.json();
           smsError = smsResult.error || 'Failed to send SMS';
@@ -215,16 +233,30 @@ Reply YES to confirm receipt.`;
         smsError = err.message;
         console.error("Error sending SMS notification:", err);
       }
+    } else if (sendMethod === 'sms') {
+      console.log("SMS requested but skipped - no phone number or contractor opted out");
+      smsError = "No phone number available or contractor opted out of SMS";
+    }
+
+    // Build success message based on what was sent
+    let message = "";
+    if (emailSent && smsSent) {
+      message = "Work order sent via email and SMS";
+    } else if (emailSent) {
+      message = "Work order email sent successfully";
+    } else if (smsSent) {
+      message = "Work order SMS sent successfully";
     } else {
-      console.log("Skipping SMS - no phone number or contractor opted out");
+      message = "No notifications were sent";
     }
 
     return new Response(
       JSON.stringify({
-        success: true,
-        message: "Work order email sent successfully",
+        success: emailSent || smsSent,
+        message,
         workOrderNumber: workOrder.work_order_number,
         contractorEmail: workOrder.contractor?.email,
+        emailSent,
         smsSent,
         smsError,
       }),

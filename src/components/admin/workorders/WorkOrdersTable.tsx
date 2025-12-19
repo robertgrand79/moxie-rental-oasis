@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import WorkOrderRow from './WorkOrderRow';
+import { SendMethod } from '@/hooks/useWorkOrderEmail';
 
 interface WorkOrdersTableProps {
   workOrders: WorkOrder[];
@@ -18,7 +19,8 @@ interface WorkOrdersTableProps {
   onPriorityChange: (workOrderId: string, priority: string) => void;
   onDeleteWorkOrder: (workOrderId: string) => void;
   emailingWorkOrders: Set<string>;
-  onEmailWorkOrder: (workOrder: WorkOrder) => void;
+  textingWorkOrders: Set<string>;
+  onSendWorkOrder: (workOrder: WorkOrder, method: SendMethod) => void;
   updatingWorkOrders?: Set<string>;
   selectedWorkOrders?: Set<string>;
   onSelectWorkOrder?: (workOrderId: string, selected: boolean) => void;
@@ -32,7 +34,8 @@ const WorkOrdersTable = ({
   onPriorityChange,
   onDeleteWorkOrder,
   emailingWorkOrders,
-  onEmailWorkOrder,
+  textingWorkOrders,
+  onSendWorkOrder,
   updatingWorkOrders,
   selectedWorkOrders = new Set(),
   onSelectWorkOrder,
@@ -83,7 +86,8 @@ const WorkOrdersTable = ({
               onPriorityChange={onPriorityChange}
               onDeleteWorkOrder={onDeleteWorkOrder}
               isEmailing={emailingWorkOrders.has(workOrder.id)}
-              onEmailWorkOrder={onEmailWorkOrder}
+              isTexting={textingWorkOrders.has(workOrder.id)}
+              onSendWorkOrder={onSendWorkOrder}
               updatingWorkOrders={updatingWorkOrders}
               isSelected={selectedWorkOrders.has(workOrder.id)}
               onSelect={onSelectWorkOrder}

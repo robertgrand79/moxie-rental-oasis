@@ -2,14 +2,16 @@
 import React from 'react';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import WorkOrderCard from './WorkOrderCard';
+import { SendMethod } from '@/hooks/useWorkOrderEmail';
 
 interface WorkOrdersGridProps {
   workOrders: WorkOrder[];
   onWorkOrderEdit: (workOrder: WorkOrder) => void;
   onDeleteWorkOrder: (workOrderId: string) => void;
-  onEmailWorkOrder: (workOrder: WorkOrder) => void;
+  onSendWorkOrder: (workOrder: WorkOrder, method: SendMethod) => void;
   onStatusChange: (workOrderId: string, status: string) => void;
   emailingWorkOrders: Set<string>;
+  textingWorkOrders: Set<string>;
   updatingWorkOrders: Set<string>;
   selectedWorkOrders?: Set<string>;
   onSelectWorkOrder?: (workOrderId: string, selected: boolean) => void;
@@ -19,9 +21,10 @@ const WorkOrdersGrid = ({
   workOrders,
   onWorkOrderEdit,
   onDeleteWorkOrder,
-  onEmailWorkOrder,
+  onSendWorkOrder,
   onStatusChange,
   emailingWorkOrders,
+  textingWorkOrders,
   updatingWorkOrders,
   selectedWorkOrders = new Set(),
   onSelectWorkOrder,
@@ -48,9 +51,10 @@ const WorkOrdersGrid = ({
           workOrder={workOrder}
           onEdit={onWorkOrderEdit}
           onDelete={onDeleteWorkOrder}
-          onEmail={onEmailWorkOrder}
+          onSend={onSendWorkOrder}
           onStatusChange={onStatusChange}
           isEmailing={emailingWorkOrders.has(workOrder.id)}
+          isTexting={textingWorkOrders.has(workOrder.id)}
           isUpdating={updatingWorkOrders.has(workOrder.id)}
           isSelected={selectedWorkOrders.has(workOrder.id)}
           onSelect={onSelectWorkOrder}

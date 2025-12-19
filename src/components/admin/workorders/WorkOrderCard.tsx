@@ -11,7 +11,7 @@ import {
   Building, 
   Edit, 
   Trash2, 
-  Send, 
+  Mail, 
   Clock,
   MoreVertical,
   AlertCircle,
@@ -27,14 +27,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { SendMethod } from '@/hooks/useWorkOrderEmail';
 
 interface WorkOrderCardProps {
   workOrder: WorkOrder;
   onEdit: (workOrder: WorkOrder) => void;
   onDelete: (workOrderId: string) => void;
-  onEmail: (workOrder: WorkOrder) => void;
+  onSend: (workOrder: WorkOrder, method: SendMethod) => void;
   onStatusChange: (workOrderId: string, status: string) => void;
   isEmailing: boolean;
+  isTexting: boolean;
   isUpdating: boolean;
   isSelected?: boolean;
   onSelect?: (workOrderId: string, selected: boolean) => void;
@@ -44,9 +46,10 @@ const WorkOrderCard = ({
   workOrder,
   onEdit,
   onDelete,
-  onEmail,
+  onSend,
   onStatusChange,
   isEmailing,
+  isTexting,
   isUpdating,
   isSelected = false,
   onSelect,
@@ -85,6 +88,9 @@ const WorkOrderCard = ({
   const handleCheckboxChange = (checked: boolean) => {
     onSelect?.(workOrder.id, checked);
   };
+
+  const hasEmail = !!workOrder.contractor?.email;
+  const hasPhone = !!workOrder.contractor?.phone;
 
   return (
     <EnhancedCard 
@@ -147,19 +153,20 @@ const WorkOrderCard = ({
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Details
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem 
-                onClick={() => onEmail(workOrder)}
-                disabled={!workOrder.contractor?.email || isEmailing}
+                onClick={() => onSend(workOrder, 'email')}
+                disabled={!hasEmail || isEmailing}
               >
-                <Send className="h-4 w-4 mr-2" />
-                {isEmailing ? 'Sending...' : (
-                  <span className="flex items-center gap-1">
-                    Send
-                    {workOrder.contractor?.phone && (
-                      <span className="text-xs text-muted-foreground">(Email + SMS)</span>
-                    )}
-                  </span>
-                )}
+                <Mail className="h-4 w-4 mr-2" />
+                {isEmailing ? 'Sending...' : 'Send Email'}
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onSend(workOrder, 'sms')}
+                disabled={!hasPhone || isTexting}
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                {isTexting ? 'Sending...' : 'Send Text'}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
@@ -239,7 +246,7 @@ const WorkOrderCard = ({
       </EnhancedCardContent>
 
       <EnhancedCardFooter className={cn("pt-3 border-t", onSelect && "pl-10")}>
-        <div className="flex items-center justify-between w-full">
+        <div className="flex items-center justify-between w-full gap-2">
           <Button 
             variant="outline" 
             size="sm" 
@@ -250,21 +257,35 @@ const WorkOrderCard = ({
             Edit
           </Button>
           
-          {workOrder.contractor?.email && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => onEmail(workOrder)}
-              disabled={isEmailing}
-              className="flex items-center gap-1"
-            >
-              <Send className="h-3 w-3" />
-              {isEmailing ? 'Sending...' : 'Send'}
-              {!isEmailing && workOrder.contractor?.phone && (
-                <MessageSquare className="h-3 w-3 text-muted-foreground" />
-              )}
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {hasEmail && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => onSend(workOrder, 'email')}
+                disabled={isEmailing}
+                className="flex items-center gap-1"
+                title="Send via Email"
+              >
+                <Mail className="h-3 w-3" />
+                {isEmailing ? '...' : 'Email'}
+              </Button>
+            )}
+            
+            {hasPhone && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => onSend(workOrder, 'sms')}
+                disabled={isTexting}
+                className="flex items-center gap-1"
+                title="Send via Text"
+              >
+                <MessageSquare className="h-3 w-3" />
+                {isTexting ? '...' : 'Text'}
+              </Button>
+            )}
+          </div>
         </div>
       </EnhancedCardFooter>
     </EnhancedCard>
