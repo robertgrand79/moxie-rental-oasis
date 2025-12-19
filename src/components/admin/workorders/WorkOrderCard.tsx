@@ -11,11 +11,12 @@ import {
   Building, 
   Edit, 
   Trash2, 
-  Mail, 
+  Send, 
   Clock,
   MoreVertical,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  MessageSquare
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -150,8 +151,15 @@ const WorkOrderCard = ({
                 onClick={() => onEmail(workOrder)}
                 disabled={!workOrder.contractor?.email || isEmailing}
               >
-                <Mail className="h-4 w-4 mr-2" />
-                {isEmailing ? 'Sending...' : 'Email PDF'}
+                <Send className="h-4 w-4 mr-2" />
+                {isEmailing ? 'Sending...' : (
+                  <span className="flex items-center gap-1">
+                    Send
+                    {workOrder.contractor?.phone && (
+                      <span className="text-xs text-muted-foreground">(Email + SMS)</span>
+                    )}
+                  </span>
+                )}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
@@ -250,8 +258,11 @@ const WorkOrderCard = ({
               disabled={isEmailing}
               className="flex items-center gap-1"
             >
-              <Mail className="h-3 w-3" />
-              {isEmailing ? 'Sending...' : 'Email'}
+              <Send className="h-3 w-3" />
+              {isEmailing ? 'Sending...' : 'Send'}
+              {!isEmailing && workOrder.contractor?.phone && (
+                <MessageSquare className="h-3 w-3 text-muted-foreground" />
+              )}
             </Button>
           )}
         </div>
