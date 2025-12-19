@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
@@ -12,7 +11,10 @@ import {
   Trash2, 
   Send,
   MoreVertical,
-  ChevronDown
+  ChevronDown,
+  Eye,
+  Mail,
+  MessageSquare
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -36,6 +38,7 @@ interface WorkOrderCardProps {
   isUpdating: boolean;
   isSelected?: boolean;
   onSelect?: (workOrderId: string, selected: boolean) => void;
+  onView?: (workOrder: WorkOrder) => void;
 }
 
 const WorkOrderCard = ({
@@ -49,6 +52,7 @@ const WorkOrderCard = ({
   isUpdating,
   isSelected = false,
   onSelect,
+  onView,
 }: WorkOrderCardProps) => {
   const priorityConfig = {
     low: { dot: 'bg-emerald-500', text: 'text-emerald-700' },
@@ -78,10 +82,14 @@ const WorkOrderCard = ({
     onSelect?.(workOrder.id, checked);
   };
 
+  const handleCardClick = () => {
+    if (onView) {
+      onView(workOrder);
+    }
+  };
+
   const hasEmail = !!workOrder.contractor?.email;
   const hasPhone = !!workOrder.contractor?.phone;
-  const canSend = hasEmail || hasPhone;
-  const isSending = isEmailing || isTexting;
 
   const priority = workOrder.priority as keyof typeof priorityConfig;
   const status = workOrder.status as keyof typeof statusConfig;
@@ -89,73 +97,78 @@ const WorkOrderCard = ({
   return (
     <div 
       className={cn(
-        "group bg-card border rounded-xl p-4 transition-all hover:shadow-md hover:border-primary/20",
+        "group bg-card border rounded-xl transition-all hover:shadow-md hover:border-primary/20 cursor-pointer",
         isSelected && "ring-2 ring-primary ring-offset-2"
       )}
+      onClick={handleCardClick}
     >
-      {/* Header Row */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2 min-w-0">
-          {onSelect && (
-            <div onClick={(e) => e.stopPropagation()}>
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={handleCheckboxChange}
-                className="h-4 w-4"
-              />
-            </div>
-          )}
-          <span className="font-mono text-xs text-muted-foreground">
-            {workOrder.work_order_number}
-          </span>
-          <span className="text-muted-foreground">•</span>
-          <div className="flex items-center gap-1.5">
-            <span className={cn("w-2 h-2 rounded-full", priorityConfig[priority]?.dot)} />
-            <span className={cn("text-xs font-medium capitalize", priorityConfig[priority]?.text)}>
-              {workOrder.priority}
+      {/* Header - Two rows for clarity */}
+      <div className="p-4 pb-0">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            {onSelect && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={handleCheckboxChange}
+                  className="h-4 w-4"
+                />
+              </div>
+            )}
+            <span className="font-mono text-xs text-muted-foreground">
+              {workOrder.work_order_number}
             </span>
           </div>
+          
+          {/* Status dropdown */}
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className={cn(
+                    "px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1",
+                    statusConfig[status]?.bg,
+                    statusConfig[status]?.text
+                  )}
+                >
+                  <span className="capitalize">{workOrder.status.replace('_', ' ')}</span>
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {Object.keys(statusConfig).map((s) => (
+                  <DropdownMenuItem
+                    key={s}
+                    onClick={() => handleStatusClick(s)}
+                    disabled={isUpdating}
+                    className={workOrder.status === s ? 'bg-muted' : ''}
+                  >
+                    <span className="capitalize">{s.replace('_', ' ')}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={cn(
-                "h-7 w-7 p-0 transition-opacity",
-                statusConfig[status]?.bg,
-                statusConfig[status]?.text
-              )}
-            >
-              <span className="text-xs font-medium capitalize mr-0.5">
-                {workOrder.status.replace('_', ' ')}
-              </span>
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {Object.keys(statusConfig).map((s) => (
-              <DropdownMenuItem
-                key={s}
-                onClick={() => handleStatusClick(s)}
-                disabled={isUpdating}
-                className={workOrder.status === s ? 'bg-muted' : ''}
-              >
-                <span className="capitalize">{s.replace('_', ' ')}</span>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+
+        {/* Priority badge on its own line */}
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className={cn("w-2 h-2 rounded-full", priorityConfig[priority]?.dot)} />
+          <span className={cn("text-xs font-medium capitalize", priorityConfig[priority]?.text)}>
+            {workOrder.priority} Priority
+          </span>
+        </div>
       </div>
 
       {/* Title */}
-      <h3 className="font-medium text-foreground mb-3 line-clamp-2">
-        {workOrder.title}
-      </h3>
+      <div className="px-4 pb-3">
+        <h3 className="font-semibold text-foreground text-base leading-tight">
+          {workOrder.title}
+        </h3>
+      </div>
 
       {/* Metadata */}
-      <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
+      <div className="px-4 pb-4 space-y-1.5 text-sm text-muted-foreground">
         {workOrder.contractor && (
           <div className="flex items-center gap-2">
             <User className="h-3.5 w-3.5 shrink-0" />
@@ -184,51 +197,57 @@ const WorkOrderCard = ({
       </div>
 
       {/* Footer Actions */}
-      <div className="flex items-center justify-between pt-3 border-t">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => onEdit(workOrder)}
-          className="h-8 text-muted-foreground hover:text-foreground"
-        >
-          <Edit className="h-3.5 w-3.5 mr-1.5" />
-          Edit
-        </Button>
+      <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/30" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onView ? onView(workOrder) : onEdit(workOrder)}
+            className="h-8 text-muted-foreground hover:text-foreground"
+          >
+            <Eye className="h-3.5 w-3.5 mr-1.5" />
+            View
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onEdit(workOrder)}
+            className="h-8 text-muted-foreground hover:text-foreground"
+          >
+            <Edit className="h-3.5 w-3.5 mr-1.5" />
+            Edit
+          </Button>
+        </div>
         
         <div className="flex items-center gap-1">
-          {canSend && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  disabled={isSending}
-                  className="h-8"
-                >
-                  <Send className="h-3.5 w-3.5 mr-1.5" />
-                  {isSending ? 'Sending...' : 'Send'}
-                  <ChevronDown className="h-3 w-3 ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {hasEmail && (
-                  <DropdownMenuItem 
-                    onClick={() => onSend(workOrder, 'email')}
-                    disabled={isEmailing}
-                  >
-                    Send Email
-                  </DropdownMenuItem>
-                )}
-                {hasPhone && (
-                  <DropdownMenuItem 
-                    onClick={() => onSend(workOrder, 'sms')}
-                    disabled={isTexting}
-                  >
-                    Send Text
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {/* Email button */}
+          {hasEmail && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onSend(workOrder, 'email')}
+              disabled={isEmailing}
+              className="h-8"
+              title="Send Email"
+            >
+              <Mail className="h-3.5 w-3.5 mr-1.5" />
+              {isEmailing ? '...' : 'Email'}
+            </Button>
+          )}
+          
+          {/* Text button */}
+          {hasPhone && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onSend(workOrder, 'sms')}
+              disabled={isTexting}
+              className="h-8"
+              title="Send Text"
+            >
+              <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
+              {isTexting ? '...' : 'Text'}
+            </Button>
           )}
           
           <DropdownMenu>
@@ -238,8 +257,13 @@ const WorkOrderCard = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(workOrder)}>
+              <DropdownMenuItem onClick={() => onView ? onView(workOrder) : onEdit(workOrder)}>
+                <Eye className="h-4 w-4 mr-2" />
                 View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(workOrder)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 

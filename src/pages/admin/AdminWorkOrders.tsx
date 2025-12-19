@@ -48,6 +48,7 @@ const AdminWorkOrders = () => {
   // UI State
   const [isWorkOrderPanelOpen, setIsWorkOrderPanelOpen] = useState(false);
   const [editingWorkOrder, setEditingWorkOrder] = useState<WorkOrder | null>(null);
+  const [viewingWorkOrder, setViewingWorkOrder] = useState<WorkOrder | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   
   // Selection state
@@ -98,8 +99,15 @@ const AdminWorkOrders = () => {
     setIsWorkOrderPanelOpen(true);
   };
 
+  const handleViewWorkOrder = (workOrder: WorkOrder) => {
+    setViewingWorkOrder(workOrder);
+    setEditingWorkOrder(null);
+    setIsWorkOrderPanelOpen(true);
+  };
+
   const handleEditWorkOrder = (workOrder: WorkOrder) => {
     setEditingWorkOrder(workOrder);
+    setViewingWorkOrder(null);
     setIsWorkOrderPanelOpen(true);
   };
 
@@ -116,6 +124,7 @@ const AdminWorkOrders = () => {
   const handleClosePanel = () => {
     setIsWorkOrderPanelOpen(false);
     setEditingWorkOrder(null);
+    setViewingWorkOrder(null);
   };
 
   // Wrapper to handle sending with method
@@ -127,6 +136,7 @@ const AdminWorkOrders = () => {
   const resetToDefaultState = useCallback(() => {
     setIsWorkOrderPanelOpen(false);
     setEditingWorkOrder(null);
+    setViewingWorkOrder(null);
     setViewMode('grid');
     setStatusFilter('all');
     setPriorityFilter('all');
@@ -142,7 +152,7 @@ const AdminWorkOrders = () => {
   }
 
   return (
-    <div className="space-y-6 bg-gray-50 min-h-screen p-6">
+    <div className="space-y-6 bg-muted/30 min-h-screen p-6">
       <ModernWorkOrdersHeader
         totalWorkOrders={totalWorkOrders}
         pendingWorkOrders={pendingWorkOrders}
@@ -161,11 +171,11 @@ const AdminWorkOrders = () => {
         workOrders={filteredWorkOrders}
       />
 
-
       {viewMode === 'grid' ? (
         <WorkOrdersGrid
           workOrders={filteredWorkOrders}
           onWorkOrderEdit={handleEditWorkOrder}
+          onWorkOrderView={handleViewWorkOrder}
           onDeleteWorkOrder={handleDeleteWorkOrder}
           onSendWorkOrder={onSendWorkOrder}
           onStatusChange={handleStatusChange}
@@ -176,10 +186,10 @@ const AdminWorkOrders = () => {
           onSelectWorkOrder={handleSelectWorkOrder}
         />
       ) : (
-        <div className="bg-white rounded-xl shadow-sm">
+        <div className="bg-card rounded-xl shadow-sm">
           <WorkOrdersTable
             workOrders={filteredWorkOrders}
-            onWorkOrderClick={handleEditWorkOrder}
+            onWorkOrderClick={handleViewWorkOrder}
             onStatusChange={handleStatusChange}
             onPriorityChange={handleStatusChange}
             onDeleteWorkOrder={handleDeleteWorkOrder}
@@ -197,10 +207,17 @@ const AdminWorkOrders = () => {
       <WorkOrderSidePanel
         isOpen={isWorkOrderPanelOpen}
         onClose={handleClosePanel}
-        workOrder={editingWorkOrder}
+        workOrder={viewingWorkOrder || editingWorkOrder}
         contractors={contractors}
         onSave={handleSaveAndClose}
         isEditing={!!editingWorkOrder}
+        isViewOnly={!!viewingWorkOrder && !editingWorkOrder}
+        onEditClick={() => {
+          if (viewingWorkOrder) {
+            setEditingWorkOrder(viewingWorkOrder);
+            setViewingWorkOrder(null);
+          }
+        }}
       />
 
       <SelectionActionBar
