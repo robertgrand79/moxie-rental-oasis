@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Eye, Edit, Trash2 } from 'lucide-react';
+import { Mail, Eye, Edit, Trash2, MoreVertical, Copy, Users, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,6 +10,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { toast } from '@/hooks/use-toast';
 import NewsletterPreviewModal from './NewsletterPreviewModal';
 import NewsletterDeleteModal from './NewsletterDeleteModal';
 
@@ -23,6 +37,8 @@ interface Newsletter {
   blog_post_id: string | null;
   created_at: string;
   updated_at: string;
+  open_rate?: number | null;
+  click_rate?: number | null;
 }
 
 interface NewslettersListViewProps {
@@ -30,15 +46,20 @@ interface NewslettersListViewProps {
   onEdit: (newsletter: Newsletter) => void;
   onDelete: (id: string) => void;
   onCreateNew: () => void;
+  onView?: (newsletter: Newsletter) => void;
   deleting: string | null;
 }
 
-const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, deleting }: NewslettersListViewProps) => {
+const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, onView, deleting }: NewslettersListViewProps) => {
   const [previewNewsletter, setPreviewNewsletter] = useState<Newsletter | null>(null);
   const [deleteNewsletter, setDeleteNewsletter] = useState<Newsletter | null>(null);
 
   const handleView = (newsletter: Newsletter) => {
-    setPreviewNewsletter(newsletter);
+    if (onView) {
+      onView(newsletter);
+    } else {
+      setPreviewNewsletter(newsletter);
+    }
   };
 
   const handleDeleteClick = (newsletter: Newsletter) => {
@@ -50,6 +71,18 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, delet
       onDelete(deleteNewsletter.id);
       setDeleteNewsletter(null);
     }
+  };
+
+  const handleCopyId = (newsletter: Newsletter) => {
+    navigator.clipboard.writeText(newsletter.id);
+    toast({
+      title: "Copied",
+      description: "Newsletter ID copied to clipboard",
+    });
+  };
+
+  const getStatusColor = (isSent: boolean) => {
+    return isSent ? 'bg-green-500' : 'bg-yellow-500';
   };
 
   if (newsletters.length === 0) {
@@ -69,11 +102,12 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, delet
   }
 
   return (
-    <>
-      <div className="border rounded-lg">
+    <TooltipProvider>
+      <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-8"></TableHead>
               <TableHead>Cover</TableHead>
               <TableHead>Subject</TableHead>
               <TableHead>Status</TableHead>
@@ -83,70 +117,135 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, delet
             </TableRow>
           </TableHeader>
           <TableBody>
-            {newsletters.map((newsletter) => (
-              <TableRow key={newsletter.id}>
-                <TableCell className="w-16">
-                  {newsletter.cover_image_url ? (
-                    <img
-                      src={newsletter.cover_image_url}
-                      alt={newsletter.subject}
-                      className="w-12 h-8 object-cover rounded"
-                    />
-                  ) : (
-                    <div className="w-12 h-8 bg-muted rounded flex items-center justify-center">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell className="font-medium max-w-xs">
-                  <div className="truncate">{newsletter.subject}</div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={newsletter.sent_at ? "default" : "secondary"}>
-                    {newsletter.sent_at ? "Sent" : "Draft"}
-                  </Badge>
-                </TableCell>
-                <TableCell>{newsletter.recipient_count}</TableCell>
-                <TableCell>
-                  {newsletter.sent_at 
-                    ? new Date(newsletter.sent_at).toLocaleDateString()
-                    : new Date(newsletter.created_at).toLocaleDateString()
-                  }
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
+            {newsletters.map((newsletter) => {
+              const isSent = !!newsletter.sent_at;
+              
+              return (
+                <TableRow key={newsletter.id}>
+                  {/* Status Indicator */}
+                  <TableCell className="w-2 p-0">
+                    <div className={`w-1 h-full min-h-[60px] ${getStatusColor(isSent)}`} />
+                  </TableCell>
+                  
+                  {/* Cover Image */}
+                  <TableCell className="w-16">
+                    {newsletter.cover_image_url ? (
+                      <img
+                        src={newsletter.cover_image_url}
+                        alt={newsletter.subject}
+                        className="w-12 h-8 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-12 h-8 bg-muted rounded flex items-center justify-center">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </TableCell>
+                  
+                  {/* Subject */}
+                  <TableCell className="font-medium max-w-xs">
+                    <div 
+                      className="truncate cursor-pointer hover:text-primary transition-colors"
                       onClick={() => handleView(newsletter)}
                     >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    {!newsletter.sent_at && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(newsletter)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteClick(newsletter)}
-                      disabled={deleting === newsletter.id}
+                      {newsletter.subject}
+                    </div>
+                  </TableCell>
+                  
+                  {/* Status Badge */}
+                  <TableCell>
+                    <Badge 
+                      variant={isSent ? "default" : "secondary"}
+                      className={isSent ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"}
                     >
-                      {deleting === newsletter.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                      {isSent ? "Sent" : "Draft"}
+                    </Badge>
+                  </TableCell>
+                  
+                  {/* Recipients */}
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Users className="h-4 w-4" />
+                      {newsletter.recipient_count}
+                    </div>
+                  </TableCell>
+                  
+                  {/* Date */}
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      {isSent 
+                        ? new Date(newsletter.sent_at!).toLocaleDateString()
+                        : new Date(newsletter.created_at).toLocaleDateString()
+                      }
+                    </div>
+                  </TableCell>
+                  
+                  {/* Actions */}
+                  <TableCell className="text-right">
+                    <div className="flex justify-end items-center gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleView(newsletter)}
+                            className="h-8"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Preview
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Preview newsletter content</TooltipContent>
+                      </Tooltip>
+                      
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCopyId(newsletter)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Copy newsletter ID</TooltipContent>
+                      </Tooltip>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 bg-popover">
+                          <DropdownMenuItem onClick={() => handleView(newsletter)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          {!isSent && (
+                            <DropdownMenuItem onClick={() => onEdit(newsletter)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteClick(newsletter)}
+                            className="text-destructive focus:text-destructive"
+                            disabled={deleting === newsletter.id}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -166,7 +265,7 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, delet
         onConfirm={handleDeleteConfirm}
         isDeleting={deleting === deleteNewsletter?.id}
       />
-    </>
+    </TooltipProvider>
   );
 };
 

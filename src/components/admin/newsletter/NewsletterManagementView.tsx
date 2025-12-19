@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, LayoutGrid, List, RefreshCw, Mail, Send, Clock, Users, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import NewsletterViewToggle from './NewsletterViewToggle';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import NewslettersGrid from './NewslettersGrid';
-import NewslettersList from './NewslettersList';
+import NewslettersListView from './NewslettersListView';
 
 interface Newsletter {
   id: string;
@@ -23,6 +29,7 @@ interface NewsletterManagementViewProps {
   onEdit: (newsletter: Newsletter) => void;
   onDelete: (id: string) => void;
   onCreateNew: () => void;
+  onRefresh?: () => void;
   deleting: string | null;
 }
 
@@ -30,131 +37,157 @@ const NewsletterManagementView = ({
   newsletters, 
   onEdit, 
   onDelete, 
-  onCreateNew, 
+  onCreateNew,
+  onRefresh,
   deleting 
 }: NewsletterManagementViewProps) => {
-  const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [filter, setFilter] = useState<'all' | 'drafts' | 'sent'>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  // Filter newsletters based on selected filter
-  const filteredNewsletters = newsletters.filter((newsletter) => {
-    if (filter === 'drafts') return !newsletter.sent_at;
-    if (filter === 'sent') return newsletter.sent_at;
-    return true; // 'all'
-  });
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = newsletters.length;
+    const sent = newsletters.filter(n => n.sent_at).length;
+    const draft = newsletters.filter(n => !n.sent_at).length;
+    const totalRecipients = newsletters.reduce((sum, n) => sum + (n.recipient_count || 0), 0);
+    
+    return { total, sent, draft, totalRecipients };
+  }, [newsletters]);
 
-  // Count newsletters for each filter
-  const allCount = newsletters.length;
-  const draftsCount = newsletters.filter(n => !n.sent_at).length;
-  const sentCount = newsletters.filter(n => n.sent_at).length;
+  // Filter newsletters
+  const filteredNewsletters = useMemo(() => {
+    let result = newsletters;
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(n => 
+        n.subject.toLowerCase().includes(query) ||
+        n.content.toLowerCase().includes(query)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(n => 
+        statusFilter === 'sent' ? n.sent_at : !n.sent_at
+      );
+    }
+
+    return result;
+  }, [newsletters, searchQuery, statusFilter]);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Newsletter Management</h1>
-          <p className="text-muted-foreground">Create, manage, and send your newsletter campaigns</p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <NewsletterViewToggle view={view} onViewChange={setView} />
-          <Button onClick={onCreateNew}>
+      {/* Modern Header */}
+      <div className="space-y-4">
+        {/* Title, Stats, and Action */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Newsletters</h1>
+            {/* Inline Stats */}
+            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
+              <span className="flex items-center gap-1.5">
+                <Mail className="h-4 w-4" />
+                <span className="font-medium text-foreground">{stats.total}</span> Total
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Send className="h-4 w-4 text-green-600" />
+                <span className="font-medium text-green-600">{stats.sent}</span> Sent
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-4 w-4 text-yellow-600" />
+                <span className="font-medium text-yellow-600">{stats.draft}</span> Draft
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Users className="h-4 w-4 text-blue-600" />
+                <span className="font-medium text-blue-600">{stats.totalRecipients}</span> Total Recipients
+              </span>
+            </div>
+          </div>
+          <Button onClick={onCreateNew} className="shrink-0">
             <Plus className="h-4 w-4 mr-2" />
             Create Newsletter
           </Button>
         </div>
+
+        {/* Controls */}
+        <div className="bg-card rounded-xl p-4 border shadow-sm">
+          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+            {/* Left side: Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search newsletters..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[140px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Right side: View Controls */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center border rounded-lg p-1 bg-background">
+                <Button
+                  variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="h-8 w-8 p-0"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="h-8 w-8 p-0"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {onRefresh && (
+                <Button variant="outline" size="sm" onClick={onRefresh} className="h-8 w-8 p-0">
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Filter Tabs */}
-      <Tabs value={filter} onValueChange={(value) => setFilter(value as 'all' | 'drafts' | 'sent')}>
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="all" className="flex items-center gap-2">
-            📧 All Newsletters
-            {allCount > 0 && (
-              <span className="ml-1 px-2 py-0.5 bg-muted rounded-full text-xs">
-                {allCount}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="drafts" className="flex items-center gap-2">
-            🗂️ Drafts
-            {draftsCount > 0 && (
-              <span className="ml-1 px-2 py-0.5 bg-muted rounded-full text-xs">
-                {draftsCount}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="sent" className="flex items-center gap-2">
-            ✅ Sent
-            {sentCount > 0 && (
-              <span className="ml-1 px-2 py-0.5 bg-muted rounded-full text-xs">
-                {sentCount}
-              </span>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="mt-6">
-          {view === 'grid' ? (
-            <NewslettersGrid
-              newsletters={filteredNewsletters}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onCreateNew={onCreateNew}
-              deleting={deleting}
-            />
-          ) : (
-            <NewslettersList
-              newsletters={filteredNewsletters}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onCreateNew={onCreateNew}
-              deleting={deleting}
-            />
-          )}
-        </TabsContent>
-
-        <TabsContent value="drafts" className="mt-6">
-          {view === 'grid' ? (
-            <NewslettersGrid
-              newsletters={filteredNewsletters}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onCreateNew={onCreateNew}
-              deleting={deleting}
-            />
-          ) : (
-            <NewslettersList
-              newsletters={filteredNewsletters}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onCreateNew={onCreateNew}
-              deleting={deleting}
-            />
-          )}
-        </TabsContent>
-
-        <TabsContent value="sent" className="mt-6">
-          {view === 'grid' ? (
-            <NewslettersGrid
-              newsletters={filteredNewsletters}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onCreateNew={onCreateNew}
-              deleting={deleting}
-            />
-          ) : (
-            <NewslettersList
-              newsletters={filteredNewsletters}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onCreateNew={onCreateNew}
-              deleting={deleting}
-            />
-          )}
-        </TabsContent>
-      </Tabs>
+      {/* Content */}
+      {viewMode === 'grid' ? (
+        <NewslettersGrid
+          newsletters={filteredNewsletters}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onCreateNew={onCreateNew}
+          deleting={deleting}
+        />
+      ) : (
+        <NewslettersListView
+          newsletters={filteredNewsletters}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onCreateNew={onCreateNew}
+          deleting={deleting}
+        />
+      )}
     </div>
   );
 };

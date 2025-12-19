@@ -1,33 +1,51 @@
-import React, { useState } from 'react';
-import { Plus, Mail, PenTool, Archive, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState, useMemo } from 'react';
 import { useNewsletterCampaigns } from '@/hooks/useNewsletterCampaigns';
+import ModernNewslettersHeader from './ModernNewslettersHeader';
 import NewslettersGrid from './NewslettersGrid';
 import NewslettersListView from './NewslettersListView';
-import NewsletterViewToggle from './NewsletterViewToggle';
 import NewsletterForm from './NewsletterForm';
 
 const NewsletterManager = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingNewsletter, setEditingNewsletter] = useState<any>(null);
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   
-  const { campaigns, loading, deleting, deleteCampaign } = useNewsletterCampaigns();
+  const { campaigns, loading, deleting, deleteCampaign, refetch } = useNewsletterCampaigns();
 
-  const statusCategories = [
-    { value: 'all', label: 'All Newsletters', icon: Mail },
-    { value: 'draft', label: 'Drafts', icon: PenTool },
-    { value: 'sent', label: 'Sent', icon: CheckCircle },
-  ];
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = campaigns.length;
+    const sent = campaigns.filter(c => c.sent_at).length;
+    const draft = campaigns.filter(c => !c.sent_at).length;
+    const totalRecipients = campaigns.reduce((sum, c) => sum + (c.recipient_count || 0), 0);
+    
+    return { total, sent, draft, totalRecipients };
+  }, [campaigns]);
 
-  const filteredNewsletters = selectedStatus === 'all' 
-    ? campaigns 
-    : campaigns.filter(campaign => 
-        selectedStatus === 'sent' ? campaign.sent_at : !campaign.sent_at
+  // Filter newsletters
+  const filteredNewsletters = useMemo(() => {
+    let result = campaigns;
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(c => 
+        c.subject.toLowerCase().includes(query) ||
+        c.content.toLowerCase().includes(query)
       );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(c => 
+        statusFilter === 'sent' ? c.sent_at : !c.sent_at
+      );
+    }
+
+    return result;
+  }, [campaigns, searchQuery, statusFilter]);
 
   const handleEdit = (newsletter: any) => {
     setEditingNewsletter(newsletter);
@@ -42,73 +60,64 @@ const NewsletterManager = () => {
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingNewsletter(null);
+    refetch();
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="space-y-4">
+        {/* Header skeleton */}
+        <div className="animate-pulse">
+          <div className="h-8 w-48 bg-muted rounded mb-2" />
+          <div className="h-4 w-96 bg-muted rounded" />
+        </div>
+        <div className="bg-card rounded-xl p-4 border shadow-sm animate-pulse">
+          <div className="h-10 bg-muted rounded" />
+        </div>
+        {/* Grid skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-64 bg-muted rounded-lg animate-pulse" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <CardTitle className="text-2xl font-semibold">Newsletter Management</CardTitle>
-              <p className="text-muted-foreground">
-                Create, manage, and send your newsletter campaigns
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <NewsletterViewToggle view={view} onViewChange={setView} />
-              <Button onClick={handleAddNew}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Newsletter
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={selectedStatus} onValueChange={setSelectedStatus}>
-            <TabsList className="grid w-full grid-cols-3 h-auto">
-              {statusCategories.map((category) => (
-                <TabsTrigger 
-                  key={category.value} 
-                  value={category.value}
-                  className="flex items-center justify-center gap-2 px-2 py-3 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground"
-                >
-                  <category.icon className="h-4 w-4 flex-shrink-0" />
-                  <span className="hidden lg:inline whitespace-nowrap">{category.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+    <div className="space-y-6">
+      <ModernNewslettersHeader
+        totalNewsletters={stats.total}
+        sentNewsletters={stats.sent}
+        draftNewsletters={stats.draft}
+        totalRecipients={stats.totalRecipients}
+        onAddNewsletter={handleAddNew}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onRefresh={refetch}
+      />
 
-            <TabsContent value={selectedStatus} className="mt-6">
-              {view === 'grid' ? (
-                <NewslettersGrid 
-                  newsletters={filteredNewsletters}
-                  onEdit={handleEdit}
-                  onDelete={deleteCampaign}
-                  onCreateNew={handleAddNew}
-                  deleting={deleting}
-                />
-              ) : (
-                <NewslettersListView 
-                  newsletters={filteredNewsletters}
-                  onEdit={handleEdit}
-                  onDelete={deleteCampaign}
-                  onCreateNew={handleAddNew}
-                  deleting={deleting}
-                />
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      {viewMode === 'grid' ? (
+        <NewslettersGrid 
+          newsletters={filteredNewsletters}
+          onEdit={handleEdit}
+          onDelete={deleteCampaign}
+          onCreateNew={handleAddNew}
+          deleting={deleting}
+        />
+      ) : (
+        <NewslettersListView 
+          newsletters={filteredNewsletters}
+          onEdit={handleEdit}
+          onDelete={deleteCampaign}
+          onCreateNew={handleAddNew}
+          deleting={deleting}
+        />
+      )}
 
       {isFormOpen && (
         <NewsletterForm
@@ -116,7 +125,7 @@ const NewsletterManager = () => {
           onClose={handleCloseForm}
         />
       )}
-    </>
+    </div>
   );
 };
 
