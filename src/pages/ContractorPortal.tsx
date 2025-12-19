@@ -32,7 +32,6 @@ interface WorkOrder {
   scope_of_work: string | null;
   special_instructions: string | null;
   acknowledged_at: string | null;
-  started_at: string | null;
   completed_at: string | null;
   completion_photos: string[] | null;
   contractor_notes: string | null;
@@ -41,7 +40,7 @@ interface WorkOrder {
     id: string;
     title: string;
     location: string | null;
-    address: string | null;
+    city: string | null;
   } | null;
 }
 
@@ -271,7 +270,7 @@ const ContractorPortal: React.FC = () => {
                         <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                         <div>
                           <p className="font-medium">{wo.properties.title}</p>
-                          <p className="text-muted-foreground">{wo.properties.address || wo.properties.location}</p>
+                          <p className="text-muted-foreground">{wo.properties.city || wo.properties.location}</p>
                         </div>
                       </div>
                     )}
