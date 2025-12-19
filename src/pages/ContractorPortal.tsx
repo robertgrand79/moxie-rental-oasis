@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +70,8 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
 
 const ContractorPortal: React.FC = () => {
   const { token } = useParams<{ token: string }>();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get('highlight');
   const { toast } = useToast();
   const [contractor, setContractor] = useState<Contractor | null>(null);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
@@ -79,6 +81,18 @@ const ContractorPortal: React.FC = () => {
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
   const [expandedNotes, setExpandedNotes] = useState<string | null>(null);
   const [noteText, setNoteText] = useState('');
+  const [highlightedId, setHighlightedId] = useState<string | null>(highlightId);
+  const highlightRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to highlighted work order after data loads
+  useEffect(() => {
+    if (highlightId && !loading && workOrders.length > 0 && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Remove highlight after 3 seconds
+      const timer = setTimeout(() => setHighlightedId(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightId, loading, workOrders]);
 
   const fetchData = useCallback(async () => {
     if (!token) return;
@@ -241,8 +255,16 @@ const ContractorPortal: React.FC = () => {
               const canComplete = wo.status === 'in_progress';
               const isCompleted = wo.status === 'completed' || wo.status === 'invoiced';
 
+              const isHighlighted = wo.id === highlightedId;
+
               return (
-                <Card key={wo.id} className="overflow-hidden">
+                <Card 
+                  key={wo.id} 
+                  ref={wo.id === highlightId ? highlightRef : undefined}
+                  className={`overflow-hidden transition-all duration-500 ${
+                    isHighlighted ? 'ring-2 ring-primary ring-offset-2 shadow-lg' : ''
+                  }`}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">

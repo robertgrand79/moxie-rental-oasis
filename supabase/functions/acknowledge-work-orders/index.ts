@@ -85,7 +85,14 @@ serve(async (req) => {
     const count = ackRecord.work_order_ids?.length || 1;
     console.log("Successfully acknowledged", count, "work orders for", contractorName);
 
-    return redirect(`/acknowledge?status=success&name=${encodeURIComponent(contractorName)}&count=${count}`);
+    // Get contractor's portal access token
+    const { data: portalToken } = await supabase.rpc('get_or_create_contractor_token', {
+      p_contractor_id: ackRecord.contractor_id
+    });
+
+    const workOrderIds = ackRecord.work_order_ids?.join(',') || '';
+
+    return redirect(`/acknowledge?status=success&name=${encodeURIComponent(contractorName)}&count=${count}&portalToken=${portalToken || ''}&workOrderIds=${workOrderIds}`);
   } catch (error) {
     console.error("Error in acknowledge-work-orders function:", error);
     return redirect(`/acknowledge?status=error&message=${encodeURIComponent("Something went wrong")}`);

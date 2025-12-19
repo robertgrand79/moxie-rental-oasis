@@ -1,6 +1,7 @@
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { CheckCircle, XCircle, AlertCircle, ExternalLink, List } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const AcknowledgePage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -9,6 +10,11 @@ const AcknowledgePage: React.FC = () => {
   const name = searchParams.get('name');
   const count = searchParams.get('count');
   const message = searchParams.get('message');
+  const portalToken = searchParams.get('portalToken');
+  const workOrderIds = searchParams.get('workOrderIds');
+
+  // Get the first work order ID for highlighting
+  const firstWorkOrderId = workOrderIds?.split(',')[0] || '';
 
   if (status === 'success') {
     return (
@@ -24,14 +30,35 @@ const AcknowledgePage: React.FC = () => {
             Thank you, <strong>{name || 'Contractor'}</strong>! You have successfully acknowledged{' '}
             <strong>{count || 'the'}</strong> work order{count !== '1' ? 's' : ''}.
           </p>
+          
+          {portalToken && (
+            <div className="space-y-3 mb-6">
+              <Link 
+                to={`/contractor/${portalToken}${firstWorkOrderId ? `?highlight=${firstWorkOrderId}` : ''}`}
+              >
+                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  View Work Order Details
+                </Button>
+              </Link>
+            </div>
+          )}
+          
           <div className="bg-emerald-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-emerald-800">
               The property manager has been notified of your acknowledgment. Please complete the work as scheduled.
             </p>
           </div>
-          <p className="text-xs text-gray-400">
-            You can close this window now.
-          </p>
+          
+          {portalToken && (
+            <Link 
+              to={`/contractor/${portalToken}`}
+              className="inline-flex items-center text-sm text-emerald-700 hover:text-emerald-800 hover:underline"
+            >
+              <List className="w-4 h-4 mr-1" />
+              View All My Work Orders
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -50,14 +77,23 @@ const AcknowledgePage: React.FC = () => {
           <p className="text-gray-600 mb-6">
             {name ? `${name}, these` : 'These'} work orders have already been acknowledged previously.
           </p>
+          
+          {portalToken && (
+            <div className="space-y-3 mb-6">
+              <Link to={`/contractor/${portalToken}`}>
+                <Button className="w-full">
+                  <List className="w-4 h-4 mr-2" />
+                  View My Work Orders
+                </Button>
+              </Link>
+            </div>
+          )}
+          
           <div className="bg-blue-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800">
               No further action is required. If you have any questions, please contact the property manager.
             </p>
           </div>
-          <p className="text-xs text-gray-400">
-            You can close this window now.
-          </p>
         </div>
       </div>
     );
