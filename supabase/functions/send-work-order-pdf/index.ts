@@ -108,11 +108,14 @@ serve(async (req) => {
 
     // Create acknowledgment record with unique token
     const token = crypto.randomUUID();
+    const organizationId = workOrder.organization_id ?? workOrder.property?.organization_id ?? null;
+    
     const { error: ackError } = await supabase
       .from("work_order_acknowledgments")
       .insert({
-        work_order_id: workOrderId,
+        work_order_ids: [workOrderId],  // Use array format to match table schema
         contractor_id: workOrder.contractor?.id || null,
+        organization_id: organizationId,
         token: token,
       });
 
