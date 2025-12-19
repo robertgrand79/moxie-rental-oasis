@@ -1,5 +1,5 @@
 
-export function generateWorkOrderEmailContent(workOrder: any): string {
+export function generateWorkOrderEmailContent(workOrder: any, acknowledgeUrl?: string): string {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not specified';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -308,12 +308,24 @@ export function generateWorkOrderEmailContent(workOrder: any): string {
             We have a new work order ready for you. Please review the details below and confirm receipt by replying to this email.
           </div>
 
+          ${acknowledgeUrl ? `
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${acknowledgeUrl}" 
+               style="display: inline-block; background: #10b981; color: white; padding: 16px 32px; border-radius: 8px; font-weight: 700; font-size: 18px; text-decoration: none;">
+              ✓ Acknowledge Receipt
+            </a>
+            <p style="font-size: 14px; color: #6b7280; margin-top: 12px;">
+              Click the button above to confirm you've received this work order
+            </p>
+          </div>
+          ` : `
           <div class="confirmation-card">
             <div class="confirmation-title">Please Confirm Receipt</div>
             <div class="confirmation-subtitle">
               Simply reply to this email to confirm you've received this work order. This helps us track project progress and ensures clear communication.
             </div>
           </div>
+          `}
 
           <div class="work-order-details">
             <div class="details-title">Work Order Details</div>
@@ -395,7 +407,7 @@ export function generateWorkOrderEmailContent(workOrder: any): string {
           </div>
           
           <div class="footer-note">
-            <p><strong>Important:</strong> Please confirm receipt of this work order by replying to this email within 24 hours.</p>
+            <p><strong>Important:</strong> Please confirm receipt of this work order ${acknowledgeUrl ? 'by clicking the acknowledge button above' : 'by replying to this email'} within 24 hours.</p>
             <p style="margin-top: 16px;">
               This is an automated message from Moxie Vacation Rentals. 
               We're here to help make your work seamless and efficient.
