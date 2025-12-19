@@ -3361,7 +3361,9 @@ export type Database = {
           id: string
           image_url: string | null
           images: string[] | null
+          latitude: number | null
           location: string
+          longitude: number | null
           max_guests: number
           organization_id: string | null
           price_per_night: number | null
@@ -3386,7 +3388,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: string[] | null
+          latitude?: number | null
           location: string
+          longitude?: number | null
           max_guests: number
           organization_id?: string | null
           price_per_night?: number | null
@@ -3411,7 +3415,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: string[] | null
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           max_guests?: number
           organization_id?: string | null
           price_per_night?: number | null

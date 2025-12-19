@@ -11,6 +11,7 @@ import MobileBookingBar from '@/components/property/MobileBookingBar';
 import QuickInfoSection from '@/components/property/QuickInfoSection';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import PropertyReviewsSection from '@/components/property/PropertyReviewsSection';
+import PropertyLocationMap from '@/components/property/PropertyLocationMap';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -143,6 +144,15 @@ const PropertyPage = () => {
 
       {/* Amenities Section - Enhanced with new colors and 12-item layout */}
       <AmenitiesSection amenities={property.amenities} />
+
+      {/* Property Location Map */}
+      <section className="py-12 px-4 md:px-8 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Location</h2>
+          <PropertyLocationMap property={property} />
+          <p className="text-sm text-muted-foreground mt-4">{property.location}</p>
+        </div>
+      </section>
 
       {/* Guest Reviews Section */}
       <PropertyReviewsSection propertyId={property.id} />
