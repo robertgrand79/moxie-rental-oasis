@@ -286,12 +286,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('✅ Sign in successful');
       
-      // Update last_login_at timestamp using user ID (required by RLS policy)
+      // Update last_login_at timestamp using secure database function
       if (data?.user?.id) {
         const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ last_login_at: new Date().toISOString() })
-          .eq('id', data.user.id);
+          .rpc('update_user_last_login', { user_id: data.user.id });
         
         if (updateError) {
           console.warn('Failed to update last_login_at:', updateError);
