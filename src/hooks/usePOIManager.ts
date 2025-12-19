@@ -178,6 +178,7 @@ export const usePOIManager = () => {
         is_active: poi.is_active !== false,
         display_order: poi.display_order || 0,
         status: poi.status || 'draft',
+        show_on_map: poi.show_on_map !== false,
         created_by: poi.created_by || user?.id || ''
       };
       

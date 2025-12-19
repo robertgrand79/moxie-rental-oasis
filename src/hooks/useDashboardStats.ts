@@ -75,14 +75,16 @@ export const useDashboardStats = () => {
           .select('*', { count: 'exact', head: true })
           .eq('organization_id', organizationId)
           .eq('status', 'published'),
-        // Points of interest total - no org filter (global content)
+        // Places total (formerly points_of_interest) - filtered by organization
         supabase
-          .from('points_of_interest')
-          .select('*', { count: 'exact', head: true }),
-        // Points of interest featured - no org filter (global content)
-        supabase
-          .from('points_of_interest')
+          .from('places')
           .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organizationId),
+        // Places featured - filtered by organization
+        supabase
+          .from('places')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organizationId)
           .eq('is_featured', true),
         // Gallery items total - filtered by organization
         supabase

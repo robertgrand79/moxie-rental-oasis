@@ -1,10 +1,7 @@
 import React from 'react';
 import LocalExperienceHero from '@/components/experiences/LocalExperienceHero';
-import EugeneExperienceCategories from '@/components/experiences/EugeneExperienceCategories';
-import LocalHighlights from '@/components/experiences/LocalHighlights';
 import POIMap from '@/components/experiences/POIMap';
 import PointsOfInterestDisplay from '@/components/experiences/PointsOfInterestDisplay';
-import LocalFavorites from '@/components/experiences/LocalFavorites';
 import LocalExploreGuide from '@/components/experiences/LocalExploreGuide';
 import LocalExperienceCallToAction from '@/components/experiences/LocalExperienceCallToAction';
 
@@ -12,11 +9,12 @@ const Experiences = () => {
   return (
     <div className="min-h-screen">
       <LocalExperienceHero />
-      <EugeneExperienceCategories />
-      <LocalHighlights />
       <POIMap />
-      <PointsOfInterestDisplay />
-      <LocalFavorites />
+      <section className="py-12 px-4 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <PointsOfInterestDisplay />
+        </div>
+      </section>
       <LocalExploreGuide />
       <LocalExperienceCallToAction />
     </div>

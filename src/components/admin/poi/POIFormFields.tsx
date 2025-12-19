@@ -25,6 +25,7 @@ export interface POIFormData {
   is_active: boolean;
   display_order: number;
   status: string;
+  show_on_map: boolean;
   created_by: string;
 }
 
@@ -226,7 +227,7 @@ const POIFormFields = ({
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="flex items-center space-x-2">
           <Switch
             id="is_featured"
@@ -243,6 +244,15 @@ const POIFormFields = ({
             onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
           />
           <Label htmlFor="is_active">Active</Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="show_on_map"
+            checked={formData.show_on_map}
+            onCheckedChange={(checked) => setFormData({ ...formData, show_on_map: checked })}
+          />
+          <Label htmlFor="show_on_map">Show on Map</Label>
         </div>
 
         <div>

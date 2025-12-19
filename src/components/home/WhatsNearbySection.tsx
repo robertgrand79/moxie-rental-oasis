@@ -1,53 +1,27 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Clock, Car, Phone, Globe, Star } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useTenantPointsOfInterest } from '@/hooks/useTenantPointsOfInterest';
 
-interface PointOfInterest {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  address: string;
-  distance_from_properties: number;
-  walking_time: number;
-  driving_time: number;
-  image_url: string;
-  website_url: string;
-  phone: string;
-  rating: number;
-  price_level: number;
-}
-
-const categoryLabels = {
+const categoryLabels: Record<string, string> = {
+  dining: 'Dining',
+  outdoor: 'Outdoor',
+  entertainment: 'Entertainment',
+  shopping: 'Shopping',
+  accommodation: 'Accommodation',
+  lifestyle: 'Lifestyle',
   restaurant: 'Restaurants',
   attraction: 'Attractions',
-  shopping: 'Shopping',
-  outdoor: 'Outdoor Activities'
+  culture: 'Culture',
 };
 
 const WhatsNearbySection = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { pointsOfInterest, isLoading } = useTenantPointsOfInterest();
 
-  const { data: pointsOfInterest = [], isLoading } = useQuery({
-    queryKey: ['points-of-interest'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('points_of_interest')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order', { ascending: true });
-      
-      if (error) throw error;
-      return data as PointOfInterest[];
-    }
-  });
-
-  const categories = ['all', ...Object.keys(categoryLabels)];
+  const categories = ['all', ...new Set(pointsOfInterest.map(poi => poi.category))];
   
   const filteredPOIs = selectedCategory === 'all' 
     ? pointsOfInterest 
@@ -59,14 +33,14 @@ const WhatsNearbySection = () => {
 
   if (isLoading) {
     return (
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto mb-8"></div>
+            <div className="h-8 bg-muted rounded w-1/3 mx-auto mb-4"></div>
+            <div className="h-4 bg-muted rounded w-1/2 mx-auto mb-8"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-80 bg-gray-200 rounded-lg"></div>
+                <div key={i} className="h-80 bg-muted rounded-lg"></div>
               ))}
             </div>
           </div>
@@ -75,12 +49,16 @@ const WhatsNearbySection = () => {
     );
   }
 
+  if (pointsOfInterest.length === 0) {
+    return null;
+  }
+
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">What's Nearby</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-foreground mb-4">What's Nearby</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Everything you need is just minutes away from our properties
           </p>
         </div>
@@ -94,7 +72,7 @@ const WhatsNearbySection = () => {
               className="cursor-pointer px-4 py-2 text-sm"
               onClick={() => setSelectedCategory(category)}
             >
-              {category === 'all' ? 'All' : categoryLabels[category as keyof typeof categoryLabels]}
+              {category === 'all' ? 'All' : (categoryLabels[category] || category)}
             </Badge>
           ))}
         </div>
@@ -114,8 +92,8 @@ const WhatsNearbySection = () => {
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute top-4 left-4">
-                    <Badge variant="secondary" className="bg-white/90 text-gray-900">
-                      {categoryLabels[poi.category as keyof typeof categoryLabels]}
+                    <Badge variant="secondary" className="bg-background/90 text-foreground">
+                      {categoryLabels[poi.category] || poi.category}
                     </Badge>
                   </div>
                 </div>
@@ -123,7 +101,7 @@ const WhatsNearbySection = () => {
               
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
                     {poi.name}
                   </h3>
                   {poi.rating && (
@@ -135,12 +113,12 @@ const WhatsNearbySection = () => {
                 </div>
 
                 {poi.description && (
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                  <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
                     {poi.description}
                   </p>
                 )}
 
-                <div className="space-y-2 text-sm text-gray-500">
+                <div className="space-y-2 text-sm text-muted-foreground">
                   {poi.address && (
                     <div className="flex items-center">
                       <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -149,14 +127,18 @@ const WhatsNearbySection = () => {
                   )}
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2" />
-                      <span>{poi.walking_time} min walk</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Car className="h-4 w-4 mr-2" />
-                      <span>{poi.driving_time} min drive</span>
-                    </div>
+                    {poi.walking_time && (
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-2" />
+                        <span>{poi.walking_time} min walk</span>
+                      </div>
+                    )}
+                    {poi.driving_time && (
+                      <div className="flex items-center">
+                        <Car className="h-4 w-4 mr-2" />
+                        <span>{poi.driving_time} min drive</span>
+                      </div>
+                    )}
                   </div>
 
                   {poi.price_level && (
@@ -164,7 +146,9 @@ const WhatsNearbySection = () => {
                       <span className="text-green-600 font-medium">
                         {getPriceLevelDisplay(poi.price_level)}
                       </span>
-                      <span>{poi.distance_from_properties} miles away</span>
+                      {poi.distance_from_properties && (
+                        <span>{poi.distance_from_properties} miles away</span>
+                      )}
                     </div>
                   )}
 
@@ -172,7 +156,7 @@ const WhatsNearbySection = () => {
                     {poi.phone && (
                       <a
                         href={`tel:${poi.phone}`}
-                        className="flex items-center text-blue-600 hover:text-blue-800"
+                        className="flex items-center text-primary hover:text-primary/80"
                       >
                         <Phone className="h-4 w-4 mr-1" />
                         <span className="text-xs">Call</span>
@@ -183,7 +167,7 @@ const WhatsNearbySection = () => {
                         href={poi.website_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center text-blue-600 hover:text-blue-800"
+                        className="flex items-center text-primary hover:text-primary/80"
                       >
                         <Globe className="h-4 w-4 mr-1" />
                         <span className="text-xs">Website</span>
@@ -198,7 +182,7 @@ const WhatsNearbySection = () => {
 
         {filteredPOIs.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500">No locations found in this category.</p>
+            <p className="text-muted-foreground">No locations found in this category.</p>
           </div>
         )}
       </div>

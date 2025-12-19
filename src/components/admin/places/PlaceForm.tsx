@@ -29,6 +29,11 @@ const placeSchema = z.object({
   is_featured: z.boolean().default(false),
   status: z.enum(['published', 'draft']).default('published'),
   display_order: z.number().default(0),
+  // POI-specific fields
+  distance_from_properties: z.number().optional(),
+  walking_time: z.number().optional(),
+  driving_time: z.number().optional(),
+  show_on_map: z.boolean().default(true),
 });
 
 type PlaceFormData = z.infer<typeof placeSchema>;
@@ -61,6 +66,10 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
       is_featured: place?.is_featured || false,
       status: place?.status || 'published',
       display_order: place?.display_order || 0,
+      distance_from_properties: place?.distance_from_properties || undefined,
+      walking_time: place?.walking_time || undefined,
+      driving_time: place?.driving_time || undefined,
+      show_on_map: place?.show_on_map !== false,
     },
   });
 
@@ -83,6 +92,10 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
         is_featured: place.is_featured || false,
         status: place.status || 'published',
         display_order: place.display_order || 0,
+        distance_from_properties: place.distance_from_properties || undefined,
+        walking_time: place.walking_time || undefined,
+        driving_time: place.driving_time || undefined,
+        show_on_map: place.show_on_map !== false,
       });
     }
   }, [place, form]);
@@ -370,26 +383,107 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
 
                 <FormField
                   control={form.control}
-                  name="status"
+                  name="show_on_map"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Show on Experiences Map</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Display on the public map
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="walking_time"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="published">Published</SelectItem>
-                          <SelectItem value="draft">Draft</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Walking Time (min)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          placeholder="e.g., 10"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="driving_time"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Driving Time (min)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          placeholder="e.g., 5"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="distance_from_properties"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Distance (miles)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          step="0.1"
+                          placeholder="e.g., 1.5"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="published">Published</SelectItem>
+                        <SelectItem value="draft">Draft</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex justify-end space-x-2 pt-4">
                 <Button type="button" variant="outline" onClick={onClose}>

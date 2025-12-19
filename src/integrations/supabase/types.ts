@@ -2949,6 +2949,8 @@ export type Database = {
           created_by: string
           description: string | null
           display_order: number | null
+          distance_from_properties: number | null
+          driving_time: number | null
           id: string
           image_url: string | null
           images: string[] | null
@@ -2962,9 +2964,11 @@ export type Database = {
           phone: string | null
           price_level: number | null
           rating: number | null
+          show_on_map: boolean | null
           status: string
           subcategory: string | null
           updated_at: string
+          walking_time: number | null
           website_url: string | null
         }
         Insert: {
@@ -2975,6 +2979,8 @@ export type Database = {
           created_by: string
           description?: string | null
           display_order?: number | null
+          distance_from_properties?: number | null
+          driving_time?: number | null
           id?: string
           image_url?: string | null
           images?: string[] | null
@@ -2988,9 +2994,11 @@ export type Database = {
           phone?: string | null
           price_level?: number | null
           rating?: number | null
+          show_on_map?: boolean | null
           status?: string
           subcategory?: string | null
           updated_at?: string
+          walking_time?: number | null
           website_url?: string | null
         }
         Update: {
@@ -3001,6 +3009,8 @@ export type Database = {
           created_by?: string
           description?: string | null
           display_order?: number | null
+          distance_from_properties?: number | null
+          driving_time?: number | null
           id?: string
           image_url?: string | null
           images?: string[] | null
@@ -3014,9 +3024,11 @@ export type Database = {
           phone?: string | null
           price_level?: number | null
           rating?: number | null
+          show_on_map?: boolean | null
           status?: string
           subcategory?: string | null
           updated_at?: string
+          walking_time?: number | null
           website_url?: string | null
         }
         Relationships: [
@@ -3082,92 +3094,6 @@ export type Database = {
           value?: string | null
         }
         Relationships: []
-      }
-      points_of_interest: {
-        Row: {
-          address: string | null
-          category: string
-          created_at: string
-          created_by: string
-          description: string | null
-          display_order: number | null
-          distance_from_properties: number | null
-          driving_time: number | null
-          id: string
-          image_url: string | null
-          is_active: boolean | null
-          is_featured: boolean | null
-          latitude: number | null
-          longitude: number | null
-          name: string
-          organization_id: string
-          phone: string | null
-          price_level: number | null
-          rating: number | null
-          status: string
-          updated_at: string
-          walking_time: number | null
-          website_url: string | null
-        }
-        Insert: {
-          address?: string | null
-          category: string
-          created_at?: string
-          created_by: string
-          description?: string | null
-          display_order?: number | null
-          distance_from_properties?: number | null
-          driving_time?: number | null
-          id?: string
-          image_url?: string | null
-          is_active?: boolean | null
-          is_featured?: boolean | null
-          latitude?: number | null
-          longitude?: number | null
-          name: string
-          organization_id: string
-          phone?: string | null
-          price_level?: number | null
-          rating?: number | null
-          status?: string
-          updated_at?: string
-          walking_time?: number | null
-          website_url?: string | null
-        }
-        Update: {
-          address?: string | null
-          category?: string
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          display_order?: number | null
-          distance_from_properties?: number | null
-          driving_time?: number | null
-          id?: string
-          image_url?: string | null
-          is_active?: boolean | null
-          is_featured?: boolean | null
-          latitude?: number | null
-          longitude?: number | null
-          name?: string
-          organization_id?: string
-          phone?: string | null
-          price_level?: number | null
-          rating?: number | null
-          status?: string
-          updated_at?: string
-          walking_time?: number | null
-          website_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "points_of_interest_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       pricelabs_sync_logs: {
         Row: {

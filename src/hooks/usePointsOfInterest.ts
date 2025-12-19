@@ -11,6 +11,7 @@ export interface PointOfInterest {
   latitude: number;
   longitude: number;
   category: string;
+  subcategory?: string;
   phone: string;
   website_url: string;
   image_url: string;
@@ -23,6 +24,7 @@ export interface PointOfInterest {
   is_active: boolean;
   display_order: number;
   status: string;
+  show_on_map: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -40,9 +42,10 @@ export const usePointsOfInterest = () => {
       if (!organization?.id) return [];
       
       const { data, error } = await supabase
-        .from('points_of_interest')
+        .from('places')
         .select('*')
         .eq('organization_id', organization.id)
+        .eq('show_on_map', true)
         .order('display_order', { ascending: true });
       
       if (error) throw error;
@@ -56,7 +59,7 @@ export const usePointsOfInterest = () => {
       if (!organization?.id) throw new Error('No organization context');
       
       const { data, error } = await supabase
-        .from('points_of_interest')
+        .from('places')
         .insert([{ ...poi, organization_id: organization.id }])
         .select()
         .single();
@@ -66,6 +69,7 @@ export const usePointsOfInterest = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['points-of-interest'] });
+      queryClient.invalidateQueries({ queryKey: ['places'] });
       toast({
         title: "Success",
         description: "Point of interest created successfully",
@@ -83,7 +87,7 @@ export const usePointsOfInterest = () => {
   const updatePointOfInterest = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<PointOfInterest> & { id: string }) => {
       const { data, error } = await supabase
-        .from('points_of_interest')
+        .from('places')
         .update(updates)
         .eq('id', id)
         .select()
@@ -94,6 +98,7 @@ export const usePointsOfInterest = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['points-of-interest'] });
+      queryClient.invalidateQueries({ queryKey: ['places'] });
       toast({
         title: "Success",
         description: "Point of interest updated successfully",
@@ -111,7 +116,7 @@ export const usePointsOfInterest = () => {
   const deletePointOfInterest = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('points_of_interest')
+        .from('places')
         .delete()
         .eq('id', id);
       
@@ -119,6 +124,7 @@ export const usePointsOfInterest = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['points-of-interest'] });
+      queryClient.invalidateQueries({ queryKey: ['places'] });
       toast({
         title: "Success",
         description: "Point of interest deleted successfully",

@@ -254,7 +254,7 @@ const POIMap = () => {
         </div>
 
         <div className="relative">
-          <div ref={mapContainer} className="w-full h-[450px] rounded-xl shadow-lg overflow-hidden" />
+          <div ref={mapContainer} className="w-full h-[350px] md:h-[500px] lg:h-[600px] rounded-xl shadow-lg overflow-hidden" />
 
           {/* Legend */}
           <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-md">

@@ -42,6 +42,7 @@ const POIForm = ({ isOpen, onOpenChange, editingPOI, onSubmit, categories }: POI
     is_active: editingPOI?.is_active !== false,
     display_order: editingPOI?.display_order || 0,
     status: editingPOI?.status || 'draft',
+    show_on_map: editingPOI?.show_on_map !== false,
     created_by: editingPOI?.created_by || user?.id || ''
   });
 
@@ -66,6 +67,7 @@ const POIForm = ({ isOpen, onOpenChange, editingPOI, onSubmit, categories }: POI
         is_active: editingPOI.is_active !== false,
         display_order: editingPOI.display_order || 0,
         status: editingPOI.status || 'draft',
+        show_on_map: editingPOI.show_on_map !== false,
         created_by: editingPOI.created_by
       });
     } else {
@@ -88,6 +90,7 @@ const POIForm = ({ isOpen, onOpenChange, editingPOI, onSubmit, categories }: POI
         is_active: true,
         display_order: 0,
         status: 'draft',
+        show_on_map: true,
         created_by: user?.id || ''
       });
     }

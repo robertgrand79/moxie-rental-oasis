@@ -61,7 +61,8 @@ const POIEditorLayout = ({
     is_active: true,
     display_order: 0,
     created_by: '',
-    status: 'draft'
+    status: 'draft',
+    show_on_map: true
   });
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -89,7 +90,8 @@ const POIEditorLayout = ({
       is_active: true,
       display_order: 0,
       created_by: '',
-      status: 'draft'
+      status: 'draft',
+      show_on_map: true
     });
     setHasUnsavedChanges(false);
     toast.success('POI editor reset to default view');
@@ -135,7 +137,8 @@ const POIEditorLayout = ({
       is_active: item.is_active !== false,
       display_order: item.display_order || 0,
       created_by: item.created_by,
-      status: item.status || 'draft'
+      status: item.status || 'draft',
+      show_on_map: item.show_on_map !== false
     });
     setActiveTab('editor');
   };
@@ -161,7 +164,8 @@ const POIEditorLayout = ({
       is_active: true,
       display_order: 0,
       created_by: '',
-      status: 'draft'
+      status: 'draft',
+      show_on_map: true
     });
     setActiveTab('editor');
   };
