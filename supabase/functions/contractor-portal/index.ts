@@ -83,7 +83,6 @@ serve(async (req) => {
           scope_of_work,
           special_instructions,
           acknowledged_at,
-          started_at,
           completed_at,
           completion_photos,
           contractor_notes,
@@ -149,8 +148,6 @@ serve(async (req) => {
       
       if (status === 'acknowledged' && !wo.acknowledged_at) {
         updateData.acknowledged_at = new Date().toISOString();
-      } else if (status === 'in_progress') {
-        updateData.started_at = new Date().toISOString();
       } else if (status === 'completed') {
         updateData.completed_at = new Date().toISOString();
       }
