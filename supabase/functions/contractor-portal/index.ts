@@ -92,7 +92,7 @@ serve(async (req) => {
             id,
             title,
             location,
-            address
+            city
           )
         `)
         .eq('contractor_id', contractor.id)
