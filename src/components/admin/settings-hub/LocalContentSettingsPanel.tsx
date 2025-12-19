@@ -20,11 +20,11 @@ const contentSections = [
     href: '/admin/places',
   },
   {
-    id: 'testimonials',
-    title: 'Testimonials & Reviews',
+    id: 'reviews',
+    title: 'Reviews',
     description: 'Guest reviews and testimonials to showcase on your site',
     icon: Star,
-    href: '/admin/testimonials',
+    href: '/admin/reviews',
   },
 ];
 

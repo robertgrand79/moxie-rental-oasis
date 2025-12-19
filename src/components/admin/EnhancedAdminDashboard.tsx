@@ -204,7 +204,7 @@ const EnhancedAdminDashboard = () => {
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Reputation</h3>
           <div className="grid grid-cols-2 gap-4">
-            <Link to="/admin/testimonials">
+            <Link to="/admin/reviews">
               <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-4">
@@ -224,7 +224,7 @@ const EnhancedAdminDashboard = () => {
               </Card>
             </Link>
 
-            <Link to="/admin/testimonials">
+            <Link to="/admin/reviews">
               <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-4">
