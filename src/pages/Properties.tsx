@@ -1,6 +1,7 @@
 
 import React from 'react';
 import PropertyList from '@/components/PropertyList';
+import PropertyMap from '@/components/PropertyMap';
 import { useTenantProperties } from '@/hooks/useTenantProperties';
 import LoadingState from '@/components/ui/loading-state';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
@@ -27,7 +28,7 @@ const Properties = () => {
     <BackgroundWrapper>
       <div className="min-h-screen">
         <div className="container mx-auto px-4 py-16">
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-16 mx-auto border border-white/20">
             <div className="text-center mb-12">
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
                 Our Properties
@@ -36,6 +37,13 @@ const Properties = () => {
                 Discover our carefully curated collection of vacation rental properties in {locationText}.
               </p>
             </div>
+
+            {/* Property Map - Shows all property locations */}
+            {properties.length > 0 && (
+              <div className="mb-12">
+                <PropertyMap properties={properties} />
+              </div>
+            )}
 
             {properties.length > 0 ? (
               <PropertyList

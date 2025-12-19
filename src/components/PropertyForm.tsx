@@ -60,6 +60,8 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
       pricePerNight: initialData?.price_per_night || 100,
       airbnbListingUrl: initialData?.airbnb_listing_url || '',
       amenities: initialData?.amenities || '',
+      latitude: initialData?.latitude || undefined,
+      longitude: initialData?.longitude || undefined,
     },
   });
 

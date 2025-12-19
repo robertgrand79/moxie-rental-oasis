@@ -50,6 +50,8 @@ export const usePropertyOperations = () => {
         price_per_night: propertyData.pricePerNight, // Form field: pricePerNight → DB field: price_per_night
         airbnb_listing_url: propertyData.airbnbListingUrl || null, // Form field: airbnbListingUrl → DB field: airbnb_listing_url
         amenities: propertyData.amenities || null,
+        latitude: propertyData.latitude || null,
+        longitude: propertyData.longitude || null,
         images: uploadedImages,
         featured_photos: (propertyData.featuredPhotos || []).filter((url: string) => !url.startsWith('blob:')),
         cover_image_url: uploadedImages[0] || null,
@@ -153,6 +155,8 @@ export const usePropertyOperations = () => {
         price_per_night: propertyData.pricePerNight,
         airbnb_listing_url: propertyData.airbnbListingUrl || null,
         amenities: propertyData.amenities || null,
+        latitude: propertyData.latitude || null,
+        longitude: propertyData.longitude || null,
         images: allImages,
         featured_photos: (propertyData.featuredPhotos || []).filter((url: string) => !url.startsWith('blob:')),
         cover_image_url: allImages[0] || null,

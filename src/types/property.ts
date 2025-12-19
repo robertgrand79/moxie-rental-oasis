@@ -18,6 +18,8 @@ export interface Property {
   pricelabs_listing_id?: string; // PriceLabs integration
   amenities?: string;
   display_order?: number; // New field for custom ordering
+  latitude?: number; // Geocoded latitude coordinate
+  longitude?: number; // Geocoded longitude coordinate
   created_at?: string;
   updated_at?: string;
   created_by?: string;
