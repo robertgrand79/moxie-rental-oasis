@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { Plus } from 'lucide-react';
-import ContractorStatsCards from './ContractorStatsCards';
+import { Button } from '@/components/ui/button';
+import { Plus, Users, UserCheck, UserX, Wrench } from 'lucide-react';
 import ContractorSearchFilters from './ContractorSearchFilters';
 import ContractorViewControls from './ContractorViewControls';
 
@@ -39,35 +38,47 @@ const ModernContractorsHeader = ({
   onViewModeChange,
   onRefresh,
 }: ModernContractorsHeaderProps) => {
+  const topSpecialty = topSpecialties.length > 0 ? topSpecialties[0] : null;
+
   return (
-    <div className="space-y-6">
-      {/* Title and Action */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-4">
+      {/* Title, Stats, and Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Contractors</h1>
-          <p className="text-gray-600 mt-1">Manage your contractor network</p>
+          <h1 className="text-2xl font-bold text-foreground">Contractors</h1>
+          {/* Inline Stats */}
+          <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
+            <span className="flex items-center gap-1.5">
+              <Users className="h-4 w-4" />
+              <span className="font-medium text-foreground">{totalContractors}</span> Total
+            </span>
+            <span className="flex items-center gap-1.5">
+              <UserCheck className="h-4 w-4 text-green-600" />
+              <span className="font-medium text-green-600">{activeContractors}</span> Active
+            </span>
+            <span className="flex items-center gap-1.5">
+              <UserX className="h-4 w-4 text-red-600" />
+              <span className="font-medium text-red-600">{inactiveContractors}</span> Inactive
+            </span>
+            {topSpecialty && (
+              <span className="flex items-center gap-1.5">
+                <Wrench className="h-4 w-4" />
+                Top: <span className="font-medium text-foreground capitalize">{topSpecialty.specialty}</span>
+              </span>
+            )}
+          </div>
         </div>
-        <EnhancedButton 
+        <Button 
           onClick={onCreateContractor} 
-          size="lg" 
-          variant="outline"
-          className="min-h-[44px] sm:min-h-auto bg-gray-900 hover:bg-gray-800 text-white border-gray-900"
+          className="shrink-0"
         >
-          <Plus className="h-5 w-5 mr-2" />
+          <Plus className="h-4 w-4 mr-2" />
           Add Contractor
-        </EnhancedButton>
+        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <ContractorStatsCards
-        totalContractors={totalContractors}
-        activeContractors={activeContractors}
-        inactiveContractors={inactiveContractors}
-        topSpecialties={topSpecialties}
-      />
-
       {/* Controls */}
-      <div className="bg-white rounded-xl p-4 border shadow-sm">
+      <div className="bg-card rounded-xl p-4 border shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
           <ContractorSearchFilters
             searchQuery={searchQuery}

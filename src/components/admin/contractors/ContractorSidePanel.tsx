@@ -23,7 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus } from 'lucide-react';
+import { X, Mail, Phone, MapPin, Star, Edit, Building2 } from 'lucide-react';
 import { Contractor } from '@/hooks/useWorkOrderManagement';
 
 const contractorSchema = z.object({
@@ -57,6 +57,8 @@ interface ContractorSidePanelProps {
   onClose: () => void;
   onSave: (data: ContractorFormData) => Promise<void>;
   contractor?: Contractor | null;
+  isViewOnly?: boolean;
+  onEdit?: () => void;
 }
 
 const ContractorSidePanel = ({
@@ -64,8 +66,10 @@ const ContractorSidePanel = ({
   onClose,
   onSave,
   contractor,
+  isViewOnly = false,
+  onEdit,
 }: ContractorSidePanelProps) => {
-  const isEditing = !!contractor;
+  const isEditing = !!contractor && !isViewOnly;
   const [selectedSpecialties, setSelectedSpecialties] = React.useState<string[]>(
     contractor?.specialties || []
   );
@@ -133,6 +137,149 @@ const ContractorSidePanel = ({
     });
   };
 
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`h-4 w-4 ${
+          i < Math.floor(rating) 
+            ? 'text-yellow-400 fill-current' 
+            : 'text-muted-foreground/30'
+        }`}
+      />
+    ));
+  };
+
+  // View-only mode
+  if (isViewOnly && contractor) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onClose}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <div className="flex items-center justify-between">
+              <SheetTitle>Contractor Details</SheetTitle>
+              {onEdit && (
+                <Button variant="outline" size="sm" onClick={onEdit}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              )}
+            </div>
+            <SheetDescription>
+              View contractor information and details.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="space-y-6 mt-6">
+            {/* Status Badge */}
+            <div className="flex items-center gap-2">
+              <Badge 
+                variant="outline" 
+                className={`${
+                  contractor.is_active 
+                    ? 'border-green-200 bg-green-50 text-green-700' 
+                    : 'border-red-200 bg-red-50 text-red-700'
+                }`}
+              >
+                {contractor.is_active ? 'Active' : 'Inactive'}
+              </Badge>
+              {contractor.rating && (
+                <div className="flex items-center gap-1">
+                  {renderStars(contractor.rating)}
+                  <span className="text-sm text-muted-foreground ml-1">
+                    ({contractor.rating.toFixed(1)})
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Basic Info */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{contractor.name}</h3>
+              
+              {contractor.company_name && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Building2 className="h-4 w-4" />
+                  <span>{contractor.company_name}</span>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="h-4 w-4" />
+                  <a href={`mailto:${contractor.email}`} className="text-primary hover:underline">
+                    {contractor.email}
+                  </a>
+                </div>
+
+                {contractor.phone && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    <a href={`tel:${contractor.phone}`} className="text-primary hover:underline">
+                      {contractor.phone}
+                    </a>
+                  </div>
+                )}
+
+                {contractor.address && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{contractor.address}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Specialties */}
+            {contractor.specialties && contractor.specialties.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Specialties</h4>
+                <div className="flex flex-wrap gap-2">
+                  {contractor.specialties.map((specialty) => (
+                    <Badge key={specialty} variant="secondary" className="capitalize">
+                      {specialty}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            {contractor.notes && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Notes</h4>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {contractor.notes}
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-6 border-t">
+              {contractor.email && (
+                <Button variant="outline" className="flex-1" asChild>
+                  <a href={`mailto:${contractor.email}`}>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email
+                  </a>
+                </Button>
+              )}
+              {contractor.phone && (
+                <Button variant="outline" className="flex-1" asChild>
+                  <a href={`tel:${contractor.phone}`}>
+                    <Phone className="h-4 w-4 mr-2" />
+                    Call
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Edit/Create mode
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
