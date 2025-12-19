@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Palette, Type, Image, Share, MapPin, Calendar, Camera, Star } from 'lucide-react';
+import { Palette, Type, Image, Share, MapPin, Calendar, Camera, Star, Sparkles } from 'lucide-react';
 import ColorCustomizer from '@/components/ColorCustomizer';
 import FontCustomizer from '@/components/FontCustomizer';
 import LogoUploader from '@/components/LogoUploader';
@@ -11,6 +11,7 @@ import SEOSettingsTab from '@/components/admin/settings/SEOSettingsTab';
 import AnalyticsSettingsTab from '@/components/admin/settings/AnalyticsSettingsTab';
 import { TestimonialsManager, GalleryTab, PointsOfInterestTab, EventsTab } from '@/components/admin/settings/ContentManagementTabs';
 import SettingsErrorBoundary from '@/components/admin/settings/SettingsErrorBoundary';
+import AmenitiesManager from '@/components/admin/amenities/AmenitiesManager';
 
 const SiteSettings = () => {
   const { settings, loading, saveSetting } = useSimplifiedSiteSettings();
@@ -48,8 +49,8 @@ const SiteSettings = () => {
         </div>
 
         <SettingsErrorBoundary>
-          <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-10">
+        <Tabs defaultValue="general" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-11">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="testimonials">
                 <Star className="h-4 w-4 mr-1" />
@@ -58,6 +59,10 @@ const SiteSettings = () => {
               <TabsTrigger value="gallery">
                 <Camera className="h-4 w-4 mr-1" />
                 Gallery
+              </TabsTrigger>
+              <TabsTrigger value="amenities">
+                <Sparkles className="h-4 w-4 mr-1" />
+                Amenities
               </TabsTrigger>
               <TabsTrigger value="points-of-interest">
                 <MapPin className="h-4 w-4 mr-1" />
@@ -97,6 +102,10 @@ const SiteSettings = () => {
 
             <TabsContent value="gallery">
               <GalleryTab />
+            </TabsContent>
+
+            <TabsContent value="amenities">
+              <AmenitiesManager />
             </TabsContent>
 
             <TabsContent value="points-of-interest">
