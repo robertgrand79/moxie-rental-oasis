@@ -202,28 +202,7 @@ const WorkOrderCard = ({
 
       {/* Footer Actions */}
       <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/30" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-1">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => onView ? onView(workOrder) : onEdit(workOrder)}
-            className="h-8 text-muted-foreground hover:text-foreground"
-          >
-            <Eye className="h-3.5 w-3.5 mr-1.5" />
-            View
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => onEdit(workOrder)}
-            className="h-8 text-muted-foreground hover:text-foreground"
-          >
-            <Edit className="h-3.5 w-3.5 mr-1.5" />
-            Edit
-          </Button>
-        </div>
-        
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           {/* Email button - always visible */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -269,33 +248,34 @@ const WorkOrderCard = ({
               </TooltipContent>
             )}
           </Tooltip>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onView ? onView(workOrder) : onEdit(workOrder)}>
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(workOrder)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => onDelete(workOrder.id)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
+        
+        {/* More dropdown with View, Edit, Delete */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onView ? onView(workOrder) : onEdit(workOrder)}>
+              <Eye className="h-4 w-4 mr-2" />
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(workOrder)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => onDelete(workOrder.id)}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
