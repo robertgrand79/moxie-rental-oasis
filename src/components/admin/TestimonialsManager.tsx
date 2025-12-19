@@ -169,7 +169,7 @@ const TestimonialsManager = () => {
               <DialogTrigger asChild>
                 <Button onClick={() => {resetForm(); setIsDialogOpen(true)}}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Testimonial
+                  Add Review
                 </Button>
               </DialogTrigger>
               <TestimonialForm
