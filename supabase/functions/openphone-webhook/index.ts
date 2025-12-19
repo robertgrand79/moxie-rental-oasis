@@ -67,9 +67,39 @@ const handler = async (req: Request): Promise<Response> => {
     const senderPhone = message.from;
     const messageBody = message.body;
     const receivedAt = message.createdAt;
+    const receivingPhoneId = message.phoneNumberId;
 
     console.log("[QUO Webhook] Inbound SMS from:", senderPhone);
+    console.log("[QUO Webhook] Receiving phone ID:", receivingPhoneId);
     console.log("[QUO Webhook] Message body:", messageBody);
+
+    // Fetch the organization's configured phone number to filter messages
+    const { data: orgData, error: orgError } = await supabase
+      .from("organizations")
+      .select("openphone_phone_number")
+      .eq("id", orgId)
+      .single();
+
+    if (orgError) {
+      console.error("[QUO Webhook] Error fetching org phone number:", orgError);
+      throw orgError;
+    }
+
+    // Only process messages for the organization's configured phone number
+    if (orgData?.openphone_phone_number && receivingPhoneId !== orgData.openphone_phone_number) {
+      console.log("[QUO Webhook] Message for different phone number - ignoring");
+      console.log("[QUO Webhook] Received on:", receivingPhoneId);
+      console.log("[QUO Webhook] Org configured for:", orgData.openphone_phone_number);
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Message ignored - different phone number" 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[QUO Webhook] Phone number matches org config, processing message");
 
     // Get organization's properties
     const { data: properties, error: propsError } = await supabase
