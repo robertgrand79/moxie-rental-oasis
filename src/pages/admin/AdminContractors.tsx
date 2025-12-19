@@ -37,20 +37,34 @@ const AdminContractors = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [editingContractor, setEditingContractor] = useState<Contractor | null>(null);
+  const [isViewOnly, setIsViewOnly] = useState(false);
 
   const handleCreateContractor = () => {
     setEditingContractor(null);
+    setIsViewOnly(false);
     setIsSidePanelOpen(true);
   };
 
   const handleEditContractor = (contractor: Contractor) => {
     setEditingContractor(contractor);
+    setIsViewOnly(false);
     setIsSidePanelOpen(true);
+  };
+
+  const handleViewContractor = (contractor: Contractor) => {
+    setEditingContractor(contractor);
+    setIsViewOnly(true);
+    setIsSidePanelOpen(true);
+  };
+
+  const handleSwitchToEdit = () => {
+    setIsViewOnly(false);
   };
 
   const handleCloseSidePanel = () => {
     setIsSidePanelOpen(false);
     setEditingContractor(null);
+    setIsViewOnly(false);
   };
 
   const handleSaveAndClose = async (contractorData: any) => {
@@ -62,6 +76,7 @@ const AdminContractors = () => {
   const resetToDefaultState = useCallback(() => {
     setIsSidePanelOpen(false);
     setEditingContractor(null);
+    setIsViewOnly(false);
     setViewMode('grid');
     setStatusFilter('all');
     setSpecialtyFilter('all');
@@ -76,7 +91,7 @@ const AdminContractors = () => {
   }
 
   return (
-    <div className="space-y-8 px-4 py-6 max-w-full overflow-hidden">
+    <div className="space-y-6 px-4 py-6 max-w-full overflow-hidden">
       <ModernContractorsHeader
         totalContractors={stats.totalContractors}
         activeContractors={stats.activeContractors}
@@ -98,6 +113,7 @@ const AdminContractors = () => {
         <ContractorsGrid
           contractors={filteredContractors}
           onContractorEdit={handleEditContractor}
+          onContractorView={handleViewContractor}
           onDeleteContractor={handleDeleteContractor}
           onToggleStatus={handleToggleContractorStatus}
           updatingContractors={updatingContractors}
@@ -106,6 +122,7 @@ const AdminContractors = () => {
         <ContractorsTable
           contractors={filteredContractors}
           onContractorEdit={handleEditContractor}
+          onContractorView={handleViewContractor}
           onDeleteContractor={handleDeleteContractor}
           onToggleStatus={handleToggleContractorStatus}
           updatingContractors={updatingContractors}
@@ -117,6 +134,8 @@ const AdminContractors = () => {
         onClose={handleCloseSidePanel}
         onSave={handleSaveAndClose}
         contractor={editingContractor}
+        isViewOnly={isViewOnly}
+        onEdit={handleSwitchToEdit}
       />
     </div>
   );
