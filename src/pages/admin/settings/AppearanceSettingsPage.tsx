@@ -1,16 +1,16 @@
 import React from 'react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import SettingsPageLayout from '@/components/admin/settings/SettingsPageLayout';
-import AppearanceSettingsPanel from '@/components/admin/settings-hub/AppearanceSettingsPanel';
+import ModernAppearanceSettings from '@/components/admin/settings/modern/ModernAppearanceSettings';
 
 const AppearanceSettingsPage: React.FC = () => {
   return (
     <AdminPageWrapper title="Appearance Settings" description="Customize your site's look">
       <SettingsPageLayout
-        title="Appearance"
-        description="Colors, fonts, logo, favicon, custom CSS"
+        title=""
+        description=""
       >
-        <AppearanceSettingsPanel />
+        <ModernAppearanceSettings />
       </SettingsPageLayout>
     </AdminPageWrapper>
   );
