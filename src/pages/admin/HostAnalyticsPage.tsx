@@ -1,8 +1,12 @@
 import React from 'react';
-import PropertyAnalyticsDashboard from '@/components/admin/host/PropertyAnalyticsDashboard';
+import ModernPropertyAnalytics from '@/components/admin/host/ModernPropertyAnalytics';
 
 const HostAnalyticsPage = () => {
-  return <PropertyAnalyticsDashboard />;
+  return (
+    <div className="p-6">
+      <ModernPropertyAnalytics />
+    </div>
+  );
 };
 
 export default HostAnalyticsPage;
