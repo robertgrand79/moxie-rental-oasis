@@ -9,6 +9,7 @@ export async function fetchWorkOrderWithDetails(
     .from('work_orders')
     .select(`
       *,
+      organization_id,
       contractor:contractors(*),
       property:properties(*)
     `)
