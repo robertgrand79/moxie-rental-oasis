@@ -1,8 +1,12 @@
 import React from 'react';
-import BookingManagement from '@/components/admin/host/BookingManagement';
+import ModernBookingManagement from '@/components/admin/host/ModernBookingManagement';
 
 const HostBookingsPage = () => {
-  return <BookingManagement />;
+  return (
+    <div className="p-6">
+      <ModernBookingManagement />
+    </div>
+  );
 };
 
 export default HostBookingsPage;
