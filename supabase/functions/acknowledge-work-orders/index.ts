@@ -6,291 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const htmlHeaders = {
-  ...corsHeaders,
-  "Content-Type": "text/html; charset=utf-8",
-  "X-Content-Type-Options": "nosniff",
-  "Cache-Control": "no-cache, no-store, must-revalidate",
-  Pragma: "no-cache",
-  Expires: "0",
-};
+// Base URL for redirects
+const BASE_URL = "https://moxievacationrentals.com";
 
-function htmlResponse(html: string): Response {
-  return new Response(html, {
-    status: 200,
-    headers: htmlHeaders,
+function redirect(path: string): Response {
+  return new Response(null, {
+    status: 302,
+    headers: { ...corsHeaders, Location: `${BASE_URL}${path}` }
   });
-}
-
-function generateSuccessPage(workOrderCount: number, contractorName: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Work Orders Acknowledged</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .container {
-      background: white;
-      border-radius: 24px;
-      padding: 60px 40px;
-      text-align: center;
-      max-width: 500px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-    }
-    .icon {
-      width: 80px;
-      height: 80px;
-      background: #10b981;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-      animation: scale-in 0.5s ease-out;
-    }
-    @keyframes scale-in {
-      0% { transform: scale(0); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-    .icon svg {
-      width: 40px;
-      height: 40px;
-      color: white;
-    }
-    h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 16px;
-    }
-    p {
-      font-size: 18px;
-      color: #4b5563;
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-    .details {
-      background: #f8fafc;
-      border-radius: 12px;
-      padding: 20px;
-      margin-top: 24px;
-    }
-    .details p {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 0;
-    }
-    .logo {
-      font-size: 24px;
-      font-weight: 800;
-      color: #1f2937;
-      margin-bottom: 8px;
-    }
-    .tagline {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 24px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="logo">Moxie Vacation Rentals</div>
-    <div class="tagline">Your Home Base for Living Like a Local</div>
-
-    <div class="icon">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-      </svg>
-    </div>
-
-    <h1>Thank You, ${contractorName}!</h1>
-    <p>You have successfully acknowledged receipt of ${workOrderCount} work order${workOrderCount > 1 ? 's' : ''}.</p>
-
-    <div class="details">
-      <p>We've recorded your acknowledgment and updated our records. You can close this window now.</p>
-    </div>
-  </div>
-</body>
-</html>`;
-}
-
-function generateErrorPage(message: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acknowledgment Error</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .container {
-      background: white;
-      border-radius: 24px;
-      padding: 60px 40px;
-      text-align: center;
-      max-width: 500px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-    }
-    .icon {
-      width: 80px;
-      height: 80px;
-      background: #ef4444;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-    }
-    .icon svg {
-      width: 40px;
-      height: 40px;
-      color: white;
-    }
-    h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 16px;
-    }
-    p {
-      font-size: 18px;
-      color: #4b5563;
-      line-height: 1.6;
-    }
-    .logo {
-      font-size: 24px;
-      font-weight: 800;
-      color: #1f2937;
-      margin-bottom: 8px;
-    }
-    .tagline {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 24px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="logo">Moxie Vacation Rentals</div>
-    <div class="tagline">Your Home Base for Living Like a Local</div>
-
-    <div class="icon">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </div>
-
-    <h1>Oops!</h1>
-    <p>${message}</p>
-  </div>
-</body>
-</html>`;
-}
-
-function generateAlreadyAcknowledgedPage(contractorName: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Already Acknowledged</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .container {
-      background: white;
-      border-radius: 24px;
-      padding: 60px 40px;
-      text-align: center;
-      max-width: 500px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-    }
-    .icon {
-      width: 80px;
-      height: 80px;
-      background: #3b82f6;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-    }
-    .icon svg {
-      width: 40px;
-      height: 40px;
-      color: white;
-    }
-    h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 16px;
-    }
-    p {
-      font-size: 18px;
-      color: #4b5563;
-      line-height: 1.6;
-    }
-    .logo {
-      font-size: 24px;
-      font-weight: 800;
-      color: #1f2937;
-      margin-bottom: 8px;
-    }
-    .tagline {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 24px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="logo">Moxie Vacation Rentals</div>
-    <div class="tagline">Your Home Base for Living Like a Local</div>
-
-    <div class="icon">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>
-    </div>
-
-    <h1>Already Acknowledged</h1>
-    <p>Hi ${contractorName}! These work orders have already been acknowledged. No further action is needed.</p>
-  </div>
-</body>
-</html>`;
 }
 
 serve(async (req) => {
@@ -303,9 +26,8 @@ serve(async (req) => {
     const token = url.searchParams.get("token");
 
     if (!token) {
-      return htmlResponse(
-        generateErrorPage("Invalid acknowledgment link. Please use the link from your email.")
-      );
+      console.log("No token provided");
+      return redirect(`/acknowledge?status=error&message=${encodeURIComponent("Invalid acknowledgment link")}`);
     }
 
     console.log("Processing acknowledgment for token:", token);
@@ -324,7 +46,7 @@ serve(async (req) => {
 
     if (ackError || !ackRecord) {
       console.error("Acknowledgment record not found:", ackError);
-      return htmlResponse(generateErrorPage("This acknowledgment link is invalid or has expired."));
+      return redirect(`/acknowledge?status=error&message=${encodeURIComponent("This link is invalid or has expired")}`);
     }
 
     const contractorName = ackRecord.contractor?.name || "Contractor";
@@ -332,7 +54,7 @@ serve(async (req) => {
     // Check if already acknowledged
     if (ackRecord.acknowledged_at) {
       console.log("Already acknowledged at:", ackRecord.acknowledged_at);
-      return htmlResponse(generateAlreadyAcknowledgedPage(contractorName));
+      return redirect(`/acknowledge?status=already&name=${encodeURIComponent(contractorName)}`);
     }
 
     const now = new Date().toISOString();
@@ -360,12 +82,12 @@ serve(async (req) => {
       console.error("Error updating work orders:", updateWoError);
     }
 
-    console.log("Successfully acknowledged", ackRecord.work_order_ids.length, "work orders");
+    const count = ackRecord.work_order_ids?.length || 1;
+    console.log("Successfully acknowledged", count, "work orders for", contractorName);
 
-    return htmlResponse(generateSuccessPage(ackRecord.work_order_ids.length, contractorName));
+    return redirect(`/acknowledge?status=success&name=${encodeURIComponent(contractorName)}&count=${count}`);
   } catch (error) {
     console.error("Error in acknowledge-work-orders function:", error);
-    return htmlResponse(generateErrorPage("Something went wrong. Please try again later."));
+    return redirect(`/acknowledge?status=error&message=${encodeURIComponent("Something went wrong")}`);
   }
 });
-
