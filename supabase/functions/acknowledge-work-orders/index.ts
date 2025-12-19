@@ -294,7 +294,8 @@ serve(async (req) => {
 
     if (!token) {
       return new Response(generateErrorPage("Invalid acknowledgment link. Please use the link from your email."), {
-        headers: { "Content-Type": "text/html", ...corsHeaders },
+        status: 200,
+        headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders },
       });
     }
 
@@ -315,7 +316,8 @@ serve(async (req) => {
     if (ackError || !ackRecord) {
       console.error("Acknowledgment record not found:", ackError);
       return new Response(generateErrorPage("This acknowledgment link is invalid or has expired."), {
-        headers: { "Content-Type": "text/html", ...corsHeaders },
+        status: 200,
+        headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders },
       });
     }
 
@@ -325,7 +327,8 @@ serve(async (req) => {
     if (ackRecord.acknowledged_at) {
       console.log("Already acknowledged at:", ackRecord.acknowledged_at);
       return new Response(generateAlreadyAcknowledgedPage(contractorName), {
-        headers: { "Content-Type": "text/html", ...corsHeaders },
+        status: 200,
+        headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders },
       });
     }
 
@@ -357,12 +360,14 @@ serve(async (req) => {
     console.log("Successfully acknowledged", ackRecord.work_order_ids.length, "work orders");
 
     return new Response(generateSuccessPage(ackRecord.work_order_ids.length, contractorName), {
-      headers: { "Content-Type": "text/html", ...corsHeaders },
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders },
     });
   } catch (error) {
     console.error("Error in acknowledge-work-orders function:", error);
     return new Response(generateErrorPage("Something went wrong. Please try again later."), {
-      headers: { "Content-Type": "text/html", ...corsHeaders },
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders },
     });
   }
 });
