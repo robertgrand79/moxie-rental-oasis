@@ -5,6 +5,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 import { generateWorkOrderEmailContent } from './emailTemplate.ts';
 import { sendWorkOrderEmail } from './emailService.ts';
 import { fetchWorkOrderWithDetails, updateWorkOrderStatus } from './workOrderService.ts';
+import { decryptApiKey, isEncrypted } from '../_shared/encryption.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,9 +46,46 @@ serve(async (req) => {
     
     console.log('Email content generated successfully, length:', emailContent.length);
 
+    // Get Resend API key from organization
+    let resendApiKey = '';
+    
+    if (workOrder.organization_id) {
+      console.log('Fetching Resend API key for organization:', workOrder.organization_id);
+      const { data: org, error: orgError } = await supabase
+        .from('organizations')
+        .select('resend_api_key')
+        .eq('id', workOrder.organization_id)
+        .single();
+
+      if (orgError) {
+        console.error('Error fetching organization:', orgError);
+      }
+
+      if (org?.resend_api_key) {
+        resendApiKey = org.resend_api_key;
+        console.log('Found Resend API key in organization settings');
+        
+        // Decrypt if encrypted
+        if (isEncrypted(resendApiKey)) {
+          console.log('Decrypting Resend API key');
+          resendApiKey = await decryptApiKey(resendApiKey);
+        }
+      }
+    }
+
+    // Fall back to environment variable
+    if (!resendApiKey) {
+      console.log('No org key found, falling back to environment variable');
+      resendApiKey = Deno.env.get('RESEND_API_KEY') || '';
+    }
+
+    if (!resendApiKey) {
+      throw new Error('No Resend API key configured. Please add your Resend API key in Organization Settings > Communications.');
+    }
+
     // Send email via Resend
     console.log('Sending email to contractor:', workOrder.contractor?.email);
-    await sendWorkOrderEmail(workOrder, emailContent, Deno.env.get('RESEND_API_KEY') ?? '');
+    await sendWorkOrderEmail(workOrder, emailContent, resendApiKey);
 
     // Update work order status if needed
     await updateWorkOrderStatus(supabase, workOrderId, workOrder.status);
