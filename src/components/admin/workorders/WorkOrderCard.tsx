@@ -4,6 +4,7 @@ import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardFooter, EnhancedCardHeader } from '@/components/ui/enhanced-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Calendar, 
   User, 
@@ -24,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 interface WorkOrderCardProps {
   workOrder: WorkOrder;
@@ -33,6 +35,8 @@ interface WorkOrderCardProps {
   onStatusChange: (workOrderId: string, status: string) => void;
   isEmailing: boolean;
   isUpdating: boolean;
+  isSelected?: boolean;
+  onSelect?: (workOrderId: string, selected: boolean) => void;
 }
 
 const WorkOrderCard = ({
@@ -43,6 +47,8 @@ const WorkOrderCard = ({
   onStatusChange,
   isEmailing,
   isUpdating,
+  isSelected = false,
+  onSelect,
 }: WorkOrderCardProps) => {
   const priorityColors = {
     low: 'bg-green-100 text-green-800 border-green-200',
@@ -75,12 +81,33 @@ const WorkOrderCard = ({
     }
   };
 
+  const handleCheckboxChange = (checked: boolean) => {
+    onSelect?.(workOrder.id, checked);
+  };
+
   return (
     <EnhancedCard 
       variant="elevated" 
       hover={true}
-      className="group relative overflow-hidden"
+      className={cn(
+        "group relative overflow-hidden transition-all",
+        isSelected && "ring-2 ring-primary ring-offset-2"
+      )}
     >
+      {/* Selection checkbox */}
+      {onSelect && (
+        <div 
+          className="absolute top-3 left-3 z-10"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={handleCheckboxChange}
+            className="h-5 w-5 bg-white border-2 shadow-sm"
+          />
+        </div>
+      )}
+
       {/* Priority indicator stripe */}
       <div className={`absolute top-0 left-0 w-1 h-full ${
         workOrder.priority === 'critical' ? 'bg-red-500' :
@@ -88,7 +115,7 @@ const WorkOrderCard = ({
         workOrder.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
       }`} />
 
-      <EnhancedCardHeader className="pb-3">
+      <EnhancedCardHeader className={cn("pb-3", onSelect && "pl-10")}>
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0 mr-2">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -139,7 +166,7 @@ const WorkOrderCard = ({
         </div>
       </EnhancedCardHeader>
 
-      <EnhancedCardContent className="space-y-4">
+      <EnhancedCardContent className={cn("space-y-4", onSelect && "pl-10")}>
         {/* Status with quick actions */}
         <div className="flex items-center justify-between">
           <DropdownMenu>
@@ -203,7 +230,7 @@ const WorkOrderCard = ({
         </div>
       </EnhancedCardContent>
 
-      <EnhancedCardFooter className="pt-3 border-t">
+      <EnhancedCardFooter className={cn("pt-3 border-t", onSelect && "pl-10")}>
         <div className="flex items-center justify-between w-full">
           <Button 
             variant="outline" 

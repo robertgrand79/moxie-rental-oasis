@@ -4,10 +4,13 @@ import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { useWorkOrderOperations } from '@/hooks/useWorkOrderOperations';
 import { useWorkOrderFilters } from '@/hooks/useWorkOrderFilters';
 import { useWorkOrderStats } from '@/hooks/useWorkOrderStats';
+import { useWorkOrderBulkEmail } from '@/hooks/useWorkOrderBulkEmail';
 import ModernWorkOrdersHeader from '@/components/admin/workorders/ModernWorkOrdersHeader';
 import WorkOrdersGrid from '@/components/admin/workorders/WorkOrdersGrid';
 import WorkOrdersTable from '@/components/admin/workorders/WorkOrdersTable';
 import WorkOrderSidePanel from '@/components/admin/workorders/WorkOrderSidePanel';
+import SelectionActionBar from '@/components/admin/workorders/SelectionActionBar';
+import ContractorSelectModal from '@/components/admin/workorders/ContractorSelectModal';
 import LoadingState from '@/components/ui/loading-state';
 
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
@@ -37,14 +40,58 @@ const AdminWorkOrders = () => {
   } = useWorkOrderFilters(workOrders);
 
   const { totalWorkOrders, pendingWorkOrders, inProgressWorkOrders, completedWorkOrders } = useWorkOrderStats(workOrders);
+  
+  const { isSending, sendBulkWorkOrders } = useWorkOrderBulkEmail();
 
   // UI State
   const [isWorkOrderPanelOpen, setIsWorkOrderPanelOpen] = useState(false);
   const [editingWorkOrder, setEditingWorkOrder] = useState<WorkOrder | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  
+  // Selection state
+  const [selectedWorkOrders, setSelectedWorkOrders] = useState<Set<string>>(new Set());
+  const [isContractorModalOpen, setIsContractorModalOpen] = useState(false);
+
+  const handleSelectWorkOrder = useCallback((workOrderId: string, selected: boolean) => {
+    setSelectedWorkOrders(prev => {
+      const newSet = new Set(prev);
+      if (selected) {
+        newSet.add(workOrderId);
+      } else {
+        newSet.delete(workOrderId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    if (selectedWorkOrders.size === filteredWorkOrders.length) {
+      setSelectedWorkOrders(new Set());
+    } else {
+      setSelectedWorkOrders(new Set(filteredWorkOrders.map(wo => wo.id)));
+    }
+  }, [filteredWorkOrders, selectedWorkOrders.size]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedWorkOrders(new Set());
+  }, []);
+
+  const handleSendToContractor = useCallback(() => {
+    setIsContractorModalOpen(true);
+  }, []);
+
+  const handleContractorSelect = useCallback(async (contractorId: string) => {
+    const workOrderIds = Array.from(selectedWorkOrders);
+    const success = await sendBulkWorkOrders(workOrderIds, contractorId);
+    
+    if (success) {
+      setIsContractorModalOpen(false);
+      setSelectedWorkOrders(new Set());
+      refreshData();
+    }
+  }, [selectedWorkOrders, sendBulkWorkOrders, refreshData]);
 
   const handleCreateWorkOrder = () => {
-    // Ensure we clear any existing editing state
     setEditingWorkOrder(null);
     setIsWorkOrderPanelOpen(true);
   };
@@ -57,12 +104,9 @@ const AdminWorkOrders = () => {
   const handleSaveAndClose = async (workOrderData: any) => {
     try {
       await handleSaveWorkOrder(workOrderData, editingWorkOrder);
-      // Close the modal and reset state after successful save
       setIsWorkOrderPanelOpen(false);
       setEditingWorkOrder(null);
     } catch (error) {
-      // Don't close the modal if there was an error
-      // The error will be shown via toast in handleSaveWorkOrder
       console.error('Failed to save work order, keeping modal open:', error);
     }
   };
@@ -80,6 +124,7 @@ const AdminWorkOrders = () => {
     setStatusFilter('all');
     setPriorityFilter('all');
     setSearchQuery('');
+    setSelectedWorkOrders(new Set());
   }, [setStatusFilter, setPriorityFilter, setSearchQuery]);
 
   // Handle admin state reset when clicking same menu item
@@ -119,6 +164,8 @@ const AdminWorkOrders = () => {
           onStatusChange={handleStatusChange}
           emailingWorkOrders={emailingWorkOrders}
           updatingWorkOrders={updatingWorkOrders}
+          selectedWorkOrders={selectedWorkOrders}
+          onSelectWorkOrder={handleSelectWorkOrder}
         />
       ) : (
         <div className="bg-white rounded-xl shadow-sm">
@@ -131,6 +178,9 @@ const AdminWorkOrders = () => {
             emailingWorkOrders={emailingWorkOrders}
             onEmailWorkOrder={handleEmailWorkOrder}
             updatingWorkOrders={updatingWorkOrders}
+            selectedWorkOrders={selectedWorkOrders}
+            onSelectWorkOrder={handleSelectWorkOrder}
+            onSelectAll={handleSelectAll}
           />
         </div>
       )}
@@ -142,6 +192,22 @@ const AdminWorkOrders = () => {
         contractors={contractors}
         onSave={handleSaveAndClose}
         isEditing={!!editingWorkOrder}
+      />
+
+      <SelectionActionBar
+        selectedCount={selectedWorkOrders.size}
+        onSendToContractor={handleSendToContractor}
+        onClearSelection={handleClearSelection}
+        isSending={isSending}
+      />
+
+      <ContractorSelectModal
+        isOpen={isContractorModalOpen}
+        onClose={() => setIsContractorModalOpen(false)}
+        onSelect={handleContractorSelect}
+        contractors={contractors}
+        selectedWorkOrderCount={selectedWorkOrders.size}
+        isSending={isSending}
       />
     </div>
   );
