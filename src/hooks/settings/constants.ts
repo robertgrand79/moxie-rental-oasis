@@ -54,5 +54,9 @@ export const defaultSettings: SettingsState = {
   aboutImageUrl: '',
   founderNames: '',
   missionStatement: '',
-  missionDescription: ''
+  missionDescription: '',
+  // Amenities section
+  amenitiesSectionTitle: 'Premium Amenities',
+  amenitiesSectionDescription: 'Our properties come thoughtfully equipped with everything you need for a comfortable stay',
+  amenitiesSectionEnabled: true
 };

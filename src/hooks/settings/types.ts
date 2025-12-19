@@ -81,4 +81,9 @@ export interface SettingsState {
   founderNames: string;
   missionStatement: string;
   missionDescription: string;
+  
+  // Amenities section
+  amenitiesSectionTitle: string;
+  amenitiesSectionDescription: string;
+  amenitiesSectionEnabled: boolean;
 }
