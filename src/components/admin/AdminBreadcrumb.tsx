@@ -12,7 +12,7 @@ const routeLabels: Record<string, string> = {
   '/admin/events': 'Events',
   '/admin/poi': 'Points of Interest',
   '/admin/lifestyle': 'Lifestyle Gallery',
-  '/admin/testimonials': 'Testimonials',
+  '/admin/reviews': 'Reviews',
   '/admin/settings': 'Site Settings',
   '/admin/properties': 'Properties',
   '/admin/property-management': 'Property Management',

@@ -51,7 +51,7 @@ import AdminPageManagement from '@/pages/admin/AdminPageManagement';
 import AdminNewsletterManagement from '@/pages/admin/AdminNewsletterManagement';
 import AdminEvents from '@/pages/admin/AdminEvents';
 import AdminPlaces from '@/pages/admin/AdminPlaces';
-import AdminTestimonials from '@/pages/admin/AdminTestimonials';
+import AdminReviews from '@/pages/admin/AdminReviews';
 import AdminWorkOrders from '@/pages/admin/AdminWorkOrders';
 import AdminContractors from '@/pages/admin/AdminContractors';
 import AdminUnifiedAnalytics from '@/pages/admin/AdminUnifiedAnalytics';
@@ -165,7 +165,7 @@ const AppRoutes: React.FC = () => {
           <Route path="newsletter" element={<AdminNewsletterManagement />} />
           <Route path="events" element={<AdminEvents />} />
           <Route path="places" element={<AdminPlaces />} />
-          <Route path="testimonials" element={<AdminTestimonials />} />
+          <Route path="reviews" element={<AdminReviews />} />
           <Route path="work-orders" element={<AdminWorkOrders />} />
           <Route path="contractors" element={<AdminContractors />} />
           <Route path="turno-problems" element={<AdminTurnoProblems />} />
@@ -273,7 +273,7 @@ const AppRoutes: React.FC = () => {
         <Route path="newsletter" element={<AdminNewsletterManagement />} />
         <Route path="events" element={<AdminEvents />} />
         <Route path="places" element={<AdminPlaces />} />
-        <Route path="testimonials" element={<AdminTestimonials />} />
+        <Route path="reviews" element={<AdminReviews />} />
         <Route path="work-orders" element={<AdminWorkOrders />} />
         <Route path="contractors" element={<AdminContractors />} />
         <Route path="turno-problems" element={<AdminTurnoProblems />} />

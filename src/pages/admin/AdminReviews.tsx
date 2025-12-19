@@ -1,9 +1,8 @@
-
 import React from 'react';
 import TestimonialsManager from '@/components/admin/TestimonialsManager';
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
-const AdminTestimonials = () => {
+const AdminReviews = () => {
   // Handle admin state reset when clicking same menu item
   useAdminStateReset({ 
     onReset: () => {
@@ -15,4 +14,4 @@ const AdminTestimonials = () => {
   return <TestimonialsManager />;
 };
 
-export default AdminTestimonials;
+export default AdminReviews;

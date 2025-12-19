@@ -37,7 +37,7 @@ const adminNavItems = [
   { name: 'Local Events', href: '/admin/eugene-events', icon: Calendar },
   { name: 'Lifestyle Gallery', href: '/admin/lifestyle-gallery', icon: Image },
   { name: 'Points of Interest', href: '/admin/points-of-interest', icon: MapPin },
-  { name: 'Testimonials', href: '/admin/testimonials', icon: Star },
+  { name: 'Reviews', href: '/admin/reviews', icon: Star },
   { name: 'Pages', href: '/admin/pages', icon: FileText },
   { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
   { name: 'Blog Posts', href: '/admin/blog', icon: BookOpen },

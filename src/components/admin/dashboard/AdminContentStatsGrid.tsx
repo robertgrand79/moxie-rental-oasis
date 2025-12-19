@@ -93,13 +93,13 @@ const AdminContentStatsGrid = ({ stats }: AdminContentStatsGridProps) => {
       ]
     },
     {
-      title: 'Testimonials',
+      title: 'Reviews',
       count: stats.testimonials.total,
       icon: Star,
       color: 'text-amber-600',
-      href: '/admin/testimonials',
+      href: '/admin/reviews',
       actionText: 'Add Review',
-      actionHref: '/admin/testimonials?action=add',
+      actionHref: '/admin/reviews?action=add',
       additionalStats: [
         {
           label: 'Featured',

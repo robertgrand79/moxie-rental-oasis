@@ -34,10 +34,10 @@ const AdminFeatureStats = ({ pointsOfInterest, galleryItems, testimonials }: Adm
       href: '/admin/lifestyle'
     },
     {
-      title: 'Testimonials',
+      title: 'Reviews',
       value: testimonials.length,
       icon: Star,
-      href: '/admin/testimonials'
+      href: '/admin/reviews'
     }
   ];
 
