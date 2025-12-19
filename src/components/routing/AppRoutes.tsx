@@ -38,6 +38,7 @@ import BookingCancelledPage from '@/pages/BookingCancelledPage';
 import GuestPortalPage from '@/pages/guest/GuestPortalPage';
 import CheckinPage from '@/pages/guest/CheckinPage';
 import GuidebookPage from '@/pages/guest/GuidebookPage';
+import AcknowledgePage from '@/pages/AcknowledgePage';
 
 // Shared pages
 import NotFound from '@/pages/NotFound';
@@ -115,6 +116,9 @@ const AppRoutes: React.FC = () => {
           <Route path="login" element={<PlatformAuth />} />
           <Route path="reset-password" element={<ResetPassword />} />
         </Route>
+
+        {/* Public standalone routes */}
+        <Route path="/acknowledge" element={<AcknowledgePage />} />
 
         {/* Shared Onboarding Routes */}
         <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
@@ -224,6 +228,9 @@ const AppRoutes: React.FC = () => {
         <Route path="/guest/guidebook/:propertyId" element={<GuidebookPage />} />
         <Route path="/:slug" element={<DynamicPage />} />
       </Route>
+
+      {/* Public standalone routes */}
+      <Route path="/acknowledge" element={<AcknowledgePage />} />
 
       {/* Onboarding Routes */}
       <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
