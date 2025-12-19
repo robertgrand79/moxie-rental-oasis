@@ -38,18 +38,18 @@ const Properties = () => {
               </p>
             </div>
 
-            {/* Property Map - Shows all property locations */}
-            {properties.length > 0 && (
-              <div className="mb-12">
-                <PropertyMap properties={properties} />
-              </div>
-            )}
-
             {properties.length > 0 ? (
-              <PropertyList
-                properties={properties}
-                showActions={false}
-              />
+              <>
+                <PropertyList
+                  properties={properties}
+                  showActions={false}
+                />
+                
+                {/* Property Map - Shows all property locations */}
+                <div className="mt-12">
+                  <PropertyMap properties={properties} />
+                </div>
+              </>
             ) : (
               <div className="text-center py-16">
                 <h3 className="text-2xl font-semibold text-gray-900 mb-4">
