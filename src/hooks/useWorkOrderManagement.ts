@@ -45,6 +45,7 @@ export interface WorkOrder {
 
 export interface Contractor {
   id: string;
+  organization_id?: string;
   name: string;
   company_name?: string;
   email: string;
@@ -289,12 +290,14 @@ export const useWorkOrderManagement = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
+      if (!organization?.id) throw new Error('Organization not loaded');
 
       const { data, error } = await supabase
         .from('contractors')
         .insert({
           ...contractorData,
-          created_by: user.id
+          created_by: user.id,
+          organization_id: organization.id,
         })
         .select()
         .single();
