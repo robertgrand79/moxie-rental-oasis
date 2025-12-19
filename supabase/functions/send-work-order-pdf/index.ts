@@ -160,12 +160,73 @@ serve(async (req) => {
 
     console.log("Work order email sent successfully");
 
+    // Send SMS notification if contractor has a phone number and SMS opted in
+    let smsSent = false;
+    let smsError: string | null = null;
+    
+    if (workOrder.contractor?.phone && workOrder.contractor?.sms_opt_in !== false) {
+      try {
+        console.log("Sending SMS notification to contractor:", workOrder.contractor.phone);
+        
+        // Format short acknowledge URL
+        const shortAckUrl = `${supabaseUrl.replace('https://', 'https://')}/functions/v1/acknowledge-work-orders?token=${token}`;
+        
+        // Build SMS message
+        const propertyName = workOrder.property?.name || 'Property';
+        const dueDate = workOrder.due_date 
+          ? new Date(workOrder.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          : 'ASAP';
+        const priority = workOrder.priority || 'normal';
+        
+        const smsMessage = `🔧 New Work Order Assigned
+
+${workOrder.work_order_number}: ${workOrder.title}
+📍 ${propertyName}
+📅 Due: ${dueDate}
+⚡ Priority: ${priority.charAt(0).toUpperCase() + priority.slice(1)}
+
+Acknowledge: ${shortAckUrl}
+
+Reply YES to confirm receipt.`;
+
+        // Call send-sms edge function
+        const smsResponse = await fetch(`${supabaseUrl}/functions/v1/send-sms`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          },
+          body: JSON.stringify({
+            to: workOrder.contractor.phone,
+            message: smsMessage,
+            organizationId: organizationId,
+          }),
+        });
+
+        if (smsResponse.ok) {
+          smsSent = true;
+          console.log("SMS notification sent successfully");
+        } else {
+          const smsResult = await smsResponse.json();
+          smsError = smsResult.error || 'Failed to send SMS';
+          console.error("SMS notification failed:", smsError);
+        }
+      } catch (err) {
+        smsError = err.message;
+        console.error("Error sending SMS notification:", err);
+      }
+    } else {
+      console.log("Skipping SMS - no phone number or contractor opted out");
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         message: "Work order email sent successfully",
         workOrderNumber: workOrder.work_order_number,
         contractorEmail: workOrder.contractor?.email,
+        smsSent,
+        smsError,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

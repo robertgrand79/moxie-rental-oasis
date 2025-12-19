@@ -73,6 +73,124 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("[QUO Webhook] Receiving phone ID:", receivingPhoneId);
     console.log("[QUO Webhook] Message body:", messageBody);
 
+    // Check if this is a contractor acknowledgment reply (YES, Y, CONFIRM, etc.)
+    const normalizedBody = messageBody.trim().toUpperCase();
+    const isAcknowledgment = ['YES', 'Y', 'CONFIRM', 'OK', 'ACKNOWLEDGED', 'ACK'].includes(normalizedBody);
+    
+    if (isAcknowledgment) {
+      console.log("[QUO Webhook] Detected contractor acknowledgment reply");
+      
+      // Normalize phone for matching
+      const normalizePhone = (phone: string) => {
+        return phone.replace(/[^\d+]/g, "").replace(/^\+1/, "").replace(/^1/, "");
+      };
+      const normalizedSenderPhone = normalizePhone(senderPhone);
+      
+      // Find contractor by phone number within this organization
+      const { data: contractors, error: contractorError } = await supabase
+        .from("contractors")
+        .select("id, name, phone, organization_id")
+        .eq("organization_id", orgId)
+        .eq("is_active", true);
+      
+      if (contractorError) {
+        console.error("[QUO Webhook] Error fetching contractors:", contractorError);
+      } else {
+        // Find matching contractor by phone
+        const matchingContractor = contractors?.find(c => {
+          if (!c.phone) return false;
+          return normalizePhone(c.phone) === normalizedSenderPhone;
+        });
+        
+        if (matchingContractor) {
+          console.log("[QUO Webhook] Found contractor:", matchingContractor.name, matchingContractor.id);
+          
+          // Find pending work orders for this contractor that haven't been acknowledged
+          const { data: pendingWorkOrders, error: woError } = await supabase
+            .from("work_orders")
+            .select("id, work_order_number, title, status, acknowledged_at")
+            .eq("contractor_id", matchingContractor.id)
+            .is("acknowledged_at", null)
+            .in("status", ["sent", "pending"]);
+          
+          if (woError) {
+            console.error("[QUO Webhook] Error fetching work orders:", woError);
+          } else if (pendingWorkOrders && pendingWorkOrders.length > 0) {
+            console.log("[QUO Webhook] Found", pendingWorkOrders.length, "pending work orders to acknowledge");
+            
+            // Acknowledge all pending work orders
+            const workOrderIds = pendingWorkOrders.map(wo => wo.id);
+            const { error: updateError } = await supabase
+              .from("work_orders")
+              .update({ 
+                acknowledged_at: new Date().toISOString(),
+                status: 'acknowledged'
+              })
+              .in("id", workOrderIds);
+            
+            if (updateError) {
+              console.error("[QUO Webhook] Error acknowledging work orders:", updateError);
+            } else {
+              console.log("[QUO Webhook] Successfully acknowledged", workOrderIds.length, "work orders via SMS");
+              
+              // Send confirmation SMS back to contractor
+              const workOrderNumbers = pendingWorkOrders.map(wo => wo.work_order_number).join(", ");
+              const confirmationMessage = `✅ Acknowledged! Work order${pendingWorkOrders.length > 1 ? 's' : ''} ${workOrderNumbers} confirmed. View all your work orders at: https://moxievacationrentals.com/contractor/portal`;
+              
+              try {
+                await fetch(`${supabaseUrl}/functions/v1/send-sms`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${supabaseKey}`,
+                  },
+                  body: JSON.stringify({
+                    to: senderPhone,
+                    message: confirmationMessage,
+                    organizationId: orgId,
+                  }),
+                });
+                console.log("[QUO Webhook] Sent acknowledgment confirmation SMS");
+              } catch (smsErr) {
+                console.error("[QUO Webhook] Failed to send confirmation SMS:", smsErr);
+              }
+              
+              // Create admin notification
+              await createAdminNotification(supabase, {
+                organizationId: orgId,
+                notificationType: NOTIFICATION_TYPES.WORK_ORDER,
+                category: NOTIFICATION_CATEGORIES.MAINTENANCE,
+                title: `Work Order${pendingWorkOrders.length > 1 ? 's' : ''} Acknowledged via SMS`,
+                message: `${matchingContractor.name} acknowledged ${pendingWorkOrders.length} work order${pendingWorkOrders.length > 1 ? 's' : ''} (${workOrderNumbers}) via SMS reply.`,
+                actionUrl: `/admin/work-orders`,
+                metadata: {
+                  contractor_id: matchingContractor.id,
+                  contractor_name: matchingContractor.name,
+                  work_order_ids: workOrderIds,
+                  acknowledged_via: 'sms',
+                },
+                priority: 'normal',
+              });
+            }
+            
+            // Return early - this was a contractor acknowledgment, not a guest message
+            return new Response(
+              JSON.stringify({ 
+                success: true, 
+                message: "Contractor acknowledgment processed",
+                acknowledgedCount: pendingWorkOrders.length,
+              }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          } else {
+            console.log("[QUO Webhook] No pending work orders found for contractor");
+          }
+        } else {
+          console.log("[QUO Webhook] No contractor found with phone:", normalizedSenderPhone);
+        }
+      }
+    }
+
     // Fetch the organization's configured phone number to filter messages
     const { data: orgData, error: orgError } = await supabase
       .from("organizations")

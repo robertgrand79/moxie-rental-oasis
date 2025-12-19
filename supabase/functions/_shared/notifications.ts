@@ -59,6 +59,7 @@ export const NOTIFICATION_TYPES = {
   NEW_BOOKING: 'new_booking',
   BOOKING_CANCELLED: 'booking_cancelled',
   GUEST_MESSAGE: 'guest_message',
+  WORK_ORDER: 'work_order',
   WORK_ORDER_CREATED: 'work_order_created',
   WORK_ORDER_COMPLETED: 'work_order_completed',
   CHECK_IN_TODAY: 'check_in_today',
@@ -72,6 +73,7 @@ export const NOTIFICATION_CATEGORIES = {
   BOOKINGS: 'bookings',
   COMMUNICATIONS: 'communications',
   OPERATIONS: 'operations',
+  MAINTENANCE: 'maintenance',
   PAYMENTS: 'payments',
   SYSTEM: 'system',
 } as const;

@@ -833,6 +833,7 @@ export type Database = {
           organization_id: string | null
           phone: string | null
           rating: number | null
+          sms_opt_in: boolean | null
           specialties: string[] | null
           updated_at: string
         }
@@ -849,6 +850,7 @@ export type Database = {
           organization_id?: string | null
           phone?: string | null
           rating?: number | null
+          sms_opt_in?: boolean | null
           specialties?: string[] | null
           updated_at?: string
         }
@@ -865,6 +867,7 @@ export type Database = {
           organization_id?: string | null
           phone?: string | null
           rating?: number | null
+          sms_opt_in?: boolean | null
           specialties?: string[] | null
           updated_at?: string
         }
