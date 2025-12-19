@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X } from 'lucide-react';
+import { X, MapPin, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +13,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Place, useCreatePlace, useUpdatePlace } from '@/hooks/usePlaces';
 import { useAuth } from '@/contexts/AuthContext';
 import PlaceImageUpload from './PlaceImageUpload';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 const placeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
@@ -47,6 +49,11 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
   const { user } = useAuth();
   const createPlace = useCreatePlace();
   const updatePlace = useUpdatePlace();
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [coordinates, setCoordinates] = useState<{ latitude: number | null; longitude: number | null }>({
+    latitude: place?.latitude || null,
+    longitude: place?.longitude || null,
+  });
 
   const form = useForm<PlaceFormData>({
     resolver: zodResolver(placeSchema),
@@ -97,19 +104,59 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
         driving_time: place.driving_time || undefined,
         show_on_map: place.show_on_map !== false,
       });
+      setCoordinates({
+        latitude: place.latitude || null,
+        longitude: place.longitude || null,
+      });
     }
   }, [place, form]);
 
+  const handleGeocode = async () => {
+    const address = form.getValues('address');
+    if (!address) {
+      toast.error('Please enter an address first');
+      return;
+    }
+
+    setIsGeocoding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('geocode-address', {
+        body: { address, placeId: place?.id },
+      });
+
+      if (error) throw error;
+
+      if (data.latitude && data.longitude) {
+        setCoordinates({ latitude: data.latitude, longitude: data.longitude });
+        toast.success(`Coordinates found: ${data.latitude.toFixed(6)}, ${data.longitude.toFixed(6)}`);
+      } else {
+        toast.error('Could not geocode address');
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      toast.error('Failed to geocode address');
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+
   const onSubmit = (data: PlaceFormData) => {
+    // Include coordinates in the submission
+    const dataWithCoords = {
+      ...data,
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+    };
+
     if (place) {
       updatePlace.mutate(
-        { id: place.id, ...data },
+        { id: place.id, ...dataWithCoords },
         { onSuccess: onClose }
       );
     } else {
       createPlace.mutate(
         { 
-          ...data, 
+          ...dataWithCoords, 
           name: data.name, 
           category: data.category, 
           created_by: user?.id || '', 
@@ -237,9 +284,28 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter full address" {...field} />
-                      </FormControl>
+                      <div className="flex gap-2">
+                        <FormControl>
+                          <Input placeholder="Enter full address" {...field} />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={handleGeocode}
+                          disabled={isGeocoding || !field.value}
+                          title="Geocode address"
+                        >
+                          {isGeocoding ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <MapPin className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <FormDescription>
+                        Click the map pin to get coordinates
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -258,6 +324,28 @@ const PlaceForm = ({ place, onClose }: PlaceFormProps) => {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Coordinates Display */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Latitude</label>
+                  <Input 
+                    value={coordinates.latitude?.toFixed(6) || ''} 
+                    placeholder="Not set"
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Longitude</label>
+                  <Input 
+                    value={coordinates.longitude?.toFixed(6) || ''} 
+                    placeholder="Not set"
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

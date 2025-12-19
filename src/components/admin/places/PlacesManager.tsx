@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, MapPin, UtensilsCrossed, Trees, Music, ShoppingBag, Bed, Heart } from 'lucide-react';
+import { Plus, MapPin, UtensilsCrossed, Trees, Music, ShoppingBag, Bed, Heart, Loader2, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,13 +8,21 @@ import PlacesGrid from './PlacesGrid';
 import PlacesListView from './PlacesListView';
 import PlacesViewToggle from './PlacesViewToggle';
 import PlaceForm from './PlaceForm';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const PlacesManager = () => {
-  const { places, isLoading } = usePlaces();
+  const { places, isLoading, refetch } = usePlaces();
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [isBatchGeocoding, setIsBatchGeocoding] = useState(false);
+
+  // Count places missing coordinates
+  const placesWithoutCoords = places.filter(
+    p => p.address && (!p.latitude || !p.longitude)
+  ).length;
 
   const categories = [
     { value: 'all', label: 'All Places', icon: MapPin },
@@ -43,6 +51,34 @@ const PlacesManager = () => {
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingPlace(null);
+    refetch();
+  };
+
+  const handleBatchGeocode = async () => {
+    setIsBatchGeocoding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('geocode-address', {
+        body: { batchGeocode: true },
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        toast.success(
+          `Geocoded ${data.success} places. ${data.failed > 0 ? `${data.failed} failed.` : ''}`,
+          { duration: 5000 }
+        );
+        if (data.errors?.length > 0) {
+          console.log('Geocoding errors:', data.errors);
+        }
+        refetch();
+      }
+    } catch (error) {
+      console.error('Batch geocoding error:', error);
+      toast.error('Failed to batch geocode places');
+    } finally {
+      setIsBatchGeocoding(false);
+    }
   };
 
   if (isLoading) {
@@ -64,6 +100,21 @@ const PlacesManager = () => {
             </p>
           </div>
           <div className="flex items-center space-x-3">
+            {placesWithoutCoords > 0 && (
+              <Button 
+                variant="outline" 
+                onClick={handleBatchGeocode}
+                disabled={isBatchGeocoding}
+                className="flex items-center space-x-2"
+              >
+                {isBatchGeocoding ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Navigation className="h-4 w-4" />
+                )}
+                <span>Geocode {placesWithoutCoords} Places</span>
+              </Button>
+            )}
             <PlacesViewToggle view={view} onViewChange={setView} />
             <Button onClick={handleAddNew} className="flex items-center space-x-2">
               <Plus className="h-4 w-4" />
