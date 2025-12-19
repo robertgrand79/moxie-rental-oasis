@@ -1,52 +1,82 @@
-
 import React, { useState, useMemo } from 'react';
-import { Plus, Calendar, Music, Trees, UtensilsCrossed, Palette, Trophy, Users, Archive } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEvents, Event } from '@/hooks/useEvents';
+import { useQueryClient } from '@tanstack/react-query';
 import EventsGrid from './EventsGrid';
 import EventsListView from './EventsListView';
-import EventsViewToggle from './EventsViewToggle';
 import EventForm from './EventForm';
+import EventDetailPanel from './EventDetailPanel';
+import ModernEventsHeader from './ModernEventsHeader';
 import { isEventPast, isEventUpcoming } from '@/utils/eventDateUtils';
 
 const EventsManager = () => {
   const { events, isLoading } = useEvents();
+  const queryClient = useQueryClient();
+  
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [viewingEvent, setViewingEvent] = useState<Event | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [timeFilter, setTimeFilter] = useState<'upcoming' | 'archived'>('upcoming');
-
-  const categories = [
-    { value: 'all', label: 'All Events', icon: Calendar, shortLabel: 'All' },
-    { value: 'entertainment', label: 'Entertainment', icon: Music, shortLabel: 'Shows' },
-    { value: 'outdoor', label: 'Outdoor', icon: Trees, shortLabel: 'Outdoor' },
-    { value: 'dining', label: 'Dining', icon: UtensilsCrossed, shortLabel: 'Food' },
-    { value: 'culture', label: 'Culture', icon: Palette, shortLabel: 'Culture' },
-    { value: 'sports', label: 'Sports', icon: Trophy, shortLabel: 'Sports' },
-    { value: 'community', label: 'Community', icon: Users, shortLabel: 'Community' },
-  ];
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Split events into upcoming and archived
-  const { upcomingEvents, archivedEvents } = useMemo(() => {
+  const { upcomingEvents, archivedEvents, featuredCount, topCategory } = useMemo(() => {
     const upcoming = events.filter(isEventUpcoming);
     const archived = events.filter(isEventPast);
-    return { upcomingEvents: upcoming, archivedEvents: archived };
+    const featured = events.filter(e => e.is_featured).length;
+    
+    // Find top category
+    const categoryCounts = events.reduce((acc, event) => {
+      if (event.category) {
+        acc[event.category] = (acc[event.category] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const topCat = Object.entries(categoryCounts)
+      .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+    
+    return { 
+      upcomingEvents: upcoming, 
+      archivedEvents: archived,
+      featuredCount: featured,
+      topCategory: topCat
+    };
   }, [events]);
 
   // Get events based on time filter
   const timeFilteredEvents = timeFilter === 'upcoming' ? upcomingEvents : archivedEvents;
 
-  // Apply category filter
-  const filteredEvents = selectedCategory === 'all' 
-    ? timeFilteredEvents 
-    : timeFilteredEvents.filter(event => event.category === selectedCategory);
+  // Apply search and category filters
+  const filteredEvents = useMemo(() => {
+    let filtered = timeFilteredEvents;
+    
+    // Apply category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(event => event.category === categoryFilter);
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(event => 
+        event.title.toLowerCase().includes(query) ||
+        event.description?.toLowerCase().includes(query) ||
+        event.location?.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
+  }, [timeFilteredEvents, categoryFilter, searchQuery]);
 
   const handleEdit = (event: Event) => {
     setEditingEvent(event);
     setIsFormOpen(true);
+  };
+
+  const handleView = (event: Event) => {
+    setViewingEvent(event);
   };
 
   const handleAddNew = () => {
@@ -59,6 +89,22 @@ const EventsManager = () => {
     setEditingEvent(null);
   };
 
+  const handleCloseView = () => {
+    setViewingEvent(null);
+  };
+
+  const handleSwitchToEdit = () => {
+    if (viewingEvent) {
+      setEditingEvent(viewingEvent);
+      setViewingEvent(null);
+      setIsFormOpen(true);
+    }
+  };
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['events'] });
+  };
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -69,81 +115,53 @@ const EventsManager = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Events Management</CardTitle>
-            <p className="text-muted-foreground mt-1">
-              Manage all local events, festivals, and community activities
-            </p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <EventsViewToggle view={view} onViewChange={setView} />
-            <Button onClick={handleAddNew} className="flex items-center space-x-2">
-              <Plus className="h-4 w-4" />
-              <span>Add Event</span>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Time-based tabs (Upcoming / Archived) */}
-          <Tabs value={timeFilter} onValueChange={(v) => setTimeFilter(v as 'upcoming' | 'archived')}>
-            <TabsList className="w-auto">
-              <TabsTrigger value="upcoming" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>Upcoming Events</span>
-                <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium">
-                  {upcomingEvents.length}
-                </span>
-              </TabsTrigger>
-              <TabsTrigger value="archived" className="flex items-center gap-2">
-                <Archive className="h-4 w-4" />
-                <span>Archived</span>
-                <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
-                  {archivedEvents.length}
-                </span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+      <ModernEventsHeader
+        totalEvents={events.length}
+        upcomingEvents={upcomingEvents.length}
+        archivedEvents={archivedEvents.length}
+        featuredEvents={featuredCount}
+        topCategory={topCategory}
+        onAddEvent={handleAddNew}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        categoryFilter={categoryFilter}
+        onCategoryFilterChange={setCategoryFilter}
+        timeFilter={timeFilter}
+        onTimeFilterChange={setTimeFilter}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onRefresh={handleRefresh}
+      />
 
-          {/* Category filter tabs */}
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="grid w-full grid-cols-7 h-auto">
-              {categories.map((category) => (
-                <TabsTrigger 
-                  key={category.value} 
-                  value={category.value}
-                  className="flex items-center justify-center gap-2 px-2 py-3 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground"
-                >
-                  <category.icon className="h-4 w-4 flex-shrink-0" />
-                  <span className="hidden lg:inline whitespace-nowrap">{category.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+      {/* Events Display */}
+      {filteredEvents.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          {searchQuery || categoryFilter !== 'all'
+            ? 'No events match your filters.'
+            : timeFilter === 'upcoming' 
+              ? 'No upcoming events.' 
+              : 'No archived events.'}
+        </div>
+      ) : viewMode === 'grid' ? (
+        <EventsGrid events={filteredEvents} onEdit={handleEdit} onView={handleView} />
+      ) : (
+        <EventsListView events={filteredEvents} onEdit={handleEdit} onView={handleView} />
+      )}
 
-            {categories.map((category) => (
-              <TabsContent key={category.value} value={category.value} className="mt-6">
-                {filteredEvents.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    {timeFilter === 'upcoming' 
-                      ? 'No upcoming events in this category.' 
-                      : 'No archived events in this category.'}
-                  </div>
-                ) : view === 'grid' ? (
-                  <EventsGrid events={filteredEvents} onEdit={handleEdit} />
-                ) : (
-                  <EventsListView events={filteredEvents} onEdit={handleEdit} />
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </CardContent>
-      </Card>
-
+      {/* Event Form Modal */}
       {isFormOpen && (
         <EventForm
           event={editingEvent}
           onClose={handleCloseForm}
+        />
+      )}
+
+      {/* Event Detail Panel */}
+      {viewingEvent && (
+        <EventDetailPanel
+          event={viewingEvent}
+          onClose={handleCloseView}
+          onEdit={handleSwitchToEdit}
         />
       )}
     </div>
