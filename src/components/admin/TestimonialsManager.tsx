@@ -1,26 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Home, Building } from 'lucide-react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { useTestimonials, Testimonial } from '@/hooks/useTestimonials';
 import { useProperties } from '@/hooks/useProperties';
 import { useAuth } from '@/contexts/AuthContext';
+import ModernReviewsHeader from './testimonials/ModernReviewsHeader';
 import TestimonialForm from './testimonials/TestimonialForm';
 import TestimonialsList from './testimonials/TestimonialsList';
 import TestimonialsGrid from './testimonials/TestimonialsGrid';
-import TestimonialsViewToggle from './testimonials/TestimonialsViewToggle';
+import ReviewDetailPanel from './testimonials/ReviewDetailPanel';
 import TestimonialsLoadingState from './testimonials/TestimonialsLoadingState';
 
 const TestimonialsManager = () => {
   const { testimonials, isLoading, createTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials();
   const { properties } = useProperties();
   const { user } = useAuth();
+  
+  // State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
-  const [selectedProperty, setSelectedProperty] = useState<string>('all');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [viewingTestimonial, setViewingTestimonial] = useState<Testimonial | null>(null);
+  
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [propertyFilter, setPropertyFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
   const [formData, setFormData] = useState({
     guest_name: '',
     guest_location: '',
@@ -54,8 +59,64 @@ const TestimonialsManager = () => {
     setEditingTestimonial(null);
   };
 
+  // Build property tabs
+  const getPropertyTabs = () => {
+    const tabs = [
+      { value: 'all', label: 'All Properties' },
+      { value: 'airbnb', label: 'Airbnb Reviews' }
+    ];
+    
+    properties.forEach(property => {
+      const hasTestimonials = testimonials.some(t => t.property_id === property.id);
+      if (hasTestimonials) {
+        tabs.push({
+          value: property.id,
+          label: property.title,
+        });
+      }
+    });
+    
+    return tabs;
+  };
+
+  const propertyTabs = getPropertyTabs();
+
+  // Filter testimonials
+  const filteredTestimonials = testimonials.filter(testimonial => {
+    // Search filter
+    if (searchQuery) {
+      const search = searchQuery.toLowerCase();
+      const matchesSearch = 
+        testimonial.guest_name.toLowerCase().includes(search) ||
+        testimonial.guest_location?.toLowerCase().includes(search) ||
+        testimonial.review_text?.toLowerCase().includes(search) ||
+        testimonial.content?.toLowerCase().includes(search) ||
+        testimonial.property_name?.toLowerCase().includes(search);
+      if (!matchesSearch) return false;
+    }
+    
+    // Property filter
+    if (propertyFilter !== 'all') {
+      if (propertyFilter === 'airbnb') {
+        if (testimonial.booking_platform?.toLowerCase() !== 'airbnb') return false;
+      } else if (testimonial.property_id !== propertyFilter) {
+        return false;
+      }
+    }
+    
+    // Status filter
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'active' && testimonial.is_active === false) return false;
+      if (statusFilter === 'inactive' && testimonial.is_active !== false) return false;
+      if (statusFilter === 'featured' && !testimonial.is_featured) return false;
+    }
+    
+    return true;
+  });
+
   const handleEdit = (testimonial: Testimonial) => {
     setEditingTestimonial(testimonial);
+    setViewingTestimonial(null);
     setFormData({
       guest_name: testimonial.guest_name,
       guest_location: testimonial.guest_location || '',
@@ -71,6 +132,25 @@ const TestimonialsManager = () => {
       booking_platform: testimonial.booking_platform || ''
     });
     setIsDialogOpen(true);
+  };
+
+  const handleView = (testimonial: Testimonial) => {
+    setViewingTestimonial(testimonial);
+  };
+
+  const handleAddNew = () => {
+    resetForm();
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDetailPanel = () => {
+    setViewingTestimonial(null);
+  };
+
+  const handleSwitchToEdit = () => {
+    if (viewingTestimonial) {
+      handleEdit(viewingTestimonial);
+    }
   };
 
   const handleSubmit = async () => {
@@ -101,47 +181,25 @@ const TestimonialsManager = () => {
     await deleteTestimonial.mutateAsync(id);
   };
 
-  // Get unique properties for tabs using the actual properties data
-  const getPropertyTabs = () => {
-    const tabs = [
-      { value: 'all', label: 'All Properties', icon: Home },
-      { value: 'airbnb', label: 'Airbnb Reviews', icon: Building }
-    ];
-    
-    // Add tabs for properties that have testimonials
-    properties.forEach(property => {
-      const hasTestimonials = testimonials.some(t => t.property_id === property.id);
-      if (hasTestimonials) {
-        tabs.push({
-          value: property.id,
-          label: property.title,
-          icon: Building
-        });
-      }
+  const handleToggleActive = async (testimonial: Testimonial) => {
+    await updateTestimonial.mutateAsync({
+      id: testimonial.id,
+      is_active: testimonial.is_active === false ? true : false
     });
-    
-    return tabs;
   };
 
-  const getTestimonialCount = (propertyId: string) => {
-    if (propertyId === 'all') return testimonials.length;
-    if (propertyId === 'airbnb') return testimonials.filter(t => t.booking_platform?.toLowerCase() === 'airbnb').length;
-    return testimonials.filter(t => t.property_id === propertyId).length;
+  const handleRefresh = () => {
+    // The query will automatically refetch
   };
-
-  // Filter testimonials based on selected property
-  const filteredTestimonials = selectedProperty === 'all' 
-    ? testimonials 
-    : selectedProperty === 'airbnb'
-    ? testimonials.filter(testimonial => testimonial.booking_platform?.toLowerCase() === 'airbnb')
-    : testimonials.filter(testimonial => testimonial.property_id === selectedProperty);
-
-  const propertyTabs = getPropertyTabs();
 
   // Listen for reset event from navigation
   useEffect(() => {
     const handleReset = () => {
       setIsDialogOpen(false);
+      setViewingTestimonial(null);
+      setSearchQuery('');
+      setPropertyFilter('all');
+      setStatusFilter('all');
       resetForm();
     };
 
@@ -154,78 +212,59 @@ const TestimonialsManager = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Reviews</CardTitle>
-            <CardDescription>
-              Manage guest reviews and testimonials displayed on your homepage
-            </CardDescription>
-          </div>
-          <div className="flex items-center space-x-3">
-            <TestimonialsViewToggle view={view} onViewChange={setView} />
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => {resetForm(); setIsDialogOpen(true)}}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Review
-                </Button>
-              </DialogTrigger>
-              <TestimonialForm
-                isOpen={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
-                editingTestimonial={editingTestimonial}
-                formData={formData}
-                setFormData={setFormData}
-                onSubmit={handleSubmit}
-              />
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={selectedProperty} onValueChange={setSelectedProperty}>
-            <TabsList className="grid w-full h-auto" style={{ gridTemplateColumns: `repeat(${Math.min(propertyTabs.length, 6)}, 1fr)` }}>
-              {propertyTabs.map((property) => (
-                <TabsTrigger 
-                  key={property.value} 
-                  value={property.value}
-                  className="flex items-center justify-center gap-2 px-2 py-3 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground"
-                >
-                  <property.icon className="h-4 w-4 flex-shrink-0" />
-                  <span className="hidden lg:inline whitespace-nowrap">
-                    {property.label}
-                    <span className="ml-1 text-xs opacity-70">
-                      ({getTestimonialCount(property.value)})
-                    </span>
-                  </span>
-                  <span className="lg:hidden text-xs opacity-70">
-                    {getTestimonialCount(property.value)}
-                  </span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+    <div className="p-6 space-y-6">
+      <ModernReviewsHeader
+        testimonials={testimonials}
+        propertyTabs={propertyTabs}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        propertyFilter={propertyFilter}
+        onPropertyFilterChange={setPropertyFilter}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onAddReview={handleAddNew}
+        onRefresh={handleRefresh}
+      />
 
-            {propertyTabs.map((property) => (
-              <TabsContent key={property.value} value={property.value} className="mt-6">
-                {view === 'grid' ? (
-                  <TestimonialsGrid 
-                    testimonials={filteredTestimonials} 
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ) : (
-                  <TestimonialsList
-                    testimonials={filteredTestimonials}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </CardContent>
-      </Card>
+      {viewMode === 'grid' ? (
+        <TestimonialsGrid 
+          testimonials={filteredTestimonials} 
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onView={handleView}
+          onToggleActive={handleToggleActive}
+        />
+      ) : (
+        <TestimonialsList
+          testimonials={filteredTestimonials}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onView={handleView}
+          onToggleActive={handleToggleActive}
+        />
+      )}
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <TestimonialForm
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          editingTestimonial={editingTestimonial}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleSubmit}
+        />
+      </Dialog>
+
+      {viewingTestimonial && (
+        <ReviewDetailPanel
+          testimonial={viewingTestimonial}
+          isOpen={!!viewingTestimonial}
+          onClose={handleCloseDetailPanel}
+          onEdit={handleSwitchToEdit}
+        />
+      )}
     </div>
   );
 };
