@@ -86,4 +86,12 @@ export interface SettingsState {
   amenitiesSectionTitle: string;
   amenitiesSectionDescription: string;
   amenitiesSectionEnabled: boolean;
+  
+  // Site Colors (stored as hex, converted to HSL at runtime)
+  colorPrimary: string;
+  colorSecondary: string;
+  colorAccent: string;
+  colorBackground: string;
+  colorForeground: string;
+  colorMuted: string;
 }
