@@ -150,9 +150,9 @@ serve(async (req) => {
 
     console.log("Created acknowledgment token:", token);
 
-    // Generate acknowledge URL
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const acknowledgeUrl = `${supabaseUrl}/functions/v1/acknowledge-work-orders?token=${token}`;
+    // Generate acknowledge URL using custom domain
+    const apiDomain = "https://api.staymoxie.com";
+    const acknowledgeUrl = `${apiDomain}/functions/v1/acknowledge-work-orders?token=${token}`;
 
     // Generate email content
     const emailContent = generateBulkWorkOrderEmailContent(workOrders, contractor, acknowledgeUrl);
