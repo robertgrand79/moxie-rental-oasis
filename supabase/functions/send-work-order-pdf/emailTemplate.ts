@@ -3,9 +3,9 @@ export function generateWorkOrderEmailContent(workOrder: any, acknowledgeUrl?: s
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not specified';
     return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     });
   };
 
@@ -18,412 +18,248 @@ export function generateWorkOrderEmailContent(workOrder: any, acknowledgeUrl?: s
 
   const priorityColor = priorityColors[workOrder.priority as keyof typeof priorityColors] || '#6b7280';
 
+  // Combine description sections into one
+  const hasDescriptionContent = workOrder.description || workOrder.scope_of_work || workOrder.special_instructions;
+  
+  const descriptionSections = [];
+  if (workOrder.description) {
+    descriptionSections.push(`<strong>Description:</strong> ${workOrder.description.replace(/\n/g, '<br>')}`);
+  }
+  if (workOrder.scope_of_work) {
+    descriptionSections.push(`<strong>Scope:</strong> ${workOrder.scope_of_work.replace(/\n/g, '<br>')}`);
+  }
+  if (workOrder.special_instructions) {
+    descriptionSections.push(`<strong>⚠️ Instructions:</strong> ${workOrder.special_instructions.replace(/\n/g, '<br>')}`);
+  }
+
   return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Work Order: ${workOrder.work_order_number} - ${workOrder.title}</title>
+      <title>Work Order: ${workOrder.work_order_number}</title>
       <style>
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-          line-height: 1.6;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+          line-height: 1.5;
           color: #1f2937;
-          margin: 0;
-          padding: 0;
           background: #f8fafc;
-          min-height: 100vh;
         }
-        
-        .email-container {
-          max-width: 650px;
-          margin: 20px auto;
+        .container {
+          max-width: 600px;
+          margin: 10px auto;
           background: #ffffff;
-          border-radius: 16px;
+          border-radius: 12px;
           overflow: hidden;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           border: 1px solid #e2e8f0;
         }
-        
         .header {
           background: #ffffff;
-          color: #1f2937;
-          padding: 40px 30px;
+          padding: 20px;
           text-align: center;
           border-bottom: 3px solid #3b82f6;
         }
-        
-        .logo {
-          font-size: 32px;
-          font-weight: 800;
-          margin-bottom: 8px;
-          letter-spacing: -0.025em;
-          color: #1f2937;
-        }
-        
-        .tagline {
-          font-size: 16px;
-          color: #6b7280;
-          margin-bottom: 20px;
-          font-weight: 400;
-        }
-        
-        .work-order-badge {
+        .logo { font-size: 22px; font-weight: 700; color: #1f2937; }
+        .wo-badge {
           display: inline-block;
-          background: #f8fafc;
-          padding: 12px 24px;
-          border-radius: 8px;
+          background: #f0f9ff;
+          padding: 6px 14px;
+          border-radius: 6px;
           font-weight: 600;
-          font-size: 18px;
-          border: 2px solid #3b82f6;
-          color: #1f2937;
-          margin-top: 10px;
+          font-size: 14px;
+          border: 1px solid #3b82f6;
+          color: #1e40af;
+          margin-top: 8px;
         }
-        
-        .content {
-          padding: 40px 30px;
-          background: #ffffff;
-        }
-        
+        .content { padding: 20px; }
         .greeting {
-          font-size: 24px;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 16px;
-          text-align: center;
-        }
-        
-        .intro-text {
-          font-size: 18px;
-          color: #4b5563;
-          text-align: center;
-          margin-bottom: 40px;
-          line-height: 1.7;
-        }
-        
-        .confirmation-card {
-          background: #ffffff;
-          border: 2px solid #3b82f6;
-          border-radius: 16px;
-          padding: 32px;
-          text-align: center;
-          margin: 0 0 40px 0;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        }
-        
-        .confirmation-title {
-          font-size: 20px;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 12px;
-        }
-        
-        .confirmation-subtitle {
-          color: #4b5563;
-          margin-bottom: 0;
           font-size: 16px;
-          line-height: 1.6;
+          color: #4b5563;
+          margin-bottom: 16px;
         }
-        
-        .work-order-details {
-          background: #f8fafc;
-          border-radius: 12px;
-          padding: 30px;
-          margin: 30px 0;
-          border: 1px solid #e2e8f0;
-        }
-        
-        .details-title {
-          font-size: 22px;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 24px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        
-        .details-title::before {
-          content: '📋';
-          font-size: 20px;
-        }
-        
         .details-grid {
-          display: grid;
-          gap: 20px;
-        }
-        
-        .detail-item {
-          background: white;
-          padding: 20px;
+          display: table;
+          width: 100%;
+          border-collapse: collapse;
+          background: #f8fafc;
           border-radius: 8px;
-          border: 1px solid #e5e7eb;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+          overflow: hidden;
+          border: 1px solid #e2e8f0;
+          margin-bottom: 16px;
         }
-        
+        .details-row {
+          display: table-row;
+        }
+        .detail-cell {
+          display: table-cell;
+          padding: 10px 12px;
+          border-bottom: 1px solid #e2e8f0;
+          vertical-align: top;
+          width: 50%;
+        }
+        .detail-cell:first-child {
+          border-right: 1px solid #e2e8f0;
+        }
         .detail-label {
+          font-size: 10px;
           font-weight: 600;
           color: #6b7280;
-          font-size: 12px;
           text-transform: uppercase;
-          letter-spacing: 0.1em;
-          margin-bottom: 6px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
+          letter-spacing: 0.05em;
+          margin-bottom: 2px;
         }
-        
         .detail-value {
-          color: #1f2937;
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 500;
+          color: #1f2937;
         }
-        
         .priority-badge {
           display: inline-block;
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-size: 14px;
+          padding: 3px 10px;
+          border-radius: 12px;
+          font-size: 12px;
           font-weight: 600;
           text-transform: capitalize;
           color: white;
           background: ${priorityColor};
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
-        
-        .description-section {
+        .description-box {
           background: #fffbeb;
-          border-left: 4px solid #f59e0b;
-          padding: 24px;
-          margin: 24px 0;
-          border-radius: 8px;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-        
-        .contact-section {
-          background: #f8fafc;
-          color: #1f2937;
-          padding: 40px 30px;
-          text-align: center;
-          margin-top: 40px;
-          border-top: 1px solid #e2e8f0;
-        }
-        
-        .contact-title {
-          font-size: 24px;
-          font-weight: 700;
+          border-left: 3px solid #f59e0b;
+          padding: 12px;
           margin-bottom: 16px;
-          color: #1f2937;
+          border-radius: 4px;
+          font-size: 13px;
         }
-        
-        .contact-info {
-          background: #ffffff;
-          border-radius: 12px;
-          padding: 24px;
-          margin: 24px 0;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        .description-box p {
+          margin-bottom: 8px;
         }
-        
-        .contact-detail {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          margin: 12px 0;
-          font-size: 16px;
-          color: #1f2937;
+        .description-box p:last-child {
+          margin-bottom: 0;
         }
-        
-        .contact-detail strong {
+        .actions {
+          text-align: center;
+          padding: 16px 0;
+          border-top: 1px solid #e2e8f0;
+          margin-top: 8px;
+        }
+        .btn-primary {
+          display: inline-block;
+          background: #10b981;
+          color: white;
+          padding: 12px 24px;
+          border-radius: 6px;
           font-weight: 600;
-          color: #1f2937;
-        }
-        
-        .contact-detail a {
-          color: #1f2937;
-          text-decoration: none;
-          font-weight: 600;
-        }
-        
-        .contact-detail a:hover {
-          color: #3b82f6;
-          text-decoration: underline;
-        }
-        
-        .footer-note {
           font-size: 14px;
+          text-decoration: none;
+        }
+        .btn-secondary {
+          display: inline-block;
+          background: #3b82f6;
+          color: white;
+          padding: 10px 20px;
+          border-radius: 6px;
+          font-weight: 600;
+          font-size: 13px;
+          text-decoration: none;
+          margin-top: 10px;
+        }
+        .footer {
+          background: #f8fafc;
+          padding: 16px 20px;
+          text-align: center;
+          font-size: 12px;
           color: #6b7280;
-          margin-top: 24px;
-          padding-top: 24px;
           border-top: 1px solid #e2e8f0;
         }
-        
-        @media (max-width: 600px) {
-          .email-container {
-            margin: 10px;
-            border-radius: 12px;
-          }
-          
-          .header {
-            padding: 30px 20px;
-          }
-          
-          .content {
-            padding: 30px 20px;
-          }
-          
-          .confirmation-card {
-            padding: 24px;
-          }
-          
-          .work-order-details {
-            padding: 20px;
-          }
-          
-          .contact-section {
-            padding: 30px 20px;
-          }
+        .footer a {
+          color: #3b82f6;
+          text-decoration: none;
+        }
+        .confirm-note {
+          font-size: 12px;
+          color: #6b7280;
+          margin-top: 8px;
         }
       </style>
     </head>
     <body>
-      <div class="email-container">
+      <div class="container">
         <div class="header">
           <div class="logo">Moxie Vacation Rentals</div>
-          <div class="tagline">Your Home Base for Living Like a Local</div>
-          <div class="work-order-badge">${workOrder.work_order_number}</div>
+          <div class="wo-badge">${workOrder.work_order_number}</div>
         </div>
         
         <div class="content">
-          <div class="greeting">Hello ${workOrder.contractor?.name || 'Contractor'}!</div>
-          <div class="intro-text">
-            We have a new work order ready for you. Please review the details below and confirm receipt by replying to this email.
+          <div class="greeting">
+            Hi ${workOrder.contractor?.name || 'Contractor'}, you have a new work order. Please review and confirm receipt.
           </div>
 
-          ${acknowledgeUrl ? `
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${acknowledgeUrl}" 
-               style="display: inline-block; background: #10b981; color: white; padding: 16px 32px; border-radius: 8px; font-weight: 700; font-size: 18px; text-decoration: none;">
-              ✓ Acknowledge Receipt
-            </a>
-            <p style="font-size: 14px; color: #6b7280; margin-top: 12px;">
-              Click the button above to confirm you've received this work order
-            </p>
-          </div>
-          ${portalUrl ? `
-          <div style="text-align: center; margin: 20px 0; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-            <a href="${portalUrl}" 
-               style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 16px; text-decoration: none;">
-              📋 View All My Work Orders
-            </a>
-            <p style="font-size: 13px; color: #6b7280; margin-top: 10px;">
-              Access your contractor portal to view all assigned work orders, update status, and upload completion photos
-            </p>
-          </div>
-          ` : ''}
-          ` : `
-          <div class="confirmation-card">
-            <div class="confirmation-title">Please Confirm Receipt</div>
-            <div class="confirmation-subtitle">
-              Simply reply to this email to confirm you've received this work order. This helps us track project progress and ensures clear communication.
-            </div>
-          </div>
-          `}
-
-          <div class="work-order-details">
-            <div class="details-title">Work Order Details</div>
-            
-            <div class="details-grid">
-              <div class="detail-item">
+          <!-- Work Order Details Grid -->
+          <div class="details-grid">
+            <div class="details-row">
+              <div class="detail-cell">
                 <div class="detail-label">📝 Title</div>
                 <div class="detail-value">${workOrder.title}</div>
               </div>
-              
-              <div class="detail-item">
+              <div class="detail-cell">
                 <div class="detail-label">⚡ Priority</div>
                 <span class="priority-badge">${workOrder.priority}</span>
               </div>
-              
-              ${workOrder.property ? `
-              <div class="detail-item">
+            </div>
+            ${workOrder.property ? `
+            <div class="details-row">
+              <div class="detail-cell">
                 <div class="detail-label">🏠 Property</div>
-                <div class="detail-value">
-                  ${workOrder.property.title}<br>
-                  <span style="color: #6b7280; font-size: 14px; font-weight: 400;">${workOrder.property.location}</span>
-                </div>
+                <div class="detail-value">${workOrder.property.title}</div>
               </div>
-              ` : ''}
-              
+              <div class="detail-cell">
+                <div class="detail-label">📍 Location</div>
+                <div class="detail-value" style="font-size: 12px;">${workOrder.property.location || 'N/A'}</div>
+              </div>
+            </div>
+            ` : ''}
+            <div class="details-row">
               ${workOrder.estimated_completion_date ? `
-              <div class="detail-item">
+              <div class="detail-cell">
                 <div class="detail-label">📅 Due Date</div>
                 <div class="detail-value">${formatDate(workOrder.estimated_completion_date)}</div>
               </div>
-              ` : ''}
-              
+              ` : '<div class="detail-cell"></div>'}
               ${workOrder.access_code ? `
-              <div class="detail-item">
-                <div class="detail-label">🔑 Property Access</div>
+              <div class="detail-cell">
+                <div class="detail-label">🔑 Access Code</div>
                 <div class="detail-value">${workOrder.access_code}</div>
               </div>
-              ` : ''}
+              ` : '<div class="detail-cell"></div>'}
             </div>
           </div>
 
-          ${workOrder.description ? `
-          <div class="description-section">
-            <div class="detail-label" style="margin-bottom: 12px;">📋 Description</div>
-            <div class="detail-value">${workOrder.description.replace(/\n/g, '<br>')}</div>
+          ${hasDescriptionContent ? `
+          <div class="description-box">
+            ${descriptionSections.map(section => `<p>${section}</p>`).join('')}
           </div>
           ` : ''}
 
-          ${workOrder.scope_of_work ? `
-          <div class="description-section">
-            <div class="detail-label" style="margin-bottom: 12px;">🔧 Scope of Work</div>
-            <div class="detail-value">${workOrder.scope_of_work.replace(/\n/g, '<br>')}</div>
+          <!-- Action Buttons - AFTER work order details -->
+          ${acknowledgeUrl ? `
+          <div class="actions">
+            <a href="${acknowledgeUrl}" class="btn-primary">✓ Acknowledge Receipt</a>
+            ${portalUrl ? `<br><a href="${portalUrl}" class="btn-secondary">📋 View My Work Orders</a>` : ''}
+            <p class="confirm-note">Please confirm within 24 hours</p>
           </div>
-          ` : ''}
-
-          ${workOrder.special_instructions ? `
-          <div class="description-section">
-            <div class="detail-label" style="margin-bottom: 12px;">⚠️ Special Instructions</div>
-            <div class="detail-value">${workOrder.special_instructions.replace(/\n/g, '<br>')}</div>
+          ` : `
+          <div class="actions">
+            <p style="font-size: 13px; color: #4b5563;"><strong>Please reply to this email</strong> to confirm receipt.</p>
           </div>
-          ` : ''}
+          `}
         </div>
 
-        <div class="contact-section">
-          <div class="contact-title">Need to Get in Touch?</div>
-          <div class="contact-info">
-            <div class="contact-detail">
-              <span>📞</span>
-              <span><strong>Phone:</strong> <a href="tel:+15412551698">+1 541-255-1698</a></span>
-            </div>
-            <div class="contact-detail">
-              <span>✉️</span>
-              <span><strong>Email:</strong> <a href="mailto:team@moxievacationrentals.com">team@moxievacationrentals.com</a></span>
-            </div>
-            <div class="contact-detail">
-              <span>📍</span>
-              <span><strong>Address:</strong> 2472 Willamette St, Eugene, OR 97405</span>
-            </div>
-          </div>
-          
-          <div class="footer-note">
-            <p><strong>Important:</strong> Please confirm receipt of this work order ${acknowledgeUrl ? 'by clicking the acknowledge button above' : 'by replying to this email'} within 24 hours.</p>
-            <p style="margin-top: 16px;">
-              This is an automated message from Moxie Vacation Rentals. 
-              We're here to help make your work seamless and efficient.
-            </p>
-          </div>
+        <div class="footer">
+          📞 <a href="tel:+15412551698">541-255-1698</a> &nbsp;|&nbsp; 
+          ✉️ <a href="mailto:team@moxievacationrentals.com">team@moxievacationrentals.com</a>
         </div>
       </div>
     </body>
