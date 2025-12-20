@@ -88,15 +88,17 @@ const ColorCustomizer = () => {
     setHasChanges(true);
     
     // Apply immediately to DOM for live preview
-    applyColorsToDOM(newColors);
+    applyColorsToDOM(newColors, useGradients);
   };
 
   /**
-   * Handles gradient toggle change
+   * Handles gradient toggle change with immediate DOM preview.
    */
   const handleGradientToggle = (enabled: boolean) => {
     setUseGradients(enabled);
     setHasChanges(true);
+    // Apply immediately to DOM for live preview
+    applyColorsToDOM(colors, enabled);
   };
 
   /**
@@ -183,7 +185,7 @@ const ColorCustomizer = () => {
   const applyPreset = (preset: typeof colorPresets[0]) => {
     setColors(preset.colors);
     setHasChanges(true);
-    applyColorsToDOM(preset.colors);
+    applyColorsToDOM(preset.colors, useGradients);
   };
 
   /**
@@ -192,7 +194,7 @@ const ColorCustomizer = () => {
   const handleApplyAIPalette = (palette: ColorPalette) => {
     setColors(palette);
     setHasChanges(true);
-    applyColorsToDOM(palette);
+    applyColorsToDOM(palette, useGradients);
   };
 
   const isSaving = Object.values(saving).some(Boolean);

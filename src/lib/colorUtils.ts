@@ -261,6 +261,7 @@ export const COLOR_CSS_PROPERTIES = [
  * ColorCustomizer (for live preview).
  * 
  * @param colors - The color palette to apply
+ * @param useGradients - Whether to use multi-color gradients or solid colors
  * 
  * @example
  * applyColorsToDOM({
@@ -270,9 +271,9 @@ export const COLOR_CSS_PROPERTIES = [
  *   background: '#ffffff',
  *   text: '#1a202c',
  *   muted: '#f0f0f0'
- * });
+ * }, true);
  */
-export const applyColorsToDOM = (colors: ColorPalette): void => {
+export const applyColorsToDOM = (colors: ColorPalette, useGradients: boolean = true): void => {
   try {
     const root = document.documentElement;
     
@@ -301,16 +302,28 @@ export const applyColorsToDOM = (colors: ColorPalette): void => {
     root.style.setProperty('--popover', backgroundHsl);
     root.style.setProperty('--popover-foreground', foregroundHsl);
 
-    // Apply gradient colors
-    root.style.setProperty('--gradient-from', primaryHsl);
-    root.style.setProperty('--gradient-via', secondaryHsl);
-    root.style.setProperty('--gradient-to', accentHsl);
-    root.style.setProperty('--gradient-accent-from', secondaryHsl);
-    root.style.setProperty('--gradient-accent-to', accentHsl);
+    // Apply gradient colors based on useGradients setting
+    if (useGradients) {
+      // Multi-color gradients
+      root.style.setProperty('--gradient-from', primaryHsl);
+      root.style.setProperty('--gradient-via', secondaryHsl);
+      root.style.setProperty('--gradient-to', accentHsl);
+      root.style.setProperty('--gradient-accent-from', secondaryHsl);
+      root.style.setProperty('--gradient-accent-to', accentHsl);
+      root.style.setProperty('--hero-gradient-from', primaryHsl);
+      root.style.setProperty('--hero-gradient-to', secondaryHsl);
+    } else {
+      // Solid colors - set all gradient stops to same value
+      root.style.setProperty('--gradient-from', primaryHsl);
+      root.style.setProperty('--gradient-via', primaryHsl);
+      root.style.setProperty('--gradient-to', primaryHsl);
+      root.style.setProperty('--gradient-accent-from', secondaryHsl);
+      root.style.setProperty('--gradient-accent-to', secondaryHsl);
+      root.style.setProperty('--hero-gradient-from', primaryHsl);
+      root.style.setProperty('--hero-gradient-to', primaryHsl);
+    }
 
     // Apply section-specific colors
-    root.style.setProperty('--hero-gradient-from', primaryHsl);
-    root.style.setProperty('--hero-gradient-to', secondaryHsl);
     root.style.setProperty('--footer-bg', primaryHsl);
   } catch (error) {
     console.error('[colorUtils] Error applying colors to DOM:', error);
