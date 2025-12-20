@@ -101,16 +101,32 @@ export const useGlobalColors = () => {
       root.style.setProperty('--popover', backgroundHsl);
       root.style.setProperty('--popover-foreground', foregroundHsl);
 
-      // Apply gradient colors for hero sections and decorative elements
-      root.style.setProperty('--gradient-from', primaryHsl);
-      root.style.setProperty('--gradient-via', secondaryHsl);
-      root.style.setProperty('--gradient-to', accentHsl);
-      root.style.setProperty('--gradient-accent-from', secondaryHsl);
-      root.style.setProperty('--gradient-accent-to', accentHsl);
+      // Check if gradients are enabled (default to true if not set)
+      const useGradients = settings?.colorUseGradients !== false;
 
-      // Apply hero-specific gradient colors
-      root.style.setProperty('--hero-gradient-from', primaryHsl);
-      root.style.setProperty('--hero-gradient-to', secondaryHsl);
+      if (useGradients) {
+        // Apply gradient colors for hero sections and decorative elements
+        root.style.setProperty('--gradient-from', primaryHsl);
+        root.style.setProperty('--gradient-via', secondaryHsl);
+        root.style.setProperty('--gradient-to', accentHsl);
+        root.style.setProperty('--gradient-accent-from', secondaryHsl);
+        root.style.setProperty('--gradient-accent-to', accentHsl);
+
+        // Apply hero-specific gradient colors
+        root.style.setProperty('--hero-gradient-from', primaryHsl);
+        root.style.setProperty('--hero-gradient-to', secondaryHsl);
+      } else {
+        // Solid colors mode: set all gradient stops to the same color
+        root.style.setProperty('--gradient-from', primaryHsl);
+        root.style.setProperty('--gradient-via', primaryHsl);
+        root.style.setProperty('--gradient-to', primaryHsl);
+        root.style.setProperty('--gradient-accent-from', secondaryHsl);
+        root.style.setProperty('--gradient-accent-to', secondaryHsl);
+
+        // Hero gradients become solid
+        root.style.setProperty('--hero-gradient-from', primaryHsl);
+        root.style.setProperty('--hero-gradient-to', primaryHsl);
+      }
 
       // Apply footer background color
       root.style.setProperty('--footer-bg', primaryHsl);
@@ -128,6 +144,7 @@ export const useGlobalColors = () => {
     settings?.colorForeground,
     settings?.colorMuted,
     settings?.colorDestructive,
+    settings?.colorUseGradients,
     loading
   ]);
 };

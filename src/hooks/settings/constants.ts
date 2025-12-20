@@ -67,5 +67,8 @@ export const defaultSettings: SettingsState = {
   colorBackground: '#ffffff',
   colorForeground: '#1a202c',
   colorMuted: '#ececec',
-  colorDestructive: '#ef4444'
+  colorDestructive: '#ef4444',
+  
+  // Color mode settings
+  colorUseGradients: true
 };
