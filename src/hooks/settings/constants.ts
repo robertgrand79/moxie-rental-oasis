@@ -58,5 +58,13 @@ export const defaultSettings: SettingsState = {
   // Amenities section
   amenitiesSectionTitle: 'Premium Amenities',
   amenitiesSectionDescription: 'Our properties come thoughtfully equipped with everything you need for a comfortable stay',
-  amenitiesSectionEnabled: true
+  amenitiesSectionEnabled: true,
+  
+  // Site Colors (stored as hex)
+  colorPrimary: '#767b8d',
+  colorSecondary: '#8b929a',
+  colorAccent: '#cbcfd2',
+  colorBackground: '#ffffff',
+  colorForeground: '#1a202c',
+  colorMuted: '#ececec'
 };

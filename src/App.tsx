@@ -6,7 +6,7 @@ import { StaticSettingsProvider } from './contexts/StaticSettingsContext';
 import { PlatformProvider } from './contexts/PlatformContext';
 import AppRoutes from './components/routing/AppRoutes';
 import PublicChatWidget from './components/public/PublicChatWidget';
-import GlobalFontsProvider from './components/GlobalFontsProvider';
+import GlobalThemeProvider from './components/GlobalThemeProvider';
 import TenantDebugBanner from './components/debug/TenantDebugBanner';
 import SiteHead from './components/SiteHead';
 
@@ -22,10 +22,10 @@ function App() {
               <TenantDebugBanner />
               <SiteHead />
               <StaticSettingsProvider>
-                <GlobalFontsProvider>
+                <GlobalThemeProvider>
                   <AppRoutes />
                   <PublicChatWidget />
-                </GlobalFontsProvider>
+                </GlobalThemeProvider>
               </StaticSettingsProvider>
             </TenantProvider>
           </OrganizationProvider>
