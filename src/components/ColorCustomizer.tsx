@@ -1,3 +1,13 @@
+/**
+ * Color Customizer Component
+ * 
+ * Admin interface for customizing the site's color scheme.
+ * Provides real-time preview, preset palettes, and AI-generated suggestions.
+ * Changes are persisted to the database and applied globally via useGlobalColors.
+ * 
+ * @module ColorCustomizer
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,55 +19,36 @@ import AIPaletteGenerator from '@/components/admin/settings/AIPaletteGenerator';
 import SiteThemePreview from '@/components/admin/settings/SiteThemePreview';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
+import { 
+  hexToHsl, 
+  applyColorsToDOM, 
+  resetColorsInDOM, 
+  DEFAULT_COLORS,
+  type ColorPalette 
+} from '@/lib/colorUtils';
 
-interface ColorPalette {
-  primary: string;
-  secondary: string;
-  accent: string;
-  background: string;
-  text: string;
-  muted: string;
-}
-
+/**
+ * Default color palette matching the site's default theme.
+ */
 const defaultColors: ColorPalette = {
-  primary: '#767b8d',
-  secondary: '#8b929a',
-  accent: '#cbcfd2',
-  background: '#ffffff',
-  text: '#1a202c',
-  muted: '#ececec',
+  primary: DEFAULT_COLORS.primary,
+  secondary: DEFAULT_COLORS.secondary,
+  accent: DEFAULT_COLORS.accent,
+  background: DEFAULT_COLORS.background,
+  text: DEFAULT_COLORS.foreground,
+  muted: DEFAULT_COLORS.muted,
 };
 
 /**
- * Convert hex color to HSL string for CSS custom properties
+ * ColorCustomizer provides an admin interface for site color customization.
+ * 
+ * Features:
+ * - Live preview of color changes
+ * - Preset color palettes for quick selection
+ * - AI-powered palette generation
+ * - Persistence to database via useSimplifiedSiteSettings
+ * - Real-time CSS variable updates for instant feedback
  */
-const hexToHsl = (hex: string): string => {
-  if (!hex || !hex.startsWith('#') || hex.length < 7) {
-    return '0 0% 50%';
-  }
-
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  let h = 0, s = 0, l = (max + min) / 2;
-
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
-    }
-    h /= 6;
-  }
-
-  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
-};
-
 const ColorCustomizer = () => {
   const { settings, loading: settingsLoading, saveSettings, saving } = useSimplifiedSiteSettings();
   const [colors, setColors] = useState<ColorPalette>(defaultColors);
@@ -66,7 +57,7 @@ const ColorCustomizer = () => {
 
   const { toast } = useToast();
 
-  // Load colors from database settings
+  // Load colors from database settings on mount
   useEffect(() => {
     if (settingsLoading) return;
     
@@ -83,47 +74,21 @@ const ColorCustomizer = () => {
     console.log('🎨 [ColorCustomizer] Loaded colors from settings:', loadedColors);
   }, [settings, settingsLoading]);
 
+  /**
+   * Handles color input changes with immediate DOM preview.
+   */
   const handleColorChange = (colorKey: string, value: string) => {
-    setColors(prev => ({
-      ...prev,
-      [colorKey]: value
-    }));
+    const newColors = { ...colors, [colorKey]: value };
+    setColors(newColors);
     setHasChanges(true);
     
-    // Apply immediately to preview
-    applyColorsToDOM({ ...colors, [colorKey]: value });
+    // Apply immediately to DOM for live preview
+    applyColorsToDOM(newColors);
   };
 
-  const applyColorsToDOM = (colorsToApply: ColorPalette) => {
-    const root = document.documentElement;
-    
-    const primaryHsl = hexToHsl(colorsToApply.primary);
-    const secondaryHsl = hexToHsl(colorsToApply.secondary);
-    const accentHsl = hexToHsl(colorsToApply.accent);
-    const backgroundHsl = hexToHsl(colorsToApply.background);
-    const foregroundHsl = hexToHsl(colorsToApply.text);
-    const mutedHsl = hexToHsl(colorsToApply.muted);
-
-    root.style.setProperty('--primary', primaryHsl);
-    root.style.setProperty('--secondary', secondaryHsl);
-    root.style.setProperty('--accent', accentHsl);
-    root.style.setProperty('--background', backgroundHsl);
-    root.style.setProperty('--foreground', foregroundHsl);
-    root.style.setProperty('--muted', mutedHsl);
-    root.style.setProperty('--card', backgroundHsl);
-    root.style.setProperty('--card-foreground', foregroundHsl);
-    root.style.setProperty('--popover', backgroundHsl);
-    root.style.setProperty('--popover-foreground', foregroundHsl);
-    root.style.setProperty('--gradient-from', primaryHsl);
-    root.style.setProperty('--gradient-via', secondaryHsl);
-    root.style.setProperty('--gradient-to', accentHsl);
-    root.style.setProperty('--gradient-accent-from', secondaryHsl);
-    root.style.setProperty('--gradient-accent-to', accentHsl);
-    root.style.setProperty('--hero-gradient-from', primaryHsl);
-    root.style.setProperty('--hero-gradient-to', secondaryHsl);
-    root.style.setProperty('--footer-bg', primaryHsl);
-  };
-
+  /**
+   * Saves current color palette to the database.
+   */
   const saveColors = async () => {
     const success = await saveSettings({
       colorPrimary: colors.primary,
@@ -143,20 +108,16 @@ const ColorCustomizer = () => {
     }
   };
 
+  /**
+   * Resets colors to default values and clears database overrides.
+   */
   const resetColors = async () => {
     setColors(defaultColors);
     
-    // Remove CSS variable overrides
-    const root = document.documentElement;
-    const propsToRemove = [
-      '--primary', '--secondary', '--accent', '--background', '--foreground', '--muted',
-      '--card', '--card-foreground', '--popover', '--popover-foreground',
-      '--gradient-from', '--gradient-via', '--gradient-to', '--gradient-accent-from', '--gradient-accent-to',
-      '--hero-gradient-from', '--hero-gradient-to', '--footer-bg'
-    ];
-    propsToRemove.forEach(prop => root.style.removeProperty(prop));
+    // Remove CSS variable overrides to use defaults from index.css
+    resetColorsInDOM();
 
-    // Save empty values to database to reset
+    // Save empty values to database to clear custom colors
     const success = await saveSettings({
       colorPrimary: '',
       colorSecondary: '',
@@ -175,6 +136,9 @@ const ColorCustomizer = () => {
     }
   };
 
+  /**
+   * Preset color palettes for quick selection.
+   */
   const colorPresets = [
     { 
       name: 'Gray Palette', 
@@ -193,12 +157,18 @@ const ColorCustomizer = () => {
     { name: 'Royal Purple', colors: { primary: '#5d2e5d', secondary: '#8e44ad', accent: '#c39bd3', background: '#ffffff', text: '#1a202c', muted: '#f5e6f5' } },
   ];
 
+  /**
+   * Applies a preset color palette.
+   */
   const applyPreset = (preset: typeof colorPresets[0]) => {
     setColors(preset.colors);
     setHasChanges(true);
     applyColorsToDOM(preset.colors);
   };
 
+  /**
+   * Handles AI-generated palette application.
+   */
   const handleApplyAIPalette = (palette: ColorPalette) => {
     setColors(palette);
     setHasChanges(true);
