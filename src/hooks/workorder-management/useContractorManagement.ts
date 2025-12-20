@@ -15,6 +15,9 @@ export interface Contractor {
   is_active: boolean;
   sms_opt_in?: boolean;
   notes?: string;
+  // Billing fields
+  hourly_rate?: number;
+  default_billing_type?: string;
   created_by: string;
   created_at: string;
   updated_at: string;

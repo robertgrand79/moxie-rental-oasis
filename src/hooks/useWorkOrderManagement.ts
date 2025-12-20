@@ -26,6 +26,14 @@ export interface WorkOrder {
   sent_at?: string;
   acknowledged_at?: string;
   completed_at?: string;
+  // Billing fields
+  billing_type?: string;
+  billing_rate?: number;
+  hours_worked?: number;
+  billing_amount?: number;
+  payment_status?: string;
+  paid_at?: string;
+  payment_notes?: string;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -40,6 +48,8 @@ export interface WorkOrder {
     company_name?: string;
     email: string;
     phone?: string;
+    hourly_rate?: number;
+    default_billing_type?: string;
   };
 }
 
@@ -56,6 +66,9 @@ export interface Contractor {
   notes?: string;
   is_active: boolean;
   sms_opt_in?: boolean;
+  // Billing fields
+  hourly_rate?: number;
+  default_billing_type?: string;
   created_by: string;
   created_at: string;
   updated_at: string;

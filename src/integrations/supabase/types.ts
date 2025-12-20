@@ -825,7 +825,9 @@ export type Database = {
           company_name: string | null
           created_at: string
           created_by: string
+          default_billing_type: string | null
           email: string
+          hourly_rate: number | null
           id: string
           is_active: boolean
           name: string
@@ -842,7 +844,9 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           created_by: string
+          default_billing_type?: string | null
           email: string
+          hourly_rate?: number | null
           id?: string
           is_active?: boolean
           name: string
@@ -859,7 +863,9 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           created_by?: string
+          default_billing_type?: string | null
           email?: string
+          hourly_rate?: number | null
           id?: string
           is_active?: boolean
           name?: string
@@ -5548,6 +5554,9 @@ export type Database = {
           actual_completion_date: string | null
           actual_cost: number | null
           attachments: string[] | null
+          billing_amount: number | null
+          billing_rate: number | null
+          billing_type: string | null
           completed_at: string | null
           completion_photos: string[] | null
           contractor_id: string | null
@@ -5557,9 +5566,13 @@ export type Database = {
           description: string
           estimated_completion_date: string | null
           estimated_cost: number | null
+          hours_worked: number | null
           id: string
           invoice_attachments: string[] | null
           organization_id: string | null
+          paid_at: string | null
+          payment_notes: string | null
+          payment_status: string | null
           priority: string
           property_id: string | null
           requires_permits: boolean | null
@@ -5578,6 +5591,9 @@ export type Database = {
           actual_completion_date?: string | null
           actual_cost?: number | null
           attachments?: string[] | null
+          billing_amount?: number | null
+          billing_rate?: number | null
+          billing_type?: string | null
           completed_at?: string | null
           completion_photos?: string[] | null
           contractor_id?: string | null
@@ -5587,9 +5603,13 @@ export type Database = {
           description: string
           estimated_completion_date?: string | null
           estimated_cost?: number | null
+          hours_worked?: number | null
           id?: string
           invoice_attachments?: string[] | null
           organization_id?: string | null
+          paid_at?: string | null
+          payment_notes?: string | null
+          payment_status?: string | null
           priority?: string
           property_id?: string | null
           requires_permits?: boolean | null
@@ -5608,6 +5628,9 @@ export type Database = {
           actual_completion_date?: string | null
           actual_cost?: number | null
           attachments?: string[] | null
+          billing_amount?: number | null
+          billing_rate?: number | null
+          billing_type?: string | null
           completed_at?: string | null
           completion_photos?: string[] | null
           contractor_id?: string | null
@@ -5617,9 +5640,13 @@ export type Database = {
           description?: string
           estimated_completion_date?: string | null
           estimated_cost?: number | null
+          hours_worked?: number | null
           id?: string
           invoice_attachments?: string[] | null
           organization_id?: string | null
+          paid_at?: string | null
+          payment_notes?: string | null
+          payment_status?: string | null
           priority?: string
           property_id?: string | null
           requires_permits?: boolean | null
