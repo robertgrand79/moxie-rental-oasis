@@ -1,9 +1,17 @@
 import React, { useMemo } from 'react';
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
+  useSidebar,
 } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import AdminSidebarSection from './sidebar/AdminSidebarSection';
 import AdminSidebarFooter from './sidebar/AdminSidebarFooter';
 import { adminMenuItems } from './sidebar/adminMenuItems';
@@ -17,7 +25,9 @@ const AdminSidebar = () => {
   const { settings } = useSimplifiedSiteSettings();
   const { organization } = useCurrentOrganization();
   const { isPlatformAdmin } = usePlatformAdmin();
+  const { state, toggleSidebar } = useSidebar();
   
+  const isCollapsed = state === 'collapsed';
   const logoUrl = settings.siteLogo || organization?.logo_url;
 
   // Filter menu items based on platform admin status
@@ -41,28 +51,54 @@ const AdminSidebar = () => {
   }, [isPlatformAdmin]);
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
-          <div className="flex items-center gap-3">
-            {logoUrl ? (
-              <div className="flex items-center">
-                <img 
-                  src={logoUrl} 
-                  alt="Site Logo" 
-                  className={`${isMobile ? 'h-8' : 'h-10'} w-auto max-w-[150px] object-contain`}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="flex items-center">
-                <h2 className={`font-bold text-foreground ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                  {settings.siteName || organization?.name || 'Admin'}
-                </h2>
-              </div>
+        <div className={`${isMobile ? 'p-3' : 'p-4'} ${isCollapsed ? 'p-2' : ''}`}>
+          <div className="flex items-center justify-between gap-2">
+            {/* Logo/Name - hidden when collapsed */}
+            {!isCollapsed && (
+              <>
+                {logoUrl ? (
+                  <div className="flex items-center flex-1 min-w-0">
+                    <img 
+                      src={logoUrl} 
+                      alt="Site Logo" 
+                      className={`${isMobile ? 'h-8' : 'h-10'} w-auto max-w-[120px] object-contain`}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center flex-1 min-w-0">
+                    <h2 className={`font-bold text-foreground truncate ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                      {settings.siteName || organization?.name || 'Admin'}
+                    </h2>
+                  </div>
+                )}
+              </>
             )}
+            
+            {/* Toggle button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSidebar}
+                  className="h-8 w-8 flex-shrink-0"
+                >
+                  {isCollapsed ? (
+                    <PanelLeftOpen className="h-4 w-4" />
+                  ) : (
+                    <PanelLeftClose className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </SidebarHeader>

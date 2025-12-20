@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -10,7 +9,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type MenuItem = {
@@ -28,6 +33,9 @@ const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { state } = useSidebar();
+  
+  const isCollapsed = state === 'collapsed';
 
   const handleItemClick = (item: MenuItem, event: React.MouseEvent) => {
     const isActive = location.pathname === item.href;
@@ -47,9 +55,11 @@ const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className={`text-xs font-semibold text-gray-500 uppercase tracking-wider ${isMobile ? 'px-3' : ''}`}>
-        {title}
-      </SidebarGroupLabel>
+      {!isCollapsed && (
+        <SidebarGroupLabel className={`text-xs font-semibold text-gray-500 uppercase tracking-wider ${isMobile ? 'px-3' : ''}`}>
+          {title}
+        </SidebarGroupLabel>
+      )}
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
@@ -58,22 +68,45 @@ const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
             
             return (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton 
-                  asChild 
-                  isActive={isActive}
-                  className={isMobile ? 'min-h-[44px]' : ''}
-                >
-                  <Link 
-                    to={item.href} 
-                    className={`flex items-center space-x-3 ${isMobile ? 'px-3 py-3' : ''}`}
-                    onClick={(e) => handleItemClick(item, e)}
-                  >
-                    <IconComponent className="h-5 w-5 text-gray-600" />
-                    <span className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
+                {isCollapsed ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton 
+                        asChild 
+                        isActive={isActive}
+                        className="justify-center"
+                      >
+                        <Link 
+                          to={item.href} 
+                          className="flex items-center justify-center"
+                          onClick={(e) => handleItemClick(item, e)}
+                        >
+                          <IconComponent className="h-5 w-5 text-gray-600" />
+                        </Link>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
                       {item.title}
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={isActive}
+                    className={isMobile ? 'min-h-[44px]' : ''}
+                  >
+                    <Link 
+                      to={item.href} 
+                      className={`flex items-center space-x-3 ${isMobile ? 'px-3 py-3' : ''}`}
+                      onClick={(e) => handleItemClick(item, e)}
+                    >
+                      <IconComponent className="h-5 w-5 text-gray-600" />
+                      <span className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
+                        {item.title}
+                      </span>
+                    </Link>
+                  </SidebarMenuButton>
+                )}
               </SidebarMenuItem>
             );
           })}
