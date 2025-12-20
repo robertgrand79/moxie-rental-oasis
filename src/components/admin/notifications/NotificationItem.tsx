@@ -41,7 +41,7 @@ const getPriorityColor = (priority: string) => {
     case 'urgent':
       return 'bg-destructive/10 border-destructive/30';
     case 'high':
-      return 'bg-orange-500/10 border-orange-500/30';
+      return 'bg-accent/20 border-accent/50';
     default:
       return 'bg-background border-border';
   }
@@ -78,10 +78,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       {/* Icon */}
       <div className={cn(
         'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center',
-        notification.category === 'bookings' && 'bg-green-500/10 text-green-600',
-        notification.category === 'communications' && 'bg-blue-500/10 text-blue-600',
-        notification.category === 'operations' && 'bg-orange-500/10 text-orange-600',
-        notification.category === 'payments' && 'bg-purple-500/10 text-purple-600',
+        notification.category === 'bookings' && 'bg-primary/10 text-primary',
+        notification.category === 'communications' && 'bg-primary/10 text-primary',
+        notification.category === 'operations' && 'bg-accent/20 text-accent-foreground',
+        notification.category === 'payments' && 'bg-secondary text-secondary-foreground',
         notification.category === 'system' && 'bg-muted text-muted-foreground'
       )}>
         <Icon className="w-4 h-4" />
