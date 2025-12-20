@@ -88,10 +88,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-start justify-between gap-2">
           <p className={cn(
-            'text-sm line-clamp-2',
+            'text-sm truncate',
             !notification.is_read && 'font-medium'
           )}>
             {notification.title}
@@ -100,7 +100,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             <span className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-1.5" />
           )}
         </div>
-        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+        <p className="text-xs text-muted-foreground truncate mt-0.5">
           {notification.message}
         </p>
         <p className="text-xs text-muted-foreground/60 mt-1">
