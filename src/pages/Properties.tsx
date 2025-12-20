@@ -28,12 +28,12 @@ const Properties = () => {
     <BackgroundWrapper>
       <div className="min-h-screen">
         <div className="container mx-auto px-4 py-16">
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-16 mx-auto border border-white/20">
+          <div className="bg-card/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-16 mx-auto border border-border/20">
             <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              <h1 className="text-4xl font-bold text-foreground mb-4">
                 Our Properties
               </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 Discover our carefully curated collection of vacation rental properties in {locationText}.
               </p>
             </div>

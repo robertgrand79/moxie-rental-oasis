@@ -84,7 +84,7 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
 
   const getPreviewContent = () => {
     if (!content || content.trim() === '') {
-      return '<p class="text-gray-500 italic">Your page content will appear here...</p>';
+      return '<p class="text-muted-foreground italic">Your page content will appear here...</p>';
     }
 
     if (contentType === 'craftjs') {
@@ -97,10 +97,10 @@ const ContentEditor = ({ content, onChange, pageSlug, pageTitle }: ContentEditor
   };
 
   const PagePreview = () => (
-    <div className="bg-white rounded-lg border min-h-96 p-6">
+    <div className="bg-card rounded-lg border min-h-96 p-6">
       <div className="mb-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{pageTitle || 'Page Title'}</h1>
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+        <h1 className="text-3xl font-bold text-foreground mb-2">{pageTitle || 'Page Title'}</h1>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
           {getContentTypeBadge()}
           <span>/{pageSlug || 'page-slug'}</span>
         </div>

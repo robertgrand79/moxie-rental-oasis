@@ -51,18 +51,18 @@ const LifestyleGalleryCard = ({ item, onItemClick }: LifestyleGalleryCardProps) 
       </div>
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-2">
-          <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
             {item.title}
           </h3>
           <Badge variant="secondary" className="text-xs ml-2">
             {categoryLabels[item.category as keyof typeof categoryLabels]}
           </Badge>
         </div>
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
           {item.description}
         </p>
         {item.location && (
-          <div className="flex items-center text-gray-500 text-xs">
+          <div className="flex items-center text-muted-foreground text-xs">
             <MapPin className="h-3 w-3 mr-1" />
             <span>{item.location}</span>
           </div>

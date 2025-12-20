@@ -207,7 +207,7 @@ const PlatformBlog: React.FC = () => {
           </p>
           
           <Link to="/auth?tab=signup">
-            <Button size="lg" className="bg-white text-emerald-600 hover:bg-white/90 text-lg px-8">
+            <Button size="lg" className="bg-background text-primary hover:bg-background/90 text-lg px-8">
               Start Free Trial
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>

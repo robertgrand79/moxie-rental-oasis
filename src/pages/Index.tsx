@@ -51,7 +51,7 @@ const Index = () => {
         {/* Newsletter Section - Added before What's Nearby */}
         <section className="py-20 relative">
           <div className="container mx-auto px-4">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-white/20">
+            <div className="bg-card/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-border/20">
               <TravelNewsletterSignup />
             </div>
           </div>

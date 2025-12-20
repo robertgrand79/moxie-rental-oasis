@@ -13,10 +13,10 @@ const ModernHeroSection = () => {
 
   if (isLoading) {
     return (
-      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900">
-        <div className="animate-pulse text-white text-center">
-          <div className="h-16 bg-white/20 rounded-lg w-96 mx-auto mb-4"></div>
-          <div className="h-8 bg-white/20 rounded-lg w-64 mx-auto"></div>
+      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-muted to-background">
+        <div className="animate-pulse text-foreground text-center">
+          <div className="h-16 bg-muted rounded-lg w-96 mx-auto mb-4"></div>
+          <div className="h-8 bg-muted rounded-lg w-64 mx-auto"></div>
         </div>
       </section>
     );
@@ -57,7 +57,7 @@ const ModernHeroSection = () => {
                 )}
               </h1>
               
-              <p className="text-xl lg:text-2xl text-gray-200 leading-relaxed max-w-3xl mx-auto">
+              <p className="text-xl lg:text-2xl text-primary-foreground/80 leading-relaxed max-w-3xl mx-auto">
                 {settings.heroDescription}
               </p>
             </div>
@@ -65,7 +65,7 @@ const ModernHeroSection = () => {
             {/* Stats Row */}
             <div className="flex justify-center items-center gap-12 py-4">
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-white mb-1">
+                <div className="text-3xl lg:text-4xl font-bold text-primary-foreground mb-1">
                   {metrics && !isRatingLoading ? metrics.formattedRating : '5.0'}
                 </div>
                 <div className="flex items-center justify-center gap-1 mb-2">
@@ -73,11 +73,11 @@ const ModernHeroSection = () => {
                     <Star key={i} className="w-4 h-4 fill-accent text-accent" />
                   ))}
                 </div>
-                <div className="text-sm text-gray-300">Rating</div>
+                <div className="text-sm text-primary-foreground/70">Rating</div>
               </div>
               
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-white mb-1">
+                <div className="text-3xl lg:text-4xl font-bold text-primary-foreground mb-1">
                   {metrics && !isRatingLoading 
                     ? `${metrics.totalReviews >= 100 ? `${Math.floor(metrics.totalReviews / 10) * 10}+` : `${metrics.totalReviews}+`}`
                     : '0+'
@@ -86,15 +86,15 @@ const ModernHeroSection = () => {
                 <div className="flex items-center justify-center mb-2">
                   <Users className="w-5 h-5 text-accent" />
                 </div>
-                <div className="text-sm text-gray-300">Happy Guests</div>
+                <div className="text-sm text-primary-foreground/70">Happy Guests</div>
               </div>
               
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-white mb-1">24/7</div>
+                <div className="text-3xl lg:text-4xl font-bold text-primary-foreground mb-1">24/7</div>
                 <div className="flex items-center justify-center mb-2">
                   <Calendar className="w-5 h-5 text-accent" />
                 </div>
-                <div className="text-sm text-gray-300">Support</div>
+                <div className="text-sm text-primary-foreground/70">Support</div>
               </div>
             </div>
 

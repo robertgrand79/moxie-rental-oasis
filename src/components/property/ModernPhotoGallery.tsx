@@ -43,10 +43,10 @@ const ModernPhotoGallery = ({ images, featuredPhotos, title }: ModernPhotoGaller
     // Mobile: Horizontal scrolling carousel
     return (
       <>
-        <div className="py-8 bg-white">
+        <div className="py-8 bg-background">
           <div className="px-4 mb-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-foreground">
                 {featuredPhotos && featuredPhotos.length > 0 ? 'Featured Photos' : 'Photo Gallery'}
               </h2>
               <Button 

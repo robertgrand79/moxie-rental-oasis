@@ -14,10 +14,10 @@ const PrivacyPolicy = () => {
       <NavBar />
       <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
         <div className="container mx-auto px-4 py-8">
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mx-auto border border-white/20 max-w-4xl">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
+          <div className="bg-card/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mx-auto border border-border/20 max-w-4xl">
+            <h1 className="text-3xl font-bold text-foreground mb-8">Privacy Policy</h1>
             
-            <div className="prose prose-gray max-w-none space-y-6">
+            <div className="prose prose-neutral dark:prose-invert max-w-none space-y-6 text-foreground">
               <section>
                 <h2 className="text-2xl font-semibold mb-4">What information do we collect?</h2>
                 <p className="mb-4">
