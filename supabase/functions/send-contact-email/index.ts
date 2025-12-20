@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { Resend } from "npm:resend@2.0.0";
+import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,6 +15,7 @@ interface ContactEmailRequest {
   message: string;
   propertyId?: string;
   propertyName?: string;
+  organizationId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -24,20 +26,67 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-    
-    const supabaseClient = createClient(
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { name, email, phone, message, propertyId, propertyName }: ContactEmailRequest = await req.json();
+    const { name, email, phone, message, propertyId, propertyName, organizationId }: ContactEmailRequest = await req.json();
 
-    // Get site settings
-    const { data: settings } = await supabaseClient
+    // Get organization ID from property if provided, or use the passed organizationId
+    let orgId = organizationId;
+    if (propertyId && !orgId) {
+      const { data: property } = await supabaseAdmin
+        .from('properties')
+        .select('organization_id')
+        .eq('id', propertyId)
+        .single();
+      orgId = property?.organization_id;
+    }
+
+    // Fetch organization's Resend API key
+    let resendApiKey = "";
+    if (orgId) {
+      const { data: orgData } = await supabaseAdmin
+        .from('organizations')
+        .select('resend_api_key')
+        .eq('id', orgId)
+        .single();
+
+      if (orgData?.resend_api_key) {
+        resendApiKey = orgData.resend_api_key;
+        if (isEncrypted(resendApiKey)) {
+          resendApiKey = await decryptApiKey(resendApiKey);
+        }
+        console.log("✅ Using organization's Resend API key");
+      }
+    }
+
+    // Fallback to global secret
+    if (!resendApiKey) {
+      resendApiKey = Deno.env.get('RESEND_API_KEY') || "";
+      if (resendApiKey) {
+        console.log("ℹ️ Using global RESEND_API_KEY as fallback");
+      }
+    }
+
+    if (!resendApiKey) {
+      throw new Error('Resend API key not configured. Please add your Resend API key in Settings > Communications.');
+    }
+
+    const resend = new Resend(resendApiKey);
+
+    // Get site settings - scope to organization if available
+    let settingsQuery = supabaseAdmin
       .from('site_settings')
       .select('key, value')
       .in('key', ['siteName', 'contactEmail', 'emailFromAddress', 'emailFromName']);
+    
+    if (orgId) {
+      settingsQuery = settingsQuery.eq('organization_id', orgId);
+    }
+
+    const { data: settings } = await settingsQuery;
 
     const settingsMap = settings?.reduce((acc, setting) => {
       acc[setting.key] = setting.value;

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -446,11 +447,49 @@ const handler = async (req: Request): Promise<Response> => {
     `;
     };
 
-    // Send emails using Resend
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    // Get user's organization to fetch their Resend API key
+    console.log("🔑 Fetching organization Resend API key...");
+    const { data: userProfile, error: profileOrgError } = await supabaseAdmin
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profileOrgError || !userProfile?.organization_id) {
+      console.error("❌ Could not determine user's organization:", profileOrgError);
+      throw new Error("Could not determine your organization. Please ensure you are associated with an organization.");
+    }
+
+    const { data: orgData, error: orgError } = await supabaseAdmin
+      .from("organizations")
+      .select("resend_api_key")
+      .eq("id", userProfile.organization_id)
+      .single();
+
+    if (orgError) {
+      console.error("❌ Error fetching organization:", orgError);
+      throw new Error("Failed to fetch organization settings.");
+    }
+
+    // Decrypt the organization's Resend API key
+    let resendApiKey = orgData?.resend_api_key || "";
+    if (resendApiKey && isEncrypted(resendApiKey)) {
+      resendApiKey = await decryptApiKey(resendApiKey);
+    }
+
+    // Fallback to global secret if org key not configured
+    if (!resendApiKey) {
+      resendApiKey = Deno.env.get("RESEND_API_KEY") || "";
+      if (resendApiKey) {
+        console.log("ℹ️ Using global RESEND_API_KEY as fallback");
+      }
+    } else {
+      console.log("✅ Using organization's Resend API key");
+    }
+
     if (!resendApiKey) {
       console.error("❌ Resend API key not configured");
-      throw new Error("Resend API key not configured. Please add RESEND_API_KEY to your Supabase secrets.");
+      throw new Error("Resend API key not configured. Please add your Resend API key in Settings > Communications.");
     }
 
     const resend = new Resend(resendApiKey);
