@@ -54,7 +54,14 @@ serve(async (req) => {
     // Check if already acknowledged
     if (ackRecord.acknowledged_at) {
       console.log("Already acknowledged at:", ackRecord.acknowledged_at);
-      return redirect(`/acknowledge?status=already&name=${encodeURIComponent(contractorName)}`);
+      
+      // Still get the portal token so contractors can access their portal
+      const { data: portalToken } = await supabase.rpc('get_or_create_contractor_token', {
+        p_contractor_id: ackRecord.contractor_id
+      });
+      const workOrderIds = ackRecord.work_order_ids?.join(',') || '';
+      
+      return redirect(`/acknowledge?status=already&name=${encodeURIComponent(contractorName)}&portalToken=${portalToken || ''}&workOrderIds=${workOrderIds}`);
     }
 
     const now = new Date().toISOString();
