@@ -127,9 +127,9 @@ serve(async (req) => {
       // Continue anyway - email can still be sent
     }
 
-    // Generate acknowledge URL
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const acknowledgeUrl = `${supabaseUrl}/functions/v1/acknowledge-work-orders?token=${token}`;
+    // Generate acknowledge URL using custom domain
+    const apiDomain = "https://api.staymoxie.com";
+    const acknowledgeUrl = `${apiDomain}/functions/v1/acknowledge-work-orders?token=${token}`;
     console.log("Acknowledge URL generated:", acknowledgeUrl);
 
     // Get or create contractor portal token
@@ -181,8 +181,8 @@ serve(async (req) => {
       try {
         console.log("Sending SMS notification to contractor:", workOrder.contractor.phone);
         
-        // Format short acknowledge URL
-        const shortAckUrl = `${supabaseUrl.replace('https://', 'https://')}/functions/v1/acknowledge-work-orders?token=${token}`;
+        // Format short acknowledge URL using custom domain
+        const shortAckUrl = `${apiDomain}/functions/v1/acknowledge-work-orders?token=${token}`;
         
         // Build SMS message
         const propertyName = workOrder.property?.name || 'Property';
