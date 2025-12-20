@@ -92,11 +92,11 @@ const EnhancedLifestyleGallerySection = () => {
   }
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-muted/50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">{sectionTitle}</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-foreground mb-4">{sectionTitle}</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             {sectionDescription}
           </p>
         </div>

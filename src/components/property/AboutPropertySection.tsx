@@ -28,10 +28,10 @@ const AboutPropertySection = ({ property, activeTab = "about", onTabChange, init
 
   if (isMobile) {
     return (
-      <div className="py-6 bg-white" id="about-property">
+      <div className="py-6 bg-background" id="about-property">
         <div className="px-4">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-50 rounded-lg p-1">
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted rounded-lg p-1">
               <TabsTrigger value="about" className="text-sm">About Property</TabsTrigger>
               <TabsTrigger value="booking" className="text-sm">Book This Property</TabsTrigger>
             </TabsList>
@@ -52,13 +52,13 @@ const AboutPropertySection = ({ property, activeTab = "about", onTabChange, init
   }
 
   return (
-    <div className="py-12 bg-white" id="about-property">
+    <div className="py-12 bg-background" id="about-property">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
-          <Card className="shadow-sm border border-gray-200 overflow-hidden">
+          <Card className="shadow-sm border border-border overflow-hidden">
             <CardContent className="p-0">
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-gray-50 rounded-none border-b border-gray-200 h-12">
+                <TabsList className="grid w-full grid-cols-2 bg-muted rounded-none border-b border-border h-12">
                   <TabsTrigger value="about" className="text-base font-medium">About Property</TabsTrigger>
                   <TabsTrigger value="booking" className="text-base font-medium">Book This Property</TabsTrigger>
                 </TabsList>
@@ -69,7 +69,7 @@ const AboutPropertySection = ({ property, activeTab = "about", onTabChange, init
                   <div className="p-8">
                     <PropertyDescription description={property.description} isMobile={isMobile} />
                     
-                    <div className="mt-8 pt-8 border-t border-gray-100">
+                    <div className="mt-8 pt-8 border-t border-border">
                       <PropertyHighlights property={property} isMobile={isMobile} />
                     </div>
                   </div>
