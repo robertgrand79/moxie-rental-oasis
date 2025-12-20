@@ -27,16 +27,16 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
   onClose,
 }) => {
   return (
-    <div className="w-96 sm:w-[420px]">
+    <div className="w-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b">
-        <h3 className="font-semibold text-sm">Notifications</h3>
-        <div className="flex items-center gap-1">
+      <div className="flex items-center justify-between p-3 border-b gap-2">
+        <h3 className="font-semibold text-sm flex-shrink-0">Notifications</h3>
+        <div className="flex items-center gap-1 flex-shrink-0">
           {unreadCount > 0 && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-xs"
+              className="h-7 text-xs whitespace-nowrap"
               onClick={onMarkAllAsRead}
             >
               <CheckCheck className="h-3.5 w-3.5 mr-1" />
