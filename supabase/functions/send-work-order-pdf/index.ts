@@ -198,9 +198,7 @@ ${workOrder.work_order_number}: ${workOrder.title}
 📅 Due: ${dueDate}
 ⚡ Priority: ${priority.charAt(0).toUpperCase() + priority.slice(1)}
 
-Acknowledge: ${shortAckUrl}
-
-Reply YES to confirm receipt.`;
+Tap to Acknowledge: ${shortAckUrl}`;
 
         // Call send-sms edge function
         const smsResponse = await fetch(`${supabaseUrl}/functions/v1/send-sms`, {
