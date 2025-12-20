@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
 import NotificationBell from './notifications/NotificationBell';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
@@ -35,7 +35,6 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <AdminSidebar />
           <SidebarInset className="flex-1">
             <header className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background ${isMobile ? 'px-3' : ''}`}>
-              <SidebarTrigger className="-ml-1" />
               <div className="flex items-center justify-between w-full gap-4">
                 <EnhancedButton 
                   variant="outline" 

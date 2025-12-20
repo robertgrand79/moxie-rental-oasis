@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { User, LogOut, Edit2, Save, X, ChevronDown } from 'lucide-react';
-import { SidebarFooter } from '@/components/ui/sidebar';
+import { SidebarFooter, useSidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +14,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -26,6 +30,8 @@ const AdminSidebarFooter = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editData, setEditData] = useState({
@@ -134,6 +140,49 @@ const AdminSidebarFooter = () => {
   };
 
   if (!user) return null;
+
+  // When collapsed, show just the avatar with tooltip
+  if (isCollapsed) {
+    return (
+      <SidebarFooter>
+        <div className="border-t border-gray-200 p-2 flex justify-center">
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8 p-0"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profile?.avatar_url || ''} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                        {getInitials(profile?.full_name || user.email || 'U')}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {profile?.full_name || 'Profile'}
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="start" side="right" className="w-48 mb-2">
+              <DropdownMenuItem onClick={handleEditToggle} className="cursor-pointer">
+                <Edit2 className="h-4 w-4 mr-2" />
+                Edit Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </SidebarFooter>
+    );
+  }
 
   return (
     <SidebarFooter>
