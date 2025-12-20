@@ -66,5 +66,6 @@ export const defaultSettings: SettingsState = {
   colorAccent: '#cbcfd2',
   colorBackground: '#ffffff',
   colorForeground: '#1a202c',
-  colorMuted: '#ececec'
+  colorMuted: '#ececec',
+  colorDestructive: '#ef4444'
 };

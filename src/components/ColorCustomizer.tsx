@@ -37,6 +37,7 @@ const defaultColors: ColorPalette = {
   background: DEFAULT_COLORS.background,
   text: DEFAULT_COLORS.foreground,
   muted: DEFAULT_COLORS.muted,
+  destructive: DEFAULT_COLORS.destructive,
 };
 
 /**
@@ -68,6 +69,7 @@ const ColorCustomizer = () => {
       background: settings?.colorBackground || defaultColors.background,
       text: settings?.colorForeground || defaultColors.text,
       muted: settings?.colorMuted || defaultColors.muted,
+      destructive: settings?.colorDestructive || defaultColors.destructive,
     };
     
     setColors(loadedColors);
@@ -97,6 +99,7 @@ const ColorCustomizer = () => {
       colorBackground: colors.background,
       colorForeground: colors.text,
       colorMuted: colors.muted,
+      colorDestructive: colors.destructive,
     });
 
     if (success) {
@@ -125,6 +128,7 @@ const ColorCustomizer = () => {
       colorBackground: '',
       colorForeground: '',
       colorMuted: '',
+      colorDestructive: '',
     });
 
     if (success) {
@@ -148,13 +152,14 @@ const ColorCustomizer = () => {
         accent: '#cbcfd2',
         background: '#ffffff',
         text: '#1a202c',
-        muted: '#ececec'
+        muted: '#ececec',
+        destructive: '#ef4444'
       } 
     },
-    { name: 'Ocean Blue', colors: { primary: '#0077be', secondary: '#00a8cc', accent: '#00d4aa', background: '#ffffff', text: '#1a202c', muted: '#e0f4ff' } },
-    { name: 'Sunset Orange', colors: { primary: '#ff6b35', secondary: '#f7931e', accent: '#ffcc02', background: '#ffffff', text: '#1a202c', muted: '#fff4e6' } },
-    { name: 'Forest Green', colors: { primary: '#2d5016', secondary: '#4a7c59', accent: '#87a96b', background: '#ffffff', text: '#1a202c', muted: '#e8f5e8' } },
-    { name: 'Royal Purple', colors: { primary: '#5d2e5d', secondary: '#8e44ad', accent: '#c39bd3', background: '#ffffff', text: '#1a202c', muted: '#f5e6f5' } },
+    { name: 'Ocean Blue', colors: { primary: '#0077be', secondary: '#00a8cc', accent: '#00d4aa', background: '#ffffff', text: '#1a202c', muted: '#e0f4ff', destructive: '#ef4444' } },
+    { name: 'Sunset Orange', colors: { primary: '#ff6b35', secondary: '#f7931e', accent: '#ffcc02', background: '#ffffff', text: '#1a202c', muted: '#fff4e6', destructive: '#dc2626' } },
+    { name: 'Forest Green', colors: { primary: '#2d5016', secondary: '#4a7c59', accent: '#87a96b', background: '#ffffff', text: '#1a202c', muted: '#e8f5e8', destructive: '#ef4444' } },
+    { name: 'Royal Purple', colors: { primary: '#5d2e5d', secondary: '#8e44ad', accent: '#c39bd3', background: '#ffffff', text: '#1a202c', muted: '#f5e6f5', destructive: '#ef4444' } },
   ];
 
   /**

@@ -39,6 +39,7 @@ export const DEFAULT_COLORS = {
   background: '#ffffff',
   foreground: '#1a202c',
   muted: '#ececec',
+  destructive: '#ef4444',
 } as const;
 
 /**
@@ -51,6 +52,7 @@ export interface ColorPalette {
   background: string;
   text: string;
   muted: string;
+  destructive?: string;
 }
 
 /**
@@ -235,6 +237,7 @@ export const COLOR_CSS_PROPERTIES = [
   '--background',
   '--foreground',
   '--muted',
+  '--destructive',
   // Derived colors
   '--card',
   '--card-foreground',
@@ -279,6 +282,7 @@ export const applyColorsToDOM = (colors: ColorPalette): void => {
     const backgroundHsl = hexToHsl(colors.background);
     const foregroundHsl = hexToHsl(colors.text);
     const mutedHsl = hexToHsl(colors.muted);
+    const destructiveHsl = colors.destructive ? hexToHsl(colors.destructive) : null;
 
     // Apply core color tokens
     root.style.setProperty('--primary', primaryHsl);
@@ -287,6 +291,9 @@ export const applyColorsToDOM = (colors: ColorPalette): void => {
     root.style.setProperty('--background', backgroundHsl);
     root.style.setProperty('--foreground', foregroundHsl);
     root.style.setProperty('--muted', mutedHsl);
+    if (destructiveHsl) {
+      root.style.setProperty('--destructive', destructiveHsl);
+    }
 
     // Apply derived colors for consistency
     root.style.setProperty('--card', backgroundHsl);
