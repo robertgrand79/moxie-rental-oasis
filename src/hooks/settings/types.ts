@@ -94,4 +94,5 @@ export interface SettingsState {
   colorBackground: string;
   colorForeground: string;
   colorMuted: string;
+  colorDestructive: string;
 }

@@ -56,11 +56,13 @@ export const useGlobalColors = () => {
     const background = settings?.colorBackground || DEFAULT_COLORS.background;
     const foreground = settings?.colorForeground || DEFAULT_COLORS.foreground;
     const muted = settings?.colorMuted || DEFAULT_COLORS.muted;
+    const destructive = settings?.colorDestructive || DEFAULT_COLORS.destructive;
 
     // Check if any custom colors are configured
     const hasCustomColors = settings?.colorPrimary || settings?.colorSecondary || 
                            settings?.colorAccent || settings?.colorBackground || 
-                           settings?.colorForeground || settings?.colorMuted;
+                           settings?.colorForeground || settings?.colorMuted ||
+                           settings?.colorDestructive;
     
     // Skip if no custom colors - use CSS defaults from index.css
     if (!hasCustomColors) {
@@ -69,7 +71,7 @@ export const useGlobalColors = () => {
     }
 
     console.log('🎨 [Colors] Applying colors from database:', {
-      primary, secondary, accent, background, foreground, muted
+      primary, secondary, accent, background, foreground, muted, destructive
     });
 
     try {
@@ -82,6 +84,7 @@ export const useGlobalColors = () => {
       const backgroundHsl = hexToHsl(background);
       const foregroundHsl = hexToHsl(foreground);
       const mutedHsl = hexToHsl(muted);
+      const destructiveHsl = hexToHsl(destructive);
 
       // Apply core color tokens
       root.style.setProperty('--primary', primaryHsl);
@@ -90,6 +93,7 @@ export const useGlobalColors = () => {
       root.style.setProperty('--background', backgroundHsl);
       root.style.setProperty('--foreground', foregroundHsl);
       root.style.setProperty('--muted', mutedHsl);
+      root.style.setProperty('--destructive', destructiveHsl);
 
       // Apply derived colors for card and popover components
       root.style.setProperty('--card', backgroundHsl);
@@ -123,6 +127,7 @@ export const useGlobalColors = () => {
     settings?.colorBackground,
     settings?.colorForeground,
     settings?.colorMuted,
+    settings?.colorDestructive,
     loading
   ]);
 };
