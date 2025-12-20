@@ -95,4 +95,7 @@ export interface SettingsState {
   colorForeground: string;
   colorMuted: string;
   colorDestructive: string;
+  
+  // Color mode settings
+  colorUseGradients: boolean;
 }

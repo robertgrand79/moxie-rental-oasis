@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Palette, RotateCcw, Save, Eye, Loader2 } from 'lucide-react';
 import AIPaletteGenerator from '@/components/admin/settings/AIPaletteGenerator';
@@ -53,6 +54,7 @@ const defaultColors: ColorPalette = {
 const ColorCustomizer = () => {
   const { settings, loading: settingsLoading, saveSettings, saving } = useSimplifiedSiteSettings();
   const [colors, setColors] = useState<ColorPalette>(defaultColors);
+  const [useGradients, setUseGradients] = useState(true);
   const [previewOpen, setPreviewOpen] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -73,6 +75,7 @@ const ColorCustomizer = () => {
     };
     
     setColors(loadedColors);
+    setUseGradients(settings?.colorUseGradients !== false);
     console.log('🎨 [ColorCustomizer] Loaded colors from settings:', loadedColors);
   }, [settings, settingsLoading]);
 
@@ -89,6 +92,14 @@ const ColorCustomizer = () => {
   };
 
   /**
+   * Handles gradient toggle change
+   */
+  const handleGradientToggle = (enabled: boolean) => {
+    setUseGradients(enabled);
+    setHasChanges(true);
+  };
+
+  /**
    * Saves current color palette to the database.
    */
   const saveColors = async () => {
@@ -100,6 +111,7 @@ const ColorCustomizer = () => {
       colorForeground: colors.text,
       colorMuted: colors.muted,
       colorDestructive: colors.destructive,
+      colorUseGradients: useGradients,
     });
 
     if (success) {
@@ -120,6 +132,8 @@ const ColorCustomizer = () => {
     // Remove CSS variable overrides to use defaults from index.css
     resetColorsInDOM();
 
+    setUseGradients(true);
+
     // Save empty values to database to clear custom colors
     const success = await saveSettings({
       colorPrimary: '',
@@ -129,6 +143,7 @@ const ColorCustomizer = () => {
       colorForeground: '',
       colorMuted: '',
       colorDestructive: '',
+      colorUseGradients: true,
     });
 
     if (success) {
@@ -206,6 +221,23 @@ const ColorCustomizer = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Gradient Toggle */}
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+              <div className="space-y-0.5">
+                <Label htmlFor="gradient-toggle" className="text-base font-medium">
+                  Use Gradient Colors
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Enable gradients across the site, or use solid colors for a cleaner look
+                </p>
+              </div>
+              <Switch
+                id="gradient-toggle"
+                checked={useGradients}
+                onCheckedChange={handleGradientToggle}
+              />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(colors).map(([key, value]) => (
                 <div key={key} className="space-y-2">
