@@ -23,8 +23,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { X, Mail, Phone, MapPin, Star, Edit, Building2 } from 'lucide-react';
+import { X, Mail, Phone, MapPin, Star, Edit, Building2, DollarSign } from 'lucide-react';
 import { Contractor } from '@/hooks/useWorkOrderManagement';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const contractorSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -36,6 +43,8 @@ const contractorSchema = z.object({
   rating: z.number().min(0).max(5).optional(),
   is_active: z.boolean().default(true),
   notes: z.string().optional(),
+  hourly_rate: z.number().min(0).optional(),
+  default_billing_type: z.enum(['hourly', 'fixed']).optional(),
 });
 
 type ContractorFormData = z.infer<typeof contractorSchema>;
@@ -86,6 +95,8 @@ const ContractorSidePanel = ({
       rating: contractor?.rating || undefined,
       is_active: contractor?.is_active ?? true,
       notes: contractor?.notes || '',
+      hourly_rate: contractor?.hourly_rate || undefined,
+      default_billing_type: (contractor?.default_billing_type as 'hourly' | 'fixed') || 'hourly',
     },
   });
 
@@ -101,6 +112,8 @@ const ContractorSidePanel = ({
         rating: contractor.rating || undefined,
         is_active: contractor.is_active,
         notes: contractor.notes || '',
+        hourly_rate: contractor.hourly_rate || undefined,
+        default_billing_type: (contractor.default_billing_type as 'hourly' | 'fixed') || 'hourly',
       });
       setSelectedSpecialties(contractor.specialties || []);
     } else {
@@ -114,6 +127,8 @@ const ContractorSidePanel = ({
         rating: undefined,
         is_active: true,
         notes: '',
+        hourly_rate: undefined,
+        default_billing_type: 'hourly',
       });
       setSelectedSpecialties([]);
     }
@@ -240,6 +255,32 @@ const ContractorSidePanel = ({
                       {specialty}
                     </Badge>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Billing Information */}
+            {(contractor.hourly_rate || contractor.default_billing_type) && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Billing Information
+                </h4>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  {contractor.hourly_rate && (
+                    <div>
+                      <span className="text-muted-foreground">Hourly Rate:</span>{' '}
+                      <span className="font-medium">${contractor.hourly_rate.toFixed(2)}/hr</span>
+                    </div>
+                  )}
+                  {contractor.default_billing_type && (
+                    <div>
+                      <span className="text-muted-foreground">Default Billing:</span>{' '}
+                      <Badge variant="outline" className="capitalize ml-1">
+                        {contractor.default_billing_type}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -444,6 +485,62 @@ const ContractorSidePanel = ({
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Billing Settings */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                Billing Settings
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="hourly_rate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Hourly Rate ($)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min="0" 
+                          step="0.01"
+                          placeholder="75.00" 
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="default_billing_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Default Billing Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || 'hourly'}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select billing type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="hourly">Hourly</SelectItem>
+                          <SelectItem value="fixed">Fixed Price</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                These defaults will be applied to new work orders assigned to this contractor.
+              </p>
             </div>
 
             {/* Notes */}

@@ -4,9 +4,10 @@ import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Paperclip, Edit, Calendar, User, Building, FileText } from 'lucide-react';
+import { Paperclip, Edit, Calendar, User, Building, FileText, DollarSign } from 'lucide-react';
 import WorkOrderFileUpload from './WorkOrderFileUpload';
 import WorkOrderCompletionPhotos from './WorkOrderCompletionPhotos';
+import WorkOrderBillingFields from './WorkOrderBillingFields';
 import { WorkOrderFile } from '@/hooks/useWorkOrderFileUpload';
 import { useProperties } from '@/hooks/useProperties';
 import WorkOrderFormHeader from './WorkOrderFormHeader';
@@ -50,6 +51,13 @@ const WorkOrderSidePanel = ({
     scope_of_work: '',
     special_instructions: '',
     access_code: '',
+    // Billing fields
+    billing_type: 'hourly',
+    billing_rate: undefined as number | undefined,
+    hours_worked: undefined as number | undefined,
+    billing_amount: undefined as number | undefined,
+    payment_status: 'pending',
+    payment_notes: '',
   });
 
   const [attachments, setAttachments] = React.useState<WorkOrderFile[]>([]);
@@ -69,6 +77,12 @@ const WorkOrderSidePanel = ({
         scope_of_work: workOrder.scope_of_work || '',
         special_instructions: workOrder.special_instructions || '',
         access_code: workOrder.access_code || '',
+        billing_type: workOrder.billing_type || 'hourly',
+        billing_rate: workOrder.billing_rate || workOrder.contractor?.hourly_rate,
+        hours_worked: workOrder.hours_worked,
+        billing_amount: workOrder.billing_amount,
+        payment_status: workOrder.payment_status || 'pending',
+        payment_notes: workOrder.payment_notes || '',
       });
 
       // Convert existing attachments to WorkOrderFile format
@@ -109,6 +123,12 @@ const WorkOrderSidePanel = ({
         scope_of_work: '',
         special_instructions: '',
         access_code: '',
+        billing_type: 'hourly',
+        billing_rate: undefined,
+        hours_worked: undefined,
+        billing_amount: undefined,
+        payment_status: 'pending',
+        payment_notes: '',
       });
       setAttachments([]);
       setCompletionPhotos([]);
@@ -346,6 +366,23 @@ const WorkOrderSidePanel = ({
             <WorkOrderDetailsFields
               formData={formData}
               setFormData={setFormData}
+            />
+
+            <Separator />
+
+            {/* Billing Section */}
+            <WorkOrderBillingFields
+              formData={{
+                billing_type: formData.billing_type,
+                billing_rate: formData.billing_rate,
+                hours_worked: formData.hours_worked,
+                billing_amount: formData.billing_amount,
+                payment_status: formData.payment_status,
+                payment_notes: formData.payment_notes,
+              }}
+              setFormData={setFormData}
+              contractorRate={contractors.find(c => c.id === formData.contractor_id)?.hourly_rate}
+              isCompleted={formData.status === 'completed'}
             />
 
             <Separator />
