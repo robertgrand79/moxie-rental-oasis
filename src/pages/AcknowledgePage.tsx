@@ -12,12 +12,15 @@ interface WorkOrderDetails {
   description: string;
   priority: string;
   status: string;
-  due_date: string | null;
+  estimated_completion_date: string | null;
   access_code: string | null;
+  scope_of_work: string | null;
   special_instructions: string | null;
-  property: {
-    name: string;
-    address: string | null;
+  properties: {
+    id: string;
+    title: string;
+    location: string | null;
+    city: string | null;
   } | null;
 }
 
@@ -114,13 +117,13 @@ const AcknowledgePage: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Property */}
-          {workOrder.property && (
+          {workOrder.properties && (
             <div className="flex items-start gap-3">
               <MapPin className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium">{workOrder.property.name}</p>
-                {workOrder.property.address && (
-                  <p className="text-sm text-muted-foreground">{workOrder.property.address}</p>
+                <p className="font-medium">{workOrder.properties.title}</p>
+                {workOrder.properties.location && (
+                  <p className="text-sm text-muted-foreground">{workOrder.properties.location}</p>
                 )}
               </div>
             </div>
@@ -131,7 +134,7 @@ const AcknowledgePage: React.FC = () => {
             <Calendar className="w-5 h-5 text-muted-foreground flex-shrink-0" />
             <div>
               <p className="text-sm text-muted-foreground">Due Date</p>
-              <p className="font-medium">{formatDate(workOrder.due_date)}</p>
+              <p className="font-medium">{formatDate(workOrder.estimated_completion_date)}</p>
             </div>
           </div>
 
@@ -147,12 +150,12 @@ const AcknowledgePage: React.FC = () => {
           )}
 
           {/* Description/Scope */}
-          {workOrder.description && (
+          {(workOrder.scope_of_work || workOrder.description) && (
             <div className="flex items-start gap-3">
               <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm text-muted-foreground">Scope of Work</p>
-                <p className="text-sm mt-1 whitespace-pre-wrap">{workOrder.description}</p>
+                <p className="text-sm mt-1 whitespace-pre-wrap">{workOrder.scope_of_work || workOrder.description}</p>
               </div>
             </div>
           )}
