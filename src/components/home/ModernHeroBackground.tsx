@@ -57,10 +57,10 @@ const AnimatedBackground = ({ imageUrl }: AnimatedBackgroundProps) => {
           </div>
           
           <div className="absolute inset-0">
-            <div className="absolute top-1/4 left-1/3 w-2 h-2 bg-white rounded-full animate-ping delay-1000"></div>
-            <div className="absolute top-3/4 left-1/4 w-1 h-1 bg-gray-300 rounded-full animate-ping delay-2000"></div>
-            <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-gray-400 rounded-full animate-ping delay-3000"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-2 h-2 bg-gray-200 rounded-full animate-ping delay-4000"></div>
+            <div className="absolute top-1/4 left-1/3 w-2 h-2 bg-primary-foreground rounded-full animate-ping delay-1000"></div>
+            <div className="absolute top-3/4 left-1/4 w-1 h-1 bg-primary-foreground/60 rounded-full animate-ping delay-2000"></div>
+            <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-primary-foreground/70 rounded-full animate-ping delay-3000"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-2 h-2 bg-primary-foreground/50 rounded-full animate-ping delay-4000"></div>
           </div>
         </>
       )}

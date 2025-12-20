@@ -136,33 +136,33 @@ const BookingSuccessPage = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Confirmation Details */}
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-muted p-4 rounded-lg">
                 <h3 className="font-semibold mb-2">Booking Details</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-500" />
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
                     <span>{reservation.property?.title || 'Property'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
                       {new Date(reservation.check_in_date).toLocaleDateString()} - {' '}
                       {new Date(reservation.check_out_date).toLocaleDateString()}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-500" />
+                    <Users className="h-4 w-4 text-muted-foreground" />
                     <span>{reservation.guest_count || reservation.total_guests || 1} guest(s)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-gray-500" />
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <span>${reservation.total_amount?.toFixed(2) || 'N/A'}</span>
                   </div>
                 </div>
               </div>
 
               {/* Guest Information */}
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-muted p-4 rounded-lg">
                 <h3 className="font-semibold mb-2">Guest Information</h3>
                 <div className="space-y-1 text-sm">
                   <p><strong>Name:</strong> {reservation.guest_name}</p>
@@ -175,7 +175,7 @@ const BookingSuccessPage = () => {
               </div>
 
               {/* Payment Status */}
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-muted p-4 rounded-lg">
                 <h3 className="font-semibold mb-2">Payment Status</h3>
                 <div className="flex items-center gap-2">
                   <div className={`h-3 w-3 rounded-full ${
@@ -189,9 +189,9 @@ const BookingSuccessPage = () => {
 
               {/* Special Requests */}
               {reservation.special_requests && (
-                <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="bg-muted p-4 rounded-lg">
                   <h3 className="font-semibold mb-2">Special Requests</h3>
-                  <p className="text-sm text-gray-600">{reservation.special_requests}</p>
+                  <p className="text-sm text-muted-foreground">{reservation.special_requests}</p>
                 </div>
               )}
 

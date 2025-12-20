@@ -49,7 +49,7 @@ const FloatingBookingCard = ({ property, onBookingClick }: FloatingBookingCardPr
       } hidden lg:block`}
       style={{ transform }}
     >
-      <Card className="w-80 backdrop-blur-xl bg-white/95 border-border shadow-2xl">
+      <Card className="w-80 backdrop-blur-xl bg-card/95 border-border shadow-2xl">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold">

@@ -10,9 +10,9 @@ interface PropertyHeaderProps {
 const PropertyHeader = ({ property }: PropertyHeaderProps) => {
   return (
     <div className="mb-8">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">{property.title}</h1>
-      <div className="flex items-center text-gray-600 mb-4">
-        <MapPin className="h-5 w-5 mr-2 text-icon-gray" />
+      <h1 className="text-4xl font-bold text-foreground mb-4">{property.title}</h1>
+      <div className="flex items-center text-muted-foreground mb-4">
+        <MapPin className="h-5 w-5 mr-2 text-muted-foreground" />
         <span className="text-lg">{property.location}</span>
       </div>
       
@@ -20,7 +20,7 @@ const PropertyHeader = ({ property }: PropertyHeaderProps) => {
         <div className="flex items-center">
           <Star className="h-5 w-5 text-yellow-400 fill-current" />
           <span className="ml-1 font-semibold">4.8</span>
-          <span className="ml-1 text-gray-600">(12 reviews)</span>
+          <span className="ml-1 text-muted-foreground">(12 reviews)</span>
         </div>
       </div>
     </div>

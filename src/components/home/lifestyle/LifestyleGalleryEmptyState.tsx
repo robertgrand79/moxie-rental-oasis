@@ -9,7 +9,7 @@ interface LifestyleGalleryEmptyStateProps {
 const LifestyleGalleryEmptyState = ({ onClearFilters }: LifestyleGalleryEmptyStateProps) => {
   return (
     <div className="text-center py-12">
-      <p className="text-gray-500">No experiences found matching your criteria.</p>
+      <p className="text-muted-foreground">No experiences found matching your criteria.</p>
       <Button 
         variant="outline" 
         className="mt-4"

@@ -18,15 +18,15 @@ const AcknowledgePage: React.FC = () => {
 
   if (status === 'success') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-emerald-600" />
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-900 flex items-center justify-center p-4">
+        <div className="bg-card rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             Work Orders Acknowledged
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             Thank you, <strong>{name || 'Contractor'}</strong>! You have successfully acknowledged{' '}
             <strong>{count || 'the'}</strong> work order{count !== '1' ? 's' : ''}.
           </p>
@@ -36,7 +36,7 @@ const AcknowledgePage: React.FC = () => {
               <Link 
                 to={`/contractor/${portalToken}${firstWorkOrderId ? `?highlight=${firstWorkOrderId}` : ''}`}
               >
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                   <ExternalLink className="w-4 h-4 mr-2" />
                   View Work Order Details
                 </Button>
@@ -44,8 +44,8 @@ const AcknowledgePage: React.FC = () => {
             </div>
           )}
           
-          <div className="bg-emerald-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-emerald-800">
+          <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 mb-6">
+            <p className="text-sm text-green-800 dark:text-green-300">
               The property manager has been notified of your acknowledgment. Please complete the work as scheduled.
             </p>
           </div>
@@ -53,7 +53,7 @@ const AcknowledgePage: React.FC = () => {
           {portalToken && (
             <Link 
               to={`/contractor/${portalToken}`}
-              className="inline-flex items-center text-sm text-emerald-700 hover:text-emerald-800 hover:underline"
+              className="inline-flex items-center text-sm text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:underline"
             >
               <List className="w-4 h-4 mr-1" />
               View All My Work Orders
@@ -66,15 +66,15 @@ const AcknowledgePage: React.FC = () => {
 
   if (status === 'already') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="w-10 h-10 text-blue-600" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-900 flex items-center justify-center p-4">
+        <div className="bg-card rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-10 h-10 text-blue-600 dark:text-blue-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             Already Acknowledged
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             {name ? `${name}, these` : 'These'} work orders have already been acknowledged previously.
           </p>
           
@@ -89,8 +89,8 @@ const AcknowledgePage: React.FC = () => {
             </div>
           )}
           
-          <div className="bg-blue-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800">
+          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-800 dark:text-blue-300">
               No further action is required. If you have any questions, please contact the property manager.
             </p>
           </div>
@@ -101,23 +101,23 @@ const AcknowledgePage: React.FC = () => {
 
   // Error state (default)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <XCircle className="w-10 h-10 text-red-600" />
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 dark:from-red-950 dark:to-orange-900 flex items-center justify-center p-4">
+      <div className="bg-card rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+        <div className="w-20 h-20 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <XCircle className="w-10 h-10 text-red-600 dark:text-red-400" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+        <h1 className="text-2xl font-bold text-foreground mb-2">
           Unable to Process
         </h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-muted-foreground mb-6">
           {message || 'We were unable to process your acknowledgment. The link may be invalid or expired.'}
         </p>
-        <div className="bg-red-50 rounded-lg p-4 mb-6">
-          <p className="text-sm text-red-800">
+        <div className="bg-red-50 dark:bg-red-900/30 rounded-lg p-4 mb-6">
+          <p className="text-sm text-red-800 dark:text-red-300">
             Please contact the property manager if you believe this is an error or need a new acknowledgment link.
           </p>
         </div>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-muted-foreground">
           You can close this window now.
         </p>
       </div>
