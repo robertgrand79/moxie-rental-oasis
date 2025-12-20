@@ -29,7 +29,7 @@ const OrganizationBadge: React.FC = () => {
   };
 
   const getRoleBadgeVariant = () => {
-    if (isPlatformAdmin) return 'destructive';
+    if (isPlatformAdmin) return 'secondary';
     if (membership?.role === 'owner') return 'default';
     if (membership?.role === 'admin') return 'secondary';
     return 'outline';
