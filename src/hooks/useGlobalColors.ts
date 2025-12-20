@@ -64,9 +64,12 @@ export const useGlobalColors = () => {
                            settings?.colorForeground || settings?.colorMuted ||
                            settings?.colorDestructive;
     
-    // Skip if no custom colors - use CSS defaults from index.css
-    if (!hasCustomColors) {
-      console.log('🎨 [Colors] No custom colors configured, using CSS defaults');
+    // Check if gradient setting has been explicitly changed
+    const hasGradientSetting = settings?.colorUseGradients !== undefined;
+    
+    // Skip if no custom colors AND no gradient setting - use CSS defaults from index.css
+    if (!hasCustomColors && !hasGradientSetting) {
+      console.log('🎨 [Colors] No custom colors or gradient setting, using CSS defaults');
       return;
     }
 
