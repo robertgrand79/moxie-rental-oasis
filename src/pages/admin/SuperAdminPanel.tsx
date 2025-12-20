@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import OrganizationBadge from '@/components/admin/OrganizationBadge';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import { usePlatformAdmin, PlatformOrganization, TemplateType } from '@/hooks/usePlatformAdmin';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -279,13 +280,8 @@ const SuperAdminPanel = () => {
       description="Platform-wide administration and organization management"
     >
       <div className="p-8 space-y-6">
-        {/* Platform Badge */}
-        <div className="flex items-center gap-2">
-          <Badge variant="destructive" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Platform Administrator
-          </Badge>
-        </div>
+        {/* Dynamic Organization Badge */}
+        <OrganizationBadge />
 
         <Tabs defaultValue="overview" className="w-full">
           <TabsList>
