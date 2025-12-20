@@ -11,7 +11,7 @@ interface PropertyLocationInfoProps {
 const PropertyLocationInfo = ({ property, isMobile }: PropertyLocationInfoProps) => {
   if (isMobile) {
     return (
-      <div className="flex items-center text-gray-600 mb-4">
+      <div className="flex items-center text-muted-foreground mb-4">
         <MapPin className="h-4 w-4 mr-2 text-primary" />
         <span className="text-sm font-medium">{property.location}</span>
       </div>
@@ -19,15 +19,15 @@ const PropertyLocationInfo = ({ property, isMobile }: PropertyLocationInfoProps)
   }
 
   return (
-    <div className="bg-gray-50 p-6 border-b border-gray-200">
+    <div className="bg-muted p-6 border-b border-border">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center text-gray-700">
+        <div className="flex items-center text-foreground">
           <MapPin className="h-5 w-5 mr-2 text-primary" />
           <span className="font-medium">{property.location}</span>
         </div>
-        <div className="flex items-center space-x-6 text-sm text-gray-600">
+        <div className="flex items-center space-x-6 text-sm text-muted-foreground">
           <div className="flex items-center">
-            <Star className="h-4 w-4 mr-1 text-amber-500 fill-current" />
+            <Star className="h-4 w-4 mr-1 text-icon-amber fill-current" />
             <span>Premium Property</span>
           </div>
           <div className="flex items-center">
