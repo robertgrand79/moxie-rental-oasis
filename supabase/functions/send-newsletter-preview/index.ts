@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -206,16 +207,42 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if we have RESEND_API_KEY - if not, we'll use Supabase's built-in email
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    // Get user's organization to fetch their Resend API key
+    console.log("🔑 Fetching organization Resend API key...");
+    const { data: userProfile, error: profileOrgError } = await supabaseAdmin
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user.id)
+      .single();
+
+    let resendApiKey = "";
+    
+    if (userProfile?.organization_id) {
+      const { data: orgData, error: orgError } = await supabaseAdmin
+        .from("organizations")
+        .select("resend_api_key")
+        .eq("id", userProfile.organization_id)
+        .single();
+
+      if (!orgError && orgData?.resend_api_key) {
+        resendApiKey = orgData.resend_api_key;
+        if (isEncrypted(resendApiKey)) {
+          resendApiKey = await decryptApiKey(resendApiKey);
+        }
+        console.log("✅ Using organization's Resend API key");
+      }
+    }
+
+    // Fallback to global secret if org key not configured
+    if (!resendApiKey) {
+      resendApiKey = Deno.env.get("RESEND_API_KEY") || "";
+      if (resendApiKey) {
+        console.log("ℹ️ Using global RESEND_API_KEY as fallback");
+      }
+    }
+
     console.log("📧 Checking email service configuration...");
     console.log("📧 Resend API key present:", !!resendApiKey);
-    
-    if (!resendApiKey) {
-      console.log("ℹ️ No RESEND_API_KEY found - using Supabase integrated email service");
-    } else {
-      console.log("📧 Using direct Resend API key");
-    }
 
     console.log("⚙️ Fetching email settings from database...");
     const { data: siteSettings, error: settingsError } = await supabaseAdmin
