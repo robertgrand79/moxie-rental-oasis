@@ -246,8 +246,8 @@ export function generateWorkOrderEmailContent(workOrder: any, acknowledgeUrl?: s
           <!-- Action Buttons - AFTER work order details -->
           ${acknowledgeUrl ? `
           <div class="actions">
-            <a href="${acknowledgeUrl}" class="btn-primary">✓ Acknowledge Receipt</a>
-            ${portalUrl ? `<br><a href="${portalUrl}" class="btn-secondary">📋 View My Work Orders</a>` : ''}
+            <a href="${acknowledgeUrl}" class="btn-primary" style="display: inline-block; background: #10b981; color: #ffffff !important; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; text-decoration: none;">✓ Acknowledge Receipt</a>
+            ${portalUrl ? `<br><a href="${portalUrl}" class="btn-secondary" style="display: inline-block; background: #3b82f6; color: #ffffff !important; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 13px; text-decoration: none; margin-top: 10px;">📋 View My Work Orders</a>` : ''}
             <p class="confirm-note">Please confirm within 24 hours</p>
           </div>
           ` : `
