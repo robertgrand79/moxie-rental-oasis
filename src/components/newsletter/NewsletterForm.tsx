@@ -2,25 +2,42 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Plane, Shield } from 'lucide-react';
+import { Mail, Plane, Shield, AlertCircle } from 'lucide-react';
 import { NewsletterFormProps, BasicNewsletterFormData } from './types';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import TurnstileWidget from '@/components/security/TurnstileWidget';
+import { useTurnstile } from '@/hooks/useTurnstile';
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '';
 
 const NewsletterForm: React.FC<NewsletterFormProps> = ({ onSubmit, isLoading }) => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const { settings } = useTenantSettings();
+  const { token, isVerified, error: turnstileError, handleVerify, handleError, handleExpire } = useTurnstile();
   
   const siteName = settings?.site_name || 'Our';
   const locationText = settings?.heroLocationText || 'local';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData: BasicNewsletterFormData = { email, name };
+    
+    // Require Turnstile verification if site key exists
+    if (TURNSTILE_SITE_KEY && !isVerified) {
+      return;
+    }
+    
+    const formData: BasicNewsletterFormData = { 
+      email, 
+      name,
+      turnstileToken: token || undefined
+    };
     await onSubmit(formData);
     setEmail('');
     setName('');
   };
+
+  const canSubmit = !TURNSTILE_SITE_KEY || isVerified;
 
   return (
     <Card className="bg-card border-border shadow-lg hover:shadow-xl transition-all duration-300 group">
@@ -59,11 +76,31 @@ const NewsletterForm: React.FC<NewsletterFormProps> = ({ onSubmit, isLoading }) 
             />
           </div>
 
+          {/* Turnstile Widget */}
+          {TURNSTILE_SITE_KEY && (
+            <div className="flex flex-col items-center space-y-2">
+              <TurnstileWidget
+                siteKey={TURNSTILE_SITE_KEY}
+                onVerify={handleVerify}
+                onError={handleError}
+                onExpire={handleExpire}
+                theme="auto"
+                size="normal"
+              />
+              {turnstileError && (
+                <div className="flex items-center gap-1 text-xs text-destructive">
+                  <AlertCircle className="h-3 w-3" />
+                  {turnstileError}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Submit Button */}
           <Button 
             type="submit" 
             className="w-full bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all duration-200 text-sm py-3 h-auto font-medium"
-            disabled={isLoading}
+            disabled={isLoading || !canSubmit}
           >
             {isLoading ? (
               <div className="flex items-center gap-2">

@@ -9,11 +9,13 @@ export interface NewsletterFormData {
     frequency: 'daily' | 'weekly' | 'monthly';
     preferredTime: 'morning' | 'afternoon' | 'evening';
   };
+  turnstileToken?: string;
 }
 
 export interface BasicNewsletterFormData {
   email: string;
   name: string;
+  turnstileToken?: string;
 }
 
 export interface EnhancedSubscriber {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,8 +5,12 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, MessageSquare, Plane, Shield } from 'lucide-react';
+import { Mail, MessageSquare, Plane, Shield, AlertCircle } from 'lucide-react';
 import { EnhancedNewsletterFormProps, NewsletterFormData } from './types';
+import TurnstileWidget from '@/components/security/TurnstileWidget';
+import { useTurnstile } from '@/hooks/useTurnstile';
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '';
 
 const EnhancedNewsletterForm: React.FC<EnhancedNewsletterFormProps> = ({ onSubmit, isLoading }) => {
   const [formData, setFormData] = useState<NewsletterFormData>({
@@ -21,10 +24,20 @@ const EnhancedNewsletterForm: React.FC<EnhancedNewsletterFormProps> = ({ onSubmi
       preferredTime: 'morning'
     }
   });
+  const { token, isVerified, error: turnstileError, handleVerify, handleError, handleExpire } = useTurnstile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
+    
+    // Require Turnstile verification if site key exists
+    if (TURNSTILE_SITE_KEY && !isVerified) {
+      return;
+    }
+    
+    await onSubmit({
+      ...formData,
+      turnstileToken: token || undefined
+    });
     setFormData({
       email: '',
       name: '',
@@ -37,6 +50,8 @@ const EnhancedNewsletterForm: React.FC<EnhancedNewsletterFormProps> = ({ onSubmi
       }
     });
   };
+
+  const canSubmit = (!TURNSTILE_SITE_KEY || isVerified) && (formData.emailOptIn || formData.smsOptIn);
 
   return (
     <Card className="bg-card border-border shadow-lg hover:shadow-xl transition-all duration-300 group">
@@ -172,11 +187,31 @@ const EnhancedNewsletterForm: React.FC<EnhancedNewsletterFormProps> = ({ onSubmi
             </Select>
           </div>
 
+          {/* Turnstile Widget */}
+          {TURNSTILE_SITE_KEY && (
+            <div className="flex flex-col items-center space-y-2">
+              <TurnstileWidget
+                siteKey={TURNSTILE_SITE_KEY}
+                onVerify={handleVerify}
+                onError={handleError}
+                onExpire={handleExpire}
+                theme="auto"
+                size="normal"
+              />
+              {turnstileError && (
+                <div className="flex items-center gap-1 text-xs text-destructive">
+                  <AlertCircle className="h-3 w-3" />
+                  {turnstileError}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Submit Button */}
           <Button 
             type="submit" 
             className="w-full bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all duration-200 text-sm py-3 h-auto font-medium"
-            disabled={isLoading || (!formData.emailOptIn && !formData.smsOptIn)}
+            disabled={isLoading || !canSubmit}
           >
             {isLoading ? (
               <div className="flex items-center gap-2">
