@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -18,6 +17,62 @@ interface SubscribeRequest {
     preferred_time: string;
   };
   contactSource?: string;
+  turnstileToken?: string;
+}
+
+// Simple in-memory rate limiting (resets on function cold start)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_REQUESTS_PER_WINDOW = 10;
+
+function checkRateLimit(identifier: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const record = rateLimitMap.get(identifier);
+
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(identifier, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1 };
+  }
+
+  if (record.count >= MAX_REQUESTS_PER_WINDOW) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  record.count++;
+  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - record.count };
+}
+
+async function verifyTurnstile(token: string, clientIp: string): Promise<boolean> {
+  const secretKey = Deno.env.get("TURNSTILE_SECRET_KEY");
+  if (!secretKey) {
+    console.warn("TURNSTILE_SECRET_KEY not configured, skipping verification");
+    return true; // Allow if not configured
+  }
+
+  try {
+    const formData = new URLSearchParams();
+    formData.append("secret", secretKey);
+    formData.append("response", token);
+    if (clientIp) {
+      formData.append("remoteip", clientIp);
+    }
+
+    const response = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString(),
+      }
+    );
+
+    const result = await response.json();
+    console.log("Turnstile verification:", { success: result.success, hostname: result.hostname });
+    return result.success === true;
+  } catch (error) {
+    console.error("Turnstile verification error:", error);
+    return false;
+  }
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -26,10 +81,28 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
+    // Get client IP for rate limiting
+    const clientIp = req.headers.get("cf-connecting-ip") || 
+                     req.headers.get("x-forwarded-for")?.split(",")[0] || 
+                     req.headers.get("x-real-ip") || 
+                     "unknown";
+
+    // Check rate limit
+    const rateLimit = checkRateLimit(clientIp);
+    if (!rateLimit.allowed) {
+      console.warn(`Rate limit exceeded for IP: ${clientIp}`);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        { 
+          status: 429, 
+          headers: { 
+            "Content-Type": "application/json", 
+            "Retry-After": "3600",
+            ...corsHeaders 
+          } 
+        }
+      );
+    }
 
     const { 
       email, 
@@ -38,8 +111,20 @@ const handler = async (req: Request): Promise<Response> => {
       emailOptIn = true, 
       smsOptIn = false,
       communicationPreferences = { frequency: 'weekly', preferred_time: 'morning' },
-      contactSource = 'newsletter'
+      contactSource = 'newsletter',
+      turnstileToken
     }: SubscribeRequest = await req.json();
+
+    // Verify Turnstile token if provided
+    if (turnstileToken) {
+      const isValid = await verifyTurnstile(turnstileToken, clientIp);
+      if (!isValid) {
+        return new Response(
+          JSON.stringify({ error: "Security verification failed. Please try again." }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+    }
 
     if (!email || !email.includes("@")) {
       return new Response(
@@ -63,6 +148,11 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
 
     // Check if already subscribed
     const { data: existing } = await supabaseClient
@@ -128,7 +218,9 @@ const handler = async (req: Request): Promise<Response> => {
       emailOptIn,
       smsOptIn,
       phone: phone ? 'provided' : 'not provided',
-      contactSource
+      contactSource,
+      clientIp: clientIp.substring(0, 8) + '***', // Log partial IP for debugging
+      rateLimit: rateLimit.remaining
     });
 
     const channels = [];
