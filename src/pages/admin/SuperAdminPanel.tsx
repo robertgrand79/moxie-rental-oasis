@@ -32,13 +32,15 @@ import {
   Globe,
   Building,
   Settings,
-  Layout
+  Layout,
+  Plus
 } from 'lucide-react';
 import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
 import TemplateOrganizations from '@/components/admin/superadmin/TemplateOrganizations';
 import SubscriptionControls from '@/components/admin/superadmin/SubscriptionControls';
 import PlatformUsersTab from '@/components/admin/superadmin/PlatformUsersTab';
+import CreateOrganizationDialog from '@/components/admin/superadmin/CreateOrganizationDialog';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -69,6 +71,7 @@ const SuperAdminPanel = () => {
   } = usePlatformAdmin();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   if (checkingAdmin) {
     return (
@@ -367,7 +370,7 @@ const SuperAdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="organizations" className="mt-6 space-y-6">
-            {/* Search */}
+            {/* Search and Create */}
             <div className="flex items-center gap-4">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -381,6 +384,10 @@ const SuperAdminPanel = () => {
               <Badge variant="outline">
                 {filteredOrganizations.length} organization{filteredOrganizations.length !== 1 ? 's' : ''}
               </Badge>
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                New Organization
+              </Button>
             </div>
 
             {/* Organizations List */}
@@ -424,6 +431,13 @@ const SuperAdminPanel = () => {
             <PlatformStripeSettings />
           </TabsContent>
         </Tabs>
+
+        {/* Create Organization Dialog */}
+        <CreateOrganizationDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          onSuccess={() => refetchOrgs?.()}
+        />
       </div>
     </AdminPageWrapper>
   );
