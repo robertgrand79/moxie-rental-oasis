@@ -1,8 +1,11 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { optimizedBlogService, BlogPostSummary, PaginatedBlogResponse } from '@/services/optimizedBlogService';
+import { optimizedBlogService, PaginatedBlogResponse } from '@/services/optimizedBlogService';
+import { BlogPostSummary } from '@/services/blog/types';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
+
+// Re-export for convenience
+export type { BlogPostSummary } from '@/services/blog/types';
 
 interface UseOptimizedBlogPostsOptions {
   publishedOnly?: boolean;

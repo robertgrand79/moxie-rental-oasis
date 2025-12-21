@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { BlogPost } from '@/types/blogPost';
-import { useBlogPosts } from '@/hooks/useBlogPosts';
+import { useOptimizedBlogPosts, BlogPostSummary } from '@/hooks/useOptimizedBlogPosts';
+import { blogPostService } from '@/services/blogPostService';
 import ModernBlogsHeader from './ModernBlogsHeader';
 import BlogsGrid from './BlogsGrid';
 import BlogsListView from './BlogsListView';
@@ -23,7 +24,21 @@ const BlogsManager = ({
   editingPost = null, 
   onCloseForm 
 }: BlogsManagerProps) => {
-  const { blogPosts, loading, deleteBlogPost, updateBlogPost, refetch } = useBlogPosts({ publishedOnly: false });
+  // Use optimized hook that excludes content field for fast loading
+  const { 
+    posts: blogPosts, 
+    loading, 
+    refetch, 
+    totalCount,
+    hasMore,
+    loadMore,
+    isLoadingMore 
+  } = useOptimizedBlogPosts({ 
+    publishedOnly: false,
+    pageSize: 50, // Load more posts for admin view
+    loadMoreSize: 50
+  });
+  
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [contentTypeFilter, setContentTypeFilter] = useState('all');
@@ -45,15 +60,15 @@ const BlogsManager = ({
     const topType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
     
     return {
-      total: blogPosts.length,
+      total: totalCount || blogPosts.length,
       published,
       draft,
       featured,
       topType,
     };
-  }, [blogPosts]);
+  }, [blogPosts, totalCount]);
 
-  // Filter posts
+  // Filter posts (client-side filtering for already loaded posts)
   const filteredPosts = useMemo(() => {
     return blogPosts.filter(post => {
       // Search filter
@@ -81,9 +96,37 @@ const BlogsManager = ({
     });
   }, [blogPosts, searchQuery, contentTypeFilter, statusFilter]);
 
-  const handleEdit = (post: BlogPost) => {
+  // Convert BlogPostSummary to BlogPost-like object for components that expect it
+  const postsForDisplay = useMemo(() => {
+    return filteredPosts.map(post => ({
+      ...post,
+      content: '', // Empty content since we don't load it for list view
+      metadata: {},
+      display_order: 0,
+    })) as BlogPost[];
+  }, [filteredPosts]);
+
+  const handleEdit = async (post: BlogPost) => {
     if (onEdit) {
-      onEdit(post);
+      // Fetch full content when editing
+      try {
+        const fullPost = await blogPostService.fetchBlogPostBySlug(post.slug);
+        if (fullPost) {
+          onEdit(fullPost);
+        } else {
+          // Fallback: fetch directly by ID if slug doesn't work (draft posts)
+          const allPosts = await blogPostService.fetchBlogPosts(false);
+          const found = allPosts.find(p => p.id === post.id);
+          if (found) {
+            onEdit(found);
+          } else {
+            toast.error('Failed to load post content');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading full post:', error);
+        toast.error('Failed to load post content');
+      }
     }
   };
 
@@ -95,7 +138,8 @@ const BlogsManager = ({
 
   const handleDelete = async (postId: string) => {
     try {
-      await deleteBlogPost(postId);
+      await blogPostService.deleteBlogPost(postId);
+      refetch();
       toast.success('Blog post deleted successfully');
     } catch (error) {
       toast.error('Failed to delete blog post');
@@ -104,10 +148,11 @@ const BlogsManager = ({
 
   const handlePublish = async (postId: string) => {
     try {
-      await updateBlogPost(postId, { 
+      await blogPostService.updateBlogPost(postId, { 
         status: 'published',
         published_at: new Date().toISOString()
       });
+      refetch();
       toast.success('Blog post published successfully');
     } catch (error) {
       toast.error('Failed to publish blog post');
@@ -116,18 +161,38 @@ const BlogsManager = ({
 
   const handleUnpublish = async (postId: string) => {
     try {
-      await updateBlogPost(postId, { 
+      await blogPostService.updateBlogPost(postId, { 
         status: 'draft',
         published_at: null
       });
+      refetch();
       toast.success('Blog post unpublished');
     } catch (error) {
       toast.error('Failed to unpublish blog post');
     }
   };
 
-  const handleViewDetails = (post: BlogPost) => {
-    setViewingPost(post);
+  const handleViewDetails = async (post: BlogPost) => {
+    // Fetch full content for detail view
+    try {
+      const fullPost = await blogPostService.fetchBlogPostBySlug(post.slug);
+      if (fullPost) {
+        setViewingPost(fullPost);
+      } else {
+        // Fallback for draft posts
+        const allPosts = await blogPostService.fetchBlogPosts(false);
+        const found = allPosts.find(p => p.id === post.id);
+        if (found) {
+          setViewingPost(found);
+        } else {
+          // Use the summary data if we can't fetch full content
+          setViewingPost(post);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading full post:', error);
+      setViewingPost(post);
+    }
   };
 
   const handleCloseDetails = () => {
@@ -136,7 +201,9 @@ const BlogsManager = ({
 
   const handleEditFromDetails = () => {
     if (viewingPost) {
-      handleEdit(viewingPost);
+      if (onEdit) {
+        onEdit(viewingPost);
+      }
       setViewingPost(null);
     }
   };
@@ -176,7 +243,7 @@ const BlogsManager = ({
 
       {viewMode === 'grid' ? (
         <BlogsGrid 
-          posts={filteredPosts} 
+          posts={postsForDisplay} 
           onEdit={handleEdit}
           onDelete={handleDelete}
           onPublish={handlePublish}
@@ -185,13 +252,25 @@ const BlogsManager = ({
         />
       ) : (
         <BlogsListView 
-          posts={filteredPosts} 
+          posts={postsForDisplay} 
           onEdit={handleEdit}
           onDelete={handleDelete}
           onPublish={handlePublish}
           onUnpublish={handleUnpublish}
           onViewDetails={handleViewDetails}
         />
+      )}
+
+      {hasMore && (
+        <div className="flex justify-center pt-4">
+          <button 
+            onClick={loadMore} 
+            disabled={isLoadingMore}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+          >
+            {isLoadingMore ? 'Loading...' : 'Load More'}
+          </button>
+        </div>
       )}
 
       {viewingPost && (
