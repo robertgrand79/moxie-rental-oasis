@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Menu } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
 import NotificationBell from './notifications/NotificationBell';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
@@ -36,19 +36,28 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <SidebarInset className="flex-1">
             <header className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background ${isMobile ? 'px-3' : ''}`}>
               <div className="flex items-center justify-between w-full gap-4">
-                <EnhancedButton 
-                  variant="outline" 
-                  size={isMobile ? "sm" : "default"} 
-                  asChild 
-                  className={isMobile ? 'min-h-[44px]' : ''}
-                >
-                  {/* Always use <a> tag to force full page reload for clean tenant detection */}
-                  <a href={backUrl} className="flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
-                    <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                  </a>
-                </EnhancedButton>
+                <div className="flex items-center gap-2">
+                  {/* Mobile menu trigger - only visible on mobile */}
+                  {isMobile && (
+                    <SidebarTrigger className="min-h-[44px] min-w-[44px]">
+                      <Menu className="h-5 w-5" />
+                    </SidebarTrigger>
+                  )}
+                  
+                  <EnhancedButton 
+                    variant="outline" 
+                    size={isMobile ? "sm" : "default"} 
+                    asChild 
+                    className={isMobile ? 'min-h-[44px]' : ''}
+                  >
+                    {/* Always use <a> tag to force full page reload for clean tenant detection */}
+                    <a href={backUrl} className="flex items-center gap-2">
+                      <ArrowLeft className="h-4 w-4" />
+                      <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
+                      <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
+                    </a>
+                  </EnhancedButton>
+                </div>
                 
                 <div className="flex items-center gap-2">
                   {/* Notification Bell */}
