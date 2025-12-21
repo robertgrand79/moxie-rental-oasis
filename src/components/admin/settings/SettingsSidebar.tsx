@@ -24,6 +24,7 @@ import {
   Map,
   CreditCard,
   DollarSign,
+  Rocket,
 } from 'lucide-react';
 import {
   Collapsible,
@@ -47,6 +48,7 @@ const settingsNavGroups: SettingsNavGroup[] = [
   {
     title: 'General',
     items: [
+      { label: 'Setup Wizard', href: '/admin/settings/setup', icon: Rocket },
       { label: 'Organization', href: '/admin/settings/general', icon: Building2 },
       { label: 'Domain', href: '/admin/settings/domain', icon: Globe },
       { label: 'Billing', href: '/admin/settings/billing', icon: Receipt },

@@ -23,10 +23,10 @@ const OrganizationSignup = () => {
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [selectedTemplateType, setSelectedTemplateType] = useState<TemplateType | null>(null);
 
-  // Redirect if already has organization
+  // Redirect if already has organization - go to dashboard instead of onboarding
   useEffect(() => {
     if (!authLoading && !orgLoading && organization?.slug) {
-      window.location.href = `/admin/onboarding?org=${organization.slug}`;
+      window.location.href = `/admin/dashboard?org=${organization.slug}`;
     }
   }, [organization, authLoading, orgLoading]);
 
@@ -81,7 +81,8 @@ const OrganizationSignup = () => {
     });
     if (orgId) {
       // Use full page reload to ensure context picks up new org
-      window.location.href = `/admin/onboarding?org=${slug}`;
+      // Redirect to dashboard - onboarding is now optional in settings
+      window.location.href = `/admin/dashboard?org=${slug}`;
     }
   };
 
