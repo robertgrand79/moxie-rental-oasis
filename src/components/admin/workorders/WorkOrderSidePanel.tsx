@@ -138,7 +138,7 @@ const WorkOrderSidePanel = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const submissionData = {
+    const submissionData: any = {
       ...formData,
       property_id: formData.property_id === '' || formData.property_id === 'none' ? undefined : formData.property_id,
       contractor_id: formData.contractor_id === '' || formData.contractor_id === 'none' ? undefined : formData.contractor_id,
@@ -146,6 +146,32 @@ const WorkOrderSidePanel = ({
       attachments: attachments.map(file => file.url),
       completion_photos: completionPhotos.map(file => file.url),
     };
+    
+    // Handle status timestamp integrity when editing existing work orders
+    if (workOrder) {
+      const oldStatus = workOrder.status;
+      const newStatus = formData.status;
+      
+      // Set completed_at when changing TO completed
+      if (newStatus === 'completed' && oldStatus !== 'completed' && !workOrder.completed_at) {
+        submissionData.completed_at = new Date().toISOString();
+      }
+      
+      // Clear completed_at when changing AWAY from completed
+      if (newStatus !== 'completed' && workOrder.completed_at) {
+        submissionData.completed_at = null;
+      }
+      
+      // Clear sent_at when going back to draft
+      if (newStatus === 'draft' && workOrder.sent_at) {
+        submissionData.sent_at = null;
+      }
+      
+      // Clear acknowledged_at when going back to draft or sent
+      if ((newStatus === 'draft' || newStatus === 'sent') && workOrder.acknowledged_at) {
+        submissionData.acknowledged_at = null;
+      }
+    }
     
     onSave(submissionData);
   };
