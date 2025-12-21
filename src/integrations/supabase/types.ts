@@ -2933,6 +2933,54 @@ export type Database = {
           },
         ]
       }
+      organization_templates: {
+        Row: {
+          created_at: string | null
+          default_settings: Json | null
+          description: string | null
+          display_order: number | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          preview_image_url: string | null
+          slug: string
+          template_type: string
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_settings?: Json | null
+          description?: string | null
+          display_order?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          preview_image_url?: string | null
+          slug: string
+          template_type: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_settings?: Json | null
+          description?: string | null
+          display_order?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          preview_image_url?: string | null
+          slug?: string
+          template_type?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           created_at: string | null
