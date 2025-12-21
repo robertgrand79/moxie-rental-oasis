@@ -2854,6 +2854,41 @@ export type Database = {
           },
         ]
       }
+      organization_secrets: {
+        Row: {
+          created_at: string
+          encrypted_value: string
+          id: string
+          organization_id: string
+          secret_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          encrypted_value: string
+          id?: string
+          organization_id: string
+          secret_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          encrypted_value?: string
+          id?: string
+          organization_id?: string
+          secret_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_secrets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string | null
@@ -5769,6 +5804,10 @@ export type Database = {
           template_type: string
           website: string
         }[]
+      }
+      get_organization_secret: {
+        Args: { _org_id: string; _secret_name: string }
+        Returns: string
       }
       get_primary_template_organization: {
         Args: never
