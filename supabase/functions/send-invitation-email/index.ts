@@ -47,6 +47,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Sending invitation email for organization:', organizationId);
 
+    // Get organization details for domain
+    const { data: org } = await supabaseClient
+      .from('organizations')
+      .select('slug, custom_domain')
+      .eq('id', organizationId)
+      .single();
+
+    console.log('Organization details:', org);
+
     // Get site settings for branding - filter by organization
     const { data: settings } = await supabaseClient
       .from('site_settings')
@@ -72,8 +81,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     const inviterName = inviterProfile?.full_name || 'Admin';
 
-    // Create invitation URL (you'll need to update this with your actual domain)
-    const invitationUrl = `${Deno.env.get('SUPABASE_URL')?.replace('https://', 'https://').replace('.supabase.co', '.lovable.app')}/auth?invitation=${invitationToken}`;
+    // Create invitation URL using organization's custom domain or fallback
+    let baseUrl: string;
+    if (org?.custom_domain) {
+      baseUrl = `https://${org.custom_domain}`;
+    } else {
+      // Fallback to APP_BASE_URL or construct from Lovable app URL
+      baseUrl = Deno.env.get('APP_BASE_URL') || 'https://moxie-system-99.lovable.app';
+    }
+    
+    const invitationUrl = `${baseUrl}/auth?invitation=${invitationToken}`;
 
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
