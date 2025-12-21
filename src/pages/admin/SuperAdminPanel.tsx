@@ -161,15 +161,27 @@ const SuperAdminPanel = () => {
             )}
           </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
+            <a 
+              href={`/${org.slug}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 hover:text-primary hover:underline transition-colors"
+            >
               <Globe className="h-3 w-3" />
               {org.slug}
-            </span>
+              <ExternalLink className="h-3 w-3" />
+            </a>
             {org.custom_domain && (
-              <span className="flex items-center gap-1">
-                <ExternalLink className="h-3 w-3" />
+              <a 
+                href={`https://${org.custom_domain}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 hover:text-primary hover:underline transition-colors"
+              >
+                <Globe className="h-3 w-3" />
                 {org.custom_domain}
-              </span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
             )}
             <span className="flex items-center gap-1">
               <Users className="h-3 w-3" />
