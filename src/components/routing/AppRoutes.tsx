@@ -98,6 +98,7 @@ import SmartHomeSettingsPage from '@/pages/admin/settings/SmartHomeSettingsPage'
 import ServicesSettingsPage from '@/pages/admin/settings/ServicesSettingsPage';
 import StripeSettingsPage from '@/pages/admin/settings/StripeSettingsPage';
 import PriceLabsSettingsPage from '@/pages/admin/settings/PriceLabsSettingsPage';
+import SetupWizardPage from '@/pages/admin/settings/SetupWizardPage';
 
 const AppRoutes: React.FC = () => {
   const { isPlatformSite } = usePlatform();
@@ -137,6 +138,7 @@ const AppRoutes: React.FC = () => {
         <Route path="pages" element={<AdminPageManagement />} />
           <Route path="settings" element={<Navigate to="/admin/settings/general" replace />} />
           {/* Flattened settings routes */}
+          <Route path="settings/setup" element={<SetupWizardPage />} />
           <Route path="settings/general" element={<GeneralSettingsPage />} />
           <Route path="settings/domain" element={<DomainSettingsPage />} />
           <Route path="settings/billing" element={<BillingSettingsPage />} />
@@ -249,6 +251,7 @@ const AppRoutes: React.FC = () => {
         <Route path="pages" element={<AdminPageManagement />} />
         <Route path="settings" element={<Navigate to="/admin/settings/general" replace />} />
         {/* Flattened settings routes */}
+        <Route path="settings/setup" element={<SetupWizardPage />} />
         <Route path="settings/general" element={<GeneralSettingsPage />} />
         <Route path="settings/domain" element={<DomainSettingsPage />} />
         <Route path="settings/billing" element={<BillingSettingsPage />} />
