@@ -632,6 +632,7 @@ export type Database = {
           guest_name: string
           id: string
           last_message: string | null
+          organization_id: string | null
           status: string
           updated_at: string
         }
@@ -641,6 +642,7 @@ export type Database = {
           guest_name: string
           id?: string
           last_message?: string | null
+          organization_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -650,10 +652,19 @@ export type Database = {
           guest_name?: string
           id?: string
           last_message?: string | null
+          organization_id?: string | null
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       community_updates: {
         Row: {
@@ -664,6 +675,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_pinned: boolean
+          organization_id: string | null
           publish_at: string | null
           status: string
           title: string
@@ -677,6 +689,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_pinned?: boolean
+          organization_id?: string | null
           publish_at?: string | null
           status?: string
           title: string
@@ -690,12 +703,21 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_pinned?: boolean
+          organization_id?: string | null
           publish_at?: string | null
           status?: string
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "community_updates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       configuration_audit_log: {
         Row: {
@@ -2348,6 +2370,7 @@ export type Database = {
           id: string
           linked_content: Json | null
           open_rate: number | null
+          organization_id: string | null
           recipient_count: number | null
           sent_at: string | null
           subject: string
@@ -2368,6 +2391,7 @@ export type Database = {
           id?: string
           linked_content?: Json | null
           open_rate?: number | null
+          organization_id?: string | null
           recipient_count?: number | null
           sent_at?: string | null
           subject: string
@@ -2388,6 +2412,7 @@ export type Database = {
           id?: string
           linked_content?: Json | null
           open_rate?: number | null
+          organization_id?: string | null
           recipient_count?: number | null
           sent_at?: string | null
           subject?: string
@@ -2396,7 +2421,15 @@ export type Database = {
           total_opens?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_campaigns_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       newsletter_click_tracking: {
         Row: {
@@ -2450,6 +2483,7 @@ export type Database = {
           is_active: boolean
           last_engagement_date: string | null
           name: string | null
+          organization_id: string | null
           phone: string | null
           preferences: Json | null
           sms_opt_in: boolean | null
@@ -2466,6 +2500,7 @@ export type Database = {
           is_active?: boolean
           last_engagement_date?: string | null
           name?: string | null
+          organization_id?: string | null
           phone?: string | null
           preferences?: Json | null
           sms_opt_in?: boolean | null
@@ -2482,13 +2517,22 @@ export type Database = {
           is_active?: boolean
           last_engagement_date?: string | null
           name?: string | null
+          organization_id?: string | null
           phone?: string | null
           preferences?: Json | null
           sms_opt_in?: boolean | null
           subscribed_at?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_subscribers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notification_preferences: {
         Row: {
@@ -4519,6 +4563,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           last_sync_at: string | null
+          organization_id: string | null
           property_id: string | null
           sync_status: string | null
           updated_at: string | null
@@ -4531,6 +4576,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_sync_at?: string | null
+          organization_id?: string | null
           property_id?: string | null
           sync_status?: string | null
           updated_at?: string | null
@@ -4543,6 +4589,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_sync_at?: string | null
+          organization_id?: string | null
           property_id?: string | null
           sync_status?: string | null
           updated_at?: string | null
@@ -4550,6 +4597,13 @@ export type Database = {
           workspace_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "seam_workspaces_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "seam_workspaces_property_id_fkey"
             columns: ["property_id"]
@@ -5033,6 +5087,7 @@ export type Database = {
           is_active: boolean | null
           jurisdiction: string
           jurisdiction_type: string
+          organization_id: string | null
           tax_name: string
           tax_rate: number
           updated_at: string | null
@@ -5045,6 +5100,7 @@ export type Database = {
           is_active?: boolean | null
           jurisdiction: string
           jurisdiction_type: string
+          organization_id?: string | null
           tax_name: string
           tax_rate: number
           updated_at?: string | null
@@ -5057,11 +5113,20 @@ export type Database = {
           is_active?: boolean | null
           jurisdiction?: string
           jurisdiction_type?: string
+          organization_id?: string | null
           tax_name?: string
           tax_rate?: number
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tax_rates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       testimonials: {
         Row: {
