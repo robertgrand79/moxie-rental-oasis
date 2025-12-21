@@ -3,25 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useCreateOrganization } from '@/hooks/useOnboarding';
-import { useTemplateOrganizations, TemplateType } from '@/hooks/useTemplateOrganizations';
+import { useOrganizationTemplates, OrganizationTemplate } from '@/hooks/useOrganizationTemplates';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Loader2, CheckCircle2, XCircle, Home, Building } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Building2, Loader2, CheckCircle2, XCircle, Plus } from 'lucide-react';
+import { TemplateCard } from '@/components/signup/TemplateCard';
+import { TemplatePreviewDrawer } from '@/components/signup/TemplatePreviewDrawer';
 
 const OrganizationSignup = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { organization, loading: orgLoading } = useCurrentOrganization();
   const { createOrganization, checkSlugAvailability, creating } = useCreateOrganization();
-  const { data: templates, isLoading: loadingTemplates } = useTemplateOrganizations();
+  const { data: templates, isLoading: loadingTemplates } = useOrganizationTemplates();
 
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
-  const [selectedTemplateType, setSelectedTemplateType] = useState<TemplateType | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<OrganizationTemplate | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<OrganizationTemplate | null>(null);
 
   // Redirect if already has organization - go to dashboard instead of onboarding
   useEffect(() => {
@@ -63,21 +65,14 @@ const OrganizationSignup = () => {
     return () => clearTimeout(timer);
   }, [slug, checkSlugAvailability]);
 
-  // Get template ID for selected type
-  const getTemplateId = (): string | undefined => {
-    if (!selectedTemplateType || !templates) return undefined;
-    const template = templates.find(t => t.template_type === selectedTemplateType);
-    return template?.id;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !slug || slugStatus !== 'available' || !selectedTemplateType) return;
+    if (!name || !slug || slugStatus !== 'available' || !selectedTemplate) return;
 
     const orgId = await createOrganization({ 
       name, 
       slug, 
-      templateId: getTemplateId() 
+      templateId: selectedTemplate.id 
     });
     if (orgId) {
       // Use full page reload to ensure context picks up new org
@@ -94,161 +89,153 @@ const OrganizationSignup = () => {
     );
   }
 
-  const siteTypeOptions = [
-    {
-      type: 'single_property' as TemplateType,
-      icon: Home,
-      title: 'Single Property Site',
-      description: 'Perfect for showcasing one vacation rental with a dedicated website',
-      features: ['Focused property showcase', 'Streamlined booking flow', 'Simplified management'],
-    },
-    {
-      type: 'multi_property' as TemplateType,
-      icon: Building,
-      title: 'Multi-Property Portfolio',
-      description: 'Ideal for managing and marketing multiple properties',
-      features: ['Property listings & search', 'Portfolio management', 'Scalable for growth'],
-    },
-  ];
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Building2 className="h-6 w-6 text-primary" />
+    <div className="min-h-screen bg-muted/30 py-8 px-4">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+            <Building2 className="h-7 w-7 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Create Your Organization</CardTitle>
-          <CardDescription>
-            Set up your vacation rental management account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Site Type Selection */}
-            <div className="space-y-3">
-              <Label>Choose Your Site Type</Label>
+          <h1 className="text-3xl font-bold">Create Your Organization</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Choose a template to get started with your vacation rental management platform
+          </p>
+        </div>
+
+        {/* Template Selection */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Choose Your Template</h2>
               <p className="text-sm text-muted-foreground">
-                You can change this later in your organization settings
+                Select a template that matches your needs. You can customize it later.
               </p>
-              <div className="grid gap-4 md:grid-cols-2">
-                {siteTypeOptions.map((option) => {
-                  const Icon = option.icon;
-                  const isSelected = selectedTemplateType === option.type;
-                  
-                  return (
-                    <button
-                      key={option.type}
-                      type="button"
-                      onClick={() => setSelectedTemplateType(option.type)}
-                      className={cn(
-                        "relative p-4 rounded-lg border-2 text-left transition-all",
-                        "hover:border-primary/50 hover:bg-muted/50",
-                        isSelected 
-                          ? "border-primary bg-primary/5" 
-                          : "border-border"
-                      )}
-                    >
-                      {isSelected && (
-                        <div className="absolute top-2 right-2">
-                          <CheckCircle2 className="h-5 w-5 text-primary" />
-                        </div>
-                      )}
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className={cn(
-                          "h-10 w-10 rounded-lg flex items-center justify-center",
-                          isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
-                        )}>
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <h3 className="font-semibold">{option.title}</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {option.description}
-                      </p>
-                      <ul className="space-y-1">
-                        {option.features.map((feature, idx) => (
-                          <li key={idx} className="text-xs text-muted-foreground flex items-center gap-1">
-                            <CheckCircle2 className="h-3 w-3 text-primary" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </button>
-                  );
-                })}
-              </div>
-              {loadingTemplates && (
-                <p className="text-xs text-muted-foreground">Loading templates...</p>
-              )}
             </div>
+          </div>
 
-            {/* Organization Details */}
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Organization Name</Label>
-                <Input
-                  id="name"
-                  placeholder="My Vacation Rentals"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  minLength={2}
-                  maxLength={100}
+          {loadingTemplates ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2">
+              {templates?.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  isSelected={selectedTemplate?.id === template.id}
+                  onSelect={() => setSelectedTemplate(template)}
+                  onPreview={() => setPreviewTemplate(template)}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="slug">URL Slug</Label>
-                <div className="relative">
-                  <Input
-                    id="slug"
-                    placeholder="my-rentals"
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                    required
-                    minLength={3}
-                    maxLength={30}
-                    className="pr-10"
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {slugStatus === 'checking' && (
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    )}
-                    {slugStatus === 'available' && (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    )}
-                    {slugStatus === 'taken' && (
-                      <XCircle className="h-4 w-4 text-destructive" />
-                    )}
-                  </div>
+              ))}
+              
+              {/* Coming Soon Card */}
+              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border/60 p-8 text-center bg-muted/20">
+                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                  <Plus className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Your site will be available at: <span className="font-mono">{slug || 'your-slug'}.lovable.app</span>
-                </p>
-                {slugStatus === 'taken' && (
-                  <p className="text-xs text-destructive">This slug is already taken</p>
-                )}
+                <h3 className="font-medium text-muted-foreground">More Templates</h3>
+                <p className="text-sm text-muted-foreground/80 mt-1">Coming soon</p>
               </div>
             </div>
+          )}
+        </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={creating || !name || !slug || slugStatus !== 'available' || !selectedTemplateType}
-            >
-              {creating ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                'Create Organization'
+        {/* Organization Details Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Organization Details</CardTitle>
+            <CardDescription>
+              Enter your organization name and choose a unique URL
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Organization Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="My Vacation Rentals"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    minLength={2}
+                    maxLength={100}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="slug">URL Slug</Label>
+                  <div className="relative">
+                    <Input
+                      id="slug"
+                      placeholder="my-rentals"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      required
+                      minLength={3}
+                      maxLength={30}
+                      className="pr-10"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {slugStatus === 'checking' && (
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      )}
+                      {slugStatus === 'available' && (
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      )}
+                      {slugStatus === 'taken' && (
+                        <XCircle className="h-4 w-4 text-destructive" />
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Your site will be available at: <span className="font-mono">{slug || 'your-slug'}.lovable.app</span>
+                  </p>
+                  {slugStatus === 'taken' && (
+                    <p className="text-xs text-destructive">This slug is already taken</p>
+                  )}
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={creating || !name || !slug || slugStatus !== 'available' || !selectedTemplate}
+              >
+                {creating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Creating Organization...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Create Organization
+                  </>
+                )}
+              </Button>
+
+              {!selectedTemplate && (
+                <p className="text-center text-sm text-muted-foreground">
+                  Please select a template above to continue
+                </p>
               )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Preview Drawer */}
+      <TemplatePreviewDrawer
+        template={previewTemplate}
+        isOpen={!!previewTemplate}
+        onClose={() => setPreviewTemplate(null)}
+        onSelect={(template) => setSelectedTemplate(template)}
+      />
     </div>
   );
 };
