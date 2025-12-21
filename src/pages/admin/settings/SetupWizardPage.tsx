@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Circle, Loader2, Rocket, Settings, Palette, Phone, Home, CreditCard } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { CheckCircle2, Circle, Loader2, Rocket, Settings, Palette, Phone, Home, CreditCard, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import SettingsSidebarLayout from '@/components/admin/settings/SettingsSidebarLayout';
 
 const STEP_CONFIG = {
@@ -38,6 +38,7 @@ const STEP_CONFIG = {
 };
 
 const SetupWizardPage: React.FC = () => {
+  const navigate = useNavigate();
   const { organization, loading: orgLoading } = useCurrentOrganization();
   const { steps, loading: stepsLoading, completedSteps, totalSteps, isComplete } = useOnboarding(organization?.id);
   
@@ -92,9 +93,19 @@ const SetupWizardPage: React.FC = () => {
                 </CardDescription>
               </div>
             </div>
-            <Badge variant={isComplete ? 'default' : 'secondary'}>
-              {isComplete ? 'Complete' : 'In Progress'}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant={isComplete ? 'default' : 'secondary'}>
+                {isComplete ? 'Complete' : 'In Progress'}
+              </Badge>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/admin/dashboard')}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Close
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
