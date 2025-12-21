@@ -15,11 +15,13 @@ const NavBar = () => {
         <div className="flex items-center justify-between h-16">
           <LogoSection />
           <DesktopNavigation />
-          <AuthSection />
-          <MobileNavigation 
-            isMobileMenuOpen={isMobileMenuOpen}
-            setIsMobileMenuOpen={setIsMobileMenuOpen}
-          />
+          <div className="flex items-center gap-2">
+            <AuthSection />
+            <MobileNavigation 
+              isMobileMenuOpen={isMobileMenuOpen}
+              setIsMobileMenuOpen={setIsMobileMenuOpen}
+            />
+          </div>
         </div>
       </div>
     </nav>
