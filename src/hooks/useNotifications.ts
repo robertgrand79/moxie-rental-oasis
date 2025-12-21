@@ -111,36 +111,49 @@ export const useNotifications = () => {
 
     // Clean up existing channel before creating new one
     if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch (e) {
+        // Ignore cleanup errors
+      }
       channelRef.current = null;
     }
 
-    const channelName = `admin-notifications-${organization.id}-${user.id}-${Date.now()}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'admin_notifications',
-          filter: `organization_id=eq.${organization.id}`,
-        },
-        (payload) => {
-          // Check if notification is for this user
-          const newNotification = payload.new as AdminNotification;
-          if (newNotification.user_id === null || newNotification.user_id === user.id) {
-            queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+    try {
+      const channelName = `admin-notifications-${organization.id}-${user.id}-${Date.now()}`;
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'admin_notifications',
+            filter: `organization_id=eq.${organization.id}`,
+          },
+          (payload) => {
+            // Check if notification is for this user
+            const newNotification = payload.new as AdminNotification;
+            if (newNotification.user_id === null || newNotification.user_id === user.id) {
+              queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+            }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    channelRef.current = channel;
+      channelRef.current = channel;
+    } catch (error) {
+      // WebSocket may be blocked in preview/iframe environments
+      console.warn('Realtime notifications subscription unavailable:', error);
+    }
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch (e) {
+          // Ignore cleanup errors
+        }
         channelRef.current = null;
       }
     };
