@@ -1,5 +1,6 @@
 import React from 'react';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useAutoCompleteOnboarding } from '@/hooks/useAutoCompleteOnboarding';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,8 +40,11 @@ const STEP_CONFIG = {
 const SetupWizardPage: React.FC = () => {
   const { organization, loading: orgLoading } = useCurrentOrganization();
   const { steps, loading: stepsLoading, completedSteps, totalSteps, isComplete } = useOnboarding(organization?.id);
+  
+  // Auto-complete steps based on existing data
+  const { isChecking } = useAutoCompleteOnboarding(organization?.id);
 
-  if (orgLoading || stepsLoading) {
+  if (orgLoading || stepsLoading || isChecking) {
     return (
       <SettingsSidebarLayout title="Setup Wizard" description="Complete your organization setup">
         <div className="flex items-center justify-center py-12">
