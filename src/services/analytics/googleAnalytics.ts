@@ -186,22 +186,27 @@ export class GoogleAnalyticsService {
     }
 
     // Listen for changes to GA settings
-    const channelName = `ga-settings-changes-${Date.now()}`;
-    this.settingsSubscription = supabase
-      .channel(channelName)
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'site_settings',
-          filter: 'key=eq.googleAnalyticsId'
-        }, 
-        (payload) => {
-          this.debugLog('📊 GA settings changed, refreshing initialization...', payload);
-          this.refreshInitialization();
-        }
-      )
-      .subscribe();
+    try {
+      const channelName = `ga-settings-changes-${Date.now()}`;
+      this.settingsSubscription = supabase
+        .channel(channelName)
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'site_settings',
+            filter: 'key=eq.googleAnalyticsId'
+          }, 
+          (payload) => {
+            this.debugLog('📊 GA settings changed, refreshing initialization...', payload);
+            this.refreshInitialization();
+          }
+        )
+        .subscribe();
+    } catch (error) {
+      // WebSocket may be blocked in preview/iframe environments
+      this.debugLog('⚠️ Realtime GA settings subscription unavailable (WebSocket blocked)', error);
+    }
   }
 
   private clearDemoCache() {
