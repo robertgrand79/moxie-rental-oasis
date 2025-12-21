@@ -192,7 +192,8 @@ export const useUserOperations = () => {
           full_name: invitation.full_name,
           role: invitation.role,
           invitedBy: user?.id,
-          invitationToken: data?.invitation_id
+          invitationToken: data?.invitation_id,
+          organizationId: organization.id
         }
       });
 
