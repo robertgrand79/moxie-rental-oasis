@@ -64,9 +64,11 @@ export const useWorkOrderOperations = () => {
     setUpdatingWorkOrders(prev => new Set([...prev, workOrderId]));
 
     try {
+      const currentWorkOrder = workOrders.find(wo => wo.id === workOrderId);
       const updateData: any = { status };
       
-      if (status === 'sent' && !workOrders.find(wo => wo.id === workOrderId)?.sent_at) {
+      // Set timestamps when moving TO certain statuses
+      if (status === 'sent' && !currentWorkOrder?.sent_at) {
         updateData.sent_at = new Date().toISOString();
       }
       if (status === 'acknowledged') {
@@ -74,6 +76,17 @@ export const useWorkOrderOperations = () => {
       }
       if (status === 'completed') {
         updateData.completed_at = new Date().toISOString();
+      }
+      
+      // Clear timestamps when moving AWAY from certain statuses
+      if (status !== 'completed' && currentWorkOrder?.completed_at) {
+        updateData.completed_at = null;
+      }
+      if (status === 'draft' && currentWorkOrder?.sent_at) {
+        updateData.sent_at = null;
+      }
+      if ((status === 'draft' || status === 'sent') && currentWorkOrder?.acknowledged_at) {
+        updateData.acknowledged_at = null;
       }
       
       await updateWorkOrder(workOrderId, updateData);
