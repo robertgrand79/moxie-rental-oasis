@@ -40,6 +40,24 @@ export const useOnboarding = (organizationId: string | null) => {
     enabled: !!organizationId,
   });
 
+  // Fetch organization's onboarding_completed flag as fallback
+  const { data: orgData } = useQuery({
+    queryKey: ['organization-onboarding-status', organizationId],
+    queryFn: async () => {
+      if (!organizationId) return null;
+      
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('onboarding_completed')
+        .eq('id', organizationId)
+        .single();
+
+      if (error) return null;
+      return data;
+    },
+    enabled: !!organizationId,
+  });
+
   // Complete a step
   const completeStep = useMutation({
     mutationFn: async ({ stepName, data }: { stepName: string; data?: Record<string, any> }) => {
@@ -84,7 +102,8 @@ export const useOnboarding = (organizationId: string | null) => {
   const currentStep = steps?.find(s => !s.completed)?.step_name || null;
   const completedSteps = steps?.filter(s => s.completed).length || 0;
   const totalSteps = steps?.length || 0;
-  const isComplete = completedSteps === totalSteps && totalSteps > 0;
+  // Check both: all steps completed OR organization marked as complete (fallback for orgs without step records)
+  const isComplete = (completedSteps === totalSteps && totalSteps > 0) || orgData?.onboarding_completed === true;
 
   return {
     steps,
