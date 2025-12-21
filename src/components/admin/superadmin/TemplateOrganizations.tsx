@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Building2, Plus, Home, Building, Globe, Users, Eye, Settings, Loader2 } from 'lucide-react';
+import { Building2, Plus, Home, Building, Globe, Users, Eye, Settings, Loader2, ExternalLink } from 'lucide-react';
 import { PlatformOrganization, TemplateType } from '@/hooks/usePlatformAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -38,6 +39,7 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
   loading,
   onRefresh 
 }) => {
+  const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newTemplate, setNewTemplate] = useState({
@@ -129,8 +131,9 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
     }
   };
 
-  const handleConfigure = (org: Organization) => {
-    toast.info(`Configure ${org.name} settings in the organization's admin panel`);
+  const handleConfigure = (org: Organization | PlatformOrganization) => {
+    // Navigate to the organization's admin settings
+    window.open(`/${org.slug}/admin/settings`, '_blank');
     setPreviewOpen(false);
   };
 
@@ -314,11 +317,11 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => handlePreview(org)}
-                      disabled={loadingPreview}
+                      onClick={() => handleConfigure(org)}
                     >
                       <Settings className="h-4 w-4 mr-2" />
                       Configure
+                      <ExternalLink className="h-3 w-3 ml-1" />
                     </Button>
                   </div>
                 </div>
