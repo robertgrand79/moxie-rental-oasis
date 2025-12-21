@@ -13,6 +13,7 @@ interface InvitationEmailRequest {
   role: string;
   invitedBy: string;
   invitationToken: string;
+  organizationId: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -42,12 +43,15 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, full_name, role, invitedBy, invitationToken }: InvitationEmailRequest = await req.json();
+    const { email, full_name, role, invitedBy, invitationToken, organizationId }: InvitationEmailRequest = await req.json();
 
-    // Get site settings for branding
+    console.log('Sending invitation email for organization:', organizationId);
+
+    // Get site settings for branding - filter by organization
     const { data: settings } = await supabaseClient
       .from('site_settings')
       .select('key, value')
+      .eq('organization_id', organizationId)
       .in('key', ['siteName', 'emailFromAddress', 'emailFromName']);
 
     const settingsMap = settings?.reduce((acc, setting) => {
