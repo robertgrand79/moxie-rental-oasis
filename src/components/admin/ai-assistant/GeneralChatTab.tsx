@@ -81,6 +81,9 @@ const GeneralChatTab = () => {
   const [avatarType, setAvatarType] = useState<AvatarType>('captain-moxie');
   const [displayName, setDisplayName] = useState('Stay Moxie Assistant');
   const [bubbleColor, setBubbleColor] = useState('#3B82F6');
+  const [submitButtonColor, setSubmitButtonColor] = useState<string | null>(null);
+  const [textColor, setTextColor] = useState('#1F2937');
+  const [userMessageTextColor, setUserMessageTextColor] = useState('#FFFFFF');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -91,7 +94,7 @@ const GeneralChatTab = () => {
       
       const { data } = await supabase
         .from('assistant_settings')
-        .select('avatar_type, display_name, bubble_color')
+        .select('avatar_type, display_name, bubble_color, submit_button_color, text_color, user_message_text_color')
         .eq('organization_id', organization.id)
         .maybeSingle();
       
@@ -99,6 +102,9 @@ const GeneralChatTab = () => {
         setAvatarType((data.avatar_type as AvatarType) || 'captain-moxie');
         setDisplayName(data.display_name || 'AI Assistant');
         setBubbleColor(data.bubble_color || '#3B82F6');
+        setSubmitButtonColor(data.submit_button_color || null);
+        setTextColor(data.text_color || '#1F2937');
+        setUserMessageTextColor(data.user_message_text_color || '#FFFFFF');
       }
     };
     fetchSettings();
@@ -120,6 +126,9 @@ const GeneralChatTab = () => {
             setAvatarType((newData.avatar_type as AvatarType) || 'captain-moxie');
             setDisplayName((newData.display_name as string) || 'AI Assistant');
             setBubbleColor((newData.bubble_color as string) || '#3B82F6');
+            setSubmitButtonColor((newData.submit_button_color as string) || null);
+            setTextColor((newData.text_color as string) || '#1F2937');
+            setUserMessageTextColor((newData.user_message_text_color as string) || '#FFFFFF');
           }
         }
       )
@@ -331,6 +340,7 @@ const GeneralChatTab = () => {
             onClick={sendMessage} 
             disabled={!input.trim() || isLoading}
             className="rounded-xl h-11 w-11"
+            style={{ backgroundColor: submitButtonColor || bubbleColor }}
           >
             <Send className="h-4 w-4" />
           </Button>
