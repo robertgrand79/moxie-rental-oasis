@@ -336,7 +336,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('🚪 Signing out...');
     
     try {
-      const { error } = await supabase.auth.signOut();
+      // Clear localStorage auth tokens first to prevent re-authentication
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') && key.includes('-auth-token')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Use 'global' scope to invalidate session on all devices/tabs
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       // Always clear local state regardless of error
       // This handles cases where session is already expired/missing on server

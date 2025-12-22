@@ -30,8 +30,12 @@ const AuthSection = () => {
         title: 'Signed out',
         description: 'You have been successfully signed out.'
       });
-      // Redirect to sign-in page
-      window.location.href = '/auth';
+      
+      // Small delay to ensure cleanup completes before redirect
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Use navigate with replace to prevent back button returning to authenticated state
+      navigate('/auth', { replace: true });
     }
   };
 
