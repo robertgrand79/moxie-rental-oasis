@@ -66,6 +66,36 @@ const AssistantSettingsTab = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [hexDrafts, setHexDrafts] = useState(() => ({
+    avatar_background_color: '',
+    avatar_background_color_end: '',
+    bubble_color: '',
+  }));
+
+  const normalizeHexDraft = useCallback((raw: string) => {
+    const trimmed = raw.trim();
+    if (!trimmed) return '';
+    const withHash = trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+    return withHash.toUpperCase();
+  }, []);
+
+  const isValidHex6 = useCallback((value: string) => {
+    return /^#[0-9A-F]{6}$/.test(value);
+  }, []);
+
+  useEffect(() => {
+    if (!settings) return;
+    setHexDrafts({
+      avatar_background_color: settings.avatar_background_color || '',
+      avatar_background_color_end: settings.avatar_background_color_end || '',
+      bubble_color: settings.bubble_color || '',
+    });
+  }, [
+    settings?.avatar_background_color,
+    settings?.avatar_background_color_end,
+    settings?.bubble_color,
+  ]);
+
   useEffect(() => {
     if (organization?.id) {
       fetchSettings();
@@ -393,14 +423,38 @@ const AssistantSettingsTab = () => {
                       <Input
                         type="color"
                         value={settings.avatar_background_color}
-                        onChange={(e) =>
-                          setSettings({ ...settings, avatar_background_color: e.target.value })
-                        }
+                        onChange={(e) => {
+                          const next = e.target.value.toUpperCase();
+                          setSettings({ ...settings, avatar_background_color: next });
+                          setHexDrafts((prev) => ({ ...prev, avatar_background_color: next }));
+                        }}
                         className="h-10 w-16 p-1 cursor-pointer"
                       />
-                      <span className="text-sm text-muted-foreground">
-                        {settings.avatar_background_color}
-                      </span>
+                      <Input
+                        value={hexDrafts.avatar_background_color}
+                        inputMode="text"
+                        placeholder="#154733"
+                        maxLength={7}
+                        className="h-10 font-mono"
+                        onChange={(e) => {
+                          const next = normalizeHexDraft(e.target.value);
+                          setHexDrafts((prev) => ({ ...prev, avatar_background_color: next }));
+                          if (isValidHex6(next)) {
+                            setSettings({ ...settings, avatar_background_color: next });
+                          }
+                        }}
+                        onBlur={() => {
+                          const normalized = normalizeHexDraft(hexDrafts.avatar_background_color);
+                          if (!isValidHex6(normalized)) {
+                            setHexDrafts((prev) => ({
+                              ...prev,
+                              avatar_background_color: settings.avatar_background_color,
+                            }));
+                            return;
+                          }
+                          setHexDrafts((prev) => ({ ...prev, avatar_background_color: normalized }));
+                        }}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -409,14 +463,38 @@ const AssistantSettingsTab = () => {
                       <Input
                         type="color"
                         value={settings.avatar_background_color_end}
-                        onChange={(e) =>
-                          setSettings({ ...settings, avatar_background_color_end: e.target.value })
-                        }
+                        onChange={(e) => {
+                          const next = e.target.value.toUpperCase();
+                          setSettings({ ...settings, avatar_background_color_end: next });
+                          setHexDrafts((prev) => ({ ...prev, avatar_background_color_end: next }));
+                        }}
                         className="h-10 w-16 p-1 cursor-pointer"
                       />
-                      <span className="text-sm text-muted-foreground">
-                        {settings.avatar_background_color_end}
-                      </span>
+                      <Input
+                        value={hexDrafts.avatar_background_color_end}
+                        inputMode="text"
+                        placeholder="#154733"
+                        maxLength={7}
+                        className="h-10 font-mono"
+                        onChange={(e) => {
+                          const next = normalizeHexDraft(e.target.value);
+                          setHexDrafts((prev) => ({ ...prev, avatar_background_color_end: next }));
+                          if (isValidHex6(next)) {
+                            setSettings({ ...settings, avatar_background_color_end: next });
+                          }
+                        }}
+                        onBlur={() => {
+                          const normalized = normalizeHexDraft(hexDrafts.avatar_background_color_end);
+                          if (!isValidHex6(normalized)) {
+                            setHexDrafts((prev) => ({
+                              ...prev,
+                              avatar_background_color_end: settings.avatar_background_color_end,
+                            }));
+                            return;
+                          }
+                          setHexDrafts((prev) => ({ ...prev, avatar_background_color_end: normalized }));
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -560,14 +638,35 @@ const AssistantSettingsTab = () => {
                 <Input
                   type="color"
                   value={settings.bubble_color}
-                  onChange={(e) =>
-                    setSettings({ ...settings, bubble_color: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const next = e.target.value.toUpperCase();
+                    setSettings({ ...settings, bubble_color: next });
+                    setHexDrafts((prev) => ({ ...prev, bubble_color: next }));
+                  }}
                   className="h-10 w-16 p-1 cursor-pointer"
                 />
-                <span className="text-sm text-muted-foreground">
-                  {settings.bubble_color}
-                </span>
+                <Input
+                  value={hexDrafts.bubble_color}
+                  inputMode="text"
+                  placeholder="#154733"
+                  maxLength={7}
+                  className="h-10 font-mono"
+                  onChange={(e) => {
+                    const next = normalizeHexDraft(e.target.value);
+                    setHexDrafts((prev) => ({ ...prev, bubble_color: next }));
+                    if (isValidHex6(next)) {
+                      setSettings({ ...settings, bubble_color: next });
+                    }
+                  }}
+                  onBlur={() => {
+                    const normalized = normalizeHexDraft(hexDrafts.bubble_color);
+                    if (!isValidHex6(normalized)) {
+                      setHexDrafts((prev) => ({ ...prev, bubble_color: settings.bubble_color }));
+                      return;
+                    }
+                    setHexDrafts((prev) => ({ ...prev, bubble_color: normalized }));
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
