@@ -1,10 +1,7 @@
 import { performDomainRedirect } from './utils/domainRedirect';
 
 // Check for subdomain redirect FIRST, before any React rendering
-if (performDomainRedirect()) {
-  // Stop execution - browser is redirecting
-  throw new Error('Redirecting to custom domain...');
-}
+const isRedirecting = performDomainRedirect();
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -29,43 +26,46 @@ const queryClient = new QueryClient({
   },
 });
 
-// Initialize performance monitoring
-measurePerformance();
+// Only initialize app if not redirecting
+if (!isRedirecting) {
+  // Initialize performance monitoring
+  measurePerformance();
 
-// Preload critical resources
-preloadCriticalResources();
+  // Preload critical resources
+  preloadCriticalResources();
 
-// Apply accessibility settings
-applyAccessibilitySettings();
+  // Apply accessibility settings
+  applyAccessibilitySettings();
 
-// Force unregister all service workers and clear caches to fix stale content issues
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    registrations.forEach((registration) => {
-      registration.unregister();
-      console.log('Unregistered service worker:', registration);
-    });
-  });
-  
-  if ('caches' in window) {
-    caches.keys().then((names) => {
-      names.forEach((name) => {
-        caches.delete(name);
-        console.log('Deleted cache:', name);
+  // Force unregister all service workers and clear caches to fix stale content issues
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister();
+        console.log('Unregistered service worker:', registration);
       });
     });
+    
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        names.forEach((name) => {
+          caches.delete(name);
+          console.log('Deleted cache:', name);
+        });
+      });
+    }
   }
+
+  // Ensure touch targets are properly sized after DOM load
+  window.addEventListener('load', () => {
+    ensureTouchTargets();
+  });
+
+  createRoot(document.getElementById("root")!).render(
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
 }
-
-// Ensure touch targets are properly sized after DOM load
-window.addEventListener('load', () => {
-  ensureTouchTargets();
-});
-
-createRoot(document.getElementById("root")!).render(
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  </QueryClientProvider>
-);
