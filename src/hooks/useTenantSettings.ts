@@ -47,6 +47,15 @@ interface TenantSettings {
   finalFeature3Description?: string;
   newsletterTitle?: string;
   newsletterDescription?: string;
+  // Color settings (for public pages)
+  colorPrimary?: string;
+  colorSecondary?: string;
+  colorAccent?: string;
+  colorBackground?: string;
+  colorForeground?: string;
+  colorMuted?: string;
+  colorDestructive?: string;
+  colorUseGradients?: string;
   [key: string]: string | undefined;
 }
 
