@@ -33,7 +33,8 @@ import {
   Building,
   Settings,
   Layout,
-  Plus
+  Plus,
+  Bug
 } from 'lucide-react';
 import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
@@ -41,6 +42,7 @@ import TemplateOrganizations from '@/components/admin/superadmin/TemplateOrganiz
 import SubscriptionControls from '@/components/admin/superadmin/SubscriptionControls';
 import PlatformUsersTab from '@/components/admin/superadmin/PlatformUsersTab';
 import CreateOrganizationDialog from '@/components/admin/superadmin/CreateOrganizationDialog';
+import BugReportsTab from '@/components/admin/superadmin/BugReportsTab';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -320,6 +322,10 @@ const SuperAdminPanel = () => {
               <Settings className="h-4 w-4" />
               Settings
             </TabsTrigger>
+            <TabsTrigger value="bugs" className="flex items-center gap-2">
+              <Bug className="h-4 w-4" />
+              Bug Reports
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6 space-y-6">
@@ -441,6 +447,10 @@ const SuperAdminPanel = () => {
 
           <TabsContent value="settings" className="mt-6 space-y-6">
             <PlatformStripeSettings />
+          </TabsContent>
+
+          <TabsContent value="bugs" className="mt-6 space-y-6">
+            <BugReportsTab />
           </TabsContent>
         </Tabs>
 
