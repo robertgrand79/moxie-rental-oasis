@@ -335,10 +335,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     console.log('🚪 Signing out...');
     
-    const { error } = await supabase.auth.signOut();
-    
-    if (!error) {
-      // Clear all auth-related state
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      // Always clear local state regardless of error
+      // This handles cases where session is already expired/missing on server
+      setUser(null);
+      setSession(null);
       setUserRole(null);
       setIsAdmin(false);
       setProfile(null);
@@ -351,12 +354,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sessionStorage.removeItem('ga-connected-shown');
       sessionStorage.removeItem('ga_retry_count');
       
+      // Handle "session not found" or "Auth session missing" gracefully
+      // These errors mean the user is already signed out on the server
+      if (error) {
+        const isSessionMissingError = 
+          error.message?.includes('session') || 
+          error.message?.includes('Session') ||
+          (error as any).code === 'session_not_found';
+        
+        if (isSessionMissingError) {
+          console.log('ℹ️ Session already expired or missing, treating as successful sign out');
+          return { error: null }; // Treat as success
+        }
+        
+        console.error('❌ Sign out error:', error);
+        return { error };
+      }
+      
       console.log('✅ Sign out successful, session storage cleared');
-    } else {
-      console.error('❌ Sign out error:', error);
+      return { error: null };
+    } catch (error) {
+      console.error('💥 Unexpected sign out error:', error);
+      
+      // Still clear local state on unexpected errors
+      setUser(null);
+      setSession(null);
+      setUserRole(null);
+      setIsAdmin(false);
+      setProfile(null);
+      setRoleLoading(false);
+      
+      // Return null error to allow redirect - user is effectively signed out locally
+      return { error: null };
     }
-    
-    return { error };
   };
 
   const resetPassword = async (email: string) => {
