@@ -64,7 +64,7 @@ interface POI {
   distance: string;
   phone: string;
   website: string;
-  hours: string;
+  hours?: string;
 }
 
 interface LocalEvent {
@@ -348,13 +348,21 @@ async function fetchPOIs(
   organizationId: string
 ): Promise<POI[]> {
   const { data } = await supabase
-    .from('points_of_interest')
-    .select('name, category, description, address, distance, phone, website, hours')
+    .from('places')
+    .select('name, category, description, address, distance_from_properties, phone, website_url')
     .eq('organization_id', organizationId)
     .eq('is_active', true)
     .limit(50);
   
-  return (data || []) as POI[];
+  return (data || []).map(p => ({
+    name: p.name,
+    category: p.category || '',
+    description: p.description || '',
+    address: p.address || '',
+    distance: p.distance_from_properties || '',
+    phone: p.phone || '',
+    website: p.website_url || '',
+  })) as POI[];
 }
 
 async function fetchLocalEvents(
@@ -363,13 +371,13 @@ async function fetchLocalEvents(
 ): Promise<LocalEvent[]> {
   const today = new Date().toISOString().split('T')[0];
   const { data } = await supabase
-    .from('local_events')
+    .from('eugene_events')
     .select('title, event_date, time_start, location, description, ticket_url')
     .eq('organization_id', organizationId)
     .eq('is_active', true)
     .gte('event_date', today)
     .order('event_date', { ascending: true })
-    .limit(15);
+    .limit(30);
   
   return (data || []) as LocalEvent[];
 }
