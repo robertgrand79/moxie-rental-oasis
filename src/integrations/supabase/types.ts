@@ -260,6 +260,7 @@ export type Database = {
       }
       assistant_settings: {
         Row: {
+          assistant_message_bg_color: string | null
           avatar_background_color: string | null
           avatar_background_color_end: string | null
           avatar_type: string | null
@@ -273,11 +274,15 @@ export type Database = {
           is_enabled: boolean
           organization_id: string
           personality: string | null
+          submit_button_color: string | null
+          text_color: string | null
           updated_at: string
           use_custom_avatar: boolean | null
+          user_message_text_color: string | null
           welcome_message: string
         }
         Insert: {
+          assistant_message_bg_color?: string | null
           avatar_background_color?: string | null
           avatar_background_color_end?: string | null
           avatar_type?: string | null
@@ -291,11 +296,15 @@ export type Database = {
           is_enabled?: boolean
           organization_id: string
           personality?: string | null
+          submit_button_color?: string | null
+          text_color?: string | null
           updated_at?: string
           use_custom_avatar?: boolean | null
+          user_message_text_color?: string | null
           welcome_message?: string
         }
         Update: {
+          assistant_message_bg_color?: string | null
           avatar_background_color?: string | null
           avatar_background_color_end?: string | null
           avatar_type?: string | null
@@ -309,8 +318,11 @@ export type Database = {
           is_enabled?: boolean
           organization_id?: string
           personality?: string | null
+          submit_button_color?: string | null
+          text_color?: string | null
           updated_at?: string
           use_custom_avatar?: boolean | null
+          user_message_text_color?: string | null
           welcome_message?: string
         }
         Relationships: [

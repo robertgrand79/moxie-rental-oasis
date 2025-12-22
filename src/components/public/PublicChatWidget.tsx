@@ -27,6 +27,10 @@ interface AssistantSettings {
   use_custom_avatar?: boolean;
   avatar_background_color?: string;
   avatar_background_color_end?: string;
+  text_color?: string;
+  submit_button_color?: string;
+  user_message_text_color?: string;
+  assistant_message_bg_color?: string;
 }
 
 // Generate unique session ID
@@ -153,6 +157,9 @@ const PublicChatWidget = () => {
   const avatarType: AvatarType = (settings.avatar_type as AvatarType) || 'captain-moxie';
   const chatStyle = settings.chat_style || 'modern';
   const bubbleColor = settings.bubble_color;
+  const submitButtonColor = settings.submit_button_color || bubbleColor;
+  const textColor = settings.text_color || '#1F2937';
+  const userMessageTextColor = settings.user_message_text_color || '#FFFFFF';
 
   // Style configurations based on chat_style
   const getStyleClasses = () => {
@@ -402,10 +409,13 @@ const PublicChatWidget = () => {
                           className={cn(
                             "max-w-[80%] px-4 py-2.5 text-sm",
                             msg.role === 'user'
-                              ? cn(styles.userMessage, 'text-white')
+                              ? cn(styles.userMessage)
                               : styles.assistantMessage
                           )}
-                          style={msg.role === 'user' ? { backgroundColor: bubbleColor } : undefined}
+                          style={msg.role === 'user' 
+                            ? { backgroundColor: bubbleColor, color: userMessageTextColor } 
+                            : { color: textColor }
+                          }
                         >
                           <p className="whitespace-pre-wrap break-words leading-relaxed">
                             {renderContent(msg.content)}
@@ -479,7 +489,7 @@ const PublicChatWidget = () => {
                       "h-11 w-11 flex-shrink-0 transition-transform hover:scale-105",
                       chatStyle === 'playful' ? 'rounded-2xl' : 'rounded-xl'
                     )}
-                    style={{ backgroundColor: bubbleColor }}
+                    style={{ backgroundColor: submitButtonColor }}
                   >
                     <Send className="h-4 w-4" />
                   </Button>

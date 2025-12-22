@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bot, Save, Loader2, Plus, Trash2, MessageSquare, Sparkles, Palette, FileText, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Bot, Save, Loader2, Plus, Trash2, MessageSquare, Sparkles, Palette, FileText, Upload, X, Image as ImageIcon, Send } from 'lucide-react';
 import { PropertyDocumentsTab } from './PropertyDocumentsTab';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,10 @@ interface AssistantSettings {
   avatar_background_color_end: string;
   custom_avatar_url: string;
   use_custom_avatar: boolean;
+  text_color: string;
+  submit_button_color: string;
+  user_message_text_color: string;
+  assistant_message_bg_color: string;
 }
 
 const DEFAULT_COLORS = [
@@ -70,6 +74,10 @@ const AssistantSettingsTab = () => {
     avatar_background_color: '',
     avatar_background_color_end: '',
     bubble_color: '',
+    text_color: '',
+    submit_button_color: '',
+    user_message_text_color: '',
+    assistant_message_bg_color: '',
   }));
 
   const normalizeHexDraft = useCallback((raw: string) => {
@@ -89,11 +97,19 @@ const AssistantSettingsTab = () => {
       avatar_background_color: settings.avatar_background_color || '',
       avatar_background_color_end: settings.avatar_background_color_end || '',
       bubble_color: settings.bubble_color || '',
+      text_color: settings.text_color || '',
+      submit_button_color: settings.submit_button_color || '',
+      user_message_text_color: settings.user_message_text_color || '',
+      assistant_message_bg_color: settings.assistant_message_bg_color || '',
     });
   }, [
     settings?.avatar_background_color,
     settings?.avatar_background_color_end,
     settings?.bubble_color,
+    settings?.text_color,
+    settings?.submit_button_color,
+    settings?.user_message_text_color,
+    settings?.assistant_message_bg_color,
   ]);
 
   useEffect(() => {
@@ -125,7 +141,11 @@ const AssistantSettingsTab = () => {
         avatar_background_color: data.avatar_background_color || '#3B82F6',
         avatar_background_color_end: data.avatar_background_color_end || '#8B5CF6',
         custom_avatar_url: data.custom_avatar_url || '',
-        use_custom_avatar: data.use_custom_avatar || false
+        use_custom_avatar: data.use_custom_avatar || false,
+        text_color: data.text_color || '#1F2937',
+        submit_button_color: data.submit_button_color || data.bubble_color || '#3B82F6',
+        user_message_text_color: data.user_message_text_color || '#FFFFFF',
+        assistant_message_bg_color: data.assistant_message_bg_color || ''
       });
     } else {
       setSettings({
@@ -141,7 +161,11 @@ const AssistantSettingsTab = () => {
         avatar_background_color: '#3B82F6',
         avatar_background_color_end: '#8B5CF6',
         custom_avatar_url: '',
-        use_custom_avatar: false
+        use_custom_avatar: false,
+        text_color: '#1F2937',
+        submit_button_color: '#3B82F6',
+        user_message_text_color: '#FFFFFF',
+        assistant_message_bg_color: ''
       });
     }
     setIsLoading(false);
@@ -167,7 +191,11 @@ const AssistantSettingsTab = () => {
           avatar_background_color: settings.avatar_background_color,
           avatar_background_color_end: settings.avatar_background_color_end,
           custom_avatar_url: settings.custom_avatar_url,
-          use_custom_avatar: settings.use_custom_avatar
+          use_custom_avatar: settings.use_custom_avatar,
+          text_color: settings.text_color,
+          submit_button_color: settings.submit_button_color,
+          user_message_text_color: settings.user_message_text_color,
+          assistant_message_bg_color: settings.assistant_message_bg_color
         }], { onConflict: 'organization_id' });
 
       if (error) throw error;
@@ -671,6 +699,143 @@ const AssistantSettingsTab = () => {
             </CardContent>
           </Card>
 
+          {/* Text & Button Colors */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Text & Button Colors</CardTitle>
+              <CardDescription>
+                Customize the text colors and submit button appearance.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Submit Button Color */}
+              <div className="space-y-2">
+                <Label>Submit Button Color</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Color of the send message button (defaults to accent color if not set)
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    value={settings.submit_button_color || settings.bubble_color}
+                    onChange={(e) => {
+                      const next = e.target.value.toUpperCase();
+                      setSettings({ ...settings, submit_button_color: next });
+                      setHexDrafts((prev) => ({ ...prev, submit_button_color: next }));
+                    }}
+                    className="h-10 w-16 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={hexDrafts.submit_button_color}
+                    inputMode="text"
+                    placeholder="#3B82F6"
+                    maxLength={7}
+                    className="h-10 font-mono flex-1"
+                    onChange={(e) => {
+                      const next = normalizeHexDraft(e.target.value);
+                      setHexDrafts((prev) => ({ ...prev, submit_button_color: next }));
+                      if (isValidHex6(next)) {
+                        setSettings({ ...settings, submit_button_color: next });
+                      }
+                    }}
+                    onBlur={() => {
+                      const normalized = normalizeHexDraft(hexDrafts.submit_button_color);
+                      if (!isValidHex6(normalized)) {
+                        setHexDrafts((prev) => ({ ...prev, submit_button_color: settings.submit_button_color || settings.bubble_color }));
+                        return;
+                      }
+                      setHexDrafts((prev) => ({ ...prev, submit_button_color: normalized }));
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Assistant Message Text Color */}
+              <div className="space-y-2">
+                <Label>Assistant Message Text Color</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Color of text in assistant responses
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    value={settings.text_color || '#1F2937'}
+                    onChange={(e) => {
+                      const next = e.target.value.toUpperCase();
+                      setSettings({ ...settings, text_color: next });
+                      setHexDrafts((prev) => ({ ...prev, text_color: next }));
+                    }}
+                    className="h-10 w-16 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={hexDrafts.text_color}
+                    inputMode="text"
+                    placeholder="#1F2937"
+                    maxLength={7}
+                    className="h-10 font-mono flex-1"
+                    onChange={(e) => {
+                      const next = normalizeHexDraft(e.target.value);
+                      setHexDrafts((prev) => ({ ...prev, text_color: next }));
+                      if (isValidHex6(next)) {
+                        setSettings({ ...settings, text_color: next });
+                      }
+                    }}
+                    onBlur={() => {
+                      const normalized = normalizeHexDraft(hexDrafts.text_color);
+                      if (!isValidHex6(normalized)) {
+                        setHexDrafts((prev) => ({ ...prev, text_color: settings.text_color || '#1F2937' }));
+                        return;
+                      }
+                      setHexDrafts((prev) => ({ ...prev, text_color: normalized }));
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* User Message Text Color */}
+              <div className="space-y-2">
+                <Label>User Message Text Color</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Color of text in user messages
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    value={settings.user_message_text_color || '#FFFFFF'}
+                    onChange={(e) => {
+                      const next = e.target.value.toUpperCase();
+                      setSettings({ ...settings, user_message_text_color: next });
+                      setHexDrafts((prev) => ({ ...prev, user_message_text_color: next }));
+                    }}
+                    className="h-10 w-16 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={hexDrafts.user_message_text_color}
+                    inputMode="text"
+                    placeholder="#FFFFFF"
+                    maxLength={7}
+                    className="h-10 font-mono flex-1"
+                    onChange={(e) => {
+                      const next = normalizeHexDraft(e.target.value);
+                      setHexDrafts((prev) => ({ ...prev, user_message_text_color: next }));
+                      if (isValidHex6(next)) {
+                        setSettings({ ...settings, user_message_text_color: next });
+                      }
+                    }}
+                    onBlur={() => {
+                      const normalized = normalizeHexDraft(hexDrafts.user_message_text_color);
+                      if (!isValidHex6(normalized)) {
+                        setHexDrafts((prev) => ({ ...prev, user_message_text_color: settings.user_message_text_color || '#FFFFFF' }));
+                        return;
+                      }
+                      setHexDrafts((prev) => ({ ...prev, user_message_text_color: normalized }));
+                    }}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Live Preview */}
           <Card>
             <CardHeader>
@@ -719,10 +884,13 @@ const AssistantSettingsTab = () => {
                         customAvatarUrl={settings.custom_avatar_url}
                         useCustomAvatar={settings.use_custom_avatar}
                       />
-                      <div className={cn(
-                        "rounded-2xl rounded-bl-sm px-3 py-1.5 text-xs max-w-[85%]",
-                        settings.chat_style === 'elegant' ? "bg-muted/50" : "bg-muted"
-                      )}>
+                      <div 
+                        className={cn(
+                          "rounded-2xl rounded-bl-sm px-3 py-1.5 text-xs max-w-[85%]",
+                          settings.chat_style === 'elegant' ? "bg-muted/50" : "bg-muted"
+                        )}
+                        style={{ color: settings.text_color || '#1F2937' }}
+                      >
                         {settings.welcome_message.substring(0, 60)}...
                       </div>
                     </div>
@@ -730,10 +898,13 @@ const AssistantSettingsTab = () => {
                     <div className="flex justify-end">
                       <div 
                         className={cn(
-                          "rounded-2xl rounded-br-sm px-3 py-1.5 text-xs text-white max-w-[85%]",
+                          "rounded-2xl rounded-br-sm px-3 py-1.5 text-xs max-w-[85%]",
                           settings.chat_style === 'playful' && "rounded-3xl"
                         )}
-                        style={{ backgroundColor: settings.bubble_color }}
+                        style={{ 
+                          backgroundColor: settings.bubble_color,
+                          color: settings.user_message_text_color || '#FFFFFF'
+                        }}
                       >
                         How do I check in?
                       </div>
@@ -751,19 +922,12 @@ const AssistantSettingsTab = () => {
                       </div>
                       <div 
                         className={cn(
-                          "h-7 w-7 flex items-center justify-center rounded-full",
+                          "h-7 w-7 flex items-center justify-center text-white",
                           settings.chat_style === 'playful' ? 'rounded-xl' : 'rounded-lg'
                         )}
-                        style={{ backgroundColor: settings.bubble_color }}
+                        style={{ backgroundColor: settings.submit_button_color || settings.bubble_color }}
                       >
-                        <ChatAvatar 
-                          type={settings.avatar_type} 
-                          size={18}
-                          backgroundColorStart={settings.avatar_background_color}
-                          backgroundColorEnd={settings.avatar_background_color_end}
-                          customAvatarUrl={settings.custom_avatar_url}
-                          useCustomAvatar={settings.use_custom_avatar}
-                        />
+                        <Send className="h-3 w-3" />
                       </div>
                     </div>
                   </div>
