@@ -265,13 +265,11 @@ const ColorCustomizer = () => {
                     {/* Hex Input */}
                     <Input
                       id={key}
-                      value={value.toUpperCase()}
+                      value={value}
                       onChange={(e) => {
-                        let hex = e.target.value.toUpperCase();
-                        if (!hex.startsWith('#')) hex = '#' + hex;
-                        if (/^#[0-9A-F]{0,6}$/i.test(hex)) {
-                          handleColorChange(key, hex);
-                        }
+                        let hex = e.target.value;
+                        if (!hex.startsWith('#') && hex.length > 0) hex = '#' + hex;
+                        handleColorChange(key, hex.toUpperCase());
                       }}
                       placeholder="#000000"
                       className="flex-1 font-mono text-sm h-12 border-2"
