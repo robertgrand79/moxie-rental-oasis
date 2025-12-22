@@ -180,14 +180,17 @@ const Auth = () => {
     }
   };
 
-  // Show loading state while auth is being determined
-  if (user && (loading || roleLoading || orgLoading)) {
+  // Show loading/redirecting state whenever user is authenticated
+  // This prevents the sign-in form from flashing during redirect
+  if (user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-sm text-muted-foreground">
-            {loading ? 'Authenticating...' : 'Loading your profile...'}
+            {loading ? 'Authenticating...' : 
+             roleLoading || orgLoading ? 'Loading your profile...' : 
+             'Redirecting to dashboard...'}
           </p>
         </div>
       </div>
