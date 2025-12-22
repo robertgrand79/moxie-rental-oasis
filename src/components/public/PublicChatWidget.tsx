@@ -23,6 +23,10 @@ interface AssistantSettings {
   bubble_color: string;
   avatar_type: AvatarType;
   chat_style: ChatStyle;
+  custom_avatar_url?: string;
+  use_custom_avatar?: boolean;
+  avatar_background_color?: string;
+  avatar_background_color_end?: string;
 }
 
 // Generate unique session ID
@@ -251,7 +255,14 @@ const PublicChatWidget = () => {
           style={{ backgroundColor: bubbleColor }}
           aria-label="Open chat"
         >
-          <ChatAvatar type={avatarType} size={chatStyle === 'playful' ? 44 : 40} />
+          <ChatAvatar 
+            type={avatarType} 
+            size={chatStyle === 'playful' ? 44 : 40} 
+            useCustomAvatar={settings.use_custom_avatar}
+            customAvatarUrl={settings.custom_avatar_url}
+            backgroundColorStart={settings.avatar_background_color}
+            backgroundColorEnd={settings.avatar_background_color_end}
+          />
         </button>
       )}
 
@@ -289,7 +300,14 @@ const PublicChatWidget = () => {
                 "flex items-center justify-center",
                 chatStyle === 'playful' && "animate-bounce"
               )}>
-                <ChatAvatar type={avatarType} size={36} />
+                <ChatAvatar 
+                  type={avatarType} 
+                  size={36} 
+                  useCustomAvatar={settings.use_custom_avatar}
+                  customAvatarUrl={settings.custom_avatar_url}
+                  backgroundColorStart={settings.avatar_background_color}
+                  backgroundColorEnd={settings.avatar_background_color_end}
+                />
               </div>
               <div>
                 <span className="font-semibold">{settings.display_name}</span>
@@ -324,7 +342,14 @@ const PublicChatWidget = () => {
                       "mx-auto mb-4 flex items-center justify-center",
                       chatStyle === 'playful' && "animate-bounce"
                     )}>
-                      <ChatAvatar type={avatarType} size={80} />
+                      <ChatAvatar 
+                        type={avatarType} 
+                        size={80} 
+                        useCustomAvatar={settings.use_custom_avatar}
+                        customAvatarUrl={settings.custom_avatar_url}
+                        backgroundColorStart={settings.avatar_background_color}
+                        backgroundColorEnd={settings.avatar_background_color_end}
+                      />
                     </div>
                     <h3 className="font-semibold text-lg mb-2">{settings.display_name}</h3>
                     <p className="text-sm text-muted-foreground">{settings.welcome_message}</p>
@@ -363,7 +388,14 @@ const PublicChatWidget = () => {
                       >
                         {msg.role === 'assistant' && (
                           <div className="flex-shrink-0">
-                            <ChatAvatar type={avatarType} size={32} />
+                            <ChatAvatar 
+                              type={avatarType} 
+                              size={32} 
+                              useCustomAvatar={settings.use_custom_avatar}
+                              customAvatarUrl={settings.custom_avatar_url}
+                              backgroundColorStart={settings.avatar_background_color}
+                              backgroundColorEnd={settings.avatar_background_color_end}
+                            />
                           </div>
                         )}
                         <div
@@ -389,7 +421,15 @@ const PublicChatWidget = () => {
                     {isLoading && (
                       <div className="flex gap-2 animate-fade-in">
                         <div className="flex-shrink-0">
-                          <ChatAvatar type={avatarType} size={32} className="animate-pulse" />
+                          <ChatAvatar 
+                            type={avatarType} 
+                            size={32} 
+                            className="animate-pulse"
+                            useCustomAvatar={settings.use_custom_avatar}
+                            customAvatarUrl={settings.custom_avatar_url}
+                            backgroundColorStart={settings.avatar_background_color}
+                            backgroundColorEnd={settings.avatar_background_color_end}
+                          />
                         </div>
                         <div className={cn(styles.assistantMessage, "px-4 py-3")}>
                           <div className="flex gap-1.5">
