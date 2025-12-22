@@ -44,13 +44,13 @@ const ModernHeroSection = () => {
             {/* Main Title */}
             <div className="space-y-4">
               <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-                <span className="bg-gradient-to-r from-white via-blue-100 to-accent bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-white via-white/90 to-[hsl(var(--accent))] bg-clip-text text-transparent">
                   {settings.heroTitle}
                 </span>
                 {settings.heroSubtitle && (
                   <>
                     <br />
-                    <span className="bg-gradient-to-r from-accent via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-[hsl(var(--gradient-from))] via-[hsl(var(--gradient-via))] to-[hsl(var(--gradient-to))] bg-clip-text text-transparent">
                       {settings.heroSubtitle}
                     </span>
                   </>
@@ -111,7 +111,7 @@ const ModernHeroSection = () => {
               <Button 
                 asChild
                 size="lg" 
-                className="bg-gradient-to-r from-accent to-pink-500 hover:from-accent/90 hover:to-pink-500/90 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-2xl transform transition-all duration-300 hover:scale-105"
+                className="bg-gradient-to-r from-[hsl(var(--accent))] to-[hsl(var(--secondary))] hover:opacity-90 text-primary-foreground font-semibold px-8 py-4 text-lg rounded-full shadow-2xl transform transition-all duration-300 hover:scale-105"
               >
                 <Link to="/properties" className="flex items-center gap-2">
                   <span>{settings.heroCTAText}</span>
