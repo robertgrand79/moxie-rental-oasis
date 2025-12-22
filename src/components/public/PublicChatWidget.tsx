@@ -89,7 +89,7 @@ const PublicChatWidget = () => {
     if (!error && data) {
       setSettings({
         ...data,
-        avatar_type: (data.avatar_type as AvatarType) || 'concierge',
+        avatar_type: (data.avatar_type as AvatarType) || 'captain-moxie',
         chat_style: (data.chat_style as ChatStyle) || 'modern'
       });
     }
@@ -150,7 +150,7 @@ const PublicChatWidget = () => {
 
   if (!settings?.is_enabled) return null;
 
-  const avatarType = settings.avatar_type || 'concierge';
+  const avatarType: AvatarType = (settings.avatar_type as AvatarType) || 'captain-moxie';
   const chatStyle = settings.chat_style || 'modern';
   const bubbleColor = settings.bubble_color;
 
