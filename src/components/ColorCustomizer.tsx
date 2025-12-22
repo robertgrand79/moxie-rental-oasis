@@ -243,22 +243,39 @@ const ColorCustomizer = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(colors).map(([key, value]) => (
                 <div key={key} className="space-y-2">
-                  <Label htmlFor={key} className="capitalize">
+                  <Label htmlFor={key} className="capitalize text-sm font-medium">
                     {key.replace(/([A-Z])/g, ' $1').trim()}
                   </Label>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-3">
+                    {/* Color Swatch */}
+                    <div className="relative">
+                      <div
+                        className="w-12 h-12 rounded-md border-2 border-border cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                        style={{ backgroundColor: value }}
+                        onClick={() => document.getElementById(`color-picker-${key}`)?.click()}
+                      />
+                      <input
+                        id={`color-picker-${key}`}
+                        type="color"
+                        value={value}
+                        onChange={(e) => handleColorChange(key, e.target.value.toUpperCase())}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                    </div>
+                    {/* Hex Input */}
                     <Input
                       id={key}
-                      type="color"
-                      value={value}
-                      onChange={(e) => handleColorChange(key, e.target.value)}
-                      className="w-16 h-10 p-1 border rounded"
-                    />
-                    <Input
-                      value={value}
-                      onChange={(e) => handleColorChange(key, e.target.value)}
+                      value={value.toUpperCase()}
+                      onChange={(e) => {
+                        let hex = e.target.value.toUpperCase();
+                        if (!hex.startsWith('#')) hex = '#' + hex;
+                        if (/^#[0-9A-F]{0,6}$/i.test(hex)) {
+                          handleColorChange(key, hex);
+                        }
+                      }}
                       placeholder="#000000"
-                      className="flex-1"
+                      className="flex-1 font-mono text-sm h-12 border-2"
+                      maxLength={7}
                     />
                   </div>
                 </div>
