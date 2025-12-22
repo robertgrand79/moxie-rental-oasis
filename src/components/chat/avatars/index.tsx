@@ -10,11 +10,20 @@ import RangerAvatar from './RangerAvatar';
 import ArtistAvatar from './ArtistAvatar';
 import LocalAvatar from './LocalAvatar';
 import SommelierAvatar from './SommelierAvatar';
+import CaptainMoxieAvatar from './CaptainMoxieAvatar';
+import PopArtMoxieAvatar from './PopArtMoxieAvatar';
+import ActionMoxieAvatar from './ActionMoxieAvatar';
+import RetroComicHostAvatar from './RetroComicHostAvatar';
+import MoxieMascotAvatar from './MoxieMascotAvatar';
+import InkStyleMoxieAvatar from './InkStyleMoxieAvatar';
 import { AvatarProps } from './types';
 
 export type { AvatarProps };
 
-export type AvatarType = 'concierge' | 'traveler' | 'host' | 'advisor' | 'guide' | 'assistant' | 'chef' | 'captain' | 'ranger' | 'artist' | 'local' | 'sommelier';
+export type AvatarType = 
+  | 'concierge' | 'traveler' | 'host' | 'advisor' | 'guide' | 'assistant' 
+  | 'chef' | 'captain' | 'ranger' | 'artist' | 'local' | 'sommelier'
+  | 'captain-moxie' | 'pop-art-moxie' | 'action-moxie' | 'retro-comic-host' | 'moxie-mascot' | 'ink-style-moxie';
 
 export const avatarComponents: Record<AvatarType, React.ComponentType<AvatarProps>> = {
   concierge: ConciergeAvatar,
@@ -29,6 +38,12 @@ export const avatarComponents: Record<AvatarType, React.ComponentType<AvatarProp
   artist: ArtistAvatar,
   local: LocalAvatar,
   sommelier: SommelierAvatar,
+  'captain-moxie': CaptainMoxieAvatar,
+  'pop-art-moxie': PopArtMoxieAvatar,
+  'action-moxie': ActionMoxieAvatar,
+  'retro-comic-host': RetroComicHostAvatar,
+  'moxie-mascot': MoxieMascotAvatar,
+  'ink-style-moxie': InkStyleMoxieAvatar,
 };
 
 export const avatarInfo: Record<AvatarType, { name: string; description: string }> = {
@@ -44,9 +59,16 @@ export const avatarInfo: Record<AvatarType, { name: string; description: string 
   artist: { name: 'The Artist', description: 'Knows all the galleries and creative experiences' },
   local: { name: 'The Local', description: 'Born and raised here, knows all the hidden gems' },
   sommelier: { name: 'The Sommelier', description: 'Curated taste for wine country and fine experiences' },
+  'captain-moxie': { name: 'Captain Moxie', description: 'Heroic superhero host' },
+  'pop-art-moxie': { name: 'Pop Art Moxie', description: 'Warhol-inspired bold style' },
+  'action-moxie': { name: 'Action Moxie', description: 'Dynamic manga-inspired assistant' },
+  'retro-comic-host': { name: 'Retro Comic Host', description: 'Classic 50s comic book style' },
+  'moxie-mascot': { name: 'Moxie Mascot', description: 'Bold mascot with speech bubble energy' },
+  'ink-style-moxie': { name: 'Ink Style Moxie', description: 'Hand-drawn indie comic aesthetic' },
 };
 
 export {
   ConciergeAvatar, TravelerAvatar, HostAvatar, AdvisorAvatar, GuideAvatar, AssistantAvatar,
   ChefAvatar, CaptainAvatar, RangerAvatar, ArtistAvatar, LocalAvatar, SommelierAvatar,
+  CaptainMoxieAvatar, PopArtMoxieAvatar, ActionMoxieAvatar, RetroComicHostAvatar, MoxieMascotAvatar, InkStyleMoxieAvatar,
 };
