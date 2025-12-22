@@ -102,6 +102,32 @@ const GeneralChatTab = () => {
       }
     };
     fetchSettings();
+
+    // Subscribe to real-time changes for instant preview updates
+    const channel = supabase
+      .channel('assistant-settings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'assistant_settings',
+          filter: `organization_id=eq.${organization?.id}`
+        },
+        (payload) => {
+          if (payload.new) {
+            const newData = payload.new as Record<string, unknown>;
+            setAvatarType((newData.avatar_type as AvatarType) || 'captain-moxie');
+            setDisplayName((newData.display_name as string) || 'AI Assistant');
+            setBubbleColor((newData.bubble_color as string) || '#3B82F6');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [organization?.id]);
 
   useEffect(() => {
