@@ -23,15 +23,16 @@
  */
 
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { hexToHsl, DEFAULT_COLORS } from '@/lib/colorUtils';
 
 /**
  * Hook that loads color settings from database and applies them as CSS custom properties.
  * 
- * The hook watches for changes in color settings and re-applies them automatically.
- * If no custom colors are configured, it skips applying any overrides, allowing
- * the default CSS values to remain in effect.
+ * For public pages: Uses useTenantSettings (no auth required) so colors load immediately.
+ * For admin pages: Uses useSimplifiedSiteSettings (auth-gated).
  * 
  * Color Tokens Applied:
  * - --primary: Main brand color
@@ -43,7 +44,18 @@ import { hexToHsl, DEFAULT_COLORS } from '@/lib/colorUtils';
  * - Plus derived tokens: card, popover, gradients, footer, etc.
  */
 export const useGlobalColors = () => {
-  const { settings, loading } = useSimplifiedSiteSettings();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  
+  // For public pages, use tenant settings (no auth required)
+  const { settings: tenantSettings, loading: tenantLoading } = useTenantSettings();
+  
+  // For admin pages, use simplified settings (auth-gated)
+  const { settings: adminSettings, loading: adminLoading } = useSimplifiedSiteSettings();
+  
+  // Use tenant settings for public pages, admin settings for admin routes
+  const settings = isAdminRoute ? adminSettings : tenantSettings;
+  const loading = isAdminRoute ? adminLoading : tenantLoading;
 
   useEffect(() => {
     // Wait for settings to load
@@ -148,7 +160,8 @@ export const useGlobalColors = () => {
     settings?.colorMuted,
     settings?.colorDestructive,
     settings?.colorUseGradients,
-    loading
+    loading,
+    isAdminRoute
   ]);
 };
 
