@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Bot, Save, Loader2, Plus, Trash2, MessageSquare, Sparkles, Palette, FileText } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Bot, Save, Loader2, Plus, Trash2, MessageSquare, Sparkles, Palette, FileText, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { PropertyDocumentsTab } from './PropertyDocumentsTab';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,10 @@ interface AssistantSettings {
   custom_faqs: FAQ[];
   avatar_type: AvatarType;
   chat_style: ChatStyle;
+  avatar_background_color: string;
+  avatar_background_color_end: string;
+  custom_avatar_url: string;
+  use_custom_avatar: boolean;
 }
 
 const DEFAULT_COLORS = [
@@ -87,7 +91,11 @@ const AssistantSettingsTab = () => {
         ...data,
         custom_faqs: Array.isArray(data.custom_faqs) ? (data.custom_faqs as unknown as FAQ[]) : [],
         avatar_type: (data.avatar_type as AvatarType) || 'concierge',
-        chat_style: (data.chat_style as ChatStyle) || 'modern'
+        chat_style: (data.chat_style as ChatStyle) || 'modern',
+        avatar_background_color: data.avatar_background_color || '#3B82F6',
+        avatar_background_color_end: data.avatar_background_color_end || '#8B5CF6',
+        custom_avatar_url: data.custom_avatar_url || '',
+        use_custom_avatar: data.use_custom_avatar || false
       });
     } else {
       setSettings({
@@ -99,7 +107,11 @@ const AssistantSettingsTab = () => {
         personality: 'friendly',
         custom_faqs: [],
         avatar_type: 'concierge',
-        chat_style: 'modern'
+        chat_style: 'modern',
+        avatar_background_color: '#3B82F6',
+        avatar_background_color_end: '#8B5CF6',
+        custom_avatar_url: '',
+        use_custom_avatar: false
       });
     }
     setIsLoading(false);
@@ -121,7 +133,11 @@ const AssistantSettingsTab = () => {
           personality: settings.personality,
           custom_faqs: JSON.parse(JSON.stringify(settings.custom_faqs)),
           avatar_type: settings.avatar_type,
-          chat_style: settings.chat_style
+          chat_style: settings.chat_style,
+          avatar_background_color: settings.avatar_background_color,
+          avatar_background_color_end: settings.avatar_background_color_end,
+          custom_avatar_url: settings.custom_avatar_url,
+          use_custom_avatar: settings.use_custom_avatar
         }], { onConflict: 'organization_id' });
 
       if (error) throw error;
@@ -257,47 +273,225 @@ const AssistantSettingsTab = () => {
         </TabsContent>
 
         <TabsContent value="appearance" className="mt-6 space-y-6">
-          {/* Character Selection */}
+          {/* Custom Avatar Upload */}
           <Card>
             <CardHeader>
-              <CardTitle>Choose Your Character</CardTitle>
+              <CardTitle>Custom Avatar</CardTitle>
               <CardDescription>
-                Select a personality avatar for your AI assistant.
+                Upload your own avatar image or use one of our built-in characters.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {(Object.keys(avatarInfo) as AvatarType[]).map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setSettings({ ...settings, avatar_type: type })}
-                    className={cn(
-                      "relative p-4 rounded-xl border-2 transition-all duration-200 hover:scale-102",
-                      "flex flex-col items-center gap-3 text-center",
-                      settings.avatar_type === type
-                        ? "border-primary bg-primary/5 shadow-md"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <ChatAvatar type={type} size={64} />
-                    <div>
-                      <p className="font-medium text-sm">{avatarInfo[type].name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {avatarInfo[type].description}
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Use Custom Avatar</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Replace the character avatar with your own image
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.use_custom_avatar}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, use_custom_avatar: checked })
+                  }
+                />
+              </div>
+
+              {settings.use_custom_avatar && (
+                <div className="space-y-4">
+                  {settings.custom_avatar_url ? (
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <img
+                          src={settings.custom_avatar_url}
+                          alt="Custom avatar"
+                          className="h-20 w-20 rounded-full object-cover border-2 border-border"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute -top-2 -right-2 h-6 w-6"
+                          onClick={() => setSettings({ ...settings, custom_avatar_url: '' })}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Your custom avatar is set. Toggle off above to use built-in characters.
                       </p>
                     </div>
-                    {settings.avatar_type === type && (
-                      <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                        <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
+                  ) : (
+                    <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                      <ImageIcon className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Upload a square image (recommended: 200x200px)
+                      </p>
+                      <Label htmlFor="avatar-upload" className="cursor-pointer">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                          <Upload className="h-4 w-4" />
+                          Upload Image
+                        </div>
+                        <input
+                          id="avatar-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            
+                            try {
+                              const fileExt = file.name.split('.').pop();
+                              const fileName = `${organization?.id}-${Date.now()}.${fileExt}`;
+                              
+                              const { error: uploadError } = await supabase.storage
+                                .from('assistant-avatars')
+                                .upload(fileName, file);
+                              
+                              if (uploadError) throw uploadError;
+                              
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('assistant-avatars')
+                                .getPublicUrl(fileName);
+                              
+                              setSettings({ ...settings, custom_avatar_url: publicUrl });
+                              toast({
+                                title: 'Avatar uploaded',
+                                description: 'Your custom avatar has been uploaded.'
+                              });
+                            } catch (error: any) {
+                              toast({
+                                title: 'Upload failed',
+                                description: error.message || 'Failed to upload avatar',
+                                variant: 'destructive'
+                              });
+                            }
+                          }}
+                        />
+                      </Label>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Avatar Background Colors */}
+          {!settings.use_custom_avatar && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Avatar Background</CardTitle>
+                <CardDescription>
+                  Customize the gradient background of your character avatar.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Gradient Start</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="color"
+                        value={settings.avatar_background_color}
+                        onChange={(e) =>
+                          setSettings({ ...settings, avatar_background_color: e.target.value })
+                        }
+                        className="h-10 w-16 p-1 cursor-pointer"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {settings.avatar_background_color}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Gradient End</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="color"
+                        value={settings.avatar_background_color_end}
+                        onChange={(e) =>
+                          setSettings({ ...settings, avatar_background_color_end: e.target.value })
+                        }
+                        className="h-10 w-16 p-1 cursor-pointer"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {settings.avatar_background_color_end}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Preview gradient */}
+                <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
+                  <div 
+                    className="h-16 w-16 rounded-full flex items-center justify-center"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${settings.avatar_background_color}, ${settings.avatar_background_color_end})`
+                    }}
+                  >
+                    <ChatAvatar 
+                      type={settings.avatar_type} 
+                      size={48}
+                      backgroundColorStart={settings.avatar_background_color}
+                      backgroundColorEnd={settings.avatar_background_color_end}
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Preview of your avatar with custom gradient background
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Character Selection - only show if not using custom avatar */}
+          {!settings.use_custom_avatar && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Choose Your Character</CardTitle>
+                <CardDescription>
+                  Select a personality avatar for your AI assistant.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {(Object.keys(avatarInfo) as AvatarType[]).map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setSettings({ ...settings, avatar_type: type })}
+                      className={cn(
+                        "relative p-4 rounded-xl border-2 transition-all duration-200 hover:scale-102",
+                        "flex flex-col items-center gap-3 text-center",
+                        settings.avatar_type === type
+                          ? "border-primary bg-primary/5 shadow-md"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <ChatAvatar 
+                        type={type} 
+                        size={64}
+                        backgroundColorStart={settings.avatar_background_color}
+                        backgroundColorEnd={settings.avatar_background_color_end}
+                      />
+                      <div>
+                        <p className="font-medium text-sm">{avatarInfo[type].name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {avatarInfo[type].description}
+                        </p>
+                      </div>
+                      {settings.avatar_type === type && (
+                        <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                          <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Chat Style */}
           <Card>
@@ -404,14 +598,28 @@ const AssistantSettingsTab = () => {
                     )}
                     style={{ backgroundColor: settings.bubble_color }}
                   >
-                    <ChatAvatar type={settings.avatar_type} size={28} />
+                    <ChatAvatar 
+                      type={settings.avatar_type} 
+                      size={28}
+                      backgroundColorStart={settings.avatar_background_color}
+                      backgroundColorEnd={settings.avatar_background_color_end}
+                      customAvatarUrl={settings.custom_avatar_url}
+                      useCustomAvatar={settings.use_custom_avatar}
+                    />
                     <span className="font-medium text-sm">{settings.display_name}</span>
                   </div>
                   {/* Messages */}
                   <div className="p-3 space-y-2 bg-background">
                     {/* Welcome */}
                     <div className="flex gap-2">
-                      <ChatAvatar type={settings.avatar_type} size={24} />
+                      <ChatAvatar 
+                        type={settings.avatar_type} 
+                        size={24}
+                        backgroundColorStart={settings.avatar_background_color}
+                        backgroundColorEnd={settings.avatar_background_color_end}
+                        customAvatarUrl={settings.custom_avatar_url}
+                        useCustomAvatar={settings.use_custom_avatar}
+                      />
                       <div className={cn(
                         "rounded-2xl rounded-bl-sm px-3 py-1.5 text-xs max-w-[85%]",
                         settings.chat_style === 'elegant' ? "bg-muted/50" : "bg-muted"
@@ -449,7 +657,14 @@ const AssistantSettingsTab = () => {
                         )}
                         style={{ backgroundColor: settings.bubble_color }}
                       >
-                        <ChatAvatar type={settings.avatar_type} size={18} />
+                        <ChatAvatar 
+                          type={settings.avatar_type} 
+                          size={18}
+                          backgroundColorStart={settings.avatar_background_color}
+                          backgroundColorEnd={settings.avatar_background_color_end}
+                          customAvatarUrl={settings.custom_avatar_url}
+                          useCustomAvatar={settings.use_custom_avatar}
+                        />
                       </div>
                     </div>
                   </div>
@@ -463,7 +678,14 @@ const AssistantSettingsTab = () => {
                   )}
                   style={{ backgroundColor: settings.bubble_color }}
                 >
-                  <ChatAvatar type={settings.avatar_type} size={settings.chat_style === 'playful' ? 36 : 32} />
+                  <ChatAvatar 
+                    type={settings.avatar_type} 
+                    size={settings.chat_style === 'playful' ? 36 : 32}
+                    backgroundColorStart={settings.avatar_background_color}
+                    backgroundColorEnd={settings.avatar_background_color_end}
+                    customAvatarUrl={settings.custom_avatar_url}
+                    useCustomAvatar={settings.use_custom_avatar}
+                  />
                 </div>
               </div>
             </CardContent>
