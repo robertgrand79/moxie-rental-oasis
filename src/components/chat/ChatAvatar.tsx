@@ -34,7 +34,7 @@ const ChatAvatar = ({
     );
   }
 
-  const AvatarComponent = avatarComponents[type] || avatarComponents.concierge;
+  const AvatarComponent = avatarComponents[type] || avatarComponents['captain-moxie'];
   
   const props: AvatarProps = {
     size,

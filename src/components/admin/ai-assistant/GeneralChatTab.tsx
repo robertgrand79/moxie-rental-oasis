@@ -78,7 +78,7 @@ const GeneralChatTab = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [avatarType, setAvatarType] = useState<AvatarType>('advisor');
+  const [avatarType, setAvatarType] = useState<AvatarType>('captain-moxie');
   const [displayName, setDisplayName] = useState('Stay Moxie Assistant');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -95,7 +95,7 @@ const GeneralChatTab = () => {
         .maybeSingle();
       
       if (data) {
-        setAvatarType((data.avatar_type as AvatarType) || 'advisor');
+        setAvatarType((data.avatar_type as AvatarType) || 'captain-moxie');
         setDisplayName(data.display_name || 'AI Assistant');
       }
     };

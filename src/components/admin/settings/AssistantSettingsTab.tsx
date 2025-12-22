@@ -120,7 +120,7 @@ const AssistantSettingsTab = () => {
       setSettings({
         ...data,
         custom_faqs: Array.isArray(data.custom_faqs) ? (data.custom_faqs as unknown as FAQ[]) : [],
-        avatar_type: (data.avatar_type as AvatarType) || 'concierge',
+        avatar_type: (data.avatar_type as AvatarType) || 'captain-moxie',
         chat_style: (data.chat_style as ChatStyle) || 'modern',
         avatar_background_color: data.avatar_background_color || '#3B82F6',
         avatar_background_color_end: data.avatar_background_color_end || '#8B5CF6',
@@ -136,7 +136,7 @@ const AssistantSettingsTab = () => {
         bubble_color: '#3B82F6',
         personality: 'friendly',
         custom_faqs: [],
-        avatar_type: 'concierge',
+        avatar_type: 'captain-moxie',
         chat_style: 'modern',
         avatar_background_color: '#3B82F6',
         avatar_background_color_end: '#8B5CF6',
