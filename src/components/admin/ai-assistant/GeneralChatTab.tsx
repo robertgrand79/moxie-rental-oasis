@@ -80,6 +80,7 @@ const GeneralChatTab = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [avatarType, setAvatarType] = useState<AvatarType>('captain-moxie');
   const [displayName, setDisplayName] = useState('Stay Moxie Assistant');
+  const [bubbleColor, setBubbleColor] = useState('#3B82F6');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -90,13 +91,14 @@ const GeneralChatTab = () => {
       
       const { data } = await supabase
         .from('assistant_settings')
-        .select('avatar_type, display_name')
+        .select('avatar_type, display_name, bubble_color')
         .eq('organization_id', organization.id)
         .maybeSingle();
       
       if (data) {
         setAvatarType((data.avatar_type as AvatarType) || 'captain-moxie');
         setDisplayName(data.display_name || 'AI Assistant');
+        setBubbleColor(data.bubble_color || '#3B82F6');
       }
     };
     fetchSettings();
@@ -167,7 +169,10 @@ const GeneralChatTab = () => {
   return (
     <div className="flex flex-col h-[600px] border rounded-2xl bg-card overflow-hidden shadow-lg">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+      <div 
+        className="flex items-center justify-between px-5 py-4 border-b"
+        style={{ background: `linear-gradient(to right, ${bubbleColor}10, ${bubbleColor}20)` }}
+      >
         <div className="flex items-center gap-3">
           <ChatAvatar type={avatarType} size={40} />
           <div>
@@ -182,6 +187,9 @@ const GeneralChatTab = () => {
           </Button>
         )}
       </div>
+      
+      {/* Accent line */}
+      <div className="h-1 w-full" style={{ backgroundColor: bubbleColor }} />
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
@@ -192,7 +200,11 @@ const GeneralChatTab = () => {
             <p className="text-sm mb-4">I can help you with:</p>
             <div className="flex flex-wrap gap-2 justify-center">
               {['Draft emails', 'Guest responses', 'Content ideas', 'Property descriptions'].map((item) => (
-                <span key={item} className="text-xs px-3 py-1.5 rounded-full bg-muted border">
+                <span 
+                  key={item} 
+                  className="text-xs px-3 py-1.5 rounded-full border"
+                  style={{ backgroundColor: `${bubbleColor}30`, borderColor: bubbleColor, color: bubbleColor }}
+                >
                   {item}
                 </span>
               ))}
