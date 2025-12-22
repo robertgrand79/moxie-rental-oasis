@@ -66,23 +66,10 @@ export const addSecurityHeaders = (): void => {
     document.head.appendChild(cspMeta);
   }
 
-  // X-Frame-Options
-  const frameMeta = document.createElement('meta');
-  frameMeta.httpEquiv = 'X-Frame-Options';
-  frameMeta.content = 'DENY';
-  
-  if (!document.querySelector('meta[http-equiv="X-Frame-Options"]')) {
-    document.head.appendChild(frameMeta);
-  }
-
-  // X-Content-Type-Options
-  const contentTypeMeta = document.createElement('meta');
-  contentTypeMeta.httpEquiv = 'X-Content-Type-Options';
-  contentTypeMeta.content = 'nosniff';
-  
-  if (!document.querySelector('meta[http-equiv="X-Content-Type-Options"]')) {
-    document.head.appendChild(contentTypeMeta);
-  }
+  // Note: X-Frame-Options and X-Content-Type-Options cannot be set via meta tags
+  // They must be set via HTTP headers on the server. These are left here as documentation
+  // but will not have any effect. For proper security, configure these headers on your
+  // hosting provider (Vercel, Netlify, etc.) or in your server configuration.
 };
 
 // Enhanced input validation
