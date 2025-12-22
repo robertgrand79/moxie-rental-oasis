@@ -1,3 +1,10 @@
+import { performDomainRedirect } from './utils/domainRedirect';
+
+// Check for subdomain redirect FIRST, before any React rendering
+if (performDomainRedirect()) {
+  // Stop execution - browser is redirecting
+  throw new Error('Redirecting to custom domain...');
+}
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
