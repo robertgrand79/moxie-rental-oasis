@@ -40,6 +40,7 @@ export const addSecurityHeaders = (): void => {
       https://*.stripe.com;
     connect-src 'self' 
       https://*.supabase.co 
+      wss://*.supabase.co
       https://*.google-analytics.com 
       https://*.stripe.com
       https://api.mapbox.com
