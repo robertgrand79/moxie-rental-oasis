@@ -213,7 +213,8 @@ serve(async (req: Request): Promise<Response> => {
         const { data: smsResult, error: smsError } = await supabase.functions.invoke('send-sms', {
           body: {
             to: guestPhone,
-            message: smsMessage
+            message: smsMessage,
+            organizationId: organizationId
           }
         });
 
