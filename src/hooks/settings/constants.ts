@@ -11,7 +11,6 @@ export const defaultSettings: SettingsState = {
   heroDescription: '',
   heroBackgroundImage: '',
   heroLocationText: '',
-  heroRating: '',
   heroCTAText: 'View Properties',
   contactEmail: '',
   phone: '',

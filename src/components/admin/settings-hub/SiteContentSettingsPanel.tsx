@@ -156,7 +156,6 @@ const SiteContentSettingsPanel = () => {
             heroDescription: localData.siteData.heroDescription || '',
             heroBackgroundImage: localData.siteData.heroBackgroundImage || '',
             heroLocationText: localData.siteData.heroLocationText || '',
-            heroRating: localData.siteData.heroRating || '',
             heroCTAText: localData.siteData.heroCTAText || ''
           }}
           onInputChange={handleInputChange}

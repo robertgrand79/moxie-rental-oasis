@@ -15,7 +15,6 @@ interface HeroSettingsTabProps {
     heroDescription: string;
     heroBackgroundImage: string;
     heroLocationText: string;
-    heroRating: string;
     heroCTAText: string;
   };
   onInputChange: (field: string, value: string) => void;
@@ -73,7 +72,7 @@ const HeroSettingsTab = ({ siteData, onInputChange, onSave }: HeroSettingsTabPro
           onImageChange={handleImageChange}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="heroLocationText">Location Text</Label>
             <Input
@@ -81,15 +80,6 @@ const HeroSettingsTab = ({ siteData, onInputChange, onSave }: HeroSettingsTabPro
               value={siteData.heroLocationText}
               onChange={(e) => onInputChange('heroLocationText', e.target.value)}
               placeholder="Eugene, Oregon"
-            />
-          </div>
-          <div>
-            <Label htmlFor="heroRating">Rating</Label>
-            <Input
-              id="heroRating"
-              value={siteData.heroRating}
-              onChange={(e) => onInputChange('heroRating', e.target.value)}
-              placeholder="4.9"
             />
           </div>
           <div>

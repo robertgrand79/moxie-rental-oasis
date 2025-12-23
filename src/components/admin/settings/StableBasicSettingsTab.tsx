@@ -20,7 +20,6 @@ const StableBasicSettingsTab = () => {
     heroDescription: settings.heroDescription || '',
     heroBackgroundImage: settings.heroBackgroundImage || '',
     heroLocationText: settings.heroLocationText || '',
-    heroRating: settings.heroRating || '',
     heroCTAText: settings.heroCTAText || '',
     contactEmail: settings.contactEmail || '',
     phone: settings.phone || '',
@@ -44,7 +43,6 @@ const StableBasicSettingsTab = () => {
       heroDescription: settings.heroDescription || '',
       heroBackgroundImage: settings.heroBackgroundImage || '',
       heroLocationText: settings.heroLocationText || '',
-      heroRating: settings.heroRating || '',
       heroCTAText: settings.heroCTAText || '',
       contactEmail: settings.contactEmail || '',
       phone: settings.phone || '',
@@ -97,7 +95,6 @@ const StableBasicSettingsTab = () => {
           heroDescription: localData.heroDescription,
           heroBackgroundImage: localData.heroBackgroundImage,
           heroLocationText: localData.heroLocationText,
-          heroRating: localData.heroRating,
           heroCTAText: localData.heroCTAText
         }}
         onInputChange={handleInputChange}
