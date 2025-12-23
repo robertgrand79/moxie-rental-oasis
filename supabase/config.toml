@@ -178,6 +178,9 @@ verify_jwt = false
 [functions.delete-organization]
 verify_jwt = false
 
+[functions.send-daily-notifications]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323
