@@ -76,7 +76,12 @@ const SiteContentSettingsPanel = () => {
   const handleSaveAboutPage = async () => {
     setSaving(prev => ({ ...prev, about: true }));
     try {
-      const fieldsToSave = ['aboutTitle', 'aboutDescription', 'aboutImageUrl', 'founderNames', 'missionStatement', 'missionDescription'];
+      const fieldsToSave = [
+        'aboutTitle', 'aboutDescription', 'aboutImageUrl', 'founderNames', 'missionStatement', 'missionDescription',
+        'aboutHeroSubtitle', 'aboutFeatureCards', 'aboutFounderQuote', 'aboutTagline', 'aboutTags',
+        'aboutMissionCards', 'aboutValuesCards', 'aboutExcellenceTitle', 'aboutExcellenceDescription',
+        'aboutAuthenticityTitle', 'aboutAuthenticityDescription', 'aboutClosingQuote'
+      ];
       for (const field of fieldsToSave) {
         const value = localData.siteData[field];
         if (value !== undefined) {
@@ -172,7 +177,19 @@ const SiteContentSettingsPanel = () => {
             aboutImageUrl: localData.siteData.aboutImageUrl || '',
             founderNames: localData.siteData.founderNames || '',
             missionStatement: localData.siteData.missionStatement || '',
-            missionDescription: localData.siteData.missionDescription || ''
+            missionDescription: localData.siteData.missionDescription || '',
+            aboutHeroSubtitle: localData.siteData.aboutHeroSubtitle || '',
+            aboutFeatureCards: localData.siteData.aboutFeatureCards || '',
+            aboutFounderQuote: localData.siteData.aboutFounderQuote || '',
+            aboutTagline: localData.siteData.aboutTagline || '',
+            aboutTags: localData.siteData.aboutTags || '',
+            aboutMissionCards: localData.siteData.aboutMissionCards || '',
+            aboutValuesCards: localData.siteData.aboutValuesCards || '',
+            aboutExcellenceTitle: localData.siteData.aboutExcellenceTitle || '',
+            aboutExcellenceDescription: localData.siteData.aboutExcellenceDescription || '',
+            aboutAuthenticityTitle: localData.siteData.aboutAuthenticityTitle || '',
+            aboutAuthenticityDescription: localData.siteData.aboutAuthenticityDescription || '',
+            aboutClosingQuote: localData.siteData.aboutClosingQuote || ''
           }}
           onInputChange={handleInputChange}
           onSave={handleSaveAboutPage}

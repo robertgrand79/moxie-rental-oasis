@@ -23,13 +23,26 @@ interface LocalDataState {
       googlePlaces: string;
     };
     emailSetupVerified: boolean;
-    // About page fields
+    // About page fields - Basic
     aboutTitle: string;
     aboutDescription: string;
     aboutImageUrl: string;
     founderNames: string;
     missionStatement: string;
     missionDescription: string;
+    // About page fields - Extended
+    aboutHeroSubtitle: string;
+    aboutFeatureCards: string;
+    aboutFounderQuote: string;
+    aboutTagline: string;
+    aboutTags: string;
+    aboutMissionCards: string;
+    aboutValuesCards: string;
+    aboutExcellenceTitle: string;
+    aboutExcellenceDescription: string;
+    aboutAuthenticityTitle: string;
+    aboutAuthenticityDescription: string;
+    aboutClosingQuote: string;
   };
   seoData: {
     siteTitle: string;
@@ -72,13 +85,26 @@ export const useSettingsLocalData = (settings: SettingsState, loading: boolean) 
         googlePlaces: ''
       },
       emailSetupVerified: Boolean(settings.emailSetupVerified === true || settings.emailSetupVerified === 'true'),
-      // About page fields
+      // About page fields - Basic
       aboutTitle: settings.aboutTitle || '',
       aboutDescription: settings.aboutDescription || '',
       aboutImageUrl: settings.aboutImageUrl || '',
       founderNames: settings.founderNames || '',
       missionStatement: settings.missionStatement || '',
-      missionDescription: settings.missionDescription || ''
+      missionDescription: settings.missionDescription || '',
+      // About page fields - Extended
+      aboutHeroSubtitle: settings.aboutHeroSubtitle || '',
+      aboutFeatureCards: settings.aboutFeatureCards || '',
+      aboutFounderQuote: settings.aboutFounderQuote || '',
+      aboutTagline: settings.aboutTagline || '',
+      aboutTags: settings.aboutTags || '',
+      aboutMissionCards: settings.aboutMissionCards || '',
+      aboutValuesCards: settings.aboutValuesCards || '',
+      aboutExcellenceTitle: settings.aboutExcellenceTitle || '',
+      aboutExcellenceDescription: settings.aboutExcellenceDescription || '',
+      aboutAuthenticityTitle: settings.aboutAuthenticityTitle || '',
+      aboutAuthenticityDescription: settings.aboutAuthenticityDescription || '',
+      aboutClosingQuote: settings.aboutClosingQuote || ''
     },
     seoData: {
       siteTitle: settings.siteTitle || '',
@@ -123,13 +149,26 @@ export const useSettingsLocalData = (settings: SettingsState, loading: boolean) 
             googlePlaces: ''
           },
           emailSetupVerified: Boolean(settings.emailSetupVerified === true || settings.emailSetupVerified === 'true'),
-          // About page fields
+          // About page fields - Basic
           aboutTitle: settings.aboutTitle || '',
           aboutDescription: settings.aboutDescription || '',
           aboutImageUrl: settings.aboutImageUrl || '',
           founderNames: settings.founderNames || '',
           missionStatement: settings.missionStatement || '',
-          missionDescription: settings.missionDescription || ''
+          missionDescription: settings.missionDescription || '',
+          // About page fields - Extended
+          aboutHeroSubtitle: settings.aboutHeroSubtitle || '',
+          aboutFeatureCards: settings.aboutFeatureCards || '',
+          aboutFounderQuote: settings.aboutFounderQuote || '',
+          aboutTagline: settings.aboutTagline || '',
+          aboutTags: settings.aboutTags || '',
+          aboutMissionCards: settings.aboutMissionCards || '',
+          aboutValuesCards: settings.aboutValuesCards || '',
+          aboutExcellenceTitle: settings.aboutExcellenceTitle || '',
+          aboutExcellenceDescription: settings.aboutExcellenceDescription || '',
+          aboutAuthenticityTitle: settings.aboutAuthenticityTitle || '',
+          aboutAuthenticityDescription: settings.aboutAuthenticityDescription || '',
+          aboutClosingQuote: settings.aboutClosingQuote || ''
         },
         seoData: {
           siteTitle: settings.siteTitle || '',

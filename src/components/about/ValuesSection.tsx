@@ -1,41 +1,43 @@
-
 import React from 'react';
 import { CheckCircle, Zap, Star, HandHeart } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
+import { defaultSettings } from '@/hooks/settings/constants';
+
+interface ValueCard {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  CheckCircle,
+  Zap,
+  Star,
+  HandHeart,
+};
+
+const parseCards = (jsonString: string | undefined, fallback: string): ValueCard[] => {
+  try {
+    const parsed = JSON.parse(jsonString || fallback);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    try {
+      return JSON.parse(fallback);
+    } catch {
+      return [];
+    }
+  }
+};
 
 const ValuesSection = () => {
-  const values = [
-    {
-      icon: CheckCircle,
-      title: "Integrity First",
-      description: "We prioritize unwavering honesty, transparency, and ethical practices in all aspects of our business.",
-      bgColor: "bg-gradient-to-br from-gradient-from to-gradient-to",
-      borderColor: "border-gray-200",
-      iconBg: "bg-gray-600"
-    },
-    {
-      icon: Zap,
-      title: "Fast Action Experience",
-      description: "We provide swift and efficient solutions while ensuring a seamless and enjoyable experience for our guests.",
-      bgColor: "bg-muted",
-      borderColor: "border-gray-200",
-      iconBg: "bg-gray-500"
-    },
-    {
-      icon: Star,
-      title: "Undisputable Value",
-      description: "We provide unparalleled experiences that are unmatched in the industry, ensuring exceptional value.",
-      bgColor: "bg-accent",
-      borderColor: "border-gray-200",
-      iconBg: "bg-gray-700"
-    },
-    {
-      icon: HandHeart,
-      title: "People Over Profits",
-      description: "We prioritize the well-being, satisfaction, and success of our guests and communities above all financial considerations.",
-      bgColor: "bg-gradient-to-br from-gradient-accent-from to-gradient-accent-to",
-      borderColor: "border-gray-200",
-      iconBg: "bg-gray-600"
-    }
+  const { settings } = useTenantSettings();
+  const valuesCards = parseCards(settings.aboutValuesCards, defaultSettings.aboutValuesCards);
+
+  const cardStyles = [
+    { bgColor: "bg-gradient-to-br from-gradient-from to-gradient-to", iconBg: "bg-gray-600" },
+    { bgColor: "bg-muted", iconBg: "bg-gray-500" },
+    { bgColor: "bg-accent", iconBg: "bg-gray-700" },
+    { bgColor: "bg-gradient-to-br from-gradient-accent-from to-gradient-accent-to", iconBg: "bg-gray-600" }
   ];
 
   return (
@@ -44,16 +46,17 @@ const ValuesSection = () => {
         <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Our Values</h3>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {values.map((value, index) => {
-            const IconComponent = value.icon;
+          {valuesCards.slice(0, 4).map((card, index) => {
+            const IconComponent = iconMap[card.icon] || CheckCircle;
+            const style = cardStyles[index % 4];
             return (
-              <div key={index} className={`${value.bgColor} ${value.borderColor} border rounded-lg p-6 text-center h-full`}>
-                <div className={`w-12 h-12 ${value.iconBg} rounded-lg flex items-center justify-center mx-auto mb-4`}>
+              <div key={index} className={`${style.bgColor} border-gray-200 border rounded-lg p-6 text-center h-full`}>
+                <div className={`w-12 h-12 ${style.iconBg} rounded-lg flex items-center justify-center mx-auto mb-4`}>
                   <IconComponent className="h-6 w-6 text-white" />
                 </div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-lg">{value.title}</h4>
+                <h4 className="font-semibold text-gray-900 mb-3 text-lg">{card.title}</h4>
                 <p className="text-gray-600 leading-relaxed text-sm">
-                  {value.description}
+                  {card.description}
                 </p>
               </div>
             );
