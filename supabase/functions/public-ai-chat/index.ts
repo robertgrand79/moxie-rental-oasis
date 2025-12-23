@@ -358,7 +358,7 @@ async function processToolCalls(
           if (escalationResult === "ESCALATION_CREATED") {
             hasEscalation = true;
             const contactMethod = args.guestEmail ? `at ${args.guestEmail}` : (args.guestPhone ? `via SMS` : '');
-            results.push(`I've forwarded your question to our host team. They'll review it and get back to you ${contactMethod ? contactMethod + ' ' : ''}as soon as possible. In the meantime, is there anything else I can help you with?`);
+            results.push(`I've forwarded your question to a Moxie Team Member. They'll review it and get back to you ${contactMethod ? contactMethod + ' ' : ''}as soon as possible. In the meantime, is there anything else I can help you with?`);
           } else {
             results.push(escalationResult);
           }
@@ -732,6 +732,7 @@ function buildSystemPrompt(
 - Recommend local restaurants, activities, and events based on the POI and events data
 - Keep responses helpful, informative, and ${config.personality}
 - Never make up information that isn't provided above
+- IMPORTANT: Never refer to specific team member names (like "Gabby" or any individual). Always refer to "a Moxie Team Member" or "our team" when discussing who will help or follow up
 
 # ESCALATION TO HOST - CRITICAL PROCESS
 - You have a tool called "escalate_to_host" for forwarding questions to the host team
