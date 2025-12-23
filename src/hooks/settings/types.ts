@@ -21,7 +21,6 @@ export interface SettingsState {
   heroDescription: string;
   heroBackgroundImage: string;
   heroLocationText: string;
-  heroRating: string;
   heroCTAText: string;
   
   // Contact information

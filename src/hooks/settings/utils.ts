@@ -10,7 +10,6 @@ const keyMapping: Record<string, string> = {
   'hero_description': 'heroDescription',
   'hero_background_image': 'heroBackgroundImage',
   'hero_location_text': 'heroLocationText',
-  'hero_rating': 'heroRating',
   'hero_cta_text': 'heroCTAText',
   'contact_email': 'contactEmail',
   'social_media': 'socialMedia',

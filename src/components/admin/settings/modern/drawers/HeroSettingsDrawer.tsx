@@ -27,7 +27,6 @@ const HeroSettingsDrawer: React.FC<HeroSettingsDrawerProps> = ({ open, onOpenCha
     heroDescription: localData?.siteData?.heroDescription || '',
     heroBackgroundImage: localData?.siteData?.heroBackgroundImage || '',
     heroLocationText: localData?.siteData?.heroLocationText || '',
-    heroRating: localData?.siteData?.heroRating || '',
     heroCTAText: localData?.siteData?.heroCTAText || '',
   };
 
@@ -41,7 +40,7 @@ const HeroSettingsDrawer: React.FC<HeroSettingsDrawerProps> = ({ open, onOpenCha
   const handleSave = async () => {
     setSaving(true);
     try {
-      const fieldsToSave = ['heroTitle', 'heroSubtitle', 'heroDescription', 'heroBackgroundImage', 'heroLocationText', 'heroRating', 'heroCTAText'];
+      const fieldsToSave = ['heroTitle', 'heroSubtitle', 'heroDescription', 'heroBackgroundImage', 'heroLocationText', 'heroCTAText'];
       for (const field of fieldsToSave) {
         const value = localData.siteData[field];
         if (value !== undefined) {

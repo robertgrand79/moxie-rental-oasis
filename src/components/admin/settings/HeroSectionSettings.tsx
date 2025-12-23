@@ -18,7 +18,6 @@ interface HeroSectionSettingsProps {
     heroDescription: string;
     heroBackgroundImage: string;
     heroLocationText: string;
-    heroRating: string;
     heroCTAText: string;
   };
   onInputChange: (field: string, value: string) => void;
@@ -138,16 +137,6 @@ const HeroSectionSettings = ({ localData, onInputChange, onSave, saving }: HeroS
               value={localData.heroLocationText}
               onChange={(e) => onInputChange('heroLocationText', e.target.value)}
               placeholder="Location"
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="heroRating">Hero Rating</Label>
-            <Input
-              id="heroRating"
-              value={localData.heroRating}
-              onChange={(e) => onInputChange('heroRating', e.target.value)}
-              placeholder="4.9"
               className="mt-1"
             />
           </div>

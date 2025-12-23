@@ -12,7 +12,6 @@ interface LocalDataState {
     heroDescription: string;
     heroBackgroundImage: string;
     heroLocationText: string;
-    heroRating: string;
     heroCTAText: string;
     contactEmail: string;
     phone: string;
@@ -62,7 +61,6 @@ export const useSettingsLocalData = (settings: SettingsState, loading: boolean) 
       heroDescription: settings.heroDescription || '',
       heroBackgroundImage: settings.heroBackgroundImage || '',
       heroLocationText: settings.heroLocationText || '',
-      heroRating: settings.heroRating || '',
       heroCTAText: settings.heroCTAText || '',
       contactEmail: settings.contactEmail || '',
       phone: settings.phone || '',
@@ -114,7 +112,6 @@ export const useSettingsLocalData = (settings: SettingsState, loading: boolean) 
           heroDescription: settings.heroDescription || '',
           heroBackgroundImage: settings.heroBackgroundImage || '',
           heroLocationText: settings.heroLocationText || '',
-          heroRating: settings.heroRating || '',
           heroCTAText: settings.heroCTAText || '',
           contactEmail: settings.contactEmail || '',
           phone: settings.phone || '',
