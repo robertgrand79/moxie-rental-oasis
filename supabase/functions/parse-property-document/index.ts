@@ -6,6 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Max file size: 5MB to prevent memory issues
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -41,31 +44,42 @@ serve(async (req) => {
       });
     }
 
+    // Check file size
+    const fileSize = fileData.size;
+    console.log('File size:', fileSize);
+
+    if (fileSize > MAX_FILE_SIZE) {
+      console.log('File too large, skipping extraction');
+      const extractedText = '[Document is too large for automatic text extraction. Please add a summary manually for AI assistance.]';
+      
+      await supabase
+        .from('property_documents')
+        .update({ extracted_text: extractedText })
+        .eq('id', documentId);
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        extractedLength: extractedText.length,
+        preview: extractedText,
+        warning: 'File too large for extraction'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Get file extension
     const extension = filePath.split('.').pop()?.toLowerCase();
     let extractedText = '';
 
     if (extension === 'txt' || extension === 'md') {
-      // Plain text files
+      // Plain text files - simple and memory efficient
       extractedText = await fileData.text();
     } else if (extension === 'pdf') {
-      // For PDF, we'll use a simple text extraction approach
-      // In production, you might want to use a more robust PDF parser
-      const arrayBuffer = await fileData.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      
-      // Simple PDF text extraction (basic approach)
-      // This extracts visible text from PDF but won't handle complex layouts
-      extractedText = extractTextFromPDF(bytes);
-      
-      if (!extractedText || extractedText.length < 50) {
-        // If extraction failed or got minimal text, note this
-        extractedText = '[PDF document uploaded - text extraction limited. Manual content entry recommended for best AI assistance.]';
-      }
+      // For PDF, do simple text extraction with memory limits
+      extractedText = await extractTextFromPDFSafe(fileData);
     } else if (extension === 'docx') {
       // For DOCX, extract text from XML structure
-      const arrayBuffer = await fileData.arrayBuffer();
-      extractedText = await extractTextFromDocx(arrayBuffer);
+      extractedText = await extractTextFromDocxSafe(fileData);
     } else {
       // For other formats, try as text
       try {
@@ -75,12 +89,8 @@ serve(async (req) => {
       }
     }
 
-    // Clean up extracted text
-    extractedText = extractedText
-      .replace(/\s+/g, ' ')
-      .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
-      .trim()
-      .substring(0, 50000); // Limit to 50k chars for AI context
+    // Clean up extracted text - limit processing
+    extractedText = cleanText(extractedText);
 
     console.log('Extracted text length:', extractedText.length);
 
@@ -114,76 +124,110 @@ serve(async (req) => {
   }
 });
 
-// Simple PDF text extraction
-function extractTextFromPDF(bytes: Uint8Array): string {
-  const text: string[] = [];
-  const decoder = new TextDecoder('utf-8', { fatal: false });
-  const content = decoder.decode(bytes);
+// Clean and limit text to prevent memory issues
+function cleanText(text: string): string {
+  if (!text) return '';
   
-  // Look for text streams in PDF
-  const streamRegex = /stream\s*([\s\S]*?)\s*endstream/g;
-  let match;
+  // Limit to first 30k chars before processing to save memory
+  const limited = text.substring(0, 30000);
   
-  while ((match = streamRegex.exec(content)) !== null) {
-    const stream = match[1];
-    // Extract text operators (Tj, TJ, ')
-    const textRegex = /\(([^)]*)\)\s*Tj|\[([^\]]*)\]\s*TJ|'([^']*)/g;
-    let textMatch;
-    
-    while ((textMatch = textRegex.exec(stream)) !== null) {
-      const extracted = textMatch[1] || textMatch[2] || textMatch[3];
-      if (extracted) {
-        // Clean up the text
-        const cleaned = extracted
-          .replace(/\\n/g, '\n')
-          .replace(/\\r/g, '')
-          .replace(/\\t/g, ' ')
-          .replace(/\\\(/g, '(')
-          .replace(/\\\)/g, ')')
-          .replace(/\\(\d{3})/g, (_, oct) => String.fromCharCode(parseInt(oct, 8)));
-        text.push(cleaned);
-      }
-    }
-  }
-  
-  // Also try to extract plain text that might be in the PDF
-  const plainTextRegex = /BT\s*([\s\S]*?)\s*ET/g;
-  while ((match = plainTextRegex.exec(content)) !== null) {
-    const block = match[1];
-    const textOpRegex = /\(([^)]+)\)/g;
-    let textMatch;
-    while ((textMatch = textOpRegex.exec(block)) !== null) {
-      if (textMatch[1] && textMatch[1].length > 1) {
-        text.push(textMatch[1]);
-      }
-    }
-  }
-  
-  return text.join(' ').replace(/\s+/g, ' ').trim();
+  return limited
+    .replace(/\s+/g, ' ')
+    .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
+    .trim();
 }
 
-// Simple DOCX text extraction
-async function extractTextFromDocx(arrayBuffer: ArrayBuffer): Promise<string> {
+// Memory-safe PDF text extraction
+async function extractTextFromPDFSafe(fileData: Blob): Promise<string> {
   try {
-    // DOCX is a ZIP file containing XML
-    // We'll look for the document.xml content
-    const bytes = new Uint8Array(arrayBuffer);
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    const content = decoder.decode(bytes);
+    const text = await fileData.text();
     
-    // Extract text between <w:t> tags (Word text elements)
-    const textRegex = /<w:t[^>]*>([^<]*)<\/w:t>/g;
-    const texts: string[] = [];
-    let match;
+    // Simple extraction - look for readable text patterns
+    // Limit the amount we process
+    const limitedContent = text.substring(0, 500000);
     
-    while ((match = textRegex.exec(content)) !== null) {
-      if (match[1]) {
-        texts.push(match[1]);
+    const textParts: string[] = [];
+    
+    // Extract text from parentheses (common PDF text format)
+    // Use a simple approach that doesn't consume too much memory
+    let i = 0;
+    let inParens = false;
+    let current = '';
+    
+    while (i < limitedContent.length && textParts.length < 1000) {
+      const char = limitedContent[i];
+      
+      if (char === '(' && !inParens) {
+        inParens = true;
+        current = '';
+      } else if (char === ')' && inParens) {
+        inParens = false;
+        if (current.length > 2 && current.length < 500) {
+          // Filter out binary-looking content
+          const cleaned = current.replace(/\\[nrt]/g, ' ').replace(/\\/g, '');
+          if (/^[\x20-\x7E\s]+$/.test(cleaned)) {
+            textParts.push(cleaned);
+          }
+        }
+      } else if (inParens && current.length < 500) {
+        current += char;
       }
+      i++;
     }
     
-    return texts.join(' ').replace(/\s+/g, ' ').trim();
-  } catch {
-    return '[DOCX extraction failed. Manual content entry recommended.]';
+    const result = textParts.join(' ');
+    
+    if (result.length < 50) {
+      return '[PDF document uploaded - text extraction limited. Please add a summary manually for AI assistance.]';
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('PDF extraction error:', error);
+    return '[PDF extraction failed. Please add a summary manually for AI assistance.]';
+  }
+}
+
+// Memory-safe DOCX text extraction
+async function extractTextFromDocxSafe(fileData: Blob): Promise<string> {
+  try {
+    const text = await fileData.text();
+    
+    // Limit content to process
+    const limitedContent = text.substring(0, 500000);
+    
+    const textParts: string[] = [];
+    
+    // Simple XML text extraction without regex
+    // Look for <w:t>...</w:t> patterns
+    let i = 0;
+    while (i < limitedContent.length && textParts.length < 2000) {
+      const wtStart = limitedContent.indexOf('<w:t', i);
+      if (wtStart === -1) break;
+      
+      const tagEnd = limitedContent.indexOf('>', wtStart);
+      if (tagEnd === -1) break;
+      
+      const closeTag = limitedContent.indexOf('</w:t>', tagEnd);
+      if (closeTag === -1) break;
+      
+      const content = limitedContent.substring(tagEnd + 1, closeTag);
+      if (content && content.length < 1000) {
+        textParts.push(content);
+      }
+      
+      i = closeTag + 6;
+    }
+    
+    const result = textParts.join(' ');
+    
+    if (result.length < 20) {
+      return '[DOCX extraction limited. Please add a summary manually for AI assistance.]';
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('DOCX extraction error:', error);
+    return '[DOCX extraction failed. Please add a summary manually for AI assistance.]';
   }
 }
