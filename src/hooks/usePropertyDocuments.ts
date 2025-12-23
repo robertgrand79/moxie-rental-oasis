@@ -168,6 +168,33 @@ export function usePropertyDocuments(propertyId: string | undefined, organizatio
     },
   });
 
+  const reparseDocument = useMutation({
+    mutationFn: async (documentId: string) => {
+      const doc = documents?.find(d => d.id === documentId);
+      if (!doc) throw new Error('Document not found');
+      
+      const { error } = await supabase.functions.invoke('parse-property-document', {
+        body: { documentId: doc.id, filePath: doc.file_path }
+      });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: 'Re-parsing started', description: 'Document is being processed. Refresh in a moment to see results.' });
+      // Delay invalidation to allow processing time
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['property-documents'] });
+      }, 3000);
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error', 
+        description: error instanceof Error ? error.message : 'Failed to re-parse document', 
+        variant: 'destructive' 
+      });
+    },
+  });
+
   return {
     documents: documents || [],
     isLoading,
@@ -175,5 +202,8 @@ export function usePropertyDocuments(propertyId: string | undefined, organizatio
     uploadDocument,
     deleteDocument: deleteDocument.mutate,
     updateDocumentText: updateDocumentText.mutate,
+    reparseDocument: reparseDocument.mutate,
+    isReparsing: reparseDocument.isPending,
+    reparsingDocId: reparseDocument.variables,
   };
 }
