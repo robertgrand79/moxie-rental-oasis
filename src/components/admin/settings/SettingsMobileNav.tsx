@@ -30,7 +30,6 @@ import {
   MessageSquare,
   Lock,
   Plug,
-  Map,
   CreditCard,
   DollarSign,
 } from 'lucide-react';
@@ -89,7 +88,6 @@ const settingsNavGroups: SettingsNavGroup[] = [
       { label: 'Communications', href: '/admin/settings/communications', icon: MessageSquare },
       { label: 'Smart Home', href: '/admin/settings/smart-home', icon: Lock },
       { label: 'Services', href: '/admin/settings/services', icon: Plug },
-      { label: 'Maps', href: '/admin/settings/maps', icon: Map },
     ],
   },
   {
