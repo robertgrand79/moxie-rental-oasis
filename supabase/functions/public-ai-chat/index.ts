@@ -150,17 +150,17 @@ const tools = [
     type: "function",
     function: {
       name: "escalate_to_host",
-      description: "Escalate a question to the host when you genuinely cannot answer it with the information provided. Use this when: 1) The guest asks about something very specific not covered in your knowledge base (e.g., specific policies, custom requests, price negotiations), 2) The question requires human judgment or decision-making, 3) You've been unable to find relevant information after checking all available context. IMPORTANT: Before escalating, ask the guest for their name, email address, and optionally phone number so we can get back to them with an answer. Do NOT use this for general questions you should be able to answer.",
+      description: "Escalate a question to the host when you cannot answer it. CRITICAL: Before calling this tool, you MUST first ask the guest for their full name, email address, and phone number. Do NOT call this tool until you have collected ALL THREE pieces of contact information. Only proceed with escalation after the guest has provided their name, email, and phone.",
       parameters: {
         type: "object",
         properties: {
           reason: { type: "string", description: "Brief explanation of why this needs host attention" },
           guestQuestion: { type: "string", description: "The guest's original question" },
-          guestName: { type: "string", description: "The guest's name (ask if not provided)" },
-          guestEmail: { type: "string", description: "The guest's email address for follow-up (ask if not provided)" },
-          guestPhone: { type: "string", description: "The guest's phone number for SMS follow-up (optional)" }
+          guestName: { type: "string", description: "The guest's full name (REQUIRED - must ask before escalating)" },
+          guestEmail: { type: "string", description: "The guest's email address (REQUIRED - must ask before escalating)" },
+          guestPhone: { type: "string", description: "The guest's phone number for SMS follow-up (REQUIRED - must ask before escalating)" }
         },
-        required: ["reason", "guestQuestion"]
+        required: ["reason", "guestQuestion", "guestName", "guestEmail", "guestPhone"]
       }
     }
   }
@@ -733,13 +733,23 @@ function buildSystemPrompt(
 - Keep responses helpful, informative, and ${config.personality}
 - Never make up information that isn't provided above
 
-# ESCALATION TO HOST
-- IMPORTANT: You have a tool called "escalate_to_host" that you MUST use in these situations:
-  1. When the guest EXPLICITLY asks to speak with a human, host, or manager
-  2. When the guest has a custom request that requires human judgment (e.g., price negotiations, special arrangements)
-  3. When you cannot find the answer in any of your knowledge and the question is important
-  4. When the guest seems frustrated or the issue is sensitive
-- When you escalate, let the guest know their question has been forwarded and someone will follow up
+# ESCALATION TO HOST - CRITICAL PROCESS
+- You have a tool called "escalate_to_host" for forwarding questions to the host team
+- BEFORE escalating, you MUST collect contact information. Follow this EXACT process:
+  1. First, tell the guest you'd be happy to forward their question to the host team
+  2. Ask for their FULL NAME
+  3. Ask for their EMAIL ADDRESS (required for response delivery)
+  4. Ask for their PHONE NUMBER (required for SMS notification)
+  5. Wait for them to provide ALL THREE pieces of information
+- Do NOT call the escalate_to_host tool until you have collected name, email, AND phone number
+- Once you have all contact info, use the tool to create the escalation
+- After escalating, confirm that their question has been forwarded and they'll receive a response via email and SMS
+
+When to escalate:
+- When the guest EXPLICITLY asks to speak with a human, host, or manager
+- When the guest has a custom request requiring human judgment (price negotiations, special arrangements)
+- When you cannot find the answer in your knowledge base and the question is important
+- When the guest seems frustrated or the issue is sensitive
 - Do NOT escalate for general questions you should be able to answer from your knowledge
 
 # MULTI-LANGUAGE SUPPORT
