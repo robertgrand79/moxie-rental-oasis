@@ -55,16 +55,10 @@ const OrganizationBadge: React.FC = () => {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-md border border-border/50 cursor-default">
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground truncate max-w-[150px]">
-              {organization.name}
-            </span>
-            <Badge variant={getRoleBadgeVariant()} className="flex items-center gap-1 text-xs">
-              {getRoleIcon()}
-              {getRoleLabel()}
-            </Badge>
-          </div>
+          <Badge variant={getRoleBadgeVariant()} className="flex items-center gap-1 text-xs px-3 py-1.5 cursor-default">
+            {getRoleIcon()}
+            {getRoleLabel()}
+          </Badge>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs">
           <div className="space-y-1">
