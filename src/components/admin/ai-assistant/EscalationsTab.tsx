@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle, CheckCircle, Clock, MessageSquare, Send, X, Plus } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, MessageSquare, Send, X, Plus, Mail, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
@@ -23,7 +23,9 @@ interface Escalation {
   created_at: string;
   guest_name: string | null;
   guest_email: string | null;
+  guest_phone: string | null;
   session_id: string;
+  notified_at: string | null;
 }
 
 const EscalationsTab = () => {
@@ -35,6 +37,8 @@ const EscalationsTab = () => {
   const [response, setResponse] = useState('');
   const [addToFaq, setAddToFaq] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [delivering, setDelivering] = useState(false);
+  const [deliveryMethods, setDeliveryMethods] = useState<{ email: boolean; sms: boolean }>({ email: true, sms: true });
   const [filter, setFilter] = useState<'pending' | 'answered' | 'all'>('pending');
 
   useEffect(() => {
@@ -113,7 +117,39 @@ const EscalationsTab = () => {
           .eq('organization_id', organization?.id);
       }
 
-      toast.success('Response sent successfully' + (addToFaq ? ' and added to FAQ' : ''));
+      // Deliver response via email/SMS if selected
+      const selectedDeliveryMethods: ('email' | 'sms')[] = [];
+      if (deliveryMethods.email && selectedEscalation.guest_email) selectedDeliveryMethods.push('email');
+      if (deliveryMethods.sms && selectedEscalation.guest_phone) selectedDeliveryMethods.push('sms');
+
+      if (selectedDeliveryMethods.length > 0) {
+        setDelivering(true);
+        try {
+          const { data: deliveryResult, error: deliveryError } = await supabase.functions.invoke('deliver-escalation-response', {
+            body: {
+              escalationId: selectedEscalation.id,
+              deliveryMethods: selectedDeliveryMethods
+            }
+          });
+
+          if (deliveryError) {
+            console.error('Delivery error:', deliveryError);
+            toast.error('Response saved but delivery failed');
+          } else if (deliveryResult?.success) {
+            toast.success(`Response sent successfully${addToFaq ? ' and added to FAQ' : ''}! ${deliveryResult.message}`);
+          } else {
+            toast.warning(`Response saved. Delivery: ${deliveryResult?.message || 'partial failure'}`);
+          }
+        } catch (deliveryErr) {
+          console.error('Delivery error:', deliveryErr);
+          toast.warning('Response saved but delivery encountered an error');
+        } finally {
+          setDelivering(false);
+        }
+      } else {
+        toast.success('Response saved' + (addToFaq ? ' and added to FAQ' : '') + '. No delivery method available (no email/phone on file).');
+      }
+
       setSelectedEscalation(null);
       setResponse('');
       setAddToFaq(false);
@@ -284,10 +320,32 @@ const EscalationsTab = () => {
         <CardContent>
           {selectedEscalation ? (
             <div className="space-y-4">
-              {/* Guest Question */}
+              {/* Guest Info */}
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm font-medium text-muted-foreground mb-1">Guest asked:</p>
                 <p className="font-medium">{selectedEscalation.guest_question}</p>
+                {(selectedEscalation.guest_name || selectedEscalation.guest_email || selectedEscalation.guest_phone) && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Guest info:</p>
+                    <div className="flex flex-wrap gap-2 text-sm">
+                      {selectedEscalation.guest_name && (
+                        <span className="text-foreground">{selectedEscalation.guest_name}</span>
+                      )}
+                      {selectedEscalation.guest_email && (
+                        <Badge variant="outline" className="gap-1">
+                          <Mail className="h-3 w-3" />
+                          {selectedEscalation.guest_email}
+                        </Badge>
+                      )}
+                      {selectedEscalation.guest_phone && (
+                        <Badge variant="outline" className="gap-1">
+                          <Phone className="h-3 w-3" />
+                          {selectedEscalation.guest_phone}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Conversation Context */}
@@ -342,19 +400,60 @@ const EscalationsTab = () => {
                     </label>
                   </div>
 
+                  {/* Delivery Method Selection */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Deliver response via:</p>
+                    <div className="flex gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="deliver-email"
+                          checked={deliveryMethods.email}
+                          onCheckedChange={(checked) => setDeliveryMethods(prev => ({ ...prev, email: checked === true }))}
+                          disabled={!selectedEscalation.guest_email}
+                        />
+                        <label
+                          htmlFor="deliver-email"
+                          className={`text-sm leading-none flex items-center gap-1 ${!selectedEscalation.guest_email ? 'text-muted-foreground opacity-50' : ''}`}
+                        >
+                          <Mail className="h-3 w-3" />
+                          Email {!selectedEscalation.guest_email && '(no email)'}
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="deliver-sms"
+                          checked={deliveryMethods.sms}
+                          onCheckedChange={(checked) => setDeliveryMethods(prev => ({ ...prev, sms: checked === true }))}
+                          disabled={!selectedEscalation.guest_phone}
+                        />
+                        <label
+                          htmlFor="deliver-sms"
+                          className={`text-sm leading-none flex items-center gap-1 ${!selectedEscalation.guest_phone ? 'text-muted-foreground opacity-50' : ''}`}
+                        >
+                          <Phone className="h-3 w-3" />
+                          SMS {!selectedEscalation.guest_phone && '(no phone)'}
+                        </label>
+                      </div>
+                    </div>
+                    {!selectedEscalation.guest_email && !selectedEscalation.guest_phone && (
+                      <p className="text-xs text-amber-600">No contact info available. Response will be pushed to chat only.</p>
+                    )}
+                  </div>
+
                   {/* Action Buttons */}
                   <div className="flex gap-2">
                     <Button
                       onClick={handleRespond}
-                      disabled={!response.trim() || submitting}
+                      disabled={!response.trim() || submitting || delivering}
                       className="flex-1"
                     >
                       <Send className="h-4 w-4 mr-2" />
-                      {submitting ? 'Sending...' : 'Send Response'}
+                      {submitting ? 'Saving...' : delivering ? 'Delivering...' : 'Send Response'}
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => handleDismiss(selectedEscalation.id)}
+                      disabled={submitting || delivering}
                     >
                       Dismiss
                     </Button>

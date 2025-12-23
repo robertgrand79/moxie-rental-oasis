@@ -169,6 +169,9 @@ verify_jwt = false
 [functions.verify-turnstile]
 verify_jwt = false
 
+[functions.deliver-escalation-response]
+verify_jwt = false
+
 [functions.subscribe-newsletter]
 verify_jwt = false
 
