@@ -14,12 +14,9 @@ interface Message {
 interface PropertyContext {
   id: string;
   title: string;
-  slug: string;
   description: string;
   location: string;
   city: string;
-  state: string;
-  address: string;
   bedrooms: number;
   bathrooms: number;
   maxGuests: number;
@@ -27,7 +24,6 @@ interface PropertyContext {
   cleaningFee: number;
   serviceFeePercentage: number;
   amenities: string[];
-  propertyType: string;
 }
 
 interface GuidebookContent {
@@ -244,7 +240,7 @@ async function getPricingBreakdown(
 
   const cleaningFee = property.cleaningFee || 0;
   const serviceFee = Math.round(subtotal * (property.serviceFeePercentage || 0) / 100);
-  const bookingUrl = `${siteUrl || ''}/properties/${property.slug}?checkin=${checkInDate}&checkout=${checkOutDate}`;
+  const bookingUrl = `${siteUrl || ''}/properties/${property.id}?checkin=${checkInDate}&checkout=${checkOutDate}`;
 
   return [{
     propertyTitle: property.title,
@@ -330,8 +326,8 @@ async function processToolCalls(
       case 'get_booking_link': {
         const property = findPropertyByTitle(properties, args.propertyTitle);
         if (property) {
-          const url = `${siteUrl || ''}/properties/${property.slug}?checkin=${args.checkInDate}&checkout=${args.checkOutDate}`;
-          results.push(`Here's your booking link for **${property.title}**:\n\n[Click here to book](${url})`);
+      const url = `${siteUrl || ''}/properties/${property.id}?checkin=${args.checkInDate}&checkout=${args.checkOutDate}`;
+      results.push(`Here's your booking link for **${property.title}**:\n\n[Click here to book](${url})`);
         } else {
           results.push(`Could not find property "${args.propertyTitle}".`);
         }
@@ -367,21 +363,24 @@ async function aggregatePropertyContext(
   supabase: ReturnType<typeof createClient>,
   organizationId: string
 ): Promise<PropertyContext[]> {
-  const { data: properties } = await supabase
+  const { data: properties, error } = await supabase
     .from('properties')
-    .select('id, title, slug, description, location, city, state, address, bedrooms, bathrooms, max_guests, price_per_night, cleaning_fee, service_fee_percentage, amenities, property_type')
-    .eq('organization_id', organizationId)
-    .eq('is_active', true);
+    .select('id, title, description, location, city, bedrooms, bathrooms, max_guests, price_per_night, cleaning_fee, service_fee_percentage, amenities')
+    .eq('organization_id', organizationId);
+
+  if (error) {
+    console.error('Error fetching properties:', error);
+    return [];
+  }
+
+  console.log('Fetched properties count:', properties?.length || 0);
 
   return (properties || []).map(p => ({
     id: p.id,
     title: p.title || '',
-    slug: p.slug || p.id,
     description: p.description || '',
     location: p.location || '',
     city: p.city || '',
-    state: p.state || '',
-    address: p.address || '',
     bedrooms: p.bedrooms || 0,
     bathrooms: p.bathrooms || 0,
     maxGuests: p.max_guests || 0,
@@ -389,7 +388,6 @@ async function aggregatePropertyContext(
     cleaningFee: p.cleaning_fee || 0,
     serviceFeePercentage: p.service_fee_percentage || 0,
     amenities: Array.isArray(p.amenities) ? p.amenities : (p.amenities ? String(p.amenities).split(',').map(a => a.trim()) : []),
-    propertyType: p.property_type || 'Vacation Rental',
   }));
 }
 
@@ -588,8 +586,7 @@ function buildSystemPrompt(
       const propertyDocs = documents.filter(d => d.property_id === p.id);
       
       prompt += `## ${p.title}\n`;
-      prompt += `- **Location**: ${p.address || p.location}${p.city ? `, ${p.city}` : ''}${p.state ? `, ${p.state}` : ''}\n`;
-      prompt += `- **Type**: ${p.propertyType}\n`;
+      prompt += `- **Location**: ${p.location}${p.city ? `, ${p.city}` : ''}\n`;
       prompt += `- **Accommodations**: ${p.bedrooms} bedrooms, ${p.bathrooms} bathrooms, sleeps ${p.maxGuests} guests\n`;
       prompt += `- **Pricing**: $${p.pricePerNight}/night${p.cleaningFee > 0 ? ` + $${p.cleaningFee} cleaning fee` : ''}\n`;
       
@@ -720,9 +717,17 @@ function buildSystemPrompt(
 - When asked about a specific property, provide detailed information from above
 - Use your tools to check real-time availability and pricing when guests ask about dates
 - Recommend local restaurants, activities, and events based on the POI and events data
-- If you genuinely don't have specific information, offer to connect them with the host
 - Keep responses helpful, informative, and ${config.personality}
 - Never make up information that isn't provided above
+
+# ESCALATION TO HOST
+- IMPORTANT: You have a tool called "escalate_to_host" that you MUST use in these situations:
+  1. When the guest EXPLICITLY asks to speak with a human, host, or manager
+  2. When the guest has a custom request that requires human judgment (e.g., price negotiations, special arrangements)
+  3. When you cannot find the answer in any of your knowledge and the question is important
+  4. When the guest seems frustrated or the issue is sensitive
+- When you escalate, let the guest know their question has been forwarded and someone will follow up
+- Do NOT escalate for general questions you should be able to answer from your knowledge
 
 # MULTI-LANGUAGE SUPPORT
 - IMPORTANT: Detect the language the user is writing in and RESPOND IN THE SAME LANGUAGE
@@ -835,14 +840,25 @@ serve(async (req) => {
       { role: "user", content: message }
     ];
 
+    // Separate escalation tool from property-specific tools
+    const escalationTool = tools.find(t => t.function.name === 'escalate_to_host');
+    const propertyTools = tools.filter(t => t.function.name !== 'escalate_to_host');
+    
+    // Always include escalation tool, property tools only when properties exist
+    const availableTools = propertyContext.length > 0 
+      ? tools 
+      : (escalationTool ? [escalationTool] : []);
+
+    console.log('Available tools:', availableTools.map(t => t.function.name));
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages,
-        tools: propertyContext.length > 0 ? tools : undefined,
-        tool_choice: propertyContext.length > 0 ? "auto" : undefined,
+        tools: availableTools.length > 0 ? availableTools : undefined,
+        tool_choice: availableTools.length > 0 ? "auto" : undefined,
       }),
     });
 
