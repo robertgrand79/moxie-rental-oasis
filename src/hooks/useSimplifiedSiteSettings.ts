@@ -58,18 +58,6 @@ export const useSimplifiedSiteSettings = () => {
       const settingsMap = parseSettingsFromDatabase(data || []);
       console.log('📥 [Settings] Parsed settings map keys:', Object.keys(settingsMap));
       
-      // Clear Facebook Pixel ID to disable it and eliminate console warnings
-      if (settingsMap.facebookPixelId) {
-        console.log('📥 [Settings] Disabling Facebook Pixel');
-        settingsMap.facebookPixelId = '';
-        
-        await supabase
-          .from('site_settings')
-          .update({ value: '' })
-          .eq('key', 'facebookPixelId')
-          .eq('organization_id', organization.id);
-      }
-      
       const newSettings = mergeWithDefaults(settingsMap, defaultSettings);
       
       console.log('📥 [Settings] ✅ Final merged settings:');

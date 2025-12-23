@@ -54,11 +54,18 @@ const AnalyticsSettingsTab = ({ analyticsData, setAnalyticsData, onSave }: Analy
 
         <div>
           <Label htmlFor="facebookPixelId">Facebook Pixel ID</Label>
+          <p className="text-sm text-muted-foreground mb-2">
+            Enter your 15-16 digit numeric Pixel ID from Meta Business Suite → Events Manager
+          </p>
           <Input
             id="facebookPixelId"
             value={analyticsData.facebookPixelId}
-            onChange={(e) => setAnalyticsData({ ...analyticsData, facebookPixelId: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '');
+              setAnalyticsData({ ...analyticsData, facebookPixelId: value });
+            }}
             placeholder="123456789012345"
+            maxLength={16}
           />
         </div>
 
