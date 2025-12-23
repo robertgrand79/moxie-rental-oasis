@@ -46,7 +46,6 @@ const NotificationBell: React.FC = () => {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        alignOffset={-16}
         className="p-0 shadow-lg bg-popover w-80 sm:w-96 overflow-hidden"
         sideOffset={8}
       >
