@@ -180,27 +180,28 @@ export const usePlatformAdmin = () => {
     },
   });
 
-  // Delete organization
+  // Delete organization and its users
   const deleteOrganization = useMutation({
     mutationFn: async (orgId: string) => {
-      // First remove all members
-      await supabase.from('organization_members').delete().eq('organization_id', orgId);
-      
-      // Then delete the organization
-      const { error } = await supabase
-        .from('organizations')
-        .delete()
-        .eq('id', orgId);
+      const { data, error } = await supabase.functions.invoke('delete-organization', {
+        body: { organizationId: orgId }
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['platform-organizations'] });
       queryClient.invalidateQueries({ queryKey: ['platform-stats'] });
-      toast.success('Organization deleted');
+      const msg = data?.deletedUsers > 0 
+        ? `Organization and ${data.deletedUsers} user(s) deleted`
+        : 'Organization deleted';
+      toast.success(msg);
     },
-    onError: (error) => {
-      toast.error('Failed to delete organization');
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to delete organization');
       console.error(error);
     },
   });
