@@ -159,6 +159,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           console.log('👤 User authenticated, fetching role...');
+          
+          // Update last_login_at for SIGNED_IN events (covers all login methods)
+          if (event === 'SIGNED_IN') {
+            console.log('📝 Updating last login timestamp...');
+            supabase.rpc('update_user_last_login', { user_id: session.user.id })
+              .then(({ error }) => {
+                if (error) {
+                  console.warn('Failed to update last_login_at:', error);
+                } else {
+                  console.log('✅ Last login timestamp updated');
+                }
+              });
+          }
+          
           // Use setTimeout to avoid blocking the auth callback
           setTimeout(() => {
             fetchUserRoleWithTimeout(session.user.id);
@@ -286,17 +300,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('✅ Sign in successful');
       
-      // Update last_login_at timestamp using secure database function
+      // Note: last_login_at is now updated via onAuthStateChange SIGNED_IN event
       if (data?.user?.id) {
-        const { error: updateError } = await supabase
-          .rpc('update_user_last_login', { user_id: data.user.id });
-        
-        if (updateError) {
-          console.warn('Failed to update last_login_at:', updateError);
-        } else {
-          console.log('✅ Last login timestamp updated');
-        }
-
         // Check for unread notifications and show welcome toast
         try {
           const { count, error: notifError } = await supabase
