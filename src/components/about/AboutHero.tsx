@@ -1,10 +1,11 @@
-
 import React from 'react';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import { defaultSettings } from '@/hooks/settings/constants';
 
 const AboutHero = () => {
   const { settings } = useTenantSettings();
   const siteName = settings.site_name || 'Our Company';
+  const heroSubtitle = settings.aboutHeroSubtitle || defaultSettings.aboutHeroSubtitle;
 
   return (
     <div className="py-16 bg-gradient-to-b from-gray-50 to-white">
@@ -14,8 +15,7 @@ const AboutHero = () => {
             About {siteName}
           </h1>
           <p className="text-xl text-gray-600 leading-relaxed">
-            We're passionate about creating unforgettable vacation experiences through 
-            carefully curated properties in beautiful destinations.
+            {heroSubtitle}
           </p>
         </div>
       </div>

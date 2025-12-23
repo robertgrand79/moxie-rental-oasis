@@ -73,13 +73,27 @@ export interface SettingsState {
   emailAccentColor: string;
   emailFooterColor: string;
   
-  // About page
+  // About page - Basic
   aboutTitle: string;
   aboutDescription: string;
   aboutImageUrl: string;
   founderNames: string;
   missionStatement: string;
   missionDescription: string;
+  
+  // About page - Extended customization
+  aboutHeroSubtitle: string;
+  aboutFeatureCards: string; // JSON array of {icon, title, description}
+  aboutFounderQuote: string;
+  aboutTagline: string;
+  aboutTags: string; // comma-separated
+  aboutMissionCards: string; // JSON array of {icon, title, description}
+  aboutValuesCards: string; // JSON array of {icon, title, description}
+  aboutExcellenceTitle: string;
+  aboutExcellenceDescription: string;
+  aboutAuthenticityTitle: string;
+  aboutAuthenticityDescription: string;
+  aboutClosingQuote: string;
   
   // Amenities section
   amenitiesSectionTitle: string;

@@ -1,8 +1,34 @@
-
 import React from 'react';
 import { Home, Award, Heart, Star } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import { defaultSettings } from '@/hooks/settings/constants';
+
+interface FeatureCard {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Home,
+  Award,
+  Heart,
+  Star,
+};
+
+const parseCards = (jsonString: string | undefined, fallback: string): FeatureCard[] => {
+  try {
+    const parsed = JSON.parse(jsonString || fallback);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    try {
+      return JSON.parse(fallback);
+    } catch {
+      return [];
+    }
+  }
+};
 
 const AboutIntroduction = () => {
   const { settings } = useTenantSettings();
@@ -12,6 +38,19 @@ const AboutIntroduction = () => {
     `Welcome to ${siteName}! We're dedicated to providing exceptional vacation rental experiences with personalized service and attention to detail.`;
   const aboutImageUrl = settings.aboutImageUrl;
   const founderNames = settings.founderNames;
+  
+  // Extended settings with fallbacks
+  const featureCards = parseCards(settings.aboutFeatureCards, defaultSettings.aboutFeatureCards);
+  const founderQuote = settings.aboutFounderQuote || defaultSettings.aboutFounderQuote;
+  const tagline = settings.aboutTagline || defaultSettings.aboutTagline;
+  const tags = (settings.aboutTags || defaultSettings.aboutTags).split(',').map(t => t.trim()).filter(Boolean);
+
+  const cardStyles = [
+    "bg-gradient-to-br from-gradient-from to-gradient-to",
+    "bg-muted",
+    "bg-accent",
+    "bg-gradient-to-br from-gradient-accent-from to-gradient-accent-to"
+  ];
 
   return (
     <div className="bg-card rounded-lg shadow-sm border border-border p-8 mb-8">
@@ -41,45 +80,25 @@ const AboutIntroduction = () => {
 
           {/* Feature boxes with muted backgrounds */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gradient-to-br from-gradient-from to-gradient-to border border-border rounded-lg p-4 text-center">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Home className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <h4 className="font-semibold text-foreground text-sm mb-2">Local Expertise</h4>
-              <p className="text-xs text-muted-foreground">Deep knowledge of our area with insight into every hidden gem</p>
-            </div>
-            
-            <div className="bg-muted border border-border rounded-lg p-4 text-center">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Award className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <h4 className="font-semibold text-foreground text-sm mb-2">Quality Focus</h4>
-              <p className="text-xs text-muted-foreground">Every property carefully curated and maintained</p>
-            </div>
-            
-            <div className="bg-accent border border-border rounded-lg p-4 text-center">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Heart className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <h4 className="font-semibold text-foreground text-sm mb-2">Passionate Hosts</h4>
-              <p className="text-xs text-muted-foreground">Genuine love for hospitality and exceptional service</p>
-            </div>
-            
-            <div className="bg-gradient-to-br from-gradient-accent-from to-gradient-accent-to border border-border rounded-lg p-4 text-center">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Star className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <h4 className="font-semibold text-foreground text-sm mb-2">Family Values</h4>
-              <p className="text-xs text-muted-foreground">Family-owned business creating memorable experiences</p>
-            </div>
+            {featureCards.slice(0, 4).map((card, index) => {
+              const IconComponent = iconMap[card.icon] || Home;
+              return (
+                <div key={index} className={`${cardStyles[index % 4]} border border-border rounded-lg p-4 text-center`}>
+                  <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <IconComponent className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                  <h4 className="font-semibold text-foreground text-sm mb-2">{card.title}</h4>
+                  <p className="text-xs text-muted-foreground">{card.description}</p>
+                </div>
+              );
+            })}
           </div>
 
           {/* Quote section - Only show if founder names configured */}
           {founderNames && (
             <div className="bg-muted rounded-lg p-6 border-l-4 border-primary">
               <blockquote className="text-lg text-muted-foreground italic mb-4">
-                "We believe in creating spaces where families can come together, where memories are made, 
-                and where the beauty of your destination becomes part of your story."
+                "{founderQuote}"
               </blockquote>
               <p className="font-semibold text-foreground">— {founderNames}</p>
             </div>
@@ -87,12 +106,16 @@ const AboutIntroduction = () => {
 
           {/* Bottom tagline and tags */}
           <div className="text-center">
-            <p className="text-muted-foreground mb-4">Your local ambassadors to exceptional vacation experiences</p>
+            <p className="text-muted-foreground mb-4">{tagline}</p>
             <div className="flex flex-wrap justify-center gap-2">
-              <span className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm font-medium">Local</span>
-              <span className="bg-accent text-accent-foreground px-3 py-1 rounded-full text-sm font-medium">Trusted</span>
-              <span className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm font-medium">Quality</span>
-              <span className="bg-accent text-accent-foreground px-3 py-1 rounded-full text-sm font-medium">Family</span>
+              {tags.map((tag, index) => (
+                <span 
+                  key={index} 
+                  className={`${index % 2 === 0 ? 'bg-muted text-muted-foreground' : 'bg-accent text-accent-foreground'} px-3 py-1 rounded-full text-sm font-medium`}
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
           </div>
         </div>

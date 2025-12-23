@@ -1,7 +1,32 @@
-
 import React from 'react';
 import { Target, Mountain, Coffee } from 'lucide-react';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import { defaultSettings } from '@/hooks/settings/constants';
+
+interface MissionCard {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Mountain,
+  Coffee,
+  Target,
+};
+
+const parseCards = (jsonString: string | undefined, fallback: string): MissionCard[] => {
+  try {
+    const parsed = JSON.parse(jsonString || fallback);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    try {
+      return JSON.parse(fallback);
+    } catch {
+      return [];
+    }
+  }
+};
 
 const MissionSection = () => {
   const { settings } = useTenantSettings();
@@ -10,6 +35,11 @@ const MissionSection = () => {
     `Our mission at ${siteName} is to create remarkable vacation experiences. We aim to combine outdoor adventures, culinary delights, and stylish accommodations to offer our guests a truly unforgettable stay.`;
   const missionDescription = settings.missionDescription || 
     'With our expertise in hospitality, home improvement, and interior design, we are dedicated to providing exceptional service and curating experiences that reflect the unique charm of our destinations.';
+  
+  const missionCards = parseCards(settings.aboutMissionCards, defaultSettings.aboutMissionCards);
+
+  const cardStyles = ["bg-accent", "bg-muted"];
+  const iconBgs = ["bg-gray-700", "bg-gray-500"];
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
@@ -34,27 +64,20 @@ const MissionSection = () => {
 
         {/* Feature boxes below mission */}
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-accent border border-gray-200 rounded-lg p-6 text-center">
-            <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Mountain className="h-8 w-8 text-white" />
-            </div>
-            <h4 className="text-xl font-semibold text-gray-900 mb-3">Outdoor Adventures</h4>
-            <p className="text-gray-600 leading-relaxed">
-              From hiking trails to scenic views, we'll guide you to the most breathtaking 
-              outdoor experiences and hidden natural gems.
-            </p>
-          </div>
-          
-          <div className="bg-muted border border-gray-200 rounded-lg p-6 text-center">
-            <div className="w-16 h-16 bg-gray-500 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Coffee className="h-8 w-8 text-white" />
-            </div>
-            <h4 className="text-xl font-semibold text-gray-900 mb-3">Culinary Delights</h4>
-            <p className="text-gray-600 leading-relaxed">
-              Discover the vibrant food scene, from artisan coffee shops to farm-to-table restaurants 
-              and local breweries that define regional cuisine.
-            </p>
-          </div>
+          {missionCards.slice(0, 2).map((card, index) => {
+            const IconComponent = iconMap[card.icon] || Mountain;
+            return (
+              <div key={index} className={`${cardStyles[index % 2]} border border-gray-200 rounded-lg p-6 text-center`}>
+                <div className={`w-16 h-16 ${iconBgs[index % 2]} rounded-lg flex items-center justify-center mx-auto mb-4`}>
+                  <IconComponent className="h-8 w-8 text-white" />
+                </div>
+                <h4 className="text-xl font-semibold text-gray-900 mb-3">{card.title}</h4>
+                <p className="text-gray-600 leading-relaxed">
+                  {card.description}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
