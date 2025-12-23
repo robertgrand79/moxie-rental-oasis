@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { AlertCircle, CheckCircle, Clock, MessageSquare, Send, X, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTenant } from '@/contexts/TenantContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -28,7 +28,7 @@ interface Escalation {
 
 const EscalationsTab = () => {
   const { user } = useAuth();
-  const { tenant } = useTenant();
+  const { organization, loading: orgLoading } = useCurrentOrganization();
   const [escalations, setEscalations] = useState<Escalation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEscalation, setSelectedEscalation] = useState<Escalation | null>(null);
@@ -38,20 +38,22 @@ const EscalationsTab = () => {
   const [filter, setFilter] = useState<'pending' | 'answered' | 'all'>('pending');
 
   useEffect(() => {
-    if (tenant?.id) {
+    if (organization?.id) {
       fetchEscalations();
+    } else if (!orgLoading) {
+      setLoading(false);
     }
-  }, [tenant?.id, filter]);
+  }, [organization?.id, filter, orgLoading]);
 
   const fetchEscalations = async () => {
-    if (!tenant?.id) return;
+    if (!organization?.id) return;
     
     setLoading(true);
     try {
       let query = supabase
         .from('assistant_escalations')
         .select('*')
-        .eq('organization_id', tenant.id)
+        .eq('organization_id', organization.id)
         .order('created_at', { ascending: false });
 
       if (filter !== 'all') {
@@ -94,7 +96,7 @@ const EscalationsTab = () => {
         const { data: settings } = await supabase
           .from('assistant_settings')
           .select('custom_faqs')
-          .eq('organization_id', tenant?.id)
+          .eq('organization_id', organization?.id)
           .single();
 
         const existingFaqs = (settings?.custom_faqs as any[]) || [];
@@ -108,7 +110,7 @@ const EscalationsTab = () => {
           .update({
             custom_faqs: [...existingFaqs, newFaq]
           })
-          .eq('organization_id', tenant?.id);
+          .eq('organization_id', organization?.id);
       }
 
       toast.success('Response sent successfully' + (addToFaq ? ' and added to FAQ' : ''));
