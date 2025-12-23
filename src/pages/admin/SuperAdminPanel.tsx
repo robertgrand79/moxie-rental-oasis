@@ -269,10 +269,17 @@ const SuperAdminPanel = () => {
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Organization?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will permanently delete <strong>{org.name}</strong> and remove all its members. 
-                  Properties and data may become orphaned. This action cannot be undone.
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                  Delete Organization?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="space-y-2">
+                  <p>
+                    This will permanently delete <strong>{org.name}</strong> and <strong>all its members' user accounts</strong>.
+                  </p>
+                  <p className="text-destructive font-medium">
+                    {org.member_count} user account(s) will be permanently deleted. This action cannot be undone.
+                  </p>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
