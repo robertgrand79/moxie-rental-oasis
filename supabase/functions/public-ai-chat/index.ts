@@ -150,12 +150,15 @@ const tools = [
     type: "function",
     function: {
       name: "escalate_to_host",
-      description: "Escalate a question to the host when you genuinely cannot answer it with the information provided. Use this when: 1) The guest asks about something very specific not covered in your knowledge base (e.g., specific policies, custom requests, price negotiations), 2) The question requires human judgment or decision-making, 3) You've been unable to find relevant information after checking all available context. Do NOT use this for general questions you should be able to answer.",
+      description: "Escalate a question to the host when you genuinely cannot answer it with the information provided. Use this when: 1) The guest asks about something very specific not covered in your knowledge base (e.g., specific policies, custom requests, price negotiations), 2) The question requires human judgment or decision-making, 3) You've been unable to find relevant information after checking all available context. IMPORTANT: Before escalating, ask the guest for their name, email address, and optionally phone number so we can get back to them with an answer. Do NOT use this for general questions you should be able to answer.",
       parameters: {
         type: "object",
         properties: {
           reason: { type: "string", description: "Brief explanation of why this needs host attention" },
-          guestQuestion: { type: "string", description: "The guest's original question" }
+          guestQuestion: { type: "string", description: "The guest's original question" },
+          guestName: { type: "string", description: "The guest's name (ask if not provided)" },
+          guestEmail: { type: "string", description: "The guest's email address for follow-up (ask if not provided)" },
+          guestPhone: { type: "string", description: "The guest's phone number for SMS follow-up (optional)" }
         },
         required: ["reason", "guestQuestion"]
       }
@@ -260,7 +263,10 @@ async function createEscalation(
   sessionId: string,
   guestQuestion: string,
   reason: string,
-  conversationHistory: Message[]
+  conversationHistory: Message[],
+  guestName?: string,
+  guestEmail?: string,
+  guestPhone?: string
 ): Promise<string> {
   try {
     const { error } = await supabase
@@ -270,7 +276,10 @@ async function createEscalation(
         session_id: sessionId,
         guest_question: guestQuestion,
         conversation_context: conversationHistory.slice(-10), // Last 10 messages for context
-        status: 'pending'
+        status: 'pending',
+        guest_name: guestName || null,
+        guest_email: guestEmail || null,
+        guest_phone: guestPhone || null
       });
 
     if (error) {
@@ -341,11 +350,15 @@ async function processToolCalls(
             sessionId,
             args.guestQuestion || 'Unknown question',
             args.reason || 'Guest question requires host attention',
-            conversationHistory || []
+            conversationHistory || [],
+            args.guestName,
+            args.guestEmail,
+            args.guestPhone
           );
           if (escalationResult === "ESCALATION_CREATED") {
             hasEscalation = true;
-            results.push("I've forwarded your question to our host team. They'll review it and get back to you as soon as possible. In the meantime, is there anything else I can help you with?");
+            const contactMethod = args.guestEmail ? `at ${args.guestEmail}` : (args.guestPhone ? `via SMS` : '');
+            results.push(`I've forwarded your question to our host team. They'll review it and get back to you ${contactMethod ? contactMethod + ' ' : ''}as soon as possible. In the meantime, is there anything else I can help you with?`);
           } else {
             results.push(escalationResult);
           }

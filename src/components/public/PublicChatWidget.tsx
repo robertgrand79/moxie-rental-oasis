@@ -67,6 +67,46 @@ const PublicChatWidget = () => {
     }
   }, [tenant?.id]);
 
+  // Subscribe to escalation responses for this session
+  useEffect(() => {
+    if (!tenant?.id || !sessionId) return;
+
+    const channel = supabase
+      .channel(`escalation-responses-${sessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'assistant_escalations',
+          filter: `session_id=eq.${sessionId}`
+        },
+        (payload) => {
+          const escalation = payload.new as any;
+          // Only inject message if status changed to answered and has response
+          if (escalation.status === 'answered' && escalation.host_response) {
+            const hostMessage: Message = {
+              role: 'assistant',
+              content: `📩 **Response from our team:**\n\n${escalation.host_response}\n\n---\n*This is a direct response from our host regarding your question.*`
+            };
+            setMessages(prev => {
+              // Avoid duplicates by checking if we already have this response
+              const alreadyHasResponse = prev.some(m => 
+                m.role === 'assistant' && m.content.includes(escalation.host_response)
+              );
+              if (alreadyHasResponse) return prev;
+              return [...prev, hostMessage];
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tenant?.id, sessionId]);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
