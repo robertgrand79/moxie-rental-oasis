@@ -85,8 +85,11 @@ const AIAnalyticsDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Chat Interactions</p>
+                <p className="text-sm font-medium text-muted-foreground">Chat Messages</p>
                 <p className="text-3xl font-bold">{analytics.chatInteractions}</p>
+                <p className="text-xs text-muted-foreground">
+                  {analytics.totalConversations} conversations
+                </p>
               </div>
               <MessageSquare className="h-8 w-8 text-purple-600" />
             </div>
@@ -97,8 +100,13 @@ const AIAnalyticsDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg Response Time</p>
-                <p className="text-3xl font-bold">{analytics.averageResponseTime}s</p>
+                <p className="text-sm font-medium text-muted-foreground">Avg Response Time</p>
+                <p className="text-3xl font-bold">
+                  {analytics.averageResponseTime > 0 ? `${analytics.averageResponseTime}s` : '—'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {analytics.averageResponseTime > 0 ? 'AI assistant' : 'No data yet'}
+                </p>
               </div>
               <Clock className="h-8 w-8 text-orange-600" />
             </div>
@@ -110,8 +118,8 @@ const AIAnalyticsDashboard = () => {
         {/* Monthly Trends */}
         <Card>
           <CardHeader>
-            <CardTitle>Content & Views Trends</CardTitle>
-            <CardDescription>Monthly content creation and view statistics</CardDescription>
+            <CardTitle>Content, Views & Chat Trends</CardTitle>
+            <CardDescription>Monthly content creation, views, and chat activity</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -122,6 +130,7 @@ const AIAnalyticsDashboard = () => {
                 <Tooltip />
                 <Line type="monotone" dataKey="content" stroke="#3b82f6" strokeWidth={2} name="Content" />
                 <Line type="monotone" dataKey="views" stroke="#10b981" strokeWidth={2} name="Views" />
+                <Line type="monotone" dataKey="chats" stroke="#8b5cf6" strokeWidth={2} name="Chats" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
