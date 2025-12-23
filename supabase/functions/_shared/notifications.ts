@@ -56,17 +56,30 @@ export async function createAdminNotification(
  * Notification type constants for consistency
  */
 export const NOTIFICATION_TYPES = {
+  // Booking notifications
   NEW_BOOKING: 'new_booking',
   BOOKING_CANCELLED: 'booking_cancelled',
+  CHECK_IN_TODAY: 'check_in_today',
+  CHECK_OUT_TODAY: 'check_out_today',
+  
+  // Communication notifications
   GUEST_MESSAGE: 'guest_message',
+  
+  // Operations notifications
   WORK_ORDER: 'work_order',
   WORK_ORDER_CREATED: 'work_order_created',
   WORK_ORDER_COMPLETED: 'work_order_completed',
-  CHECK_IN_TODAY: 'check_in_today',
-  CHECK_OUT_TODAY: 'check_out_today',
+  
+  // Payment notifications
   PAYMENT_RECEIVED: 'payment_received',
   PAYMENT_FAILED: 'payment_failed',
+  
+  // System notifications
   SYSTEM_ALERT: 'system_alert',
+  LOW_AVAILABILITY: 'low_availability',
+  REVENUE_MILESTONE: 'revenue_milestone',
+  SECURITY_ALERT: 'security_alert',
+  API_ERROR: 'api_error',
 } as const;
 
 export const NOTIFICATION_CATEGORIES = {
