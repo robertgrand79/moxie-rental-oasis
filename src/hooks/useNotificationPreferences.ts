@@ -15,15 +15,29 @@ export interface NotificationPreference {
 }
 
 export const NOTIFICATION_TYPES = [
-  { type: 'new_booking', label: 'New Booking', description: 'When a new reservation is created' },
-  { type: 'booking_cancelled', label: 'Booking Cancelled', description: 'When a reservation is cancelled' },
-  { type: 'guest_message', label: 'Guest Message', description: 'When a guest sends a message' },
-  { type: 'work_order_created', label: 'Work Order Created', description: 'When a new work order is created' },
-  { type: 'work_order_completed', label: 'Work Order Completed', description: 'When a work order is marked complete' },
-  { type: 'check_in_today', label: 'Check-in Today', description: 'Daily reminder of check-ins' },
-  { type: 'check_out_today', label: 'Check-out Today', description: 'Daily reminder of check-outs' },
-  { type: 'payment_received', label: 'Payment Received', description: 'When a payment is processed' },
-  { type: 'payment_failed', label: 'Payment Failed', description: 'When a payment fails' },
+  // Booking notifications
+  { type: 'new_booking', label: 'New Booking', description: 'When a new reservation is created', category: 'bookings' },
+  { type: 'booking_cancelled', label: 'Booking Cancelled', description: 'When a reservation is cancelled', category: 'bookings' },
+  { type: 'check_in_today', label: 'Check-in Today', description: 'Daily reminder of check-ins', category: 'bookings' },
+  { type: 'check_out_today', label: 'Check-out Today', description: 'Daily reminder of check-outs', category: 'bookings' },
+  
+  // Communication notifications
+  { type: 'guest_message', label: 'Guest Message', description: 'When a guest sends a message', category: 'communications' },
+  
+  // Operations notifications
+  { type: 'work_order_created', label: 'Work Order Created', description: 'When a new work order is created', category: 'operations' },
+  { type: 'work_order_completed', label: 'Work Order Completed', description: 'When a work order is marked complete', category: 'operations' },
+  
+  // Payment notifications
+  { type: 'payment_received', label: 'Payment Received', description: 'When a payment is processed', category: 'payments' },
+  { type: 'payment_failed', label: 'Payment Failed', description: 'When a payment fails', category: 'payments' },
+  
+  // System notifications
+  { type: 'low_availability', label: 'Low Availability', description: 'When property availability drops below threshold', category: 'system' },
+  { type: 'revenue_milestone', label: 'Revenue Milestone', description: 'When you reach revenue milestones', category: 'system' },
+  { type: 'security_alert', label: 'Security Alert', description: 'Security-related notifications', category: 'system' },
+  { type: 'api_error', label: 'API Errors', description: 'When an integration fails', category: 'system' },
+  { type: 'system_alert', label: 'System Alerts', description: 'General system notifications', category: 'system' },
 ];
 
 export const useNotificationPreferences = () => {
