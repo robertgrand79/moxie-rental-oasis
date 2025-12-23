@@ -9,8 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Loader2, Upload, FileText, Trash2, Eye, Edit2, Building2 } from 'lucide-react';
+import { Loader2, Upload, FileText, Trash2, Eye, Edit2, Building2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const DOCUMENT_TYPES = [
   { value: 'house_manual', label: 'House Manual' },
@@ -24,7 +25,7 @@ const DOCUMENT_TYPES = [
 export function PropertyDocumentsTab() {
   const { organization } = useCurrentOrganization();
   const { properties } = usePropertyFetch();
-  const { documents, isLoading, isUploading, uploadDocument, deleteDocument, updateDocumentText } = 
+  const { documents, isLoading, isUploading, uploadDocument, deleteDocument, updateDocumentText, reparseDocument, isReparsing, reparsingDocId } = 
     usePropertyDocuments(undefined, organization?.id);
   
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('all');
@@ -89,6 +90,10 @@ export function PropertyDocumentsTab() {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const needsReparse = (doc: PropertyDocument) => {
+    return !doc.extracted_text || doc.extracted_text.length < 500;
   };
 
   if (isLoading) {
@@ -237,12 +242,26 @@ export function PropertyDocumentsTab() {
               {filteredDocuments.map(doc => (
                 <div
                   key={doc.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className={`flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${needsReparse(doc) ? 'border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20' : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     <FileText className="h-8 w-8 text-primary mt-1" />
                     <div>
-                      <h4 className="font-medium">{doc.title}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">{doc.title}</h4>
+                        {needsReparse(doc) && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Low or no text extracted. Try re-parsing with OCR.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                       <div className="text-sm text-muted-foreground space-y-1">
                         <p>
                           {DOCUMENT_TYPES.find(t => t.value === doc.document_type)?.label || doc.document_type}
@@ -253,17 +272,38 @@ export function PropertyDocumentsTab() {
                           {formatFileSize(doc.file_size)}
                           {' • '}
                           Uploaded {formatDistanceToNow(new Date(doc.created_at), { addSuffix: true })}
-                          {doc.extracted_text && (
-                            <span className="text-green-600 ml-2">
-                              ✓ {doc.extracted_text.length.toLocaleString()} chars extracted
+                          {doc.extracted_text ? (
+                            <span className={doc.extracted_text.length < 500 ? 'text-amber-600 ml-2' : 'text-green-600 ml-2'}>
+                              {doc.extracted_text.length < 500 ? '⚠' : '✓'} {doc.extracted_text.length.toLocaleString()} chars extracted
                             </span>
+                          ) : (
+                            <span className="text-red-500 ml-2">✗ No text extracted</span>
                           )}
                         </p>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => reparseDocument(doc.id)}
+                            disabled={isReparsing && reparsingDocId === doc.id}
+                          >
+                            {isReparsing && reparsingDocId === doc.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <RefreshCw className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Re-parse with OCR</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <Button
                       variant="ghost"
                       size="sm"
