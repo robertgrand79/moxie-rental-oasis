@@ -122,46 +122,75 @@ async function extractWithFirecrawl(documentUrl: string): Promise<string> {
     return '[Document extraction unavailable - Firecrawl API not configured]';
   }
 
-  try {
-    console.log('Calling Firecrawl API for document:', documentUrl);
-    
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${firecrawlApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: documentUrl,
-        formats: ['markdown'],
-        onlyMainContent: false,
-        waitFor: 5000, // Wait for content to load
-      }),
-    });
+  // Retry logic for handling timeouts
+  const maxRetries = 2;
+  let lastError = '';
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Calling Firecrawl API (attempt ${attempt}/${maxRetries}) for document:`, documentUrl);
+      
+      // Use AbortController for timeout (90 seconds to allow for large PDFs)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
+      
+      const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${firecrawlApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: documentUrl,
+          formats: ['markdown'],
+          onlyMainContent: false,
+          waitFor: 10000, // Wait 10s for content to load (increased from 5s)
+        }),
+        signal: controller.signal,
+      });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Firecrawl API error:', response.status, errorData);
-      return `[Document extraction failed - API error: ${response.status}]`;
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Firecrawl API error:', response.status, errorData);
+        lastError = `API error: ${response.status}`;
+        
+        // If it's a timeout (408), retry
+        if (response.status === 408 && attempt < maxRetries) {
+          console.log('Timeout error, retrying...');
+          continue;
+        }
+        
+        return `[Document extraction failed - ${lastError}]`;
+      }
+
+      const data = await response.json();
+      console.log('Firecrawl response success:', data.success);
+      
+      // Access the markdown content - Firecrawl v1 nests content in data
+      const markdown = data.data?.markdown || data.markdown || '';
+      
+      if (!markdown || markdown.length < 50) {
+        console.log('Firecrawl returned minimal content, raw response:', JSON.stringify(data).substring(0, 500));
+        return '[Document extraction returned minimal content. The document may be image-based or protected.]';
+      }
+
+      console.log('Firecrawl extracted', markdown.length, 'characters');
+      return markdown;
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error(`Request timed out on attempt ${attempt}`);
+        lastError = 'Request timed out';
+        if (attempt < maxRetries) continue;
+      } else {
+        console.error('Firecrawl extraction error:', error);
+        lastError = error instanceof Error ? error.message : 'Unknown error';
+      }
     }
-
-    const data = await response.json();
-    console.log('Firecrawl response success:', data.success);
-    
-    // Access the markdown content - Firecrawl v1 nests content in data
-    const markdown = data.data?.markdown || data.markdown || '';
-    
-    if (!markdown || markdown.length < 50) {
-      console.log('Firecrawl returned minimal content, raw response:', JSON.stringify(data).substring(0, 500));
-      return '[Document extraction returned minimal content. The document may be image-based or protected.]';
-    }
-
-    console.log('Firecrawl extracted', markdown.length, 'characters');
-    return markdown;
-  } catch (error) {
-    console.error('Firecrawl extraction error:', error);
-    return `[Document extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}]`;
   }
+  
+  return `[Document extraction failed after ${maxRetries} attempts: ${lastError}]`;
 }
 
 // Clean and limit text
