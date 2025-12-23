@@ -49,6 +49,16 @@ export const useAIAnalytics = () => {
     console.log('Fetching AI analytics for organization:', organization.id);
     setLoading(true);
     try {
+      // Fetch real page views - ORGANIZATION SCOPED
+      const { data: pageViewsData, error: pageViewsError } = await supabase
+        .from('page_views')
+        .select('id, page_path, content_type, content_id, created_at')
+        .eq('organization_id', organization.id);
+
+      if (pageViewsError) {
+        console.error('Error fetching page views:', pageViewsError);
+      }
+
       // Fetch real content statistics with organization filter
       const { data: contentData, error: contentError } = await supabase
         .from('content_approval_items')
@@ -78,6 +88,16 @@ export const useAIAnalytics = () => {
         console.error('Error fetching properties data:', propertiesError);
       }
 
+      // Fetch chat interactions - ORGANIZATION SCOPED
+      const { data: chatData, error: chatError } = await supabase
+        .from('assistant_conversations')
+        .select('id, message_count')
+        .eq('organization_id', organization.id);
+
+      if (chatError) {
+        console.error('Error fetching chat data:', chatError);
+      }
+
       // Process the real data with fallbacks
       const allContent = [
         ...(contentData || []),
@@ -88,24 +108,27 @@ export const useAIAnalytics = () => {
       const totalContent = allContent.length;
       const aiGeneratedContent = contentData?.filter(item => item.status === 'approved').length || 0;
       
-      // Chat sessions don't have organization_id, so we count all (shared system)
-      const chatInteractions = 0; // Reset to 0 for organization-scoped view
+      // Real chat interactions count
+      const chatInteractions = chatData?.reduce((sum, chat) => sum + (chat.message_count || 0), 0) || 0;
 
-      // Generate monthly trends from real data
-      const monthlyTrends = generateMonthlyTrends(allContent);
+      // Real page views count
+      const contentViews = pageViewsData?.length || 0;
+
+      // Generate monthly trends from real page views data
+      const monthlyTrends = generateMonthlyTrends(allContent, pageViewsData || []);
 
       // Generate content by type statistics from real data
       const contentByType = generateContentByType(contentData || [], blogData || [], propertiesData || []);
 
-      // Generate top performing content from real data
-      const topPerformingContent = generateTopPerformingContent(allContent);
+      // Generate top performing content from real page views
+      const topPerformingContent = generateTopPerformingContent(allContent, pageViewsData || []);
 
       const analyticsData = {
         totalContent,
         aiGeneratedContent,
         chatInteractions,
-        contentViews: totalContent * 12, // Realistic multiplier for views
-        averageResponseTime: 1.2,
+        contentViews,
+        averageResponseTime: 1.2, // Could be calculated from assistant_conversations if needed
         topPerformingContent,
         contentByType,
         monthlyTrends
@@ -126,18 +149,35 @@ export const useAIAnalytics = () => {
     }
   }, [organization?.id]);
 
-  const generateMonthlyTrends = (allContent: any[]) => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    return months.map((month, index) => {
-      const monthData = allContent.filter(item => {
+  const generateMonthlyTrends = (allContent: any[], pageViews: any[]) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentYear = new Date().getFullYear();
+    
+    // Get last 6 months
+    const currentMonth = new Date().getMonth();
+    const last6Months = [];
+    for (let i = 5; i >= 0; i--) {
+      const monthIndex = (currentMonth - i + 12) % 12;
+      last6Months.push({ name: months[monthIndex], index: monthIndex });
+    }
+
+    return last6Months.map(({ name, index }) => {
+      const contentCount = allContent.filter(item => {
         if (!item.created_at) return false;
-        const itemMonth = new Date(item.created_at).getMonth();
-        return itemMonth === index;
-      });
+        const date = new Date(item.created_at);
+        return date.getMonth() === index && date.getFullYear() === currentYear;
+      }).length;
+
+      const viewsCount = pageViews.filter(view => {
+        if (!view.created_at) return false;
+        const date = new Date(view.created_at);
+        return date.getMonth() === index && date.getFullYear() === currentYear;
+      }).length;
+
       return {
-        month,
-        content: monthData.length,
-        views: monthData.length * 15
+        month: name,
+        content: contentCount,
+        views: viewsCount
       };
     });
   };
@@ -152,14 +192,45 @@ export const useAIAnalytics = () => {
     return contentTypes.filter(type => type.value > 0);
   };
 
-  const generateTopPerformingContent = (allContent: any[]) => {
-    return allContent
-      .slice(0, 4)
-      .map(item => ({
-        name: item.title || 'Untitled Content',
-        views: Math.floor(Math.random() * 200) + 50,
-        type: item.type || 'Content'
-      }));
+  const generateTopPerformingContent = (allContent: any[], pageViews: any[]) => {
+    // Count views per content path/id
+    const viewCounts: Record<string, { count: number; path: string; type: string }> = {};
+    
+    pageViews.forEach(view => {
+      const key = view.content_id || view.page_path;
+      if (!viewCounts[key]) {
+        viewCounts[key] = { 
+          count: 0, 
+          path: view.page_path,
+          type: view.content_type || 'Page'
+        };
+      }
+      viewCounts[key].count++;
+    });
+
+    // Sort by count and get top 4
+    const sorted = Object.entries(viewCounts)
+      .sort(([, a], [, b]) => b.count - a.count)
+      .slice(0, 4);
+
+    if (sorted.length > 0) {
+      return sorted.map(([key, data]) => {
+        // Try to find matching content title
+        const content = allContent.find(c => c.id === key);
+        return {
+          name: content?.title || data.path,
+          views: data.count,
+          type: data.type
+        };
+      });
+    }
+
+    // Fallback to content without views if no page views yet
+    return allContent.slice(0, 4).map(item => ({
+      name: item.title || 'Untitled Content',
+      views: 0,
+      type: item.type || 'Content'
+    }));
   };
 
   const recordAnalyticsEvent = async (metricType: string, metricValue: any) => {

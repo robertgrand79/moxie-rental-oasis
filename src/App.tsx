@@ -9,6 +9,7 @@ import PublicChatWidget from './components/public/PublicChatWidget';
 import GlobalThemeProvider from './components/GlobalThemeProvider';
 import TenantDebugBanner from './components/debug/TenantDebugBanner';
 import SiteHead from './components/SiteHead';
+import PageViewTracker from './components/analytics/PageViewTracker';
 
 // Note: QueryClient is created in main.tsx - single instance for entire app
 
@@ -19,14 +20,16 @@ function App() {
         <PlatformProvider>
           <OrganizationProvider>
             <TenantProvider>
-              <TenantDebugBanner />
-              <SiteHead />
-              <StaticSettingsProvider>
-                <GlobalThemeProvider>
-                  <AppRoutes />
-                  <PublicChatWidget />
-                </GlobalThemeProvider>
-              </StaticSettingsProvider>
+              <PageViewTracker>
+                <TenantDebugBanner />
+                <SiteHead />
+                <StaticSettingsProvider>
+                  <GlobalThemeProvider>
+                    <AppRoutes />
+                    <PublicChatWidget />
+                  </GlobalThemeProvider>
+                </StaticSettingsProvider>
+              </PageViewTracker>
             </TenantProvider>
           </OrganizationProvider>
         </PlatformProvider>
