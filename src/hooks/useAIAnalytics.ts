@@ -7,6 +7,7 @@ export interface AnalyticsData {
   totalContent: number;
   aiGeneratedContent: number;
   chatInteractions: number;
+  totalConversations: number;
   contentViews: number;
   averageResponseTime: number;
   topPerformingContent: Array<{
@@ -23,6 +24,7 @@ export interface AnalyticsData {
     month: string;
     content: number;
     views: number;
+    chats: number;
   }>;
 }
 
@@ -32,6 +34,7 @@ export const useAIAnalytics = () => {
     totalContent: 0,
     aiGeneratedContent: 0,
     chatInteractions: 0,
+    totalConversations: 0,
     contentViews: 0,
     averageResponseTime: 0,
     topPerformingContent: [],
@@ -88,14 +91,32 @@ export const useAIAnalytics = () => {
         console.error('Error fetching properties data:', propertiesError);
       }
 
-      // Fetch chat interactions - ORGANIZATION SCOPED
+      // Fetch chat conversations with created_at for trends - ORGANIZATION SCOPED
       const { data: chatData, error: chatError } = await supabase
         .from('assistant_conversations')
-        .select('id, message_count')
+        .select('id, message_count, created_at')
         .eq('organization_id', organization.id);
 
       if (chatError) {
         console.error('Error fetching chat data:', chatError);
+      }
+
+      // Fetch messages to calculate real response times - join with conversations for org scope
+      const conversationIds = chatData?.map(c => c.id) || [];
+      let messagesData: any[] = [];
+      
+      if (conversationIds.length > 0) {
+        const { data: messages, error: messagesError } = await supabase
+          .from('assistant_messages')
+          .select('conversation_id, role, created_at')
+          .in('conversation_id', conversationIds)
+          .order('created_at');
+
+        if (messagesError) {
+          console.error('Error fetching messages data:', messagesError);
+        } else {
+          messagesData = messages || [];
+        }
       }
 
       // Process the real data with fallbacks
@@ -108,14 +129,20 @@ export const useAIAnalytics = () => {
       const totalContent = allContent.length;
       const aiGeneratedContent = contentData?.filter(item => item.status === 'approved').length || 0;
       
-      // Real chat interactions count
+      // Real chat interactions count (total messages)
       const chatInteractions = chatData?.reduce((sum, chat) => sum + (chat.message_count || 0), 0) || 0;
+      
+      // Total unique conversations
+      const totalConversations = chatData?.length || 0;
+
+      // Calculate real average response time from message timestamps
+      const averageResponseTime = calculateAverageResponseTime(messagesData);
 
       // Real page views count
       const contentViews = pageViewsData?.length || 0;
 
-      // Generate monthly trends from real page views data
-      const monthlyTrends = generateMonthlyTrends(allContent, pageViewsData || []);
+      // Generate monthly trends from real data including chats
+      const monthlyTrends = generateMonthlyTrends(allContent, pageViewsData || [], chatData || []);
 
       // Generate content by type statistics from real data
       const contentByType = generateContentByType(contentData || [], blogData || [], propertiesData || []);
@@ -127,8 +154,9 @@ export const useAIAnalytics = () => {
         totalContent,
         aiGeneratedContent,
         chatInteractions,
+        totalConversations,
         contentViews,
-        averageResponseTime: 1.2, // Could be calculated from assistant_conversations if needed
+        averageResponseTime,
         topPerformingContent,
         contentByType,
         monthlyTrends
@@ -149,7 +177,45 @@ export const useAIAnalytics = () => {
     }
   }, [organization?.id]);
 
-  const generateMonthlyTrends = (allContent: any[], pageViews: any[]) => {
+  // Calculate average response time from user->assistant message pairs
+  const calculateAverageResponseTime = (messages: any[]) => {
+    if (!messages || messages.length < 2) return 0;
+
+    // Group messages by conversation
+    const byConversation: Record<string, any[]> = {};
+    messages.forEach(msg => {
+      if (!byConversation[msg.conversation_id]) {
+        byConversation[msg.conversation_id] = [];
+      }
+      byConversation[msg.conversation_id].push(msg);
+    });
+
+    let totalTime = 0;
+    let pairs = 0;
+
+    Object.values(byConversation).forEach(convMessages => {
+      // Sort by created_at within each conversation
+      convMessages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      
+      for (let i = 0; i < convMessages.length - 1; i++) {
+        if (convMessages[i].role === 'user' && convMessages[i + 1].role === 'assistant') {
+          const userTime = new Date(convMessages[i].created_at).getTime();
+          const assistantTime = new Date(convMessages[i + 1].created_at).getTime();
+          const responseTime = (assistantTime - userTime) / 1000; // Convert to seconds
+          
+          // Only count reasonable response times (< 60 seconds)
+          if (responseTime > 0 && responseTime < 60) {
+            totalTime += responseTime;
+            pairs++;
+          }
+        }
+      }
+    });
+
+    return pairs > 0 ? parseFloat((totalTime / pairs).toFixed(1)) : 0;
+  };
+
+  const generateMonthlyTrends = (allContent: any[], pageViews: any[], conversations: any[]) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const currentYear = new Date().getFullYear();
     
@@ -174,10 +240,17 @@ export const useAIAnalytics = () => {
         return date.getMonth() === index && date.getFullYear() === currentYear;
       }).length;
 
+      const chatsCount = conversations.filter(conv => {
+        if (!conv.created_at) return false;
+        const date = new Date(conv.created_at);
+        return date.getMonth() === index && date.getFullYear() === currentYear;
+      }).length;
+
       return {
         month: name,
         content: contentCount,
-        views: viewsCount
+        views: viewsCount,
+        chats: chatsCount
       };
     });
   };
