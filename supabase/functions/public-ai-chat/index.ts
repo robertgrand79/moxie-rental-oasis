@@ -149,6 +149,21 @@ const tools = [
         required: ["propertyTitle", "checkInDate", "checkOutDate"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "escalate_to_host",
+      description: "Escalate a question to the host when you genuinely cannot answer it with the information provided. Use this when: 1) The guest asks about something very specific not covered in your knowledge base (e.g., specific policies, custom requests, price negotiations), 2) The question requires human judgment or decision-making, 3) You've been unable to find relevant information after checking all available context. Do NOT use this for general questions you should be able to answer.",
+      parameters: {
+        type: "object",
+        properties: {
+          reason: { type: "string", description: "Brief explanation of why this needs host attention" },
+          guestQuestion: { type: "string", description: "The guest's original question" }
+        },
+        required: ["reason", "guestQuestion"]
+      }
+    }
   }
 ];
 
@@ -243,13 +258,48 @@ async function getPricingBreakdown(
   }];
 }
 
+async function createEscalation(
+  supabase: ReturnType<typeof createClient>,
+  organizationId: string,
+  sessionId: string,
+  guestQuestion: string,
+  reason: string,
+  conversationHistory: Message[]
+): Promise<string> {
+  try {
+    const { error } = await supabase
+      .from('assistant_escalations')
+      .insert({
+        organization_id: organizationId,
+        session_id: sessionId,
+        guest_question: guestQuestion,
+        conversation_context: conversationHistory.slice(-10), // Last 10 messages for context
+        status: 'pending'
+      });
+
+    if (error) {
+      console.error('Error creating escalation:', error);
+      return "I've noted your question and will have someone follow up with you shortly.";
+    }
+
+    return "ESCALATION_CREATED";
+  } catch (err) {
+    console.error('Escalation error:', err);
+    return "I've noted your question and will have someone follow up with you shortly.";
+  }
+}
+
 async function processToolCalls(
   supabase: ReturnType<typeof createClient>,
   properties: PropertyContext[],
   toolCalls: any[],
-  siteUrl?: string
-): Promise<string> {
+  siteUrl?: string,
+  organizationId?: string,
+  sessionId?: string,
+  conversationHistory?: Message[]
+): Promise<{ results: string; hasEscalation: boolean }> {
   const results: string[] = [];
+  let hasEscalation = false;
 
   for (const toolCall of toolCalls) {
     const { name, arguments: argsStr } = toolCall.function;
@@ -287,9 +337,30 @@ async function processToolCalls(
         }
         break;
       }
+      case 'escalate_to_host': {
+        if (organizationId && sessionId) {
+          const escalationResult = await createEscalation(
+            supabase,
+            organizationId,
+            sessionId,
+            args.guestQuestion || 'Unknown question',
+            args.reason || 'Guest question requires host attention',
+            conversationHistory || []
+          );
+          if (escalationResult === "ESCALATION_CREATED") {
+            hasEscalation = true;
+            results.push("I've forwarded your question to our host team. They'll review it and get back to you as soon as possible. In the meantime, is there anything else I can help you with?");
+          } else {
+            results.push(escalationResult);
+          }
+        } else {
+          results.push("I've noted your question and will have someone follow up with you.");
+        }
+        break;
+      }
     }
   }
-  return results.join('\n\n---\n\n');
+  return { results: results.join('\n\n---\n\n'), hasEscalation };
 }
 
 async function aggregatePropertyContext(
@@ -792,20 +863,33 @@ serve(async (req) => {
 
     if (assistantMessage?.tool_calls?.length > 0 && supabase) {
       toolCallsUsed = assistantMessage.tool_calls;
-      const toolResults = await processToolCalls(supabase, propertyContext, assistantMessage.tool_calls, siteUrl);
+      const { results: toolResults, hasEscalation } = await processToolCalls(
+        supabase, 
+        propertyContext, 
+        assistantMessage.tool_calls, 
+        siteUrl,
+        organizationId,
+        sessionId,
+        conversationHistory
+      );
       
-      const followUpResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [...messages, assistantMessage, { role: "tool", tool_call_id: assistantMessage.tool_calls[0].id, content: toolResults }],
-        }),
-      });
+      // If this was an escalation, use the escalation message directly
+      if (hasEscalation) {
+        aiResponse = toolResults;
+      } else {
+        const followUpResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [...messages, assistantMessage, { role: "tool", tool_call_id: assistantMessage.tool_calls[0].id, content: toolResults }],
+          }),
+        });
 
-      aiResponse = followUpResponse.ok 
-        ? (await followUpResponse.json()).choices?.[0]?.message?.content || toolResults
-        : toolResults;
+        aiResponse = followUpResponse.ok 
+          ? (await followUpResponse.json()).choices?.[0]?.message?.content || toolResults
+          : toolResults;
+      }
     } else {
       aiResponse = assistantMessage?.content || "I'm sorry, I couldn't generate a response.";
     }
