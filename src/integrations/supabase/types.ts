@@ -223,6 +223,92 @@ export type Database = {
           },
         ]
       }
+      assistant_escalations: {
+        Row: {
+          add_to_faq: boolean | null
+          answered_at: string | null
+          answered_by: string | null
+          conversation_context: Json | null
+          conversation_id: string | null
+          created_at: string
+          guest_email: string | null
+          guest_name: string | null
+          guest_question: string
+          host_response: string | null
+          id: string
+          notified_at: string | null
+          organization_id: string
+          property_id: string | null
+          session_id: string
+          status: string
+        }
+        Insert: {
+          add_to_faq?: boolean | null
+          answered_at?: string | null
+          answered_by?: string | null
+          conversation_context?: Json | null
+          conversation_id?: string | null
+          created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_question: string
+          host_response?: string | null
+          id?: string
+          notified_at?: string | null
+          organization_id: string
+          property_id?: string | null
+          session_id: string
+          status?: string
+        }
+        Update: {
+          add_to_faq?: boolean | null
+          answered_at?: string | null
+          answered_by?: string | null
+          conversation_context?: Json | null
+          conversation_id?: string | null
+          created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_question?: string
+          host_response?: string | null
+          id?: string
+          notified_at?: string | null
+          organization_id?: string
+          property_id?: string | null
+          session_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_escalations_answered_by_fkey"
+            columns: ["answered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_escalations_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_escalations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_escalations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assistant_messages: {
         Row: {
           content: string

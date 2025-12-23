@@ -1,10 +1,11 @@
 import React from 'react';
-import { MessageSquare, Share2, Settings } from 'lucide-react';
+import { MessageSquare, Share2, Settings, AlertCircle } from 'lucide-react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import GeneralChatTab from '@/components/admin/ai-assistant/GeneralChatTab';
 import SocialMediaTab from '@/components/admin/ai-assistant/SocialMediaTab';
 import AssistantSettingsTab from '@/components/admin/settings/AssistantSettingsTab';
+import EscalationsTab from '@/components/admin/ai-assistant/EscalationsTab';
 
 const AdminAIAssistant = () => {
   return (
@@ -14,10 +15,14 @@ const AdminAIAssistant = () => {
     >
       <div className="p-6">
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
               <span className="hidden sm:inline">General Chat</span>
+            </TabsTrigger>
+            <TabsTrigger value="escalations" className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Escalations</span>
             </TabsTrigger>
             <TabsTrigger value="social" className="flex items-center gap-2">
               <Share2 className="h-4 w-4" />
@@ -31,6 +36,10 @@ const AdminAIAssistant = () => {
 
           <TabsContent value="general">
             <GeneralChatTab />
+          </TabsContent>
+
+          <TabsContent value="escalations">
+            <EscalationsTab />
           </TabsContent>
 
           <TabsContent value="social">
