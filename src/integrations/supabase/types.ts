@@ -500,7 +500,7 @@ export type Database = {
           content: string
           content_type: string
           created_at: string
-          created_by: string
+          created_by: string | null
           display_order: number | null
           end_date: string | null
           event_date: string | null
@@ -539,7 +539,7 @@ export type Database = {
           content: string
           content_type?: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           display_order?: number | null
           end_date?: string | null
           event_date?: string | null
@@ -578,7 +578,7 @@ export type Database = {
           content?: string
           content_type?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           display_order?: number | null
           end_date?: string | null
           event_date?: string | null
@@ -1046,7 +1046,7 @@ export type Database = {
           address: string | null
           company_name: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           default_billing_type: string | null
           email: string
           hourly_rate: number | null
@@ -1065,7 +1065,7 @@ export type Database = {
           address?: string | null
           company_name?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           default_billing_type?: string | null
           email: string
           hourly_rate?: number | null
@@ -1084,7 +1084,7 @@ export type Database = {
           address?: string | null
           company_name?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           default_billing_type?: string | null
           email?: string
           hourly_rate?: number | null
@@ -2252,7 +2252,7 @@ export type Database = {
           activity_type: string | null
           category: string
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string | null
           display_order: number | null
           id: string
@@ -2269,7 +2269,7 @@ export type Database = {
           activity_type?: string | null
           category: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description?: string | null
           display_order?: number | null
           id?: string
@@ -2286,7 +2286,7 @@ export type Database = {
           activity_type?: string | null
           category?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           display_order?: number | null
           id?: string
@@ -2920,7 +2920,7 @@ export type Database = {
           amenities: string[] | null
           capacity: number
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string | null
           id: string
           image_url: string | null
@@ -2939,7 +2939,7 @@ export type Database = {
           amenities?: string[] | null
           capacity: number
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
@@ -2958,7 +2958,7 @@ export type Database = {
           amenities?: string[] | null
           capacity?: number
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
@@ -3396,7 +3396,7 @@ export type Database = {
           created_at: string
           details: Json | null
           id: string
-          performed_by: string
+          performed_by: string | null
           target_id: string
           target_name: string | null
           target_type: string
@@ -3406,7 +3406,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          performed_by: string
+          performed_by?: string | null
           target_id: string
           target_name?: string | null
           target_type: string
@@ -3416,7 +3416,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          performed_by?: string
+          performed_by?: string | null
           target_id?: string
           target_name?: string | null
           target_type?: string
@@ -3791,7 +3791,7 @@ export type Database = {
       projects: {
         Row: {
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string | null
           end_date: string | null
           id: string
@@ -3803,7 +3803,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description?: string | null
           end_date?: string | null
           id?: string
@@ -3815,7 +3815,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           end_date?: string | null
           id?: string
@@ -3837,7 +3837,7 @@ export type Database = {
           cleaning_fee: number | null
           cover_image_url: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string
           display_order: number | null
           featured_photos: string[] | null
@@ -3864,7 +3864,7 @@ export type Database = {
           cleaning_fee?: number | null
           cover_image_url?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description: string
           display_order?: number | null
           featured_photos?: string[] | null
@@ -3891,7 +3891,7 @@ export type Database = {
           cleaning_fee?: number | null
           cover_image_url?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string
           display_order?: number | null
           featured_photos?: string[] | null
@@ -4531,7 +4531,7 @@ export type Database = {
           cleaning_fee: number | null
           confirmation_code: string
           created_at: string
-          created_by: string
+          created_by: string | null
           external_booking_id: string | null
           external_platform: string | null
           guest_count: number
@@ -4562,7 +4562,7 @@ export type Database = {
           cleaning_fee?: number | null
           confirmation_code: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           external_booking_id?: string | null
           external_platform?: string | null
           guest_count?: number
@@ -4593,7 +4593,7 @@ export type Database = {
           cleaning_fee?: number | null
           confirmation_code?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           external_booking_id?: string | null
           external_platform?: string | null
           guest_count?: number
@@ -5036,7 +5036,7 @@ export type Database = {
       site_settings: {
         Row: {
           created_at: string
-          created_by: string
+          created_by: string | null
           id: string
           key: string
           organization_id: string | null
@@ -5045,7 +5045,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by: string
+          created_by?: string | null
           id?: string
           key: string
           organization_id?: string | null
@@ -5054,7 +5054,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           id?: string
           key?: string
           organization_id?: string | null
@@ -5360,7 +5360,7 @@ export type Database = {
           category: string
           completed_at: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string | null
           due_date: string | null
           id: string
@@ -5376,7 +5376,7 @@ export type Database = {
           category?: string
           completed_at?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -5392,7 +5392,7 @@ export type Database = {
           category?: string
           completed_at?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -5755,7 +5755,7 @@ export type Database = {
           created_at: string
           details: Json | null
           id: string
-          performed_by: string
+          performed_by: string | null
           target_user_email: string | null
           target_user_id: string | null
         }
@@ -5764,7 +5764,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          performed_by: string
+          performed_by?: string | null
           target_user_email?: string | null
           target_user_id?: string | null
         }
@@ -5773,7 +5773,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          performed_by?: string
+          performed_by?: string | null
           target_user_email?: string | null
           target_user_id?: string | null
         }
@@ -5788,7 +5788,7 @@ export type Database = {
           full_name: string | null
           id: string
           invitation_token: string
-          invited_by: string
+          invited_by: string | null
           organization_id: string | null
           role: string
           updated_at: string
@@ -5801,7 +5801,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           invitation_token: string
-          invited_by: string
+          invited_by?: string | null
           organization_id?: string | null
           role?: string
           updated_at?: string
@@ -5814,7 +5814,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           invitation_token?: string
-          invited_by?: string
+          invited_by?: string | null
           organization_id?: string | null
           role?: string
           updated_at?: string
