@@ -85,108 +85,108 @@ const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfileModalP
 
   if (!user) return null;
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit User Profile</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Enter full name"
-              disabled={isSubmitting}
-            />
-          </div>
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto p-4 sm:p-6">
+          <DialogHeader>
+            <DialogTitle>Edit User Profile</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Enter full name"
+                disabled={isSubmitting}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+1 (555) 123-4567"
-              disabled={isSubmitting}
-            />
-            <p className="text-xs text-muted-foreground">Used for SMS notifications</p>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
-            <Select value={role} onValueChange={setRole} disabled={isSubmitting}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">User</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+1 (555) 123-4567"
+                disabled={isSubmitting}
+              />
+              <p className="text-xs text-muted-foreground">Used for SMS notifications</p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select value={role} onValueChange={setRole} disabled={isSubmitting}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select value={status} onValueChange={setStatus} disabled={isSubmitting}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={status} onValueChange={setStatus} disabled={isSubmitting}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <p className="text-sm text-gray-600">
-              <strong>User ID:</strong> {user.id}
-            </p>
-            <p className="text-sm text-gray-600">
-              <strong>Created:</strong> {new Date(user.created_at).toLocaleDateString()}
-            </p>
-            {user.last_login_at && (
-              <p className="text-sm text-gray-600">
-                <strong>Last Login:</strong> {new Date(user.last_login_at).toLocaleDateString()}
+            <div className="bg-muted/50 p-3 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                <strong>User ID:</strong> {user.id}
               </p>
-            )}
-          </div>
-          
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Updating...' : 'Update User'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
+              <p className="text-sm text-muted-foreground">
+                <strong>Created:</strong> {new Date(user.created_at).toLocaleDateString()}
+              </p>
+              {user.last_login_at && (
+                <p className="text-sm text-muted-foreground">
+                  <strong>Last Login:</strong> {new Date(user.last_login_at).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+            
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Updating...' : 'Update User'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
 };
 
 export default UserProfileModal;
