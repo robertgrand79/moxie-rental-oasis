@@ -25,6 +25,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Send, Lightbulb, Bug, MessageSquare, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 const feedbackSchema = z.object({
   feedback_type: z.enum(['feature_request', 'bug_report', 'general', 'improvement']),
@@ -41,6 +42,7 @@ interface FeedbackFormProps {
 const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSuccess }) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
   const queryClient = useQueryClient();
 
   const form = useForm<FeedbackFormData>({
@@ -56,6 +58,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSuccess }) => {
     mutationFn: async (data: FeedbackFormData) => {
       const { error } = await supabase.from('user_feedback').insert([{
         user_id: user?.id,
+        organization_id: organization?.id,
         feedback_type: data.feedback_type,
         title: data.title,
         description: data.description,

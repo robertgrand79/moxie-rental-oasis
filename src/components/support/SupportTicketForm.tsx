@@ -25,6 +25,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Send } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 const ticketSchema = z.object({
   category: z.enum(['technical', 'billing', 'booking', 'general', 'feature_request', 'bug_report']),
@@ -44,6 +45,7 @@ interface SupportTicketFormProps {
 const SupportTicketForm: React.FC<SupportTicketFormProps> = ({ onSuccess }) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
   const queryClient = useQueryClient();
 
   const form = useForm<TicketFormData>({
@@ -62,6 +64,7 @@ const SupportTicketForm: React.FC<SupportTicketFormProps> = ({ onSuccess }) => {
     mutationFn: async (data: TicketFormData) => {
       const { error } = await supabase.from('support_tickets').insert({
         user_id: user?.id,
+        organization_id: organization?.id,
         category: data.category,
         priority: data.priority,
         subject: data.subject,
