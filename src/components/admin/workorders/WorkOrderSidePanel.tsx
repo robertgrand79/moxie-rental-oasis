@@ -4,7 +4,7 @@ import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Paperclip, Edit, Calendar, User, Building, FileText, DollarSign } from 'lucide-react';
+import { Paperclip, Edit, Calendar, User, Building, FileText, DollarSign, Clock, MessageSquare, CheckCircle, Send, Eye } from 'lucide-react';
 import WorkOrderFileUpload from './WorkOrderFileUpload';
 import WorkOrderCompletionPhotos from './WorkOrderCompletionPhotos';
 import WorkOrderBillingFields from './WorkOrderBillingFields';
@@ -320,6 +320,127 @@ const WorkOrderSidePanel = ({
                   <h3 className="font-medium mb-2">Access Code</h3>
                   <code className="bg-muted px-2 py-1 rounded text-sm">{workOrder.access_code}</code>
                 </div>
+              )}
+
+              {/* Status Timeline */}
+              {(workOrder.sent_at || workOrder.acknowledged_at || workOrder.completed_at) && (
+                <>
+                  <Separator />
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      <h3 className="font-medium">Timeline</h3>
+                    </div>
+                    <div className="space-y-3">
+                      {workOrder.sent_at && (
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100">
+                            <Send className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Sent to Contractor</p>
+                            <p className="text-xs text-muted-foreground">{format(new Date(workOrder.sent_at), 'MMM d, yyyy h:mm a')}</p>
+                          </div>
+                        </div>
+                      )}
+                      {workOrder.acknowledged_at && (
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100">
+                            <Eye className="h-4 w-4 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Acknowledged</p>
+                            <p className="text-xs text-muted-foreground">{format(new Date(workOrder.acknowledged_at), 'MMM d, yyyy h:mm a')}</p>
+                          </div>
+                        </div>
+                      )}
+                      {workOrder.completed_at && (
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100">
+                            <CheckCircle className="h-4 w-4 text-emerald-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Completed</p>
+                            <p className="text-xs text-muted-foreground">{format(new Date(workOrder.completed_at), 'MMM d, yyyy h:mm a')}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Contractor Notes */}
+              {workOrder.contractor_notes && (
+                <>
+                  <Separator />
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                      <h3 className="font-medium">Contractor Notes</h3>
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-blue-800 whitespace-pre-wrap">{workOrder.contractor_notes}</p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Billing Summary */}
+              {(workOrder.billing_type || workOrder.billing_amount || workOrder.hours_worked) && (
+                <>
+                  <Separator />
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <DollarSign className="h-5 w-5 text-muted-foreground" />
+                      <h3 className="font-medium">Billing Summary</h3>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                      {workOrder.billing_type && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Billing Type</span>
+                          <span className="font-medium capitalize">{workOrder.billing_type.replace('_', ' ')}</span>
+                        </div>
+                      )}
+                      {workOrder.billing_rate && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Rate</span>
+                          <span className="font-medium">${workOrder.billing_rate.toFixed(2)}/hr</span>
+                        </div>
+                      )}
+                      {workOrder.hours_worked && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Hours Worked</span>
+                          <span className="font-medium">{workOrder.hours_worked} hrs</span>
+                        </div>
+                      )}
+                      {workOrder.billing_amount && (
+                        <div className="flex justify-between text-sm border-t pt-2 mt-2">
+                          <span className="text-muted-foreground font-medium">Total Amount</span>
+                          <span className="font-semibold text-foreground">${workOrder.billing_amount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {workOrder.payment_status && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Payment Status</span>
+                          <Badge className={
+                            workOrder.payment_status === 'paid' ? 'bg-emerald-50 text-emerald-700' :
+                            workOrder.payment_status === 'invoiced' ? 'bg-blue-50 text-blue-700' :
+                            'bg-amber-50 text-amber-700'
+                          }>
+                            {workOrder.payment_status}
+                          </Badge>
+                        </div>
+                      )}
+                      {workOrder.payment_notes && (
+                        <div className="text-sm pt-2 border-t mt-2">
+                          <span className="text-muted-foreground block mb-1">Payment Notes</span>
+                          <p className="text-foreground">{workOrder.payment_notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
               )}
 
               {/* Attachments */}
