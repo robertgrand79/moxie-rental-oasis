@@ -36,7 +36,8 @@ import {
   Plus,
   Bug,
   Activity,
-  Rocket
+  Rocket,
+  HelpCircle
 } from 'lucide-react';
 import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
@@ -50,6 +51,7 @@ import LaunchReadinessChecklist from '@/components/admin/superadmin/LaunchReadin
 import PlatformAuditLog from '@/components/admin/superadmin/PlatformAuditLog';
 import PlatformLookupTools from '@/components/admin/superadmin/PlatformLookupTools';
 import TenantDetailView from '@/components/admin/superadmin/TenantDetailView';
+import HelpContentManager from '@/components/admin/superadmin/HelpContentManager';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -344,6 +346,10 @@ const SuperAdminPanel = () => {
               <Activity className="h-4 w-4" />
               Monitoring
             </TabsTrigger>
+            <TabsTrigger value="help" className="flex items-center gap-2">
+              <HelpCircle className="h-4 w-4" />
+              Help Center
+            </TabsTrigger>
             <TabsTrigger value="launch" className="flex items-center gap-2">
               <Rocket className="h-4 w-4" />
               Launch
@@ -477,6 +483,10 @@ const SuperAdminPanel = () => {
 
           <TabsContent value="monitoring" className="mt-6 space-y-6">
             <MonitoringTab />
+          </TabsContent>
+
+          <TabsContent value="help" className="mt-6 space-y-6">
+            <HelpContentManager />
           </TabsContent>
 
           <TabsContent value="launch" className="mt-6 space-y-6">
