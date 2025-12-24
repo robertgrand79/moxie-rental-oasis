@@ -54,6 +54,61 @@ interface GroupedNotifications {
   notifications: AdminNotification[];
 }
 
+interface TypeGroup {
+  type: string;
+  notifications: AdminNotification[];
+  isExpanded: boolean;
+}
+
+const GROUPING_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+function groupByType(notifications: AdminNotification[]): TypeGroup[] {
+  if (notifications.length <= 1) {
+    return notifications.map(n => ({
+      type: n.notification_type,
+      notifications: [n],
+      isExpanded: true,
+    }));
+  }
+
+  const groups: TypeGroup[] = [];
+  let currentGroup: AdminNotification[] = [];
+  let currentType = '';
+  let groupStartTime = 0;
+
+  for (const notification of notifications) {
+    const notifTime = new Date(notification.created_at).getTime();
+    
+    if (
+      notification.notification_type === currentType &&
+      groupStartTime - notifTime <= GROUPING_WINDOW_MS
+    ) {
+      currentGroup.push(notification);
+    } else {
+      if (currentGroup.length > 0) {
+        groups.push({
+          type: currentType,
+          notifications: currentGroup,
+          isExpanded: currentGroup.length === 1,
+        });
+      }
+      currentGroup = [notification];
+      currentType = notification.notification_type;
+      groupStartTime = notifTime;
+    }
+  }
+
+  if (currentGroup.length > 0) {
+    groups.push({
+      type: currentType,
+      notifications: currentGroup,
+      isExpanded: currentGroup.length === 1,
+    });
+  }
+
+  return groups;
+}
+
 const NotificationPanel: React.FC<NotificationPanelProps> = ({
   notifications,
   isLoading,
@@ -65,6 +120,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [categoryFilters, setCategoryFilters] = useState<Set<CategoryFilter>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // Count notifications by priority
   const urgentCount = useMemo(() => 
