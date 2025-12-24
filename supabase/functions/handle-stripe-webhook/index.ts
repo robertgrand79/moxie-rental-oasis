@@ -12,6 +12,28 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
+// Helper to check if event was already processed (idempotency)
+async function checkEventProcessed(supabaseClient: any, eventId: string): Promise<boolean> {
+  const { data } = await supabaseClient
+    .from('stripe_webhook_events')
+    .select('id')
+    .eq('stripe_event_id', eventId)
+    .single();
+  return !!data;
+}
+
+// Helper to mark event as processed
+async function markEventProcessed(supabaseClient: any, eventId: string, eventType: string, metadata: any): Promise<void> {
+  await supabaseClient
+    .from('stripe_webhook_events')
+    .insert({
+      stripe_event_id: eventId,
+      event_type: eventType,
+      metadata,
+      processed_at: new Date().toISOString()
+    });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -41,7 +63,17 @@ serve(async (req) => {
       throw new Error("Invalid JSON");
     }
 
-    logStep("Event parsed", { type: event.type });
+    logStep("Event parsed", { type: event.type, id: event.id });
+
+    // Idempotency check - skip if already processed
+    const alreadyProcessed = await checkEventProcessed(supabaseClient, event.id);
+    if (alreadyProcessed) {
+      logStep("Event already processed, skipping", { eventId: event.id });
+      return new Response(JSON.stringify({ received: true, skipped: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     // Get metadata to determine which Stripe account to verify against
     const metadata = (event.data.object as any).metadata || {};
@@ -260,7 +292,8 @@ serve(async (req) => {
                 logStep("Guest booking notification created");
               }
             }
-
+          }
+        }
         break;
       }
 
@@ -285,9 +318,20 @@ serve(async (req) => {
         break;
       }
 
+      case "payment_intent.succeeded": {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        logStep("Processing payment_intent.succeeded", { paymentIntentId: paymentIntent.id });
+        // This confirms payment was successful - reservation should already be updated by checkout.session.completed
+        // Log for audit trail
+        break;
+      }
+
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        logStep("Processing payment_intent.payment_failed", { paymentIntentId: paymentIntent.id });
+        logStep("Processing payment_intent.payment_failed", { 
+          paymentIntentId: paymentIntent.id,
+          lastPaymentError: paymentIntent.last_payment_error?.message 
+        });
 
         if (reservationId) {
           // Get reservation details before updating
@@ -299,7 +343,10 @@ serve(async (req) => {
 
           const { error: updateError } = await supabaseClient
             .from("property_reservations")
-            .update({ payment_status: "failed" })
+            .update({ 
+              payment_status: "failed",
+              payment_notes: paymentIntent.last_payment_error?.message || 'Payment failed'
+            })
             .eq("id", reservationId);
 
           if (updateError) {
@@ -332,7 +379,8 @@ serve(async (req) => {
                   guest_name: reservation.guest_name,
                   guest_email: reservation.guest_email,
                   amount: reservation.total_amount,
-                  stripe_payment_intent_id: paymentIntent.id
+                  stripe_payment_intent_id: paymentIntent.id,
+                  error_message: paymentIntent.last_payment_error?.message
                 }
               });
               logStep("Payment failed notification created");
@@ -342,9 +390,109 @@ serve(async (req) => {
         break;
       }
 
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        logStep("Processing charge.refunded", { chargeId: charge.id, amount: charge.amount_refunded });
+        
+        // Find reservation by payment intent or session
+        const paymentIntentId = charge.payment_intent as string;
+        if (paymentIntentId) {
+          const { data: reservation } = await supabaseClient
+            .from("property_reservations")
+            .select("id, property_id, guest_name, total_amount")
+            .eq("stripe_payment_intent_id", paymentIntentId)
+            .single();
+
+          if (reservation) {
+            const refundAmount = charge.amount_refunded / 100;
+            const isFullRefund = charge.refunded;
+
+            await supabaseClient
+              .from("property_reservations")
+              .update({ 
+                payment_status: isFullRefund ? "refunded" : "partially_refunded",
+                refund_amount: refundAmount
+              })
+              .eq("id", reservation.id);
+
+            // Create refund notification
+            if (reservation.property_id) {
+              const organizationId = await getOrganizationId(reservation.property_id);
+              if (organizationId) {
+                await supabaseClient.from('admin_notifications').insert({
+                  organization_id: organizationId,
+                  user_id: null,
+                  notification_type: 'payment_refunded',
+                  category: 'payments',
+                  title: isFullRefund ? 'Full Refund Processed' : 'Partial Refund Processed',
+                  message: `$${refundAmount.toFixed(2)} refunded for ${reservation.guest_name}'s booking`,
+                  action_url: `/admin/host/bookings`,
+                  priority: 'normal',
+                  metadata: {
+                    reservation_id: reservation.id,
+                    refund_amount: refundAmount,
+                    is_full_refund: isFullRefund
+                  }
+                });
+              }
+            }
+            logStep("Refund processed", { reservationId: reservation.id, amount: refundAmount });
+          }
+        }
+        break;
+      }
+
+      case "charge.dispute.created": {
+        const dispute = event.data.object as Stripe.Dispute;
+        logStep("Processing charge.dispute.created", { disputeId: dispute.id, amount: dispute.amount });
+        
+        // Alert admin about dispute - this is urgent
+        const chargeId = dispute.charge as string;
+        if (chargeId) {
+          // Try to find the associated reservation
+          const charge = await stripe.charges.retrieve(chargeId);
+          const paymentIntentId = charge.payment_intent as string;
+          
+          if (paymentIntentId) {
+            const { data: reservation } = await supabaseClient
+              .from("property_reservations")
+              .select("id, property_id, guest_name")
+              .eq("stripe_payment_intent_id", paymentIntentId)
+              .single();
+
+            if (reservation?.property_id) {
+              const organizationId = await getOrganizationId(reservation.property_id);
+              if (organizationId) {
+                await supabaseClient.from('admin_notifications').insert({
+                  organization_id: organizationId,
+                  user_id: null,
+                  notification_type: 'payment_dispute',
+                  category: 'payments',
+                  title: '⚠️ Payment Dispute Opened',
+                  message: `A dispute for $${(dispute.amount / 100).toFixed(2)} has been opened for ${reservation.guest_name}'s booking. Respond within ${dispute.evidence_details?.due_by ? 'the deadline' : '7 days'}.`,
+                  action_url: `https://dashboard.stripe.com/disputes/${dispute.id}`,
+                  priority: 'urgent',
+                  metadata: {
+                    reservation_id: reservation.id,
+                    dispute_id: dispute.id,
+                    dispute_amount: dispute.amount / 100,
+                    dispute_reason: dispute.reason
+                  }
+                });
+                logStep("Dispute notification created");
+              }
+            }
+          }
+        }
+        break;
+      }
+
       default:
         logStep("Unhandled event type", { type: event.type });
     }
+
+    // Mark event as processed for idempotency
+    await markEventProcessed(supabaseClient, event.id, event.type, metadata);
 
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
