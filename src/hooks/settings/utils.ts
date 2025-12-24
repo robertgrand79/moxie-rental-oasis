@@ -1,5 +1,5 @@
-
 import { SettingsState } from './types';
+import { debug } from '@/utils/debug';
 
 // Map legacy snake_case keys to camelCase
 const keyMapping: Record<string, string> = {
@@ -36,12 +36,12 @@ const normalizeKey = (key: string): string => {
 };
 
 export const parseSettingsFromDatabase = (data: any[]): Record<string, any> => {
-  console.log('[Settings] Parsing settings from database:', data);
+  debug.settings('Parsing settings from database:', data);
   
   return data?.reduce((acc, setting) => {
     // Normalize the key to camelCase
     const normalizedKey = normalizeKey(setting.key);
-    console.log(`[Settings] Processing setting ${setting.key} -> ${normalizedKey}:`, setting.value);
+    debug.settings(`Processing setting ${setting.key} -> ${normalizedKey}:`, setting.value);
     
     try {
       // For JSONB columns, Supabase already handles JSON parsing
@@ -64,9 +64,9 @@ export const parseSettingsFromDatabase = (data: any[]): Record<string, any> => {
         acc[normalizedKey] = setting.value;
       }
       
-      console.log(`[Settings] Parsed ${normalizedKey}:`, acc[normalizedKey]);
+      debug.settings(`Parsed ${normalizedKey}:`, acc[normalizedKey]);
     } catch (parseError) {
-      console.error(`[Settings] Failed to parse setting ${normalizedKey}:`, parseError);
+      debug.error(`Failed to parse setting ${normalizedKey}:`, parseError);
       // Fallback to raw value if parsing fails
       acc[normalizedKey] = setting.value;
     }
@@ -75,7 +75,7 @@ export const parseSettingsFromDatabase = (data: any[]): Record<string, any> => {
 };
 
 export const mergeWithDefaults = (settingsMap: Record<string, any>, defaultSettings: SettingsState): SettingsState => {
-  console.log('[Settings] Merging with defaults:', { settingsMap, defaultSettings });
+  debug.settings('Merging with defaults:', { settingsMap, defaultSettings });
   
   const merged = {
     ...defaultSettings,
@@ -90,7 +90,7 @@ export const mergeWithDefaults = (settingsMap: Record<string, any>, defaultSetti
     }
   };
   
-  console.log('[Settings] Merged settings:', merged);
+  debug.settings('Merged settings:', merged);
   return merged;
 };
 

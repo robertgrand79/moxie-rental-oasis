@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { Organization, OrganizationMember } from '@/types/organizations';
+import { debug } from '@/utils/debug';
 
 interface OrganizationContextType {
   organization: Organization | null;
@@ -50,7 +51,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const fetchOrganizationData = useCallback(async (isRetry = false) => {
     // Require both user AND session for RLS to work properly
     if (!user || !session) {
-      console.log('🏢 No user or session, clearing organization state');
+      debug.org('No user or session, clearing organization state');
       setOrganization(null);
       setMembership(null);
       setIsPlatformAdmin(false);
@@ -61,7 +62,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     // Prevent duplicate fetches
     if (isFetchingRef.current && !isRetry) {
-      console.log('🏢 Fetch already in progress, skipping');
+      debug.org('Fetch already in progress, skipping');
       return;
     }
 
@@ -78,7 +79,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         await new Promise(resolve => setTimeout(resolve, 150));
       }
 
-      console.log('🏢 Fetching organization data for user:', user.email);
+      debug.org('Fetching organization data for user:', user.email);
 
       // Fetch organization membership (most recent) and platform admin status in parallel
       const [membershipResult, platformAdminResult] = await Promise.all([
@@ -101,18 +102,18 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       ]);
 
       if (membershipResult.error) {
-        console.error('❌ Error fetching organization membership:', membershipResult.error);
+        debug.error('Error fetching organization membership:', membershipResult.error);
         throw membershipResult.error;
       }
 
       if (platformAdminResult.error && platformAdminResult.error.code !== 'PGRST116') {
-        console.error('⚠️ Error fetching platform admin status:', platformAdminResult.error);
+        debug.warn('Error fetching platform admin status:', platformAdminResult.error);
       }
 
       // Set organization and membership data
       if (membershipResult.data) {
         const memberData = membershipResult.data as any;
-        console.log('✅ Organization found:', memberData.organization?.name);
+        debug.org('Organization found:', memberData.organization?.name);
         setMembership({
           id: memberData.id,
           organization_id: memberData.organization_id,
@@ -126,14 +127,14 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       } else {
         // No organization found - retry once if this is first attempt
         if (retryCountRef.current === 0 && !isRetry) {
-          console.log('⚠️ No organization found, will retry in 500ms...');
+          debug.warn('No organization found, will retry in 500ms...');
           retryCountRef.current = 1;
           isFetchingRef.current = false;
           setTimeout(() => fetchOrganizationData(true), 500);
           return;
         }
         
-        console.log('🏢 No organization membership found after retry');
+        debug.org('No organization membership found after retry');
         setMembership(null);
         setOrganization(null);
       }
@@ -142,7 +143,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setIsPlatformAdmin(!!platformAdminResult.data);
 
     } catch (err) {
-      console.error('💥 Error in fetchOrganizationData:', err);
+      debug.error('Error in fetchOrganizationData:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch organization data');
     } finally {
       isFetchingRef.current = false;
@@ -156,7 +157,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     // Safety timeout to prevent infinite loading
     const timeout = setTimeout(() => {
       if (loading) {
-        console.warn('⚠️ Organization context loading timeout - forcing completion');
+        debug.warn('Organization context loading timeout - forcing completion');
         setLoading(false);
       }
     }, 8000);

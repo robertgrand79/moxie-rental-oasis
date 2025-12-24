@@ -5,6 +5,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import { SettingsState } from './types';
+import { debug } from '@/utils/debug';
 
 export const useSettingsOperations = (
   setSettings: React.Dispatch<React.SetStateAction<SettingsState>>,
@@ -16,7 +17,7 @@ export const useSettingsOperations = (
 
   // Improved serialization function that handles JSONB properly
   const serializeSettingValue = (value: any): any => {
-    console.log('Serializing value:', value, 'type:', typeof value);
+    debug.settings('Serializing value:', value, 'type:', typeof value);
     
     // Handle null and undefined
     if (value === null || value === undefined) {
@@ -43,11 +44,11 @@ export const useSettingsOperations = (
 
   // Save individual setting with improved error handling and auto-sync - scoped by organization
   const saveSetting = useCallback(async (key: string, value: any): Promise<boolean> => {
-    console.log(`[Settings] Starting save for ${key}:`, value);
+    debug.settings(`Starting save for ${key}:`, value);
 
     if (!user) {
       const error = 'Authentication required to update settings';
-      console.error('[Settings] Auth error:', error);
+      debug.error('Auth error:', error);
       toast({
         title: 'Authentication Required',
         description: error,
@@ -59,7 +60,7 @@ export const useSettingsOperations = (
 
     if (!organization?.id) {
       const error = 'Organization context required to save settings';
-      console.error('[Settings] Organization error:', error);
+      debug.error('Organization error:', error);
       toast({
         title: 'Organization Required',
         description: error,
@@ -71,7 +72,7 @@ export const useSettingsOperations = (
 
     if (!key || key.trim() === '') {
       const error = 'Setting key is required';
-      console.error('[Settings] Validation error:', error);
+      debug.error('Validation error:', error);
       toast({
         title: 'Validation Error',
         description: error,
@@ -83,13 +84,13 @@ export const useSettingsOperations = (
 
     // Handle undefined values
     if (value === undefined) {
-      console.warn(`[Settings] Skipping save for ${key} - value is undefined`);
+      debug.warn(`Skipping save for ${key} - value is undefined`);
       return false;
     }
 
     try {
       const serializedValue = serializeSettingValue(value);
-      console.log(`[Settings] Serialized value for ${key}:`, serializedValue);
+      debug.settings(`Serialized value for ${key}:`, serializedValue);
 
       // Check if setting exists for this organization
       const { data: existingData, error: selectError } = await supabase
@@ -100,14 +101,14 @@ export const useSettingsOperations = (
         .maybeSingle();
 
       if (selectError) {
-        console.error(`[Settings] Database select error for ${key}:`, selectError);
+        debug.error(`Database select error for ${key}:`, selectError);
         throw new Error(`Database error: ${selectError.message}`);
       }
 
       let result;
       if (existingData) {
         // Update existing setting for this organization
-        console.log(`[Settings] Updating existing setting ${key} for org ${organization.id}`);
+        debug.settings(`Updating existing setting ${key} for org ${organization.id}`);
         result = await supabase
           .from('site_settings')
           .update({
@@ -119,7 +120,7 @@ export const useSettingsOperations = (
           .select();
       } else {
         // Insert new setting for this organization
-        console.log(`[Settings] Creating new setting ${key} for org ${organization.id}`);
+        debug.settings(`Creating new setting ${key} for org ${organization.id}`);
         result = await supabase
           .from('site_settings')
           .insert({
@@ -134,7 +135,7 @@ export const useSettingsOperations = (
       const { error: upsertError } = result;
 
       if (upsertError) {
-        console.error(`[Settings] Database upsert error for ${key}:`, upsertError);
+        debug.error(`Database upsert error for ${key}:`, upsertError);
         const errorMessage = `Failed to save ${key}: ${upsertError.message}`;
         setError(errorMessage);
         toast({
@@ -146,10 +147,10 @@ export const useSettingsOperations = (
       }
 
       // Update local state immediately after successful save
-      console.log(`[Settings] Successfully saved ${key}, updating local state`);
+      debug.settings(`Successfully saved ${key}, updating local state`);
       setSettings(prev => {
         const newState = { ...prev, [key]: value };
-        console.log(`[Settings] Local state updated for ${key}`, newState);
+        debug.settings(`Local state updated for ${key}`, newState);
         return newState;
       });
       
@@ -163,16 +164,16 @@ export const useSettingsOperations = (
       ];
       
       if (publicContentKeys.includes(key)) {
-        console.log(`[Settings] Triggering auto-sync for public content: ${key}`);
+        debug.settings(`Triggering auto-sync for public content: ${key}`);
         triggerAutoSync(`settings change: ${key}`);
       }
       
-      console.log(`[Settings] Save operation completed successfully for ${key}`);
+      debug.settings(`Save operation completed successfully for ${key}`);
       return true;
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      console.error(`[Settings] Unexpected error saving ${key}:`, error);
+      debug.error(`Unexpected error saving ${key}:`, error);
       setError(errorMessage);
       toast({
         title: 'Save Error',
@@ -186,7 +187,7 @@ export const useSettingsOperations = (
   // Batch save multiple settings with better error tracking and auto-sync
   const saveSettings = useCallback(async (updates: Partial<SettingsState>): Promise<boolean> => {
     const keys = Object.keys(updates);
-    console.log('[Settings] Starting batch save for keys:', keys);
+    debug.settings('Starting batch save for keys:', keys);
     
     let successCount = 0;
     let failedKeys: string[] = [];
@@ -200,7 +201,7 @@ export const useSettingsOperations = (
           failedKeys.push(key);
         }
       } catch (error) {
-        console.error(`[Settings] Error in batch save for ${key}:`, error);
+        debug.error(`Error in batch save for ${key}:`, error);
         failedKeys.push(key);
       }
     }
@@ -208,7 +209,7 @@ export const useSettingsOperations = (
     const allSuccessful = failedKeys.length === 0;
     
     if (allSuccessful) {
-      console.log('[Settings] Batch save completed successfully');
+      debug.settings('Batch save completed successfully');
       toast({
         title: "Settings Saved",
         description: `Successfully updated ${successCount} settings.`,
@@ -218,10 +219,10 @@ export const useSettingsOperations = (
       setSettings(prev => ({ ...prev, ...updates }));
       
       // Trigger auto-sync after batch save (debounced)
-      console.log('[Settings] Triggering auto-sync after batch save');
+      debug.settings('Triggering auto-sync after batch save');
       triggerAutoSync('batch settings save');
     } else {
-      console.error('[Settings] Batch save partially failed:', failedKeys);
+      debug.error('Batch save partially failed:', failedKeys);
       toast({
         title: "Partial Save Error",
         description: `${successCount} settings saved, ${failedKeys.length} failed: ${failedKeys.join(', ')}`,
@@ -234,10 +235,10 @@ export const useSettingsOperations = (
 
   // Optimistic update function with logging
   const updateSettingOptimistic = useCallback((updates: Partial<SettingsState>) => {
-    console.log('[Settings] Optimistic update:', updates);
+    debug.settings('Optimistic update:', updates);
     setSettings(prev => {
       const newState = { ...prev, ...updates };
-      console.log('[Settings] New optimistic state:', newState);
+      debug.settings('New optimistic state:', newState);
       return newState;
     });
   }, [setSettings]);
