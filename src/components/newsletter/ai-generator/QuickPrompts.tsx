@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Sparkles } from 'lucide-react';
+import { debug } from '@/utils/debug';
 
 interface QuickPromptsProps {
   prompts: string[];
@@ -31,7 +32,7 @@ const QuickPrompts = ({ prompts, onPromptSelect, isGenerating }: QuickPromptsPro
               variant="outline"
               size="sm"
               onClick={() => {
-                console.log('Using quick prompt:', prompt);
+                debug.log('[Newsletter]', 'Using quick prompt:', prompt);
                 onPromptSelect(prompt);
               }}
               disabled={isGenerating}

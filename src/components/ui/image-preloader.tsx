@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { preloadImage } from '@/utils/imageOptimization';
+import { debug } from '@/utils/debug';
 
 interface ImagePreloaderProps {
   images: string[];
@@ -11,7 +12,7 @@ const ImagePreloader = ({ images, priority = false }: ImagePreloaderProps) => {
     if (!images.length) return;
 
     const preloadImages = async () => {
-      console.log(`🚀 Preloading ${images.length} critical images...`);
+      debug.log('[Images]', `🚀 Preloading ${images.length} critical images...`);
       
       try {
         if (priority) {
@@ -24,9 +25,9 @@ const ImagePreloader = ({ images, priority = false }: ImagePreloaderProps) => {
           }, 1000);
         }
         
-        console.log('✅ Image preloading completed');
+        debug.log('[Images]', '✅ Image preloading completed');
       } catch (error) {
-        console.warn('⚠️ Some images failed to preload:', error);
+        debug.warn('[Images]', '⚠️ Some images failed to preload:', error);
       }
     };
 

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 import { useTenant } from '@/contexts/TenantContext';
+import { debug } from '@/utils/debug';
 
 interface Testimonial {
   id: string;
@@ -38,11 +39,11 @@ const TestimonialsSection = () => {
     queryKey: ['testimonials-featured', page, tenantId],
     queryFn: async () => {
       if (!tenantId) {
-        console.log('⭐ [Testimonials] No tenantId, returning empty');
+        debug.log('[Testimonials]', '⭐ No tenantId, returning empty');
         return { data: [], count: 0 };
       }
       
-      console.log('⭐ [Testimonials] Fetching for org:', tenantId);
+      debug.log('[Testimonials]', '⭐ Fetching for org:', tenantId);
       
       // Step 1: Get property IDs for this tenant
       const { data: properties } = await supabase
@@ -51,7 +52,7 @@ const TestimonialsSection = () => {
         .eq('organization_id', tenantId);
       
       const propertyIds = properties?.map(p => p.id) || [];
-      console.log('⭐ [Testimonials] Found', propertyIds.length, 'properties');
+      debug.log('[Testimonials]', '⭐ Found', propertyIds.length, 'properties');
       
       if (propertyIds.length === 0) {
         return { data: [], count: 0 };
@@ -71,7 +72,7 @@ const TestimonialsSection = () => {
         throw error;
       }
       
-      console.log('⭐ [Testimonials] Loaded', data?.length ?? 0, 'reviews (total:', count, ')');
+      debug.log('[Testimonials]', '⭐ Loaded', data?.length ?? 0, 'reviews (total:', count, ')');
       return { data: data as Testimonial[], count: count || 0 };
     },
     enabled: !!tenantId

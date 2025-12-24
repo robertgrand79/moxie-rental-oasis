@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CheckCircle, Clock, AlertCircle, ChevronDown } from 'lucide-react';
+import { debug } from '@/utils/debug';
 
 interface InteractiveWorkOrderStatusBadgeProps {
   status: string;
@@ -63,14 +64,14 @@ const InteractiveWorkOrderStatusBadge = ({
     event.preventDefault();
     event.stopPropagation();
     
-    console.log('Status change clicked:', { workOrderId, currentStatus: status, newStatus });
+    debug.log('[WorkOrders]', 'Status change clicked:', { workOrderId, currentStatus: status, newStatus });
     
     if (newStatus !== status && !isUpdating) {
       try {
         await onStatusChange(workOrderId, newStatus);
-        console.log('Status change successful');
+        debug.log('[WorkOrders]', 'Status change successful');
       } catch (error) {
-        console.error('Status change failed:', error);
+        debug.error('[WorkOrders]', 'Status change failed:', error);
       }
     }
     setIsOpen(false);
@@ -79,7 +80,7 @@ const InteractiveWorkOrderStatusBadge = ({
   const handleBadgeClick = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    console.log('Badge clicked for work order:', workOrderId);
+    debug.log('[WorkOrders]', 'Badge clicked for work order:', workOrderId);
     setIsOpen(!isOpen);
   };
 

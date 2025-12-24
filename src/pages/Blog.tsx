@@ -14,6 +14,7 @@ import BlogSidebar from '@/components/blog/BlogSidebar';
 import BlogEmptyState from '@/components/blog/BlogEmptyState';
 import BlogErrorState from '@/components/blog/BlogErrorState';
 import { useTenant } from '@/contexts/TenantContext';
+import { debug } from '@/utils/debug';
 
 const Blog = () => {
   const [searchParams] = useSearchParams();
@@ -46,7 +47,7 @@ const Blog = () => {
     organizationId: tenantId
   });
 
-  console.log('🎯 Blog page - posts:', blogPosts.length, 'loading:', loading, 'hasMore:', hasMore);
+  debug.blog('🎯 Blog page - posts:', blogPosts.length, 'loading:', loading, 'hasMore:', hasMore);
 
   // Memoize expensive calculations
   const { featuredPost, regularPosts } = useMemo(() => {

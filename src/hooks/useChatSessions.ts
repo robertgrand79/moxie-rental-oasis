@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { debug } from '@/utils/debug';
 
 export interface ChatSession {
   id: string;
@@ -28,7 +29,7 @@ export const useChatSessions = () => {
   const { user } = useAuth();
 
   const fetchChatSessions = async () => {
-    console.log('Fetching chat sessions...');
+    debug.log('[Chat]', 'Fetching chat sessions...');
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -37,7 +38,7 @@ export const useChatSessions = () => {
         .order('updated_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching chat sessions:', error);
+        debug.error('[Chat]', 'Error fetching chat sessions:', error);
         toast({
           title: 'Error',
           description: 'Failed to fetch chat sessions.',
@@ -45,7 +46,7 @@ export const useChatSessions = () => {
         });
         setChatSessions([]);
       } else {
-        console.log('Fetched chat sessions:', data);
+        debug.log('[Chat]', 'Fetched chat sessions:', data);
         // Type assertion to ensure proper typing
         const typedSessions = (data || []).map(session => ({
           ...session,

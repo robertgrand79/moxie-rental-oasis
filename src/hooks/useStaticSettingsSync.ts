@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { debug } from '@/utils/debug';
 
 interface SyncResult {
   success: boolean;
@@ -20,7 +21,7 @@ export const useStaticSettingsSync = () => {
     setSyncing(true);
     
     try {
-      console.log('🔄 Starting static settings sync...');
+      debug.settings('🔄 Starting static settings sync...');
       
       const { data, error } = await supabase.functions.invoke('sync-static-settings', {
         body: {}

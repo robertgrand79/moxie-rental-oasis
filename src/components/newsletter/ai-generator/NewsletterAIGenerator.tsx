@@ -13,6 +13,7 @@ import GeneratedContentDisplay from './GeneratedContentDisplay';
 import { marked } from 'marked';
 import { extractContentFromHTML, isFullHTMLDocument } from '@/utils/htmlContentExtractor';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import { debug } from '@/utils/debug';
 
 interface NewsletterAIGeneratorProps {
   currentSubject: string;
@@ -157,7 +158,7 @@ const NewsletterAIGenerator = ({
       
       if (extractionResult.wasFullDocument) {
         setContentWasFiltered(true);
-        console.log('Filtered full HTML document to content fragment');
+        debug.log('[Newsletter]', 'Filtered full HTML document to content fragment');
       }
 
       // Validate and clean the content
@@ -240,7 +241,7 @@ Generate newsletter content using these sections with HTML formatting:
   };
 
   const useTemplate = async (template: any) => {
-    console.log('Using template:', template);
+    debug.log('[Newsletter]', 'Using template:', template);
     setAiPrompt(template.prompt);
     setSelectedField('content');
     await generateContent(template.prompt);

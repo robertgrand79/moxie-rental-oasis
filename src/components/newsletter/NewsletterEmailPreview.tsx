@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail, Send, CheckCircle, AlertCircle, Info, Settings, ExternalLink, Bug } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { debug } from '@/utils/debug';
 
 interface NewsletterEmailPreviewProps {
   subject: string;
@@ -24,8 +25,8 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
   const { toast } = useToast();
 
   const handleSendPreview = async () => {
-    console.log('🚀 Preview send initiated');
-    console.log('📝 Form data:', { email, subject: subject?.substring(0, 50), contentLength: content?.length });
+    debug.log('[Newsletter]', '🚀 Preview send initiated');
+    debug.log('[Newsletter]', '📝 Form data:', { email, subject: subject?.substring(0, 50), contentLength: content?.length });
 
     if (!email || !subject || !content) {
       console.error('❌ Missing required fields:', { email: !!email, subject: !!subject, content: !!content });
@@ -55,7 +56,7 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
     setDebugInfo(null);
 
     try {
-      console.log('📧 Calling send-newsletter-preview function...');
+      debug.log('[Newsletter]', '📧 Calling send-newsletter-preview function...');
       
       const payload = {
         email: email,
@@ -63,7 +64,7 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
         content: content,
       };
       
-      console.log('📤 Payload being sent:', {
+      debug.log('[Newsletter]', '📤 Payload being sent:', {
         email: payload.email,
         subject: payload.subject?.substring(0, 50) + '...',
         contentLength: payload.content?.length
@@ -75,9 +76,9 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
       });
       const endTime = Date.now();
 
-      console.log('📧 Function response received in', endTime - startTime, 'ms');
-      console.log('📧 Response data:', data);
-      console.log('📧 Response error:', error);
+      debug.log('[Newsletter]', '📧 Function response received in', endTime - startTime, 'ms');
+      debug.log('[Newsletter]', '📧 Response data:', data);
+      debug.log('[Newsletter]', '📧 Response error:', error);
 
       // Set debug info for troubleshooting
       setDebugInfo({
@@ -97,7 +98,7 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
       }
 
       if (data?.success) {
-        console.log('✅ Preview sent successfully:', data);
+        debug.log('[Newsletter]', '✅ Preview sent successfully:', data);
         setLastSentDetails(data.details);
         toast({
           title: "Preview Sent Successfully!",

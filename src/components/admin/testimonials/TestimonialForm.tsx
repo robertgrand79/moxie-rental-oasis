@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { debug } from '@/utils/debug';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -171,7 +172,7 @@ const TestimonialForm = ({
               <Select 
                 value={formData.property_id || ""} 
                 onValueChange={(value) => {
-                  console.log('Property selected:', value);
+                  debug.log('[Testimonials]', 'Property selected:', value);
                   const selectedProperty = properties.find(p => p.id === value);
                   setFormData(prev => ({ 
                     ...prev, 
