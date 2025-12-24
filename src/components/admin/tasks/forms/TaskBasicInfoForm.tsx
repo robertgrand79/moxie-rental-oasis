@@ -1,15 +1,16 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
+interface TaskFormData {
+  title: string;
+  description: string;
+}
+
 interface TaskBasicInfoFormProps {
-  formData: {
-    title: string;
-    description: string;
-  };
-  onFormDataChange: (data: any) => void;
+  formData: TaskFormData;
+  onFormDataChange: (data: TaskFormData) => void;
 }
 
 const TaskBasicInfoForm = ({ formData, onFormDataChange }: TaskBasicInfoFormProps) => {

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar, Clock, MapPin, ExternalLink, Ticket, Search, Filter } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
-import { useTenantLocalEvents } from '@/hooks/useTenantLocalEvents';
+import { useTenantLocalEvents, TenantLocalEvent } from '@/hooks/useTenantLocalEvents';
 import { format, parseISO, isAfter, isBefore, addDays } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -29,7 +29,7 @@ const EnhancedLocalEventsSection = () => {
 
   // Track event interactions with enhanced metadata
   const trackEventClick = useMutation({
-    mutationFn: async ({ event, actionType }: { event: any; actionType: 'view' | 'ticket' | 'website' }) => {
+    mutationFn: async ({ event, actionType }: { event: TenantLocalEvent; actionType: 'view' | 'ticket' | 'website' }) => {
       return trackInteraction.mutateAsync({
         content_type: 'event',
         content_id: event.id,
@@ -112,7 +112,7 @@ const EnhancedLocalEventsSection = () => {
     return format(startDate, 'MMM d, yyyy');
   };
 
-  const handleEventAction = (event: any, actionType: 'view' | 'ticket' | 'website') => {
+  const handleEventAction = (event: TenantLocalEvent, actionType: 'view' | 'ticket' | 'website') => {
     trackEventClick.mutate({ event, actionType });
   };
 

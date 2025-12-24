@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,9 +12,18 @@ import {
 import { Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { format } from 'date-fns';
 
+interface Page {
+  id: string;
+  title: string;
+  slug: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 interface PageListProps {
-  pages: any[];
-  onEdit: (page: any) => void;
+  pages: Page[];
+  onEdit: (page: Page) => void;
   onDelete: (pageId: string) => void;
 }
 

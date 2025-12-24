@@ -8,8 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Upload, X, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+interface BrandingData {
+  siteName: string;
+  logoUrl: string;
+}
+
 interface Props {
-  onComplete: (data?: Record<string, any>) => void;
+  onComplete: (data?: BrandingData) => void;
   isCompleting: boolean;
 }
 
@@ -38,10 +43,10 @@ const OnboardingBrandingStep = ({ onComplete, isCompleting }: Props) => {
         const settingsMap = settings?.reduce((acc, s) => {
           acc[s.key] = s.value;
           return acc;
-        }, {} as Record<string, any>) || {};
+        }, {} as Record<string, unknown>) || {};
 
-        setSiteName(settingsMap.site_name || organization.name || '');
-        setLogoUrl(settingsMap.logo_url || organization.logo_url || '');
+        setSiteName(String(settingsMap.site_name || '') || organization.name || '');
+        setLogoUrl(String(settingsMap.logo_url || '') || organization.logo_url || '');
       } catch (error) {
         console.error('Error loading settings:', error);
         // Fallback to organization data
@@ -77,8 +82,9 @@ const OnboardingBrandingStep = ({ onComplete, isCompleting }: Props) => {
 
       setLogoUrl(publicUrl);
       toast({ title: 'Logo uploaded successfully!' });
-    } catch (error: any) {
-      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Upload failed';
+      toast({ title: 'Upload failed', description: message, variant: 'destructive' });
     } finally {
       setUploading(false);
     }
@@ -147,9 +153,10 @@ const OnboardingBrandingStep = ({ onComplete, isCompleting }: Props) => {
       }
 
       onComplete({ siteName, logoUrl });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Save error:', error);
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      const message = error instanceof Error ? error.message : 'An error occurred';
+      toast({ title: 'Error', description: message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }

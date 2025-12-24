@@ -33,7 +33,7 @@ export interface EnhancedSubscriber {
   contact_source: string;
   subscribed_at: string;
   last_engagement_date: string | null;
-  preferences: any;
+  preferences: unknown;
 }
 
 // Basic newsletter form props

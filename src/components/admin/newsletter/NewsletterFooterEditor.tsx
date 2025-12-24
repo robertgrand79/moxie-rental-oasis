@@ -35,7 +35,7 @@ interface NewsletterFooterEditorProps {
 
 const NewsletterFooterEditor = ({ footerConfig, onFooterConfigChange, disabled = false }: NewsletterFooterEditorProps) => {
   
-  const handleInputChange = (field: keyof FooterConfig, value: any) => {
+  const handleInputChange = (field: 'company_name' | 'tagline', value: string) => {
     onFooterConfigChange({
       ...footerConfig,
       [field]: value
