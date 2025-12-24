@@ -303,6 +303,7 @@ const AppRoutes: React.FC = () => {
         <Route path="checklists" element={<AdminChecklists />} />
         <Route path="pricelabs" element={<AdminPriceLabs />} />
         <Route path="analytics" element={<AdminUnifiedAnalytics />} />
+        <Route path="reports" element={<AdminReportsPage />} />
         <Route path="system-administration" element={<AdminSystemAdministration />} />
         <Route path="host/analytics" element={<HostAnalyticsPage />} />
         <Route path="host/bookings" element={<HostBookingsPage />} />
