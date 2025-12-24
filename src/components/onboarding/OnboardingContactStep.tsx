@@ -7,8 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+interface ContactData {
+  email: string;
+  phone: string;
+  address: string;
+}
+
 interface Props {
-  onComplete: (data?: Record<string, any>) => void;
+  onComplete: (data?: ContactData) => void;
   isCompleting: boolean;
 }
 
@@ -49,8 +55,9 @@ const OnboardingContactStep = ({ onComplete, isCompleting }: Props) => {
       }
 
       onComplete({ email, phone, address });
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An error occurred';
+      toast({ title: 'Error', description: message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }

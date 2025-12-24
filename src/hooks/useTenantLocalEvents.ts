@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 
-export interface LocalEvent {
+export interface TenantLocalEvent {
   id: string;
   title: string;
   description: string;
@@ -26,6 +26,9 @@ export interface LocalEvent {
   updated_at: string;
   organization_id: string;
 }
+
+// Keep backward compatible alias
+export type LocalEvent = TenantLocalEvent;
 
 /**
  * Hook to fetch local events for the current tenant (public-facing).

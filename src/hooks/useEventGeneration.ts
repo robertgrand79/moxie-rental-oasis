@@ -4,7 +4,7 @@ import { toast } from '@/hooks/use-toast';
 import { LocalEvent } from '@/hooks/useLocalEvents';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 
-interface GeneratedEvent {
+export interface GeneratedEvent {
   title: string;
   [key: string]: unknown;
 }

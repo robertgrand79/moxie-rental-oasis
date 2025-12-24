@@ -224,7 +224,7 @@ const NewsletterSubscribersList = () => {
     });
   };
 
-  const handleEditSubscriber = async (id: string, data: any) => {
+  const handleEditSubscriber = async (id: string, data: Partial<EnhancedSubscriber>) => {
     const success = await updateSubscriberCommunicationPrefs(id, data);
     if (success) {
       setEditingSubscriber(null);

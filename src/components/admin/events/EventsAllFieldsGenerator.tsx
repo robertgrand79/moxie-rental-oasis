@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles } from 'lucide-react';
 import { LocalEvent } from '@/hooks/useLocalEvents';
 import { toast } from '@/hooks/use-toast';
-import { useEventGeneration } from '@/hooks/useEventGeneration';
+import { useEventGeneration, GeneratedEvent } from '@/hooks/useEventGeneration';
 import EventGenerationForm from './EventGenerationForm';
 import GeneratedEventsList from './GeneratedEventsList';
 
 interface EventsAllFieldsGeneratorProps {
-  onEventsGenerated: (events: any[]) => void;
+  onEventsGenerated: (events: GeneratedEvent[]) => void;
   existingEvents: LocalEvent[];
 }
 
@@ -33,7 +33,7 @@ const EventsAllFieldsGenerator = ({ onEventsGenerated, existingEvents }: EventsA
     });
   };
 
-  const handleApplySelected = (event: any) => {
+  const handleApplySelected = (event: GeneratedEvent) => {
     onEventsGenerated([event]);
     // Remove the selected event from the generated events list
     const updatedEvents = generatedEvents.filter(e => e !== event);
