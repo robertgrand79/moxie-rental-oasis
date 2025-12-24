@@ -23,6 +23,7 @@ const UserProfileSection = () => {
   const [editData, setEditData] = useState({
     full_name: profile?.full_name || '',
     email: user?.email || '',
+    phone: profile?.phone || '',
   });
 
   const handleEditToggle = () => {
@@ -31,6 +32,7 @@ const UserProfileSection = () => {
       setEditData({
         full_name: profile?.full_name || '',
         email: user?.email || '',
+        phone: profile?.phone || '',
       });
     }
     setIsEditing(!isEditing);
@@ -46,6 +48,7 @@ const UserProfileSection = () => {
         .from('profiles')
         .update({
           full_name: editData.full_name,
+          phone: editData.phone || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -154,6 +157,20 @@ const UserProfileSection = () => {
                       onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                       placeholder="Enter your email"
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="phone" className="text-sm font-medium">
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={editData.phone}
+                      onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Used for SMS notifications</p>
                   </div>
                 </div>
               </div>
