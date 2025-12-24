@@ -45,11 +45,11 @@ const NotificationBell: React.FC = () => {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        align="start"
+        align="end"
         side="bottom"
         sideOffset={8}
         collisionPadding={16}
-        className="p-0 shadow-lg bg-popover w-80 sm:w-96 overflow-hidden z-50"
+        className="p-0 shadow-lg bg-popover w-80 sm:w-96 overflow-hidden z-50 md:translate-x-[-18rem]"
       >
         <NotificationPanel
           notifications={notifications}
