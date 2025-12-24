@@ -184,6 +184,44 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          id: string
+          organization_id: string | null
+          properties: Json | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          id?: string
+          organization_id?: string | null
+          properties?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          id?: string
+          organization_id?: string | null
+          properties?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_status: {
         Row: {
           created_at: string
@@ -220,6 +258,33 @@ export type Database = {
           service_name?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      application_logs: {
+        Row: {
+          context: Json | null
+          created_at: string
+          id: string
+          level: string
+          message: string
+          tags: string[] | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          level?: string
+          message: string
+          tags?: string[] | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+          tags?: string[] | null
         }
         Relationships: []
       }
@@ -1139,6 +1204,56 @@ export type Database = {
           },
         ]
       }
+      conversion_funnels: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          dropped_at: string | null
+          funnel_name: string
+          id: string
+          organization_id: string | null
+          properties: Json | null
+          session_id: string | null
+          step_name: string
+          step_number: number
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          dropped_at?: string | null
+          funnel_name: string
+          id?: string
+          organization_id?: string | null
+          properties?: Json | null
+          session_id?: string | null
+          step_name: string
+          step_number: number
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          dropped_at?: string | null
+          funnel_name?: string
+          id?: string
+          organization_id?: string | null
+          properties?: Json | null
+          session_id?: string | null
+          step_name?: string
+          step_number?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversion_funnels_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       device_automations: {
         Row: {
           actions: Json | null
@@ -1533,6 +1648,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      error_logs: {
+        Row: {
+          breadcrumbs: Json | null
+          context: Json | null
+          created_at: string
+          error_id: string
+          fingerprint: string
+          id: string
+          message: string
+          resolved: boolean | null
+          severity: string
+          stack: string | null
+          tags: string[] | null
+          type: string
+          url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          breadcrumbs?: Json | null
+          context?: Json | null
+          created_at?: string
+          error_id: string
+          fingerprint: string
+          id?: string
+          message: string
+          resolved?: boolean | null
+          severity?: string
+          stack?: string | null
+          tags?: string[] | null
+          type?: string
+          url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          breadcrumbs?: Json | null
+          context?: Json | null
+          created_at?: string
+          error_id?: string
+          fingerprint?: string
+          id?: string
+          message?: string
+          resolved?: boolean | null
+          severity?: string
+          stack?: string | null
+          tags?: string[] | null
+          type?: string
+          url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
       }
       eugene_events: {
         Row: {
@@ -2192,6 +2358,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      health_check_logs: {
+        Row: {
+          checks: Json | null
+          created_at: string
+          id: string
+          status: string
+          uptime: number | null
+        }
+        Insert: {
+          checks?: Json | null
+          created_at?: string
+          id?: string
+          status: string
+          uptime?: number | null
+        }
+        Update: {
+          checks?: Json | null
+          created_at?: string
+          id?: string
+          status?: string
+          uptime?: number | null
+        }
+        Relationships: []
       }
       home_amenities: {
         Row: {
@@ -3696,6 +3886,33 @@ export type Database = {
           is_active?: boolean
           role?: Database["public"]["Enums"]["platform_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      platform_metrics: {
+        Row: {
+          dimensions: Json | null
+          id: string
+          metric_name: string
+          metric_type: string
+          metric_value: number
+          recorded_at: string
+        }
+        Insert: {
+          dimensions?: Json | null
+          id?: string
+          metric_name: string
+          metric_type?: string
+          metric_value: number
+          recorded_at?: string
+        }
+        Update: {
+          dimensions?: Json | null
+          id?: string
+          metric_name?: string
+          metric_type?: string
+          metric_value?: number
+          recorded_at?: string
         }
         Relationships: []
       }
@@ -6296,6 +6513,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_old_logs: { Args: never; Returns: undefined }
       cleanup_old_webhook_events: { Args: never; Returns: undefined }
       clear_failed_logins: { Args: { p_email: string }; Returns: undefined }
       create_organization_with_owner: {
