@@ -7,6 +7,7 @@ export interface TaxDetail {
   rate: number;
   amount: number;
   taxRateId: string;
+  taxType: string;
 }
 
 export interface DailyPriceDetail {
@@ -22,12 +23,22 @@ export interface CustomFeeDetail {
   description?: string;
 }
 
+export interface DiscountDetail {
+  type: 'promo' | 'length_of_stay';
+  name: string;
+  amount: number;
+  percentage?: number;
+}
+
 export interface BookingChargesBreakdown {
   accommodationSubtotal: number;
   cleaningFee: number;
   serviceFee: number;
   customFees: CustomFeeDetail[];
   totalCustomFees: number;
+  discounts: DiscountDetail[];
+  totalDiscount: number;
+  subtotalAfterDiscount: number;
   taxes: TaxDetail[];
   totalBeforeTax: number;
   totalTax: number;
@@ -40,7 +51,9 @@ export interface BookingChargesBreakdown {
 export async function calculateBookingCharges(
   propertyId: string,
   checkInDate: string,
-  checkOutDate: string
+  checkOutDate: string,
+  guestCount: number = 1,
+  promoCode?: string
 ): Promise<BookingChargesBreakdown> {
   // Calculate number of nights
   const checkIn = new Date(checkInDate);
@@ -51,10 +64,10 @@ export async function calculateBookingCharges(
     throw new Error('Check-out date must be after check-in date');
   }
 
-  // Fetch property details (for cleaning fee, service fee, and fallback price)
+  // Fetch property details including extra guest fee settings
   const { data: property, error: propertyError } = await supabase
     .from('properties')
-    .select('price_per_night, cleaning_fee, service_fee_percentage')
+    .select('price_per_night, cleaning_fee, service_fee_percentage, extra_guest_fee, extra_guest_threshold, pet_fee, pet_fee_type, organization_id')
     .eq('id', propertyId)
     .single();
 
@@ -63,10 +76,9 @@ export async function calculateBookingCharges(
   }
 
   // Fetch dynamic pricing for each night of the stay
-  // Note: Guest pays for check-in through the night before checkout
   const stayDates = eachDayOfInterval({ 
     start: checkIn, 
-    end: addDays(checkOut, -1) // Exclude checkout date
+    end: addDays(checkOut, -1)
   });
 
   const { data: dynamicPrices, error: pricingError } = await supabase
@@ -116,7 +128,7 @@ export async function calculateBookingCharges(
     console.error('Error fetching custom fees:', customFeesError);
   }
 
-  // Calculate custom fees
+  // Calculate custom fees including extra guest fee
   const customFees: CustomFeeDetail[] = (customFeesData || []).map((fee: any) => {
     let amount = 0;
     
@@ -129,9 +141,7 @@ export async function calculateBookingCharges(
           amount = fee.fee_amount * nights;
           break;
         case 'per_guest':
-          // For now, we don't have guest count in this function
-          // Default to 1 guest, can be enhanced later
-          amount = fee.fee_amount;
+          amount = fee.fee_amount * guestCount;
           break;
       }
     } else if (fee.fee_type === 'percentage') {
@@ -141,15 +151,91 @@ export async function calculateBookingCharges(
     return {
       id: fee.id,
       name: fee.fee_name,
-      amount,
+      amount: Math.round(amount * 100) / 100,
       description: fee.description,
     };
   });
 
-  const totalCustomFees = customFees.reduce((sum, fee) => sum + fee.amount, 0);
-  const totalBeforeTax = accommodationSubtotal + cleaningFee + serviceFee + totalCustomFees;
+  // Add extra guest fee if applicable
+  const extraGuestThreshold = property.extra_guest_threshold || 2;
+  const extraGuestFee = property.extra_guest_fee || 0;
+  if (guestCount > extraGuestThreshold && extraGuestFee > 0) {
+    const extraGuests = guestCount - extraGuestThreshold;
+    const extraGuestTotal = extraGuests * extraGuestFee * nights;
+    customFees.push({
+      id: 'extra-guest-fee',
+      name: `Extra Guest Fee (${extraGuests} guest${extraGuests > 1 ? 's' : ''})`,
+      amount: Math.round(extraGuestTotal * 100) / 100,
+      description: `$${extraGuestFee}/night per guest over ${extraGuestThreshold}`,
+    });
+  }
 
-  // Fetch applicable tax rates
+  const totalCustomFees = customFees.reduce((sum, fee) => sum + fee.amount, 0);
+  
+  // Calculate subtotal before discounts
+  const subtotalBeforeDiscounts = accommodationSubtotal + cleaningFee + serviceFee + totalCustomFees;
+
+  // Fetch and apply discounts
+  const discounts: DiscountDetail[] = [];
+
+  // Check for length of stay discounts
+  const { data: losDiscounts } = await supabase
+    .from('length_of_stay_discounts')
+    .select('*')
+    .eq('property_id', propertyId)
+    .eq('is_active', true)
+    .lte('min_nights', nights)
+    .order('min_nights', { ascending: false })
+    .limit(1);
+
+  if (losDiscounts && losDiscounts.length > 0) {
+    const discount = losDiscounts[0];
+    const discountAmount = accommodationSubtotal * (discount.discount_percentage / 100);
+    discounts.push({
+      type: 'length_of_stay',
+      name: `${discount.min_nights}+ Night Discount`,
+      amount: Math.round(discountAmount * 100) / 100,
+      percentage: discount.discount_percentage,
+    });
+  }
+
+  // Check for promo code
+  if (promoCode) {
+    const { data: promoData } = await supabase
+      .from('promotional_codes')
+      .select('*')
+      .eq('organization_id', property.organization_id)
+      .eq('code', promoCode.toUpperCase())
+      .eq('is_active', true)
+      .or(`property_id.is.null,property_id.eq.${propertyId}`)
+      .gte('valid_until', new Date().toISOString())
+      .single();
+
+    if (promoData && nights >= (promoData.min_nights || 1)) {
+      // Check usage limits
+      if (!promoData.max_uses || promoData.current_uses < promoData.max_uses) {
+        let discountAmount = 0;
+        if (promoData.discount_type === 'percentage') {
+          discountAmount = accommodationSubtotal * (promoData.discount_amount / 100);
+        } else {
+          discountAmount = promoData.discount_amount;
+        }
+        
+        discounts.push({
+          type: 'promo',
+          name: `Promo: ${promoCode.toUpperCase()}`,
+          amount: Math.round(discountAmount * 100) / 100,
+          percentage: promoData.discount_type === 'percentage' ? promoData.discount_amount : undefined,
+        });
+      }
+    }
+  }
+
+  const totalDiscount = discounts.reduce((sum, d) => sum + d.amount, 0);
+  const subtotalAfterDiscount = subtotalBeforeDiscounts - totalDiscount;
+  const totalBeforeTax = subtotalAfterDiscount;
+
+  // Fetch applicable tax rates with new tax types
   const { data: taxAssignments, error: taxError } = await supabase
     .from('property_tax_assignments')
     .select(`
@@ -158,7 +244,10 @@ export async function calculateBookingCharges(
         id,
         jurisdiction,
         tax_name,
-        tax_rate
+        tax_rate,
+        tax_type,
+        flat_amount,
+        applies_to
       )
     `)
     .eq('property_id', propertyId)
@@ -168,22 +257,53 @@ export async function calculateBookingCharges(
     console.error('Error fetching tax rates:', taxError);
   }
 
-  // Calculate taxes
+  // Calculate taxes based on tax type and applies_to settings
   const taxes: TaxDetail[] = (taxAssignments || []).map((assignment: any) => {
     const taxRate = assignment.tax_rates;
-    const taxAmount = totalBeforeTax * taxRate.tax_rate;
+    let taxableAmount = 0;
+    let taxAmount = 0;
+
+    // Determine taxable base based on applies_to
+    switch (taxRate.applies_to) {
+      case 'accommodation_only':
+        taxableAmount = accommodationSubtotal - totalDiscount;
+        break;
+      case 'subtotal':
+        taxableAmount = accommodationSubtotal + cleaningFee + totalCustomFees - totalDiscount;
+        break;
+      case 'total':
+      default:
+        taxableAmount = totalBeforeTax;
+        break;
+    }
+
+    // Calculate tax based on tax type
+    switch (taxRate.tax_type) {
+      case 'percentage':
+        taxAmount = taxableAmount * taxRate.tax_rate;
+        break;
+      case 'flat_per_night':
+        taxAmount = (taxRate.flat_amount || 0) * nights;
+        break;
+      case 'flat_per_booking':
+        taxAmount = taxRate.flat_amount || 0;
+        break;
+      default:
+        taxAmount = taxableAmount * taxRate.tax_rate;
+    }
     
     return {
       name: taxRate.tax_name,
       jurisdiction: taxRate.jurisdiction,
       rate: taxRate.tax_rate,
-      amount: taxAmount,
-      taxRateId: taxRate.id
+      amount: Math.round(taxAmount * 100) / 100,
+      taxRateId: taxRate.id,
+      taxType: taxRate.tax_type,
     };
   });
 
   const totalTax = taxes.reduce((sum, tax) => sum + tax.amount, 0);
-  const grandTotal = totalBeforeTax + totalTax;
+  const grandTotal = Math.round((totalBeforeTax + totalTax) * 100) / 100;
 
   return {
     accommodationSubtotal,
@@ -191,6 +311,9 @@ export async function calculateBookingCharges(
     serviceFee,
     customFees,
     totalCustomFees,
+    discounts,
+    totalDiscount,
+    subtotalAfterDiscount,
     taxes,
     totalBeforeTax,
     totalTax,

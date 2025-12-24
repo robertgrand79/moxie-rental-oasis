@@ -13,11 +13,14 @@ import PropertyDetailsForm from './PropertyForm/PropertyDetailsForm';
 import BookingIntegrationSection from './PropertyForm/BookingIntegrationSection';
 import { PropertyFormData } from './PropertyForm/types';
 import { useOptimizedPhotoUpload } from '@/hooks/useOptimizedPhotoUpload';
-import { Loader2, FileText, Image, Calendar, Home, Wrench, DollarSign } from 'lucide-react';
+import { Loader2, FileText, Image, Calendar, Home, Wrench, DollarSign, Receipt, Tag } from 'lucide-react';
 import BookingIntegrationManager from '@/components/admin/properties/BookingIntegrationManager';
 import TurnoPropertyMapping from './PropertyForm/TurnoPropertyMapping';
 import { SmartHomeManager } from '@/components/smart-home/SmartHomeManager';
 import { PropertyFeesManager } from './PropertyForm/PropertyFeesManager';
+import { PropertyTaxManager } from '@/components/admin/properties/PropertyTaxManager';
+import { LengthOfStayDiscounts } from '@/components/admin/properties/LengthOfStayDiscounts';
+import { PromotionalCodesManager } from '@/components/admin/properties/PromotionalCodesManager';
 
 const propertySchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -113,7 +116,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="overflow-x-auto -mx-2 px-2 pb-2">
-                <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-6 gap-1">
+                <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-8 gap-1">
                   <TabsTrigger value="details" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]">
                     <FileText className="h-4 w-4" />
                     <span className="hidden xs:inline sm:inline">Details</span>
@@ -129,6 +132,14 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
                   <TabsTrigger value="fees" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]" disabled={!isEditing}>
                     <DollarSign className="h-4 w-4" />
                     <span className="hidden xs:inline sm:inline">Fees</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="taxes" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]" disabled={!isEditing}>
+                    <Receipt className="h-4 w-4" />
+                    <span className="hidden xs:inline sm:inline">Taxes</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="discounts" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]" disabled={!isEditing}>
+                    <Tag className="h-4 w-4" />
+                    <span className="hidden xs:inline sm:inline">Discounts</span>
                   </TabsTrigger>
                   <TabsTrigger value="smart-home" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]" disabled={!isEditing}>
                     <Home className="h-4 w-4" />
@@ -168,6 +179,21 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
 
                   <TabsContent value="fees" className="space-y-6 mt-6">
                     <PropertyFeesManager property={initialData as Property} />
+                  </TabsContent>
+
+                  <TabsContent value="taxes" className="space-y-6 mt-6">
+                    <PropertyTaxManager 
+                      propertyId={(initialData as Property).id} 
+                      organizationId={(initialData as Property).organization_id} 
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="discounts" className="space-y-6 mt-6">
+                    <LengthOfStayDiscounts propertyId={(initialData as Property).id} />
+                    <PromotionalCodesManager 
+                      organizationId={(initialData as Property).organization_id}
+                      propertyId={(initialData as Property).id}
+                    />
                   </TabsContent>
 
                   <TabsContent value="smart-home" className="space-y-6 mt-6">
