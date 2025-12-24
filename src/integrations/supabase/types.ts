@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_lockouts: {
+        Row: {
+          created_at: string
+          email: string
+          failed_attempts: number
+          id: string
+          last_failed_at: string | null
+          locked_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          failed_attempts?: number
+          id?: string
+          last_failed_at?: string | null
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          failed_attempts?: number
+          id?: string
+          last_failed_at?: string | null
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_audit_logs: {
         Row: {
           action: string
@@ -6152,6 +6182,7 @@ export type Database = {
         Args: { new_role: string; old_role: string; target_user_id: string }
         Returns: boolean
       }
+      check_account_lockout: { Args: { p_email: string }; Returns: Json }
       check_rate_limit: {
         Args: {
           identifier: string
@@ -6161,6 +6192,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      clear_failed_logins: { Args: { p_email: string }; Returns: undefined }
       create_organization_with_owner: {
         Args: {
           _name: string
@@ -6310,6 +6342,7 @@ export type Database = {
         Args: { p_office_space_id: string }
         Returns: undefined
       }
+      track_failed_login: { Args: { p_email: string }; Returns: Json }
       turno_sync_properties: { Args: never; Returns: undefined }
       update_user_last_login: { Args: { user_id: string }; Returns: undefined }
       user_belongs_to_organization: {
