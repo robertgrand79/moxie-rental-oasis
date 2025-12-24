@@ -60,6 +60,7 @@ import AdminReviews from '@/pages/admin/AdminReviews';
 import AdminWorkOrders from '@/pages/admin/AdminWorkOrders';
 import AdminContractors from '@/pages/admin/AdminContractors';
 import AdminUnifiedAnalytics from '@/pages/admin/AdminUnifiedAnalytics';
+import AdminReportsPage from '@/pages/admin/AdminReportsPage';
 import HostAnalyticsPage from '@/pages/admin/HostAnalyticsPage';
 import HostBookingsPage from '@/pages/admin/HostBookingsPage';
 import HostCommunicationPage from '@/pages/admin/HostCommunicationPage';
@@ -185,6 +186,7 @@ const AppRoutes: React.FC = () => {
           <Route path="checklists" element={<AdminChecklists />} />
           <Route path="pricelabs" element={<AdminPriceLabs />} />
           <Route path="analytics" element={<AdminUnifiedAnalytics />} />
+          <Route path="reports" element={<AdminReportsPage />} />
           <Route path="system-administration" element={<AdminSystemAdministration />} />
           <Route path="host/analytics" element={<HostAnalyticsPage />} />
           <Route path="host/bookings" element={<HostBookingsPage />} />
