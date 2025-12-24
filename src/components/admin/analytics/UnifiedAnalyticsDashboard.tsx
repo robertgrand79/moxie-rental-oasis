@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, Activity, TrendingUp, Users } from 'lucide-react';
+import { BarChart3, Activity, TrendingUp, Users, AlertCircle } from 'lucide-react';
 import ContentPerformanceTab from './ContentPerformanceTab';
 import SiteHealthTab from './SiteHealthTab';
 import MarketingEngagementTab from './MarketingEngagementTab';
@@ -8,6 +8,7 @@ import RealTimeMonitoringTab from './RealTimeMonitoringTab';
 import AnalyticsStatusIndicator from './AnalyticsStatusIndicator';
 import SecurityStatusIndicator from './SecurityStatusIndicator';
 import SecurityDefinerStatus from './SecurityDefinerStatus';
+import MonitoringDashboardTab from '../monitoring/MonitoringDashboardTab';
 
 const UnifiedAnalyticsDashboard = () => {
   const [activeTab, setActiveTab] = useState('content');
@@ -53,6 +54,11 @@ const UnifiedAnalyticsDashboard = () => {
               <span className="hidden sm:inline">Real-time Monitoring</span>
               <span className="sm:hidden">Real-time</span>
             </TabsTrigger>
+            <TabsTrigger value="monitoring" className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm hover:bg-muted min-w-fit">
+              <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">Logs & Health</span>
+              <span className="sm:hidden">Logs</span>
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -70,6 +76,10 @@ const UnifiedAnalyticsDashboard = () => {
 
         <TabsContent value="realtime" className="space-y-6">
           <RealTimeMonitoringTab />
+        </TabsContent>
+
+        <TabsContent value="monitoring" className="space-y-6">
+          <MonitoringDashboardTab />
         </TabsContent>
       </Tabs>
     </div>
