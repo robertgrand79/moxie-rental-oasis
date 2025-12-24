@@ -2,12 +2,16 @@
 import React from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
 
-interface AIToolsTabProps {
-  siteData: any;
-  setSiteData: (data: any) => void;
+interface SiteData {
+  [key: string]: unknown;
 }
 
-const AIToolsTab = ({ siteData, setSiteData }: AIToolsTabProps) => {
+interface AIToolsTabProps {
+  siteData: SiteData;
+  setSiteData: (data: SiteData) => void;
+}
+
+const AIToolsTab = ({ }: AIToolsTabProps) => {
   return (
     <EnhancedCard variant="glass">
       <EnhancedCardHeader>

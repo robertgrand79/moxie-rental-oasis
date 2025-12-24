@@ -8,8 +8,18 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, Bug, CheckCircle, AlertCircle } from 'lucide-react';
 import { debug } from '@/utils/debug';
 
+interface SiteData {
+  siteName?: string;
+  tagline?: string;
+  heroTitle?: string;
+  contactEmail?: string;
+  phone?: string;
+  address?: string;
+  [key: string]: string | undefined;
+}
+
 interface DebugInfoPanelProps {
-  siteData: any;
+  siteData: SiteData;
   isUserEditing?: boolean;
 }
 

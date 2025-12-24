@@ -6,8 +6,27 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
+interface EventFormData {
+  title?: string;
+  description?: string;
+  event_date?: string;
+  end_date?: string;
+  time_start?: string;
+  time_end?: string;
+  location?: string;
+  category?: string;
+  status?: string;
+  is_featured?: boolean;
+  is_active?: boolean;
+  is_recurring?: boolean;
+  price_range?: string;
+  website_url?: string;
+  ticket_url?: string;
+  image_url?: string;
+}
+
 interface EventsPreviewProps {
-  formData: any;
+  formData: EventFormData;
   categories: Array<{ value: string; label: string }>;
 }
 

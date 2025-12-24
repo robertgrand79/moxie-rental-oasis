@@ -2,9 +2,24 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EnhancedPageForm from '@/components/EnhancedPageForm';
 
+interface PageFormData {
+  title: string;
+  slug: string;
+  content?: string;
+  status?: string;
+  meta_title?: string;
+  meta_description?: string;
+}
+
+interface Page extends PageFormData {
+  id: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface PageFormDialogProps {
-  page?: any;
-  onSubmit: (data: any) => void;
+  page?: Page;
+  onSubmit: (data: PageFormData) => void;
   onClose: () => void;
 }
 

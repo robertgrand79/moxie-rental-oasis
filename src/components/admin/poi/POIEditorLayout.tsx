@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Edit, Eye, Sparkles, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { PointOfInterest } from '@/hooks/usePointsOfInterest';
+import { ContentSuggestion } from '@/hooks/useCrossContentIntegration';
 import { POIFormData } from './POIFormFields';
 import POIEditorForm from './POIEditorForm';
 import POIPreview from './POIPreview';
@@ -23,7 +24,7 @@ interface POIEditorLayoutProps {
   onEnhance: (item: PointOfInterest) => void;
   isEnhancing: boolean;
   enhancingId: string | null;
-  getSuggestions: (item: PointOfInterest) => any[];
+  getSuggestions: (item: PointOfInterest) => ContentSuggestion[];
 }
 
 const POIEditorLayout = ({
@@ -175,10 +176,11 @@ const POIEditorLayout = ({
     setActiveTab('list');
   };
 
-  const handleAIGenerated = async (generatedItems: any[]) => {
+  const handleAIGenerated = async (generatedItems: Partial<POIFormData>[]) => {
     // Handle multiple generated items
     for (const item of generatedItems) {
       await onSubmit({
+        ...formData,
         ...item,
         created_by: user?.id || '',
         status: 'draft' // AI generated items start as drafts

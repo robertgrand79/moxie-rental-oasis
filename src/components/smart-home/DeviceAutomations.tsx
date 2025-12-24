@@ -16,13 +16,27 @@ interface Device {
   location: string | null;
 }
 
+interface TriggerConditions {
+  event?: string;
+  timing?: string;
+}
+
+interface AutomationActions {
+  lock_action?: string;
+  notification?: string;
+  access_code_action?: string;
+  thermostat_action?: string;
+  temperature?: number;
+  mode?: string;
+}
+
 interface DeviceAutomation {
   id: string;
   automation_name: string;
   automation_type: string;
-  trigger_conditions: any;
+  trigger_conditions: TriggerConditions;
   target_devices: string[];
-  actions: any;
+  actions: AutomationActions;
   is_active: boolean;
 }
 
@@ -50,7 +64,7 @@ export const DeviceAutomations = ({ property, devices }: DeviceAutomationsProps)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAutomations(data || []);
+      setAutomations((data || []) as DeviceAutomation[]);
 
     } catch (error) {
       console.error('Error loading automations:', error);

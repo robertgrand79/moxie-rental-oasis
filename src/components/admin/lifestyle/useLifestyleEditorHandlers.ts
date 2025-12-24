@@ -55,7 +55,7 @@ export const useLifestyleEditorHandlers = (
     setActiveTab('list');
   };
 
-  const handleAIGenerated = async (generatedItems: any[]) => {
+  const handleAIGenerated = async (generatedItems: Partial<LifestyleGalleryFormData>[]) => {
     debug.log('Processing AI generated items:', generatedItems);
     
     if (!user?.id) {
@@ -99,9 +99,10 @@ export const useLifestyleEditorHandlers = (
       });
     } catch (error) {
       debug.error('Error processing AI generated items:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast({
         title: 'Error',
-        description: `Failed to add lifestyle items: ${error.message}`,
+        description: `Failed to add lifestyle items: ${errorMessage}`,
         variant: 'destructive'
       });
     }

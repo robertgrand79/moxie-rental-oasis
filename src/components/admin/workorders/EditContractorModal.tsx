@@ -15,10 +15,22 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { X } from 'lucide-react';
 
+interface ContractorUpdateData {
+  name: string;
+  company_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  notes: string;
+  is_active: boolean;
+  rating: number | null;
+  specialties: string[];
+}
+
 interface EditContractorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpdateContractor: (contractorId: string, contractorData: any) => Promise<void>;
+  onUpdateContractor: (contractorId: string, contractorData: ContractorUpdateData) => Promise<void>;
   contractor: Contractor | null;
 }
 
