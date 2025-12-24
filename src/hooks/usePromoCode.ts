@@ -59,7 +59,7 @@ export const usePromoCode = ({ propertyId, organizationId, onDiscountChange }: U
       onDiscountChange?.(promo.calculatedDiscount);
       
       return promo;
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error validating promo code:', err);
       setValidationError('Unable to validate promo code');
       return null;

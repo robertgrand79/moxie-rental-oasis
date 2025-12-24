@@ -49,11 +49,12 @@ export const useNewsletterSubscribersCRUD = () => {
         title: "Subscriber Added",
         description: "The subscriber has been successfully added to your newsletter.",
       });
-    } catch (err: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add the subscriber.';
       console.error('Error adding subscriber:', err);
       toast({
         title: "Add Failed",
-        description: err.message || "Failed to add the subscriber.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -61,7 +62,7 @@ export const useNewsletterSubscribersCRUD = () => {
     }
   };
 
-  const editSubscriber = async (id: string, data: any): Promise<void> => {
+  const editSubscriber = async (id: string, data: Partial<AddSubscriberFormData>): Promise<void> => {
     try {
       setIsLoading(true);
       
@@ -79,11 +80,12 @@ export const useNewsletterSubscribersCRUD = () => {
         title: "Subscriber Updated",
         description: "The subscriber information has been successfully updated.",
       });
-    } catch (err: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update the subscriber.';
       console.error('Error updating subscriber:', err);
       toast({
         title: "Update Failed",
-        description: err.message || "Failed to update the subscriber.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -106,11 +108,12 @@ export const useNewsletterSubscribersCRUD = () => {
         title: "Subscriber Deleted",
         description: "The subscriber has been permanently removed from your newsletter.",
       });
-    } catch (err: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete the subscriber.';
       console.error('Error deleting subscriber:', err);
       toast({
         title: "Delete Failed",
-        description: err.message || "Failed to delete the subscriber.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

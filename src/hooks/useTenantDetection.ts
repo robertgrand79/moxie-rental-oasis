@@ -22,7 +22,7 @@ interface TenantDetectionResult {
 }
 
 // Debug logging helper
-const logTenant = (message: string, data?: any) => {
+const logTenant = (message: string, data?: unknown) => {
   const prefix = '🏢 [TenantDetection]';
   if (data !== undefined) {
     console.log(`${prefix} ${message}`, data);

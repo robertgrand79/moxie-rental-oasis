@@ -63,15 +63,16 @@ export const useThirdPartyScripts = (
       }
       
       // Remove _fbq if it exists
-      if ((window as any)._fbq) {
-        delete (window as any)._fbq;
+      const windowWithFb = window as Window & { _fbq?: unknown; fbq?: unknown; dataLayer?: Array<Record<string, unknown>> };
+      if (windowWithFb._fbq) {
+        delete windowWithFb._fbq;
         console.log('🗑️ SiteHead: Removed _fbq from window object');
       }
       
       // Clear any Facebook Pixel related data from dataLayer if it exists
-      if ((window as any).dataLayer) {
-        (window as any).dataLayer = (window as any).dataLayer.filter((item: any) => 
-          !(item && typeof item === 'object' && item.event && item.event.includes('fb'))
+      if (windowWithFb.dataLayer) {
+        windowWithFb.dataLayer = windowWithFb.dataLayer.filter((item) => 
+          !(item && typeof item === 'object' && 'event' in item && typeof item.event === 'string' && item.event.includes('fb'))
         );
         console.log('🗑️ SiteHead: Cleaned Facebook events from dataLayer');
       }

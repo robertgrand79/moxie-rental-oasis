@@ -4,9 +4,14 @@ import { toast } from '@/hooks/use-toast';
 import { LocalEvent } from '@/hooks/useLocalEvents';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 
+interface GeneratedEvent {
+  title: string;
+  [key: string]: unknown;
+}
+
 export const useEventGeneration = (existingEvents: LocalEvent[]) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedEvents, setGeneratedEvents] = useState<any[]>([]);
+  const [generatedEvents, setGeneratedEvents] = useState<GeneratedEvent[]>([]);
   const { settings } = useTenantSettings();
   
   const location = settings?.heroLocationText || 'the local area';
@@ -73,7 +78,9 @@ export const useEventGeneration = (existingEvents: LocalEvent[]) => {
       if (!Array.isArray(events)) {
         events = [events];
       }
-      events = events.filter((event: any) => event && typeof event === 'object' && event.title);
+      events = events.filter((event: unknown): event is GeneratedEvent => 
+        event !== null && typeof event === 'object' && 'title' in event && typeof (event as GeneratedEvent).title === 'string'
+      );
       
       if (events.length === 0) {
         throw new Error('No valid events were generated');

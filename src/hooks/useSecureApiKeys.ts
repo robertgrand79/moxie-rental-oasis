@@ -16,7 +16,7 @@ export const useSecureApiKeys = () => {
       if (!data?.success) throw new Error(data?.error || 'Failed to get API key');
 
       return data.value || '';
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error getting API key:', error);
       return '';
     } finally {
@@ -36,9 +36,10 @@ export const useSecureApiKeys = () => {
 
       toast.success('API key saved securely');
       return true;
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save API key';
       console.error('Error setting API key:', error);
-      toast.error(error.message || 'Failed to save API key');
+      toast.error(errorMessage);
       return false;
     } finally {
       setLoading(false);
@@ -55,9 +56,10 @@ export const useSecureApiKeys = () => {
 
       toast.success(`Encrypted ${data.encrypted} API keys`);
       return { encrypted: data.encrypted, skipped: data.skipped };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to encrypt API keys';
       console.error('Error encrypting keys:', error);
-      toast.error(error.message || 'Failed to encrypt API keys');
+      toast.error(errorMessage);
       return { encrypted: 0, skipped: 0 };
     } finally {
       setLoading(false);

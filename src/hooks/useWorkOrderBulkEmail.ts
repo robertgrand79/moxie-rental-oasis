@@ -31,11 +31,12 @@ export const useWorkOrderBulkEmail = () => {
       });
 
       return true;
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send work orders';
       console.error('Error sending bulk work orders:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to send work orders',
+        description: errorMessage,
         variant: 'destructive',
       });
       return false;
