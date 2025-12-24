@@ -16,12 +16,14 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
-  Trash2
+  Trash2,
+  Shield
 } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationOperations } from '@/hooks/useOrganizationOperations';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import DomainDiagnostics from '@/components/domain/DomainDiagnostics';
 
 const LOVABLE_IP = '185.158.133.1';
 
@@ -29,6 +31,13 @@ interface DnsRecord {
   type: string;
   host: string;
   value: string;
+}
+
+interface DiagnosticResult {
+  check: string;
+  status: 'pass' | 'fail' | 'warning';
+  message: string;
+  details?: string;
 }
 
 const DomainSettingsTab = () => {
@@ -41,6 +50,7 @@ const DomainSettingsTab = () => {
   const [verifying, setVerifying] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'verified' | 'error' | null>(null);
   const [verificationMessage, setVerificationMessage] = useState('');
+  const [diagnostics, setDiagnostics] = useState<DiagnosticResult[]>([]);
 
   useEffect(() => {
     if (organization?.custom_domain) {
@@ -108,23 +118,31 @@ const DomainSettingsTab = () => {
   };
 
   const handleVerifyDns = async () => {
-    if (!customDomain) return;
+    if (!customDomain || !organization) return;
     
     setVerifying(true);
     setVerificationStatus(null);
+    setDiagnostics([]);
     
     try {
       const { data, error } = await supabase.functions.invoke('verify-domain-dns', {
-        body: { domain: customDomain },
+        body: { 
+          domain: customDomain,
+          organization_id: organization.id 
+        },
       });
 
       if (error) throw error;
 
       setVerificationStatus(data.verified ? 'verified' : 'pending');
       setVerificationMessage(data.message || '');
+      setDiagnostics(data.diagnostics || []);
+      
+      // Refetch to get updated verification status
+      refetch();
       
       toast({
-        title: data.verified ? 'DNS Verified!' : 'DNS Not Yet Configured',
+        title: data.verified ? 'DNS Verified!' : 'DNS Configuration Issues',
         description: data.message,
         variant: data.verified ? 'default' : 'destructive',
       });
@@ -444,9 +462,18 @@ const DomainSettingsTab = () => {
                 </Alert>
               )}
 
+              {/* Diagnostics Display */}
+              {diagnostics.length > 0 && (
+                <DomainDiagnostics 
+                  diagnostics={diagnostics}
+                  domain={organization.custom_domain}
+                  orgId={organization.id}
+                />
+              )}
+
               {verificationStatus === 'verified' && (
-                <Alert>
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20">
+                  <Shield className="h-4 w-4 text-green-500" />
                   <AlertDescription>
                     Your DNS is configured correctly! SSL will be automatically provisioned.
                     Your site should be live at <strong>https://{organization.custom_domain}</strong> shortly.
