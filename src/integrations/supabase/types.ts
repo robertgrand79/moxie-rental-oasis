@@ -4370,53 +4370,123 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_code_usage: {
+        Row: {
+          booking_total: number
+          discount_amount: number
+          guest_email: string
+          id: string
+          organization_id: string | null
+          promo_code_id: string
+          reservation_id: string | null
+          used_at: string | null
+        }
+        Insert: {
+          booking_total: number
+          discount_amount: number
+          guest_email: string
+          id?: string
+          organization_id?: string | null
+          promo_code_id: string
+          reservation_id?: string | null
+          used_at?: string | null
+        }
+        Update: {
+          booking_total?: number
+          discount_amount?: number
+          guest_email?: string
+          id?: string
+          organization_id?: string | null
+          promo_code_id?: string
+          reservation_id?: string | null
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_usage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_usage_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promotional_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_usage_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       promotional_codes: {
         Row: {
+          applies_to: string | null
           code: string
           created_at: string | null
           current_uses: number | null
           description: string | null
           discount_amount: number
           discount_type: string
+          first_time_only: boolean | null
           id: string
           is_active: boolean | null
+          max_discount_cap: number | null
           max_uses: number | null
+          min_booking_value: number | null
           min_nights: number | null
           organization_id: string | null
+          per_guest_limit: number | null
           property_id: string | null
           updated_at: string | null
           valid_from: string
           valid_until: string | null
         }
         Insert: {
+          applies_to?: string | null
           code: string
           created_at?: string | null
           current_uses?: number | null
           description?: string | null
           discount_amount: number
           discount_type: string
+          first_time_only?: boolean | null
           id?: string
           is_active?: boolean | null
+          max_discount_cap?: number | null
           max_uses?: number | null
+          min_booking_value?: number | null
           min_nights?: number | null
           organization_id?: string | null
+          per_guest_limit?: number | null
           property_id?: string | null
           updated_at?: string | null
           valid_from?: string
           valid_until?: string | null
         }
         Update: {
+          applies_to?: string | null
           code?: string
           created_at?: string | null
           current_uses?: number | null
           description?: string | null
           discount_amount?: number
           discount_type?: string
+          first_time_only?: boolean | null
           id?: string
           is_active?: boolean | null
+          max_discount_cap?: number | null
           max_uses?: number | null
+          min_booking_value?: number | null
           min_nights?: number | null
           organization_id?: string | null
+          per_guest_limit?: number | null
           property_id?: string | null
           updated_at?: string | null
           valid_from?: string
@@ -7092,6 +7162,17 @@ export type Database = {
         }
         Returns: string
       }
+      record_promo_code_usage: {
+        Args: {
+          p_booking_total: number
+          p_discount_amount: number
+          p_guest_email: string
+          p_organization_id: string
+          p_promo_code_id: string
+          p_reservation_id: string
+        }
+        Returns: undefined
+      }
       refresh_office_space_availability: {
         Args: { p_office_space_id: string }
         Returns: undefined
@@ -7122,6 +7203,24 @@ export type Database = {
       user_is_org_admin: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
+      }
+      validate_promo_code: {
+        Args: {
+          p_booking_total: number
+          p_code: string
+          p_guest_email: string
+          p_nights: number
+          p_organization_id: string
+          p_property_id: string
+        }
+        Returns: {
+          calculated_discount: number
+          discount_amount: number
+          discount_type: string
+          error_message: string
+          is_valid: boolean
+          promo_id: string
+        }[]
       }
       validate_tenant_access: {
         Args: { _property_id: string }

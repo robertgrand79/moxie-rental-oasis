@@ -1,6 +1,6 @@
 import React from 'react';
 import { Property } from '@/types/property';
-import { Calendar, Users, Mail, Phone, User, FileText } from 'lucide-react';
+import { Calendar, Users, Mail, Phone, User, FileText, Tag, Percent } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,13 @@ interface CustomFeeDetail {
   name: string;
   amount: number;
   description?: string;
+}
+
+interface DiscountDetail {
+  type: 'promo' | 'length_of_stay';
+  name: string;
+  amount: number;
+  percentage?: number;
 }
 
 interface ReviewStepProps {
@@ -32,6 +39,8 @@ interface ReviewStepProps {
     subtotal: number;
     totalTax: number;
     grandTotal: number;
+    discounts?: DiscountDetail[];
+    totalDiscount?: number;
   };
 }
 
@@ -162,6 +171,21 @@ export const ReviewStep = ({
                   <span>${fee.amount.toFixed(2)}</span>
                 </div>
               ))}
+              {/* Discounts */}
+              {charges.discounts && charges.discounts.length > 0 && charges.discounts.map((discount, index) => (
+                <div key={index} className="flex justify-between text-green-600 dark:text-green-400">
+                  <span className="flex items-center gap-1">
+                    {discount.type === 'promo' ? <Tag className="h-3 w-3" /> : <Percent className="h-3 w-3" />}
+                    {discount.name}
+                    {discount.percentage && (
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ml-1">
+                        {discount.percentage}% off
+                      </Badge>
+                    )}
+                  </span>
+                  <span>-${discount.amount.toFixed(2)}</span>
+                </div>
+              ))}
               {charges.totalTax > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Taxes</span>
@@ -173,6 +197,12 @@ export const ReviewStep = ({
                 <span>Total</span>
                 <span className="text-2xl">${charges.grandTotal.toFixed(2)}</span>
               </div>
+              {charges.totalDiscount && charges.totalDiscount > 0 && (
+                <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                  <Tag className="h-3 w-3" />
+                  You're saving ${charges.totalDiscount.toFixed(2)} on this booking!
+                </p>
+              )}
             </div>
           </div>
         </div>
