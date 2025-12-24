@@ -76,6 +76,9 @@ import AdminAIAssistant from '@/pages/admin/AdminAIAssistant';
 import GuidebookEditorPage from '@/pages/admin/GuidebookEditorPage';
 import InboxPage from '@/pages/admin/InboxPage';
 import ConversationDetailPage from '@/pages/admin/ConversationDetailPage';
+import HelpCenterPage from '@/pages/admin/HelpCenterPage';
+import SupportTicketsPage from '@/pages/admin/SupportTicketsPage';
+import StatusPage from '@/pages/StatusPage';
 import NotificationsPage from '@/pages/admin/NotificationsPage';
 import OrganizationSignup from '@/pages/onboarding/OrganizationSignup';
 import OnboardingWizard from '@/pages/onboarding/OnboardingWizard';
@@ -127,6 +130,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/acknowledge" element={<AcknowledgePage />} />
         <Route path="/contractor/:token" element={<ContractorPortal />} />
         <Route path="/accept-invite" element={<AcceptInvitation />} />
+        <Route path="/status" element={<StatusPage />} />
 
         {/* Shared Onboarding Routes */}
         <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
@@ -199,6 +203,8 @@ const AppRoutes: React.FC = () => {
           <Route path="profile" element={<AdminProfile />} />
           <Route path="platform" element={<SuperAdminPanel />} />
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
+          <Route path="help" element={<HelpCenterPage />} />
+          <Route path="support-tickets" element={<SupportTicketsPage />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
@@ -244,6 +250,7 @@ const AppRoutes: React.FC = () => {
       {/* Public standalone routes */}
       <Route path="/acknowledge" element={<AcknowledgePage />} />
       <Route path="/contractor/:token" element={<ContractorPortal />} />
+      <Route path="/status" element={<StatusPage />} />
 
       {/* Onboarding Routes */}
       <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
@@ -316,6 +323,8 @@ const AppRoutes: React.FC = () => {
         <Route path="profile" element={<AdminProfile />} />
         <Route path="platform" element={<SuperAdminPanel />} />
         <Route path="ai-assistant" element={<AdminAIAssistant />} />
+        <Route path="help" element={<HelpCenterPage />} />
+        <Route path="support-tickets" element={<SupportTicketsPage />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

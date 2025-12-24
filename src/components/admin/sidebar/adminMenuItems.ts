@@ -18,6 +18,9 @@ import {
   Sparkles,
   Bell,
   FileBarChart,
+  HelpCircle,
+  Ticket,
+  Activity,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -168,6 +171,29 @@ export const adminMenuItems = [
         href: '/admin/settings',
         icon: Settings,
         description: 'Site, organization, integrations, team & access'
+      }
+    ]
+  },
+  {
+    title: 'Help & Support',
+    items: [
+      {
+        title: 'Help Center',
+        href: '/admin/help',
+        icon: HelpCircle,
+        description: 'Documentation, guides, and FAQs'
+      },
+      {
+        title: 'My Tickets',
+        href: '/admin/support-tickets',
+        icon: Ticket,
+        description: 'View your support tickets'
+      },
+      {
+        title: 'System Status',
+        href: '/status',
+        icon: Activity,
+        description: 'Check system health and status'
       }
     ]
   },

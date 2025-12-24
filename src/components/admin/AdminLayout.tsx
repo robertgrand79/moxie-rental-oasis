@@ -5,6 +5,7 @@ import ReportBugDialog from './bugs/ReportBugDialog';
 import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
 import NotificationBell from './notifications/NotificationBell';
+import SupportWidget from '@/components/support/SupportWidget';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -85,6 +86,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </button>
           
           <ReportBugDialog open={bugDialogOpen} onOpenChange={setBugDialogOpen} />
+          
+          {/* Support Widget */}
+          <SupportWidget />
         </div>
       </SidebarProvider>
     </div>
