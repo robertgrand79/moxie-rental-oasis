@@ -25,7 +25,9 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2, Wand2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sparkles, Loader2, Wand2, Eye, FileEdit } from 'lucide-react';
+import TemplatePreview from './TemplatePreview';
 
 interface MessageTemplate {
   id: string;
@@ -76,6 +78,7 @@ const TemplateDialog: React.FC<TemplateDialogProps> = ({ open, onOpenChange, tem
   const { organization } = useCurrentOrganization();
   const isEditing = !!template;
   const [isGenerating, setIsGenerating] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('edit');
   
   // Use organization-scoped properties
   const { properties } = usePropertyFetch();
@@ -210,7 +213,7 @@ const TemplateDialog: React.FC<TemplateDialogProps> = ({ open, onOpenChange, tem
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Template' : 'Create Template'}</DialogTitle>
         </DialogHeader>
@@ -261,8 +264,12 @@ const TemplateDialog: React.FC<TemplateDialogProps> = ({ open, onOpenChange, tem
                 <SelectContent>
                   <SelectItem value="welcome">Welcome</SelectItem>
                   <SelectItem value="checkin">Check-in</SelectItem>
+                  <SelectItem value="checkin_reminder">Check-in Reminder</SelectItem>
+                  <SelectItem value="checkin_instructions">Check-in Instructions</SelectItem>
                   <SelectItem value="checkout">Check-out</SelectItem>
+                  <SelectItem value="checkout_reminder">Check-out Reminder</SelectItem>
                   <SelectItem value="followup">Follow-up</SelectItem>
+                  <SelectItem value="review_request">Review Request</SelectItem>
                   <SelectItem value="custom">Custom</SelectItem>
                 </SelectContent>
               </Select>
@@ -298,59 +305,82 @@ const TemplateDialog: React.FC<TemplateDialogProps> = ({ open, onOpenChange, tem
             {errors.subject && <p className="text-sm text-destructive">{errors.subject.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="template-content">Message Content</Label>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAIGenerate('generate')}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Sparkles className="h-4 w-4 mr-1" />}
-                  AI Generate
-                </Button>
-                {watch('content') && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleAIGenerate('improve')}
-                    disabled={isGenerating}
-                  >
-                    <Wand2 className="h-4 w-4 mr-1" />
-                    Improve
-                  </Button>
-                )}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="edit" className="flex items-center gap-2">
+                <FileEdit className="h-4 w-4" />
+                Edit Content
+              </TabsTrigger>
+              <TabsTrigger value="preview" className="flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Preview
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="edit" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="template-content">Message Content</Label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAIGenerate('generate')}
+                      disabled={isGenerating}
+                    >
+                      {isGenerating ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Sparkles className="h-4 w-4 mr-1" />}
+                      AI Generate
+                    </Button>
+                    {watch('content') && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAIGenerate('improve')}
+                        disabled={isGenerating}
+                      >
+                        <Wand2 className="h-4 w-4 mr-1" />
+                        Improve
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <Textarea
+                  id="template-content"
+                  {...register('content', { required: 'Content is required' })}
+                  placeholder="Hi {{guest_name}},&#10;&#10;Welcome to {{property_name}}! Here are your check-in instructions..."
+                  className="min-h-[250px] font-mono text-sm"
+                />
+                {errors.content && <p className="text-sm text-destructive">{errors.content.message}</p>}
               </div>
-            </div>
-            <Textarea
-              id="template-content"
-              {...register('content', { required: 'Content is required' })}
-              placeholder="Hi {{guest_name}},&#10;&#10;Welcome to {{property_name}}! Here are your check-in instructions..."
-              className="min-h-[200px] font-mono text-sm"
-            />
-            {errors.content && <p className="text-sm text-destructive">{errors.content.message}</p>}
-          </div>
 
-          <div className="space-y-2">
-            <Label>Available Variables</Label>
-            <div className="flex flex-wrap gap-2">
-              {TEMPLATE_VARIABLES.map((v) => (
-                <Badge
-                  key={v.key}
-                  variant="outline"
-                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                  onClick={() => insertVariable(v.key)}
-                  title={v.description}
-                >
-                  {v.key}
-                </Badge>
-              ))}
-            </div>
-          </div>
+              <div className="space-y-2">
+                <Label>Available Variables</Label>
+                <div className="flex flex-wrap gap-2">
+                  {TEMPLATE_VARIABLES.map((v) => (
+                    <Badge
+                      key={v.key}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                      onClick={() => insertVariable(v.key)}
+                      title={v.description}
+                    >
+                      {v.key}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="preview" className="mt-4">
+              <TemplatePreview
+                subject={watch('subject')}
+                content={watch('content')}
+                companyName={organization?.name}
+              />
+            </TabsContent>
+          </Tabs>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

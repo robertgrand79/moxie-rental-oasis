@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Globe, Home, Mail, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import TemplateDialog from './TemplateDialog';
+import StarterTemplatesButton from './StarterTemplatesButton';
+import TemplateVariablesReference from './TemplateVariablesReference';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import {
   AlertDialog,
@@ -35,8 +37,12 @@ interface MessageTemplate {
 const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
   welcome: { label: 'Welcome', color: 'bg-green-500/10 text-green-600 border-green-500/20' },
   checkin: { label: 'Check-in', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+  checkin_reminder: { label: 'Check-in Reminder', color: 'bg-sky-500/10 text-sky-600 border-sky-500/20' },
+  checkin_instructions: { label: 'Check-in Instructions', color: 'bg-teal-500/10 text-teal-600 border-teal-500/20' },
   checkout: { label: 'Check-out', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+  checkout_reminder: { label: 'Check-out Reminder', color: 'bg-orange-500/10 text-orange-600 border-orange-500/20' },
   followup: { label: 'Follow-up', color: 'bg-purple-500/10 text-purple-600 border-purple-500/20' },
+  review_request: { label: 'Review Request', color: 'bg-pink-500/10 text-pink-600 border-pink-500/20' },
   custom: { label: 'Custom', color: 'bg-slate-500/10 text-slate-600 border-slate-500/20' },
 };
 
@@ -85,6 +91,7 @@ const MessageTemplatesTab = () => {
 
   const globalTemplates = templates?.filter(t => !t.property_id) || [];
   const propertyTemplates = templates?.filter(t => t.property_id) || [];
+  const existingCategories = templates?.map(t => t.category) || [];
 
   const handleEdit = (template: MessageTemplate) => {
     setEditingTemplate(template);
@@ -162,11 +169,17 @@ const MessageTemplatesTab = () => {
             Create reusable templates for automated guest communications
           </p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Template
-        </Button>
+        <div className="flex items-center gap-2">
+          <StarterTemplatesButton existingCategories={existingCategories} />
+          <Button onClick={handleCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Template
+          </Button>
+        </div>
       </div>
+
+      {/* Variable Reference */}
+      <TemplateVariablesReference />
 
       {/* Global Templates */}
       <div className="space-y-4">

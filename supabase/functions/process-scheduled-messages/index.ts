@@ -24,6 +24,22 @@ function processTemplate(template: string, variables: Record<string, string>): s
   return processed;
 }
 
+// Map category to fallback template generator
+function getFallbackEmailHtml(category: string, variables: Record<string, string>): string | null {
+  switch (category) {
+    case 'checkin_reminder':
+      return generateCheckInReminderEmail(variables);
+    case 'checkin_instructions':
+      return generateCheckInInstructionsEmail(variables);
+    case 'checkout_reminder':
+      return generateCheckOutReminderEmail(variables);
+    case 'review_request':
+      return generateReviewRequestEmail(variables);
+    default:
+      return null;
+  }
+}
+
 // Helper function to get API keys and settings for an organization
 async function getOrgSettings(supabase: any, organizationId: string): Promise<{ 
   resendApiKey: string | null; 
@@ -262,9 +278,20 @@ serve(async (req) => {
                 template.name?.toLowerCase().includes("booking confirmation") ||
                 template.name?.toLowerCase().includes("reservation confirm");
               
-              const htmlContent = isBookingConfirmation 
-                ? generateBookingConfirmationEmail(variables)
-                : generateGenericEmail(subject, content, variables);
+              // Check if we have a specialized template for this category
+              const fallbackHtml = getFallbackEmailHtml(template.category, variables);
+              
+              let htmlContent: string;
+              if (isBookingConfirmation) {
+                htmlContent = generateBookingConfirmationEmail(variables);
+              } else if (fallbackHtml) {
+                // Use the specialized template for this category
+                htmlContent = fallbackHtml;
+                console.log(`Using specialized ${template.category} email template`);
+              } else {
+                // Generic template with user content from database
+                htmlContent = generateGenericEmail(subject, content, variables);
+              }
               
               const emailResult = await resend.emails.send({
                 from: `${fromName} <${fromEmail}>`,
