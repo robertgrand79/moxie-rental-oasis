@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 
 interface PropertyAnalytics {
   property_id: string;
@@ -36,12 +37,19 @@ interface ReservationData {
   };
 }
 
+// Revenue milestone thresholds
+const REVENUE_MILESTONES = [1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000];
+
 const PropertyAnalyticsDashboard = () => {
   const [selectedProperty, setSelectedProperty] = useState<string>('all');
+  const alertsTriggeredRef = useRef(false);
   
   // Get organization-scoped properties
   const { properties = [], loading: propertiesLoading } = usePropertyFetch();
   const orgPropertyIds = properties.map(p => p.id);
+  
+  // System notifications
+  const { createLowAvailabilityAlert, createRevenueMilestone } = useSystemNotifications();
 
   // Fetch property analytics scoped to organization
   const { data: analytics = [], isLoading: analyticsLoading } = useQuery({
@@ -148,6 +156,53 @@ const PropertyAnalyticsDashboard = () => {
   const averageOccupancy = analytics.length > 0 
     ? analytics.reduce((sum, prop) => sum + prop.occupancy_rate, 0) / analytics.length 
     : 0;
+
+  // Check for low availability and revenue milestones
+  useEffect(() => {
+    if (alertsTriggeredRef.current || analytics.length === 0 || analyticsLoading) return;
+    alertsTriggeredRef.current = true;
+
+    // Check each property for low availability
+    analytics.forEach(property => {
+      const availableDays = Math.round(30 * (1 - property.occupancy_rate / 100));
+      
+      if (availableDays < 3 && property.occupancy_rate > 90) {
+        const lastAlertKey = `low_availability_alert_${property.property_id}`;
+        const lastAlert = localStorage.getItem(lastAlertKey);
+        const now = Date.now();
+        
+        // Only alert once per day per property
+        if (!lastAlert || now - parseInt(lastAlert) > 24 * 60 * 60 * 1000) {
+          localStorage.setItem(lastAlertKey, now.toString());
+          createLowAvailabilityAlert({
+            propertyId: property.property_id,
+            propertyName: property.property_title,
+            availableDays,
+            periodDays: 30,
+            occupancyRate: property.occupancy_rate,
+          });
+        }
+      }
+    });
+
+    // Check for revenue milestones
+    const lastMilestoneKey = 'revenue_milestone_reached';
+    const lastMilestone = parseInt(localStorage.getItem(lastMilestoneKey) || '0');
+    
+    const currentMilestone = REVENUE_MILESTONES.reduce((highest, milestone) => {
+      return totalRevenue >= milestone ? milestone : highest;
+    }, 0);
+
+    if (currentMilestone > lastMilestone) {
+      localStorage.setItem(lastMilestoneKey, currentMilestone.toString());
+      createRevenueMilestone({
+        milestone: `$${currentMilestone.toLocaleString()}`,
+        amount: totalRevenue,
+        period: 'all-time',
+        previousAmount: lastMilestone > 0 ? lastMilestone : undefined,
+      });
+    }
+  }, [analytics, analyticsLoading, createLowAvailabilityAlert, createRevenueMilestone, totalRevenue]);
 
   return (
     <div className="space-y-6">

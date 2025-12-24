@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 
 interface SecurityAuditEvent {
   event_type: 'authentication' | 'authorization' | 'data_access' | 'admin_action' | 'suspicious_activity';
@@ -12,6 +14,8 @@ interface SecurityAuditEvent {
 
 export const useSecurityAudit = () => {
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
+  const { createSecurityAlert } = useSystemNotifications();
 
   const logSecurityEvent = useCallback(async (event: SecurityAuditEvent) => {
     try {
@@ -68,7 +72,17 @@ export const useSecurityAudit = () => {
       details,
       risk_level: 'high'
     });
-  }, [logSecurityEvent]);
+    
+    // Also create a system notification for suspicious activity
+    if (organization?.id) {
+      createSecurityAlert({
+        alertType: 'suspicious_activity',
+        title: 'Suspicious Activity Detected',
+        message: description,
+        details,
+      });
+    }
+  }, [logSecurityEvent, organization?.id, createSecurityAlert]);
 
   return {
     logSecurityEvent,
