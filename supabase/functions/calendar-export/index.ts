@@ -14,6 +14,7 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url)
     const propertyId = url.searchParams.get('property_id')
+    const token = url.searchParams.get('token')
 
     if (!propertyId) {
       return new Response(
@@ -29,26 +30,37 @@ Deno.serve(async (req) => {
 
     console.log(`Generating iCal export for property ${propertyId}`)
 
-    // Get property details
+    // Get property details including the export token
     const { data: property, error: propertyError } = await supabase
       .from('properties')
-      .select('title, location')
+      .select('id, title, location, calendar_export_token')
       .eq('id', propertyId)
       .single()
 
     if (propertyError || !property) {
+      console.error('Property not found:', propertyError)
       return new Response(
         'Property not found',
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'text/plain' } }
       )
     }
 
-    // Get all availability blocks (contains both direct bookings and external calendar syncs)
+    // Validate token if property has one set
+    if (property.calendar_export_token && token !== property.calendar_export_token) {
+      console.warn(`Invalid or missing token for property ${propertyId}`)
+      return new Response(
+        'Unauthorized - invalid or missing token',
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'text/plain' } }
+      )
+    }
+
+    // Get all availability blocks - only confirmed bookings, exclude cancelled
     const { data: blocks, error: blocksError } = await supabase
       .from('availability_blocks')
       .select('*')
       .eq('property_id', propertyId)
-      .eq('block_type', 'booked')
+      .in('block_type', ['booked', 'blocked', 'maintenance'])
+      .neq('sync_status', 'cancelled')
 
     if (blocksError) {
       console.error('Error fetching availability blocks:', blocksError)
@@ -58,7 +70,7 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${availabilityBlocks.length} availability blocks for export`)
 
-    // Generate iCal content
+    // Generate iCal content with privacy-safe data
     const icalContent = generateICalContent(property, availabilityBlocks, propertyId)
 
     return new Response(
@@ -67,12 +79,15 @@ Deno.serve(async (req) => {
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'text/calendar; charset=utf-8',
-          'Content-Disposition': `attachment; filename="${property.title?.replace(/[^a-zA-Z0-9]/g, '-')}-calendar.ics"`
+          'Content-Disposition': `attachment; filename="${(property.title || 'property')?.replace(/[^a-zA-Z0-9]/g, '-')}-calendar.ics"`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         } 
       }
     )
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Calendar export error:', error)
 
     return new Response(
@@ -89,22 +104,47 @@ function generateICalContent(property: any, blocks: any[], propertyId: string): 
   let ical = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Vacation Rentals//Calendar Export//EN',
+    'PRODID:-//StayMoxie//Calendar Export v2.0//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    `X-WR-CALNAME:${property.title || 'Property'} - Bookings`,
-    `X-WR-CALDESC:Availability calendar for ${property.title || 'Property'} at ${property.location || 'Location'}`,
-    'X-WR-TIMEZONE:America/Los_Angeles'
+    `X-WR-CALNAME:${escapeICalText(property.title || 'Property')} - Availability`,
+    `X-WR-CALDESC:Availability calendar for ${escapeICalText(property.title || 'Property')}`,
+    'X-WR-TIMEZONE:UTC'
   ]
 
-  // Add all availability blocks as events
+  // Add timezone definition for broader compatibility
+  ical.push(
+    'BEGIN:VTIMEZONE',
+    'TZID:UTC',
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000',
+    'TZOFFSETFROM:+0000',
+    'TZOFFSETTO:+0000',
+    'END:STANDARD',
+    'END:VTIMEZONE'
+  )
+
+  // Add all availability blocks as events - NO guest PII!
   blocks.forEach((block) => {
     const startDate = formatDateForICal(block.start_date)
-    const endDate = formatDateForICal(addDays(block.end_date, 1)) // End date is exclusive in iCal
-    const uid = block.external_booking_id || `block-${block.id}-${propertyId}`
-    const summary = block.notes || `Booked - ${property.title}`
-    const source = block.source_platform || 'Unknown'
-    const description = `Property: ${property.title}\\nLocation: ${property.location}\\nSource: ${source}`
+    // iCal DTEND for all-day events is exclusive (day after last day)
+    const endDate = formatDateForICal(addDays(block.end_date, 1))
+    
+    // Generate stable UID - use block ID for consistency
+    const uid = `block-${block.id}@staymoxie.com`
+    
+    // Privacy-safe summary - never expose guest names or booking details
+    let summary = 'Unavailable'
+    if (block.block_type === 'booked') {
+      summary = 'Booked'
+    } else if (block.block_type === 'blocked') {
+      summary = 'Blocked'
+    } else if (block.block_type === 'maintenance') {
+      summary = 'Maintenance'
+    }
+    
+    // Description without PII
+    const description = `Property: ${escapeICalText(property.title || 'Property')}\\nType: ${block.block_type}\\nSource: ${block.source_platform || 'StayMoxie'}`
 
     ical.push(
       'BEGIN:VEVENT',
@@ -116,6 +156,7 @@ function generateICalContent(property: any, blocks: any[], propertyId: string): 
       `DESCRIPTION:${description}`,
       'STATUS:CONFIRMED',
       'TRANSP:OPAQUE',
+      'CLASS:PRIVATE',
       'END:VEVENT'
     )
   })
@@ -125,13 +166,25 @@ function generateICalContent(property: any, blocks: any[], propertyId: string): 
   return ical.join('\r\n')
 }
 
+function escapeICalText(text: string): string {
+  if (!text) return ''
+  return text
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n')
+}
+
 function formatDateForICal(dateStr: string): string {
   const date = new Date(dateStr)
-  return date.toISOString().split('T')[0].replace(/-/g, '')
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  return `${year}${month}${day}`
 }
 
 function addDays(dateStr: string, days: number): string {
   const date = new Date(dateStr)
-  date.setDate(date.getDate() + days)
+  date.setUTCDate(date.getUTCDate() + days)
   return date.toISOString().split('T')[0]
 }
