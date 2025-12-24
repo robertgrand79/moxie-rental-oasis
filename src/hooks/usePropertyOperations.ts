@@ -4,16 +4,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedPhotoUpload } from '@/hooks/useOptimizedPhotoUpload';
+import type { PropertyFormData } from '@/types/property-form';
+import { mapFormToDatabase, mapFormToDatabaseUpdate } from '@/types/property-form';
 
 export const usePropertyOperations = () => {
   const { user } = useAuth();
   const { deletePhoto, uploadOptimizedPhotos } = useOptimizedPhotoUpload();
 
-  const addProperty = async (propertyData: any): Promise<Property | null> => {
-    console.log('🏠 [ADD] Starting property creation...', { user: user?.id, hasData: !!propertyData });
-    
+  const addProperty = async (propertyData: PropertyFormData): Promise<Property | null> => {
     if (!user) {
-      console.error('❌ [ADD] No authenticated user found');
       toast({
         title: 'Error',
         description: 'You must be logged in to add properties.',
@@ -23,44 +22,22 @@ export const usePropertyOperations = () => {
     }
 
     try {
-      // Phase 2: Fix form data mapping - handle photo uploads first if any
+      // Handle photo uploads first if any
       let uploadedImages: string[] = [];
       if (propertyData.photos && propertyData.photos.length > 0) {
-        console.log('📸 [ADD] Uploading photos first...', propertyData.photos.length);
         // Create a temporary property ID for upload organization
         const tempPropertyId = `temp-${Date.now()}`;
         
         try {
           uploadedImages = await uploadOptimizedPhotos(propertyData.photos, tempPropertyId);
-          console.log('✅ [ADD] Photos uploaded successfully:', uploadedImages.length);
         } catch (uploadError) {
-          console.warn('⚠️ [ADD] Photo upload failed, proceeding without images:', uploadError);
-          // Phase 3: Continue without photos if upload fails
+          console.warn('Photo upload failed, proceeding without images:', uploadError);
+          // Continue without photos if upload fails
         }
       }
 
-      // Phase 2: Map form fields correctly to database columns
-      const cleanPropertyData = {
-        title: propertyData.title,
-        description: propertyData.description,
-        location: propertyData.location,
-        bedrooms: propertyData.bedrooms,
-        bathrooms: propertyData.bathrooms,
-        max_guests: propertyData.maxGuests, // Form field: maxGuests → DB field: max_guests
-        price_per_night: propertyData.pricePerNight, // Form field: pricePerNight → DB field: price_per_night
-        airbnb_listing_url: propertyData.airbnbListingUrl || null, // Form field: airbnbListingUrl → DB field: airbnb_listing_url
-        amenities: propertyData.amenities || null,
-        latitude: propertyData.latitude || null,
-        longitude: propertyData.longitude || null,
-        images: uploadedImages,
-        featured_photos: (propertyData.featuredPhotos || []).filter((url: string) => !url.startsWith('blob:')),
-        cover_image_url: uploadedImages[0] || null,
-        image_url: uploadedImages[0] || null,
-        display_order: 0,
-        created_by: user.id
-      };
-
-      console.log('💾 [ADD] Inserting property with mapped data:', cleanPropertyData);
+      // Map form data to database schema
+      const cleanPropertyData = mapFormToDatabase(propertyData, uploadedImages, user.id);
 
       const { data, error } = await supabase
         .from('properties')
@@ -69,7 +46,6 @@ export const usePropertyOperations = () => {
         .single();
 
       if (error) {
-        console.error('❌ [ADD] Database insert failed:', error);
         toast({
           title: 'Error',
           description: `Failed to create property: ${error.message}`,
@@ -78,7 +54,6 @@ export const usePropertyOperations = () => {
         return null;
       }
 
-      console.log('✅ [ADD] Property created successfully:', data?.id);
       toast({
         title: 'Success',
         description: 'Property created successfully!'
@@ -86,7 +61,6 @@ export const usePropertyOperations = () => {
       
       return data;
     } catch (error) {
-      console.error('💥 [ADD] Unexpected error in addProperty:', error);
       toast({
         title: 'Error',
         description: `Failed to create property: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -96,14 +70,10 @@ export const usePropertyOperations = () => {
     }
   };
 
-  const editProperty = async (propertyId: string, propertyData: any): Promise<Property | null> => {
-    console.log('🏠 [EDIT] Starting property update...', { propertyId, user: user?.id });
-    
+  const editProperty = async (propertyId: string, propertyData: PropertyFormData): Promise<Property | null> => {
     try {
       // Handle deleted images from property updates
       if (propertyData.deletedImages && propertyData.deletedImages.length > 0) {
-        console.log('🗑️ [EDIT] Deleting images from storage:', propertyData.deletedImages);
-        
         // Delete each image from storage
         const deletePromises = propertyData.deletedImages.map(async (imageUrl: string) => {
           const deleted = await deletePhoto(imageUrl);
@@ -119,13 +89,10 @@ export const usePropertyOperations = () => {
       // Handle new photo uploads during edit
       let uploadedImages: string[] = [];
       if (propertyData.photos && propertyData.photos.length > 0) {
-        console.log('📸 [EDIT] Uploading new photos...', propertyData.photos.length);
-        
         try {
           uploadedImages = await uploadOptimizedPhotos(propertyData.photos, propertyId);
-          console.log('✅ [EDIT] New photos uploaded successfully:', uploadedImages.length);
         } catch (uploadError) {
-          console.error('❌ [EDIT] Photo upload failed:', uploadError);
+          console.error('Photo upload failed:', uploadError);
           toast({
             title: 'Photo Upload Error',
             description: 'Some photos failed to upload. Property will be saved without the new photos.',
@@ -138,30 +105,8 @@ export const usePropertyOperations = () => {
       const existingImages = propertyData.reorderedExistingImages || [];
       const allImages = [...existingImages, ...uploadedImages];
       
-      console.log('🔄 [EDIT] Final image arrays:', {
-        existingImages: existingImages.length,
-        uploadedImages: uploadedImages.length,
-        totalImages: allImages.length
-      });
-      
-      // Prepare clean property data (remove form-specific fields and filter blob URLs)
-      const cleanPropertyData = {
-        title: propertyData.title,
-        description: propertyData.description,
-        location: propertyData.location,
-        bedrooms: propertyData.bedrooms,
-        bathrooms: propertyData.bathrooms,
-        max_guests: propertyData.maxGuests,
-        price_per_night: propertyData.pricePerNight,
-        airbnb_listing_url: propertyData.airbnbListingUrl || null,
-        amenities: propertyData.amenities || null,
-        latitude: propertyData.latitude || null,
-        longitude: propertyData.longitude || null,
-        images: allImages,
-        featured_photos: (propertyData.featuredPhotos || []).filter((url: string) => !url.startsWith('blob:')),
-        cover_image_url: allImages[0] || null,
-        image_url: allImages[0] || null,
-      };
+      // Map form data to database schema for update
+      const cleanPropertyData = mapFormToDatabaseUpdate(propertyData, allImages);
 
       const { error } = await supabase
         .from('properties')
@@ -169,7 +114,6 @@ export const usePropertyOperations = () => {
         .eq('id', propertyId);
 
       if (error) {
-        console.error('❌ [EDIT] Database update failed:', error);
         toast({
           title: 'Error',
           description: `Failed to update property: ${error.message}`,
@@ -178,7 +122,6 @@ export const usePropertyOperations = () => {
         return null;
       }
 
-      console.log('✅ [EDIT] Property updated successfully:', propertyId);
       toast({
         title: 'Success',
         description: 'Property updated successfully!'
@@ -186,7 +129,6 @@ export const usePropertyOperations = () => {
       
       return { id: propertyId } as Property;
     } catch (error) {
-      console.error('💥 [EDIT] Unexpected error in editProperty:', error);
       toast({
         title: 'Error',
         description: `Failed to update property: ${error instanceof Error ? error.message : 'Unknown error'}`,

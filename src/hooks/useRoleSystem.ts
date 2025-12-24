@@ -2,28 +2,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
-
-interface UserRole {
-  id: string;
-  name: string;
-  description: string;
-  is_system_role: boolean;
-}
-
-interface UserPermission {
-  key: string;
-  name: string;
-  description: string;
-  category: string;
-}
-
-interface RoleSystemState {
-  userRole: UserRole | null;
-  permissions: UserPermission[];
-  loading: boolean;
-  error: string | null;
-}
+import type {
+  Role,
+  Permission,
+  RoleSystemState,
+  RolePermissionJoin,
+} from '@/types/permissions';
+import {
+  DEFAULT_ADMIN_ROLE,
+  DEFAULT_USER_ROLE,
+  ADMIN_PERMISSION_OBJECTS,
+  DEFAULT_USER_PERMISSION_OBJECTS,
+} from '@/types/permissions';
 
 export const useRoleSystem = () => {
   const [state, setState] = useState<RoleSystemState>({
@@ -44,8 +34,6 @@ export const useRoleSystem = () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       
-      console.log('Fetching role and permissions for user:', user.id);
-      
       // First check legacy admin system
       const { data: profile } = await supabase
         .from('profiles')
@@ -53,25 +41,11 @@ export const useRoleSystem = () => {
         .eq('id', user.id)
         .single();
 
-      console.log('Profile data:', profile);
-
       // If user is admin in legacy system, give them admin access
       if (profile?.role === 'admin') {
-        console.log('User is admin in legacy system');
         setState({
-          userRole: {
-            id: 'admin',
-            name: 'Admin',
-            description: 'Full administrative access',
-            is_system_role: true
-          },
-          permissions: [
-            { key: 'admin.access_panel', name: 'Access Admin Panel', description: 'Access admin interface', category: 'Administration' },
-            { key: 'users.manage_roles', name: 'Manage Users', description: 'Manage user accounts', category: 'User Management' },
-            { key: 'admin.manage_roles', name: 'Manage Roles', description: 'Manage system roles', category: 'Administration' },
-            { key: 'content.create', name: 'Create Content', description: 'Create content', category: 'Content Management' },
-            { key: 'properties.create', name: 'Create Properties', description: 'Create properties', category: 'Property Management' }
-          ],
+          userRole: DEFAULT_ADMIN_ROLE,
+          permissions: ADMIN_PERMISSION_OBJECTS,
           loading: false,
           error: null
         });
@@ -93,21 +67,11 @@ export const useRoleSystem = () => {
         .eq('is_active', true)
         .limit(1);
 
-      console.log('User roles query result:', { userRoles, rolesError });
-
       if (rolesError) {
         console.warn('New role system not available, falling back to default user role');
         setState({
-          userRole: {
-            id: 'user',
-            name: 'User',
-            description: 'Basic user access',
-            is_system_role: true
-          },
-          permissions: [
-            { key: 'content.read', name: 'View Content', description: 'View content', category: 'Content' },
-            { key: 'properties.read', name: 'View Properties', description: 'View properties', category: 'Properties' }
-          ],
+          userRole: DEFAULT_USER_ROLE,
+          permissions: DEFAULT_USER_PERMISSION_OBJECTS,
           loading: false,
           error: null
         });
@@ -115,8 +79,8 @@ export const useRoleSystem = () => {
       }
 
       if (userRoles && userRoles.length > 0 && userRoles[0].role) {
-        const role = userRoles[0].role as any;
-        console.log('Found role in new system:', role);
+        // Type the role properly - use unknown first for Supabase complex joins
+        const roleData = userRoles[0].role as unknown as Role;
         
         // Fetch permissions for this role with explicit column hints
         const { data: rolePermissions } = await supabase
@@ -129,32 +93,23 @@ export const useRoleSystem = () => {
               category
             )
           `)
-          .eq('role_id', role.id);
+          .eq('role_id', roleData.id);
 
-        console.log('Role permissions:', rolePermissions);
-
-        const permissions = rolePermissions?.map(rp => (rp.permission as any)).filter(Boolean) || [];
+        const permissions: Permission[] = (rolePermissions || [])
+          .map((rp) => (rp as unknown as RolePermissionJoin).permission)
+          .filter((p): p is Permission => p !== null);
 
         setState({
-          userRole: role,
+          userRole: roleData,
           permissions,
           loading: false,
           error: null
         });
       } else {
-        console.log('No roles found, defaulting to user');
         // Default to user role
         setState({
-          userRole: {
-            id: 'user',
-            name: 'User',
-            description: 'Basic user access',
-            is_system_role: true
-          },
-          permissions: [
-            { key: 'content.read', name: 'View Content', description: 'View content', category: 'Content' },
-            { key: 'properties.read', name: 'View Properties', description: 'View properties', category: 'Properties' }
-          ],
+          userRole: DEFAULT_USER_ROLE,
+          permissions: DEFAULT_USER_PERMISSION_OBJECTS,
           loading: false,
           error: null
         });
@@ -174,9 +129,7 @@ export const useRoleSystem = () => {
   }, [fetchUserRoleAndPermissions]);
 
   const hasPermission = useCallback((permission: string): boolean => {
-    const result = state.permissions.some(p => p.key === permission);
-    console.log(`Checking permission ${permission}:`, result);
-    return result;
+    return state.permissions.some(p => p.key === permission);
   }, [state.permissions]);
 
   const hasAnyPermission = useCallback((permissionList: string[]): boolean => {
@@ -190,9 +143,7 @@ export const useRoleSystem = () => {
   const isAdmin = useCallback((): boolean => {
     const adminByRole = state.userRole?.name === 'Admin';
     const adminByPermission = hasPermission('admin.access_panel');
-    const result = adminByRole || adminByPermission;
-    console.log('isAdmin check:', { adminByRole, adminByPermission, result, userRole: state.userRole?.name });
-    return result;
+    return adminByRole || adminByPermission;
   }, [state.userRole, hasPermission]);
 
   return {
