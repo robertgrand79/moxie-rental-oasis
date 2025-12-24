@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react';
+import { debug } from '@/utils/debug';
 
 interface ImagePreloadState {
   isPreloaded: boolean;
@@ -18,18 +19,18 @@ export const useHeroImagePreloading = (imageUrl: string) => {
       return;
     }
 
-    console.log('🚀 Starting hero image preload:', imageUrl);
+    debug.ui('Starting hero image preload:', imageUrl);
     setPreloadState({ isPreloaded: false, hasError: false });
 
     const img = new Image();
     
     const handleLoad = () => {
-      console.log('✅ Hero image preloaded successfully');
+      debug.ui('Hero image preloaded successfully');
       setPreloadState({ isPreloaded: true, hasError: false });
     };
     
     const handleError = () => {
-      console.error('❌ Hero image preload failed');
+      debug.error('Hero image preload failed');
       setPreloadState({ isPreloaded: true, hasError: true });
     };
 

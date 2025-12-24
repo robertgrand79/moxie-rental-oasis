@@ -7,6 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import { SettingsState } from './settings/types';
 import { defaultSettings } from './settings/constants';
 import { parseSettingsFromDatabase, mergeWithDefaults } from './settings/utils';
+import { debug } from '@/utils/debug';
 
 export const useSimplifiedSiteSettings = () => {
   const { user } = useAuth();
@@ -19,22 +20,22 @@ export const useSimplifiedSiteSettings = () => {
   // Fetch settings from database - filtered by organization
   const fetchSettings = useCallback(async () => {
     if (!user) {
-      console.log('[Settings] No user, using defaults');
+      debug.settings('No user, using defaults');
       setLoading(false);
       return;
     }
 
     if (!organization?.id) {
-      console.log('[Settings] No organization, using defaults');
+      debug.settings('No organization, using defaults');
       setLoading(false);
       return;
     }
 
     try {
       setError(null);
-      console.log('📥 [Settings] ========== FETCH START ==========');
-      console.log('📥 [Settings] Organization ID:', organization.id);
-      console.log('📥 [Settings] Organization Name:', organization.name);
+      debug.settings('========== FETCH START ==========');
+      debug.settings('Organization ID:', organization.id);
+      debug.settings('Organization Name:', organization.name);
       
       const { data, error: fetchError } = await supabase
         .from('site_settings')
@@ -42,7 +43,7 @@ export const useSimplifiedSiteSettings = () => {
         .eq('organization_id', organization.id);
 
       if (fetchError) {
-        console.error('📥 [Settings] ❌ Fetch error:', fetchError);
+        debug.error('[Settings] Fetch error:', fetchError);
         setError(`Failed to fetch settings: ${fetchError.message}`);
         toast({
           title: 'Settings Load Error',
@@ -52,25 +53,25 @@ export const useSimplifiedSiteSettings = () => {
         return;
       }
 
-      console.log('📥 [Settings] Raw rows from DB:', data?.length || 0);
-      console.log('📥 [Settings] Sample keys:', data?.slice(0, 5).map(r => r.key));
+      debug.settings('Raw rows from DB:', data?.length || 0);
+      debug.settings('Sample keys:', data?.slice(0, 5).map(r => r.key));
 
       const settingsMap = parseSettingsFromDatabase(data || []);
-      console.log('📥 [Settings] Parsed settings map keys:', Object.keys(settingsMap));
+      debug.settings('Parsed settings map keys:', Object.keys(settingsMap));
       
       const newSettings = mergeWithDefaults(settingsMap, defaultSettings);
       
-      console.log('📥 [Settings] ✅ Final merged settings:');
-      console.log('📥 [Settings]   siteName:', newSettings.siteName);
-      console.log('📥 [Settings]   tagline:', newSettings.tagline);
-      console.log('📥 [Settings]   heroTitle:', newSettings.heroTitle);
-      console.log('📥 [Settings]   contactEmail:', newSettings.contactEmail);
-      console.log('📥 [Settings] ========== FETCH END ==========');
+      debug.settings('Final merged settings:');
+      debug.settings('  siteName:', newSettings.siteName);
+      debug.settings('  tagline:', newSettings.tagline);
+      debug.settings('  heroTitle:', newSettings.heroTitle);
+      debug.settings('  contactEmail:', newSettings.contactEmail);
+      debug.settings('========== FETCH END ==========');
       
       setSettings(newSettings);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('[Settings] Unexpected fetch error:', error);
+      debug.error('[Settings] Unexpected fetch error:', error);
       setError(errorMessage);
       toast({
         title: 'Settings Load Error',
@@ -105,10 +106,10 @@ export const useSimplifiedSiteSettings = () => {
     setSaving(prev => ({ ...prev, [key]: true }));
     
     try {
-      console.log('💾 [Settings] ========== SAVE START ==========');
-      console.log('💾 [Settings] Key:', key);
-      console.log('💾 [Settings] Value:', value);
-      console.log('💾 [Settings] Organization ID:', organization.id);
+      debug.settings('========== SAVE START ==========');
+      debug.settings('Key:', key);
+      debug.settings('Value:', value);
+      debug.settings('Organization ID:', organization.id);
 
       // Check if setting exists for this organization
       const { data: existing, error: checkError } = await supabase
@@ -119,10 +120,10 @@ export const useSimplifiedSiteSettings = () => {
         .maybeSingle();
 
       if (checkError) {
-        console.error('💾 [Settings] ❌ Error checking existing:', checkError);
+        debug.error('[Settings] Error checking existing:', checkError);
       }
       
-      console.log('💾 [Settings] Existing row:', existing ? `ID: ${existing.id}` : 'None (will insert)');
+      debug.settings('Existing row:', existing ? `ID: ${existing.id}` : 'None (will insert)');
 
       const settingData = {
         value,
@@ -131,7 +132,7 @@ export const useSimplifiedSiteSettings = () => {
 
       let result;
       if (existing) {
-        console.log('💾 [Settings] Updating existing row...');
+        debug.settings('Updating existing row...');
         result = await supabase
           .from('site_settings')
           .update(settingData)
@@ -139,7 +140,7 @@ export const useSimplifiedSiteSettings = () => {
           .eq('organization_id', organization.id)
           .select();
       } else {
-        console.log('💾 [Settings] Inserting new row...');
+        debug.settings('Inserting new row...');
         result = await supabase
           .from('site_settings')
           .insert({
@@ -152,7 +153,7 @@ export const useSimplifiedSiteSettings = () => {
       }
 
       if (result.error) {
-        console.error('💾 [Settings] ❌ Save error for', key, ':', result.error);
+        debug.error('[Settings] Save error for', key, ':', result.error);
         toast({
           title: 'Save Error',
           description: `Failed to save ${key}: ${result.error.message}`,
@@ -161,16 +162,16 @@ export const useSimplifiedSiteSettings = () => {
         return false;
       }
 
-      console.log('💾 [Settings] ✅ Saved successfully:', result.data);
+      debug.settings('Saved successfully:', result.data);
 
       // Update local state immediately
       setSettings(prev => ({ ...prev, [key]: value }));
-      console.log('💾 [Settings] Local state updated');
-      console.log('💾 [Settings] ========== SAVE END ==========');
+      debug.settings('Local state updated');
+      debug.settings('========== SAVE END ==========');
       
       // Force a refetch for hero background image to update cache
       if (key === 'heroBackgroundImage') {
-        console.log('💾 [Settings] Hero image updated, triggering cache refresh');
+        debug.settings('Hero image updated, triggering cache refresh');
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('heroImageUpdated'));
         }, 500);
@@ -180,7 +181,7 @@ export const useSimplifiedSiteSettings = () => {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`[Settings] Unexpected save error for ${key}:`, error);
+      debug.error(`[Settings] Unexpected save error for ${key}:`, error);
       toast({
         title: 'Save Error',
         description: `Failed to save ${key}: ${errorMessage}`,
@@ -195,7 +196,7 @@ export const useSimplifiedSiteSettings = () => {
   // Save multiple settings
   const saveSettings = useCallback(async (updates: Partial<SettingsState>): Promise<boolean> => {
     const keys = Object.keys(updates);
-    console.log('[Settings] Batch saving:', keys);
+    debug.settings('Batch saving:', keys);
 
     // Set saving state for all keys
     setSaving(prev => {
@@ -216,7 +217,7 @@ export const useSimplifiedSiteSettings = () => {
           failedKeys.push(key);
         }
       } catch (error) {
-        console.error(`[Settings] Error saving ${key}:`, error);
+        debug.error(`[Settings] Error saving ${key}:`, error);
         failedKeys.push(key);
       }
     }
@@ -248,7 +249,7 @@ export const useSimplifiedSiteSettings = () => {
 
   // Optimistic update
   const updateSettingOptimistic = useCallback((updates: Partial<SettingsState>) => {
-    console.log('[Settings] Optimistic update:', updates);
+    debug.settings('Optimistic update:', updates);
     setSettings(prev => ({ ...prev, ...updates }));
   }, []);
 

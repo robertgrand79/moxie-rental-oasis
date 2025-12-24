@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { analyticsService } from '@/services/analytics/analyticsService';
 import { AnalyticsData, PerformanceMetrics, SystemHealth, GAHealthCheck } from '@/services/analytics/types';
 import { toast } from '@/hooks/use-toast';
+import { debug } from '@/utils/debug';
 
 export const useRealAnalytics = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
@@ -49,7 +50,7 @@ export const useRealAnalytics = () => {
     try {
       setLoading(true);
       setGaError(null);
-      console.log('🔄 useRealAnalytics: Starting data fetch...');
+      debug.analytics('Starting data fetch...');
       
       // Fetch all data in parallel with timeout
       const dataPromises = [
@@ -110,9 +111,9 @@ export const useRealAnalytics = () => {
       }
       
       setGaInitializing(false);
-      console.log('✅ useRealAnalytics: Data fetch complete');
+      debug.analytics('Data fetch complete');
     } catch (error) {
-      console.error('❌ useRealAnalytics: Error fetching data:', error);
+      debug.error('useRealAnalytics: Error fetching data:', error);
       setGaError(error instanceof Error ? error.message : 'Unknown error');
       setGaInitializing(false);
     } finally {
@@ -124,18 +125,18 @@ export const useRealAnalytics = () => {
   const refreshData = useCallback(
     createDebouncedFunction(async () => {
       try {
-        console.log('🔄 useRealAnalytics: Manual refresh triggered');
+        debug.analytics('Manual refresh triggered');
         setGaInitializing(true);
         setGaError(null);
         
         // Force refresh GA initialization
         const gaRefreshResult = await analyticsService.refreshGA();
-        console.log('📊 useRealAnalytics: GA refresh result:', gaRefreshResult);
+        debug.analytics('GA refresh result:', gaRefreshResult);
         
         // Re-fetch all data
         await fetchAnalyticsData();
       } catch (error) {
-        console.error('❌ useRealAnalytics: Error during manual refresh:', error);
+        debug.error('useRealAnalytics: Error during manual refresh:', error);
         setGaError(error instanceof Error ? error.message : 'Refresh failed');
         setGaInitializing(false);
       }
@@ -150,7 +151,7 @@ export const useRealAnalytics = () => {
         const visitors = await analyticsService.getRealTimeVisitors();
         setRealTimeVisitors(visitors);
       } catch (error) {
-        console.error('❌ useRealAnalytics: Error updating real-time visitors:', error);
+        debug.error('useRealAnalytics: Error updating real-time visitors:', error);
       }
     }, 5000),
     [createThrottledFunction]
@@ -158,7 +159,7 @@ export const useRealAnalytics = () => {
 
   // Initialize on mount
   useEffect(() => {
-    console.log('🔄 useRealAnalytics: Initializing...');
+    debug.analytics('Initializing...');
     fetchAnalyticsData();
   }, []); // Remove dependencies to prevent re-initialization
 
@@ -171,7 +172,7 @@ export const useRealAnalytics = () => {
 
     // Refresh analytics data every 5 minutes
     const analyticsInterval = setInterval(() => {
-      console.log('🔄 useRealAnalytics: Scheduled refresh');
+      debug.analytics('Scheduled refresh');
       fetchAnalyticsData();
     }, 5 * 60 * 1000);
 
@@ -186,7 +187,7 @@ export const useRealAnalytics = () => {
     try {
       analyticsService.trackEvent(eventName, parameters);
     } catch (error) {
-      console.error('❌ useRealAnalytics: Error tracking event:', error);
+      debug.error('useRealAnalytics: Error tracking event:', error);
     }
   }, []);
 

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
+import { debug } from '@/utils/debug';
 
 interface PropertyReviewMetrics {
   avgRating: number;
@@ -42,7 +43,7 @@ export const usePropertyReviews = (propertyId: string) => {
   const { data: reviewsData, isLoading: reviewsLoading } = useQuery({
     queryKey: ['property-reviews', propertyId, page],
     queryFn: async () => {
-      console.log('🔍 Fetching reviews for property:', propertyId, 'page:', page);
+      debug.review('Fetching reviews for property:', propertyId, 'page:', page);
       const from = (page - 1) * REVIEWS_PER_PAGE;
       const to = from + REVIEWS_PER_PAGE - 1;
 
@@ -55,10 +56,10 @@ export const usePropertyReviews = (propertyId: string) => {
         .range(from, to);
 
       if (error) {
-        console.error('❌ Error fetching reviews:', error);
+        debug.error('Error fetching reviews:', error);
         throw error;
       }
-      console.log('✅ Reviews data received:', data?.length || 0, 'reviews');
+      debug.review('Reviews data received:', data?.length || 0, 'reviews');
       return data || [];
     },
   });
@@ -67,7 +68,7 @@ export const usePropertyReviews = (propertyId: string) => {
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['property-review-metrics', propertyId],
     queryFn: async () => {
-      console.log('📊 Fetching review metrics for property:', propertyId);
+      debug.review('Fetching review metrics for property:', propertyId);
       const { data, error } = await supabase
         .from('testimonials')
         .select('rating')
@@ -75,13 +76,13 @@ export const usePropertyReviews = (propertyId: string) => {
         .eq('is_active', true);
 
       if (error) {
-        console.error('❌ Error fetching metrics:', error);
+        debug.error('Error fetching metrics:', error);
         throw error;
       }
 
       const reviews = data || [];
       const totalReviews = reviews.length;
-      console.log('📈 Total reviews found:', totalReviews);
+      debug.review('Total reviews found:', totalReviews);
       
       if (totalReviews === 0) {
         return {
@@ -114,7 +115,7 @@ export const usePropertyReviews = (propertyId: string) => {
         oneStar,
       } as PropertyReviewMetrics;
       
-      console.log('📊 Metrics calculated:', metricsResult);
+      debug.review('Metrics calculated:', metricsResult);
       return metricsResult;
     },
   });

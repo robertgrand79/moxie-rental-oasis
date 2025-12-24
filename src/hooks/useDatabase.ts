@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { debug } from '@/utils/debug';
 
 interface DatabaseStatus {
   isConnected: boolean;
@@ -26,7 +27,7 @@ export const useDatabase = () => {
     }));
 
     try {
-      console.log('🔌 Checking database connection...');
+      debug.db('Checking database connection...');
       
       // Simple query to test connection
       const { error } = await supabase
@@ -35,7 +36,7 @@ export const useDatabase = () => {
         .limit(1);
 
       if (error) {
-        console.error('❌ Database connection failed:', error);
+        debug.error('Database connection failed:', error);
         setStatus(prev => ({
           ...prev,
           isConnected: false,
@@ -44,7 +45,7 @@ export const useDatabase = () => {
           error: error.message
         }));
       } else {
-        console.log('✅ Database connection successful');
+        debug.db('Database connection successful');
         setStatus(prev => ({
           ...prev,
           isConnected: true,
@@ -55,7 +56,7 @@ export const useDatabase = () => {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('💥 Database connection check failed:', errorMessage);
+      debug.error('Database connection check failed:', errorMessage);
       
       setStatus(prev => ({
         ...prev,

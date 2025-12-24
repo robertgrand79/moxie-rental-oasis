@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import { useStaticSettingsSync } from './useStaticSettingsSync';
 import { toast } from './use-toast';
+import { debug } from '@/utils/debug';
 
 interface AutoSyncOptions {
   enabled?: boolean;
@@ -29,7 +30,7 @@ export const useAutoSync = (options: AutoSyncOptions = {}) => {
           setIsSyncing(true);
           
           try {
-            console.log(`🔄 Auto-sync triggered: ${reason || 'content change'}`);
+            debug.sync('Auto-sync triggered:', reason || 'content change');
             const result = await syncToPublicSite();
             
             if (result.success) {
@@ -42,9 +43,9 @@ export const useAutoSync = (options: AutoSyncOptions = {}) => {
                 });
               }
               
-              console.log('✅ Auto-sync completed successfully');
+              debug.sync('Auto-sync completed successfully');
             } else {
-              console.error('❌ Auto-sync failed:', result.error);
+              debug.error('Auto-sync failed:', result.error);
               
               if (showToasts) {
                 toast({
@@ -55,7 +56,7 @@ export const useAutoSync = (options: AutoSyncOptions = {}) => {
               }
             }
           } catch (error) {
-            console.error('❌ Auto-sync error:', error);
+            debug.error('Auto-sync error:', error);
           } finally {
             setIsSyncing(false);
           }
