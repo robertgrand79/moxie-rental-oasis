@@ -11,6 +11,7 @@ interface User {
   id: string;
   email: string;
   full_name: string | null;
+  phone: string | null;
   role: string;
   status: string;
   last_login_at: string | null;
@@ -28,6 +29,7 @@ interface UserProfileModalProps {
 const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfileModalProps) => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [role, setRole] = useState('user');
   const [status, setStatus] = useState('active');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +38,7 @@ const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfileModalP
     if (user) {
       setFullName(user.full_name || '');
       setEmail(user.email);
+      setPhone(user.phone || '');
       setRole(user.role);
       setStatus(user.status);
     }
@@ -52,6 +55,7 @@ const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfileModalP
       const updates = {
         full_name: fullName.trim() || null,
         email: email.trim(),
+        phone: phone.trim() || null,
         role,
         status,
       };
@@ -110,6 +114,19 @@ const UserProfileModal = ({ isOpen, onClose, user, onUpdate }: UserProfileModalP
               placeholder="Enter full name"
               disabled={isSubmitting}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+1 (555) 123-4567"
+              disabled={isSubmitting}
+            />
+            <p className="text-xs text-muted-foreground">Used for SMS notifications</p>
           </div>
           
           <div className="space-y-2">
