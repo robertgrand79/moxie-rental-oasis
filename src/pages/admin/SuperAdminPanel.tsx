@@ -35,7 +35,8 @@ import {
   Layout,
   Plus,
   Bug,
-  Activity
+  Activity,
+  Rocket
 } from 'lucide-react';
 import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
@@ -45,6 +46,7 @@ import PlatformUsersTab from '@/components/admin/superadmin/PlatformUsersTab';
 import CreateOrganizationDialog from '@/components/admin/superadmin/CreateOrganizationDialog';
 import BugReportsTab from '@/components/admin/superadmin/BugReportsTab';
 import MonitoringTab from '@/components/admin/superadmin/MonitoringTab';
+import LaunchReadinessChecklist from '@/components/admin/superadmin/LaunchReadinessChecklist';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -339,6 +341,10 @@ const SuperAdminPanel = () => {
               <Activity className="h-4 w-4" />
               Monitoring
             </TabsTrigger>
+            <TabsTrigger value="launch" className="flex items-center gap-2">
+              <Rocket className="h-4 w-4" />
+              Launch
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6 space-y-6">
@@ -468,6 +474,10 @@ const SuperAdminPanel = () => {
 
           <TabsContent value="monitoring" className="mt-6 space-y-6">
             <MonitoringTab />
+          </TabsContent>
+
+          <TabsContent value="launch" className="mt-6 space-y-6">
+            <LaunchReadinessChecklist />
           </TabsContent>
         </Tabs>
 
