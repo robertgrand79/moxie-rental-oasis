@@ -30,6 +30,8 @@ import Terms from '@/pages/Terms';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import FAQ from '@/pages/FAQ';
+import DataPrivacy from '@/pages/legal/DataPrivacy';
+import Accessibility from '@/pages/legal/Accessibility';
 import Listings from '@/pages/Listings';
 import DynamicPage from '@/components/DynamicPage';
 import BookingPage from '@/pages/BookingPage';
@@ -223,6 +225,8 @@ const AppRoutes: React.FC = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/data-privacy" element={<DataPrivacy />} />
+        <Route path="/accessibility" element={<Accessibility />} />
         <Route path="/listings" element={<Listings />} />
         <Route path="/booking/:propertyId" element={<BookingPage />} />
         <Route path="/booking-success" element={<BookingSuccessPage />} />

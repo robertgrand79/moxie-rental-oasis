@@ -4056,12 +4056,15 @@ export type Database = {
           full_name: string | null
           id: string
           last_login_at: string | null
+          marketing_opt_in: boolean | null
           onboarding_completed: boolean
           organization_id: string | null
           permissions: Json | null
           phone: string | null
+          privacy_accepted_at: string | null
           role: string
           status: string
+          terms_accepted_at: string | null
           updated_at: string
         }
         Insert: {
@@ -4072,12 +4075,15 @@ export type Database = {
           full_name?: string | null
           id: string
           last_login_at?: string | null
+          marketing_opt_in?: boolean | null
           onboarding_completed?: boolean
           organization_id?: string | null
           permissions?: Json | null
           phone?: string | null
+          privacy_accepted_at?: string | null
           role?: string
           status?: string
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -4088,12 +4094,15 @@ export type Database = {
           full_name?: string | null
           id?: string
           last_login_at?: string | null
+          marketing_opt_in?: boolean | null
           onboarding_completed?: boolean
           organization_id?: string | null
           permissions?: Json | null
           phone?: string | null
+          privacy_accepted_at?: string | null
           role?: string
           status?: string
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Relationships: [
