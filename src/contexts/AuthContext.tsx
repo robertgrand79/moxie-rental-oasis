@@ -9,6 +9,7 @@ interface Profile {
   id: string;
   email: string;
   full_name: string | null;
+  phone: string | null;
   role: string;
   avatar_url: string | null;
   updated_at: string;
