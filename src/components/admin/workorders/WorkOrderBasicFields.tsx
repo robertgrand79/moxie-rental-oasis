@@ -69,13 +69,14 @@ const WorkOrderBasicFields = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="property">Property</Label>
+        <Label htmlFor="property">
+          Property <span className="text-destructive">*</span>
+        </Label>
         <Select value={formData.property_id || 'none'} onValueChange={handlePropertyChange}>
           <SelectTrigger>
             <SelectValue placeholder="Select property" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">No Property</SelectItem>
             {properties.map((property) => (
               <SelectItem key={property.id} value={property.id}>
                 <div className="flex items-center gap-2">
