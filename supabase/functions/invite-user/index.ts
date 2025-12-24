@@ -11,6 +11,7 @@ interface InviteUserRequest {
   email: string;
   full_name?: string;
   role: string;
+  team_role?: 'owner' | 'manager' | 'staff' | 'view_only';
   organizationId: string;
 }
 
@@ -39,7 +40,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, full_name, role, organizationId }: InviteUserRequest = await req.json();
+    const { email, full_name, role, team_role, organizationId }: InviteUserRequest = await req.json();
+    const effectiveTeamRole = team_role || 'staff';
 
     if (!organizationId) {
       return new Response(
@@ -48,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if requesting user is platform admin OR organization admin/owner
+    // Check if requesting user is platform admin OR organization owner/manager
     const { data: platformAdmin } = await supabaseClient
       .from('platform_admins')
       .select('id')
@@ -57,23 +59,52 @@ const handler = async (req: Request): Promise<Response> => {
 
     const isPlatformAdmin = !!platformAdmin;
 
-    // If not platform admin, check organization membership
+    // If not platform admin, check organization membership and team permissions
     if (!isPlatformAdmin) {
       const { data: orgMembership, error: membershipError } = await supabaseClient
         .from('organization_members')
-        .select('role')
+        .select('role, team_role')
         .eq('user_id', user.id)
         .eq('organization_id', organizationId)
         .single();
 
-      if (membershipError || !orgMembership || !['owner', 'admin'].includes(orgMembership.role)) {
-        console.error('Organization admin verification failed:', membershipError);
+      if (membershipError || !orgMembership) {
+        console.error('Organization membership check failed:', membershipError);
         return new Response(
-          JSON.stringify({ error: 'Organization admin privileges required' }),
+          JSON.stringify({ error: 'Organization membership required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Only owner can manage team
+      const hasTeamPermission = orgMembership.team_role === 'owner' || 
+                                ['owner', 'admin'].includes(orgMembership.role);
+      
+      if (!hasTeamPermission) {
+        console.error('Team management permission denied');
+        return new Response(
+          JSON.stringify({ error: 'Only owners can invite team members' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
     }
+
+    // Get organization details
+    const { data: organization } = await supabaseClient
+      .from('organizations')
+      .select('name, slug')
+      .eq('id', organizationId)
+      .single();
+
+    // Get inviter's profile
+    const { data: inviterProfile } = await supabaseClient
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single();
+
+    const inviterName = inviterProfile?.full_name || 'Admin';
+    const organizationName = organization?.name || 'the organization';
 
     // Check if user already exists in profiles
     const { data: existingUser } = await supabaseClient
@@ -98,13 +129,15 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Add existing user directly to organization
+      // Add existing user directly to organization with team_role
       const { error: addMemberError } = await supabaseClient
         .from('organization_members')
         .insert({
           organization_id: organizationId,
           user_id: existingUser.id,
           role: role,
+          team_role: effectiveTeamRole,
+          invited_by: user.id,
         });
 
       if (addMemberError) {
@@ -122,7 +155,19 @@ const handler = async (req: Request): Promise<Response> => {
           action: 'user_added_to_organization',
           target_user_email: email,
           performed_by: user.id,
-          details: { role, full_name, organization_id: organizationId, existing_user: true }
+          details: { role, team_role: effectiveTeamRole, full_name, organization_id: organizationId, existing_user: true }
+        });
+
+      // Log team activity
+      await supabaseClient
+        .from('team_activity_log')
+        .insert({
+          organization_id: organizationId,
+          user_id: user.id,
+          action_type: 'team_member_added',
+          entity_type: 'organization_member',
+          entity_id: existingUser.id,
+          details: { email, role, team_role: effectiveTeamRole, added_by: inviterName }
         });
 
       console.log('Existing user added to organization:', existingUser.id);
@@ -144,6 +189,7 @@ const handler = async (req: Request): Promise<Response> => {
       .select('id')
       .eq('email', email)
       .eq('organization_id', organizationId)
+      .eq('status', 'pending')
       .gt('expires_at', new Date().toISOString())
       .single();
 
@@ -157,16 +203,20 @@ const handler = async (req: Request): Promise<Response> => {
     // Generate invitation token
     const invitationToken = crypto.randomUUID();
 
-    // Create invitation record with organization context
+    // Create invitation record with organization context and team_role
     const { data: invitation, error: inviteError } = await supabaseClient
       .from('user_invitations')
       .insert({
         email,
         full_name,
         role,
+        team_role: effectiveTeamRole,
         invited_by: user.id,
         invitation_token: invitationToken,
         organization_id: organizationId,
+        status: 'pending',
+        inviter_name: inviterName,
+        organization_name: organizationName,
       })
       .select()
       .single();
@@ -186,7 +236,19 @@ const handler = async (req: Request): Promise<Response> => {
         action: 'user_invited',
         target_user_email: email,
         performed_by: user.id,
-        details: { role, full_name, organization_id: organizationId }
+        details: { role, team_role: effectiveTeamRole, full_name, organization_id: organizationId }
+      });
+
+    // Log team activity
+    await supabaseClient
+      .from('team_activity_log')
+      .insert({
+        organization_id: organizationId,
+        user_id: user.id,
+        action_type: 'invitation_sent',
+        entity_type: 'user_invitation',
+        entity_id: invitation.id,
+        details: { email, role, team_role: effectiveTeamRole, inviter_name: inviterName }
       });
 
     console.log('Invitation created successfully:', invitation.id);
@@ -195,7 +257,8 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true, 
         message: `Invitation sent to ${email}`,
-        invitation_id: invitation.id 
+        invitation_id: invitation.id,
+        invitation_token: invitationToken
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
