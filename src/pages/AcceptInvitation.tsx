@@ -54,28 +54,25 @@ const AcceptInvitation = () => {
 
   const fetchInvitation = async () => {
     try {
-      const { data, error: fetchError } = await supabase
-        .from('user_invitations')
-        .select('id, email, full_name, role, team_role, organization_name, inviter_name, expires_at, organization_id')
-        .eq('invitation_token', token)
-        .eq('status', 'pending')
-        .single();
+      // Use edge function for rate-limited validation
+      const { data, error: fetchError } = await supabase.functions.invoke('validate-invitation', {
+        body: { token }
+      });
 
-      if (fetchError || !data) {
-        setError('This invitation is invalid or has already been used.');
+      if (fetchError || !data?.success) {
+        const errorMsg = data?.error || 'This invitation is invalid or has already been used.';
+        setError(errorMsg);
         return;
       }
 
-      // Check if expired
-      if (new Date(data.expires_at) < new Date()) {
-        setError('This invitation has expired. Please request a new invitation.');
-        return;
-      }
-
-      setInvitation(data as InvitationDetails);
-    } catch (err) {
+      setInvitation(data.invitation as InvitationDetails);
+    } catch (err: any) {
       console.error('Error fetching invitation:', err);
-      setError('Failed to load invitation details.');
+      if (err?.message?.includes('429') || err?.status === 429) {
+        setError('Too many attempts. Please try again in a few minutes.');
+      } else {
+        setError('Failed to load invitation details.');
+      }
     } finally {
       setLoading(false);
     }
