@@ -1,8 +1,8 @@
-
 import { useState } from 'react';
 import { usePropertyOperations } from './usePropertyOperations';
 import { usePropertyDeletion } from './usePropertyDeletion';
 import { Property } from '@/types/property';
+import { PropertyFormData } from '@/components/PropertyForm/types';
 
 export const usePropertyForm = (properties: Property[] = [], refetch?: () => void) => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -22,7 +22,7 @@ export const usePropertyForm = (properties: Property[] = [], refetch?: () => voi
     setShowAddForm(true);
   };
 
-  const handleFormSubmit = async (propertyData: any, goToFirstPage?: () => void, stayOnPage?: boolean) => {
+  const handleFormSubmit = async (propertyData: PropertyFormData, goToFirstPage?: () => void, stayOnPage?: boolean) => {
     setIsSubmitting(true);
     try {
       console.log('🏠 Starting property form submission...', { isEdit: !!editingProperty, stayOnPage });

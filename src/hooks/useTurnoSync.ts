@@ -42,14 +42,15 @@ export const useTurnoSync = () => {
       });
 
       return { success: true, synced: 1 };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sync work order to Turno';
       console.error('Error syncing work order to Turno:', error);
       toast({
         title: 'Sync Failed',
-        description: error.message || 'Failed to sync work order to Turno',
+        description: errorMessage,
         variant: 'destructive',
       });
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     } finally {
       setSyncStatus(prev => ({ ...prev, isLoading: false }));
     }
@@ -84,14 +85,15 @@ export const useTurnoSync = () => {
       }));
 
       return result;
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sync problems from Turno';
       console.error('Error syncing problems from Turno:', error);
       toast({
         title: 'Sync Failed',
-        description: error.message || 'Failed to sync problems from Turno',
+        description: errorMessage,
         variant: 'destructive',
       });
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     } finally {
       setSyncStatus(prev => ({ ...prev, isLoading: false }));
     }
@@ -121,14 +123,15 @@ export const useTurnoSync = () => {
       }));
 
       return result;
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to import problems from Turno';
       console.error('Error importing problems from Turno:', error);
       toast({
         title: 'Import Failed',
-        description: error.message || 'Failed to import problems from Turno',
+        description: errorMessage,
         variant: 'destructive',
       });
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     } finally {
       setSyncStatus(prev => ({ ...prev, isLoading: false }));
     }
@@ -170,14 +173,15 @@ export const useTurnoSync = () => {
         synced: totalSynced, 
         conflicts: totalConflicts 
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to perform full sync';
       console.error('Error performing full sync:', error);
       toast({
         title: 'Sync Failed',
-        description: error.message || 'Failed to perform full sync',
+        description: errorMessage,
         variant: 'destructive',
       });
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     } finally {
       setSyncStatus(prev => ({ ...prev, isLoading: false }));
     }
@@ -206,7 +210,7 @@ export const useTurnoSync = () => {
       // Note: This function is deprecated since Turno integration was removed from work orders
       console.warn('toggleStatusOverride called but Turno integration has been removed');
       return false;
-    } catch (error: any) {
+    } catch (error) {
       return false;
     }
   };

@@ -44,9 +44,23 @@ export interface ExtendedBlogFormData {
   activity_type: string;
 }
 
+// Submitted blog data type
+export interface BlogFormSubmitData extends Omit<ExtendedBlogFormData, 'tags' | 'published_at' | 'event_date' | 'end_date'> {
+  id?: string;
+  content: string;
+  image_url: string | null;
+  tags: string[];
+  published_at: string | null;
+  organization_id?: string;
+  slug: string;
+  event_date: string | null;
+  end_date: string | null;
+  metadata: Record<string, never>;
+}
+
 interface UseBlogFormOptions {
   post?: BlogPost | null;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: BlogFormSubmitData) => void;
 }
 
 export const useBlogForm = ({ post, onSubmit }: UseBlogFormOptions) => {
@@ -158,7 +172,7 @@ export const useBlogForm = ({ post, onSubmit }: UseBlogFormOptions) => {
     // Ensure we have a valid author
     const finalAuthor = data.author && data.author.trim() ? data.author.trim() : 'Moxie Team';
     
-    const formData = {
+    const formData: BlogFormSubmitData = {
       ...data,
       content,
       image_url: uploadedImage,
@@ -200,9 +214,9 @@ export const useBlogForm = ({ post, onSubmit }: UseBlogFormOptions) => {
 
     // If we have an auto-saved post, update it instead of creating new
     if (autoSavedPost && !post) {
-      (formData as any).id = autoSavedPost.id;
+      formData.id = autoSavedPost.id;
     } else if (post) {
-      (formData as any).id = post.id;
+      formData.id = post.id;
     }
 
     console.log('📨 Final form data being submitted:', formData);

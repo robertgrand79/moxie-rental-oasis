@@ -21,9 +21,10 @@ export const useNewsletterCampaigns = () => {
 
       if (error) throw error;
       setCampaigns(data || []);
-    } catch (err: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.error('Error fetching newsletter campaigns:', err);
-      setError(err.message);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -48,11 +49,12 @@ export const useNewsletterCampaigns = () => {
         description: "The newsletter campaign has been successfully deleted.",
       });
 
-    } catch (err: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete the newsletter campaign.';
       console.error('Error deleting newsletter campaign:', err);
       toast({
         title: "Delete Failed",
-        description: err.message || "Failed to delete the newsletter campaign.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -87,11 +89,12 @@ export const useNewsletterCampaigns = () => {
         description: "The newsletter campaign has been successfully updated.",
       });
 
-    } catch (err: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update the newsletter campaign.';
       console.error('Error updating newsletter campaign:', err);
       toast({
         title: "Update Failed",
-        description: err.message || "Failed to update the newsletter campaign.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

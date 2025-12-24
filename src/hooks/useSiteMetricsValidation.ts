@@ -1,8 +1,13 @@
 import { useState, useCallback } from 'react';
+import type { JsonValue } from '@/types/common';
+
+export interface ValidationDetails {
+  [key: string]: JsonValue;
+}
 
 export interface ValidationRule {
   name: string;
-  check: () => Promise<{ valid: boolean; message: string; details?: any }>;
+  check: () => Promise<{ valid: boolean; message: string; details?: ValidationDetails }>;
   critical: boolean;
 }
 
@@ -10,7 +15,7 @@ export interface ValidationResult {
   rule: string;
   valid: boolean;
   message: string;
-  details?: any;
+  details?: ValidationDetails;
   critical: boolean;
   timestamp: number;
 }

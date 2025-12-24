@@ -98,9 +98,10 @@ export const useNewsletterAnalytics = () => {
         topPerformers,
       });
 
-    } catch (err: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.error('Error fetching newsletter analytics:', err);
-      setError(err.message);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

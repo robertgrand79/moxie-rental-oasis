@@ -2,6 +2,35 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import type { Json } from '@/integrations/supabase/types';
+
+// Internal types for analytics processing
+interface AssistantMessage {
+  conversation_id: string;
+  role: string;
+  created_at: string;
+}
+
+interface ContentItem {
+  id?: string;
+  title?: string;
+  type?: string;
+  created_at?: string;
+  status?: string;
+}
+
+interface PageView {
+  content_id?: string;
+  page_path?: string;
+  content_type?: string;
+  created_at?: string;
+}
+
+interface Conversation {
+  id: string;
+  message_count?: number;
+  created_at?: string;
+}
 
 export interface AnalyticsData {
   totalContent: number;
@@ -103,7 +132,7 @@ export const useAIAnalytics = () => {
 
       // Fetch messages to calculate real response times - join with conversations for org scope
       const conversationIds = chatData?.map(c => c.id) || [];
-      let messagesData: any[] = [];
+      let messagesData: AssistantMessage[] = [];
       
       if (conversationIds.length > 0) {
         const { data: messages, error: messagesError } = await supabase
@@ -178,11 +207,11 @@ export const useAIAnalytics = () => {
   }, [organization?.id]);
 
   // Calculate average response time from user->assistant message pairs
-  const calculateAverageResponseTime = (messages: any[]) => {
+  const calculateAverageResponseTime = (messages: AssistantMessage[]) => {
     if (!messages || messages.length < 2) return 0;
 
     // Group messages by conversation
-    const byConversation: Record<string, any[]> = {};
+    const byConversation: Record<string, AssistantMessage[]> = {};
     messages.forEach(msg => {
       if (!byConversation[msg.conversation_id]) {
         byConversation[msg.conversation_id] = [];
@@ -215,7 +244,7 @@ export const useAIAnalytics = () => {
     return pairs > 0 ? parseFloat((totalTime / pairs).toFixed(1)) : 0;
   };
 
-  const generateMonthlyTrends = (allContent: any[], pageViews: any[], conversations: any[]) => {
+  const generateMonthlyTrends = (allContent: ContentItem[], pageViews: PageView[], conversations: Conversation[]) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const currentYear = new Date().getFullYear();
     
@@ -255,7 +284,7 @@ export const useAIAnalytics = () => {
     });
   };
 
-  const generateContentByType = (contentData: any[], blogData: any[], propertiesData: any[]) => {
+  const generateContentByType = (contentData: ContentItem[], blogData: ContentItem[], propertiesData: ContentItem[]) => {
     const contentTypes = [
       { name: 'AI Content', value: contentData.length, color: '#3b82f6' },
       { name: 'Blog Posts', value: blogData.length, color: '#10b981' },
@@ -265,7 +294,7 @@ export const useAIAnalytics = () => {
     return contentTypes.filter(type => type.value > 0);
   };
 
-  const generateTopPerformingContent = (allContent: any[], pageViews: any[]) => {
+  const generateTopPerformingContent = (allContent: ContentItem[], pageViews: PageView[]) => {
     // Count views per content path/id
     const viewCounts: Record<string, { count: number; path: string; type: string }> = {};
     
@@ -306,7 +335,7 @@ export const useAIAnalytics = () => {
     }));
   };
 
-  const recordAnalyticsEvent = async (metricType: string, metricValue: any) => {
+  const recordAnalyticsEvent = async (metricType: string, metricValue: Json) => {
     try {
       const { error } = await supabase
         .from('ai_analytics')

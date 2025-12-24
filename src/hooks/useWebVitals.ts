@@ -1,5 +1,19 @@
 import { useEffect, useRef, useCallback } from 'react';
 
+// Performance entry types for proper typing
+interface PerformanceEntryWithProcessing extends PerformanceEntry {
+  processingStart?: number;
+}
+
+interface LayoutShiftEntry extends PerformanceEntry {
+  hadRecentInput?: boolean;
+  value?: number;
+}
+
+interface LongTaskEntry extends PerformanceEntry {
+  attribution?: Array<{ containerType?: string }>;
+}
+
 interface WebVitalsMetrics {
   lcp: number | null;
   fid: number | null;
@@ -100,9 +114,11 @@ export function useWebVitals(options: {
     // FID Observer
     try {
       const fidObserver = new PerformanceObserver((list) => {
-        const entries = list.getEntries();
-        entries.forEach((entry: any) => {
-          metricsRef.current.fid = entry.processingStart - entry.startTime;
+        const entries = list.getEntries() as PerformanceEntryWithProcessing[];
+        entries.forEach((entry) => {
+          if (entry.processingStart !== undefined) {
+            metricsRef.current.fid = entry.processingStart - entry.startTime;
+          }
         });
       });
       fidObserver.observe({ type: 'first-input', buffered: true });
@@ -115,8 +131,8 @@ export function useWebVitals(options: {
     try {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
-        list.getEntries().forEach((entry: any) => {
-          if (!entry.hadRecentInput) {
+        (list.getEntries() as LayoutShiftEntry[]).forEach((entry) => {
+          if (!entry.hadRecentInput && entry.value !== undefined) {
             clsValue += entry.value;
             metricsRef.current.cls = clsValue;
           }
@@ -212,7 +228,7 @@ export function useLongTaskMonitor(
   useEffect(() => {
     try {
       const observer = new PerformanceObserver((list) => {
-        list.getEntries().forEach((entry: any) => {
+        (list.getEntries() as LongTaskEntry[]).forEach((entry) => {
           const duration = entry.duration;
           const attribution = entry.attribution?.[0]?.containerType || 'unknown';
           

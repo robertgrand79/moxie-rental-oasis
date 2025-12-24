@@ -230,8 +230,8 @@ export const useCreateOrganization = () => {
       console.log('[Onboarding] Organization creation complete, returning ID:', orgId);
       return orgId as string;
       
-    } catch (error: any) {
-      const errorMsg = error.message || 'An unexpected error occurred. Please try again.';
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.';
       console.error('[Onboarding] Creation failed:', error);
       setError(errorMsg);
       toast({ 

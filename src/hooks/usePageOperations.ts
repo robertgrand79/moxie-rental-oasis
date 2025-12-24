@@ -1,12 +1,12 @@
-
 import { pageService } from '@/services/pageService';
 import { getDefaultPages } from '@/data/defaultPages';
 import { toast } from '@/hooks/use-toast';
 import { Page, PageFormData } from '@/types/page';
 import { debug } from '@/utils/debug';
+import type { User } from '@supabase/supabase-js';
 
 export const usePageOperations = (
-  user: any, 
+  user: User | null, 
   setPages: (updater: (prev: Page[]) => Page[]) => void, 
   fetchPages: () => Promise<void>,
   organizationId?: string
