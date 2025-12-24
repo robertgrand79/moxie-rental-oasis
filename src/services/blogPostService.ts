@@ -1,7 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost, ContentType } from '@/types/blogPost';
 import { toast } from '@/hooks/use-toast';
+import { debug } from '@/utils/debug';
 
 // Note: This service now accepts organizationId as a parameter for multi-tenant filtering
 
@@ -15,7 +15,7 @@ const isNetworkError = (error: any): boolean => {
 };
 
 const handleServiceError = (operation: string, error: any, showToast = true) => {
-  console.error(`❌ ${operation} error:`, error);
+  debug.error(`${operation} error:`, error);
   
   let errorMessage = 'An unexpected error occurred';
   
@@ -47,11 +47,11 @@ const safeMetadataCast = (metadata: any): Record<string, any> => {
 
 export const blogPostService = {
   async fetchBlogPosts(publishedOnly: boolean = false, organizationId?: string): Promise<BlogPost[]> {
-    console.log('🔍 Fetching blog posts, publishedOnly:', publishedOnly, 'orgId:', organizationId);
+    debug.blog('Fetching blog posts, publishedOnly:', publishedOnly, 'orgId:', organizationId);
     
     // Check network connectivity first
     if (!navigator.onLine) {
-      console.warn('⚠️ No network connection detected');
+      debug.warn('No network connection detected');
       return [];
     }
     
@@ -78,7 +78,7 @@ export const blogPostService = {
         return [];
       }
 
-      console.log('✅ Fetched blog posts:', data?.length || 0, 'posts');
+      debug.blog('Fetched blog posts:', data?.length || 0, 'posts');
       
       // Cast and transform the data with proper type safety
       return (data || []).map(post => ({
@@ -93,7 +93,7 @@ export const blogPostService = {
       }));
     } catch (error) {
       if (isNetworkError(error)) {
-        console.warn('⚠️ Network error fetching blog posts, returning empty array');
+        debug.warn('Network error fetching blog posts, returning empty array');
         return [];
       }
       handleServiceError('Blog posts fetch', error, false);
@@ -102,10 +102,10 @@ export const blogPostService = {
   },
 
   async fetchBlogPostBySlug(slug: string): Promise<BlogPost | null> {
-    console.log('🔍 Fetching blog post by slug:', slug);
+    debug.blog('Fetching blog post by slug:', slug);
     
     if (!navigator.onLine) {
-      console.warn('⚠️ No network connection detected');
+      debug.warn('No network connection detected');
       return null;
     }
     
@@ -122,7 +122,7 @@ export const blogPostService = {
         return null;
       }
 
-      console.log('✅ Fetched blog post by slug:', data?.title || 'Not found');
+      debug.blog('Fetched blog post by slug:', data?.title || 'Not found');
       
       // Transform with proper type safety
       return data ? {
@@ -137,7 +137,7 @@ export const blogPostService = {
       } : null;
     } catch (error) {
       if (isNetworkError(error)) {
-        console.warn('⚠️ Network error fetching blog post by slug');
+        debug.warn('Network error fetching blog post by slug');
         return null;
       }
       handleServiceError('Blog post by slug fetch', error);
@@ -146,7 +146,7 @@ export const blogPostService = {
   },
 
   async createBlogPost(postData: Omit<BlogPost, 'id' | 'created_at' | 'updated_at' | 'created_by'>, userId: string): Promise<BlogPost | null> {
-    console.log('📝 Creating blog post:', postData.title);
+    debug.blog('Creating blog post:', postData.title);
     
     try {
       const { data, error } = await supabase
@@ -163,7 +163,7 @@ export const blogPostService = {
         return null;
       }
 
-      console.log('✅ Created blog post:', data.title);
+      debug.blog('Created blog post:', data.title);
       
       // Only show toast for published posts or manual saves
       if (postData.status === 'published') {
@@ -191,7 +191,7 @@ export const blogPostService = {
   },
 
   async updateBlogPost(postId: string, postData: Partial<BlogPost>): Promise<BlogPost | null> {
-    console.log('📝 Updating blog post:', postId);
+    debug.blog('Updating blog post:', postId);
     
     try {
       const { data, error } = await supabase
@@ -206,7 +206,7 @@ export const blogPostService = {
         return null;
       }
 
-      console.log('✅ Updated blog post:', data.title);
+      debug.blog('Updated blog post:', data.title);
       
       // Only show toast for published posts or manual saves
       if (postData.status === 'published') {
@@ -234,7 +234,7 @@ export const blogPostService = {
   },
 
   async deleteBlogPost(postId: string): Promise<boolean> {
-    console.log('🗑️ Deleting blog post:', postId);
+    debug.blog('Deleting blog post:', postId);
     
     try {
       const { error } = await supabase
@@ -247,7 +247,7 @@ export const blogPostService = {
         return false;
       }
 
-      console.log('✅ Deleted blog post');
+      debug.blog('Deleted blog post');
       toast({
         title: 'Success',
         description: 'Blog post deleted successfully!'
@@ -260,7 +260,7 @@ export const blogPostService = {
   },
 
   async deleteOldAutoSavedDrafts(olderThanDays: number = 7): Promise<boolean> {
-    console.log('🗑️ Cleaning up old auto-saved drafts');
+    debug.blog('Cleaning up old auto-saved drafts');
     
     try {
       const cutoffDate = new Date();
@@ -278,7 +278,7 @@ export const blogPostService = {
         return false;
       }
 
-      console.log('✅ Cleaned up old auto-saved drafts');
+      debug.blog('Cleaned up old auto-saved drafts');
       toast({
         title: 'Success',
         description: 'Old auto-saved drafts cleaned up successfully!'

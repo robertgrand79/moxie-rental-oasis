@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { debug } from '@/utils/debug';
 
 export interface ErrorContext {
   userId?: string;
@@ -91,7 +92,7 @@ class ErrorTracker {
     }
 
     this.initialized = true;
-    console.log('🔍 Error Tracker initialized');
+    debug.log('Error Tracker initialized');
   }
 
   private setupGlobalHandlers(): void {
@@ -120,12 +121,8 @@ class ErrorTracker {
       });
     });
 
-    // Capture console errors
-    const originalError = console.error;
-    console.error = (...args) => {
-      this.addBreadcrumb('console', args.map(a => String(a)).join(' '));
-      originalError.apply(console, args);
-    };
+    // Capture console errors - note: we don't wrap console.error to avoid infinite loops
+    // The debug utility already handles production-safe logging
   }
 
   setUser(userId: string, tenantId?: string): void {
@@ -294,13 +291,12 @@ class ErrorTracker {
 
   private async persistError(error: TrackedError): Promise<void> {
     try {
-      // Log to console for development
-      console.group(`🚨 Error Tracked: ${error.id}`);
-      console.error('Message:', error.message);
-      console.error('Severity:', error.severity);
-      console.error('Context:', error.context);
-      console.error('Breadcrumbs:', this.breadcrumbs.slice(-10));
-      console.groupEnd();
+      // Log to console for development using debug utility
+      debug.error('Error Tracked:', error.id);
+      debug.error('Message:', error.message);
+      debug.error('Severity:', error.severity);
+      debug.log('Context:', error.context);
+      debug.log('Breadcrumbs:', this.breadcrumbs.slice(-10));
 
       // Persist to database using type assertion for dynamic tables
       await (supabase as any).from('error_logs').insert({
@@ -317,12 +313,12 @@ class ErrorTracker {
         url: window.location.href,
       });
     } catch (e) {
-      console.error('Failed to persist error:', e);
+      debug.error('Failed to persist error:', e);
     }
   }
 
   private async triggerAlert(error: TrackedError): Promise<void> {
-    console.warn(`⚠️ Error threshold reached for: ${error.message} (${error.count} occurrences)`);
+    debug.warn(`Error threshold reached for: ${error.message} (${error.count} occurrences)`);
 
     try {
       // Create admin notification
@@ -342,7 +338,7 @@ class ErrorTracker {
         });
       }
     } catch (e) {
-      console.error('Failed to trigger error alert:', e);
+      debug.error('Failed to trigger error alert:', e);
     }
   }
 
