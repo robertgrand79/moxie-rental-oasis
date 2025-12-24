@@ -12,6 +12,7 @@ import SiteHead from './components/SiteHead';
 import PageViewTracker from './components/analytics/PageViewTracker';
 import CookieConsentBanner from './components/legal/CookieConsentBanner';
 import { ErrorBoundary } from './components/ui/error-boundary';
+import { WidgetErrorBoundary } from './components/error-boundaries/WidgetErrorBoundary';
 
 // Note: QueryClient is created in main.tsx - single instance for entire app
 
@@ -29,8 +30,12 @@ function App() {
                   <StaticSettingsProvider>
                     <GlobalThemeProvider>
                       <AppRoutes />
-                      <PublicChatWidget />
-                      <CookieConsentBanner />
+                      <WidgetErrorBoundary widgetName="Chat Widget" silent>
+                        <PublicChatWidget />
+                      </WidgetErrorBoundary>
+                      <WidgetErrorBoundary widgetName="Cookie Consent" silent>
+                        <CookieConsentBanner />
+                      </WidgetErrorBoundary>
                     </GlobalThemeProvider>
                   </StaticSettingsProvider>
                 </PageViewTracker>

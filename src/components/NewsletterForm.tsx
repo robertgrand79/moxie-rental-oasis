@@ -9,6 +9,7 @@ import { Send } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import { BlogPost } from '@/hooks/useBlogPosts';
 import ReactQuillEditor from './ReactQuillEditor';
+import { FormErrorBoundary } from '@/components/error-boundaries/FormErrorBoundary';
 
 interface NewsletterFormData {
   subject: string;
@@ -38,6 +39,7 @@ const NewsletterForm = ({
   blogPostsLoading
 }: NewsletterFormProps) => {
   return (
+    <FormErrorBoundary formName="Newsletter Editor">
     <Card>
       <CardHeader>
         <CardTitle>Create Newsletter</CardTitle>
@@ -120,6 +122,7 @@ const NewsletterForm = ({
         </Form>
       </CardContent>
     </Card>
+    </FormErrorBoundary>
   );
 };
 
