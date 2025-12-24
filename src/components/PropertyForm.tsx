@@ -112,32 +112,34 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="details" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Details
-                </TabsTrigger>
-                <TabsTrigger value="photos" className="flex items-center gap-2">
-                  <Image className="h-4 w-4" />
-                  Photos
-                </TabsTrigger>
-                <TabsTrigger value="booking" className="flex items-center gap-2" disabled={!isEditing}>
-                  <Calendar className="h-4 w-4" />
-                  Booking
-                </TabsTrigger>
-                <TabsTrigger value="fees" className="flex items-center gap-2" disabled={!isEditing}>
-                  <DollarSign className="h-4 w-4" />
-                  Fees
-                </TabsTrigger>
-                <TabsTrigger value="smart-home" className="flex items-center gap-2" disabled={!isEditing}>
-                  <Home className="h-4 w-4" />
-                  Smart Home
-                </TabsTrigger>
-                <TabsTrigger value="turno" className="flex items-center gap-2" disabled={!isEditing}>
-                  <Wrench className="h-4 w-4" />
-                  Turno
-                </TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto -mx-2 px-2 pb-2">
+                <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-6 gap-1">
+                  <TabsTrigger value="details" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]">
+                    <FileText className="h-4 w-4" />
+                    <span className="hidden xs:inline sm:inline">Details</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="photos" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]">
+                    <Image className="h-4 w-4" />
+                    <span className="hidden xs:inline sm:inline">Photos</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="booking" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]" disabled={!isEditing}>
+                    <Calendar className="h-4 w-4" />
+                    <span className="hidden xs:inline sm:inline">Booking</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="fees" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]" disabled={!isEditing}>
+                    <DollarSign className="h-4 w-4" />
+                    <span className="hidden xs:inline sm:inline">Fees</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="smart-home" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]" disabled={!isEditing}>
+                    <Home className="h-4 w-4" />
+                    <span className="hidden xs:inline sm:inline">Smart</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="turno" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap min-h-[44px]" disabled={!isEditing}>
+                    <Wrench className="h-4 w-4" />
+                    <span className="hidden xs:inline sm:inline">Turno</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="details" className="space-y-6 mt-6">
                 <PropertyDetailsForm form={form} disabled={isProcessing} />

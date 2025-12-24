@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2 } from 'lucide-react';
+import { GripVertical, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import ThumbnailImage from '@/components/ui/thumbnail-image';
 import PhotoActionButtons from './PhotoActionButtons';
 import PhotoIndicators from './PhotoIndicators';
 import PhotoControls from './PhotoControls';
 import PhotoOverlays from './PhotoOverlays';
 import PhotoDeleteConfirmDialog from './PhotoDeleteConfirmDialog';
+import { Button } from '@/components/ui/button';
 
 interface Photo {
   id: string;
@@ -122,19 +123,52 @@ const DraggablePhotoItem = ({
           index={index}
         />
 
-        {/* Delete button - positioned separately with higher z-index */}
+        {/* Move and Delete buttons - touch-friendly on mobile */}
         {!disabled && !isMarkedForDeletion && (
-          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
+          <div className="absolute bottom-2 right-2 flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-30">
+            {/* Move Up button */}
+            {index > 0 && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveUp(index);
+                }}
+                className="h-8 w-8 min-h-[32px] min-w-[32px]"
+                title="Move up"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+            )}
+            {/* Move Down button */}
+            {index < totalPhotos - 1 && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveDown(index);
+                }}
+                className="h-8 w-8 min-h-[32px] min-w-[32px]"
+                title="Move down"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            )}
+            {/* Delete button */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 handleDeleteClick();
               }}
-              className="bg-destructive text-destructive-foreground p-1.5 rounded hover:bg-destructive/90 transition-colors"
+              className="bg-destructive text-destructive-foreground p-2 rounded hover:bg-destructive/90 transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
               title={photo.isExisting ? "Delete photo" : "Remove photo"}
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-4 w-4" />
             </button>
           </div>
         )}

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronLeft, Eye, ExternalLink } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Eye, ExternalLink, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const sectionPreviewUrls: Record<string, string> = {
   basic: '/',
@@ -17,6 +19,7 @@ interface SettingsLivePreviewProps {
 
 const SettingsLivePreview = ({ section, data }: SettingsLivePreviewProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const renderBasicPreview = () => (
     <div className="space-y-4">
@@ -146,6 +149,46 @@ const SettingsLivePreview = ({ section, data }: SettingsLivePreviewProps) => {
     seo: 'SEO Preview',
   };
 
+  // Mobile: Use Sheet component for full-screen drawer
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="fixed right-4 bottom-20 z-40 rounded-full h-12 w-12 shadow-lg"
+          >
+            <Eye className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="bottom" className="h-[80vh] rounded-t-xl">
+          <SheetHeader className="pb-4">
+            <SheetTitle className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-primary" />
+              Live Preview - {sectionLabels[section] || 'Preview'}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="overflow-y-auto h-[calc(100%-8rem)]">
+            {renderPreview()}
+          </div>
+          <div className="pt-4 border-t mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full min-h-[44px]"
+              onClick={() => window.open(sectionPreviewUrls[section] || '/', '_blank')}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Open Full Preview
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Desktop: Original side panel
   return (
     <>
       {/* Toggle Button - Fixed on right edge */}

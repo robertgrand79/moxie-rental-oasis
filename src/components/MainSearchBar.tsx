@@ -10,9 +10,11 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { DateRange } from 'react-day-picker';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const MainSearchBar = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [guests, setGuests] = useState<string>('2');
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -90,12 +92,12 @@ const MainSearchBar = () => {
             </div>
           </div>
 
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0" align="start" side={isMobile ? "bottom" : "bottom"}>
             <Calendar
               mode="range"
               selected={dateRange}
               onSelect={handleDateRangeSelect}
-              numberOfMonths={2}
+              numberOfMonths={isMobile ? 1 : 2}
               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
               initialFocus
               className="pointer-events-auto"

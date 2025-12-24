@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAvailability } from '@/hooks/useBookingData';
 import { format, parseISO } from 'date-fns';
 import { AlertCircle } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DateSelectionStepProps {
   propertyId: string;
@@ -19,6 +20,7 @@ export const DateSelectionStep = ({
   onDateSelect,
   onValidationChange
 }: DateSelectionStepProps) => {
+  const isMobile = useIsMobile();
   const { data: availabilityBlocks } = useAvailability(
     propertyId,
     {
@@ -89,8 +91,8 @@ export const DateSelectionStep = ({
           modifiersClassNames={{
             checkout: "relative overflow-hidden before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-tr before:from-amber-200 before:via-amber-100 before:via-50% before:to-transparent before:to-50% dark:before:from-amber-900/50 dark:before:via-amber-900/25 dark:before:to-transparent before:z-0 [&>*]:relative [&>*]:z-10"
           }}
-          numberOfMonths={2}
-          className="rounded-lg border bg-card p-4 pointer-events-auto"
+          numberOfMonths={isMobile ? 1 : 2}
+          className="rounded-lg border bg-card p-2 sm:p-4 pointer-events-auto max-w-full overflow-x-auto"
         />
       </div>
 

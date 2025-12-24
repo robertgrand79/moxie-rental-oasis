@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAvailability } from '@/hooks/useBookingData';
 import { BookingCalendarProps } from '@/types/booking';
 import { format, parseISO, isWithinInterval } from 'date-fns';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   propertyId,
@@ -12,6 +13,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   selectedDates,
   unavailableDates = []
 }) => {
+  const isMobile = useIsMobile();
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   
   const { data: availabilityBlocks } = useAvailability(
@@ -93,8 +95,8 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             disabled={(date) => disabledDates.some(disabledDate => 
               format(disabledDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
             )}
-            numberOfMonths={2}
-            className="rounded-md border"
+            numberOfMonths={isMobile ? 1 : 2}
+            className="rounded-md border max-w-full overflow-x-auto"
           />
           
           {selectedDates && (
