@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Minimize2 } from 'lucide-react';
+import { MessageCircle, X, Send, Minimize2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,6 +42,49 @@ const generateSessionId = () => {
   return newId;
 };
 
+// Persist conversation to localStorage
+const CONVERSATION_STORAGE_KEY = 'chat_conversation_history';
+const MAX_MESSAGE_LENGTH = 2000;
+const RATE_LIMIT_DELAY = 1000; // 1 second between messages
+
+const saveConversation = (messages: Message[], tenantId: string) => {
+  try {
+    const key = `${CONVERSATION_STORAGE_KEY}_${tenantId}`;
+    localStorage.setItem(key, JSON.stringify({
+      messages,
+      timestamp: Date.now()
+    }));
+  } catch (e) {
+    console.warn('Failed to save conversation:', e);
+  }
+};
+
+const loadConversation = (tenantId: string): Message[] => {
+  try {
+    const key = `${CONVERSATION_STORAGE_KEY}_${tenantId}`;
+    const stored = localStorage.getItem(key);
+    if (!stored) return [];
+    const data = JSON.parse(stored);
+    // Only restore if less than 24 hours old
+    if (Date.now() - data.timestamp > 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(key);
+      return [];
+    }
+    return data.messages || [];
+  } catch (e) {
+    return [];
+  }
+};
+
+const clearConversation = (tenantId: string) => {
+  try {
+    const key = `${CONVERSATION_STORAGE_KEY}_${tenantId}`;
+    localStorage.removeItem(key);
+  } catch (e) {
+    console.warn('Failed to clear conversation:', e);
+  }
+};
+
 const PublicChatWidget = () => {
   const location = useLocation();
   const { tenant } = useTenant();
@@ -58,8 +101,26 @@ const PublicChatWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings] = useState<AssistantSettings | null>(null);
   const [sessionId] = useState(generateSessionId);
+  const [lastMessageTime, setLastMessageTime] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Load conversation from localStorage on mount
+  useEffect(() => {
+    if (tenant?.id) {
+      const savedMessages = loadConversation(tenant.id);
+      if (savedMessages.length > 0) {
+        setMessages(savedMessages);
+      }
+    }
+  }, [tenant?.id]);
+
+  // Save conversation when messages change
+  useEffect(() => {
+    if (tenant?.id && messages.length > 0) {
+      saveConversation(messages, tenant.id);
+    }
+  }, [messages, tenant?.id]);
 
   useEffect(() => {
     if (tenant?.id) {
@@ -142,7 +203,25 @@ const PublicChatWidget = () => {
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: input.trim() };
+    // Rate limiting - prevent rapid-fire messages
+    const now = Date.now();
+    if (now - lastMessageTime < RATE_LIMIT_DELAY) {
+      return;
+    }
+    setLastMessageTime(now);
+
+    // Message length validation
+    const trimmedMessage = input.trim();
+    if (trimmedMessage.length > MAX_MESSAGE_LENGTH) {
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: `Your message is too long (${trimmedMessage.length} characters). Please keep it under ${MAX_MESSAGE_LENGTH} characters.`
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
+
+    const userMessage: Message = { role: 'user', content: trimmedMessage };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
@@ -166,16 +245,29 @@ const PublicChatWidget = () => {
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error: any) {
       console.error('Chat error:', error);
+      let errorContent = 'Sorry, I encountered an error. Please try again later.';
+      
+      if (error.message?.includes('429')) {
+        errorContent = 'I\'m receiving too many requests. Please wait a moment and try again.';
+      } else if (error.message?.includes('402')) {
+        errorContent = 'The chat service is temporarily unavailable. Please try again later or contact us directly.';
+      }
+      
       const errorMessage: Message = {
         role: 'assistant',
-        content: error.message?.includes('429') 
-          ? 'I\'m receiving too many requests. Please wait a moment and try again.'
-          : 'Sorry, I encountered an error. Please try again later.'
+        content: errorContent
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const clearChat = () => {
+    if (tenant?.id) {
+      clearConversation(tenant.id);
+    }
+    setMessages([]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -187,7 +279,9 @@ const PublicChatWidget = () => {
 
   // Auto-resize textarea
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
+    // Limit input length client-side
+    const value = e.target.value.slice(0, MAX_MESSAGE_LENGTH + 100);
+    setInput(value);
     e.target.style.height = 'auto';
     e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
   };
@@ -362,6 +456,16 @@ const PublicChatWidget = () => {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              {messages.length > 0 && (
+                <button
+                  onClick={clearChat}
+                  className="hover:bg-white/20 rounded-lg p-2 transition-colors"
+                  aria-label="Clear chat history"
+                  title="Clear chat"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
                 className="hover:bg-white/20 rounded-lg p-2 transition-colors hidden sm:block"
@@ -505,6 +609,15 @@ const PublicChatWidget = () => {
 
               {/* Input */}
               <div className={cn("p-3 flex-shrink-0", styles.inputArea, "safe-area-bottom")}>
+                {/* Character counter when approaching limit */}
+                {input.length > MAX_MESSAGE_LENGTH * 0.8 && (
+                  <div className={cn(
+                    "text-xs mb-1 text-right",
+                    input.length > MAX_MESSAGE_LENGTH ? "text-destructive" : "text-muted-foreground"
+                  )}>
+                    {input.length}/{MAX_MESSAGE_LENGTH}
+                  </div>
+                )}
                 <div className="flex gap-2 items-end">
                   <textarea
                     ref={inputRef}
@@ -518,12 +631,13 @@ const PublicChatWidget = () => {
                       "bg-background px-4 py-2.5 text-sm ring-offset-background",
                       "placeholder:text-muted-foreground focus-visible:outline-none",
                       "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                      chatStyle === 'playful' ? 'rounded-2xl' : 'rounded-xl'
+                      chatStyle === 'playful' ? 'rounded-2xl' : 'rounded-xl',
+                      input.length > MAX_MESSAGE_LENGTH && "border-destructive"
                     )}
                   />
                   <Button
                     onClick={sendMessage}
-                    disabled={!input.trim() || isLoading}
+                    disabled={!input.trim() || isLoading || input.length > MAX_MESSAGE_LENGTH}
                     size="icon"
                     className={cn(
                       "h-11 w-11 flex-shrink-0 transition-transform hover:scale-105",
