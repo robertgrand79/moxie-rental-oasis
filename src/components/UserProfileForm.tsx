@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from 'lucide-react';
+import { User, Phone } from 'lucide-react';
 
 const UserProfileForm = () => {
   const { user } = useAuth();
@@ -15,19 +15,41 @@ const UserProfileForm = () => {
   const [profileData, setProfileData] = useState({
     fullName: '',
     email: '',
+    phone: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
 
   useEffect(() => {
-    if (user) {
-      setProfileData(prev => ({
-        ...prev,
-        email: user.email || '',
-        fullName: user.user_metadata?.full_name || ''
-      }));
-    }
+    const fetchProfile = async () => {
+      if (user) {
+        // Set data from user metadata first
+        setProfileData(prev => ({
+          ...prev,
+          email: user.email || '',
+          fullName: user.user_metadata?.full_name || '',
+          phone: user.user_metadata?.phone || ''
+        }));
+
+        // Also fetch from profiles table to get the most up-to-date phone
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('phone, full_name')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          setProfileData(prev => ({
+            ...prev,
+            phone: profile.phone || prev.phone || '',
+            fullName: profile.full_name || prev.fullName || ''
+          }));
+        }
+      }
+    };
+
+    fetchProfile();
   }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -38,7 +60,8 @@ const UserProfileForm = () => {
       // Update user metadata
       const { error: updateError } = await supabase.auth.updateUser({
         data: { 
-          full_name: profileData.fullName 
+          full_name: profileData.fullName,
+          phone: profileData.phone || null
         }
       });
 
@@ -49,6 +72,21 @@ const UserProfileForm = () => {
           variant: 'destructive'
         });
         return;
+      }
+
+      // Also update the profiles table directly
+      if (user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ 
+            full_name: profileData.fullName,
+            phone: profileData.phone || null
+          })
+          .eq('id', user.id);
+
+        if (profileError) {
+          console.warn('Failed to update profiles table:', profileError);
+        }
       }
 
       toast({
@@ -162,6 +200,22 @@ const UserProfileForm = () => {
                 onChange={(e) => setProfileData(prev => ({ ...prev, fullName: e.target.value }))}
                 disabled={isLoading}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Phone Number
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+1 (555) 123-4567"
+                value={profileData.phone}
+                onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                disabled={isLoading}
+              />
+              <p className="text-sm text-muted-foreground">Used for SMS notifications</p>
             </div>
 
             <Button type="submit" disabled={isLoading}>

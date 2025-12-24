@@ -17,7 +17,7 @@ const PlatformAuth: React.FC = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
+  const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '', phone: '' });
   const { signIn, signUp, user, loading, roleLoading } = useAuth();
   const { organization, loading: orgLoading } = useCurrentOrganization();
   const navigate = useNavigate();
@@ -77,7 +77,7 @@ const PlatformAuth: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await signUp(signupData.email, signupData.password, signupData.fullName);
+      const { error } = await signUp(signupData.email, signupData.password, signupData.fullName, signupData.phone || undefined);
       
       if (error) {
         let errorMessage = error.message;
@@ -226,6 +226,18 @@ const PlatformAuth: React.FC = () => {
                       minLength={6}
                       placeholder="••••••••"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Phone Number <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      value={signupData.phone}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, phone: e.target.value }))}
+                      disabled={isLoading}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                    <p className="text-xs text-muted-foreground">For SMS notifications</p>
                   </div>
                   <Button 
                     type="submit" 
