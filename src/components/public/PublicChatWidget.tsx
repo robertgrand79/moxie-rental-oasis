@@ -143,7 +143,7 @@ const PublicChatWidget = () => {
           filter: `session_id=eq.${sessionId}`
         },
         (payload) => {
-          const escalation = payload.new as any;
+          const escalation = payload.new as { status?: string; host_response?: string };
           // Only inject message if status changed to answered and has response
           if (escalation.status === 'answered' && escalation.host_response) {
             const hostMessage: Message = {
@@ -243,21 +243,22 @@ const PublicChatWidget = () => {
         content: data.aiResponse || 'Sorry, I could not generate a response.'
       };
       setMessages(prev => [...prev, assistantMessage]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Chat error:', error);
       let errorContent = 'Sorry, I encountered an error. Please try again later.';
       
-      if (error.message?.includes('429')) {
+      const errMsg = error instanceof Error ? error.message : '';
+      if (errMsg.includes('429')) {
         errorContent = 'I\'m receiving too many requests. Please wait a moment and try again.';
-      } else if (error.message?.includes('402')) {
+      } else if (errMsg.includes('402')) {
         errorContent = 'The chat service is temporarily unavailable. Please try again later or contact us directly.';
       }
       
-      const errorMessage: Message = {
+      const errResponse: Message = {
         role: 'assistant',
         content: errorContent
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errResponse]);
     } finally {
       setIsLoading(false);
     }

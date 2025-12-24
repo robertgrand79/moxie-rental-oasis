@@ -5,14 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+interface RecurrenceFormData {
+  is_recurring: boolean;
+  recurrence_frequency: string | undefined;
+  recurrence_interval: number;
+  recurrence_end_date: string;
+}
+
 interface TaskRecurrenceFormProps {
-  formData: {
-    is_recurring: boolean;
-    recurrence_frequency: string | undefined;
-    recurrence_interval: number;
-    recurrence_end_date: string;
-  };
-  onFormDataChange: (data: any) => void;
+  formData: RecurrenceFormData;
+  onFormDataChange: (data: RecurrenceFormData) => void;
 }
 
 const TaskRecurrenceForm = ({ formData, onFormDataChange }: TaskRecurrenceFormProps) => {
@@ -40,7 +42,7 @@ const TaskRecurrenceForm = ({ formData, onFormDataChange }: TaskRecurrenceFormPr
             <Label htmlFor="recurrence_frequency">Frequency</Label>
             <Select 
               value={formData.recurrence_frequency || ''} 
-              onValueChange={(value: any) => onFormDataChange({ ...formData, recurrence_frequency: value })}
+              onValueChange={(value: string) => onFormDataChange({ ...formData, recurrence_frequency: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select frequency" />

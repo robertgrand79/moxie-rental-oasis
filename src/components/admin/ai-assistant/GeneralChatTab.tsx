@@ -169,11 +169,12 @@ const GeneralChatTab = () => {
         content: data.aiResponse || 'Sorry, I could not generate a response.'
       };
       setMessages(prev => [...prev, assistantMessage]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Chat error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get AI response';
       toast({
         title: 'Error',
-        description: error.message || 'Failed to get AI response',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {

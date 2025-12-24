@@ -14,11 +14,22 @@ interface FormData {
   property_id: string;
 }
 
+interface PropertyOption {
+  id: string;
+  title: string;
+}
+
+interface ContractorOption {
+  id: string;
+  name: string;
+  company_name?: string;
+}
+
 interface WorkOrderBasicFieldsProps {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  properties: any[];
-  contractors: any[];
+  properties: PropertyOption[];
+  contractors: ContractorOption[];
 }
 
 const WorkOrderBasicFields = ({
