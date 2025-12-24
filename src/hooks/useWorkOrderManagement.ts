@@ -160,10 +160,26 @@ export const useWorkOrderManagement = () => {
       // Remove fields that don't exist in the database schema or are auto-generated
       const { property, contractor, ...cleanData } = workOrderData as any;
 
+      // Ensure organization_id is set - get from property if not provided
+      let organizationId = cleanData.organization_id;
+      if (!organizationId && cleanData.property_id) {
+        const { data: propertyData } = await supabase
+          .from('properties')
+          .select('organization_id')
+          .eq('id', cleanData.property_id)
+          .single();
+        organizationId = propertyData?.organization_id;
+      }
+      // Fallback to current organization
+      if (!organizationId && organization?.id) {
+        organizationId = organization.id;
+      }
+
       const { data, error } = await supabase
         .from('work_orders')
         .insert({
           ...cleanData,
+          organization_id: organizationId,
           created_by: user.id
         })
         .select(`
