@@ -11,24 +11,37 @@ import { useUserManagement } from '@/hooks/useUserManagement';
 import { useEnhancedRolesPermissions } from '@/hooks/useEnhancedRolesPermissions';
 import { toast } from '@/hooks/use-toast';
 
+interface Role {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+interface UserRole {
+  role?: {
+    id: string;
+    name?: string;
+  };
+}
+
 interface UserRoleAssignmentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  role: any;
+  role: Role | null;
 }
 
 const UserRoleAssignmentModal = ({ open, onOpenChange, role }: UserRoleAssignmentModalProps) => {
   const { users, loading: usersLoading, searchUsers } = useUserManagement();
   const { assignRoleToUser, removeRoleFromUser, getUserRoles } = useEnhancedRolesPermissions();
   const [searchTerm, setSearchTerm] = useState('');
-  const [userRoles, setUserRoles] = useState<Record<string, any[]>>({});
+  const [userRoles, setUserRoles] = useState<Record<string, UserRole[]>>({});
   const [assigningUsers, setAssigningUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (open && role) {
       // Fetch user roles for all users to see current assignments
       const fetchUserRoles = async () => {
-        const roleData: Record<string, any[]> = {};
+        const roleData: Record<string, UserRole[]> = {};
         for (const user of users) {
           const roles = await getUserRoles(user.id);
           roleData[user.id] = roles;

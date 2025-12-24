@@ -35,7 +35,7 @@ const NewsletterSignup = () => {
       
       setEmail('');
       setName('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Newsletter subscription error:', error);
       toast({
         title: "Subscription Failed",

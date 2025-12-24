@@ -82,7 +82,7 @@ export const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
       
       setShowInput(false);
       setCode('');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error validating promo code:', err);
       setError('Unable to validate promo code. Please try again.');
     } finally {

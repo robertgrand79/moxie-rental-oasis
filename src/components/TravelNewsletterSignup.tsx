@@ -43,7 +43,7 @@ const TravelNewsletterSignup = () => {
         title: "🎉 Welcome!",
         description: `You'll receive updates via ${methods.join(' and ')}.`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Newsletter subscription error:', error);
       toast({
         title: "Subscription Failed",

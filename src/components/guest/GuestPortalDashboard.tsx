@@ -25,6 +25,18 @@ interface GuestReservation {
   };
 }
 
+interface GuestPreferences {
+  dietary?: string[];
+  accessibility?: string[];
+  interests?: string[];
+}
+
+interface NotificationSettings {
+  email?: boolean;
+  sms?: boolean;
+  push?: boolean;
+}
+
 interface GuestProfile {
   id: string;
   first_name?: string;
@@ -33,8 +45,8 @@ interface GuestProfile {
   phone?: string;
   profile_image_url?: string;
   loyalty_points: number;
-  preferences: any;
-  notification_settings: any;
+  preferences: GuestPreferences | null;
+  notification_settings: NotificationSettings | null;
 }
 
 const GuestPortalDashboard = () => {
@@ -93,7 +105,7 @@ const GuestPortalDashboard = () => {
       if (error) throw error;
       if (!data) return [];
       
-      return data.map((item: any) => ({
+      return data.map((item) => ({
         ...item,
         properties: item.properties || { title: 'Property', address: '' }
       })) as GuestReservation[];

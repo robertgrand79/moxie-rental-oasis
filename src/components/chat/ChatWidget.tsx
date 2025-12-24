@@ -155,7 +155,7 @@ const ChatWidget = () => {
       };
 
       setMessages(prev => [...prev, aiMessage]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Chat error:', error);
       toast({
         title: "Chat Error",

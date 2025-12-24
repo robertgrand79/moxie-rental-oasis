@@ -4,9 +4,19 @@ import BlogEditorLayout from './BlogEditorLayout';
 import { useBlogForm } from '@/hooks/useBlogForm';
 import { BlogPost } from '@/types/blogPost';
 
+interface BlogFormData {
+  title: string;
+  content: string;
+  excerpt: string;
+  author: string;
+  status: string;
+  image_url?: string;
+  slug?: string;
+}
+
 interface BlogFormProps {
   post?: BlogPost | null;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: BlogFormData) => void;
   onCancel: () => void;
 }
 

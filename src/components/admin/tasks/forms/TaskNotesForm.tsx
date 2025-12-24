@@ -3,11 +3,13 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
+interface TaskNotesFormData {
+  notes: string;
+}
+
 interface TaskNotesFormProps {
-  formData: {
-    notes: string;
-  };
-  onFormDataChange: (data: any) => void;
+  formData: TaskNotesFormData;
+  onFormDataChange: (data: TaskNotesFormData) => void;
 }
 
 const TaskNotesForm = ({ formData, onFormDataChange }: TaskNotesFormProps) => {
