@@ -45,7 +45,7 @@ const NotificationBell: React.FC = () => {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        align="end"
+        align="start"
         side="bottom"
         sideOffset={8}
         collisionPadding={16}
