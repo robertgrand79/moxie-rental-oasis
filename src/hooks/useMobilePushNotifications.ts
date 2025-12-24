@@ -5,7 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '@/services/monitoring/structuredLogger';
 
+const redactToken = (token: string): string => {
+  if (!token || token.length < 12) return '[REDACTED]';
+  return `${token.substring(0, 6)}...${token.substring(token.length - 4)}`;
+};
 interface UseMobilePushReturn {
   isNative: boolean;
   isSupported: boolean;
@@ -34,7 +39,7 @@ export function useMobilePushNotifications(): UseMobilePushReturn {
       const result = await PushNotifications.checkPermissions();
       setPermissionStatus(result.receive as 'granted' | 'denied' | 'prompt');
     } catch (err) {
-      console.error('[MobilePush] Error checking permissions:', err);
+      logger.error('Error checking push notification permissions', err instanceof Error ? err : undefined, { component: 'MobilePush' });
     }
   }, [isSupported]);
 
@@ -51,7 +56,7 @@ export function useMobilePushNotifications(): UseMobilePushReturn {
       }
       return false;
     } catch (err) {
-      console.error('[MobilePush] Error requesting permission:', err);
+      logger.error('Error requesting push notification permission', err instanceof Error ? err : undefined, { component: 'MobilePush' });
       return false;
     }
   }, [isSupported]);
@@ -77,12 +82,12 @@ export function useMobilePushNotifications(): UseMobilePushReturn {
         });
 
       if (error) {
-        console.error('[MobilePush] Error saving token:', error);
+        logger.error('Error saving push notification token', new Error(error.message), { component: 'MobilePush' });
       } else {
-        console.log('[MobilePush] Token saved successfully');
+        logger.info('Push notification token saved successfully', { component: 'MobilePush', tokenPreview: redactToken(pushToken) });
       }
     } catch (err) {
-      console.error('[MobilePush] Exception saving token:', err);
+      logger.error('Exception saving push notification token', err instanceof Error ? err : undefined, { component: 'MobilePush' });
     }
   }, [user, currentOrganization]);
 
@@ -109,9 +114,9 @@ export function useMobilePushNotifications(): UseMobilePushReturn {
         .eq('token', token);
 
       setToken(null);
-      console.log('[MobilePush] Token unregistered');
+      logger.info('Push notification token unregistered', { component: 'MobilePush' });
     } catch (err) {
-      console.error('[MobilePush] Error unregistering token:', err);
+      logger.error('Error unregistering push notification token', err instanceof Error ? err : undefined, { component: 'MobilePush' });
     }
   }, [token, user]);
 
@@ -123,22 +128,21 @@ export function useMobilePushNotifications(): UseMobilePushReturn {
 
     // Registration success
     const registrationListener = PushNotifications.addListener('registration', (tokenData: Token) => {
-      console.log('[MobilePush] Registration successful, token:', tokenData.value);
+      logger.info('Push notification registration successful', { component: 'MobilePush', tokenPreview: redactToken(tokenData.value) });
       setToken(tokenData.value);
       saveTokenToDatabase(tokenData.value);
     });
 
     // Registration error
     const registrationErrorListener = PushNotifications.addListener('registrationError', (error) => {
-      console.error('[MobilePush] Registration error:', error);
+      logger.error('Push notification registration error', new Error(String(error)), { component: 'MobilePush' });
     });
 
     // Notification received in foreground
     const notificationReceivedListener = PushNotifications.addListener(
       'pushNotificationReceived',
       (notification: PushNotificationSchema) => {
-        console.log('[MobilePush] Notification received:', notification);
-        // Could show a local notification or toast here
+        logger.info('Push notification received', { component: 'MobilePush', title: notification.title, id: notification.id });
       }
     );
 
@@ -146,7 +150,7 @@ export function useMobilePushNotifications(): UseMobilePushReturn {
     const notificationActionListener = PushNotifications.addListener(
       'pushNotificationActionPerformed',
       (action: ActionPerformed) => {
-        console.log('[MobilePush] Notification action:', action);
+        logger.info('Push notification action performed', { component: 'MobilePush', actionId: action.actionId });
         
         // Handle deep linking
         const data = action.notification.data;

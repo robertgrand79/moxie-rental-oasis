@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/services/monitoring/structuredLogger';
 
 export const useSecureApiKeys = () => {
   const [loading, setLoading] = useState(false);
@@ -17,7 +18,7 @@ export const useSecureApiKeys = () => {
 
       return data.value || '';
     } catch (error) {
-      console.error('Error getting API key:', error);
+      logger.error('Error getting API key', error instanceof Error ? error : undefined, { component: 'SecureApiKeys', keyName });
       return '';
     } finally {
       setLoading(false);
@@ -38,7 +39,7 @@ export const useSecureApiKeys = () => {
       return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to save API key';
-      console.error('Error setting API key:', error);
+      logger.error('Error setting API key', error instanceof Error ? error : undefined, { component: 'SecureApiKeys', keyName });
       toast.error(errorMessage);
       return false;
     } finally {
@@ -58,7 +59,7 @@ export const useSecureApiKeys = () => {
       return { encrypted: data.encrypted, skipped: data.skipped };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to encrypt API keys';
-      console.error('Error encrypting keys:', error);
+      logger.error('Error encrypting keys', error instanceof Error ? error : undefined, { component: 'SecureApiKeys' });
       toast.error(errorMessage);
       return { encrypted: 0, skipped: 0 };
     } finally {

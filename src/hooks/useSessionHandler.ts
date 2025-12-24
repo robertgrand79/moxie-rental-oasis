@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/services/monitoring/structuredLogger';
 
 interface UseSessionHandlerOptions {
   redirectTo?: string;
@@ -63,7 +64,7 @@ export function useSessionHandler(options: UseSessionHandlerOptions = {}) {
       } else if (event === 'SIGNED_IN' && !wasLoggedInRef.current) {
         handleSessionRestored();
       } else if (event === 'TOKEN_REFRESHED') {
-        console.log('Session token refreshed successfully');
+        logger.debug('Session token refreshed', { component: 'SessionHandler' });
       }
 
       wasLoggedInRef.current = !!session;
