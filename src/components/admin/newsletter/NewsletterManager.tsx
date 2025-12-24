@@ -12,7 +12,7 @@ const NewsletterManager = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   
-  const { campaigns, loading, deleting, deleteCampaign, refetch } = useNewsletterCampaigns();
+  const { campaigns, loading, deleting, deleteCampaign, editing, editCampaign, refetch } = useNewsletterCampaigns();
 
   // Calculate stats
   const stats = useMemo(() => {

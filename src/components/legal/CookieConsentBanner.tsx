@@ -106,7 +106,7 @@ const CookieConsentBanner: React.FC = () => {
                 <p className="text-sm text-muted-foreground">
                   We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. 
                   By clicking "Accept All", you consent to our use of cookies.{' '}
-                  <Link to="/privacy-policy" className="text-primary hover:underline">
+                  <Link to="/privacy" className="text-primary hover:underline">
                     Read our Privacy Policy
                   </Link>
                 </p>

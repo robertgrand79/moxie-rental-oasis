@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Property } from '@/types/property';
-import { Settings, ExternalLink, Webhook, Key } from 'lucide-react';
+import { Settings, ExternalLink, Webhook, Key, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const integrationSchema = z.object({
   airbnbListingUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
@@ -29,6 +30,7 @@ interface IntegrationSettingsProps {
 
 const IntegrationSettings = ({ property }: IntegrationSettingsProps) => {
   const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<IntegrationFormData>({
     resolver: zodResolver(integrationSchema),
@@ -44,20 +46,31 @@ const IntegrationSettings = ({ property }: IntegrationSettingsProps) => {
   });
 
   const onSubmit = async (data: IntegrationFormData) => {
+    setIsSaving(true);
     try {
-      // TODO: Update property with integration settings
-      console.log('Updating integration settings:', data);
+      // Update property with Airbnb listing URL
+      const { error } = await supabase
+        .from('properties')
+        .update({
+          airbnb_listing_url: data.airbnbListingUrl || null,
+        })
+        .eq('id', property.id);
+
+      if (error) throw error;
       
       toast({
         title: "Settings Updated",
         description: "Integration settings have been saved successfully.",
       });
     } catch (error) {
+      console.error('Failed to save integration settings:', error);
       toast({
         title: "Error",
         description: "Failed to update integration settings.",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -116,7 +129,8 @@ const IntegrationSettings = ({ property }: IntegrationSettingsProps) => {
               )}
             />
 
-            <Button type="submit">
+            <Button type="submit" disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Integration Settings
             </Button>
           </CardContent>

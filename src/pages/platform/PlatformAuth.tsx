@@ -251,9 +251,9 @@ const PlatformAuth: React.FC = () => {
                 
                 <p className="text-xs text-muted-foreground text-center mt-4">
                   By signing up, you agree to our{' '}
-                  <a href="/terms-of-service" className="underline">Terms of Service</a>{' '}
+                  <a href="/terms" className="underline">Terms of Service</a>{' '}
                   and{' '}
-                  <a href="/privacy-policy" className="underline">Privacy Policy</a>.
+                  <a href="/privacy" className="underline">Privacy Policy</a>.
                 </p>
               </TabsContent>
             </Tabs>
