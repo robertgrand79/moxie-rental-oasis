@@ -332,7 +332,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
           View all notifications
         </Link>
         <Link
-          to="/admin/settings/notifications"
+          to="/admin/settings/notifications-settings"
           onClick={onClose}
           className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
         >
