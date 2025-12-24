@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { debug } from '@/utils/debug';
 
 // Generic defaults - no hardcoded brand references
 const DEFAULT_HERO_SETTINGS = {
@@ -21,11 +22,11 @@ export const useHeroSettings = () => {
     queryKey: ['hero-settings', tenantId], 
     queryFn: async () => {
       if (!tenantId) {
-        console.log('🔄 No tenant ID, using defaults');
+        debug.settings('🔄 No tenant ID, using defaults');
         return DEFAULT_HERO_SETTINGS;
       }
 
-      console.log('🔄 Fetching hero settings for tenant:', tenantId);
+      debug.settings('🔄 Fetching hero settings for tenant:', tenantId);
       
       const { data, error } = await supabase
         .from('site_settings')
@@ -46,7 +47,7 @@ export const useHeroSettings = () => {
         throw error;
       }
 
-      console.log('📄 Raw hero settings from database:', data);
+      debug.settings('📄 Raw hero settings from database:', data);
 
       const settingsMap = data?.reduce((acc, setting) => {
         if (setting.value !== null && setting.value !== undefined && setting.value !== '') {
@@ -55,14 +56,14 @@ export const useHeroSettings = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      console.log('🔧 Processed hero settings:', settingsMap);
+      debug.settings('🔧 Processed hero settings:', settingsMap);
 
       const finalSettings = {
         ...DEFAULT_HERO_SETTINGS,
         ...settingsMap
       };
 
-      console.log('✅ Final hero settings:', finalSettings);
+      debug.settings('✅ Final hero settings:', finalSettings);
       return finalSettings;
     },
     enabled: !tenantLoading,

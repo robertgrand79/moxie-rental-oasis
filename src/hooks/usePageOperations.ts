@@ -3,6 +3,7 @@ import { pageService } from '@/services/pageService';
 import { getDefaultPages } from '@/data/defaultPages';
 import { toast } from '@/hooks/use-toast';
 import { Page, PageFormData } from '@/types/page';
+import { debug } from '@/utils/debug';
 
 export const usePageOperations = (
   user: any, 
@@ -95,7 +96,7 @@ export const usePageOperations = (
         
         if (!existingPage) {
           // Create new page if it doesn't exist
-          console.log(`Creating new page: ${pageData.slug}`);
+          debug.log('[Pages]', `Creating new page: ${pageData.slug}`);
           await pageService.createPage(pageData);
         } else {
           // Always update existing pages with default content to ensure they have the latest version
@@ -105,7 +106,7 @@ export const usePageOperations = (
                               pageData.slug === 'faq'; // Always update FAQ to ensure comprehensive content
           
           if (shouldUpdate) {
-            console.log(`Updating page ${pageData.slug} with comprehensive content`);
+            debug.log('[Pages]', `Updating page ${pageData.slug} with comprehensive content`);
             await pageService.updatePage(existingPage.id, {
               content: pageData.content,
               meta_description: pageData.meta_description,
@@ -115,7 +116,7 @@ export const usePageOperations = (
         }
       }
 
-      console.log('Auto-loaded and updated all website pages');
+      debug.log('[Pages]', 'Auto-loaded and updated all website pages');
     } catch (error) {
       console.error('Error auto-loading pages:', error);
     }
@@ -140,7 +141,7 @@ export const usePageOperations = (
         const existingPage = existingPages.find(page => page.slug === pageData.slug);
         
         if (!existingPage) {
-          console.log(`Creating new page: ${pageData.slug}`);
+          debug.log('[Pages]', `Creating new page: ${pageData.slug}`);
           await pageService.createPage(pageData);
         } else {
           // Always update with comprehensive content, especially for FAQ
@@ -149,7 +150,7 @@ export const usePageOperations = (
                               pageData.slug === 'faq';
           
           if (shouldUpdate) {
-            console.log(`Updating page ${pageData.slug} with comprehensive default content`);
+            debug.log('[Pages]', `Updating page ${pageData.slug} with comprehensive default content`);
             await pageService.updatePage(existingPage.id, {
               content: pageData.content,
               meta_description: pageData.meta_description,

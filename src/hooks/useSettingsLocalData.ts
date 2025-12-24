@@ -1,6 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { SettingsState } from './settings/types';
+import { debug } from '@/utils/debug';
 
 interface LocalDataState {
   siteData: {
@@ -127,7 +128,7 @@ export const useSettingsLocalData = (settings: SettingsState, loading: boolean) 
 
   const updateLocalDataFromSettings = useCallback(() => {
     if (!loading) {
-      console.log('[Settings Page] Updating local data from settings:', settings);
+      debug.settings('[Settings Page] Updating local data from settings:', settings);
       setLocalData({
         siteData: {
           siteName: settings.siteName || '',

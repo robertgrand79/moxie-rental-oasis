@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { useHeroImageUpload } from '@/hooks/useHeroImageUpload';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { toast } from '@/hooks/use-toast';
+import { debug } from '@/utils/debug';
 
 export const useHeroImageUploadHandlers = (onImageChange: (imageUrl: string | null) => void) => {
   const [dragActive, setDragActive] = useState(false);
@@ -31,20 +32,20 @@ export const useHeroImageUploadHandlers = (onImageChange: (imageUrl: string | nu
     }
 
     setIsUploading(true);
-    console.log('[Hero Image] Starting upload process for:', file.name);
+    debug.settings('[Hero Image] Starting upload process for:', file.name);
 
     try {
       // Upload the image to storage
       const uploadedUrl = await uploadHeroImage(file);
       
       if (uploadedUrl) {
-        console.log('[Hero Image] Upload successful, saving to database:', uploadedUrl);
+        debug.settings('[Hero Image] Upload successful, saving to database:', uploadedUrl);
         
         // Save the URL to the database immediately
         const saveSuccess = await saveSetting('heroBackgroundImage', uploadedUrl);
         
         if (saveSuccess) {
-          console.log('[Hero Image] Database save successful');
+          debug.settings('[Hero Image] Database save successful');
           // Notify parent component of the change
           onImageChange(uploadedUrl);
           
@@ -96,7 +97,7 @@ export const useHeroImageUploadHandlers = (onImageChange: (imageUrl: string | nu
   };
 
   const removeImage = async (currentImageUrl: string | null) => {
-    console.log('[Hero Image] Removing hero image');
+    debug.settings('[Hero Image] Removing hero image');
     setIsUploading(true);
     
     try {
@@ -109,7 +110,7 @@ export const useHeroImageUploadHandlers = (onImageChange: (imageUrl: string | nu
       const saveSuccess = await saveSetting('heroBackgroundImage', '');
       
       if (saveSuccess) {
-        console.log('[Hero Image] Image removal successful');
+        debug.settings('[Hero Image] Image removal successful');
         onImageChange(null);
         
         toast({

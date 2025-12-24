@@ -5,6 +5,7 @@ import TestimonialCard from '@/components/ui/testimonial-card';
 import LoadingState from '@/components/ui/loading-state';
 import { Button } from '@/components/ui/button';
 import { Star } from 'lucide-react';
+import { debug } from '@/utils/debug';
 
 interface PropertyReviewsSectionProps {
   propertyId: string;
@@ -13,7 +14,7 @@ interface PropertyReviewsSectionProps {
 const PropertyReviewsSection = ({ propertyId }: PropertyReviewsSectionProps) => {
   const { reviews, metrics, isLoading, loadMore, hasMore } = usePropertyReviews(propertyId);
 
-  console.log('🎨 PropertyReviewsSection render:', {
+  debug.log('[Reviews]', '🎨 PropertyReviewsSection render:', {
     propertyId,
     reviewsCount: reviews.length,
     metrics,

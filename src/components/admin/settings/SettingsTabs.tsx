@@ -2,6 +2,7 @@
 import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { debug } from '@/utils/debug';
 
 interface Tab {
   id: string;
@@ -16,13 +17,13 @@ interface SettingsTabsProps {
 }
 
 const SettingsTabs = ({ filteredTabs }: SettingsTabsProps) => {
-  console.log('SettingsTabs rendering with filteredTabs:', filteredTabs);
+  debug.settings('SettingsTabs rendering with filteredTabs:', filteredTabs);
 
   return (
     <div className="w-full overflow-x-auto">
       <TabsList className="inline-flex h-12 items-center justify-start rounded-xl bg-white/60 backdrop-blur-sm p-1 shadow-sm border min-w-full overflow-x-auto">
         {filteredTabs.map((tab) => {
-          console.log('Rendering tab:', tab.id, tab.label);
+          debug.settings('Rendering tab:', tab.id, tab.label);
           const IconComponent = tab.icon;
           return (
             <Tooltip key={tab.id}>

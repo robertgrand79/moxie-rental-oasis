@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useToast } from '@/hooks/use-toast';
+import { debug } from '@/utils/debug';
 
 export interface InboxThread {
   id: string;
@@ -168,7 +169,7 @@ export function useGuestInbox() {
   ) => {
     // Need at least one identifier to search
     if (!guestEmail && !guestPhone) {
-      console.log('No guest email or phone to fetch reservations');
+      debug.log('[Inbox]', 'No guest email or phone to fetch reservations');
       return [];
     }
 
@@ -205,7 +206,7 @@ export function useGuestInbox() {
       return [];
     }
 
-    console.log(`Found ${data?.length || 0} reservations for guest email: ${guestEmail}, phone: ${guestPhone}`);
+    debug.log('[Inbox]', `Found ${data?.length || 0} reservations for guest email: ${guestEmail}, phone: ${guestPhone}`);
 
     return (data || []).map(r => ({
       ...r,

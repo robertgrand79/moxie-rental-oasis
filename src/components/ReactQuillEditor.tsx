@@ -5,6 +5,7 @@ import 'react-quill/dist/quill.snow.css';
 import { sanitizeRichTextContent } from '@/utils/security';
 import { Button } from '@/components/ui/button';
 import { Minus, Space, FileText, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { debug } from '@/utils/debug';
 
 interface ReactQuillEditorProps {
   content: string;
@@ -91,7 +92,7 @@ const ReactQuillEditor = ({ content, onChange, placeholder = "Start writing...",
   ];
 
   const handleChange = (value: string) => {
-    console.log('📝 ReactQuill content changed:', value.substring(0, 100));
+    debug.log('[Editor]', '📝 ReactQuill content changed:', value.substring(0, 100));
     onChange(value);
   };
 
@@ -99,7 +100,7 @@ const ReactQuillEditor = ({ content, onChange, placeholder = "Start writing...",
   useEffect(() => {
     const editor = quillRef.current?.getEditor();
     if (editor && content !== editor.root.innerHTML) {
-      console.log('🔄 Syncing content prop with ReactQuill editor');
+      debug.log('[Editor]', '🔄 Syncing content prop with ReactQuill editor');
       editor.root.innerHTML = content;
     }
   }, [content]);
