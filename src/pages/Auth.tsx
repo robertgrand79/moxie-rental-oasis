@@ -23,7 +23,7 @@ import { AlertTriangle, RefreshCw, Loader2, Mail } from 'lucide-react';
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
+  const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '', phone: '' });
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
@@ -118,7 +118,7 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await signUp(signupData.email, signupData.password, signupData.fullName);
+      const { error } = await signUp(signupData.email, signupData.password, signupData.fullName, signupData.phone || undefined);
       
       if (error) {
         let errorMessage = error.message;
@@ -358,7 +358,22 @@ const Auth = () => {
                       Must be at least 6 characters
                     </p>
                   </div>
-                  <Button 
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Phone Number <span className="text-muted-foreground">(optional)</span></Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      value={signupData.phone}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, phone: e.target.value }))}
+                      disabled={isLoading}
+                      className="h-11"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      For SMS notifications
+                    </p>
+                  </div>
+                  <Button
                     type="submit" 
                     className="w-full h-11" 
                     disabled={isLoading || (!databaseStatus.isConnected && !databaseStatus.isChecking)}
