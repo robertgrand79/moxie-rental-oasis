@@ -172,11 +172,11 @@ const NewsletterAIGenerator = ({
           ? "AI content was filtered to extract only the newsletter content for the editor."
           : "AI has created well-formatted, responsive content with Moxie's branding and style.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Content generation error:', error);
       toast({
         title: "Generation Failed",
-        description: error.message || "Please try again later.",
+        description: error instanceof Error ? error.message : "Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -240,7 +240,7 @@ Generate newsletter content using these sections with HTML formatting:
     await generateContent(completePrompt);
   };
 
-  const useTemplate = async (template: any) => {
+  const useTemplate = async (template: { prompt: string; name?: string }) => {
     debug.log('[Newsletter]', 'Using template:', template);
     setAiPrompt(template.prompt);
     setSelectedField('content');

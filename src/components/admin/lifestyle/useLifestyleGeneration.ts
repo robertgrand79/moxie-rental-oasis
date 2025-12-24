@@ -19,7 +19,7 @@ export const useLifestyleGeneration = ({
   location = 'the local area'
 }: UseLifestyleGenerationProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedItems, setGeneratedItems] = useState<any[]>([]);
+  const [generatedItems, setGeneratedItems] = useState<Partial<LifestyleGalleryItem>[]>([]);
 
   const generateItems = async (
     prompt: string,
@@ -93,13 +93,13 @@ export const useLifestyleGeneration = ({
         throw new Error('Invalid response format from AI service');
       }
 
-      const validItems = items.filter((item: any) => {
-        const isValid = item && 
+      const validItems = items.filter((item: unknown): item is Partial<LifestyleGalleryItem> => {
+        const isValid = item !== null && 
           typeof item === 'object' && 
-          item.title && 
-          typeof item.title === 'string' &&
-          item.description &&
-          typeof item.description === 'string';
+          'title' in item &&
+          typeof (item as Record<string, unknown>).title === 'string' &&
+          'description' in item &&
+          typeof (item as Record<string, unknown>).description === 'string';
         
         if (!isValid) {
           debug.warn('Filtered out invalid item:', item);
@@ -119,11 +119,11 @@ export const useLifestyleGeneration = ({
         title: 'Success',
         description: `Generated ${validItems.length} lifestyle items successfully!`
       });
-    } catch (error) {
+    } catch (error: unknown) {
       debug.error('Error generating lifestyle items:', error);
       toast({
         title: 'Error',
-        description: `Failed to generate lifestyle items: ${error.message}`,
+        description: `Failed to generate lifestyle items: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive'
       });
     } finally {

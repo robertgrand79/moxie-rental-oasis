@@ -6,6 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 
+interface CardProps {
+  title: string;
+  content: string;
+  backgroundColor: string;
+  padding: number;
+}
+
 export const CardSettings = () => {
   const { actions: { setProp }, props } = useNode((node) => ({
     props: node.data.props
@@ -18,7 +25,7 @@ export const CardSettings = () => {
         <Input
           id="title"
           value={props.title}
-          onChange={(e) => setProp((props: any) => props.title = e.target.value)}
+          onChange={(e) => setProp((props: CardProps) => props.title = e.target.value)}
         />
       </div>
       
@@ -27,7 +34,7 @@ export const CardSettings = () => {
         <Textarea
           id="content"
           value={props.content}
-          onChange={(e) => setProp((props: any) => props.content = e.target.value)}
+          onChange={(e) => setProp((props: CardProps) => props.content = e.target.value)}
           rows={4}
         />
       </div>
@@ -38,7 +45,7 @@ export const CardSettings = () => {
           id="backgroundColor"
           type="color"
           value={props.backgroundColor}
-          onChange={(e) => setProp((props: any) => props.backgroundColor = e.target.value)}
+          onChange={(e) => setProp((props: CardProps) => props.backgroundColor = e.target.value)}
         />
       </div>
 
@@ -46,7 +53,7 @@ export const CardSettings = () => {
         <Label>Padding: {props.padding}px</Label>
         <Slider
           value={[props.padding]}
-          onValueChange={(value) => setProp((props: any) => props.padding = value[0])}
+          onValueChange={(value) => setProp((props: CardProps) => props.padding = value[0])}
           max={50}
           min={0}
           step={5}

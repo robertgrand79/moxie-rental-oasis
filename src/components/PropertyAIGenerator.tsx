@@ -92,11 +92,11 @@ const PropertyAIGenerator = ({ onContentGenerated, propertyData }: PropertyAIGen
         title: "Content Generated!",
         description: "AI has generated new property content based on your prompt.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Content generation error:', error);
       toast({
         title: "Generation Failed",
-        description: error.message || "Please try again later.",
+        description: error instanceof Error ? error.message : "Please try again later.",
         variant: "destructive",
       });
     } finally {
