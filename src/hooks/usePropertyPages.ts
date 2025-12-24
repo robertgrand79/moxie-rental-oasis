@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { generateAddressSlug } from '@/utils/addressSlug';
+import { debug } from '@/utils/debug';
 
 export const usePropertyPages = () => {
   const { toast } = useToast();
@@ -62,17 +63,17 @@ Ready to experience this amazing property? Book now through our secure booking s
         }]);
 
       if (error) {
-        console.error('Error creating property page:', error);
+        debug.error('Error creating property page:', error);
         toast({
           title: "Warning",
           description: "Property added but page creation failed. You can create it manually later.",
           variant: "destructive"
         });
       } else {
-        console.log('Property page created successfully with slug:', slug);
+        debug.property('Property page created successfully with slug:', slug);
       }
     } catch (error) {
-      console.error('Error in createPropertyPage:', error);
+      debug.error('Error in createPropertyPage:', error);
     }
   };
 
@@ -83,7 +84,7 @@ Ready to experience this amazing property? Book now through our secure booking s
       // Generate the same clean slug that was used during creation
       const pageSlug = generateAddressSlug(property.location);
 
-      console.log('Attempting to delete page with slug:', pageSlug);
+      debug.property('Attempting to delete page with slug:', pageSlug);
 
       // Delete the corresponding page
       const { error, data } = await supabase
@@ -93,7 +94,7 @@ Ready to experience this amazing property? Book now through our secure booking s
         .select();
 
       if (error) {
-        console.error('Error deleting property page:', error);
+        debug.error('Error deleting property page:', error);
         toast({
           title: "Warning",
           description: "Property deleted but page cleanup failed. You may need to manually remove the page.",
@@ -101,11 +102,11 @@ Ready to experience this amazing property? Book now through our secure booking s
         });
         return false;
       } else {
-        console.log('Property page deleted successfully:', data);
+        debug.property('Property page deleted successfully:', data);
         return true;
       }
     } catch (error) {
-      console.error('Error in deletePropertyPage:', error);
+      debug.error('Error in deletePropertyPage:', error);
       return false;
     }
   };

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { debug } from '@/utils/debug';
 
 export const useAdminSetup = () => {
   const [isSettingUp, setIsSettingUp] = useState(false);
@@ -20,7 +21,7 @@ export const useAdminSetup = () => {
 
     setIsSettingUp(true);
     try {
-      console.log('🔧 Setting up admin access for user:', user.id);
+      debug.auth('Setting up admin access for user:', user.id);
 
       // First, ensure the user has a profile with admin role
       const { error: profileError } = await supabase
@@ -37,7 +38,7 @@ export const useAdminSetup = () => {
         });
 
       if (profileError) {
-        console.error('❌ Profile setup error:', profileError);
+        debug.error('Profile setup error:', profileError);
         throw profileError;
       }
 
@@ -72,17 +73,17 @@ export const useAdminSetup = () => {
               });
 
             if (userRoleError) {
-              console.warn('⚠️ Could not assign new role system admin:', userRoleError);
+              debug.warn('Could not assign new role system admin:', userRoleError);
               // Don't throw error - legacy system should still work
             }
           }
         }
       } catch (newRoleError) {
-        console.warn('⚠️ New role system not available:', newRoleError);
+        debug.warn('New role system not available:', newRoleError);
         // Continue with legacy system
       }
 
-      console.log('✅ Admin access setup complete');
+      debug.auth('Admin access setup complete');
       
       toast({
         title: 'Success',
@@ -91,7 +92,7 @@ export const useAdminSetup = () => {
 
       return true;
     } catch (error) {
-      console.error('💥 Error setting up admin access:', error);
+      debug.error('Error setting up admin access:', error);
       toast({
         title: 'Setup Failed',
         description: 'Failed to set up admin access. Please try again.',

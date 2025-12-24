@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { debug } from '@/utils/debug';
 
 export interface WorkOrder {
   id: string;
@@ -84,7 +85,7 @@ export const useWorkOrderManagement = () => {
 
   const fetchWorkOrders = useCallback(async () => {
     if (!organization?.id) {
-      console.log('🔄 useWorkOrderManagement - Waiting for organization...');
+      debug.workorder('Waiting for organization...');
       setWorkOrders([]);
       return;
     }
@@ -118,7 +119,7 @@ export const useWorkOrderManagement = () => {
       if (error) throw error;
       setWorkOrders(data as WorkOrder[] || []);
     } catch (error) {
-      console.error('Error fetching work orders:', error);
+      debug.error('Error fetching work orders:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch work orders',
@@ -144,7 +145,7 @@ export const useWorkOrderManagement = () => {
       if (error) throw error;
       setContractors(data || []);
     } catch (error) {
-      console.error('Error fetching contractors:', error);
+      debug.error('Error fetching contractors:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch contractors',
@@ -222,7 +223,7 @@ export const useWorkOrderManagement = () => {
       
       return data;
     } catch (error) {
-      console.error('Error creating work order:', error);
+      debug.error('Error creating work order:', error);
       toast({
         title: 'Error',
         description: 'Failed to create work order',
@@ -282,7 +283,7 @@ export const useWorkOrderManagement = () => {
       
       return data;
     } catch (error) {
-      console.error('Error updating work order:', error);
+      debug.error('Error updating work order:', error);
       toast({
         title: 'Error',
         description: 'Failed to update work order',
@@ -307,7 +308,7 @@ export const useWorkOrderManagement = () => {
         description: 'Work order deleted successfully',
       });
     } catch (error) {
-      console.error('Error deleting work order:', error);
+      debug.error('Error deleting work order:', error);
       toast({
         title: 'Error',
         description: 'Failed to delete work order',
@@ -343,7 +344,7 @@ export const useWorkOrderManagement = () => {
       
       return data;
     } catch (error) {
-      console.error('Error creating contractor:', error);
+      debug.error('Error creating contractor:', error);
       toast({
         title: 'Error',
         description: 'Failed to create contractor',
@@ -372,7 +373,7 @@ export const useWorkOrderManagement = () => {
       
       return data;
     } catch (error) {
-      console.error('Error updating contractor:', error);
+      debug.error('Error updating contractor:', error);
       toast({
         title: 'Error',
         description: 'Failed to update contractor',
@@ -397,7 +398,7 @@ export const useWorkOrderManagement = () => {
         description: 'Contractor deleted successfully',
       });
     } catch (error) {
-      console.error('Error deleting contractor:', error);
+      debug.error('Error deleting contractor:', error);
       toast({
         title: 'Error',
         description: 'Failed to delete contractor',

@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { debug } from '@/utils/debug';
 
 interface ImageSizes {
   thumbnail: File;
@@ -69,7 +70,7 @@ export const useImageOptimization = () => {
         compressionRatio: ((file.size - mainOptimized.size) / file.size) * 100
       };
 
-      console.log('📏 Image optimization complete:', {
+      debug.ui('Image optimization complete:', {
         originalSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
         optimizedSize: `${(mainOptimized.size / 1024 / 1024).toFixed(2)}MB`,
         compression: `${compressionStats.compressionRatio.toFixed(1)}%`,
@@ -83,7 +84,7 @@ export const useImageOptimization = () => {
       };
       
     } catch (error) {
-      console.error('❌ Image optimization failed:', error);
+      debug.error('Image optimization failed:', error);
       toast({
         title: 'Optimization failed',
         description: 'Could not optimize the image. Using original file.',

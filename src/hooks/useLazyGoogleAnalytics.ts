@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { debug } from '@/utils/debug';
 
 interface LazyGoogleAnalyticsOptions {
   enabled: boolean;
@@ -25,7 +26,7 @@ export const useLazyGoogleAnalytics = ({
     const existingScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${googleAnalyticsId}"]`);
     
     if (existingScript && scriptLoadedRef.current) {
-      console.log('📊 LazyGA: Script already loaded, dispatching event');
+      debug.analytics('LazyGA: Script already loaded, dispatching event');
       setTimeout(() => {
         const event = new CustomEvent('ga-script-loaded', { 
           detail: { 
@@ -41,7 +42,7 @@ export const useLazyGoogleAnalytics = ({
     }
 
     if (!existingScript) {
-      console.log('📊 LazyGA: Loading Google Analytics script lazily for:', googleAnalyticsId);
+      debug.analytics('LazyGA: Loading Google Analytics script lazily for:', googleAnalyticsId);
       
       // Create and load the GA script
       const gaScript = document.createElement('script');
@@ -51,7 +52,7 @@ export const useLazyGoogleAnalytics = ({
       gaScript.setAttribute('data-lazy-loaded', 'true');
       
       gaScript.onload = () => {
-        console.log('✅ LazyGA: Script loaded successfully');
+        debug.analytics('LazyGA: Script loaded successfully');
         scriptLoadedRef.current = true;
         
         // Dispatch event
@@ -67,7 +68,7 @@ export const useLazyGoogleAnalytics = ({
       };
       
       gaScript.onerror = (error) => {
-        console.error('❌ LazyGA: Error loading script:', error);
+        debug.error('LazyGA: Error loading script:', error);
         const errorObj = new Error('Failed to load Google Analytics script');
         onScriptError?.(errorObj);
       };
@@ -86,9 +87,8 @@ export const useLazyGoogleAnalytics = ({
             send_page_view: true,
             debug_mode: false
           });
-          console.log('📊 LazyGA: Google Analytics configured successfully');
         } catch (error) {
-          console.error('❌ LazyGA: Error configuring Google Analytics:', error);
+          // Error configuring Google Analytics - handled silently in production
         }
       `;
       gaConfigScript.setAttribute('data-lazy-loaded', 'true');
@@ -115,7 +115,7 @@ export const useLazyGoogleAnalytics = ({
 
   // Manual cleanup function for when user navigates away
   const cleanupGAResources = () => {
-    console.log('🧹 LazyGA: Cleaning up GA resources');
+    debug.analytics('LazyGA: Cleaning up GA resources');
     
     // Remove lazy-loaded scripts
     const lazyScripts = document.querySelectorAll('script[data-lazy-loaded="true"]');
@@ -141,7 +141,7 @@ export const useLazyGoogleAnalytics = ({
       try {
         cleanup();
       } catch (error) {
-        console.warn('⚠️ LazyGA: Error during cleanup:', error);
+        debug.warn('LazyGA: Error during cleanup:', error);
       }
     });
     cleanupFunctionsRef.current = [];

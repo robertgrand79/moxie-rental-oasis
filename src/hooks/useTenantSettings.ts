@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { debug } from '@/utils/debug';
 
 interface TenantSettings {
   site_name?: string;
@@ -70,11 +71,11 @@ export const useTenantSettings = () => {
     queryKey: ['tenant-settings', tenantId],
     queryFn: async (): Promise<TenantSettings> => {
       if (!tenantId) {
-        console.log('⚙️ [TenantSettings] No tenantId, returning empty settings');
+        debug.settings('No tenantId, returning empty settings');
         return {};
       }
 
-      console.log('⚙️ [TenantSettings] Fetching settings for org:', tenantId, tenant?.name);
+      debug.settings('Fetching settings for org:', tenantId, tenant?.name);
 
       const { data, error } = await supabase
         .from('site_settings')
@@ -82,7 +83,7 @@ export const useTenantSettings = () => {
         .eq('organization_id', tenantId);
 
       if (error) {
-        console.error('⚙️ [TenantSettings] Error:', error.message);
+        debug.error('[TenantSettings] Error:', error.message);
         throw error;
       }
 
@@ -94,7 +95,7 @@ export const useTenantSettings = () => {
         });
       }
 
-      console.log('⚙️ [TenantSettings] Loaded', data?.length ?? 0, 'settings');
+      debug.settings('Loaded', data?.length ?? 0, 'settings');
       return settings;
     },
     enabled: !!tenantId && !tenantLoading,
@@ -111,7 +112,7 @@ export const useTenantSettings = () => {
     site_name: query.data?.site_name || query.data?.siteName || tenant?.name || undefined,
   };
   
-  console.log('🖼️ [TenantSettings] Logo resolved:', mergedSettings.logo_url ? 'Found' : 'Not configured');
+  debug.settings('Logo resolved:', mergedSettings.logo_url ? 'Found' : 'Not configured');
 
   return {
     settings: mergedSettings,
