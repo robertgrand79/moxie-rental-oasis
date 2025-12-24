@@ -26,6 +26,17 @@ const LOG_CATEGORIES = {
   calendar: '[Calendar]',
   device: '[Device]',
   tenant: '[Tenant]',
+  // Phase 5: New semantic categories
+  settings: '[Settings]',
+  blog: '[Blog]',
+  booking: '[Booking]',
+  newsletter: '[Newsletter]',
+  workorder: '[WorkOrder]',
+  sync: '[Sync]',
+  property: '[Property]',
+  review: '[Review]',
+  org: '[Org]',
+  platform: '[Platform]',
 } as const;
 
 type LogCategory = keyof typeof LOG_CATEGORIES;
@@ -117,6 +128,58 @@ export const debug = {
   /** Tenant-related logs */
   tenant: (...args: unknown[]) => {
     if (isDev) console.log(LOG_CATEGORIES.tenant, ...args);
+  },
+
+  // Phase 5: New category methods
+
+  /** Settings-related logs */
+  settings: (...args: unknown[]) => {
+    if (isDev) console.log(LOG_CATEGORIES.settings, ...args);
+  },
+
+  /** Blog-related logs */
+  blog: (...args: unknown[]) => {
+    if (isDev) console.log(LOG_CATEGORIES.blog, ...args);
+  },
+
+  /** Booking-related logs */
+  booking: (...args: unknown[]) => {
+    if (isDev) console.log(LOG_CATEGORIES.booking, ...args);
+  },
+
+  /** Newsletter-related logs */
+  newsletter: (...args: unknown[]) => {
+    if (isDev) console.log(LOG_CATEGORIES.newsletter, ...args);
+  },
+
+  /** Work order-related logs */
+  workorder: (...args: unknown[]) => {
+    if (isDev) console.log(LOG_CATEGORIES.workorder, ...args);
+  },
+
+  /** Sync-related logs */
+  sync: (...args: unknown[]) => {
+    if (isDev) console.log(LOG_CATEGORIES.sync, ...args);
+  },
+
+  /** Property-related logs */
+  property: (...args: unknown[]) => {
+    if (isDev) console.log(LOG_CATEGORIES.property, ...args);
+  },
+
+  /** Review-related logs */
+  review: (...args: unknown[]) => {
+    if (isDev) console.log(LOG_CATEGORIES.review, ...args);
+  },
+
+  /** Organization-related logs */
+  org: (...args: unknown[]) => {
+    if (isDev) console.log(LOG_CATEGORIES.org, ...args);
+  },
+
+  /** Platform-related logs */
+  platform: (...args: unknown[]) => {
+    if (isDev) console.log(LOG_CATEGORIES.platform, ...args);
   },
 };
 

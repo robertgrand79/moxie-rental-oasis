@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo, useState, useEffect } from 'react';
+import { debug } from '@/utils/debug';
 
 // Platform domain configuration
 const PLATFORM_DOMAIN = 'staymoxie.com';
@@ -71,7 +72,7 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
         hostname === `www.${PLATFORM_DOMAIN}`
       ));
     
-    console.log('🌐 Platform detection:', { 
+    debug.platform('Platform detection:', { 
       hostname, 
       isSubdomain,
       hasExplicitTenant, 

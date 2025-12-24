@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDatabase } from '@/hooks/useDatabase';
 import { toast } from '@/hooks/use-toast';
 import { trackFailedLogin, clearFailedLoginTracking } from '@/utils/securityNotifications';
+import { debug } from '@/utils/debug';
 
 interface Profile {
   id: string;
@@ -64,11 +65,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Prevent duplicate simultaneous fetches for the same user
     const currentRetries = roleRetriesMap.get(userId) || 0;
     if (currentRetries > 0) {
-      console.log('🔄 Role fetch already in progress for user:', userId, 'skipping duplicate');
+      debug.auth('Role fetch already in progress for user:', userId, 'skipping duplicate');
       return;
     }
 
-    console.log('🔍 Starting role fetch for user:', userId, `(attempt ${retryCount + 1})`);
+    debug.auth('Starting role fetch for user:', userId, `(attempt ${retryCount + 1})`);
     setRoleLoading(true);
     
     // Track this user's retry attempt
@@ -77,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Shorter timeout and simpler database check
       if (!databaseStatus.isConnected && retryCount === 0) {
-        console.warn('⚠️ Database not connected, attempting to connect...');
+        debug.warn('Database not connected, attempting to connect...');
         databaseStatus.checkConnection();
       }
 
@@ -94,12 +95,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ]);
 
       if (error) {
-        console.error('❌ Error fetching user profile:', error);
+        debug.error('Error fetching user profile:', error);
         throw error;
       }
 
       const role = profileData?.role || 'user';
-      console.log('✅ User role fetched successfully:', role);
+      debug.auth('User role fetched successfully:', role);
       
       setUserRole(role);
       setIsAdmin(role === 'admin');
@@ -113,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
     } catch (error) {
-      console.error('💥 Role fetch failed or timed out:', error);
+      debug.error('Role fetch failed or timed out:', error);
       
       // Only retry on first attempt and for connection-related errors
       if (retryCount === 0 && error instanceof Error && (
@@ -121,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         error.message.includes('connection') ||
         error.message.includes('network')
       )) {
-        console.log('🔄 Retrying role fetch due to connection issue...');
+        debug.auth('Retrying role fetch due to connection issue...');
         
         // Schedule single retry after delay
         setTimeout(() => {
@@ -131,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       // After max retries or non-connection errors, fallback to user role
-      console.log('🚨 Max retries reached or permanent error, defaulting to user role');
+      debug.auth('Max retries reached or permanent error, defaulting to user role');
       setUserRole('user');
       setIsAdmin(false);
       setProfile(null);
@@ -143,34 +144,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return newMap;
       });
     } finally {
-      console.log('🏁 Role loading complete');
+      debug.auth('Role loading complete');
       setRoleLoading(false);
     }
   };
 
   useEffect(() => {
-    console.log('🔄 Setting up auth listener...');
+    debug.auth('Setting up auth listener...');
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('🔐 Auth state changed:', event, session?.user?.email);
+        debug.auth('Auth state changed:', event, session?.user?.email);
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          console.log('👤 User authenticated, fetching role...');
+          debug.auth('User authenticated, fetching role...');
           
           // Update last_login_at for SIGNED_IN events (covers all login methods)
           if (event === 'SIGNED_IN') {
-            console.log('📝 Updating last login timestamp...');
+            debug.auth('Updating last login timestamp...');
             supabase.rpc('update_user_last_login', { user_id: session.user.id })
               .then(({ error }) => {
                 if (error) {
-                  console.warn('Failed to update last_login_at:', error);
+                  debug.warn('Failed to update last_login_at:', error);
                 } else {
-                  console.log('✅ Last login timestamp updated');
+                  debug.auth('Last login timestamp updated');
                 }
               });
           }
@@ -180,7 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             fetchUserRoleWithTimeout(session.user.id);
           }, 0);
         } else {
-          console.log('👤 No user, clearing role state');
+          debug.auth('No user, clearing role state');
           setUserRole(null);
           setIsAdmin(false);
           setProfile(null);
@@ -195,16 +196,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for existing session
     const initializeAuth = async () => {
       try {
-        console.log('🔍 Checking for existing session...');
+        debug.auth('Checking for existing session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('❌ Error getting session:', error);
+          debug.error('Error getting session:', error);
           setLoading(false);
           return;
         }
         
-        console.log('📋 Initial session check:', session?.user?.email || 'No session');
+        debug.auth('Initial session check:', session?.user?.email || 'No session');
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -220,7 +221,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
       } catch (error) {
-        console.error('💥 Error initializing auth:', error);
+        debug.error('Error initializing auth:', error);
         // Ensure we always stop loading even on error
         setUserRole('user');
         setIsAdmin(false);
@@ -234,18 +235,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth();
 
     return () => {
-      console.log('🧹 Cleaning up auth subscription');
+      debug.auth('Cleaning up auth subscription');
       subscription.unsubscribe();
     };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
-    console.log('📝 Attempting sign up for:', email);
+    debug.auth('Attempting sign up for:', email);
     
     try {
       // Check database connection before attempting sign up
       if (!databaseStatus.isConnected && !databaseStatus.isChecking) {
-        console.warn('⚠️ Database not connected, checking connection...');
+        debug.warn('Database not connected, checking connection...');
         await databaseStatus.checkConnection();
       }
 
@@ -264,26 +265,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        console.error('❌ Sign up error:', error);
+        debug.error('Sign up error:', error);
         return { error };
       }
 
-      console.log('✅ Sign up successful');
+      debug.auth('Sign up successful');
       return { error: null };
     } catch (error) {
-      console.error('💥 Unexpected sign up error:', error);
+      debug.error('Unexpected sign up error:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       return { error: { message: errorMessage } };
     }
   };
 
   const signIn = async (email: string, password: string) => {
-    console.log('🔑 Attempting sign in for:', email);
+    debug.auth('Attempting sign in for:', email);
     
     try {
       // Check database connection before attempting sign in
       if (!databaseStatus.isConnected && !databaseStatus.isChecking) {
-        console.warn('⚠️ Database not connected, checking connection...');
+        debug.warn('Database not connected, checking connection...');
         await databaseStatus.checkConnection();
       }
 
@@ -294,7 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const lockout = lockoutData as { is_locked?: boolean; locked_until?: string; message?: string } | null;
       if (!lockoutError && lockout?.is_locked) {
-        console.warn('🔒 Account is locked:', email);
+        debug.warn('Account is locked:', email);
         const lockedUntil = new Date(lockout.locked_until || '');
         const minutesRemaining = Math.ceil((lockedUntil.getTime() - Date.now()) / 60000);
         return { 
@@ -310,7 +311,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        console.error('❌ Sign in error:', error);
+        debug.error('Sign in error:', error);
         
         // Track failed login attempt server-side
         if (error.message.includes('Invalid login credentials')) {
@@ -346,7 +347,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await supabase.rpc('clear_failed_logins', { p_email: email });
       clearFailedLoginTracking(email);
 
-      console.log('✅ Sign in successful');
+      debug.auth('Sign in successful');
       
       // Note: last_login_at is now updated via onAuthStateChange SIGNED_IN event
       if (data?.user?.id) {
@@ -373,20 +374,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
         } catch (notifErr) {
-          console.warn('Failed to fetch notification count:', notifErr);
+          debug.warn('Failed to fetch notification count:', notifErr);
         }
       }
 
       return { error: null };
     } catch (error) {
-      console.error('💥 Unexpected sign in error:', error);
+      debug.error('Unexpected sign in error:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       return { error: { message: errorMessage } };
     }
   };
 
   const signOut = async () => {
-    console.log('🚪 Signing out...');
+    debug.auth('Signing out...');
     
     try {
       // Clear localStorage auth tokens first to prevent re-authentication
@@ -424,18 +425,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           (error as any).code === 'session_not_found';
         
         if (isSessionMissingError) {
-          console.log('ℹ️ Session already expired or missing, treating as successful sign out');
+          debug.auth('Session already expired or missing, treating as successful sign out');
           return { error: null }; // Treat as success
         }
         
-        console.error('❌ Sign out error:', error);
+        debug.error('Sign out error:', error);
         return { error };
       }
       
-      console.log('✅ Sign out successful, session storage cleared');
+      debug.auth('Sign out successful, session storage cleared');
       return { error: null };
     } catch (error) {
-      console.error('💥 Unexpected sign out error:', error);
+      debug.error('Unexpected sign out error:', error);
       
       // Still clear local state on unexpected errors
       setUser(null);
@@ -451,7 +452,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetPassword = async (email: string) => {
-    console.log('🔑 Requesting password reset for:', email);
+    debug.auth('Requesting password reset for:', email);
     
     const redirectUrl = `${window.location.origin}/reset-password`;
     
@@ -460,9 +461,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     
     if (error) {
-      console.error('❌ Password reset error:', error);
+      debug.error('Password reset error:', error);
     } else {
-      console.log('✅ Password reset email sent');
+      debug.auth('Password reset email sent');
     }
     
     return { error };
@@ -470,13 +471,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const retryAuth = () => {
     if (authRetryCount < 3) {
-      console.log('🔄 Retrying authentication...', authRetryCount + 1);
+      debug.auth('Retrying authentication...', authRetryCount + 1);
       setAuthRetryCount(prev => prev + 1);
       
       // Retry getting the session
       supabase.auth.getSession().then(({ data: { session }, error }) => {
         if (error) {
-          console.error('❌ Auth retry failed:', error);
+          debug.error('Auth retry failed:', error);
           return;
         }
         
