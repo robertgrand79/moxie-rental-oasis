@@ -2639,6 +2639,41 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_updates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          incident_id: string
+          message: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          incident_id: string
+          message: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          incident_id?: string
+          message?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_updates_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "system_incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       length_of_stay_discounts: {
         Row: {
           created_at: string | null
@@ -5924,6 +5959,115 @@ export type Database = {
         }
         Relationships: []
       }
+      support_ticket_responses: {
+        Row: {
+          attachments: string[] | null
+          content: string
+          created_at: string
+          id: string
+          is_staff_response: boolean | null
+          ticket_id: string
+          user_id: string | null
+        }
+        Insert: {
+          attachments?: string[] | null
+          content: string
+          created_at?: string
+          id?: string
+          is_staff_response?: boolean | null
+          ticket_id: string
+          user_id?: string | null
+        }
+        Update: {
+          attachments?: string[] | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_staff_response?: boolean | null
+          ticket_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_responses_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          attachments: string[] | null
+          category: string
+          created_at: string
+          description: string
+          email: string
+          id: string
+          name: string | null
+          organization_id: string | null
+          priority: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          subject: string
+          ticket_number: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          attachments?: string[] | null
+          category: string
+          created_at?: string
+          description: string
+          email: string
+          id?: string
+          name?: string | null
+          organization_id?: string | null
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          subject: string
+          ticket_number: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          attachments?: string[] | null
+          category?: string
+          created_at?: string
+          description?: string
+          email?: string
+          id?: string
+          name?: string | null
+          organization_id?: string | null
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          subject?: string
+          ticket_number?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_logs: {
         Row: {
           created_at: string
@@ -6018,6 +6162,45 @@ export type Database = {
           },
         ]
       }
+      system_incidents: {
+        Row: {
+          affected_services: string[] | null
+          created_at: string
+          description: string
+          id: string
+          resolved_at: string | null
+          severity: string
+          started_at: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affected_services?: string[] | null
+          created_at?: string
+          description: string
+          id?: string
+          resolved_at?: string | null
+          severity: string
+          started_at?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affected_services?: string[] | null
+          created_at?: string
+          description?: string
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          started_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       system_permissions: {
         Row: {
           category: string
@@ -6080,6 +6263,36 @@ export type Database = {
           is_active?: boolean
           is_system_role?: boolean
           name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      system_status: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          last_checked_at: string | null
+          service_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_checked_at?: string | null
+          service_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_checked_at?: string | null
+          service_name?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -6585,6 +6798,59 @@ export type Database = {
           target_user_id?: string | null
         }
         Relationships: []
+      }
+      user_feedback: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          description: string
+          feedback_type: string
+          id: string
+          organization_id: string | null
+          priority: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string | null
+          votes: number | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          description: string
+          feedback_type: string
+          id?: string
+          organization_id?: string | null
+          priority?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+          votes?: number | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string
+          feedback_type?: string
+          id?: string
+          organization_id?: string | null
+          priority?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+          votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feedback_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_invitations: {
         Row: {
