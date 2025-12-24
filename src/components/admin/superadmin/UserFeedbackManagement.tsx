@@ -37,8 +37,28 @@ import {
   ThumbsUp,
   Filter,
   RefreshCw,
-  Building2
+  Building2,
+  Archive,
+  Trash2,
+  MoreHorizontal
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -55,6 +75,8 @@ type UserFeedback = {
   user_id: string | null;
   created_at: string;
   updated_at: string;
+  is_archived: boolean;
+  archived_at: string | null;
 };
 
 type Organization = {
@@ -99,8 +121,10 @@ const UserFeedbackManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showArchived, setShowArchived] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState<UserFeedback | null>(null);
   const [adminNotes, setAdminNotes] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<UserFeedback | null>(null);
 
   // Fetch all feedback
   const { data: feedback, isLoading, refetch } = useQuery({
@@ -154,6 +178,26 @@ const UserFeedbackManagement = () => {
     },
   });
 
+  // Delete feedback mutation
+  const deleteFeedbackMutation = useMutation({
+    mutationFn: async (feedbackId: string) => {
+      const { error } = await supabase
+        .from('user_feedback')
+        .delete()
+        .eq('id', feedbackId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platform-user-feedback'] });
+      toast.success('Feedback deleted successfully');
+      setDeleteConfirm(null);
+    },
+    onError: (error) => {
+      toast.error('Failed to delete feedback: ' + error.message);
+    },
+  });
+
   const getOrganizationName = (orgId: string | null) => {
     if (!orgId) return 'No organization';
     const org = organizations?.find(o => o.id === orgId);
@@ -182,6 +226,16 @@ const UserFeedbackManagement = () => {
     });
   };
 
+  const handleArchive = (item: UserFeedback) => {
+    updateFeedbackMutation.mutate({
+      feedbackId: item.id,
+      updates: { 
+        is_archived: !item.is_archived,
+        archived_at: item.is_archived ? null : new Date().toISOString()
+      },
+    });
+  };
+
   // Filter feedback
   const filteredFeedback = feedback?.filter(item => {
     const matchesSearch = 
@@ -189,7 +243,8 @@ const UserFeedbackManagement = () => {
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === 'all' || item.feedback_type === typeFilter;
     const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-    return matchesSearch && matchesType && matchesStatus;
+    const matchesArchived = showArchived ? item.is_archived : !item.is_archived;
+    return matchesSearch && matchesType && matchesStatus && matchesArchived;
   }) || [];
 
   // Stats
@@ -303,6 +358,14 @@ const UserFeedbackManagement = () => {
                 <SelectItem value="declined">Declined</SelectItem>
               </SelectContent>
             </Select>
+            <Button 
+              variant={showArchived ? "default" : "outline"} 
+              size="sm"
+              onClick={() => setShowArchived(!showArchived)}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              {showArchived ? 'Showing Archived' : 'Show Archived'}
+            </Button>
           </div>
 
           {/* Feedback Table */}
@@ -393,16 +456,39 @@ const UserFeedbackManagement = () => {
                           {format(new Date(item.created_at), 'MMM d, yyyy')}
                         </TableCell>
                         <TableCell>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => {
-                              setSelectedFeedback(item);
-                              setAdminNotes(item.admin_notes || '');
-                            }}
-                          >
-                            <MessageSquare className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedFeedback(item);
+                                setAdminNotes(item.admin_notes || '');
+                              }}
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleArchive(item)}>
+                                  <Archive className="h-4 w-4 mr-2" />
+                                  {item.is_archived ? 'Unarchive' : 'Archive'}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="text-destructive"
+                                  onClick={() => setDeleteConfirm(item)}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -488,6 +574,27 @@ const UserFeedbackManagement = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Feedback</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete this feedback: "{deleteConfirm?.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteConfirm && deleteFeedbackMutation.mutate(deleteConfirm.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
