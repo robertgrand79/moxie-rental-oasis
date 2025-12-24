@@ -58,9 +58,9 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
           </div>
         </div>
 
-        <div className="flex gap-2 justify-end">
-          <Link to={`/booking/${property.id}`}>
-            <Button variant="default" size="sm">
+        <div className="flex flex-col sm:flex-row gap-2 justify-end">
+          <Link to={`/booking/${property.id}`} className="w-full sm:w-auto">
+            <Button variant="default" size="sm" className="w-full sm:w-auto min-h-[44px]">
               <Calendar className="h-4 w-4 mr-2" />
               Book Now
             </Button>
@@ -69,6 +69,7 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
             variant="outline" 
             size="sm"
             onClick={() => onEdit(property.id)}
+            className="min-h-[44px]"
           >
             <Edit className="h-4 w-4 mr-2 text-icon-amber" />
             Edit
@@ -78,7 +79,7 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
               <Button 
                 variant="outline" 
                 size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 min-h-[44px]"
               >
                 <Trash2 className="h-4 w-4 mr-2 text-icon-rose" />
                 Delete

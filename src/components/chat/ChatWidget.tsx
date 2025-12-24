@@ -178,7 +178,7 @@ const ChatWidget = () => {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
+        className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 h-14 w-14 rounded-full shadow-lg z-50"
         style={{ backgroundColor: assistantSettings.bubble_color }}
         size="icon"
       >
@@ -188,8 +188,8 @@ const ChatWidget = () => {
   }
 
   return (
-    <Card className={`fixed bottom-6 right-6 w-80 bg-background border shadow-xl z-50 transition-all duration-300 ${
-      isMinimized ? 'h-14' : 'h-auto max-h-[32rem]'
+    <Card className={`fixed bottom-20 sm:bottom-6 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-80 max-w-80 bg-background border shadow-xl z-50 transition-all duration-300 ${
+      isMinimized ? 'h-14' : 'h-auto max-h-[70vh] sm:max-h-[32rem]'
     }`}>
       {/* Header */}
       <div 
