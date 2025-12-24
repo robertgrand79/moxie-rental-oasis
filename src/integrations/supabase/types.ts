@@ -2639,6 +2639,44 @@ export type Database = {
         }
         Relationships: []
       }
+      length_of_stay_discounts: {
+        Row: {
+          created_at: string | null
+          discount_percentage: number
+          id: string
+          is_active: boolean | null
+          min_nights: number
+          property_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          discount_percentage: number
+          id?: string
+          is_active?: boolean | null
+          min_nights: number
+          property_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          discount_percentage?: number
+          id?: string
+          is_active?: boolean | null
+          min_nights?: number
+          property_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "length_of_stay_discounts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lifestyle_gallery: {
         Row: {
           activity_type: string | null
@@ -4329,6 +4367,75 @@ export type Database = {
         }
         Relationships: []
       }
+      promotional_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          current_uses: number | null
+          description: string | null
+          discount_amount: number
+          discount_type: string
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          min_nights: number | null
+          organization_id: string | null
+          property_id: string | null
+          updated_at: string | null
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          current_uses?: number | null
+          description?: string | null
+          discount_amount: number
+          discount_type: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_nights?: number | null
+          organization_id?: string | null
+          property_id?: string | null
+          updated_at?: string | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          current_uses?: number | null
+          description?: string | null
+          discount_amount?: number
+          discount_type?: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_nights?: number | null
+          organization_id?: string | null
+          property_id?: string | null
+          updated_at?: string | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotional_codes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotional_codes_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       properties: {
         Row: {
           airbnb_listing_url: string | null
@@ -4343,6 +4450,8 @@ export type Database = {
           created_by: string | null
           description: string
           display_order: number | null
+          extra_guest_fee: number | null
+          extra_guest_threshold: number | null
           featured_photos: string[] | null
           id: string
           image_url: string | null
@@ -4352,6 +4461,8 @@ export type Database = {
           longitude: number | null
           max_guests: number
           organization_id: string | null
+          pet_fee: number | null
+          pet_fee_type: string | null
           price_per_night: number | null
           pricelabs_listing_id: string | null
           service_fee_percentage: number | null
@@ -4371,6 +4482,8 @@ export type Database = {
           created_by?: string | null
           description: string
           display_order?: number | null
+          extra_guest_fee?: number | null
+          extra_guest_threshold?: number | null
           featured_photos?: string[] | null
           id?: string
           image_url?: string | null
@@ -4380,6 +4493,8 @@ export type Database = {
           longitude?: number | null
           max_guests: number
           organization_id?: string | null
+          pet_fee?: number | null
+          pet_fee_type?: string | null
           price_per_night?: number | null
           pricelabs_listing_id?: string | null
           service_fee_percentage?: number | null
@@ -4399,6 +4514,8 @@ export type Database = {
           created_by?: string | null
           description?: string
           display_order?: number | null
+          extra_guest_fee?: number | null
+          extra_guest_threshold?: number | null
           featured_photos?: string[] | null
           id?: string
           image_url?: string | null
@@ -4408,6 +4525,8 @@ export type Database = {
           longitude?: number | null
           max_guests?: number
           organization_id?: string | null
+          pet_fee?: number | null
+          pet_fee_type?: string | null
           price_per_night?: number | null
           pricelabs_listing_id?: string | null
           service_fee_percentage?: number | null
@@ -5960,9 +6079,11 @@ export type Database = {
       }
       tax_rates: {
         Row: {
+          applies_to: string
           created_at: string | null
           effective_from: string
           effective_to: string | null
+          flat_amount: number | null
           id: string
           is_active: boolean | null
           jurisdiction: string
@@ -5970,12 +6091,15 @@ export type Database = {
           organization_id: string | null
           tax_name: string
           tax_rate: number
+          tax_type: string
           updated_at: string | null
         }
         Insert: {
+          applies_to?: string
           created_at?: string | null
           effective_from: string
           effective_to?: string | null
+          flat_amount?: number | null
           id?: string
           is_active?: boolean | null
           jurisdiction: string
@@ -5983,12 +6107,15 @@ export type Database = {
           organization_id?: string | null
           tax_name: string
           tax_rate: number
+          tax_type?: string
           updated_at?: string | null
         }
         Update: {
+          applies_to?: string
           created_at?: string | null
           effective_from?: string
           effective_to?: string | null
+          flat_amount?: number | null
           id?: string
           is_active?: boolean | null
           jurisdiction?: string
@@ -5996,6 +6123,7 @@ export type Database = {
           organization_id?: string | null
           tax_name?: string
           tax_rate?: number
+          tax_type?: string
           updated_at?: string | null
         }
         Relationships: [
