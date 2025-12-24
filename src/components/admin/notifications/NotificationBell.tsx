@@ -46,8 +46,10 @@ const NotificationBell: React.FC = () => {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="p-0 shadow-lg bg-popover w-80 sm:w-96 overflow-hidden"
+        side="bottom"
         sideOffset={8}
+        collisionPadding={16}
+        className="p-0 shadow-lg bg-popover w-80 sm:w-96 overflow-hidden z-50"
       >
         <NotificationPanel
           notifications={notifications}
