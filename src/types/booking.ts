@@ -1,3 +1,5 @@
+import type { PlatformData, ApiCredentials, PricingConditions, SyncLogDetails } from './common';
+
 export interface Reservation {
   id: string;
   property_id: string;
@@ -12,7 +14,7 @@ export interface Reservation {
   currency?: string;
   booking_status: 'pending' | 'confirmed' | 'cancelled' | 'active' | 'completed';
   source_platform?: string;
-  platform_data?: Record<string, any>;
+  platform_data?: PlatformData;
   payment_status?: 'pending' | 'paid' | 'failed' | 'refunded';
   special_requests?: string;
   confirmation_code: string;
@@ -62,7 +64,7 @@ export interface ExternalCalendar {
   sync_status?: 'pending' | 'syncing' | 'synced' | 'failed';
   last_sync_at?: string;
   sync_errors?: string[];
-  api_credentials?: Record<string, any>;
+  api_credentials?: ApiCredentials;
   created_at: string;
   updated_at: string;
 }
@@ -73,7 +75,7 @@ export interface SyncLog {
   sync_type: string;
   status: 'started' | 'completed' | 'failed';
   error_message?: string;
-  details?: Record<string, any>;
+  details?: SyncLogDetails;
   created_at: string;
 }
 
@@ -82,7 +84,7 @@ export interface PricingRule {
   property_id: string;
   rule_name: string;
   rule_type: 'seasonal' | 'event_based' | 'occupancy' | 'last_minute' | 'early_bird';
-  conditions: Record<string, any>;
+  conditions: PricingConditions;
   price_adjustment_type: 'percentage' | 'fixed_amount';
   price_adjustment_value: number;
   priority: number;

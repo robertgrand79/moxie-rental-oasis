@@ -1,3 +1,5 @@
+import type { Metadata } from './common';
+
 export interface TurnoProperty {
   id: string;
   name?: string;
@@ -27,7 +29,7 @@ export interface TurnoProperty {
     email?: string;
     phone?: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Metadata;
 }
 
 export interface TurnoPropertyMapping {

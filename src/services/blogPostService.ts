@@ -1,7 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
-import { BlogPost, ContentType } from '@/types/blogPost';
+import { BlogPost, ContentType, BlogPostMetadata } from '@/types/blogPost';
 import { toast } from '@/hooks/use-toast';
 import { debug } from '@/utils/debug';
+import type { Json } from '@/integrations/supabase/types';
 
 // Note: This service now accepts organizationId as a parameter for multi-tenant filtering
 
@@ -37,12 +38,17 @@ const handleServiceError = (operation: string, error: any, showToast = true) => 
   throw new Error(errorMessage);
 };
 
-// Helper function to safely cast metadata
-const safeMetadataCast = (metadata: any): Record<string, any> => {
+// Helper function to safely cast metadata from DB Json to BlogPostMetadata
+const safeMetadataCast = (metadata: Json | null): BlogPostMetadata => {
   if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
-    return metadata as Record<string, any>;
+    return metadata as unknown as BlogPostMetadata;
   }
   return {};
+};
+
+// Helper to convert BlogPostMetadata to Json for DB storage
+const metadataToJson = (metadata: BlogPostMetadata | undefined): Json => {
+  return (metadata ?? {}) as unknown as Json;
 };
 
 export const blogPostService = {
@@ -149,12 +155,16 @@ export const blogPostService = {
     debug.blog('Creating blog post:', postData.title);
     
     try {
+      // Convert metadata for DB storage
+      const dbData = {
+        ...postData,
+        metadata: metadataToJson(postData.metadata),
+        created_by: userId
+      };
+      
       const { data, error } = await supabase
         .from('blog_posts')
-        .insert({
-          ...postData,
-          created_by: userId
-        })
+        .insert(dbData)
         .select()
         .single();
 
@@ -194,9 +204,15 @@ export const blogPostService = {
     debug.blog('Updating blog post:', postId);
     
     try {
+      // Convert metadata for DB storage - always convert to ensure compatibility
+      const { metadata, ...rest } = postData;
+      const dbData = metadata !== undefined
+        ? { ...rest, metadata: metadataToJson(metadata) }
+        : rest;
+      
       const { data, error } = await supabase
         .from('blog_posts')
-        .update(postData)
+        .update(dbData)
         .eq('id', postId)
         .select()
         .single();

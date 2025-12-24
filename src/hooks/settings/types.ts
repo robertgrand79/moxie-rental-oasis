@@ -1,8 +1,9 @@
+import type { SettingValue, EmailVerificationDetails } from '@/types/common';
 
 export interface SiteSetting {
   id: string;
   key: string;
-  value: any;
+  value: SettingValue;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -42,7 +43,7 @@ export interface SettingsState {
   // Email verification tracking
   emailSetupVerified: boolean | string;
   emailLastTestedAt: string | null;
-  emailVerificationDetails: any;
+  emailVerificationDetails: EmailVerificationDetails | null;
   
   // SEO settings
   siteTitle: string;

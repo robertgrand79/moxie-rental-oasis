@@ -26,7 +26,7 @@ export const defaultSettings: SettingsState = {
   emailReplyTo: '',
   emailSetupVerified: false,
   emailLastTestedAt: null,
-  emailVerificationDetails: {},
+  emailVerificationDetails: null,
   siteTitle: '',
   metaDescription: '',
   ogTitle: '',

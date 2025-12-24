@@ -1,6 +1,40 @@
-
 export type ContentType = 'article' | 'event' | 'poi' | 'lifestyle';
 export type BlogPostStatus = 'draft' | 'published';
+
+// Type-specific metadata interfaces (defined early for use in BlogPostMetadata)
+// These use index signatures for JSON compatibility
+export interface EventMetadata {
+  venue?: string;
+  organizer?: string;
+  capacity?: number;
+  registration_required?: boolean;
+  age_restriction?: string;
+  accessibility_info?: string;
+}
+
+export interface POIMetadata {
+  hours?: Record<string, string>;
+  price_level?: number;
+  amenities?: string[];
+  accessibility?: string[];
+  parking_info?: string;
+  payment_methods?: string[];
+}
+
+export interface LifestyleMetadata {
+  difficulty_level?: 'easy' | 'moderate' | 'challenging' | 'expert';
+  duration?: string;
+  season?: 'spring' | 'summer' | 'fall' | 'winter' | 'year-round';
+  equipment_needed?: string[];
+  group_size?: string;
+  fitness_level?: string;
+}
+
+// Empty metadata for articles
+export type ArticleMetadata = Record<string, never>;
+
+// Union type for blog post metadata based on content type
+export type BlogPostMetadata = EventMetadata | POIMetadata | LifestyleMetadata | ArticleMetadata;
 
 export interface BlogPost {
   id: string;
@@ -20,7 +54,7 @@ export interface BlogPost {
   
   // New unified content fields
   content_type: ContentType;
-  metadata: Record<string, any>;
+  metadata: BlogPostMetadata;
   category?: string;
   display_order: number;
   is_featured: boolean;
@@ -70,7 +104,7 @@ export interface BlogPostDB {
   
   // New unified content fields
   content_type: string;
-  metadata: Record<string, any>;
+  metadata: BlogPostMetadata;
   category?: string;
   display_order: number;
   is_featured: boolean;
@@ -99,36 +133,6 @@ export interface BlogPostDB {
   
   // Lifestyle-specific fields
   activity_type?: string;
-}
-
-// Type-specific metadata interfaces
-export interface EventMetadata {
-  venue?: string;
-  organizer?: string;
-  capacity?: number;
-  registration_required?: boolean;
-  age_restriction?: string;
-  accessibility_info?: string;
-}
-
-export interface POIMetadata {
-  hours?: {
-    [day: string]: string;
-  };
-  price_level?: number;
-  amenities?: string[];
-  accessibility?: string[];
-  parking_info?: string;
-  payment_methods?: string[];
-}
-
-export interface LifestyleMetadata {
-  difficulty_level?: 'easy' | 'moderate' | 'challenging' | 'expert';
-  duration?: string;
-  season?: 'spring' | 'summer' | 'fall' | 'winter' | 'year-round';
-  equipment_needed?: string[];
-  group_size?: string;
-  fitness_level?: string;
 }
 
 // Content type specific interfaces
