@@ -78,6 +78,7 @@ const typeColors: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
+  submitted: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
   new: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
   under_review: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
   planned: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
@@ -372,6 +373,7 @@ const UserFeedbackManagement = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="submitted">Submitted</SelectItem>
                               <SelectItem value="new">New</SelectItem>
                               <SelectItem value="under_review">Under Review</SelectItem>
                               <SelectItem value="planned">Planned</SelectItem>
