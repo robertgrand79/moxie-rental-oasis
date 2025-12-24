@@ -3,16 +3,27 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Json } from '@/integrations/supabase/types';
 
+export interface ApplianceGuide {
+  name: string;
+  icon?: string;
+  instructions: string;
+  tips?: string;
+  troubleshooting?: string;
+}
+
 export interface GuidebookContent {
   welcome_message?: string;
   check_in_instructions?: string;
   check_out_instructions?: string;
+  door_code?: string;
+  parking_instructions?: string;
   house_rules?: string[];
   amenities?: string[];
   wifi?: {
     network: string;
     password: string;
   };
+  appliance_guides?: ApplianceGuide[];
   local_recommendations?: {
     restaurants?: Array<{
       name: string;
@@ -51,6 +62,9 @@ export interface GuidebookContent {
     phone: string;
     available: string;
   }>;
+  property_address?: string;
+  check_in_time?: string;
+  check_out_time?: string;
 }
 
 export interface Guidebook {
