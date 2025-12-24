@@ -10,6 +10,7 @@ import CategoryManager from './CategoryManager';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import * as LucideIcons from 'lucide-react';
+import { debug } from '@/utils/debug';
 
 const PlacesManager = () => {
   const { places, isLoading, refetch } = usePlaces();
@@ -135,12 +136,12 @@ const PlacesManager = () => {
           { duration: 5000 }
         );
         if (data.errors?.length > 0) {
-          console.log('Geocoding errors:', data.errors);
+          debug.log('Geocoding errors:', data.errors);
         }
         refetch();
       }
     } catch (error) {
-      console.error('Batch geocoding error:', error);
+      debug.error('Batch geocoding error:', error);
       toast.error('Failed to batch geocode places');
     } finally {
       setIsBatchGeocoding(false);

@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { LifestyleGalleryItem } from '@/hooks/useLifestyleGallery';
 import { LifestyleGalleryFormData } from './LifestyleGalleryFormFields';
+import { debug } from '@/utils/debug';
 
 export const useLifestyleEditorHandlers = (
   setEditingItem: (item: LifestyleGalleryItem | null) => void,
@@ -55,7 +56,7 @@ export const useLifestyleEditorHandlers = (
   };
 
   const handleAIGenerated = async (generatedItems: any[]) => {
-    console.log('Processing AI generated items:', generatedItems);
+    debug.log('Processing AI generated items:', generatedItems);
     
     if (!user?.id) {
       toast({
@@ -69,7 +70,7 @@ export const useLifestyleEditorHandlers = (
     try {
       // Process each generated item individually for better error handling
       for (const item of generatedItems) {
-        console.log('Processing item:', item);
+        debug.log('Processing item:', item);
         
         // Map AI generated item to form data structure
         const formattedItem: LifestyleGalleryFormData = {
@@ -86,7 +87,7 @@ export const useLifestyleEditorHandlers = (
           created_by: user.id // Set the current user as creator
         };
 
-        console.log('Formatted item for submission:', formattedItem);
+        debug.log('Formatted item for submission:', formattedItem);
         
         // Submit the item
         await onSubmit(formattedItem);
@@ -97,7 +98,7 @@ export const useLifestyleEditorHandlers = (
         description: `Added ${generatedItems.length} lifestyle items to your gallery!`
       });
     } catch (error) {
-      console.error('Error processing AI generated items:', error);
+      debug.error('Error processing AI generated items:', error);
       toast({
         title: 'Error',
         description: `Failed to add lifestyle items: ${error.message}`,

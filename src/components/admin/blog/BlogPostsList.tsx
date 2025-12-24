@@ -9,6 +9,7 @@ import { Edit, Trash2, Eye, Calendar, MapPin, ExternalLink } from 'lucide-react'
 import { BlogPost } from '@/types/blogPost';
 import { getTagColor, getContentTypeColor } from '@/utils/blogPostUtils';
 import { format } from 'date-fns';
+import { debug } from '@/utils/debug';
 
 interface BlogPostsListProps {
   posts: BlogPost[];
@@ -23,8 +24,8 @@ const BlogPostsList = ({ posts, onEdit, onDelete, onAddPost, onPublish }: BlogPo
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [contentTypeFilter, setContentTypeFilter] = useState<'all' | 'article' | 'event' | 'poi' | 'lifestyle'>('all');
 
-  console.log('📋 BlogPostsList - Total posts received:', posts.length);
-  console.log('📋 BlogPostsList - Posts by content type:', {
+  debug.blog('BlogPostsList - Total posts received:', posts.length);
+  debug.blog('BlogPostsList - Posts by content type:', {
     article: posts.filter(p => p.content_type === 'article').length,
     event: posts.filter(p => p.content_type === 'event').length,
     poi: posts.filter(p => p.content_type === 'poi').length,
@@ -43,7 +44,7 @@ const BlogPostsList = ({ posts, onEdit, onDelete, onAddPost, onPublish }: BlogPo
     return matchesSearch && matchesStatus && matchesContentType;
   });
 
-  console.log('📋 BlogPostsList - Filtered posts:', filteredPosts.length);
+  debug.blog('BlogPostsList - Filtered posts:', filteredPosts.length);
 
   const formatDate = (dateString: string) => {
     try {

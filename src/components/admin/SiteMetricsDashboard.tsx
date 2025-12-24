@@ -25,6 +25,7 @@ import SystemStatusCard from './metrics/SystemStatusCard';
 import MetricsLoadingState from './metrics/MetricsLoadingState';
 import GAHealthCheckCard from './GAHealthCheckCard';
 import SiteMetricsEdgeCaseMonitor from './SiteMetricsEdgeCaseMonitor';
+import { debug } from '@/utils/debug';
 
 const SiteMetricsDashboard = () => {
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -71,7 +72,7 @@ const SiteMetricsDashboard = () => {
     };
 
     const handleRefresh = () => {
-      console.log('🔄 SiteMetricsDashboard: Refresh event received after GA script load');
+      debug.analytics('SiteMetricsDashboard: Refresh event received after GA script load');
       refreshData();
     };
 

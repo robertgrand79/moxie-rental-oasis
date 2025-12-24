@@ -6,6 +6,7 @@ import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Bug, CheckCircle, AlertCircle } from 'lucide-react';
+import { debug } from '@/utils/debug';
 
 interface DebugInfoPanelProps {
   siteData: any;
@@ -30,7 +31,7 @@ const DebugInfoPanel = ({ siteData, isUserEditing }: DebugInfoPanelProps) => {
   const fetchDebugInfo = async () => {
     if (!organization?.id) return;
     
-    console.log('🔍 [DebugPanel] Fetching debug info for org:', organization.id);
+    debug.settings('[DebugPanel] Fetching debug info for org:', organization.id);
     
     try {
       // Get all settings for this org
@@ -41,11 +42,11 @@ const DebugInfoPanel = ({ siteData, isUserEditing }: DebugInfoPanelProps) => {
         .order('updated_at', { ascending: false });
       
       if (error) {
-        console.error('🔍 [DebugPanel] Error fetching settings:', error);
+        debug.error('[DebugPanel] Error fetching settings:', error);
         return;
       }
 
-      console.log('🔍 [DebugPanel] Found', data?.length || 0, 'settings rows');
+      debug.settings('[DebugPanel] Found', data?.length || 0, 'settings rows');
 
       // Check for duplicate keys
       const keyCounts: Record<string, number> = {};
@@ -57,7 +58,7 @@ const DebugInfoPanel = ({ siteData, isUserEditing }: DebugInfoPanelProps) => {
         .map(([key]) => key);
 
       if (duplicates.length > 0) {
-        console.warn('🔍 [DebugPanel] DUPLICATE KEYS FOUND:', duplicates);
+        debug.warn('[DebugPanel] DUPLICATE KEYS FOUND:', duplicates);
       }
 
       setDbDebug({
@@ -67,7 +68,7 @@ const DebugInfoPanel = ({ siteData, isUserEditing }: DebugInfoPanelProps) => {
         duplicateKeys: duplicates
       });
     } catch (err) {
-      console.error('🔍 [DebugPanel] Unexpected error:', err);
+      debug.error('[DebugPanel] Unexpected error:', err);
     }
   };
 
@@ -77,7 +78,7 @@ const DebugInfoPanel = ({ siteData, isUserEditing }: DebugInfoPanelProps) => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    console.log('🔍 [DebugPanel] Manual refresh triggered');
+    debug.settings('[DebugPanel] Manual refresh triggered');
     await Promise.all([fetchDebugInfo(), refetch()]);
     setIsRefreshing(false);
   };

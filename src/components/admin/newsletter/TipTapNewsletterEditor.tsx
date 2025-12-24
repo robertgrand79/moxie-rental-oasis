@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { debug } from '@/utils/debug';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
@@ -128,7 +129,7 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
   // Sync editor content when the content prop changes externally
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      console.log('🔄 Syncing editor content - Old:', editor.getHTML().length, 'New:', content.length);
+      debug.newsletter('Syncing editor content - Old:', editor.getHTML().length, 'New:', content.length);
       editor.commands.setContent(content, false);
     }
   }, [content, editor]);

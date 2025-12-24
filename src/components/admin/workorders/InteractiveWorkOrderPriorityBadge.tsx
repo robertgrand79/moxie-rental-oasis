@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown } from 'lucide-react';
+import { debug } from '@/utils/debug';
 
 interface InteractiveWorkOrderPriorityBadgeProps {
   priority: string;
@@ -42,14 +43,14 @@ const InteractiveWorkOrderPriorityBadge = ({
     event.preventDefault();
     event.stopPropagation();
     
-    console.log('Priority change clicked:', { workOrderId, currentPriority: priority, newPriority });
+    debug.workorder('Priority change clicked:', { workOrderId, currentPriority: priority, newPriority });
     
     if (newPriority !== priority && !isUpdating) {
       try {
         await onPriorityChange(workOrderId, newPriority);
-        console.log('Priority change successful');
+        debug.workorder('Priority change successful');
       } catch (error) {
-        console.error('Priority change failed:', error);
+        debug.error('Priority change failed:', error);
       }
     }
     setIsOpen(false);
@@ -58,7 +59,7 @@ const InteractiveWorkOrderPriorityBadge = ({
   const handleBadgeClick = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    console.log('Priority badge clicked for work order:', workOrderId);
+    debug.workorder('Priority badge clicked for work order:', workOrderId);
     setIsOpen(!isOpen);
   };
 
