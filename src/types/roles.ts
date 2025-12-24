@@ -1,3 +1,4 @@
+import type { AuditLogDetails } from './common';
 
 export interface SystemRole {
   id: string;
@@ -49,7 +50,7 @@ export interface PermissionAuditLog {
   target_id: string;
   target_name: string | null;
   performed_by: string;
-  details: Record<string, any> | null;
+  details: AuditLogDetails | null;
   created_at: string;
 }
 

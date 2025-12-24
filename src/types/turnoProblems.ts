@@ -1,3 +1,5 @@
+import type { Metadata } from './common';
+
 export interface TurnoProblem {
   id: string;
   turno_problem_id: string;
@@ -17,7 +19,7 @@ export interface TurnoProblem {
   linked_work_order_id?: string;
   sync_status: string;
   last_sync_at: string;
-  metadata?: Record<string, any>;
+  metadata?: Metadata;
   created_at: string;
   updated_at: string;
   // Extended fields for UI
