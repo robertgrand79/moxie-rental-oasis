@@ -3215,6 +3215,10 @@ export type Database = {
         Row: {
           created_at: string | null
           custom_domain: string | null
+          domain_dns_records: Json | null
+          domain_last_checked_at: string | null
+          domain_verification_status: string | null
+          domain_verified_at: string | null
           id: string
           is_active: boolean | null
           is_template: boolean | null
@@ -3249,6 +3253,10 @@ export type Database = {
         Insert: {
           created_at?: string | null
           custom_domain?: string | null
+          domain_dns_records?: Json | null
+          domain_last_checked_at?: string | null
+          domain_verification_status?: string | null
+          domain_verified_at?: string | null
           id?: string
           is_active?: boolean | null
           is_template?: boolean | null
@@ -3283,6 +3291,10 @@ export type Database = {
         Update: {
           created_at?: string | null
           custom_domain?: string | null
+          domain_dns_records?: Json | null
+          domain_last_checked_at?: string | null
+          domain_verification_status?: string | null
+          domain_verified_at?: string | null
           id?: string
           is_active?: boolean | null
           is_template?: boolean | null
@@ -6302,6 +6314,8 @@ export type Database = {
         Returns: {
           created_at: string
           custom_domain: string
+          domain_verification_status: string
+          domain_verified_at: string
           has_openphone_configured: boolean
           has_pricelabs_configured: boolean
           has_resend_configured: boolean
@@ -6378,6 +6392,10 @@ export type Database = {
       }
       track_failed_login: { Args: { p_email: string }; Returns: Json }
       turno_sync_properties: { Args: never; Returns: undefined }
+      update_domain_verification_status: {
+        Args: { _dns_records?: Json; _org_id: string; _status: string }
+        Returns: undefined
+      }
       update_user_last_login: { Args: { user_id: string }; Returns: undefined }
       user_belongs_to_organization: {
         Args: { _org_id: string; _user_id: string }
