@@ -117,7 +117,7 @@ const UserProfileSection = () => {
   return (
     <div className="w-full">
       {isEditing ? (
-        <Card className="w-full">
+        <Card className="w-full min-w-[320px]">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <User className="h-5 w-5" />
@@ -125,7 +125,7 @@ const UserProfileSection = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-4">
               <Avatar className="h-12 w-12">
                 <AvatarImage src={profile?.avatar_url || ''} />
                 <AvatarFallback className="bg-primary text-primary-foreground">
@@ -133,45 +133,46 @@ const UserProfileSection = () => {
                 </AvatarFallback>
               </Avatar>
               
-              <div className="flex-1">
-                <div className="space-y-3">
-                  <div>
-                    <Label htmlFor="full_name" className="text-sm font-medium">
-                      Full Name
-                    </Label>
-                    <Input
-                      id="full_name"
-                      value={editData.full_name}
-                      onChange={(e) => setEditData({ ...editData, full_name: e.target.value })}
-                      placeholder="Enter your full name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email" className="text-sm font-medium">
-                      Email
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={editData.email}
-                      onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                      placeholder="Enter your email"
-                    />
-                  </div>
+              <div className="space-y-3 w-full">
+                <div>
+                  <Label htmlFor="full_name" className="text-sm font-medium">
+                    Full Name
+                  </Label>
+                  <Input
+                    id="full_name"
+                    value={editData.full_name}
+                    onChange={(e) => setEditData({ ...editData, full_name: e.target.value })}
+                    placeholder="Enter your full name"
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={editData.email}
+                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                    placeholder="Enter your email"
+                    className="w-full"
+                  />
+                </div>
 
-                  <div>
-                    <Label htmlFor="phone" className="text-sm font-medium">
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={editData.phone}
-                      onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                      placeholder="+1 (555) 123-4567"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">Used for SMS notifications</p>
-                  </div>
+                <div>
+                  <Label htmlFor="phone" className="text-sm font-medium">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={editData.phone}
+                    onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                    placeholder="+1 (555) 123-4567"
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Used for SMS notifications</p>
                 </div>
               </div>
             </div>
