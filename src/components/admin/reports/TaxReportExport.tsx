@@ -54,83 +54,104 @@ export const TaxReportExport: React.FC<TaxReportExportProps> = ({ organizationId
   // Fetch tax data
   const { data: taxData, isLoading } = useQuery({
     queryKey: ['tax-report', organizationId, startDate, endDate, selectedProperty],
-    queryFn: async () => {
-      // Fetch reservations with their charges
-      let query = supabase
-        .from('reservations')
-        .select(`
-          id,
-          check_in_date,
-          check_out_date,
-          total_amount,
-          guest_name,
-          properties!inner (
-            id,
-            name,
-            organization_id
-          ),
-          booking_charges (
-            id,
-            charge_name,
-            charge_type,
-            amount,
-            tax_rate_id,
-            tax_rates (
-              id,
-              tax_name,
-              tax_rate,
-              jurisdiction
-            )
-          )
-        `)
-        .eq('properties.organization_id', organizationId)
-        .gte('check_in_date', startDate)
-        .lte('check_in_date', endDate)
-        .eq('status', 'confirmed');
+    queryFn: async (): Promise<{ summary: TaxSummary[]; details: BookingTaxDetail[]; totalTaxCollected: number }> => {
+      // Step 1: Get organization's properties first
+      const { data: orgProperties, error: propError } = await supabase
+        .from('properties')
+        .select('id, title')
+        .eq('organization_id', organizationId);
 
-      if (selectedProperty !== 'all') {
-        query = query.eq('property_id', selectedProperty);
+      if (propError) throw propError;
+      if (!orgProperties?.length) {
+        return { summary: [], details: [], totalTaxCollected: 0 };
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
+      const propertyIds = orgProperties.map(p => p.id);
+      const propertyMap = new Map(orgProperties.map(p => [p.id, p.title]));
+
+      // Step 2: Fetch reservations for these properties
+      let reservationQuery = supabase
+        .from('reservations')
+        .select('id, check_in_date, check_out_date, base_price, guest_name, property_id, booking_status')
+        .in('property_id', propertyIds)
+        .gte('check_in_date', startDate)
+        .lte('check_in_date', endDate)
+        .eq('booking_status', 'confirmed');
+
+      if (selectedProperty !== 'all') {
+        reservationQuery = reservationQuery.eq('property_id', selectedProperty);
+      }
+
+      const { data: reservations, error: resError } = await reservationQuery;
+      if (resError) throw resError;
+      if (!reservations?.length) {
+        return { summary: [], details: [], totalTaxCollected: 0 };
+      }
+
+      const reservationIds = reservations.map(r => r.id);
+
+      // Step 3: Fetch booking charges for these reservations
+      const { data: charges, error: chargesError } = await supabase
+        .from('booking_charges')
+        .select('id, reservation_id, charge_name, charge_type, amount, tax_rate_id')
+        .in('reservation_id', reservationIds)
+        .eq('charge_type', 'tax');
+
+      if (chargesError) throw chargesError;
+
+      // Step 4: Fetch tax rates
+      const taxRateIds = [...new Set((charges || []).map(c => c.tax_rate_id).filter(Boolean))] as string[];
+      
+      let taxRates: { id: string; tax_name: string; tax_rate: number; jurisdiction: string }[] = [];
+      if (taxRateIds.length > 0) {
+        const { data: taxData, error: taxError } = await supabase
+          .from('tax_rates')
+          .select('id, tax_name, tax_rate, jurisdiction')
+          .in('id', taxRateIds);
+        if (taxError) throw taxError;
+        taxRates = taxData || [];
+      }
+
+      const taxRateMap = new Map(taxRates.map(t => [t.id, t]));
+      const reservationMap = new Map(reservations.map(r => [r.id, r]));
 
       // Process data for summary and details
       const summaryMap = new Map<string, TaxSummary>();
       const details: BookingTaxDetail[] = [];
 
-      (data || []).forEach((reservation: any) => {
-        const taxCharges = (reservation.booking_charges || []).filter(
-          (c: any) => c.charge_type === 'tax' && c.tax_rates
-        );
+      (charges || []).forEach((charge) => {
+        if (!charge.tax_rate_id) return;
+        const taxRate = taxRateMap.get(charge.tax_rate_id);
+        if (!taxRate) return;
+        
+        const reservation = reservationMap.get(charge.reservation_id);
+        if (!reservation) return;
 
-        taxCharges.forEach((charge: any) => {
-          const key = charge.tax_rates.id;
-          const existing = summaryMap.get(key);
-          
-          if (existing) {
-            existing.totalCollected += charge.amount;
-            existing.bookingCount += 1;
-          } else {
-            summaryMap.set(key, {
-              taxName: charge.tax_rates.tax_name,
-              jurisdiction: charge.tax_rates.jurisdiction,
-              totalCollected: charge.amount,
-              bookingCount: 1,
-            });
-          }
-
-          details.push({
-            reservationId: reservation.id,
-            propertyName: reservation.properties?.name || 'Unknown',
-            guestName: reservation.guest_name || 'Guest',
-            checkIn: reservation.check_in_date,
-            checkOut: reservation.check_out_date,
-            taxName: charge.tax_rates.tax_name,
-            taxRate: charge.tax_rates.tax_rate,
-            taxAmount: charge.amount,
-            bookingTotal: reservation.total_amount,
+        const key = charge.tax_rate_id;
+        const existing = summaryMap.get(key);
+        
+        if (existing) {
+          existing.totalCollected += charge.amount;
+          existing.bookingCount += 1;
+        } else {
+          summaryMap.set(key, {
+            taxName: taxRate.tax_name,
+            jurisdiction: taxRate.jurisdiction,
+            totalCollected: charge.amount,
+            bookingCount: 1,
           });
+        }
+
+        details.push({
+          reservationId: reservation.id,
+          propertyName: propertyMap.get(reservation.property_id) || 'Unknown',
+          guestName: reservation.guest_name || 'Guest',
+          checkIn: reservation.check_in_date,
+          checkOut: reservation.check_out_date,
+          taxName: taxRate.tax_name,
+          taxRate: taxRate.tax_rate,
+          taxAmount: charge.amount,
+          bookingTotal: reservation.base_price || 0,
         });
       });
 
