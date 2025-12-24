@@ -4,6 +4,8 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+import type { JsonValue } from '@/types/common';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
@@ -14,7 +16,19 @@ export interface LogContext {
   component?: string;
   action?: string;
   duration?: number;
-  [key: string]: any;
+  error?: string;
+  stack?: string;
+  method?: string;
+  url?: string;
+  status?: number;
+  rowCount?: number;
+  query?: string;
+  slow?: boolean;
+  eventType?: string;
+  risk?: string;
+  metric?: string;
+  value?: number;
+  [key: string]: JsonValue | undefined;
 }
 
 interface LogEntry {
@@ -234,11 +248,11 @@ class StructuredLogger {
     this.logQueue = [];
 
     try {
-      await (supabase as any).from('application_logs').insert(
+      await supabase.from('application_logs').insert(
         entries.map(entry => ({
           level: entry.level,
           message: entry.message,
-          context: entry.context,
+          context: entry.context as unknown as Database['public']['Tables']['application_logs']['Insert']['context'],
           tags: entry.tags,
           created_at: entry.timestamp.toISOString(),
         }))

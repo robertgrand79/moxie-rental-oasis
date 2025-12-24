@@ -6,24 +6,26 @@ import type { Json } from '@/integrations/supabase/types';
 
 // Note: This service now accepts organizationId as a parameter for multi-tenant filtering
 
-const isNetworkError = (error: any): boolean => {
-  return error?.message?.includes('Failed to fetch') || 
-         error?.message?.includes('Network request failed') ||
-         error?.name === 'NetworkError' ||
-         error?.code === 'NETWORK_ERROR' ||
-         error?.message?.includes('network error') ||
+const isNetworkError = (error: unknown): boolean => {
+  const err = error as { message?: string; name?: string; code?: string } | null;
+  return err?.message?.includes('Failed to fetch') || 
+         err?.message?.includes('Network request failed') ||
+         err?.name === 'NetworkError' ||
+         err?.code === 'NETWORK_ERROR' ||
+         err?.message?.includes('network error') ||
          !navigator.onLine;
 };
 
-const handleServiceError = (operation: string, error: any, showToast = true) => {
+const handleServiceError = (operation: string, error: unknown, showToast = true) => {
+  const err = error as { message?: string } | null;
   debug.error(`${operation} error:`, error);
   
   let errorMessage = 'An unexpected error occurred';
   
   if (isNetworkError(error)) {
     errorMessage = 'Network connection error. Please check your internet connection and try again.';
-  } else if (error?.message) {
-    errorMessage = error.message;
+  } else if (err?.message) {
+    errorMessage = err.message;
   }
   
   if (showToast && !isNetworkError(error)) {

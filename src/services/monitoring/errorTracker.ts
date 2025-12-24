@@ -2,9 +2,10 @@
  * Centralized Error Tracking Service
  * Provides error capture, context enrichment, and alerting capabilities
  */
-
+import type { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { debug } from '@/utils/debug';
+import type { JsonValue } from '@/types/common';
 
 export interface ErrorContext {
   userId?: string;
@@ -14,7 +15,7 @@ export interface ErrorContext {
   page?: string;
   component?: string;
   action?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, JsonValue>;
 }
 
 export interface TrackedError {
@@ -46,7 +47,7 @@ type Breadcrumb = {
   type: 'navigation' | 'click' | 'api' | 'console' | 'error';
   message: string;
   timestamp: Date;
-  data?: Record<string, any>;
+  data?: Record<string, JsonValue>;
 };
 
 class ErrorTracker {
@@ -140,7 +141,7 @@ class ErrorTracker {
     this.addBreadcrumb('navigation', `Navigated to ${page}`);
   }
 
-  addBreadcrumb(type: Breadcrumb['type'], message: string, data?: Record<string, any>): void {
+  addBreadcrumb(type: Breadcrumb['type'], message: string, data?: Record<string, JsonValue>): void {
     this.breadcrumbs.push({
       type,
       message,
@@ -298,17 +299,17 @@ class ErrorTracker {
       debug.log('Context:', error.context);
       debug.log('Breadcrumbs:', this.breadcrumbs.slice(-10));
 
-      // Persist to database using type assertion for dynamic tables
-      await (supabase as any).from('error_logs').insert({
+      // Persist to database
+      await supabase.from('error_logs').insert({
         error_id: error.id,
         message: error.message,
         stack: error.stack,
         type: error.type,
         severity: error.severity,
-        context: error.context,
+        context: error.context as unknown as Database['public']['Tables']['error_logs']['Insert']['context'],
         fingerprint: error.fingerprint,
         tags: error.tags,
-        breadcrumbs: this.breadcrumbs.slice(-20),
+        breadcrumbs: this.breadcrumbs.slice(-20) as unknown as Database['public']['Tables']['error_logs']['Insert']['breadcrumbs'],
         user_agent: navigator.userAgent,
         url: window.location.href,
       });

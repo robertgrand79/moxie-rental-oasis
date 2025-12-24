@@ -1,7 +1,14 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { AnalyticsData, GAInitializationStatus, GAHealthCheck } from './types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { JsonValue } from '@/types/common';
+
+// Extend Window interface for gtag
+declare global {
+  interface Window {
+    gtag?: (...args: [string, ...unknown[]]) => void;
+  }
+}
 
 export class GoogleAnalyticsService {
   private gaInitialized = false;
@@ -71,7 +78,7 @@ export class GoogleAnalyticsService {
         this.gaInitialized = true;
         this.debugLog('✅ Google Analytics initialized successfully!', { 
           gaId: this.gaId,
-          gtagAvailable: typeof (window as any).gtag === 'function'
+          gtagAvailable: typeof window.gtag === 'function'
         });
         
         // Clear any cached demo data when switching to real GA
@@ -171,7 +178,7 @@ export class GoogleAnalyticsService {
   private isGtagAvailable(): boolean {
     return typeof window !== 'undefined' && 
            'gtag' in window && 
-           typeof (window as any).gtag === 'function';
+           typeof window.gtag === 'function';
   }
 
   private setupSettingsListener() {
@@ -239,7 +246,7 @@ export class GoogleAnalyticsService {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  private debugLog(message: string, data?: any) {
+  private debugLog(message: string, data?: JsonValue | unknown) {
     if (this.debugMode) {
       if (data) {
         console.log(`🔧 GA Debug: ${message}`, data);
@@ -292,10 +299,10 @@ export class GoogleAnalyticsService {
     };
   }
 
-  trackEvent(eventName: string, parameters?: Record<string, any>) {
-    if (this.gaInitialized && typeof window !== 'undefined' && 'gtag' in window) {
+  trackEvent(eventName: string, parameters?: Record<string, string | number | boolean>) {
+    if (this.gaInitialized && typeof window !== 'undefined' && 'gtag' in window && window.gtag) {
       this.debugLog('📊 Tracking GA event:', { eventName, parameters });
-      (window as any).gtag('event', eventName, parameters);
+      window.gtag('event', eventName, parameters);
     } else {
       this.debugLog('📊 GA not initialized, storing event locally:', { eventName, parameters });
     }
@@ -375,11 +382,11 @@ export class GoogleAnalyticsService {
       const gtagAvailable = this.isGtagAvailable();
       
       let testSuccessful = false;
-      if (gtagAvailable) {
+      if (gtagAvailable && window.gtag) {
         try {
-          (window as any).gtag('config', gaId);
+          window.gtag('config', gaId);
           testSuccessful = true;
-        } catch (error) {
+        } catch {
           // Test failed
         }
       }
