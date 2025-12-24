@@ -91,10 +91,41 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
     }
     
     if (step === 2) {
-      if (!bookingForm.guestName || !bookingForm.guestEmail) {
+      // Validate required fields
+      if (!bookingForm.guestName.trim()) {
         toast({
-          title: "Required Fields",
-          description: "Please fill in all required fields",
+          title: "Name Required",
+          description: "Please enter your full name",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (!bookingForm.guestEmail.trim()) {
+        toast({
+          title: "Email Required",
+          description: "Please enter your email address",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(bookingForm.guestEmail)) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Validate guest count against property max
+      if (bookingForm.guestCount > (property.max_guests || 10)) {
+        toast({
+          title: "Too Many Guests",
+          description: `This property allows a maximum of ${property.max_guests || 10} guests`,
           variant: "destructive"
         });
         return;

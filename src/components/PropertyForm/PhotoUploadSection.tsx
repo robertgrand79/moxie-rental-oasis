@@ -91,6 +91,9 @@ const PhotoUploadSection = ({
       <PhotoDropzone 
         onPhotosAdded={addPhotos}
         disabled={disabled}
+        existingCount={allPhotos.length}
+        maxFiles={50}
+        maxSizeMB={15}
       />
     </div>
   );
