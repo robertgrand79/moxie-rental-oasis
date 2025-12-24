@@ -16,6 +16,7 @@ import WorkOrderDateAccessFields from './WorkOrderDateAccessFields';
 import WorkOrderDetailsFields from './WorkOrderDetailsFields';
 import WorkOrderFormActions from './WorkOrderFormActions';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 interface WorkOrderSidePanelProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ const WorkOrderSidePanel = ({
   onEditClick,
 }: WorkOrderSidePanelProps) => {
   const { properties } = useProperties();
+  const { toast } = useToast();
   
   const [formData, setFormData] = React.useState({
     title: '',
@@ -137,6 +139,19 @@ const WorkOrderSidePanel = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // For new work orders, require a property to ensure organization_id is set
+    const isNewWorkOrder = !workOrder;
+    const hasValidProperty = formData.property_id && formData.property_id !== '' && formData.property_id !== 'none';
+    
+    if (isNewWorkOrder && !hasValidProperty) {
+      toast({
+        title: 'Property Required',
+        description: 'Please select a property for this work order to ensure proper organization assignment.',
+        variant: 'destructive',
+      });
+      return;
+    }
     
     const submissionData: any = {
       ...formData,
