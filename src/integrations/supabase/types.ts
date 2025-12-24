@@ -6212,9 +6212,45 @@ export type Database = {
           website: string
         }[]
       }
+      get_organization_safe: {
+        Args: { _org_id: string }
+        Returns: {
+          custom_domain: string
+          has_seam_configured: boolean
+          has_stripe_configured: boolean
+          id: string
+          is_active: boolean
+          logo_url: string
+          name: string
+          slug: string
+          template_type: string
+          website: string
+        }[]
+      }
       get_organization_secret: {
         Args: { _org_id: string; _secret_name: string }
         Returns: string
+      }
+      get_organizations_for_user: {
+        Args: never
+        Returns: {
+          created_at: string
+          custom_domain: string
+          has_openphone_configured: boolean
+          has_pricelabs_configured: boolean
+          has_resend_configured: boolean
+          has_seam_configured: boolean
+          has_stripe_configured: boolean
+          id: string
+          is_active: boolean
+          is_template: boolean
+          logo_url: string
+          name: string
+          slug: string
+          template_type: string
+          updated_at: string
+          website: string
+        }[]
       }
       get_primary_template_organization: {
         Args: never
@@ -6290,6 +6326,10 @@ export type Database = {
       }
       user_is_org_admin: {
         Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      validate_tenant_access: {
+        Args: { _property_id: string }
         Returns: boolean
       }
     }
