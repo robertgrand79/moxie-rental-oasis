@@ -47,6 +47,9 @@ import CreateOrganizationDialog from '@/components/admin/superadmin/CreateOrgani
 import BugReportsTab from '@/components/admin/superadmin/BugReportsTab';
 import MonitoringTab from '@/components/admin/superadmin/MonitoringTab';
 import LaunchReadinessChecklist from '@/components/admin/superadmin/LaunchReadinessChecklist';
+import PlatformAuditLog from '@/components/admin/superadmin/PlatformAuditLog';
+import PlatformLookupTools from '@/components/admin/superadmin/PlatformLookupTools';
+import TenantDetailView from '@/components/admin/superadmin/TenantDetailView';
 import { format } from 'date-fns';
 import {
   AlertDialog,

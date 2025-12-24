@@ -91,6 +91,53 @@ export type Database = {
           },
         ]
       }
+      admin_impersonation_sessions: {
+        Row: {
+          actions_taken: Json | null
+          admin_user_id: string
+          ended_at: string | null
+          id: string
+          ip_address: string | null
+          is_active: boolean | null
+          started_at: string | null
+          target_organization_id: string
+          target_user_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          actions_taken?: Json | null
+          admin_user_id: string
+          ended_at?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          started_at?: string | null
+          target_organization_id: string
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          actions_taken?: Json | null
+          admin_user_id?: string
+          ended_at?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          started_at?: string | null
+          target_organization_id?: string
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_impersonation_sessions_target_organization_id_fkey"
+            columns: ["target_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_notifications: {
         Row: {
           action_url: string | null
@@ -3928,12 +3975,68 @@ export type Database = {
           },
         ]
       }
+      platform_admin_audit_logs: {
+        Row: {
+          action_type: string
+          admin_id: string | null
+          admin_user_id: string | null
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: string | null
+          session_id: string | null
+          target_id: string | null
+          target_name: string | null
+          target_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id?: string | null
+          admin_user_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+          target_id?: string | null
+          target_name?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string | null
+          admin_user_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+          target_id?: string | null
+          target_name?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_admin_audit_logs_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "platform_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_admins: {
         Row: {
           created_at: string
           created_by: string | null
           id: string
           is_active: boolean
+          last_login_at: string | null
+          login_count: number | null
+          permissions: Json | null
           role: Database["public"]["Enums"]["platform_role"]
           user_id: string
         }
@@ -3942,6 +4045,9 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean
+          last_login_at?: string | null
+          login_count?: number | null
+          permissions?: Json | null
           role?: Database["public"]["Enums"]["platform_role"]
           user_id: string
         }
@@ -3950,6 +4056,9 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean
+          last_login_at?: string | null
+          login_count?: number | null
+          permissions?: Json | null
           role?: Database["public"]["Enums"]["platform_role"]
           user_id?: string
         }
@@ -6741,6 +6850,16 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_platform_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_slug_available: { Args: { _slug: string }; Returns: boolean }
+      log_platform_admin_action: {
+        Args: {
+          p_action_type: string
+          p_details?: Json
+          p_target_id?: string
+          p_target_name?: string
+          p_target_type?: string
+        }
+        Returns: string
+      }
       refresh_office_space_availability: {
         Args: { p_office_space_id: string }
         Returns: undefined
