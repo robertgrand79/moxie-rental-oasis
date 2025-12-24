@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,6 +20,7 @@ import { PropertyFeesManager } from './PropertyForm/PropertyFeesManager';
 import { PropertyTaxManager } from '@/components/admin/properties/PropertyTaxManager';
 import { LengthOfStayDiscounts } from '@/components/admin/properties/LengthOfStayDiscounts';
 import { PromotionalCodesManager } from '@/components/admin/properties/PromotionalCodesManager';
+import { FormErrorBoundary } from '@/components/error-boundaries/FormErrorBoundary';
 
 const propertySchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -113,6 +113,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
   const [activeTab, setActiveTab] = useState('details');
 
   return (
+    <FormErrorBoundary formName="Property Form" onReset={onCancel}>
     <Card className="w-full max-w-5xl mx-auto">
       <CardHeader className="text-center pb-6">
         <CardTitle className="text-2xl font-bold text-gray-900">
@@ -308,6 +309,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
         </Form>
       </CardContent>
     </Card>
+    </FormErrorBoundary>
   );
 };
 

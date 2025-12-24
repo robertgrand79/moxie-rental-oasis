@@ -1,8 +1,8 @@
-
 import React from 'react';
 import BlogEditorLayout from './BlogEditorLayout';
 import { useBlogForm } from '@/hooks/useBlogForm';
 import { BlogPost } from '@/types/blogPost';
+import { FormErrorBoundary } from '@/components/error-boundaries/FormErrorBoundary';
 
 interface BlogFormData {
   title: string;
@@ -33,20 +33,22 @@ const BlogForm = ({ post, onSubmit, onCancel }: BlogFormProps) => {
   } = useBlogForm({ post, onSubmit });
 
   return (
-    <div className="space-y-6">
-      <BlogEditorLayout
-        form={form}
-        content={content}
-        setContent={setContent}
-        uploadedImage={uploadedImage}
-        setUploadedImage={setUploadedImage}
-        onSubmit={onFormSubmit}
-        isEditing={!!post}
-        onCancel={onCancel}
-        autoSavedPost={autoSavedPost}
-        lastSaved={lastSaved}
-      />
-    </div>
+    <FormErrorBoundary formName="Blog Editor" onReset={onCancel}>
+      <div className="space-y-6">
+        <BlogEditorLayout
+          form={form}
+          content={content}
+          setContent={setContent}
+          uploadedImage={uploadedImage}
+          setUploadedImage={setUploadedImage}
+          onSubmit={onFormSubmit}
+          isEditing={!!post}
+          onCancel={onCancel}
+          autoSavedPost={autoSavedPost}
+          lastSaved={lastSaved}
+        />
+      </div>
+    </FormErrorBoundary>
   );
 };
 
