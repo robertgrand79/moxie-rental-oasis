@@ -22,10 +22,10 @@ export const usePropertyForm = (properties: Property[] = [], refetch?: () => voi
     setShowAddForm(true);
   };
 
-  const handleFormSubmit = async (propertyData: any, goToFirstPage?: () => void) => {
+  const handleFormSubmit = async (propertyData: any, goToFirstPage?: () => void, stayOnPage?: boolean) => {
     setIsSubmitting(true);
     try {
-      console.log('🏠 Starting property form submission...', { isEdit: !!editingProperty });
+      console.log('🏠 Starting property form submission...', { isEdit: !!editingProperty, stayOnPage });
       
       let result;
       if (editingProperty) {
@@ -44,8 +44,11 @@ export const usePropertyForm = (properties: Property[] = [], refetch?: () => voi
       
       console.log('✅ Property operation completed:', result);
       
-      setShowAddForm(false);
-      setEditingProperty(null);
+      // Only close form if not staying on page
+      if (!stayOnPage) {
+        setShowAddForm(false);
+        setEditingProperty(null);
+      }
       
       console.log('🔄 Calling refetch to refresh property list...');
       // Add a small delay to ensure database transaction is committed

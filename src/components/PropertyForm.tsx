@@ -37,7 +37,7 @@ const propertySchema = z.object({
 });
 
 interface PropertyFormProps {
-  onSubmit: (data: PropertyFormData & { photos: File[]; reorderedExistingImages?: string[]; featuredPhotos?: string[]; deletedImages?: string[] }) => void;
+  onSubmit: (data: PropertyFormData & { photos: File[]; reorderedExistingImages?: string[]; featuredPhotos?: string[]; deletedImages?: string[] }, stayOnPage?: boolean) => void;
   onCancel: () => void;
   initialData?: Partial<Property>;
   isEditing?: boolean;
@@ -70,6 +70,8 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
     },
   });
 
+  const [saveAndContinue, setSaveAndContinue] = useState(false);
+
   const handleSubmit = (data: PropertyFormData) => {
     if (isSubmitting) {
       console.log('⚠️ [FORM] Form already submitting, ignoring duplicate submission');
@@ -81,7 +83,8 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
       photosCount: photos.length,
       existingImagesCount: existingImages.length,
       featuredPhotosCount: featuredPhotos.length,
-      deletedImagesCount: deletedImages.length
+      deletedImagesCount: deletedImages.length,
+      stayOnPage: saveAndContinue
     });
     
     onSubmit({ 
@@ -90,7 +93,15 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
       reorderedExistingImages: existingImages,
       featuredPhotos,
       deletedImages
-    });
+    }, saveAndContinue);
+    
+    // Reset the flag after submission
+    setSaveAndContinue(false);
+  };
+
+  const handleSaveAndContinue = () => {
+    setSaveAndContinue(true);
+    form.handleSubmit(handleSubmit)();
   };
 
   const handleExistingImagesReorder = (newOrder: string[]) => {
@@ -250,19 +261,37 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
               </div>
             )}
 
-            <div className="flex gap-4 pt-6 border-t">
+            <div className="flex flex-wrap gap-3 pt-6 border-t">
+              {isEditing && (
+                <Button 
+                  type="button"
+                  variant="secondary"
+                  onClick={handleSaveAndContinue}
+                  disabled={isProcessing}
+                  className="h-12 text-base font-semibold"
+                >
+                  {isProcessing && saveAndContinue ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save & Continue'
+                  )}
+                </Button>
+              )}
               <Button 
                 type="submit" 
-                className="flex-1 h-12 text-lg font-semibold"
+                className="flex-1 h-12 text-base font-semibold"
                 disabled={isProcessing}
               >
-                {isProcessing ? (
+                {isProcessing && !saveAndContinue ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin mr-2" />
                     {uploading ? 'Uploading...' : 'Saving...'}
                   </>
                 ) : (
-                  isEditing ? 'Update Property' : 'Save Property'
+                  isEditing ? 'Save & Close' : 'Save Property'
                 )}
               </Button>
               <Button 
@@ -270,7 +299,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
                 variant="outline" 
                 onClick={onCancel}
                 disabled={isProcessing}
-                className="px-8 h-12 text-lg font-semibold"
+                className="px-6 h-12 text-base font-semibold"
               >
                 Cancel
               </Button>

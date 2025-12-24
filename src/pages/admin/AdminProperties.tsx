@@ -53,14 +53,15 @@ const AdminProperties = () => {
     }
   }, [propertyId, properties, loading, editingProperty?.id, handleEditProperty]);
 
-  const handleFormSubmitWithPageReset = async (propertyData: any) => {
+  const handleFormSubmitWithPageReset = async (propertyData: any, stayOnPage?: boolean) => {
     await handleFormSubmit(propertyData, () => {
       goToPage(1);
-      // Navigate back to properties list after save if we came from a direct link
-      if (propertyId) {
-        navigate('/admin/properties');
-      }
-    });
+    }, stayOnPage);
+    
+    // Only navigate away if not staying on page
+    if (!stayOnPage && propertyId) {
+      navigate('/admin/properties');
+    }
   };
 
   const handleFormCancelWithNavigation = () => {
