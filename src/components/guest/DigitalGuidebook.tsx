@@ -3,9 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Phone, Clock, Star, ExternalLink, Navigation, Utensils, Coffee } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { MapPin, Phone, Clock, Star, ExternalLink, Navigation, Utensils, Coffee, Wrench, AlertTriangle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import GuidebookQuickAccess from './GuidebookQuickAccess';
+import GuidebookSearch from './GuidebookSearch';
 
 interface Guidebook {
   id: string;
@@ -15,8 +18,19 @@ interface Guidebook {
     welcome_message?: string;
     check_in_instructions?: string;
     check_out_instructions?: string;
+    door_code?: string;
+    parking_instructions?: string;
+    check_in_time?: string;
+    check_out_time?: string;
     house_rules?: string[];
     amenities?: string[];
+    appliance_guides?: Array<{
+      name: string;
+      icon?: string;
+      instructions: string;
+      tips?: string;
+      troubleshooting?: string;
+    }>;
     local_recommendations?: {
       restaurants?: Array<{
         name: string;
@@ -59,6 +73,7 @@ interface Guidebook {
       network: string;
       password: string;
     };
+    property_address?: string;
   };
 }
 
@@ -104,7 +119,7 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading guidebook...</p>
         </div>
       </div>
@@ -122,6 +137,7 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
   }
 
   const content = guidebook.content || {};
+  const hasAppliances = content.appliance_guides && content.appliance_guides.length > 0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -137,12 +153,25 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
             </div>
           )}
         </CardHeader>
+        <CardContent>
+          <GuidebookSearch content={content} onNavigate={setActiveTab} />
+        </CardContent>
       </Card>
 
+      {/* Quick Access Section */}
+      <GuidebookQuickAccess
+        wifi={content.wifi}
+        doorCode={content.door_code}
+        parkingInstructions={content.parking_instructions}
+        checkInTime={content.check_in_time}
+        checkOutTime={content.check_out_time}
+      />
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className={`grid w-full ${hasAppliances ? 'grid-cols-6' : 'grid-cols-5'}`}>
           <TabsTrigger value="welcome">Welcome</TabsTrigger>
           <TabsTrigger value="amenities">Amenities</TabsTrigger>
+          {hasAppliances && <TabsTrigger value="appliances">Appliances</TabsTrigger>}
           <TabsTrigger value="local">Local Guide</TabsTrigger>
           <TabsTrigger value="info">Info</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
@@ -154,7 +183,7 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
               <CardTitle>Welcome Message</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                 {content.welcome_message || "Welcome to your home away from home! We hope you have a wonderful stay."}
               </p>
             </CardContent>
@@ -166,7 +195,7 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
                 <CardTitle className="text-lg">Check-in Instructions</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {content.check_in_instructions || "Check-in instructions will be provided separately."}
                 </p>
               </CardContent>
@@ -177,7 +206,7 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
                 <CardTitle className="text-lg">Check-out Instructions</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {content.check_out_instructions || "Please ensure all doors are locked and keys are left as instructed."}
                 </p>
               </CardContent>
@@ -193,7 +222,7 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
                 <ul className="space-y-2">
                   {content.house_rules.map((rule, index) => (
                     <li key={index} className="flex items-start gap-2 text-sm">
-                      <span className="text-blue-600 mt-1">•</span>
+                      <span className="text-primary mt-1">•</span>
                       <span>{rule}</span>
                     </li>
                   ))}
@@ -219,11 +248,11 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
                 ))}
               </div>
               {content.wifi && (
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="mt-6 p-4 bg-primary/5 rounded-lg">
                   <h4 className="font-medium mb-2">WiFi Information</h4>
                   <div className="space-y-1 text-sm">
                     <p><strong>Network:</strong> {content.wifi.network}</p>
-                    <p><strong>Password:</strong> <code className="bg-white px-2 py-1 rounded">{content.wifi.password}</code></p>
+                    <p><strong>Password:</strong> <code className="bg-background px-2 py-1 rounded">{content.wifi.password}</code></p>
                   </div>
                 </div>
               )}
@@ -231,27 +260,91 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
           </Card>
         </TabsContent>
 
+        {hasAppliances && (
+          <TabsContent value="appliances" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wrench className="h-5 w-5" />
+                  Appliance Guides
+                </CardTitle>
+                <CardDescription>How to use the appliances in this property</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  {content.appliance_guides?.map((guide, index) => (
+                    <AccordionItem key={index} value={`appliance-${index}`}>
+                      <AccordionTrigger className="hover:no-underline">
+                        <span className="font-medium">{guide.name}</span>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-4">
+                        <div>
+                          <h5 className="font-medium text-sm mb-2">Instructions</h5>
+                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{guide.instructions}</p>
+                        </div>
+                        {guide.tips && (
+                          <div>
+                            <h5 className="font-medium text-sm mb-2">Tips</h5>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{guide.tips}</p>
+                          </div>
+                        )}
+                        {guide.troubleshooting && (
+                          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
+                            <h5 className="font-medium text-sm mb-2 flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4 text-amber-500" />
+                              Troubleshooting
+                            </h5>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{guide.troubleshooting}</p>
+                          </div>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
         <TabsContent value="local" className="space-y-6">
           <LocalRecommendations recommendations={content.local_recommendations} />
         </TabsContent>
 
         <TabsContent value="info" className="space-y-6">
+          {content.property_address && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Property Address</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{content.property_address}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Save this address for emergencies or directions
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {content.local_recommendations?.transportation && (
             <Card>
               <CardHeader>
                 <CardTitle>Transportation</CardTitle>
-                <CardDescription>Getting around Eugene</CardDescription>
+                <CardDescription>Getting around</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">Airport</h4>
-                  <p className="text-sm text-muted-foreground">{content.local_recommendations.transportation.airport}</p>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Parking</h4>
-                  <p className="text-sm text-muted-foreground">{content.local_recommendations.transportation.parking}</p>
-                </div>
-                {content.local_recommendations.transportation.public_transit && (
+                {content.local_recommendations.transportation.airport && (
+                  <div>
+                    <h4 className="font-medium mb-2">Airport</h4>
+                    <p className="text-sm text-muted-foreground">{content.local_recommendations.transportation.airport}</p>
+                  </div>
+                )}
+                {content.local_recommendations.transportation.parking && (
+                  <div>
+                    <h4 className="font-medium mb-2">Parking</h4>
+                    <p className="text-sm text-muted-foreground">{content.local_recommendations.transportation.parking}</p>
+                  </div>
+                )}
+                {content.local_recommendations.transportation.public_transit && content.local_recommendations.transportation.public_transit.length > 0 && (
                   <div>
                     <h4 className="font-medium mb-2">Public Transit</h4>
                     <div className="space-y-1">
@@ -261,7 +354,7 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
                     </div>
                   </div>
                 )}
-                {content.local_recommendations.transportation.rideshare && (
+                {content.local_recommendations.transportation.rideshare && content.local_recommendations.transportation.rideshare.length > 0 && (
                   <div>
                     <h4 className="font-medium mb-2">Rideshare Options</h4>
                     <div className="flex gap-2">
