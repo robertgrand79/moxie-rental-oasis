@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, CheckCircle, KeyRound } from 'lucide-react';
+import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator';
+import { passwordSchema, calculatePasswordStrength } from '@/utils/passwordValidation';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
@@ -38,10 +40,23 @@ const ResetPassword = () => {
       return;
     }
 
-    if (password.length < 6) {
+    // Validate password with zod
+    const validation = passwordSchema.safeParse(password);
+    if (!validation.success) {
       toast({
-        title: 'Password too short',
-        description: 'Password must be at least 6 characters.',
+        title: 'Invalid Password',
+        description: validation.error.errors[0].message,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Check password strength
+    const strength = calculatePasswordStrength(password);
+    if (strength.score < 2) {
+      toast({
+        title: 'Weak Password',
+        description: 'Please choose a stronger password with uppercase, lowercase, and numbers.',
         variant: 'destructive'
       });
       return;
@@ -121,9 +136,10 @@ const ResetPassword = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                minLength={6}
+                minLength={8}
                 className="h-11"
               />
+              <PasswordStrengthIndicator password={password} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm New Password</Label>
@@ -135,12 +151,12 @@ const ResetPassword = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                minLength={6}
+                minLength={8}
                 className="h-11"
               />
-              <p className="text-xs text-muted-foreground">
-                Must be at least 6 characters
-              </p>
+              {confirmPassword && password !== confirmPassword && (
+                <p className="text-xs text-destructive">Passwords do not match</p>
+              )}
             </div>
             <Button type="submit" className="w-full h-11" disabled={isLoading}>
               {isLoading ? (

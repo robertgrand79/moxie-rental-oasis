@@ -287,6 +287,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await databaseStatus.checkConnection();
       }
 
+      // Check if account is locked before attempting sign in
+      const { data: lockoutData, error: lockoutError } = await supabase.rpc('check_account_lockout', {
+        p_email: email
+      });
+
+      const lockout = lockoutData as { is_locked?: boolean; locked_until?: string; message?: string } | null;
+      if (!lockoutError && lockout?.is_locked) {
+        console.warn('🔒 Account is locked:', email);
+        const lockedUntil = new Date(lockout.locked_until || '');
+        const minutesRemaining = Math.ceil((lockedUntil.getTime() - Date.now()) / 60000);
+        return { 
+          error: { 
+            message: `Account temporarily locked. Please try again in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}.` 
+          } 
+        };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -295,9 +312,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         console.error('❌ Sign in error:', error);
         
-        // Track failed login attempts for security
+        // Track failed login attempt server-side
         if (error.message.includes('Invalid login credentials')) {
-          // Get organization ID from user's profile if possible (for multi-org security)
+          const { data: trackData } = await supabase.rpc('track_failed_login', {
+            p_email: email
+          });
+          const trackResult = trackData as { is_locked?: boolean; remaining_attempts?: number; message?: string } | null;
+          
+          // Also track locally for security notifications
           const { data: orgData } = await supabase
             .from('organization_members')
             .select('organization_id')
@@ -306,12 +328,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           trackFailedLogin(email, orgData?.organization_id);
           
-          return { error: { ...error, message: 'Invalid email or password. Please check your credentials.' } };
+          // Customize error message based on remaining attempts
+          let errorMessage = 'Invalid email or password. Please check your credentials.';
+          if (trackResult?.remaining_attempts !== undefined && trackResult.remaining_attempts <= 2) {
+            errorMessage = `Invalid email or password. ${trackResult.remaining_attempts} attempt${trackResult.remaining_attempts !== 1 ? 's' : ''} remaining before lockout.`;
+          }
+          if (trackResult?.is_locked) {
+            errorMessage = trackResult.message || 'Too many failed attempts. Account temporarily locked.';
+          }
+          
+          return { error: { ...error, message: errorMessage } };
         }
         return { error };
       }
 
       // Clear failed login tracking on successful login
+      await supabase.rpc('clear_failed_logins', { p_email: email });
       clearFailedLoginTracking(email);
 
       console.log('✅ Sign in successful');

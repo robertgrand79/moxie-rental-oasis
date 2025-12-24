@@ -19,6 +19,8 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { AlertTriangle, RefreshCw, Loader2, Mail } from 'lucide-react';
+import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator';
+import { signupSchema, loginSchema, calculatePasswordStrength } from '@/utils/passwordValidation';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -115,6 +117,36 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate with zod schema
+    const validation = signupSchema.safeParse({
+      email: signupData.email,
+      password: signupData.password,
+      fullName: signupData.fullName,
+      phone: signupData.phone || undefined,
+    });
+
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast({
+        title: 'Validation Error',
+        description: firstError.message,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Check password strength (require at least "Fair")
+    const strength = calculatePasswordStrength(signupData.password);
+    if (strength.score < 2) {
+      toast({
+        title: 'Weak Password',
+        description: 'Please choose a stronger password with at least 8 characters, including uppercase, lowercase, and numbers.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -351,12 +383,10 @@ const Auth = () => {
                       onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
                       required
                       disabled={isLoading}
-                      minLength={6}
+                      minLength={8}
                       className="h-11"
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Must be at least 6 characters
-                    </p>
+                    <PasswordStrengthIndicator password={signupData.password} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-phone">Phone Number <span className="text-muted-foreground">(optional)</span></Label>
