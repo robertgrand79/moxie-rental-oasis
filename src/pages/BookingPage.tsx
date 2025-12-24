@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTenantProperties } from '@/hooks/useTenantProperties';
+import { usePropertyBookingSettings, getCancellationPolicyDetails } from '@/hooks/usePropertyBookingSettings';
 import { Calendar, Search, Home, Star } from 'lucide-react';
 import GuestBookingWidget from '@/components/booking/GuestBookingWidget';
 import AvailabilityDisplay from '@/components/booking/AvailabilityDisplay';
@@ -18,6 +19,10 @@ const BookingPage = () => {
   const { properties, loading } = useTenantProperties();
   const { settings } = useTenantSettings();
   const property = properties?.find(p => p.id === propertyId);
+  
+  // Get property-specific booking settings
+  const { data: bookingSettings } = usePropertyBookingSettings(propertyId);
+  const cancellationPolicy = getCancellationPolicyDetails(bookingSettings?.cancellationPolicy || 'flexible');
 
   const contactPhone = settings?.contactPhone || '';
   const contactEmail = settings?.contactEmail || '';
@@ -164,20 +169,23 @@ const BookingPage = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Check-in</span>
-                  <span className="font-medium">3:00 PM</span>
+                  <span className="font-medium">{bookingSettings?.checkInTime || '3:00 PM'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Check-out</span>
-                  <span className="font-medium">11:00 AM</span>
+                  <span className="font-medium">{bookingSettings?.checkOutTime || '11:00 AM'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Minimum Stay</span>
-                  <span className="font-medium">2 nights</span>
+                  <span className="font-medium">{bookingSettings?.minStay || 1} night{(bookingSettings?.minStay || 1) > 1 ? 's' : ''}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Cancellation</span>
-                  <span className="font-medium">Free up to 24h</span>
+                  <span className="font-medium">{cancellationPolicy.name}</span>
                 </div>
+                <p className="text-xs text-muted-foreground border-t pt-2">
+                  {cancellationPolicy.description}
+                </p>
               </CardContent>
             </Card>
 
