@@ -42,6 +42,7 @@ import CheckinPage from '@/pages/guest/CheckinPage';
 import GuidebookPage from '@/pages/guest/GuidebookPage';
 import AcknowledgePage from '@/pages/AcknowledgePage';
 import ContractorPortal from '@/pages/ContractorPortal';
+import AcceptInvitation from '@/pages/AcceptInvitation';
 
 // Shared pages
 import NotFound from '@/pages/NotFound';
@@ -124,6 +125,7 @@ const AppRoutes: React.FC = () => {
         {/* Public standalone routes */}
         <Route path="/acknowledge" element={<AcknowledgePage />} />
         <Route path="/contractor/:token" element={<ContractorPortal />} />
+        <Route path="/accept-invite" element={<AcceptInvitation />} />
 
         {/* Shared Onboarding Routes */}
         <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
