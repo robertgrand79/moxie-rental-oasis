@@ -20,8 +20,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import ReportBugDialog from '@/components/admin/bugs/ReportBugDialog';
@@ -198,130 +203,127 @@ const AdminSidebarFooter = () => {
 
   return (
     <SidebarFooter>
-      {isEditing ? (
-        <div className="border-t border-gray-200 p-4">
-          <Card className="w-full">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <User className="h-5 w-5" />
-                Edit Profile
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={profile?.avatar_url || ''} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getInitials(profile?.full_name || user.email || 'U')}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1">
-                  <div className="space-y-3">
-                    <div>
-                      <Label htmlFor="full_name" className="text-sm font-medium">
-                        Full Name
-                      </Label>
-                      <Input
-                        id="full_name"
-                        value={editData.full_name}
-                        onChange={(e) => setEditData({ ...editData, full_name: e.target.value })}
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email" className="text-sm font-medium">
-                        Email
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={editData.email}
-                        onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                        placeholder="Enter your email"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="phone" className="text-sm font-medium">
-                        Phone Number
-                      </Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={editData.phone}
-                        onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                        placeholder="+1 (555) 123-4567"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">Used for SMS notifications</p>
-                    </div>
-                  </div>
-                </div>
+      <div className="border-t border-border p-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              className="flex items-center gap-3 w-full justify-start p-0 h-auto hover:bg-transparent"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatar_url || ''} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                  {getInitials(profile?.full_name || user.email || 'U')}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex items-center gap-2 flex-1 justify-between">
+                <span className="font-medium text-foreground truncate">
+                  {profile?.full_name || 'No name set'}
+                </span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48 mb-2">
+            <DropdownMenuItem onClick={handleEditToggle} className="cursor-pointer">
+              <Edit2 className="h-4 w-4 mr-2" />
+              Edit Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowBugDialog(true)} className="cursor-pointer">
+              <Bug className="h-4 w-4 mr-2" />
+              Report Bug
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-              <div className="flex gap-2 pt-2">
-                <Button
-                  onClick={handleSave}
-                  disabled={isLoading}
-                  size="sm"
-                  className="flex-1"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {isLoading ? 'Saving...' : 'Save Changes'}
-                </Button>
-                <Button
-                  onClick={handleEditToggle}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
+      {/* Edit Profile Dialog */}
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Edit Profile
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={profile?.avatar_url || ''} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                  {getInitials(profile?.full_name || user?.email || 'U')}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="full_name" className="text-sm font-medium">
+                  Full Name
+                </Label>
+                <Input
+                  id="full_name"
+                  value={editData.full_name}
+                  onChange={(e) => setEditData({ ...editData, full_name: e.target.value })}
+                  placeholder="Enter your full name"
+                />
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      ) : (
-        <div className="border-t border-gray-200 p-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="flex items-center gap-3 w-full justify-start p-0 h-auto hover:bg-transparent"
+              <div>
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={editData.email}
+                  onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                  placeholder="Enter your email"
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone" className="text-sm font-medium">
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={editData.phone}
+                  onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                  placeholder="+1 (555) 123-4567"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Used for SMS notifications</p>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button
+                onClick={handleSave}
+                disabled={isLoading}
+                size="sm"
+                className="flex-1"
               >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={profile?.avatar_url || ''} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                    {getInitials(profile?.full_name || user.email || 'U')}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex items-center gap-2 flex-1 justify-between">
-                  <span className="font-medium text-foreground truncate">
-                    {profile?.full_name || 'No name set'}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </div>
+                <Save className="h-4 w-4 mr-2" />
+                {isLoading ? 'Saving...' : 'Save Changes'}
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48 mb-2">
-              <DropdownMenuItem onClick={handleEditToggle} className="cursor-pointer">
-                <Edit2 className="h-4 w-4 mr-2" />
-                Edit Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowBugDialog(true)} className="cursor-pointer">
-                <Bug className="h-4 w-4 mr-2" />
-                Report Bug
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
+              <Button
+                onClick={handleEditToggle}
+                variant="outline"
+                size="sm"
+                className="flex-1"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <ReportBugDialog open={showBugDialog} onOpenChange={setShowBugDialog} />
     </SidebarFooter>
   );
