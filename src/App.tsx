@@ -22,12 +22,12 @@ function App() {
   
   return (
     <ErrorBoundary>
-      <RUMProvider 
-        sampleRate={isDev ? 1.0 : 0.1} 
-        debug={isDev}
-      >
-        <div className="min-h-screen bg-background text-foreground">
-          <Router>
+      <div className="min-h-screen bg-background text-foreground">
+        <Router>
+          <RUMProvider 
+            sampleRate={isDev ? 1.0 : 0.1} 
+            debug={isDev}
+          >
             <PlatformProvider>
               <OrganizationProvider>
                 <TenantProvider>
@@ -49,9 +49,9 @@ function App() {
                 </TenantProvider>
               </OrganizationProvider>
             </PlatformProvider>
-          </Router>
-        </div>
-      </RUMProvider>
+          </RUMProvider>
+        </Router>
+      </div>
     </ErrorBoundary>
   );
 }
