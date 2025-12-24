@@ -17,6 +17,7 @@ import {
   ClipboardList,
   Sparkles,
   Bell,
+  FileBarChart,
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -97,6 +98,12 @@ export const adminMenuItems = [
         href: '/admin/host/analytics',
         icon: TrendingUp,
         description: 'Revenue tracking, occupancy rates, and performance metrics'
+      },
+      {
+        title: 'Reports',
+        href: '/admin/reports',
+        icon: FileBarChart,
+        description: 'Booking, revenue, occupancy, guest and tax reports'
       },
       {
         title: 'Booking Management',
