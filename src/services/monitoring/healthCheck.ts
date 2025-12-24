@@ -2,9 +2,9 @@
  * Health Check Service
  * Monitors application health and endpoint availability
  */
-
 import { supabase } from '@/integrations/supabase/client';
 import { debug } from '@/utils/debug';
+import type { Database } from '@/integrations/supabase/types';
 
 export interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -295,9 +295,9 @@ class HealthCheckService {
 
   private async persistStatus(status: HealthStatus): Promise<void> {
     try {
-      await (supabase as any).from('health_check_logs').insert({
+      await supabase.from('health_check_logs').insert({
         status: status.status,
-        checks: status.checks,
+        checks: status.checks as unknown as Database['public']['Tables']['health_check_logs']['Insert']['checks'],
         uptime: status.uptime,
       });
     } catch (error) {

@@ -2,9 +2,10 @@
  * Product Analytics Service
  * Tracks key user actions for both owners and guests
  */
-
+import type { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { debug } from '@/utils/debug';
+import type { JsonValue } from '@/types/common';
 
 export type OwnerEvent = 
   | 'account_created'
@@ -62,7 +63,7 @@ interface AnalyticsUser {
   type: 'owner' | 'guest';
   organizationId?: string;
   email?: string;
-  properties?: Record<string, any>;
+  properties?: Record<string, JsonValue>;
 }
 
 class ProductAnalytics {
@@ -256,9 +257,9 @@ class ProductAnalytics {
 
   private async persistEvent(event: string, properties: EventProperties, timestamp?: Date): Promise<void> {
     try {
-      await (supabase as any).from('analytics_events').insert({
+      await supabase.from('analytics_events').insert({
         event_name: event,
-        properties,
+        properties: properties as unknown as Database['public']['Tables']['analytics_events']['Insert']['properties'],
         user_id: this.user?.id,
         organization_id: this.user?.organizationId,
         session_id: this.sessionId,

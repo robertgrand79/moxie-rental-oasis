@@ -1,5 +1,14 @@
-
 import { PerformanceMetrics } from './types';
+
+// Performance entry types for FID and CLS
+interface PerformanceEventTiming extends PerformanceEntry {
+  processingStart: number;
+}
+
+interface LayoutShiftEntry extends PerformanceEntry {
+  hadRecentInput: boolean;
+  value: number;
+}
 
 export class PerformanceMonitorService {
   private performanceObserver: PerformanceObserver | null = null;
@@ -60,8 +69,9 @@ export class PerformanceMonitorService {
     // FID Observer
     const fidObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      entries.forEach((entry: any) => {
-        metrics.firstInputDelay = entry.processingStart - entry.startTime;
+      entries.forEach((entry) => {
+        const fidEntry = entry as PerformanceEventTiming;
+        metrics.firstInputDelay = fidEntry.processingStart - fidEntry.startTime;
       });
     });
     fidObserver.observe({ entryTypes: ['first-input'] });
@@ -69,9 +79,10 @@ export class PerformanceMonitorService {
     // CLS Observer
     const clsObserver = new PerformanceObserver((list) => {
       let cumulativeScore = 0;
-      list.getEntries().forEach((entry: any) => {
-        if (!entry.hadRecentInput) {
-          cumulativeScore += entry.value;
+      list.getEntries().forEach((entry) => {
+        const clsEntry = entry as LayoutShiftEntry;
+        if (!clsEntry.hadRecentInput) {
+          cumulativeScore += clsEntry.value;
         }
       });
       metrics.cumulativeLayoutShift = cumulativeScore;
