@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useSettingsLocalData } from '@/hooks/useSettingsLocalData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Image, Phone, FileText, BarChart, Users } from 'lucide-react';
+import { Building2, Image, Phone, FileText, BarChart, Users, Eye } from 'lucide-react';
 import GeneralInformationSettings from '@/components/admin/settings/GeneralInformationSettings';
 import HeroSectionSettings from '@/components/admin/settings/HeroSectionSettings';
 import ContactInformationSettings from '@/components/admin/settings/ContactInformationSettings';
 import SEOSettingsTab from '@/components/admin/settings/SEOSettingsTab';
 import AnalyticsSettingsTab from '@/components/admin/settings/AnalyticsSettingsTab';
 import AboutPageSettings from '@/components/admin/settings/AboutPageSettings';
+import DefaultContentGenerator from '@/components/admin/settings/DefaultContentGenerator';
+import SitePreviewPanel from '@/components/admin/settings/SitePreviewPanel';
 
 const SiteContentSettingsPanel = () => {
   const {
@@ -116,36 +118,44 @@ const SiteContentSettingsPanel = () => {
   }
 
   return (
-    <Tabs defaultValue="general" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 h-auto gap-1 p-1">
-        <TabsTrigger value="general" className="flex items-center gap-2 py-2">
-          <Building2 className="h-4 w-4" />
-          <span className="hidden sm:inline">General</span>
-        </TabsTrigger>
-        <TabsTrigger value="hero" className="flex items-center gap-2 py-2">
-          <Image className="h-4 w-4" />
-          <span className="hidden sm:inline">Hero</span>
-        </TabsTrigger>
-        <TabsTrigger value="about" className="flex items-center gap-2 py-2">
-          <Users className="h-4 w-4" />
-          <span className="hidden sm:inline">About</span>
-        </TabsTrigger>
-        <TabsTrigger value="contact" className="flex items-center gap-2 py-2">
-          <Phone className="h-4 w-4" />
-          <span className="hidden sm:inline">Contact</span>
-        </TabsTrigger>
-        <TabsTrigger value="seo" className="flex items-center gap-2 py-2">
-          <FileText className="h-4 w-4" />
-          <span className="hidden sm:inline">SEO</span>
-        </TabsTrigger>
-        <TabsTrigger value="analytics" className="flex items-center gap-2 py-2">
-          <BarChart className="h-4 w-4" />
-          <span className="hidden sm:inline">Analytics</span>
-        </TabsTrigger>
-      </TabsList>
+    <div className="space-y-6">
+      {/* Default Content Generator - shows only when there are empty fields */}
+      <DefaultContentGenerator />
+      
+      <Tabs defaultValue="general" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 h-auto gap-1 p-1">
+          <TabsTrigger value="general" className="flex items-center gap-2 py-2">
+            <Building2 className="h-4 w-4" />
+            <span className="hidden sm:inline">General</span>
+          </TabsTrigger>
+          <TabsTrigger value="hero" className="flex items-center gap-2 py-2">
+            <Image className="h-4 w-4" />
+            <span className="hidden sm:inline">Hero</span>
+          </TabsTrigger>
+          <TabsTrigger value="about" className="flex items-center gap-2 py-2">
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">About</span>
+          </TabsTrigger>
+          <TabsTrigger value="contact" className="flex items-center gap-2 py-2">
+            <Phone className="h-4 w-4" />
+            <span className="hidden sm:inline">Contact</span>
+          </TabsTrigger>
+          <TabsTrigger value="seo" className="flex items-center gap-2 py-2">
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">SEO</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2 py-2">
+            <BarChart className="h-4 w-4" />
+            <span className="hidden sm:inline">Analytics</span>
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="flex items-center gap-2 py-2">
+            <Eye className="h-4 w-4" />
+            <span className="hidden sm:inline">Preview</span>
+          </TabsTrigger>
+        </TabsList>
 
-      <TabsContent value="general" className="space-y-6">
-        <GeneralInformationSettings
+        <TabsContent value="general" className="space-y-6">
+          <GeneralInformationSettings
           siteData={localData.siteData}
           onInputChange={handleInputChange}
           onSave={handleSaveGeneralInfo}
@@ -235,7 +245,12 @@ const SiteContentSettingsPanel = () => {
           }}
         />
       </TabsContent>
+
+      <TabsContent value="preview" className="space-y-6">
+        <SitePreviewPanel previewUrl="/" />
+      </TabsContent>
     </Tabs>
+    </div>
   );
 };
 

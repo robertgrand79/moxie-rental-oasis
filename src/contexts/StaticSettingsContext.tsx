@@ -23,21 +23,21 @@ interface StaticSettings {
   };
 }
 
-// Generic default settings - tenants configure their own values
+// Sensible default settings - tenants can customize these
 const staticSettings: StaticSettings = {
-  siteName: '',
-  tagline: '',
-  description: '',
-  heroTitle: '',
-  heroSubtitle: '',
-  heroDescription: '',
+  siteName: 'Your Vacation Rentals',
+  tagline: 'Discover Your Perfect Getaway',
+  description: 'Find exceptional vacation rental properties for your next adventure. Book with confidence and create lasting memories.',
+  heroTitle: 'Welcome to Your Dream Vacation',
+  heroSubtitle: 'Unforgettable Stays Await',
+  heroDescription: 'Discover handpicked vacation rentals that offer comfort, style, and unforgettable experiences.',
   heroBackgroundImage: '',
-  heroLocationText: '',
-  heroRating: '',
+  heroLocationText: 'Your Destination',
+  heroRating: '5.0',
   heroCTAText: 'View Properties',
-  contactEmail: '',
-  phone: '',
-  address: '',
+  contactEmail: 'hello@example.com',
+  phone: '(555) 123-4567',
+  address: '123 Main Street, City, State 12345',
   socialMedia: {
     facebook: '',
     instagram: '',

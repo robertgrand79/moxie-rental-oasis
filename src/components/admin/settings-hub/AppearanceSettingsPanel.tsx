@@ -1,10 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Palette, Type, Image } from 'lucide-react';
+import { Palette, Type, Image, Code } from 'lucide-react';
 import ColorCustomizer from '@/components/ColorCustomizer';
 import FontCustomizer from '@/components/FontCustomizer';
 import LogoUploader from '@/components/LogoUploader';
+import AdvancedCustomizationSection from '@/components/admin/settings/AdvancedCustomizationSection';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
 const AppearanceSettingsPanel = () => {
@@ -25,6 +26,10 @@ const AppearanceSettingsPanel = () => {
           <TabsTrigger value="branding" className="flex items-center gap-2">
             <Image className="h-4 w-4" />
             Branding
+          </TabsTrigger>
+          <TabsTrigger value="advanced" className="flex items-center gap-2">
+            <Code className="h-4 w-4" />
+            Advanced
           </TabsTrigger>
         </TabsList>
 
@@ -64,6 +69,10 @@ const AppearanceSettingsPanel = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="advanced" className="mt-6">
+          <AdvancedCustomizationSection />
         </TabsContent>
       </Tabs>
     </div>
