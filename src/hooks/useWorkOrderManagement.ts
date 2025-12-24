@@ -26,6 +26,7 @@ export interface WorkOrder {
   sent_at?: string;
   acknowledged_at?: string;
   completed_at?: string;
+  contractor_notes?: string;
   // Billing fields
   billing_type?: string;
   billing_rate?: number;
