@@ -5,16 +5,15 @@ import { useDatabase } from '@/hooks/useDatabase';
 import { toast } from '@/hooks/use-toast';
 import { trackFailedLogin, clearFailedLoginTracking } from '@/utils/securityNotifications';
 import { debug } from '@/utils/debug';
+import { 
+  AuthResult, 
+  LockoutCheckResult, 
+  FailedLoginTrackResult, 
+  UserProfile,
+  AuthErrorWithCode 
+} from '@/types/auth';
 
-interface Profile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  phone: string | null;
-  role: string;
-  avatar_url: string | null;
-  updated_at: string;
-}
+type Profile = UserProfile;
 
 interface AuthContextType {
   user: User | null;
@@ -24,10 +23,10 @@ interface AuthContextType {
   roleLoading: boolean;
   userRole: string | null;
   isAdmin: boolean;
-  signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<{ error: any }>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<AuthResult>;
+  signIn: (email: string, password: string) => Promise<AuthResult>;
+  signOut: () => Promise<AuthResult>;
+  resetPassword: (email: string) => Promise<AuthResult>;
   databaseStatus: {
     isConnected: boolean;
     isChecking: boolean;
@@ -83,15 +82,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Create the fetch promise with a reasonable timeout
+      const fetchPromise = supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Role fetch timeout')), timeoutMs)
+      );
+
       const { data: profileData, error } = await Promise.race([
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single(),
-        new Promise<any>((_, reject) => 
-          setTimeout(() => reject(new Error('Role fetch timeout')), timeoutMs)
-        )
+        fetchPromise,
+        timeoutPromise
       ]);
 
       if (error) {
@@ -419,10 +422,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Handle "session not found" or "Auth session missing" gracefully
       // These errors mean the user is already signed out on the server
       if (error) {
+        const authError = error as AuthErrorWithCode;
         const isSessionMissingError = 
-          error.message?.includes('session') || 
-          error.message?.includes('Session') ||
-          (error as any).code === 'session_not_found';
+          authError.message?.includes('session') || 
+          authError.message?.includes('Session') ||
+          authError.code === 'session_not_found';
         
         if (isSessionMissingError) {
           debug.auth('Session already expired or missing, treating as successful sign out');

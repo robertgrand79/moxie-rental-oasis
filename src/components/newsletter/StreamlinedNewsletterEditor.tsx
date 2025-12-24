@@ -106,10 +106,11 @@ const StreamlinedNewsletterEditor = () => {
       } else {
         throw new Error(result?.error || "Failed to send newsletter");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string };
       showToast({
         title: "Send Failed",
-        description: error.message || "Failed to send newsletter.",
+        description: err.message || "Failed to send newsletter.",
         variant: "destructive",
       });
     } finally {

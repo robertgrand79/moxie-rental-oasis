@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useSettingsLocalData } from '@/hooks/useSettingsLocalData';
 import GeneralInformationSettings from '@/components/admin/settings/GeneralInformationSettings';
+import { SettingsLocalData } from '@/types/settings';
 
 interface SiteInfoDrawerProps {
   open: boolean;
@@ -22,7 +23,7 @@ const SiteInfoDrawer: React.FC<SiteInfoDrawerProps> = ({ open, onOpenChange }) =
   const [saving, setSaving] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
-    setLocalData((prev: any) => ({
+    setLocalData((prev: SettingsLocalData) => ({
       ...prev,
       siteData: { ...prev.siteData, [field]: value }
     }));

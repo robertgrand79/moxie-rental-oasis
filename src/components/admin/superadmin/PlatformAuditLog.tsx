@@ -24,6 +24,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { PlatformAuditLogEntry } from '@/types/audit';
 
 const ACTION_TYPES = [
   { value: 'all', label: 'All Actions' },
@@ -46,12 +47,7 @@ const PlatformAuditLog = () => {
     queryFn: async () => {
       let query = supabase
         .from('platform_admin_audit_logs')
-        .select(`
-          *,
-          admin:admin_user_id (
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -61,7 +57,20 @@ const PlatformAuditLog = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      
+      // Fetch admin emails separately
+      const adminIds = [...new Set((data || []).map(log => log.admin_user_id).filter(Boolean))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .in('id', adminIds);
+      
+      const profileMap = new Map(profiles?.map(p => [p.id, p.email]) || []);
+      
+      return (data || []).map(log => ({
+        ...log,
+        admin: log.admin_user_id ? { email: profileMap.get(log.admin_user_id) || 'Unknown' } : null
+      })) as PlatformAuditLogEntry[];
     },
   });
 
@@ -86,18 +95,18 @@ const PlatformAuditLog = () => {
     return 'outline';
   };
 
-  const filteredLogs = logs.filter((log: any) => 
+  const filteredLogs = logs.filter((log) => 
     log.target_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (log.admin as any)?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    log.admin?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.action_type?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const exportLogs = () => {
     const csv = [
       ['Timestamp', 'Admin Email', 'Action', 'Target Type', 'Target Name', 'IP Address'].join(','),
-      ...filteredLogs.map((log: any) => [
+      ...filteredLogs.map((log) => [
         log.created_at,
-        (log.admin as any)?.email || 'Unknown',
+        log.admin?.email || 'Unknown',
         log.action_type,
         log.target_type || '',
         log.target_name || '',
@@ -172,7 +181,7 @@ const PlatformAuditLog = () => {
             <div className="text-center py-8 text-muted-foreground">No audit logs found</div>
           ) : (
             <div className="space-y-2">
-              {filteredLogs.map((log: any) => (
+              {filteredLogs.map((log) => (
                 <div key={log.id} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50">
                   <div className="mt-1 p-2 rounded-full bg-muted">
                     {getActionIcon(log.action_type)}
@@ -192,7 +201,7 @@ const PlatformAuditLog = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                      <span>by {(log.admin as any)?.email || 'Unknown admin'}</span>
+                      <span>by {log.admin?.email || 'Unknown admin'}</span>
                       <span>•</span>
                       <span>{format(new Date(log.created_at), 'MMM d, yyyy h:mm:ss a')}</span>
                       {log.ip_address && (

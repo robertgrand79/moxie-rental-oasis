@@ -56,14 +56,19 @@ export const useThirdPartyScripts = (
     
     // Clean up window object
     if (typeof window !== 'undefined') {
+      const windowWithFb = window as Window & { 
+        _fbq?: unknown; 
+        fbq?: unknown; 
+        dataLayer?: Array<Record<string, unknown>> 
+      };
+      
       // Remove fbq function
-      if ((window as any).fbq) {
-        delete (window as any).fbq;
+      if (windowWithFb.fbq) {
+        delete windowWithFb.fbq;
         console.log('🗑️ SiteHead: Removed fbq from window object');
       }
       
       // Remove _fbq if it exists
-      const windowWithFb = window as Window & { _fbq?: unknown; fbq?: unknown; dataLayer?: Array<Record<string, unknown>> };
       if (windowWithFb._fbq) {
         delete windowWithFb._fbq;
         console.log('🗑️ SiteHead: Removed _fbq from window object');
@@ -172,9 +177,10 @@ export const useThirdPartyScripts = (
           // If script already exists, still try to initialize if fbq is available
           setTimeout(() => {
             try {
-              if (typeof window !== 'undefined' && (window as any).fbq) {
-                (window as any).fbq('init', facebookPixelId.trim());
-                (window as any).fbq('track', 'PageView');
+              const windowWithFbq = window as Window & { fbq?: (...args: unknown[]) => void };
+              if (typeof window !== 'undefined' && windowWithFbq.fbq) {
+                windowWithFbq.fbq('init', facebookPixelId.trim());
+                windowWithFbq.fbq('track', 'PageView');
                 console.log('📱 SiteHead: Facebook Pixel re-initialized for existing script');
               }
             } catch (error) {

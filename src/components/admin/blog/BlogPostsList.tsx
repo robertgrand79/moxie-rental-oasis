@@ -79,7 +79,10 @@ const BlogPostsList = ({ posts, onEdit, onDelete, onAddPost, onPublish }: BlogPo
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
           />
-          <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+          <Select 
+            value={statusFilter} 
+            onValueChange={(value: 'all' | 'published' | 'draft') => setStatusFilter(value)}
+          >
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -89,7 +92,10 @@ const BlogPostsList = ({ posts, onEdit, onDelete, onAddPost, onPublish }: BlogPo
               <SelectItem value="draft">Draft</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={contentTypeFilter} onValueChange={(value: any) => setContentTypeFilter(value)}>
+          <Select 
+            value={contentTypeFilter} 
+            onValueChange={(value: 'all' | 'article' | 'event' | 'poi' | 'lifestyle') => setContentTypeFilter(value)}
+          >
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
