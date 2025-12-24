@@ -36,6 +36,18 @@ import NewsletterEditorDrawer from './dialogs/NewsletterEditorDrawer';
 import { useNewsletterCampaigns } from '@/hooks/useNewsletterCampaigns';
 import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 
+interface Newsletter {
+  id: string;
+  subject: string;
+  content: string;
+  cover_image_url?: string;
+  sent_at: string | null;
+  recipient_count: number;
+  blog_post_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const ModernNewsletterPage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,6 +58,7 @@ const ModernNewsletterPage = () => {
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [editingNewsletter, setEditingNewsletter] = useState<Newsletter | null>(null);
 
   const { campaigns, loading, deleting, deleteCampaign, refetch } = useNewsletterCampaigns();
   const { subscriberCount } = useNewsletterStats();
@@ -57,6 +70,7 @@ const ModernNewsletterPage = () => {
       setAnalyticsOpen(false);
       setSettingsOpen(false);
       setEditorOpen(false);
+      setEditingNewsletter(null);
       setSearchQuery('');
       setStatusFilter('all');
     };
@@ -97,8 +111,20 @@ const ModernNewsletterPage = () => {
   }, [campaigns, searchQuery, statusFilter]);
 
   const handleCreateNew = useCallback(() => {
+    setEditingNewsletter(null);
     setEditorOpen(true);
   }, []);
+
+  const handleEdit = useCallback((newsletter: Newsletter) => {
+    setEditingNewsletter(newsletter);
+    setEditorOpen(true);
+  }, []);
+
+  const handleEditorClose = useCallback(() => {
+    setEditingNewsletter(null);
+    setEditorOpen(false);
+    refetch(); // Refresh the list after editing
+  }, [refetch]);
 
   return (
     <div className="space-y-6">
@@ -247,7 +273,7 @@ const ModernNewsletterPage = () => {
       ) : viewMode === 'grid' ? (
         <NewslettersGrid
           newsletters={filteredNewsletters}
-          onEdit={() => {}}
+          onEdit={handleEdit}
           onDelete={deleteCampaign}
           onCreateNew={handleCreateNew}
           deleting={deleting}
@@ -255,7 +281,7 @@ const ModernNewsletterPage = () => {
       ) : (
         <NewslettersListView
           newsletters={filteredNewsletters}
-          onEdit={() => {}}
+          onEdit={handleEdit}
           onDelete={deleteCampaign}
           onCreateNew={handleCreateNew}
           deleting={deleting}
@@ -277,7 +303,9 @@ const ModernNewsletterPage = () => {
       />
       <NewsletterEditorDrawer 
         open={editorOpen} 
-        onOpenChange={setEditorOpen} 
+        onOpenChange={setEditorOpen}
+        newsletter={editingNewsletter}
+        onClose={handleEditorClose}
       />
     </div>
   );
