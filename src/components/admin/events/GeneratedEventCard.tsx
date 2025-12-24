@@ -1,12 +1,31 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
+/**
+ * Represents a generated event from AI or external sources
+ */
+export interface GeneratedEvent {
+  title?: string;
+  description?: string;
+  category?: string;
+  event_date?: string;
+  time_start?: string;
+  time_end?: string;
+  location?: string;
+  price_range?: string;
+  is_featured?: boolean;
+  is_recurring?: boolean;
+  recurrence_pattern?: string;
+  ticket_url?: string;
+  website_url?: string;
+  image_url?: string;
+}
+
 interface GeneratedEventCardProps {
-  event: any;
-  onApplySelected: (event: any) => void;
+  event: GeneratedEvent;
+  onApplySelected: (event: GeneratedEvent) => void;
 }
 
 const GeneratedEventCard = ({ event, onApplySelected }: GeneratedEventCardProps) => {

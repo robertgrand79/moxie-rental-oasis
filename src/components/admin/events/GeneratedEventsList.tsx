@@ -1,12 +1,11 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import GeneratedEventCard from './GeneratedEventCard';
+import GeneratedEventCard, { GeneratedEvent } from './GeneratedEventCard';
 
 interface GeneratedEventsListProps {
-  events: any[];
+  events: GeneratedEvent[];
   onApplyAll: () => void;
-  onApplySelected: (event: any) => void;
+  onApplySelected: (event: GeneratedEvent) => void;
 }
 
 const GeneratedEventsList = ({ events, onApplyAll, onApplySelected }: GeneratedEventsListProps) => {

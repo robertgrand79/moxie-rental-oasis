@@ -6,17 +6,34 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useReservations } from '@/hooks/useBookingData';
-import { Search, Calendar, User, Phone, Mail, MapPin, Clock, CheckCircle } from 'lucide-react';
+import { Search, Calendar, User, Phone, Mail, Clock, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
+/**
+ * Reservation data returned from the booking search
+ */
+interface FoundReservation {
+  id: string;
+  guest_name: string;
+  guest_email: string;
+  guest_phone?: string;
+  check_in_date: string;
+  check_out_date: string;
+  total_guests?: number;
+  total_amount?: number;
+  confirmation_code: string;
+  status: string;
+  notes?: string;
+}
+
 interface GuestReservationPortalProps {
-  onReservationFound?: (reservation: any) => void;
+  onReservationFound?: (reservation: FoundReservation) => void;
 }
 
 const GuestReservationPortal = ({ onReservationFound }: GuestReservationPortalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'confirmation' | 'email'>('confirmation');
-  const [foundReservation, setFoundReservation] = useState(null);
+  const [foundReservation, setFoundReservation] = useState<FoundReservation | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
   // This would typically search across all reservations, not just for a specific property
@@ -30,19 +47,38 @@ const GuestReservationPortal = ({ onReservationFound }: GuestReservationPortalPr
     // Simulate API search delay
     setTimeout(() => {
       const reservation = allReservations?.find(r => {
+        // Use last 8 characters of ID as confirmation code
+        const confirmationCode = r.id.slice(-8).toUpperCase();
         if (searchType === 'confirmation') {
-          return r.id.slice(-8).toUpperCase() === searchQuery.toUpperCase();
+          return confirmationCode === searchQuery.toUpperCase();
         } else {
           return r.guest_email.toLowerCase() === searchQuery.toLowerCase();
         }
       });
       
-      setFoundReservation(reservation || null);
-      setIsSearching(false);
-      
       if (reservation) {
-        onReservationFound?.(reservation);
+        // Generate confirmation code from ID (last 8 chars)
+        const confirmationCode = reservation.id.slice(-8).toUpperCase();
+        const foundRes: FoundReservation = {
+          id: reservation.id,
+          guest_name: reservation.guest_name,
+          guest_email: reservation.guest_email,
+          guest_phone: reservation.guest_phone ?? undefined,
+          check_in_date: reservation.check_in_date,
+          check_out_date: reservation.check_out_date,
+          total_guests: reservation.guest_count,
+          total_amount: reservation.total_amount,
+          confirmation_code: confirmationCode,
+          status: reservation.booking_status,
+          notes: reservation.special_requests ?? undefined,
+        };
+        setFoundReservation(foundRes);
+        onReservationFound?.(foundRes);
+      } else {
+        setFoundReservation(null);
       }
+      
+      setIsSearching(false);
     }, 1000);
   };
 
@@ -61,7 +97,7 @@ const GuestReservationPortal = ({ onReservationFound }: GuestReservationPortalPr
     }
   };
 
-  const renderReservationDetails = (reservation: any) => (
+  const renderReservationDetails = (reservation: FoundReservation) => (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Reservation Found</h3>
