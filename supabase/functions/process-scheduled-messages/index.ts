@@ -2,6 +2,13 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
 import { generateBookingConfirmationEmail, generateGenericEmail } from "./emailTemplates.ts";
+import { 
+  generateCheckInReminderEmail, 
+  generateCheckOutReminderEmail, 
+  generateReviewRequestEmail,
+  generateCheckInInstructionsEmail 
+} from "./guestEmailTemplates.ts";
+import { logEmailFailure, EMAIL_TYPES } from "../_shared/emailFailureHandler.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
