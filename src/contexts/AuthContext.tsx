@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useDatabase } from '@/hooks/useDatabase';
 import { toast } from '@/hooks/use-toast';
+import { trackFailedLogin, clearFailedLoginTracking } from '@/utils/securityNotifications';
 
 interface Profile {
   id: string;
@@ -291,12 +292,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('❌ Sign in error:', error);
-        // Add more specific error context
+        
+        // Track failed login attempts for security
         if (error.message.includes('Invalid login credentials')) {
+          // Get organization ID from user's profile if possible (for multi-org security)
+          const { data: orgData } = await supabase
+            .from('organization_members')
+            .select('organization_id')
+            .limit(1)
+            .maybeSingle();
+          
+          trackFailedLogin(email, orgData?.organization_id);
+          
           return { error: { ...error, message: 'Invalid email or password. Please check your credentials.' } };
         }
         return { error };
       }
+
+      // Clear failed login tracking on successful login
+      clearFailedLoginTracking(email);
 
       console.log('✅ Sign in successful');
       

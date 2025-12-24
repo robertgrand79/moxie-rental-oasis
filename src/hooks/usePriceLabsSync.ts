@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { invalidateAllPricingQueries } from '@/utils/pricingCacheUtils';
+import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 
 interface SyncPriceLabsParams {
   property_id?: string;
@@ -28,6 +29,7 @@ interface SyncResponse {
 export const usePriceLabsSync = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { createApiErrorAlert } = useSystemNotifications();
 
   const syncMutation = useMutation({
     mutationFn: async (params: SyncPriceLabsParams = {}) => {
@@ -64,6 +66,20 @@ export const usePriceLabsSync = () => {
     },
     onError: (error: Error) => {
       console.error('PriceLabs sync error:', error);
+      
+      // Track error count for recurring errors
+      const errorCountKey = 'pricelabs_error_count';
+      const currentCount = parseInt(localStorage.getItem(errorCountKey) || '0') + 1;
+      localStorage.setItem(errorCountKey, currentCount.toString());
+      
+      // Create API error notification
+      createApiErrorAlert({
+        serviceName: 'PriceLabs',
+        errorMessage: error.message || 'Failed to sync pricing',
+        errorCount: currentCount,
+        lastOccurred: new Date().toISOString(),
+      });
+      
       toast({
         title: 'Sync Failed',
         description: error.message || 'Failed to sync pricing from PriceLabs',
