@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { User, LogOut, Edit2, Save, X, ChevronDown, Bug } from 'lucide-react';
+import { User, LogOut, Edit2, Save, X, ChevronDown } from 'lucide-react';
 import { SidebarFooter, useSidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
-import ReportBugDialog from '@/components/admin/bugs/ReportBugDialog';
 
 const AdminSidebarFooter = () => {
   const { user, signOut, profile } = useAuth();
@@ -41,7 +40,6 @@ const AdminSidebarFooter = () => {
   const isCollapsed = state === 'collapsed';
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showBugDialog, setShowBugDialog] = useState(false);
   const [editData, setEditData] = useState({
     full_name: profile?.full_name || '',
     email: user?.email || '',
@@ -184,10 +182,6 @@ const AdminSidebarFooter = () => {
                 <Edit2 className="h-4 w-4 mr-2" />
                 Edit Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowBugDialog(true)} className="cursor-pointer">
-                <Bug className="h-4 w-4 mr-2" />
-                Report Bug
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                 <LogOut className="h-4 w-4 mr-2" />
@@ -196,7 +190,6 @@ const AdminSidebarFooter = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <ReportBugDialog open={showBugDialog} onOpenChange={setShowBugDialog} />
       </SidebarFooter>
     );
   }
@@ -228,10 +221,6 @@ const AdminSidebarFooter = () => {
             <DropdownMenuItem onClick={handleEditToggle} className="cursor-pointer">
               <Edit2 className="h-4 w-4 mr-2" />
               Edit Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setShowBugDialog(true)} className="cursor-pointer">
-              <Bug className="h-4 w-4 mr-2" />
-              Report Bug
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
@@ -323,8 +312,6 @@ const AdminSidebarFooter = () => {
           </div>
         </DialogContent>
       </Dialog>
-
-      <ReportBugDialog open={showBugDialog} onOpenChange={setShowBugDialog} />
     </SidebarFooter>
   );
 };
