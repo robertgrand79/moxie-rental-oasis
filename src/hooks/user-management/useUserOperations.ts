@@ -4,13 +4,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
+import type { 
+  UserProfileUpdate, 
+  UserInvitation, 
+  UserRole,
+  isEdgeFunctionError 
+} from '@/types/user-operations';
+import { isEdgeFunctionError as checkEdgeFunctionError } from '@/types/user-operations';
 
 export const useUserOperations = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { organization } = useCurrentOrganization();
 
-  const updateUserProfile = async (userId: string, updates: any) => {
+  const updateUserProfile = async (userId: string, updates: UserProfileUpdate): Promise<boolean> => {
     try {
       setLoading(true);
       
@@ -40,7 +47,7 @@ export const useUserOperations = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: string) => {
+  const updateUserRole = async (userId: string, newRole: UserRole): Promise<boolean> => {
     try {
       setLoading(true);
 
@@ -101,7 +108,7 @@ export const useUserOperations = () => {
     }
   };
 
-  const deactivateUser = async (userId: string) => {
+  const deactivateUser = async (userId: string): Promise<boolean> => {
     try {
       setLoading(true);
       
@@ -131,7 +138,7 @@ export const useUserOperations = () => {
     }
   };
 
-  const deleteUser = async (userId: string) => {
+  const deleteUser = async (userId: string): Promise<boolean> => {
     try {
       setLoading(true);
       
@@ -140,7 +147,7 @@ export const useUserOperations = () => {
       }
       
       // Use the edge function for actual deletion with organization context
-      const { data, error } = await supabase.functions.invoke('delete-user', {
+      const { error } = await supabase.functions.invoke('delete-user', {
         body: { userId, organizationId: organization.id }
       });
 
@@ -165,7 +172,7 @@ export const useUserOperations = () => {
     }
   };
 
-  const inviteUser = async (invitation: { email: string; role: string; full_name?: string }) => {
+  const inviteUser = async (invitation: UserInvitation): Promise<boolean> => {
     try {
       setLoading(true);
 
@@ -212,11 +219,16 @@ export const useUserOperations = () => {
       }
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error inviting user:', error);
+      
+      const errorMessage = checkEdgeFunctionError(error) 
+        ? error.message || 'Failed to invite user'
+        : 'Failed to invite user';
+      
       toast({
         title: 'Error',
-        description: error?.message || 'Failed to invite user',
+        description: errorMessage,
         variant: 'destructive',
       });
       return false;
@@ -225,7 +237,7 @@ export const useUserOperations = () => {
     }
   };
 
-  const bulkUpdateUserRoles = async (userIds: string[], newRole: string) => {
+  const bulkUpdateUserRoles = async (userIds: string[], newRole: UserRole): Promise<boolean> => {
     try {
       setLoading(true);
       

@@ -2,13 +2,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface UserPermissions {
-  [key: string]: boolean;
-}
+import type { 
+  UserPermissionsMap, 
+  UserRoleJoin, 
+  RolePermissionJoin,
+  ADMIN_PERMISSIONS,
+  DEFAULT_USER_PERMISSIONS 
+} from '@/types/permissions';
+import { 
+  ADMIN_PERMISSIONS as adminPerms, 
+  DEFAULT_USER_PERMISSIONS as defaultPerms 
+} from '@/types/permissions';
 
 export const usePermissions = () => {
-  const [permissions, setPermissions] = useState<UserPermissions>({});
+  const [permissions, setPermissions] = useState<UserPermissionsMap>({});
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
@@ -27,31 +34,7 @@ export const usePermissions = () => {
 
       // If user is admin, give them all permissions
       if (profile?.role === 'admin') {
-        setPermissions({
-          'users.create': true,
-          'users.read': true,
-          'users.update': true,
-          'users.delete': true,
-          'users.manage_roles': true,
-          'admin.access_panel': true,
-          'admin.manage_settings': true,
-          'admin.view_logs': true,
-          'admin.manage_roles': true,
-          'admin.manage_permissions': true,
-          'content.create': true,
-          'content.read': true,
-          'content.update': true,
-          'content.delete': true,
-          'content.publish': true,
-          'properties.create': true,
-          'properties.read': true,
-          'properties.update': true,
-          'properties.delete': true,
-          'properties.manage_bookings': true,
-          'reports.view': true,
-          'reports.export': true,
-          'analytics.view': true
-        });
+        setPermissions(adminPerms);
         return;
       }
 
@@ -71,14 +54,16 @@ export const usePermissions = () => {
 
         if (!error && data?.length > 0) {
           // Build permissions object from new system
-          const userPermissions: UserPermissions = {};
+          const userPermissions: UserPermissionsMap = {};
           
           data.forEach((userRole) => {
-            const role = userRole.role as any;
+            // Type the role properly from the join result - use unknown first for Supabase complex joins
+            const role = userRole.role as unknown as UserRoleJoin['role'];
             const rolePermissions = role?.role_permissions || [];
-            rolePermissions.forEach((rp: any) => {
-              if (rp.permission?.key) {
-                userPermissions[rp.permission.key] = true;
+            rolePermissions.forEach((rp) => {
+              const permission = (rp as RolePermissionJoin).permission;
+              if (permission?.key) {
+                userPermissions[permission.key] = true;
               }
             });
           });
@@ -91,10 +76,7 @@ export const usePermissions = () => {
       }
 
       // Fallback: basic permissions for regular users
-      setPermissions({
-        'content.read': true,
-        'properties.read': true
-      });
+      setPermissions(defaultPerms);
 
     } catch (error) {
       console.error('Error fetching permissions:', error);
