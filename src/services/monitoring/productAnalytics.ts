@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { debug } from '@/utils/debug';
 
 export type OwnerEvent = 
   | 'account_created'
@@ -101,7 +102,7 @@ class ProductAnalytics {
     this.trackPageview(window.location.pathname);
 
     this.initialized = true;
-    console.log('📊 Product Analytics initialized');
+    debug.analytics('Product Analytics initialized');
   }
 
   identify(user: AnalyticsUser): void {
@@ -146,7 +147,7 @@ class ProductAnalytics {
       timestamp: new Date(),
     });
 
-    console.log(`📊 Event tracked: ${event}`, enrichedProperties);
+    debug.analytics(`Event tracked: ${event}`, enrichedProperties);
 
     // Flush if queue is large
     if (this.eventQueue.length >= 10) {
@@ -264,7 +265,7 @@ class ProductAnalytics {
         created_at: timestamp?.toISOString() || new Date().toISOString(),
       });
     } catch (error) {
-      console.error('Failed to persist analytics event:', error);
+      debug.error('Failed to persist analytics event:', error);
     }
   }
 

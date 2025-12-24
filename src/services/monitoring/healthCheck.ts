@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { debug } from '@/utils/debug';
 
 export interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -77,7 +78,7 @@ class HealthCheckService {
       this.runAllChecks();
     }, this.config.interval);
 
-    console.log('🏥 Health Check Service started');
+    debug.api('Health Check Service started');
   }
 
   stop(): void {
@@ -300,7 +301,7 @@ class HealthCheckService {
         uptime: status.uptime,
       });
     } catch (error) {
-      console.error('Failed to persist health status:', error);
+      debug.error('Failed to persist health status:', error);
     }
   }
 }

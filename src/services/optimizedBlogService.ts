@@ -1,9 +1,9 @@
-
 import { BlogPost } from '@/types/blogPost';
 import { blogCache } from './blog/blogCache';
 import { handleBlogServiceError } from './blog/blogErrorHandler';
 import { BlogQueryBuilder } from './blog/blogQueryBuilder';
 import { transformToBlogPostSummary, transformToFullBlogPost } from './blog/blogTransforms';
+import { debug } from '@/utils/debug';
 
 // Re-export types for backward compatibility
 export type { BlogPostSummary, PaginatedBlogResponse, BlogStats } from './blog/types';
@@ -19,7 +19,7 @@ export const optimizedBlogService = {
     category?: string,
     organizationId?: string
   ): Promise<PaginatedBlogResponse> {
-    console.log('🔍 Fetching blog post summaries, page:', page, 'limit:', limit, 'publishedOnly:', publishedOnly, 'orgId:', organizationId);
+    debug.blog('Fetching blog post summaries, page:', page, 'limit:', limit, 'publishedOnly:', publishedOnly, 'orgId:', organizationId);
     
     // Create cache key
     const cacheKey = blogCache.createKey({
@@ -34,7 +34,7 @@ export const optimizedBlogService = {
     // Return cached data if still valid
     const cached = blogCache.get<PaginatedBlogResponse>(cacheKey);
     if (cached) {
-      console.log('📦 Returning cached blog posts');
+      debug.blog('Returning cached blog posts');
       return cached;
     }
     
@@ -52,16 +52,16 @@ export const optimizedBlogService = {
       const { data, error, count } = await query;
       const endTime = Date.now();
       
-      console.log(`⚡ Blog summaries query completed in ${endTime - startTime}ms`);
+      debug.blog(`Blog summaries query completed in ${endTime - startTime}ms`);
 
       if (error) {
-        console.error('Database error:', error);
+        debug.error('Database error:', error);
         handleBlogServiceError('Blog post summaries fetch', error, false);
       }
 
       const mappedPosts: BlogPostSummary[] = (data || []).map(transformToBlogPostSummary);
 
-      console.log('✅ Fetched blog post summaries:', mappedPosts.length, 'Total count:', count);
+      debug.blog('Fetched blog post summaries:', mappedPosts.length, 'Total count:', count);
       
       const result: PaginatedBlogResponse = {
         posts: mappedPosts,
@@ -74,7 +74,7 @@ export const optimizedBlogService = {
       
       return result;
     } catch (error) {
-      console.error('Service error:', error);
+      debug.error('Service error:', error);
       handleBlogServiceError('Blog post summaries fetch', error, false);
     }
   },
@@ -86,7 +86,7 @@ export const optimizedBlogService = {
 
   // Fetch full blog post by slug (only when needed)
   async fetchFullBlogPost(slug: string): Promise<BlogPost | null> {
-    console.log('🔍 Fetching full blog post by slug:', slug);
+    debug.blog('Fetching full blog post by slug:', slug);
     
     try {
       const { data, error } = await BlogQueryBuilder.buildFullPostQuery(slug);
@@ -95,7 +95,7 @@ export const optimizedBlogService = {
         handleBlogServiceError('Full blog post fetch', error);
       }
 
-      console.log('✅ Fetched full blog post:', data?.title || 'Not found');
+      debug.blog('Fetched full blog post:', data?.title || 'Not found');
       return data ? transformToFullBlogPost(data) : null;
     } catch (error) {
       handleBlogServiceError('Full blog post fetch', error);
@@ -108,7 +108,7 @@ export const optimizedBlogService = {
       const { data, error } = await BlogQueryBuilder.buildStatsQuery(organizationId);
 
       if (error) {
-        console.error('Error fetching blog stats:', error);
+        debug.error('Error fetching blog stats:', error);
         return { total: 0, published: 0, drafts: 0 };
       }
 
@@ -118,7 +118,7 @@ export const optimizedBlogService = {
 
       return { total, published, drafts };
     } catch (error) {
-      console.error('Error in getBlogStats:', error);
+      debug.error('Error in getBlogStats:', error);
       return { total: 0, published: 0, drafts: 0 };
     }
   }
