@@ -1,8 +1,9 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Bed, Sparkles, Briefcase, Receipt } from 'lucide-react';
+import { Bed, Sparkles, Briefcase, Receipt, Tag, Percent } from 'lucide-react';
 import { BookingChargesBreakdown as ChargesType } from '@/utils/calculateBookingCharges';
+import { Badge } from '@/components/ui/badge';
 
 interface BookingChargesBreakdownProps {
   charges: ChargesType;
@@ -16,6 +17,8 @@ const BookingChargesBreakdown = ({ charges, className }: BookingChargesBreakdown
       currency: 'USD',
     }).format(amount);
   };
+
+  const hasDiscounts = charges.discounts && charges.discounts.length > 0 && charges.totalDiscount > 0;
 
   return (
     <Card className={className}>
@@ -66,6 +69,37 @@ const BookingChargesBreakdown = ({ charges, className }: BookingChargesBreakdown
           </div>
         ))}
 
+        {/* Discounts */}
+        {hasDiscounts && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              {charges.discounts.map((discount, index) => (
+                <div key={index} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    {discount.type === 'promo' ? (
+                      <Tag className="h-4 w-4" />
+                    ) : (
+                      <Percent className="h-4 w-4" />
+                    )}
+                    <span className="flex items-center gap-2">
+                      {discount.name}
+                      {discount.percentage && (
+                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          {discount.percentage}% off
+                        </Badge>
+                      )}
+                    </span>
+                  </div>
+                  <span className="font-medium text-green-600 dark:text-green-400">
+                    -{formatCurrency(discount.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
         <Separator />
 
         {/* Subtotal */}
@@ -84,7 +118,9 @@ const BookingChargesBreakdown = ({ charges, className }: BookingChargesBreakdown
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Receipt className="h-4 w-4" />
                     <span>
-                      {tax.name} ({(tax.rate * 100).toFixed(2)}%)
+                      {tax.name}
+                      {tax.taxType === 'percentage' && ` (${(tax.rate * 100).toFixed(2)}%)`}
+                      {tax.taxType === 'flat_per_night' && ` (per night)`}
                     </span>
                   </div>
                   <span className="font-medium">{formatCurrency(tax.amount)}</span>
@@ -101,6 +137,14 @@ const BookingChargesBreakdown = ({ charges, className }: BookingChargesBreakdown
           <span>Total</span>
           <span>{formatCurrency(charges.grandTotal)}</span>
         </div>
+
+        {/* Savings Note */}
+        {hasDiscounts && (
+          <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center gap-1">
+            <Tag className="h-3 w-3" />
+            You're saving {formatCurrency(charges.totalDiscount)} on this booking!
+          </p>
+        )}
 
         {/* Tax Note */}
         {charges.taxes.length > 0 && (
