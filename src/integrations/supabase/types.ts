@@ -1475,6 +1475,65 @@ export type Database = {
           },
         ]
       }
+      email_failures: {
+        Row: {
+          created_at: string
+          email_type: string
+          error_code: string | null
+          error_message: string
+          id: string
+          max_retries: number
+          next_retry_at: string | null
+          organization_id: string | null
+          payload: Json
+          recipient_email: string
+          retry_count: number
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_type: string
+          error_code?: string | null
+          error_message: string
+          id?: string
+          max_retries?: number
+          next_retry_at?: string | null
+          organization_id?: string | null
+          payload?: Json
+          recipient_email: string
+          retry_count?: number
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_type?: string
+          error_code?: string | null
+          error_message?: string
+          id?: string
+          max_retries?: number
+          next_retry_at?: string | null
+          organization_id?: string | null
+          payload?: Json
+          recipient_email?: string
+          retry_count?: number
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_failures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eugene_events: {
         Row: {
           category: string | null
