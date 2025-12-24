@@ -11,32 +11,35 @@ import TenantDebugBanner from './components/debug/TenantDebugBanner';
 import SiteHead from './components/SiteHead';
 import PageViewTracker from './components/analytics/PageViewTracker';
 import CookieConsentBanner from './components/legal/CookieConsentBanner';
+import { ErrorBoundary } from './components/ui/error-boundary';
 
 // Note: QueryClient is created in main.tsx - single instance for entire app
 
 function App() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Router>
-        <PlatformProvider>
-          <OrganizationProvider>
-            <TenantProvider>
-              <PageViewTracker>
-                <TenantDebugBanner />
-                <SiteHead />
-                <StaticSettingsProvider>
-                  <GlobalThemeProvider>
-                    <AppRoutes />
-                    <PublicChatWidget />
-                    <CookieConsentBanner />
-                  </GlobalThemeProvider>
-                </StaticSettingsProvider>
-              </PageViewTracker>
-            </TenantProvider>
-          </OrganizationProvider>
-        </PlatformProvider>
-      </Router>
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background text-foreground">
+        <Router>
+          <PlatformProvider>
+            <OrganizationProvider>
+              <TenantProvider>
+                <PageViewTracker>
+                  <TenantDebugBanner />
+                  <SiteHead />
+                  <StaticSettingsProvider>
+                    <GlobalThemeProvider>
+                      <AppRoutes />
+                      <PublicChatWidget />
+                      <CookieConsentBanner />
+                    </GlobalThemeProvider>
+                  </StaticSettingsProvider>
+                </PageViewTracker>
+              </TenantProvider>
+            </OrganizationProvider>
+          </PlatformProvider>
+        </Router>
+      </div>
+    </ErrorBoundary>
   );
 }
 
