@@ -34,7 +34,6 @@ import {
   Settings,
   Layout,
   Plus,
-  Bug,
   Activity,
   Rocket,
   HelpCircle
@@ -45,7 +44,6 @@ import TemplateOrganizations from '@/components/admin/superadmin/TemplateOrganiz
 import SubscriptionControls from '@/components/admin/superadmin/SubscriptionControls';
 import PlatformUsersTab from '@/components/admin/superadmin/PlatformUsersTab';
 import CreateOrganizationDialog from '@/components/admin/superadmin/CreateOrganizationDialog';
-import BugReportsTab from '@/components/admin/superadmin/BugReportsTab';
 import MonitoringTab from '@/components/admin/superadmin/MonitoringTab';
 import LaunchReadinessChecklist from '@/components/admin/superadmin/LaunchReadinessChecklist';
 import PlatformAuditLog from '@/components/admin/superadmin/PlatformAuditLog';
@@ -338,10 +336,6 @@ const SuperAdminPanel = () => {
               <Settings className="h-4 w-4" />
               Settings
             </TabsTrigger>
-            <TabsTrigger value="bugs" className="flex items-center gap-2">
-              <Bug className="h-4 w-4" />
-              Bug Reports
-            </TabsTrigger>
             <TabsTrigger value="monitoring" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Monitoring
@@ -475,10 +469,6 @@ const SuperAdminPanel = () => {
 
           <TabsContent value="settings" className="mt-6 space-y-6">
             <PlatformStripeSettings />
-          </TabsContent>
-
-          <TabsContent value="bugs" className="mt-6 space-y-6">
-            <BugReportsTab />
           </TabsContent>
 
           <TabsContent value="monitoring" className="mt-6 space-y-6">

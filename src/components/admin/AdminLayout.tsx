@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Menu, Bug } from 'lucide-react';
-import ReportBugDialog from './bugs/ReportBugDialog';
+import { ArrowLeft, Menu } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
 import NotificationBell from './notifications/NotificationBell';
@@ -19,7 +18,6 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const isMobile = useIsMobile();
   const { organization } = useCurrentOrganization();
   const queryClient = useQueryClient();
-  const [bugDialogOpen, setBugDialogOpen] = useState(false);
 
   // Clear stale tenant-related caches when entering admin to ensure fresh data
   useEffect(() => {
@@ -75,17 +73,6 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               {children}
             </main>
           </SidebarInset>
-          
-          {/* Floating Bug Report Button */}
-          <button
-            onClick={() => setBugDialogOpen(true)}
-            className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground shadow-lg transition-all hover:bg-primary hover:text-primary-foreground hover:scale-110"
-            title="Report a Bug"
-          >
-            <Bug className="h-5 w-5" />
-          </button>
-          
-          <ReportBugDialog open={bugDialogOpen} onOpenChange={setBugDialogOpen} />
           
           {/* Support Widget */}
           <SupportWidget />
