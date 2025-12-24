@@ -35,18 +35,7 @@ import NewsletterSettingsDrawer from './dialogs/NewsletterSettingsDrawer';
 import NewsletterEditorDrawer from './dialogs/NewsletterEditorDrawer';
 import { useNewsletterCampaigns } from '@/hooks/useNewsletterCampaigns';
 import { useNewsletterStats } from '@/hooks/useNewsletterStats';
-
-interface Newsletter {
-  id: string;
-  subject: string;
-  content: string;
-  cover_image_url?: string;
-  sent_at: string | null;
-  recipient_count: number;
-  blog_post_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { NewsletterCampaign } from './types';
 
 const ModernNewsletterPage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -58,7 +47,7 @@ const ModernNewsletterPage = () => {
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
-  const [editingNewsletter, setEditingNewsletter] = useState<Newsletter | null>(null);
+  const [editingNewsletter, setEditingNewsletter] = useState<NewsletterCampaign | null>(null);
 
   const { campaigns, loading, deleting, deleteCampaign, refetch } = useNewsletterCampaigns();
   const { subscriberCount } = useNewsletterStats();
@@ -115,7 +104,7 @@ const ModernNewsletterPage = () => {
     setEditorOpen(true);
   }, []);
 
-  const handleEdit = useCallback((newsletter: Newsletter) => {
+  const handleEdit = useCallback((newsletter: NewsletterCampaign) => {
     setEditingNewsletter(newsletter);
     setEditorOpen(true);
   }, []);

@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
+import { NewsletterCampaign } from './types';
 
 const editSchema = z.object({
   subject: z.string().min(1, 'Subject is required'),
@@ -29,17 +30,6 @@ const editSchema = z.object({
 });
 
 type EditFormData = z.infer<typeof editSchema>;
-
-interface NewsletterCampaign {
-  id: string;
-  subject: string;
-  content: string;
-  sent_at: string | null;
-  recipient_count: number;
-  blog_post_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
 
 interface NewsletterEditModalProps {
   campaign: NewsletterCampaign | null;

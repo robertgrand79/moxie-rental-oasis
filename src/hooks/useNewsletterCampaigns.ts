@@ -1,18 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface NewsletterCampaign {
-  id: string;
-  subject: string;
-  content: string;
-  sent_at: string | null;
-  recipient_count: number;
-  blog_post_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { NewsletterCampaign } from '@/components/admin/newsletter/types';
 
 export const useNewsletterCampaigns = () => {
   const [campaigns, setCampaigns] = useState<NewsletterCampaign[]>([]);
