@@ -272,6 +272,36 @@ export const UnifiedCalendarView: React.FC = () => {
     return () => container.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
+  // Wheel-to-horizontal scroll handler for the sticky column area
+  const handleWheelScroll = useCallback((e: WheelEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    
+    // Don't hijack ctrl+wheel (browser zoom)
+    if (e.ctrlKey || e.metaKey) return;
+    
+    // Check if there's horizontal overflow
+    const hasHorizontalOverflow = container.scrollWidth > container.clientWidth;
+    if (!hasHorizontalOverflow) return;
+    
+    // Convert vertical scroll to horizontal
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      container.scrollLeft += e.deltaY;
+    }
+  }, []);
+
+  // Attach wheel listener to the sticky column for horizontal scrolling
+  const stickyColumnRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const stickyColumn = stickyColumnRef.current;
+    if (!stickyColumn) return;
+
+    stickyColumn.addEventListener('wheel', handleWheelScroll, { passive: false });
+    return () => stickyColumn.removeEventListener('wheel', handleWheelScroll);
+  }, [handleWheelScroll]);
+
   return (
     <Card>
       {/* Header Controls */}
@@ -373,7 +403,10 @@ export const UnifiedCalendarView: React.FC = () => {
         {/* Inner container with min-width to enable scrolling */}
         <div className="flex" style={{ minWidth: `${256 + columns.length * 64}px` }}>
           {/* Property Column - Sticky within scroll container */}
-          <div className="sticky left-0 z-20 w-64 flex-shrink-0 bg-background shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
+          <div 
+            ref={stickyColumnRef}
+            className="sticky left-0 z-20 w-64 flex-shrink-0 bg-background shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)] cursor-ew-resize"
+          >
             {/* Property Header */}
             <div className="h-16 border-b border-r flex items-center px-3 bg-muted/30">
               <span className="text-sm text-muted-foreground flex items-center gap-2">
