@@ -8,9 +8,9 @@ import { Home, Lock, Thermometer, Wifi, Battery, AlertCircle, RefreshCw } from '
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { DeviceGrid } from './DeviceGrid';
-import { WorkspaceSetup } from './WorkspaceSetup';
 import { AccessCodeManager } from './AccessCodeManager';
 import { DeviceAutomations } from './DeviceAutomations';
+import { debug } from '@/utils/debug';
 
 interface SmartHomeManagerProps {
   property: Property;
@@ -26,6 +26,19 @@ interface SeamWorkspace {
   sync_status: string;
 }
 
+/**
+ * Represents the current state of a smart device
+ */
+interface DeviceCurrentState {
+  locked?: boolean;
+  temperature?: number;
+  humidity?: number;
+  target_temperature?: number;
+  hvac_mode?: 'heat' | 'cool' | 'auto' | 'off';
+  fan_mode?: 'auto' | 'on';
+  [key: string]: unknown; // Allow additional device-specific properties
+}
+
 interface SeamDevice {
   id: string;
   seam_device_id: string;
@@ -36,7 +49,7 @@ interface SeamDevice {
   is_online: boolean;
   battery_level: number | null;
   battery_status: string | null;
-  current_state: any;
+  current_state: DeviceCurrentState | null;
   last_seen_at: string | null;
 }
 
@@ -81,11 +94,17 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
           throw devicesError;
         }
 
-        setDevices(devicesData || []);
+        // Map database response to typed interface
+        const typedDevices: SeamDevice[] = (devicesData || []).map(d => ({
+          ...d,
+          current_state: d.current_state as DeviceCurrentState | null
+        }));
+
+        setDevices(typedDevices);
       }
 
     } catch (error) {
-      console.error('Error loading smart home data:', error);
+      debug.error('[SmartHome] Error loading data:', error);
       toast({
         title: "Error",
         description: "Failed to load smart home data",
@@ -120,7 +139,7 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
       await loadWorkspaceAndDevices();
 
     } catch (error) {
-      console.error('Error syncing devices:', error);
+      debug.error('[SmartHome] Error syncing devices:', error);
       toast({
         title: "Error",
         description: "Failed to sync devices from Seam",
