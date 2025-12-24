@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Eye, Edit, Trash2, Users, Calendar, Send, MoreVertical, Copy, ExternalLink } from 'lucide-react';
+import { Mail, Eye, Edit, Trash2, Users, Calendar, Send, MoreVertical, Copy } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,35 +19,13 @@ import {
 import { toast } from '@/hooks/use-toast';
 import NewsletterPreviewModal from './NewsletterPreviewModal';
 import NewsletterDeleteModal from './NewsletterDeleteModal';
+import { NewsletterCampaign, NewsletterGridProps } from './types';
 
-interface Newsletter {
-  id: string;
-  subject: string;
-  content: string;
-  cover_image_url?: string;
-  sent_at: string | null;
-  recipient_count: number;
-  blog_post_id: string | null;
-  created_at: string;
-  updated_at: string;
-  open_rate?: number | null;
-  click_rate?: number | null;
-}
+const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, onView, deleting }: NewsletterGridProps) => {
+  const [previewNewsletter, setPreviewNewsletter] = useState<NewsletterCampaign | null>(null);
+  const [deleteNewsletter, setDeleteNewsletter] = useState<NewsletterCampaign | null>(null);
 
-interface NewslettersGridProps {
-  newsletters: Newsletter[];
-  onEdit: (newsletter: Newsletter) => void;
-  onDelete: (id: string) => void;
-  onCreateNew: () => void;
-  onView?: (newsletter: Newsletter) => void;
-  deleting: string | null;
-}
-
-const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, onView, deleting }: NewslettersGridProps) => {
-  const [previewNewsletter, setPreviewNewsletter] = useState<Newsletter | null>(null);
-  const [deleteNewsletter, setDeleteNewsletter] = useState<Newsletter | null>(null);
-
-  const handleView = (newsletter: Newsletter) => {
+  const handleView = (newsletter: NewsletterCampaign) => {
     if (onView) {
       onView(newsletter);
     } else {
@@ -55,7 +33,7 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, onView, d
     }
   };
 
-  const handleDeleteClick = (newsletter: Newsletter) => {
+  const handleDeleteClick = (newsletter: NewsletterCampaign) => {
     setDeleteNewsletter(newsletter);
   };
 
@@ -66,7 +44,7 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, onView, d
     }
   };
 
-  const handleCopyId = (newsletter: Newsletter) => {
+  const handleCopyId = (newsletter: NewsletterCampaign) => {
     navigator.clipboard.writeText(newsletter.id);
     toast({
       title: "Copied",

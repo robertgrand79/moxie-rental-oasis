@@ -1,32 +1,15 @@
-
 import React from 'react';
-import { X, Calendar, Users, Mail } from 'lucide-react';
+import { Calendar, Users, Mail } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import SecureContentRenderer from '@/components/SecureContentRenderer';
-
-interface NewsletterCampaign {
-  id: string;
-  subject: string;
-  content: string;
-  sent_at: string | null;
-  recipient_count: number;
-  blog_post_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface NewsletterPreviewModalProps {
-  campaign: NewsletterCampaign | null;
-  open: boolean;
-  onClose: () => void;
-}
+import { NewsletterCampaign, NewsletterPreviewModalProps } from './types';
 
 const NewsletterPreviewModal = ({ campaign, open, onClose }: NewsletterPreviewModalProps) => {
   if (!campaign) return null;
@@ -35,9 +18,10 @@ const NewsletterPreviewModal = ({ campaign, open, onClose }: NewsletterPreviewMo
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            Newsletter Preview
-          </DialogTitle>
+          <DialogTitle>Newsletter Preview</DialogTitle>
+          <DialogDescription>
+            Preview the newsletter content and details before sending
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">

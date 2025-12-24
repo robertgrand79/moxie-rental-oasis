@@ -26,35 +26,13 @@ import {
 import { toast } from '@/hooks/use-toast';
 import NewsletterPreviewModal from './NewsletterPreviewModal';
 import NewsletterDeleteModal from './NewsletterDeleteModal';
+import { NewsletterCampaign, NewsletterListViewProps } from './types';
 
-interface Newsletter {
-  id: string;
-  subject: string;
-  content: string;
-  cover_image_url?: string;
-  sent_at: string | null;
-  recipient_count: number;
-  blog_post_id: string | null;
-  created_at: string;
-  updated_at: string;
-  open_rate?: number | null;
-  click_rate?: number | null;
-}
+const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, onView, deleting }: NewsletterListViewProps) => {
+  const [previewNewsletter, setPreviewNewsletter] = useState<NewsletterCampaign | null>(null);
+  const [deleteNewsletter, setDeleteNewsletter] = useState<NewsletterCampaign | null>(null);
 
-interface NewslettersListViewProps {
-  newsletters: Newsletter[];
-  onEdit: (newsletter: Newsletter) => void;
-  onDelete: (id: string) => void;
-  onCreateNew: () => void;
-  onView?: (newsletter: Newsletter) => void;
-  deleting: string | null;
-}
-
-const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, onView, deleting }: NewslettersListViewProps) => {
-  const [previewNewsletter, setPreviewNewsletter] = useState<Newsletter | null>(null);
-  const [deleteNewsletter, setDeleteNewsletter] = useState<Newsletter | null>(null);
-
-  const handleView = (newsletter: Newsletter) => {
+  const handleView = (newsletter: NewsletterCampaign) => {
     if (onView) {
       onView(newsletter);
     } else {
@@ -62,7 +40,7 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, onVie
     }
   };
 
-  const handleDeleteClick = (newsletter: Newsletter) => {
+  const handleDeleteClick = (newsletter: NewsletterCampaign) => {
     setDeleteNewsletter(newsletter);
   };
 
@@ -73,7 +51,7 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, onVie
     }
   };
 
-  const handleCopyId = (newsletter: Newsletter) => {
+  const handleCopyId = (newsletter: NewsletterCampaign) => {
     navigator.clipboard.writeText(newsletter.id);
     toast({
       title: "Copied",

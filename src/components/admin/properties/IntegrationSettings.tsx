@@ -8,18 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Property } from '@/types/property';
-import { Settings, ExternalLink, Webhook, Key, Loader2 } from 'lucide-react';
+import { ExternalLink, Webhook, Key, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const integrationSchema = z.object({
   airbnbListingUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   priceLabsPropertyId: z.string().optional(),
-  autoSyncEnabled: z.boolean().default(true),
   webhookEnabled: z.boolean().default(false),
-  syncPricing: z.boolean().default(true),
-  syncAvailability: z.boolean().default(true),
-  syncReservations: z.boolean().default(true),
 });
 
 type IntegrationFormData = z.infer<typeof integrationSchema>;
@@ -37,11 +33,7 @@ const IntegrationSettings = ({ property }: IntegrationSettingsProps) => {
     defaultValues: {
       airbnbListingUrl: property.airbnb_listing_url || '',
       priceLabsPropertyId: '',
-      autoSyncEnabled: true,
       webhookEnabled: false,
-      syncPricing: true,
-      syncAvailability: true,
-      syncReservations: true,
     },
   });
 
@@ -133,112 +125,6 @@ const IntegrationSettings = ({ property }: IntegrationSettingsProps) => {
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Integration Settings
             </Button>
-          </CardContent>
-        </Card>
-
-        {/* Sync Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Synchronization Settings
-            </CardTitle>
-            <CardDescription>
-              Configure what data should be synchronized automatically
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <FormField
-              control={form.control}
-              name="autoSyncEnabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Auto-Sync Enabled
-                    </FormLabel>
-                    <FormDescription>
-                      Automatically sync data with external platforms
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="syncPricing"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Sync Pricing
-                    </FormLabel>
-                    <FormDescription>
-                      Synchronize pricing data from PriceLabs
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="syncAvailability"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Sync Availability
-                    </FormLabel>
-                    <FormDescription>
-                      Keep availability calendar synchronized
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="syncReservations"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Sync Reservations
-                    </FormLabel>
-                    <FormDescription>
-                      Import new reservations automatically
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
           </CardContent>
         </Card>
 
