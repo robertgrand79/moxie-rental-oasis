@@ -38,8 +38,28 @@ import {
   Building2,
   User,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Archive,
+  Trash2,
+  MoreHorizontal
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -62,6 +82,8 @@ type SupportTicket = {
   created_at: string;
   updated_at: string;
   attachments: string[] | null;
+  is_archived: boolean;
+  archived_at: string | null;
 };
 
 type Organization = {
@@ -90,8 +112,10 @@ const SupportTicketsManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [showArchived, setShowArchived] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [resolutionNotes, setResolutionNotes] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<SupportTicket | null>(null);
 
   // Fetch all tickets
   const { data: tickets, isLoading, refetch } = useQuery({
@@ -145,6 +169,26 @@ const SupportTicketsManagement = () => {
     },
   });
 
+  // Delete ticket mutation
+  const deleteTicketMutation = useMutation({
+    mutationFn: async (ticketId: string) => {
+      const { error } = await supabase
+        .from('support_tickets')
+        .delete()
+        .eq('id', ticketId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platform-support-tickets'] });
+      toast.success('Ticket deleted successfully');
+      setDeleteConfirm(null);
+    },
+    onError: (error) => {
+      toast.error('Failed to delete ticket: ' + error.message);
+    },
+  });
+
   const getOrganizationName = (orgId: string | null) => {
     if (!orgId) return 'No organization';
     const org = organizations?.find(o => o.id === orgId);
@@ -174,6 +218,16 @@ const SupportTicketsManagement = () => {
     });
   };
 
+  const handleArchive = (ticket: SupportTicket) => {
+    updateTicketMutation.mutate({
+      ticketId: ticket.id,
+      updates: { 
+        is_archived: !ticket.is_archived,
+        archived_at: ticket.is_archived ? null : new Date().toISOString()
+      },
+    });
+  };
+
   // Filter tickets
   const filteredTickets = tickets?.filter(ticket => {
     const matchesSearch = 
@@ -182,7 +236,8 @@ const SupportTicketsManagement = () => {
       ticket.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
+    const matchesArchived = showArchived ? ticket.is_archived : !ticket.is_archived;
+    return matchesSearch && matchesStatus && matchesPriority && matchesArchived;
   }) || [];
 
   // Stats
@@ -287,6 +342,14 @@ const SupportTicketsManagement = () => {
                 <SelectItem value="urgent">Urgent</SelectItem>
               </SelectContent>
             </Select>
+            <Button 
+              variant={showArchived ? "default" : "outline"} 
+              size="sm"
+              onClick={() => setShowArchived(!showArchived)}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              {showArchived ? 'Showing Archived' : 'Show Archived'}
+            </Button>
           </div>
 
           {/* Tickets Table */}
@@ -370,16 +433,39 @@ const SupportTicketsManagement = () => {
                         {format(new Date(ticket.created_at), 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedTicket(ticket);
-                            setResolutionNotes(ticket.resolution_notes || '');
-                          }}
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedTicket(ticket);
+                              setResolutionNotes(ticket.resolution_notes || '');
+                            }}
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleArchive(ticket)}>
+                                <Archive className="h-4 w-4 mr-2" />
+                                {ticket.is_archived ? 'Unarchive' : 'Archive'}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                className="text-destructive"
+                                onClick={() => setDeleteConfirm(ticket)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -456,6 +542,27 @@ const SupportTicketsManagement = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Support Ticket</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete ticket {deleteConfirm?.ticket_number}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteConfirm && deleteTicketMutation.mutate(deleteConfirm.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

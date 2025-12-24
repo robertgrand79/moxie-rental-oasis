@@ -6220,6 +6220,7 @@ export type Database = {
       }
       support_tickets: {
         Row: {
+          archived_at: string | null
           assigned_to: string | null
           attachments: string[] | null
           category: string
@@ -6227,6 +6228,7 @@ export type Database = {
           description: string
           email: string
           id: string
+          is_archived: boolean | null
           name: string | null
           organization_id: string | null
           priority: string
@@ -6240,6 +6242,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          archived_at?: string | null
           assigned_to?: string | null
           attachments?: string[] | null
           category: string
@@ -6247,6 +6250,7 @@ export type Database = {
           description: string
           email: string
           id?: string
+          is_archived?: boolean | null
           name?: string | null
           organization_id?: string | null
           priority?: string
@@ -6260,6 +6264,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          archived_at?: string | null
           assigned_to?: string | null
           attachments?: string[] | null
           category?: string
@@ -6267,6 +6272,7 @@ export type Database = {
           description?: string
           email?: string
           id?: string
+          is_archived?: boolean | null
           name?: string | null
           organization_id?: string | null
           priority?: string
@@ -7044,10 +7050,12 @@ export type Database = {
       user_feedback: {
         Row: {
           admin_notes: string | null
+          archived_at: string | null
           created_at: string
           description: string
           feedback_type: string
           id: string
+          is_archived: boolean | null
           organization_id: string | null
           priority: string | null
           status: string
@@ -7058,10 +7066,12 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          archived_at?: string | null
           created_at?: string
           description: string
           feedback_type: string
           id?: string
+          is_archived?: boolean | null
           organization_id?: string | null
           priority?: string | null
           status?: string
@@ -7072,10 +7082,12 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          archived_at?: string | null
           created_at?: string
           description?: string
           feedback_type?: string
           id?: string
+          is_archived?: boolean | null
           organization_id?: string | null
           priority?: string | null
           status?: string
