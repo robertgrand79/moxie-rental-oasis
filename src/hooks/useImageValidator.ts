@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from 'react';
+import { debug } from '@/utils/debug';
 
 interface ImageValidationResult {
   isValid: boolean;
@@ -25,13 +25,13 @@ export const useImageValidator = (imageUrl: string | null): ImageValidationResul
     const img = new Image();
     
     const handleLoad = () => {
-      console.log('✅ Image validation successful:', imageUrl);
+      debug.image('Validation successful:', imageUrl);
       setResult({ isValid: true, isLoading: false, error: null });
     };
     
     const handleError = () => {
       const errorMsg = `Failed to load image: ${imageUrl}`;
-      console.error('❌', errorMsg);
+      debug.error('[Image]', errorMsg);
       setResult({ isValid: false, isLoading: false, error: errorMsg });
     };
 

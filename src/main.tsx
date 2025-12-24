@@ -15,6 +15,7 @@ import {
   applyAccessibilitySettings,
   ensureTouchTargets
 } from './utils/performance';
+import { debug } from './utils/debug';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -42,7 +43,7 @@ if (!isRedirecting) {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       registrations.forEach((registration) => {
         registration.unregister();
-        console.log('Unregistered service worker:', registration);
+        debug.log('Unregistered service worker:', registration.scope);
       });
     });
     
@@ -50,7 +51,7 @@ if (!isRedirecting) {
       caches.keys().then((names) => {
         names.forEach((name) => {
           caches.delete(name);
-          console.log('Deleted cache:', name);
+          debug.log('Deleted cache:', name);
         });
       });
     }

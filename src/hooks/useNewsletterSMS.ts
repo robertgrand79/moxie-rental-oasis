@@ -1,7 +1,7 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { debug } from '@/utils/debug';
 
 interface SMSResult {
   success: boolean;
@@ -19,7 +19,7 @@ export const useNewsletterSMS = () => {
   const sendNewsletterSMS = async (message: string, subscriberIds?: string[]): Promise<SMSResult | null> => {
     try {
       setIsLoading(true);
-      console.log('📱 Sending newsletter SMS...');
+      debug.sms('Sending newsletter SMS...');
 
       const { data, error } = await supabase.functions.invoke('send-newsletter-sms', {
         body: {
@@ -29,7 +29,7 @@ export const useNewsletterSMS = () => {
       });
 
       if (error) {
-        console.error('❌ Newsletter SMS error:', error);
+        debug.error('[SMS] Newsletter error:', error);
         throw error;
       }
 
@@ -47,7 +47,7 @@ export const useNewsletterSMS = () => {
 
       return result;
     } catch (err: any) {
-      console.error('❌ SMS newsletter send failed:', err);
+      debug.error('[SMS] Newsletter send failed:', err);
       
       let errorMessage = "Failed to send SMS newsletter.";
       
@@ -74,7 +74,7 @@ export const useNewsletterSMS = () => {
   const sendSMS = async (to: string, message: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      console.log(`📱 Sending SMS to ${to}...`);
+      debug.sms(`Sending SMS to ${to}...`);
 
       const { data, error } = await supabase.functions.invoke('send-sms', {
         body: {
@@ -84,7 +84,7 @@ export const useNewsletterSMS = () => {
       });
 
       if (error) {
-        console.error('❌ SMS send error:', error);
+        debug.error('[SMS] Send error:', error);
         throw error;
       }
 
@@ -98,7 +98,7 @@ export const useNewsletterSMS = () => {
         throw new Error(data.error || 'Failed to send SMS');
       }
     } catch (err: any) {
-      console.error('❌ SMS send failed:', err);
+      debug.error('[SMS] Send failed:', err);
       
       toast({
         title: "SMS Send Failed",

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useToast } from './use-toast';
+import { debug } from '@/utils/debug';
 
 interface PushSubscriptionState {
   isSupported: boolean;
@@ -14,6 +14,10 @@ interface PushSubscriptionState {
 /**
  * Hook for managing browser push notifications
  * Handles service worker registration, subscription management, and permission requests
+ * 
+ * Note: Full VAPID-based push notifications require server-side setup.
+ * Without a configured VAPID key, this hook falls back to in-browser notifications
+ * which work when the app is open.
  */
 export const usePushNotifications = () => {
   const { user } = useAuth();
@@ -54,7 +58,7 @@ export const usePushNotifications = () => {
       const subscription = await registration.pushManager.getSubscription();
       return !!subscription;
     } catch (error) {
-      console.error('Error checking push subscription:', error);
+      debug.error('[Push] Error checking subscription:', error);
       return false;
     }
   }, [checkSupport]);
@@ -62,7 +66,7 @@ export const usePushNotifications = () => {
   // Register service worker
   const registerServiceWorker = useCallback(async (): Promise<ServiceWorkerRegistration | null> => {
     if (!('serviceWorker' in navigator)) {
-      console.warn('Service workers not supported');
+      debug.warn('[Push] Service workers not supported');
       return null;
     }
 
@@ -70,10 +74,10 @@ export const usePushNotifications = () => {
       const registration = await navigator.serviceWorker.register('/sw-push.js', {
         scope: '/',
       });
-      console.log('Service Worker registered:', registration.scope);
+      debug.push('Service Worker registered:', registration.scope);
       return registration;
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
+      debug.error('[Push] Service Worker registration failed:', error);
       return null;
     }
   }, []);
@@ -104,7 +108,7 @@ export const usePushNotifications = () => {
       }
       return false;
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
+      debug.error('[Push] Error requesting permission:', error);
       return false;
     }
   }, [toast]);
@@ -144,21 +148,18 @@ export const usePushNotifications = () => {
       let subscription = await registration.pushManager.getSubscription();
       
       if (!subscription) {
-        // Create new subscription
-        // Note: In production, you'd use a VAPID public key from your server
-        // For now, we'll use a placeholder - this needs to be set up properly
-        const vapidPublicKey = 'placeholder-vapid-key'; // TODO: Get from server
-        
+        // VAPID key would be configured via environment variable in production
+        // For now, we gracefully fall back to in-browser notifications
         try {
           subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            // applicationServerKey would go here with real VAPID key
+            // applicationServerKey would go here with real VAPID key from server
           });
         } catch (subscribeError: any) {
-          console.error('Push subscription failed:', subscribeError);
+          debug.push('Push subscription unavailable, using in-browser notifications');
           
           // This is expected without proper VAPID key setup
-          // For now, we'll just enable local notifications
+          // Enable local notifications as fallback
           setState(prev => ({ 
             ...prev, 
             isLoading: false,
@@ -200,7 +201,7 @@ export const usePushNotifications = () => {
 
       return true;
     } catch (error) {
-      console.error('Error subscribing to push notifications:', error);
+      debug.error('[Push] Error subscribing:', error);
       setState(prev => ({ ...prev, isLoading: false }));
       toast({
         title: 'Error',
@@ -240,7 +241,7 @@ export const usePushNotifications = () => {
 
       return true;
     } catch (error) {
-      console.error('Error unsubscribing from push notifications:', error);
+      debug.error('[Push] Error unsubscribing:', error);
       setState(prev => ({ ...prev, isLoading: false }));
       toast({
         title: 'Error',
@@ -260,7 +261,7 @@ export const usePushNotifications = () => {
     data?: Record<string, any>;
   }) => {
     if (Notification.permission !== 'granted') {
-      console.warn('Notification permission not granted');
+      debug.warn('[Push] Notification permission not granted');
       return;
     }
 
@@ -273,7 +274,7 @@ export const usePushNotifications = () => {
         data: options.data,
       });
     } catch (error) {
-      console.error('Error showing local notification:', error);
+      debug.error('[Push] Error showing local notification:', error);
       // Fallback to regular Notification API
       new Notification(options.title, {
         body: options.body,

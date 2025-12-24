@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { debug } from '@/utils/debug';
 
 interface PlatformConfig {
   mapboxToken: string;
@@ -13,12 +14,12 @@ export const usePlatformConfig = () => {
   return useQuery({
     queryKey: ['platform-config'],
     queryFn: async (): Promise<PlatformConfig> => {
-      console.log('🌐 [PlatformConfig] Fetching platform config...');
+      debug.config('Fetching platform config...');
 
       const { data, error } = await supabase.functions.invoke('get-public-config');
 
       if (error) {
-        console.error('🌐 [PlatformConfig] Error invoking get-public-config:', {
+        debug.error('[PlatformConfig] Error invoking get-public-config:', {
           message: error.message,
           code: (error as any)?.code,
           details: (error as any)?.details,
@@ -28,8 +29,8 @@ export const usePlatformConfig = () => {
       }
 
       const token = (data as any)?.mapboxToken as string | undefined;
-      console.log(
-        '🌐 [PlatformConfig] Loaded, mapboxToken:',
+      debug.config(
+        'Loaded mapboxToken:',
         token ? `${token.slice(0, 3)}… (len ${token.length})` : 'missing'
       );
 

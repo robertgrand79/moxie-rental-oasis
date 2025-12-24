@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import { debug } from '@/utils/debug';
 
 export interface Testimonial {
   id: string;
@@ -55,7 +55,7 @@ export const useTestimonials = () => {
   const { data: testimonials = [], isLoading, error } = useQuery({
     queryKey: ['testimonials', orgPropertyIds],
     queryFn: async () => {
-      console.log('🔄 Fetching testimonials...');
+      debug.db('Fetching testimonials...');
       if (orgPropertyIds.length === 0) return [];
       
       // Include testimonials belonging to org properties OR with no property assigned (legacy/global)
@@ -66,10 +66,10 @@ export const useTestimonials = () => {
         .order('display_order', { ascending: true });
       
       if (error) {
-        console.error('❌ Error fetching testimonials:', error);
+        debug.error('[Testimonials] Error fetching:', error);
         throw error;
       }
-      console.log('✅ Testimonials fetched:', data?.length || 0, 'items');
+      debug.db('Testimonials fetched:', data?.length || 0, 'items');
       return data as Testimonial[];
     },
     enabled: !propertiesLoading && orgPropertyIds.length > 0,
@@ -77,7 +77,7 @@ export const useTestimonials = () => {
 
   const createTestimonial = useMutation({
     mutationFn: async (testimonial: CreateTestimonialData) => {
-      console.log('Creating testimonial with data:', testimonial);
+      debug.db('Creating testimonial:', testimonial.guest_name);
       
       // Clean up the data - convert empty property_id to null
       const cleanData = {
@@ -87,8 +87,6 @@ export const useTestimonials = () => {
         review_text: testimonial.review_text || testimonial.content
       };
       
-      console.log('Cleaned data for insertion:', cleanData);
-      
       const { data, error } = await supabase
         .from('testimonials')
         .insert(cleanData)
@@ -96,10 +94,10 @@ export const useTestimonials = () => {
         .single();
       
       if (error) {
-        console.error('Error creating testimonial:', error);
+        debug.error('[Testimonials] Error creating:', error);
         throw error;
       }
-      console.log('Testimonial created successfully:', data);
+      debug.db('Testimonial created:', data.id);
       return data;
     },
     onSuccess: () => {
@@ -120,15 +118,13 @@ export const useTestimonials = () => {
 
   const updateTestimonial = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Testimonial> & { id: string }) => {
-      console.log('Updating testimonial with data:', { id, updates });
+      debug.db('Updating testimonial:', id);
       
       // Clean up the data - convert empty property_id to null
       const cleanUpdates = {
         ...updates,
         property_id: updates.property_id && updates.property_id.trim() !== '' ? updates.property_id : null
       };
-      
-      console.log('Cleaned updates for database:', cleanUpdates);
       
       const { data, error } = await supabase
         .from('testimonials')
@@ -138,10 +134,10 @@ export const useTestimonials = () => {
         .single();
       
       if (error) {
-        console.error('Error updating testimonial:', error);
+        debug.error('[Testimonials] Error updating:', error);
         throw error;
       }
-      console.log('Testimonial updated successfully:', data);
+      debug.db('Testimonial updated:', data.id);
       return data;
     },
     onSuccess: () => {

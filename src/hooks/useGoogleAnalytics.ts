@@ -1,11 +1,11 @@
-
 import { useEffect } from 'react';
+import { debug } from '@/utils/debug';
 
 export const useGoogleAnalytics = (googleAnalyticsId: string) => {
   useEffect(() => {
     if (!googleAnalyticsId || !/^G-[A-Z0-9]+$/.test(googleAnalyticsId)) {
       if (googleAnalyticsId) {
-        console.warn('⚠️ SiteHead: Invalid Google Analytics ID format:', googleAnalyticsId);
+        debug.warn('[Analytics] Invalid Google Analytics ID format:', googleAnalyticsId);
       }
       return;
     }
@@ -14,7 +14,7 @@ export const useGoogleAnalytics = (googleAnalyticsId: string) => {
     const existingScript = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
     
     if (!existingScript) {
-      console.log('📊 SiteHead: Loading Google Analytics script for:', googleAnalyticsId);
+      debug.analytics('Loading Google Analytics script for:', googleAnalyticsId);
       
       // Create and load the GA script
       const gaScript = document.createElement('script');
@@ -23,7 +23,7 @@ export const useGoogleAnalytics = (googleAnalyticsId: string) => {
       gaScript.setAttribute('data-ga-id', googleAnalyticsId);
       
       gaScript.onload = () => {
-        console.log('✅ SiteHead: Google Analytics script loaded successfully');
+        debug.analytics('Google Analytics script loaded successfully');
         
         // Dispatch event immediately after script loads
         const event = new CustomEvent('ga-script-loaded', { 
@@ -33,36 +33,30 @@ export const useGoogleAnalytics = (googleAnalyticsId: string) => {
           } 
         });
         window.dispatchEvent(event);
-        console.log('📊 SiteHead: ga-script-loaded event dispatched for', googleAnalyticsId);
+        debug.analytics('ga-script-loaded event dispatched');
       };
       
       gaScript.onerror = (error) => {
-        console.error('❌ SiteHead: Error loading Google Analytics script:', error);
+        debug.error('[Analytics] Error loading Google Analytics script:', error);
       };
       
       document.head.appendChild(gaScript);
 
-      // Create the GA configuration script
+      // Create the GA configuration script - note: inline console.log kept for GA debug
       const gaConfigScript = document.createElement('script');
       gaConfigScript.innerHTML = `
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        
-        try {
-          gtag('config', '${googleAnalyticsId}', {
-            send_page_view: true,
-            debug_mode: false
-          });
-          console.log('📊 SiteHead: Google Analytics configured successfully for ${googleAnalyticsId}');
-        } catch (error) {
-          console.error('❌ SiteHead: Error configuring Google Analytics:', error);
-        }
+        gtag('config', '${googleAnalyticsId}', {
+          send_page_view: true,
+          debug_mode: false
+        });
       `;
       document.head.appendChild(gaConfigScript);
       
     } else {
-      console.log('📊 SiteHead: Google Analytics script already exists');
+      debug.analytics('Google Analytics script already exists');
       
       // If script already exists, still dispatch event
       setTimeout(() => {
@@ -74,7 +68,6 @@ export const useGoogleAnalytics = (googleAnalyticsId: string) => {
           } 
         });
         window.dispatchEvent(event);
-        console.log('📊 SiteHead: ga-script-loaded event dispatched for existing script');
       }, 100);
     }
   }, [googleAnalyticsId]);
