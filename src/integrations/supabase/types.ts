@@ -4316,8 +4316,10 @@ export type Database = {
           guest_phone: string | null
           id: string
           organization_id: string | null
+          payment_notes: string | null
           payment_status: string | null
           property_id: string
+          refund_amount: number | null
           source_platform: string | null
           special_requests: string | null
           stripe_payment_intent_id: string | null
@@ -4341,8 +4343,10 @@ export type Database = {
           guest_phone?: string | null
           id?: string
           organization_id?: string | null
+          payment_notes?: string | null
           payment_status?: string | null
           property_id: string
+          refund_amount?: number | null
           source_platform?: string | null
           special_requests?: string | null
           stripe_payment_intent_id?: string | null
@@ -4366,8 +4370,10 @@ export type Database = {
           guest_phone?: string | null
           id?: string
           organization_id?: string | null
+          payment_notes?: string | null
           payment_status?: string | null
           property_id?: string
+          refund_amount?: number | null
           source_platform?: string | null
           special_requests?: string | null
           stripe_payment_intent_id?: string | null
@@ -5185,6 +5191,33 @@ export type Database = {
           platform?: string
           updated_at?: string
           url?: string
+        }
+        Relationships: []
+      }
+      stripe_webhook_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          processed_at: string
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          processed_at?: string
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          processed_at?: string
+          stripe_event_id?: string
         }
         Relationships: []
       }
@@ -6192,6 +6225,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_old_webhook_events: { Args: never; Returns: undefined }
       clear_failed_logins: { Args: { p_email: string }; Returns: undefined }
       create_organization_with_owner: {
         Args: {
