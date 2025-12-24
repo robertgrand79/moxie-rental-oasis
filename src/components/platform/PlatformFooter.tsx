@@ -38,6 +38,8 @@ const PlatformFooter: React.FC = () => {
       { label: 'Privacy Policy', href: '/privacy-policy' },
       { label: 'Terms of Service', href: '/terms-of-service' },
       { label: 'Cookie Policy', href: '/privacy-policy#cookies' },
+      { label: 'Data Privacy', href: '/data-privacy' },
+      { label: 'Accessibility', href: '/accessibility' },
     ],
   };
 

@@ -10,6 +10,7 @@ import GlobalThemeProvider from './components/GlobalThemeProvider';
 import TenantDebugBanner from './components/debug/TenantDebugBanner';
 import SiteHead from './components/SiteHead';
 import PageViewTracker from './components/analytics/PageViewTracker';
+import CookieConsentBanner from './components/legal/CookieConsentBanner';
 
 // Note: QueryClient is created in main.tsx - single instance for entire app
 
@@ -27,6 +28,7 @@ function App() {
                   <GlobalThemeProvider>
                     <AppRoutes />
                     <PublicChatWidget />
+                    <CookieConsentBanner />
                   </GlobalThemeProvider>
                 </StaticSettingsProvider>
               </PageViewTracker>
