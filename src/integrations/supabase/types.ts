@@ -888,6 +888,63 @@ export type Database = {
           },
         ]
       }
+      calendar_sync_logs: {
+        Row: {
+          created_at: string | null
+          duration_ms: number | null
+          error_message: string | null
+          events_removed: number | null
+          events_synced: number | null
+          external_calendar_id: string | null
+          id: string
+          platform: string
+          property_id: string | null
+          status: string
+          sync_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          events_removed?: number | null
+          events_synced?: number | null
+          external_calendar_id?: string | null
+          id?: string
+          platform: string
+          property_id?: string | null
+          status?: string
+          sync_type?: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          events_removed?: number | null
+          events_synced?: number | null
+          external_calendar_id?: string | null
+          id?: string
+          platform?: string
+          property_id?: string | null
+          status?: string
+          sync_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_sync_logs_external_calendar_id_fkey"
+            columns: ["external_calendar_id"]
+            isOneToOne: false
+            referencedRelation: "external_calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_sync_logs_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
@@ -1797,9 +1854,12 @@ export type Database = {
         Row: {
           api_credentials: Json | null
           calendar_url: string | null
+          consecutive_failures: number | null
           created_at: string
+          events_count: number | null
           external_property_id: string
           id: string
+          last_failure_at: string | null
           last_sync_at: string | null
           platform: string
           property_id: string
@@ -1811,9 +1871,12 @@ export type Database = {
         Insert: {
           api_credentials?: Json | null
           calendar_url?: string | null
+          consecutive_failures?: number | null
           created_at?: string
+          events_count?: number | null
           external_property_id: string
           id?: string
+          last_failure_at?: string | null
           last_sync_at?: string | null
           platform: string
           property_id: string
@@ -1825,9 +1888,12 @@ export type Database = {
         Update: {
           api_credentials?: Json | null
           calendar_url?: string | null
+          consecutive_failures?: number | null
           created_at?: string
+          events_count?: number | null
           external_property_id?: string
           id?: string
+          last_failure_at?: string | null
           last_sync_at?: string | null
           platform?: string
           property_id?: string
@@ -4160,6 +4226,7 @@ export type Database = {
           amenities: string | null
           bathrooms: number
           bedrooms: number
+          calendar_export_token: string | null
           city: string | null
           cleaning_fee: number | null
           cover_image_url: string | null
@@ -4187,6 +4254,7 @@ export type Database = {
           amenities?: string | null
           bathrooms: number
           bedrooms: number
+          calendar_export_token?: string | null
           city?: string | null
           cleaning_fee?: number | null
           cover_image_url?: string | null
@@ -4214,6 +4282,7 @@ export type Database = {
           amenities?: string | null
           bathrooms?: number
           bedrooms?: number
+          calendar_export_token?: string | null
           city?: string | null
           cleaning_fee?: number | null
           cover_image_url?: string | null
@@ -6675,6 +6744,10 @@ export type Database = {
       refresh_office_space_availability: {
         Args: { p_office_space_id: string }
         Returns: undefined
+      }
+      regenerate_calendar_export_token: {
+        Args: { p_property_id: string }
+        Returns: string
       }
       track_failed_login: { Args: { p_email: string }; Returns: Json }
       turno_sync_properties: { Args: never; Returns: undefined }

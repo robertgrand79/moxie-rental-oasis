@@ -387,19 +387,20 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                 <li>Then paste it here and click the + button</li>
               </ol>
             </div>
-            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
-              <p className="text-blue-800 text-sm font-medium mb-2">
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded">
+              <p className="text-blue-800 dark:text-blue-200 text-sm font-medium mb-2">
                 📤 Your Calendar Export URL (Give this to Airbnb/VRBO):
               </p>
-              <div className="bg-white p-2 rounded border font-mono text-xs break-all mb-2">
-                https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id={property.id}
+              <div className="bg-white dark:bg-gray-900 p-2 rounded border font-mono text-xs break-all mb-2">
+                https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id={property.id}{(property as any).calendar_export_token ? `&token=${(property as any).calendar_export_token}` : ''}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const url = `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}`;
+                    const token = (property as any).calendar_export_token;
+                    const url = `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}${token ? `&token=${token}` : ''}`;
                     navigator.clipboard.writeText(url);
                     toast({ title: 'Copied!', description: 'Calendar export URL copied to clipboard' });
                   }}
@@ -410,7 +411,8 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const url = `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}`;
+                    const token = (property as any).calendar_export_token;
+                    const url = `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}${token ? `&token=${token}` : ''}`;
                     window.open(url, '_blank');
                   }}
                 >
@@ -418,9 +420,9 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                   Test URL
                 </Button>
               </div>
-              <p className="text-blue-700 text-xs mt-2">
-                This URL provides your bookings in iCal format so Airbnb can import them and avoid double bookings.
-                Use "Copy URL" to get the link, then paste it in Airbnb's calendar import settings.
+              <p className="text-blue-700 dark:text-blue-300 text-xs mt-2">
+                This secure URL provides your bookings in iCal format. Guest PII is never exposed.
+                Copy and paste it in Airbnb/VRBO's calendar import settings to prevent double bookings.
               </p>
             </div>
           </div>
