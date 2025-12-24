@@ -20,7 +20,19 @@ const OrganizationContext = createContext<OrganizationContextType | undefined>(u
 export const useCurrentOrganization = () => {
   const context = useContext(OrganizationContext);
   if (context === undefined) {
-    throw new Error('useCurrentOrganization must be used within an OrganizationProvider');
+    // Return a safe default when used outside provider (e.g., in analytics hooks)
+    // This prevents crashes for non-critical features like page tracking
+    return {
+      organization: null,
+      membership: null,
+      isPlatformAdmin: false,
+      loading: true,
+      error: null,
+      isOrgAdmin: () => false,
+      isOrgOwner: () => false,
+      canManageOrganization: () => false,
+      refetch: async () => {},
+    };
   }
   return context;
 };
