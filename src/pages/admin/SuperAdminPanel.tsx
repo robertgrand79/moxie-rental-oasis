@@ -36,7 +36,9 @@ import {
   Plus,
   Activity,
   Rocket,
-  HelpCircle
+  HelpCircle,
+  Ticket,
+  MessageSquare
 } from 'lucide-react';
 import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
@@ -50,6 +52,8 @@ import PlatformAuditLog from '@/components/admin/superadmin/PlatformAuditLog';
 import PlatformLookupTools from '@/components/admin/superadmin/PlatformLookupTools';
 import TenantDetailView from '@/components/admin/superadmin/TenantDetailView';
 import HelpContentManager from '@/components/admin/superadmin/HelpContentManager';
+import SupportTicketsManagement from '@/components/admin/superadmin/SupportTicketsManagement';
+import UserFeedbackManagement from '@/components/admin/superadmin/UserFeedbackManagement';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -344,6 +348,14 @@ const SuperAdminPanel = () => {
               <HelpCircle className="h-4 w-4" />
               Help Center
             </TabsTrigger>
+            <TabsTrigger value="support" className="flex items-center gap-2">
+              <Ticket className="h-4 w-4" />
+              Support
+            </TabsTrigger>
+            <TabsTrigger value="feedback" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Feedback
+            </TabsTrigger>
             <TabsTrigger value="launch" className="flex items-center gap-2">
               <Rocket className="h-4 w-4" />
               Launch
@@ -477,6 +489,14 @@ const SuperAdminPanel = () => {
 
           <TabsContent value="help" className="mt-6 space-y-6">
             <HelpContentManager />
+          </TabsContent>
+
+          <TabsContent value="support" className="mt-6 space-y-6">
+            <SupportTicketsManagement />
+          </TabsContent>
+
+          <TabsContent value="feedback" className="mt-6 space-y-6">
+            <UserFeedbackManagement />
           </TabsContent>
 
           <TabsContent value="launch" className="mt-6 space-y-6">
