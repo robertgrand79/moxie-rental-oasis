@@ -5,13 +5,14 @@ import { Search, BarChart3, Share } from 'lucide-react';
 import SEOSettingsTab from './SEOSettingsTab';
 import AnalyticsSettingsTab from './AnalyticsSettingsTab';
 import SocialSettingsTab from './SocialSettingsTab';
+import { SEOData, AnalyticsData, SettingValue } from '@/types/settings';
 
 interface SEOAnalyticsTabProps {
-  seoData: any;
-  setSeoData: (data: any) => void;
-  analyticsData: any;
-  setAnalyticsData: (data: any) => void;
-  updateSetting: (key: string, value: any) => Promise<boolean>;
+  seoData: SEOData;
+  setSeoData: (data: SEOData) => void;
+  analyticsData: AnalyticsData;
+  setAnalyticsData: (data: AnalyticsData) => void;
+  updateSetting: (key: string, value: SettingValue) => Promise<boolean>;
 }
 
 const SEOAnalyticsTab = ({ 

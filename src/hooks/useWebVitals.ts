@@ -86,10 +86,16 @@ export function useWebVitals(options: {
     };
 
     // Add memory info if available
-    if ((performance as any).memory) {
+    const perfWithMemory = performance as Performance & {
+      memory?: {
+        usedJSHeapSize: number;
+        totalJSHeapSize: number;
+      };
+    };
+    if (perfWithMemory.memory) {
       report.memory = {
-        usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
-        totalJSHeapSize: (performance as any).memory.totalJSHeapSize,
+        usedJSHeapSize: perfWithMemory.memory.usedJSHeapSize,
+        totalJSHeapSize: perfWithMemory.memory.totalJSHeapSize,
       };
     }
 

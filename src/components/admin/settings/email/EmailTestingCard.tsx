@@ -75,21 +75,22 @@ const EmailTestingCard = () => {
       } else {
         throw new Error(data?.error || "Failed to send test email");
       }
-    } catch (error: any) {
-      console.error('❌ Test email error:', error);
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      console.error('❌ Test email error:', err);
       
       let errorMessage = "Failed to send test email.";
       
-      if (error.message?.includes("RESEND_API_KEY")) {
+      if (err.message?.includes("RESEND_API_KEY")) {
         errorMessage = "Resend API key issue. Please verify it's correctly configured in Supabase secrets.";
-      } else if (error.message?.includes("Authentication")) {
+      } else if (err.message?.includes("Authentication")) {
         errorMessage = "Authentication error. Please log in again.";
-      } else if (error.message?.includes("Admin access required")) {
+      } else if (err.message?.includes("Admin access required")) {
         errorMessage = "Admin access required. Please ensure your account has admin privileges.";
-      } else if (error.message?.includes("non-2xx status code")) {
+      } else if (err.message?.includes("non-2xx status code")) {
         errorMessage = "Email service error. Please check your Resend domain verification and API key.";
-      } else if (error.message) {
-        errorMessage = error.message;
+      } else if (err.message) {
+        errorMessage = err.message;
       }
 
       toast({

@@ -66,9 +66,10 @@ const AcceptInvitation = () => {
       }
 
       setInvitation(data.invitation as InvitationDetails);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching invitation:', err);
-      if (err?.message?.includes('429') || err?.status === 429) {
+      const error = err as { message?: string; status?: number };
+      if (error?.message?.includes('429') || error?.status === 429) {
         setError('Too many attempts. Please try again in a few minutes.');
       } else {
         setError('Failed to load invitation details.');
@@ -147,7 +148,7 @@ const AcceptInvitation = () => {
           organization_id: invitation.organization_id,
           user_id: authData.user.id,
           role: invitation.role,
-          team_role: invitation.team_role as any,
+          team_role: invitation.team_role as 'owner' | 'manager' | 'staff' | 'view_only',
           invited_by: null, // Will be updated via trigger if needed
         });
 
@@ -160,13 +161,14 @@ const AcceptInvitation = () => {
       
       // Redirect to dashboard
       navigate('/admin');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error accepting invitation:', err);
-      if (err.message?.includes('already registered')) {
+      const error = err as { message?: string };
+      if (error.message?.includes('already registered')) {
         toast.error('An account with this email already exists. Please sign in instead.');
         navigate('/auth');
       } else {
-        toast.error(err.message || 'Failed to create account');
+        toast.error(error.message || 'Failed to create account');
       }
     } finally {
       setSubmitting(false);
