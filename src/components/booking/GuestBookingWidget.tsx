@@ -10,10 +10,11 @@ import { BookingSummaryCard } from './BookingSummaryCard';
 import { DateSelectionStep } from './DateSelectionStep';
 import { GuestDetailsStep } from './GuestDetailsStep';
 import { ReviewStep } from './ReviewStep';
+import { PromoCodeInput, AppliedPromo } from './PromoCodeInput';
 import { useBookingCharges } from '@/hooks/useBookingCharges';
+import { usePromoCode } from '@/hooks/usePromoCode';
 import { CheckCircle, Loader2, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-
 interface GuestBookingWidgetProps {
   property: Property;
   onBookingComplete?: (reservationId: string) => void;
@@ -54,20 +55,33 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentStage, setPaymentStage] = useState<'idle' | 'creating' | 'redirecting' | 'blocked'>('idle');
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   
   const { toast } = useToast();
   const createReservationMutation = useCreateReservation();
+
+  // Promo code hook
+  const { recordPromoUsage } = usePromoCode({
+    propertyId: property.id,
+    organizationId: property.organization_id
+  });
   
   const selectedDates = dateRange.from && dateRange.to ? {
     start: format(dateRange.from, 'yyyy-MM-dd'),
     end: format(dateRange.to, 'yyyy-MM-dd')
   } : null;
 
-  const { data: charges, isLoading: chargesLoading } = useBookingCharges(
+  const nights = selectedDates 
+    ? differenceInDays(parseISO(selectedDates.end), parseISO(selectedDates.start))
+    : 0;
+
+  const { data: charges, isLoading: chargesLoading, refetch: refetchCharges } = useBookingCharges(
     property.id,
     selectedDates?.start || '',
     selectedDates?.end || '',
-    !!selectedDates
+    !!selectedDates,
+    bookingForm.guestCount,
+    appliedPromo?.code
   );
 
   const handleDateSelect = (range: { from: Date | undefined; to: Date | undefined } | undefined) => {
@@ -172,6 +186,16 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
       };
 
       const reservation = await createReservationMutation.mutateAsync(reservationData);
+      
+      // Record promo code usage if one was applied
+      if (appliedPromo) {
+        await recordPromoUsage(
+          reservation.id,
+          bookingForm.guestEmail,
+          appliedPromo.calculatedDiscount,
+          charges.grandTotal + appliedPromo.calculatedDiscount
+        );
+      }
       
       setPaymentStage('redirecting');
 
@@ -329,20 +353,40 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
           )}
           
           {step === 3 && selectedDates && charges && (
-            <ReviewStep
-              property={property}
-              checkInDate={selectedDates.start}
-              checkOutDate={selectedDates.end}
-              formData={bookingForm}
-              charges={{
-                accommodationSubtotal: charges.accommodationSubtotal,
-                cleaningFee: charges.cleaningFee,
-                serviceFee: charges.serviceFee,
-                subtotal: charges.accommodationSubtotal + charges.cleaningFee + charges.serviceFee,
-                totalTax: charges.totalTax,
-                grandTotal: charges.grandTotal
-              }}
-            />
+            <>
+              {/* Promo Code Input */}
+              <PromoCodeInput
+                propertyId={property.id}
+                organizationId={property.organization_id}
+                guestEmail={bookingForm.guestEmail}
+                nights={nights}
+                bookingTotal={charges.accommodationSubtotal}
+                onPromoApplied={(promo) => {
+                  setAppliedPromo(promo);
+                  // Refetch charges to recalculate with the promo code
+                  refetchCharges();
+                }}
+                appliedPromo={appliedPromo}
+                className="mb-6"
+              />
+              
+              <ReviewStep
+                property={property}
+                checkInDate={selectedDates.start}
+                checkOutDate={selectedDates.end}
+                formData={bookingForm}
+                charges={{
+                  accommodationSubtotal: charges.accommodationSubtotal,
+                  cleaningFee: charges.cleaningFee,
+                  serviceFee: charges.serviceFee,
+                  subtotal: charges.accommodationSubtotal + charges.cleaningFee + charges.serviceFee,
+                  totalTax: charges.totalTax,
+                  grandTotal: charges.grandTotal,
+                  discounts: charges.discounts,
+                  totalDiscount: charges.totalDiscount
+                }}
+              />
+            </>
           )}
 
           {/* Navigation Buttons */}
