@@ -7,6 +7,7 @@ import { useBlogPosts, BlogPost } from '@/hooks/useBlogPosts';
 import BlogPostsList from './BlogPostsList';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { blogPostService } from '@/services/blogPostService';
+import { debug } from '@/utils/debug';
 
 interface BlogManagementTabsProps {
   autoOpenAdd?: boolean;
@@ -18,7 +19,6 @@ const BlogManagementTabs = ({ autoOpenAdd }: BlogManagementTabsProps) => {
   const { blogPosts, addBlogPost, updateBlogPost, deleteBlogPost, refetch } = useBlogPosts();
   const isMobile = useIsMobile();
 
-  // Auto-open add form when autoOpenAdd prop is true
   useEffect(() => {
     if (autoOpenAdd) {
       setEditingPost(null);
@@ -37,7 +37,7 @@ const BlogManagementTabs = ({ autoOpenAdd }: BlogManagementTabsProps) => {
   };
 
   const handleFormSubmit = async (data: any) => {
-    console.log('Blog form submitted:', data);
+    debug.blog('Blog form submitted:', data);
     
     if (editingPost || data.id) {
       await updateBlogPost(data.id || editingPost!.id, data);
@@ -65,7 +65,6 @@ const BlogManagementTabs = ({ autoOpenAdd }: BlogManagementTabsProps) => {
     }
   };
 
-  // Count auto-saved drafts
   const autoSavedDrafts = blogPosts.filter(post => 
     post.status === 'draft' && post.title.includes('Untitled Draft')
   );

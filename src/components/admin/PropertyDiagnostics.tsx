@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertCircle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { debug } from '@/utils/debug';
 
 const PropertyDiagnostics = () => {
   const { user } = useAuth();
@@ -12,7 +13,7 @@ const PropertyDiagnostics = () => {
   const [results, setResults] = useState<any>(null);
 
   const runDiagnostics = async () => {
-    console.log('🔍 [DIAGNOSTICS] Starting comprehensive property system diagnostics...');
+    debug.db('[DIAGNOSTICS] Starting comprehensive property system diagnostics...');
     setTesting(true);
     const diagnosticResults: any = {
       authentication: { status: 'unknown', details: {} },
@@ -22,8 +23,7 @@ const PropertyDiagnostics = () => {
     };
 
     try {
-      // Phase 1: Authentication Test
-      console.log('🔐 [DIAGNOSTICS] Testing authentication...');
+      debug.db('[DIAGNOSTICS] Testing authentication...');
       diagnosticResults.authentication = {
         status: user ? 'success' : 'error',
         details: {
@@ -40,16 +40,13 @@ const PropertyDiagnostics = () => {
         return;
       }
 
-      // Phase 2: Database Permissions Test
-      console.log('💾 [DIAGNOSTICS] Testing database permissions...');
+      debug.db('[DIAGNOSTICS] Testing database permissions...');
       try {
-        // Test read permission
         const { data: readTest, error: readError } = await supabase
           .from('properties')
           .select('id, title')
           .limit(1);
 
-        // Test write permission - try to insert a test property
         const testProperty = {
           title: 'DIAGNOSTIC_TEST_PROPERTY',
           description: 'This is a test property for diagnostics',
@@ -67,7 +64,6 @@ const PropertyDiagnostics = () => {
           .select()
           .single();
 
-        // Clean up test property if created
         if (writeTest?.id) {
           await supabase.from('properties').delete().eq('id', writeTest.id);
         }
@@ -89,8 +85,7 @@ const PropertyDiagnostics = () => {
         };
       }
 
-      // Phase 3: Storage Test
-      console.log('📁 [DIAGNOSTICS] Testing storage permissions...');
+      debug.db('[DIAGNOSTICS] Testing storage permissions...');
       try {
         const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
         
@@ -110,13 +105,12 @@ const PropertyDiagnostics = () => {
         };
       }
 
-      // Phase 4: Database Schema Test
-      console.log('🗄️ [DIAGNOSTICS] Testing database schema...');
+      debug.db('[DIAGNOSTICS] Testing database schema...');
       try {
         const { data: schemaTest, error: schemaError } = await supabase
           .from('properties')
           .select('*')
-          .limit(0); // Just test the schema, don't fetch data
+          .limit(0);
 
         diagnosticResults.database = {
           status: !schemaError ? 'success' : 'error',
@@ -132,10 +126,10 @@ const PropertyDiagnostics = () => {
         };
       }
 
-      console.log('✅ [DIAGNOSTICS] Diagnostics complete:', diagnosticResults);
+      debug.db('[DIAGNOSTICS] Diagnostics complete:', diagnosticResults);
       setResults(diagnosticResults);
     } catch (error) {
-      console.error('💥 [DIAGNOSTICS] Diagnostics failed:', error);
+      debug.error('[DIAGNOSTICS] Diagnostics failed:', error);
     } finally {
       setTesting(false);
     }

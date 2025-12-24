@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { debug } from '@/utils/debug';
 
 interface SettingsInputHandlersProps {
   localData: any;
@@ -18,7 +19,7 @@ const SettingsInputHandlers = ({
   children
 }: SettingsInputHandlersProps) => {
   const handleInputChange = (field: string, value: string) => {
-    console.log('[Settings Page] Input change:', field, value);
+    debug.settings('Input change:', field, value);
     setLocalData((prev: any) => ({
       ...prev,
       siteData: {
@@ -26,12 +27,11 @@ const SettingsInputHandlers = ({
         [field]: value
       }
     }));
-    // Optimistic update
     updateSettingOptimistic({ [field]: value });
   };
 
   const handleSocialMediaChange = (platform: string, value: string) => {
-    console.log('[Settings Page] Social media change:', platform, value);
+    debug.settings('Social media change:', platform, value);
     const newSocialMedia = {
       ...localData.siteData.socialMedia,
       [platform]: value

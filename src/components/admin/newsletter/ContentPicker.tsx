@@ -10,6 +10,7 @@ import { BlogPost } from '@/types/blogPost';
 import { LocalEvent } from '@/hooks/useLocalEvents';
 import { Place } from '@/hooks/usePlaces';
 import ContentSelectionList from './ContentSelectionList';
+import { debug } from '@/utils/debug';
 
 export interface SelectedContent {
   blog_posts: string[];
@@ -55,36 +56,36 @@ const ContentPicker = ({ selectedContent, onContentChange, onImportContent }: Co
   };
 
   const handleImportSelected = () => {
-    console.log('🔄 Import Selected clicked');
-    console.log('🔄 Active tab:', activeTab);
-    console.log('🔄 Selected content:', selectedContent);
+    debug.newsletter('Import Selected clicked');
+    debug.newsletter('Active tab:', activeTab);
+    debug.newsletter('Selected content:', selectedContent);
     
     const contentType = activeTab as 'blog_posts' | 'events' | 'places';
     const selectedIds = selectedContent[contentType];
     
-    console.log('🔄 Content type:', contentType);
-    console.log('🔄 Selected IDs:', selectedIds);
+    debug.newsletter('Content type:', contentType);
+    debug.newsletter('Selected IDs:', selectedIds);
     
     let items: (BlogPost | LocalEvent | Place)[] = [];
     
     if (contentType === 'blog_posts') {
       items = publishedBlogPosts.filter(post => selectedIds.includes(post.slug));
-      console.log('🔄 Available blog posts:', publishedBlogPosts.map(p => ({ slug: p.slug, title: p.title })));
+      debug.newsletter('Available blog posts:', publishedBlogPosts.map(p => ({ slug: p.slug, title: p.title })));
     } else if (contentType === 'events') {
       items = activeEvents.filter(event => selectedIds.includes(event.id));
-      console.log('🔄 Available events:', activeEvents.map(e => ({ id: e.id, title: e.title })));
+      debug.newsletter('Available events:', activeEvents.map(e => ({ id: e.id, title: e.title })));
     } else if (contentType === 'places') {
       items = publishedPlaces.filter(place => selectedIds.includes(place.id));
-      console.log('🔄 Available places:', publishedPlaces.map(p => ({ id: p.id, name: p.name })));
+      debug.newsletter('Available places:', publishedPlaces.map(p => ({ id: p.id, name: p.name })));
     }
     
-    console.log('🔄 Filtered items to import:', items);
+    debug.newsletter('Filtered items to import:', items);
     
     if (items.length > 0) {
-      console.log('🔄 Calling onImportContent with:', { contentType, items });
+      debug.newsletter('Calling onImportContent with:', { contentType, items });
       onImportContent(contentType, items);
     } else {
-      console.warn('⚠️ No items to import');
+      debug.warn('No items to import');
     }
   };
 

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { LifestyleGalleryItem } from '@/hooks/useLifestyleGallery';
+import { debug } from '@/utils/debug';
 
 interface UseLifestyleGenerationProps {
   existingItems: LifestyleGalleryItem[];
@@ -35,7 +36,7 @@ export const useLifestyleGeneration = ({
     }
 
     setIsGenerating(true);
-    console.log('Starting lifestyle generation with:', {
+    debug.log('Starting lifestyle generation with:', {
       type: 'lifestyle',
       prompt,
       count: numberOfItems,
@@ -73,10 +74,10 @@ export const useLifestyleGeneration = ({
         }
       });
 
-      console.log('Supabase function response:', { data, error });
+      debug.log('Supabase function response:', { data, error });
 
       if (error) {
-        console.error('Supabase function error:', error);
+        debug.error('Supabase function error:', error);
         throw new Error(`Function call failed: ${error.message}`);
       }
 
@@ -85,10 +86,10 @@ export const useLifestyleGeneration = ({
       }
 
       const items = data.content || [];
-      console.log('Parsed items from response:', items);
+      debug.log('Parsed items from response:', items);
       
       if (!Array.isArray(items)) {
-        console.error('Invalid response format - content is not an array:', data);
+        debug.error('Invalid response format - content is not an array:', data);
         throw new Error('Invalid response format from AI service');
       }
 
@@ -101,12 +102,12 @@ export const useLifestyleGeneration = ({
           typeof item.description === 'string';
         
         if (!isValid) {
-          console.warn('Filtered out invalid item:', item);
+          debug.warn('Filtered out invalid item:', item);
         }
         return isValid;
       });
 
-      console.log('Valid items after filtering:', validItems);
+      debug.log('Valid items after filtering:', validItems);
 
       if (validItems.length === 0) {
         throw new Error('No valid lifestyle items were generated');
@@ -119,7 +120,7 @@ export const useLifestyleGeneration = ({
         description: `Generated ${validItems.length} lifestyle items successfully!`
       });
     } catch (error) {
-      console.error('Error generating lifestyle items:', error);
+      debug.error('Error generating lifestyle items:', error);
       toast({
         title: 'Error',
         description: `Failed to generate lifestyle items: ${error.message}`,
