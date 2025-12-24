@@ -19,6 +19,7 @@ export const useNewsletterCampaigns = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchCampaigns = async () => {
@@ -70,6 +71,45 @@ export const useNewsletterCampaigns = () => {
     }
   };
 
+  const editCampaign = async (campaignId: string, data: { subject: string; content: string }) => {
+    try {
+      setEditing(campaignId);
+      
+      const { error } = await supabase
+        .from('newsletter_campaigns')
+        .update({
+          subject: data.subject,
+          content: data.content,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', campaignId);
+
+      if (error) throw error;
+
+      // Optimistically update the UI
+      setCampaigns(prev => prev.map(campaign => 
+        campaign.id === campaignId 
+          ? { ...campaign, subject: data.subject, content: data.content, updated_at: new Date().toISOString() }
+          : campaign
+      ));
+      
+      toast({
+        title: "Campaign Updated",
+        description: "The newsletter campaign has been successfully updated.",
+      });
+
+    } catch (err: any) {
+      console.error('Error updating newsletter campaign:', err);
+      toast({
+        title: "Update Failed",
+        description: err.message || "Failed to update the newsletter campaign.",
+        variant: "destructive",
+      });
+    } finally {
+      setEditing(null);
+    }
+  };
+
   useEffect(() => {
     fetchCampaigns();
   }, []);
@@ -79,7 +119,9 @@ export const useNewsletterCampaigns = () => {
     loading,
     error,
     deleting,
+    editing,
     refetch: fetchCampaigns,
-    deleteCampaign
+    deleteCampaign,
+    editCampaign,
   };
 };

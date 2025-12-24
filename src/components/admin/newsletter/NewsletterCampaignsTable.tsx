@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table';
 import NewsletterPreviewModal from './NewsletterPreviewModal';
 import NewsletterDeleteModal from './NewsletterDeleteModal';
+import NewsletterEditModal from './NewsletterEditModal';
 
 interface NewsletterCampaign {
   id: string;
@@ -31,24 +32,28 @@ interface NewsletterCampaignsTableProps {
   loading: boolean;
   deleting: string | null;
   onDelete: (id: string) => void;
+  onEdit: (id: string, data: { subject: string; content: string }) => Promise<void>;
+  editing: string | null;
 }
 
 const NewsletterCampaignsTable = ({ 
   campaigns, 
   loading, 
   deleting,
-  onDelete
+  onDelete,
+  onEdit,
+  editing,
 }: NewsletterCampaignsTableProps) => {
   const [previewCampaign, setPreviewCampaign] = useState<NewsletterCampaign | null>(null);
   const [deleteCampaign, setDeleteCampaign] = useState<NewsletterCampaign | null>(null);
+  const [editCampaign, setEditCampaign] = useState<NewsletterCampaign | null>(null);
 
   const handleView = (campaign: NewsletterCampaign) => {
     setPreviewCampaign(campaign);
   };
 
-  const handleEdit = (id: string) => {
-    console.log('Edit newsletter:', id);
-    // TODO: Implement newsletter editing functionality
+  const handleEdit = (campaign: NewsletterCampaign) => {
+    setEditCampaign(campaign);
   };
 
   const handleDeleteClick = (campaign: NewsletterCampaign) => {
@@ -122,7 +127,7 @@ const NewsletterCampaignsTable = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleEdit(campaign.id)}
+                            onClick={() => handleEdit(campaign)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -163,6 +168,15 @@ const NewsletterCampaignsTable = ({
         onClose={() => setDeleteCampaign(null)}
         onConfirm={handleDeleteConfirm}
         isDeleting={deleting === deleteCampaign?.id}
+      />
+
+      {/* Edit Modal */}
+      <NewsletterEditModal
+        campaign={editCampaign}
+        open={!!editCampaign}
+        onClose={() => setEditCampaign(null)}
+        onSave={onEdit}
+        isSaving={editing === editCampaign?.id}
       />
     </>
   );

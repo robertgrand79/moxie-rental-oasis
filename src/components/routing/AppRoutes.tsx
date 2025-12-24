@@ -27,8 +27,7 @@ import Auth from '@/pages/Auth';
 import ResetPassword from '@/pages/ResetPassword';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
-import PrivacyPolicy from '@/pages/PrivacyPolicy';
-import TermsOfService from '@/pages/TermsOfService';
+// PrivacyPolicy and TermsOfService removed - consolidated into Privacy and Terms
 import FAQ from '@/pages/FAQ';
 import DataPrivacy from '@/pages/legal/DataPrivacy';
 import Accessibility from '@/pages/legal/Accessibility';
@@ -232,8 +231,8 @@ const AppRoutes: React.FC = () => {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />
+        <Route path="/terms-of-service" element={<Navigate to="/terms" replace />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/data-privacy" element={<DataPrivacy />} />
         <Route path="/accessibility" element={<Accessibility />} />

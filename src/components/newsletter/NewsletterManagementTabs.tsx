@@ -14,7 +14,7 @@ import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 
 const NewsletterManagementTabs = () => {
   const [activeTab, setActiveTab] = useState("create");
-  const { campaigns, loading: campaignsLoading, deleting, deleteCampaign } = useNewsletterCampaigns();
+  const { campaigns, loading: campaignsLoading, deleting, deleteCampaign, editing, editCampaign } = useNewsletterCampaigns();
   const { subscriberCount } = useNewsletterStats();
 
   // Listen for reset event from parent
