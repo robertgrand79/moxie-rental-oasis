@@ -239,9 +239,27 @@ serve(async (req) => {
                 }
               });
               logStep("Payment received notification created");
+
+              // Create guest notification for booking confirmation
+              const { data: guestProfile } = await supabaseClient
+                .from('guest_profiles')
+                .select('id')
+                .eq('email', reservation.guest_email?.toLowerCase())
+                .single();
+
+              if (guestProfile) {
+                await supabaseClient.from('guest_notifications').insert({
+                  guest_profile_id: guestProfile.id,
+                  reservation_id: reservationId,
+                  notification_type: 'booking_confirmed',
+                  title: 'Booking Confirmed!',
+                  message: `Your reservation at ${propertyName} from ${reservation.check_in_date} to ${reservation.check_out_date} is confirmed.`,
+                  action_url: `/guest/reservations/${reservationId}`,
+                  sent_at: new Date().toISOString(),
+                });
+                logStep("Guest booking notification created");
+              }
             }
-          }
-        }
 
         break;
       }

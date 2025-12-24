@@ -58,6 +58,8 @@ export type Database = {
           action_url: string | null
           category: string
           created_at: string | null
+          escalated_at: string | null
+          escalation_sent: boolean | null
           id: string
           is_archived: boolean | null
           is_read: boolean | null
@@ -73,6 +75,8 @@ export type Database = {
           action_url?: string | null
           category: string
           created_at?: string | null
+          escalated_at?: string | null
+          escalation_sent?: boolean | null
           id?: string
           is_archived?: boolean | null
           is_read?: boolean | null
@@ -88,6 +92,8 @@ export type Database = {
           action_url?: string | null
           category?: string
           created_at?: string | null
+          escalated_at?: string | null
+          escalation_sent?: boolean | null
           id?: string
           is_archived?: boolean | null
           is_read?: boolean | null
@@ -4427,6 +4433,50 @@ export type Database = {
             columns: ["tax_rate_id"]
             isOneToOne: false
             referencedRelation: "tax_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_notification_tokens: {
+        Row: {
+          created_at: string | null
+          device_id: string | null
+          id: string
+          is_active: boolean | null
+          organization_id: string | null
+          platform: string
+          token: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          platform: string
+          token: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          device_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          platform?: string
+          token?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_notification_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
