@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,11 +16,16 @@ const BasicInfoSection = ({ form }: BasicInfoSectionProps) => {
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="title">Title *</Label>
         <Input
           id="title"
           {...register('title', { required: 'Title is required' })}
           placeholder="Enter post title"
+          enableAI={true}
+          aiLabel="Title *"
+          aiPrompt="Generate an engaging blog post title for a vacation rental website that will attract readers. Make it catchy and SEO-friendly."
+          aiTooltip="Generate title with AI"
+          value={watchedValues.title || ''}
+          onValueChange={(value) => setValue('title', value)}
         />
       </div>
 

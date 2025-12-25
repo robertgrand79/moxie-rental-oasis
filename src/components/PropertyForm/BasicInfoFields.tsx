@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -20,9 +19,18 @@ const BasicInfoFields = ({ form, disabled = false }: BasicInfoFieldsProps) => {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Property Title</FormLabel>
               <FormControl>
-                <Input placeholder="Beautiful Beachfront Villa" disabled={disabled} {...field} />
+                <Input 
+                  placeholder="Beautiful Beachfront Villa" 
+                  disabled={disabled} 
+                  enableAI={!disabled}
+                  aiLabel="Property Title"
+                  aiPrompt="Generate an attractive vacation rental property title that highlights unique features. Make it memorable and appealing to potential guests."
+                  aiTooltip="Generate title with AI"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onValueChange={field.onChange}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -49,13 +57,18 @@ const BasicInfoFields = ({ form, disabled = false }: BasicInfoFieldsProps) => {
         name="description"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Description</FormLabel>
             <FormControl>
               <Textarea 
                 placeholder="Describe your property, its features, and what makes it special..."
                 className="min-h-[100px]"
                 disabled={disabled}
-                {...field} 
+                enableAI={!disabled}
+                aiLabel="Description"
+                aiPrompt="Write a compelling vacation rental property description highlighting comfort, amenities, location appeal, and what makes this property special. Include key selling points and create an inviting atmosphere."
+                aiTooltip="Generate description with AI"
+                value={field.value}
+                onChange={field.onChange}
+                onValueChange={field.onChange}
               />
             </FormControl>
             <FormMessage />

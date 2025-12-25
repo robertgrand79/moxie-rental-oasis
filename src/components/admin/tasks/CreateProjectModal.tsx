@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -84,24 +83,32 @@ const CreateProjectModal = ({ isOpen, onClose, onCreateProject }: CreateProjectM
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Project Title</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Enter project title..."
               required
+              enableAI={true}
+              aiLabel="Project Title"
+              aiPrompt="Generate a clear, actionable project title for a vacation rental management task. Keep it concise and descriptive."
+              aiTooltip="Generate title with AI"
+              onValueChange={(value) => setFormData({ ...formData, title: value })}
             />
           </div>
 
           <div>
-            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Enter project description..."
               rows={3}
+              enableAI={true}
+              aiLabel="Description"
+              aiPrompt="Generate a project description with clear goals and deliverables for vacation rental operations. Include key milestones and expected outcomes."
+              aiTooltip="Generate description with AI"
+              onValueChange={(value) => setFormData({ ...formData, description: value })}
             />
           </div>
 
