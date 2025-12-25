@@ -1,7 +1,6 @@
-import React, { Suspense, lazy } from 'react';
+import React, { lazy } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { usePlatform } from '@/contexts/PlatformContext';
-import { Loader2 } from 'lucide-react';
 
 // Platform pages (loaded eagerly - smaller)
 import PlatformLayout from '@/components/layouts/PlatformLayout';
@@ -109,22 +108,14 @@ const StripeSettingsPage = lazy(() => import('@/pages/admin/settings/StripeSetti
 const PriceLabsSettingsPage = lazy(() => import('@/pages/admin/settings/PriceLabsSettingsPage'));
 const SetupWizardPage = lazy(() => import('@/pages/admin/settings/SetupWizardPage'));
 
-// Loading fallback component
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-[400px]">
-    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-  </div>
-);
-
 const AppRoutes: React.FC = () => {
   const { isPlatformSite } = usePlatform();
 
   if (isPlatformSite) {
     return (
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          {/* Platform Marketing Routes (staymoxie.com) */}
-          <Route path="/" element={<PlatformLayout />}>
+      <Routes>
+        {/* Platform Marketing Routes (staymoxie.com) */}
+        <Route path="/" element={<PlatformLayout />}>
             <Route index element={<PlatformHome />} />
             <Route path="home" element={<Navigate to="/" replace />} />
             <Route path="features" element={<Features />} />
@@ -220,13 +211,11 @@ const AppRoutes: React.FC = () => {
 
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </Suspense>
     );
   }
 
   // Tenant Routes (tenant.lovable.app or custom domains)
   return (
-    <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<Index />} />
@@ -343,7 +332,6 @@ const AppRoutes: React.FC = () => {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </Suspense>
   );
 };
 

@@ -1,9 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+
+// Content loader for lazy-loaded admin pages
+const ContentLoader = () => (
+  <div className="flex items-center justify-center min-h-[400px]">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 const AdminLayoutWrapper = () => {
   const { organization, isPlatformAdmin, loading: orgLoading, isOrgAdmin } = useCurrentOrganization();
@@ -59,7 +66,9 @@ const AdminLayoutWrapper = () => {
 
   return (
     <AdminLayout>
-      <Outlet />
+      <Suspense fallback={<ContentLoader />}>
+        <Outlet />
+      </Suspense>
     </AdminLayout>
   );
 };
