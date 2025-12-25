@@ -52,6 +52,10 @@ export interface SettingsState {
   ogDescription: string;
   ogImage: string;
   favicon: string;
+  keywords: string;
+  canonicalBase: string;
+  twitterCardType: string;
+  twitterSite: string;
   
   // Analytics
   googleAnalyticsId: string;

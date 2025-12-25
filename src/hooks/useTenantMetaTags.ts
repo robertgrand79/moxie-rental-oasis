@@ -12,10 +12,28 @@ interface TenantMetaSettings {
   ogTitle: string;
   ogDescription: string;
   ogImage: string;
+  keywords: string;
+  canonicalBase: string;
+  twitterCardType: string;
+  twitterSite: string;
 }
 
+const DEFAULT_SETTINGS: TenantMetaSettings = {
+  siteTitle: 'Vacation Rentals',
+  siteName: 'Vacation Rentals',
+  favicon: '/favicon.ico',
+  metaDescription: 'Discover vacation rentals.',
+  ogTitle: 'Vacation Rentals',
+  ogDescription: 'Discover vacation rentals.',
+  ogImage: '',
+  keywords: '',
+  canonicalBase: '',
+  twitterCardType: 'summary_large_image',
+  twitterSite: '',
+};
+
 /**
- * Fetches and applies tenant-specific meta tags (title, favicon, OG tags)
+ * Fetches and applies tenant-specific meta tags (title, favicon, OG tags, Twitter Cards)
  * Works for unauthenticated visitors using tenantId from TenantContext
  */
 export const useTenantMetaTags = () => {
@@ -26,34 +44,22 @@ export const useTenantMetaTags = () => {
     queryKey: ['tenant-meta-tags', tenantId],
     queryFn: async (): Promise<TenantMetaSettings> => {
       if (!tenantId) {
-        return {
-          siteTitle: 'Vacation Rentals',
-          siteName: 'Vacation Rentals',
-          favicon: '/favicon.ico',
-          metaDescription: 'Discover vacation rentals.',
-          ogTitle: 'Vacation Rentals',
-          ogDescription: 'Discover vacation rentals.',
-          ogImage: '',
-        };
+        return DEFAULT_SETTINGS;
       }
 
       const { data, error } = await supabase
         .from('site_settings')
         .select('key, value')
         .eq('organization_id', tenantId)
-        .in('key', ['siteTitle', 'siteName', 'favicon', 'metaDescription', 'ogTitle', 'ogDescription', 'ogImage']);
+        .in('key', [
+          'siteTitle', 'siteName', 'favicon', 'metaDescription', 
+          'ogTitle', 'ogDescription', 'ogImage', 'keywords',
+          'canonicalBase', 'twitterCardType', 'twitterSite'
+        ]);
 
       if (error) {
         console.error('[TenantMetaTags] Error fetching settings:', error);
-        return {
-          siteTitle: 'Vacation Rentals',
-          siteName: 'Vacation Rentals',
-          favicon: '/favicon.ico',
-          metaDescription: 'Discover vacation rentals.',
-          ogTitle: 'Vacation Rentals',
-          ogDescription: 'Discover vacation rentals.',
-          ogImage: '',
-        };
+        return DEFAULT_SETTINGS;
       }
 
       const settingsMap: Record<string, string> = {};
@@ -67,13 +73,17 @@ export const useTenantMetaTags = () => {
       });
 
       return {
-        siteTitle: settingsMap.siteTitle || settingsMap.siteName || 'Vacation Rentals',
-        siteName: settingsMap.siteName || settingsMap.siteTitle || 'Vacation Rentals',
-        favicon: settingsMap.favicon || '/favicon.ico',
-        metaDescription: settingsMap.metaDescription || 'Discover vacation rentals.',
-        ogTitle: settingsMap.ogTitle || settingsMap.siteTitle || 'Vacation Rentals',
-        ogDescription: settingsMap.ogDescription || settingsMap.metaDescription || 'Discover vacation rentals.',
+        siteTitle: settingsMap.siteTitle || settingsMap.siteName || DEFAULT_SETTINGS.siteTitle,
+        siteName: settingsMap.siteName || settingsMap.siteTitle || DEFAULT_SETTINGS.siteName,
+        favicon: settingsMap.favicon || DEFAULT_SETTINGS.favicon,
+        metaDescription: settingsMap.metaDescription || DEFAULT_SETTINGS.metaDescription,
+        ogTitle: settingsMap.ogTitle || settingsMap.siteTitle || DEFAULT_SETTINGS.ogTitle,
+        ogDescription: settingsMap.ogDescription || settingsMap.metaDescription || DEFAULT_SETTINGS.ogDescription,
         ogImage: settingsMap.ogImage || '',
+        keywords: settingsMap.keywords || '',
+        canonicalBase: settingsMap.canonicalBase || '',
+        twitterCardType: settingsMap.twitterCardType || DEFAULT_SETTINGS.twitterCardType,
+        twitterSite: settingsMap.twitterSite || '',
       };
     },
     enabled: !tenantLoading,
@@ -89,39 +99,81 @@ export const useTenantMetaTags = () => {
       // Update document title
       document.title = settings.siteTitle;
 
-      // Update meta description
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        metaDesc.setAttribute('content', settings.metaDescription);
-      }
-
-      // Update favicon
-      let faviconLink = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
-      if (!faviconLink) {
-        faviconLink = document.createElement('link');
-        faviconLink.setAttribute('rel', 'icon');
-        document.head.appendChild(faviconLink);
-      }
-      faviconLink.setAttribute('href', settings.favicon);
-
-      // Update Open Graph tags
-      const updateMetaTag = (property: string, content: string) => {
-        const metaTag = document.querySelector(`meta[property="${property}"]`);
+      // Helper to update or create meta tags
+      const updateMetaTag = (selector: string, attribute: string, content: string) => {
+        let metaTag = document.querySelector(selector) as HTMLMetaElement;
+        if (!metaTag && content) {
+          metaTag = document.createElement('meta');
+          const [attrType, attrValue] = selector.match(/\[(\w+)="([^"]+)"\]/)?.slice(1) || [];
+          if (attrType && attrValue) {
+            metaTag.setAttribute(attrType, attrValue);
+          }
+          document.head.appendChild(metaTag);
+        }
         if (metaTag) {
-          metaTag.setAttribute('content', content);
+          metaTag.setAttribute(attribute, content);
         }
       };
 
-      updateMetaTag('og:title', settings.ogTitle);
-      updateMetaTag('og:description', settings.ogDescription);
+      // Helper to update or create link tags
+      const updateLinkTag = (selector: string, href: string) => {
+        let linkTag = document.querySelector(selector) as HTMLLinkElement;
+        if (!linkTag && href) {
+          linkTag = document.createElement('link');
+          const rel = selector.match(/rel="([^"]+)"/)?.[1];
+          if (rel) {
+            linkTag.setAttribute('rel', rel);
+          }
+          document.head.appendChild(linkTag);
+        }
+        if (linkTag) {
+          linkTag.setAttribute('href', href);
+        }
+      };
+
+      // Update meta description
+      updateMetaTag('meta[name="description"]', 'content', settings.metaDescription);
+
+      // Update keywords
+      if (settings.keywords) {
+        updateMetaTag('meta[name="keywords"]', 'content', settings.keywords);
+      }
+
+      // Update favicon
+      updateLinkTag('link[rel="icon"]', settings.favicon);
+
+      // Build canonical URL
+      const currentUrl = window.location.href;
+      const canonicalUrl = settings.canonicalBase 
+        ? `${settings.canonicalBase.replace(/\/$/, '')}${location.pathname}`
+        : currentUrl;
+      updateLinkTag('link[rel="canonical"]', canonicalUrl);
+
+      // Update Open Graph tags
+      updateMetaTag('meta[property="og:title"]', 'content', settings.ogTitle);
+      updateMetaTag('meta[property="og:description"]', 'content', settings.ogDescription);
+      updateMetaTag('meta[property="og:site_name"]', 'content', settings.siteName);
+      updateMetaTag('meta[property="og:url"]', 'content', canonicalUrl);
+      updateMetaTag('meta[property="og:type"]', 'content', 'website');
       if (settings.ogImage) {
-        updateMetaTag('og:image', settings.ogImage);
+        updateMetaTag('meta[property="og:image"]', 'content', settings.ogImage);
+      }
+
+      // Update Twitter Card tags
+      updateMetaTag('meta[name="twitter:card"]', 'content', settings.twitterCardType);
+      updateMetaTag('meta[name="twitter:title"]', 'content', settings.ogTitle);
+      updateMetaTag('meta[name="twitter:description"]', 'content', settings.ogDescription);
+      if (settings.twitterSite) {
+        updateMetaTag('meta[name="twitter:site"]', 'content', settings.twitterSite);
+      }
+      if (settings.ogImage) {
+        updateMetaTag('meta[name="twitter:image"]', 'content', settings.ogImage);
       }
 
     } catch (error) {
       console.error('[TenantMetaTags] Error updating meta tags:', error);
     }
-  }, [settings]);
+  }, [settings, location.pathname]);
 
   return { isHomePage, settings };
 };

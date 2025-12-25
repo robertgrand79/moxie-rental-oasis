@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save } from 'lucide-react';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import SEOImageUpload from './SEOImageUpload';
@@ -19,6 +20,10 @@ interface SEOData {
   ogDescription: string;
   ogImage: string;
   favicon: string;
+  keywords: string;
+  canonicalBase: string;
+  twitterCardType: string;
+  twitterSite: string;
 }
 
 const AI_PROMPTS = {
@@ -50,7 +55,11 @@ const SEOSettingsTab = () => {
     ogTitle: '',
     ogDescription: '',
     ogImage: '',
-    favicon: ''
+    favicon: '',
+    keywords: '',
+    canonicalBase: '',
+    twitterCardType: 'summary_large_image',
+    twitterSite: ''
   });
   const [aiModal, setAiModal] = useState<{ open: boolean; field: AIPromptField | null }>({
     open: false,
@@ -66,7 +75,11 @@ const SEOSettingsTab = () => {
         ogTitle: settings.ogTitle || '',
         ogDescription: settings.ogDescription || '',
         ogImage: settings.ogImage || '',
-        favicon: settings.favicon || ''
+        favicon: settings.favicon || '',
+        keywords: settings.keywords || '',
+        canonicalBase: settings.canonicalBase || '',
+        twitterCardType: settings.twitterCardType || 'summary_large_image',
+        twitterSite: settings.twitterSite || ''
       });
     }
   }, [settings]);
@@ -198,9 +211,78 @@ const SEOSettingsTab = () => {
                 />
               </div>
 
+              <div>
+                <Label htmlFor="keywords">Keywords (comma-separated)</Label>
+                <Input
+                  id="keywords"
+                  value={seoData.keywords}
+                  onChange={(e) => setSeoData({ ...seoData, keywords: e.target.value })}
+                  placeholder="vacation rentals, beach house, mountain cabin"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Optional: Keywords for search engines (less important for modern SEO)
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="canonicalBase">Canonical URL Base</Label>
+                <Input
+                  id="canonicalBase"
+                  value={seoData.canonicalBase}
+                  onChange={(e) => setSeoData({ ...seoData, canonicalBase: e.target.value })}
+                  placeholder="https://yourdomain.com"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your custom domain base URL for canonical tags (prevents duplicate content)
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Twitter Card Settings</CardTitle>
+              <CardDescription>
+                Configure how your content appears when shared on Twitter/X
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label htmlFor="twitterCardType">Twitter Card Type</Label>
+                <Select 
+                  value={seoData.twitterCardType} 
+                  onValueChange={(value) => setSeoData({ ...seoData, twitterCardType: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select card type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="summary">Summary (small image)</SelectItem>
+                    <SelectItem value="summary_large_image">Summary with Large Image</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="twitterSite">Twitter/X Handle</Label>
+                <Input
+                  id="twitterSite"
+                  value={seoData.twitterSite}
+                  onChange={(e) => setSeoData({ ...seoData, twitterSite: e.target.value })}
+                  placeholder="@yourbrand"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your Twitter/X username (will be attributed to shared cards)
+                </p>
+              </div>
+
+              <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+                Twitter cards will use your Open Graph title, description, and image by default.
+              </p>
+
               <Button onClick={handleSave} className="w-full">
                 <Save className="h-4 w-4 mr-2" />
-                Save SEO Settings
+                Save All SEO Settings
               </Button>
             </CardContent>
           </Card>
