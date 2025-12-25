@@ -1,5 +1,5 @@
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -146,11 +146,11 @@ class AdminErrorBoundary extends Component<Props, State> {
                 </EnhancedButton>
                 
                 <EnhancedButton
-                  onClick={() => window.location.href = '/admin'}
                   variant="outline"
                   icon={<Home className="h-4 w-4" />}
+                  asChild
                 >
-                  Go to Dashboard
+                  <Link to="/admin">Go to Dashboard</Link>
                 </EnhancedButton>
                 
                 <EnhancedButton

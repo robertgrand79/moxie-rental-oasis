@@ -65,7 +65,7 @@ const Auth = () => {
           const orgSlug = (membership?.organization as { slug?: string })?.slug;
           
           if (orgSlug) {
-            window.location.href = `/admin?org=${orgSlug}`;
+            navigate(`/admin?org=${orgSlug}`, { replace: true });
           } else {
             navigate('/admin', { replace: true });
           }

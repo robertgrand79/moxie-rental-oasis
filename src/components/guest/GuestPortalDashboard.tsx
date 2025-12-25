@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,7 @@ interface GuestProfile {
 
 const GuestPortalDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Fetch guest profile
@@ -166,7 +168,7 @@ const GuestPortalDashboard = () => {
             <CardDescription>Please sign in to access your reservations</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <Button onClick={() => window.location.href = '/auth'}>
+            <Button onClick={() => navigate('/auth')}>
               Sign In
             </Button>
           </CardContent>

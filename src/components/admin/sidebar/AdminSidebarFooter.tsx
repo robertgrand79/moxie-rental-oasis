@@ -128,8 +128,8 @@ const AdminSidebarFooter = () => {
         description: "You have been successfully signed out.",
       });
       
-      // Redirect to sign-in page
-      window.location.href = '/auth';
+      // Redirect to sign-in page - use full reload to clear all state
+      navigate('/auth', { replace: true });
     } catch (error: any) {
       toast({
         title: "Error",

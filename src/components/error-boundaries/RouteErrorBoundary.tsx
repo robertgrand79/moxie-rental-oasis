@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
@@ -40,9 +41,7 @@ export class RouteErrorBoundary extends Component<Props, State> {
     window.history.back();
   };
 
-  private handleGoHome = () => {
-    window.location.href = '/';
-  };
+  // handleGoHome removed - using Link component instead
 
   public render() {
     if (this.state.hasError) {
@@ -82,9 +81,11 @@ export class RouteErrorBoundary extends Component<Props, State> {
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Go Back
                   </Button>
-                  <Button onClick={this.handleGoHome} variant="outline">
-                    <Home className="w-4 h-4 mr-2" />
-                    Home
+                  <Button variant="outline" asChild>
+                    <Link to="/">
+                      <Home className="w-4 h-4 mr-2" />
+                      Home
+                    </Link>
                   </Button>
                 </div>
               </div>

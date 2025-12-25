@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +55,7 @@ interface SeamDevice {
 }
 
 export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
+  const navigate = useNavigate();
   const [workspace, setWorkspace] = useState<SeamWorkspace | null>(null);
   const [devices, setDevices] = useState<SeamDevice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -210,7 +212,7 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
             </div>
             <Button 
               variant="outline" 
-              onClick={() => window.location.href = '/admin/settings/smart-home'}
+              onClick={() => navigate('/admin/settings/smart-home')}
             >
               Go to Smart Home Settings
             </Button>
