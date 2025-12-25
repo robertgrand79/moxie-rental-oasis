@@ -14,7 +14,7 @@ const LogoSection = () => {
   const { tenantId, tenant, loading: tenantLoading } = useTenant();
 
   // Fetch logo settings from database scoped by tenant - query both camelCase and snake_case keys
-  const { data: logoSettings } = useQuery({
+  const { data: logoSettings, isLoading: settingsLoading } = useQuery({
     queryKey: ['logo-settings', tenantId],
     queryFn: async () => {
       if (!tenantId) {
@@ -54,11 +54,22 @@ const LogoSection = () => {
     staleTime: 30000
   });
 
+  const isLoading = tenantLoading || settingsLoading;
+
   // Use fetched settings or fallback to defaults
   const currentSettings = logoSettings || {
     siteName: tenant?.name || DEFAULT_LOGO_SETTINGS.siteName,
     logoUrl: tenant?.logo_url || DEFAULT_LOGO_SETTINGS.logoUrl
   };
+
+  // Show invisible placeholder while loading to prevent text flash
+  if (isLoading) {
+    return (
+      <div className="flex items-center">
+        <div className="h-14 min-w-[56px] max-w-[200px]" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center">

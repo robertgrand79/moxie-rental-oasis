@@ -22,13 +22,14 @@ import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
 
 const AdminSidebar = () => {
   const isMobile = useIsMobile();
-  const { settings } = useSimplifiedSiteSettings();
-  const { organization } = useCurrentOrganization();
+  const { settings, loading: settingsLoading } = useSimplifiedSiteSettings();
+  const { organization, loading: orgLoading } = useCurrentOrganization();
   const { isPlatformAdmin } = usePlatformAdmin();
   const { state, toggleSidebar } = useSidebar();
   
   const isCollapsed = state === 'collapsed';
   const logoUrl = settings.siteLogo || organization?.logo_url;
+  const isLoading = settingsLoading || orgLoading;
 
   // Filter menu items based on platform admin status
   const filteredMenuItems = useMemo(() => {
@@ -55,11 +56,15 @@ const AdminSidebar = () => {
       <SidebarHeader>
         <div className={`${isMobile ? 'p-3' : 'p-4'} ${isCollapsed ? 'p-2' : ''}`}>
           <div className="flex items-center justify-between gap-2">
-            {/* Logo/Name - hidden when collapsed */}
+            {/* Logo/Name - hidden when collapsed, placeholder while loading */}
             {!isCollapsed && (
               <>
-                {logoUrl ? (
-                <div className="flex items-center flex-1 min-w-0">
+                {isLoading ? (
+                  <div className="flex items-center flex-1 min-w-0">
+                    <div className={`${isMobile ? 'h-16' : 'h-20'} min-w-[64px] max-w-[200px]`} />
+                  </div>
+                ) : logoUrl ? (
+                  <div className="flex items-center flex-1 min-w-0">
                     <img 
                       src={logoUrl} 
                       alt="Site Logo" 
