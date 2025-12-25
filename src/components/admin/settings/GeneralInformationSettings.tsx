@@ -2,10 +2,9 @@
 import React from 'react';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Save, Settings, AlertCircle } from 'lucide-react';
+import { AIInput } from '@/components/ui/ai-input';
+import { AITextarea } from '@/components/ui/ai-textarea';
 
 interface GeneralInformationSettingsProps {
   siteData: any;
@@ -40,39 +39,39 @@ const GeneralInformationSettings = ({
         </EnhancedCardDescription>
       </EnhancedCardHeader>
       <EnhancedCardContent className="space-y-6">
-        <div>
-          <Label htmlFor="siteName">Site Name *</Label>
-          <Input
-            id="siteName"
-            value={siteData.siteName}
-            onChange={(e) => onInputChange('siteName', e.target.value)}
-            placeholder="Your business name"
-            className="mt-1"
-          />
-        </div>
+        <AIInput
+          label="Site Name *"
+          id="siteName"
+          value={siteData.siteName}
+          onChange={(e) => onInputChange('siteName', e.target.value)}
+          onValueChange={(value) => onInputChange('siteName', value)}
+          placeholder="Your business name"
+          aiPrompt="Generate a memorable, professional business name for a vacation rental company. The name should be easy to remember, convey trust and quality, and work well for branding."
+          aiTooltip="Generate site name with AI"
+        />
 
-        <div>
-          <Label htmlFor="tagline">Tagline</Label>
-          <Input
-            id="tagline"
-            value={siteData.tagline}
-            onChange={(e) => onInputChange('tagline', e.target.value)}
-            placeholder="A short, memorable phrase about your business"
-            className="mt-1"
-          />
-        </div>
+        <AIInput
+          label="Tagline"
+          id="tagline"
+          value={siteData.tagline}
+          onChange={(e) => onInputChange('tagline', e.target.value)}
+          onValueChange={(value) => onInputChange('tagline', value)}
+          placeholder="A short, memorable phrase about your business"
+          aiPrompt="Create a catchy, memorable tagline for a vacation rental business. It should be concise (under 10 words), convey the unique value proposition, and inspire travelers to book."
+          aiTooltip="Generate tagline with AI"
+        />
 
-        <div>
-          <Label htmlFor="description">Site Description *</Label>
-          <Textarea
-            id="description"
-            value={siteData.description}
-            onChange={(e) => onInputChange('description', e.target.value)}
-            placeholder="Describe your business and what makes it special"
-            rows={3}
-            className="mt-1"
-          />
-        </div>
+        <AITextarea
+          label="Site Description *"
+          id="description"
+          value={siteData.description}
+          onChange={(e) => onInputChange('description', e.target.value)}
+          onValueChange={(value) => onInputChange('description', value)}
+          placeholder="Describe your business and what makes it special"
+          rows={3}
+          aiPrompt="Write an engaging, professional business description for a vacation rental company. Include what makes the company special, the types of properties offered, and the experience guests can expect. Keep it between 2-4 sentences."
+          aiTooltip="Generate description with AI"
+        />
 
         <Button 
           onClick={onSave}
