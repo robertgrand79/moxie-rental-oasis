@@ -6,6 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Upload, X, Loader2, Save, ChevronDown, ChevronUp } from 'lucide-react';
+import { AIInput } from '@/components/ui/ai-input';
+import { AITextarea } from '@/components/ui/ai-textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from 'sonner';
@@ -181,25 +183,27 @@ const AboutPageSettings: React.FC<AboutPageSettingsProps> = ({
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="aboutTitle">Page Title</Label>
-                <Input
-                  id="aboutTitle"
-                  value={localData.aboutTitle}
-                  onChange={(e) => onInputChange('aboutTitle', e.target.value)}
-                  placeholder="About Us (leave empty to use 'About [Site Name]')"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="aboutHeroSubtitle">Hero Subtitle</Label>
-                <Textarea
-                  id="aboutHeroSubtitle"
-                  value={localData.aboutHeroSubtitle}
-                  onChange={(e) => onInputChange('aboutHeroSubtitle', e.target.value)}
-                  placeholder="We're passionate about creating unforgettable vacation experiences..."
-                  rows={3}
-                />
-              </div>
+              <AIInput
+                label="Page Title"
+                id="aboutTitle"
+                value={localData.aboutTitle}
+                onChange={(e) => onInputChange('aboutTitle', e.target.value)}
+                onValueChange={(value) => onInputChange('aboutTitle', value)}
+                placeholder="About Us (leave empty to use 'About [Site Name]')"
+                aiPrompt="Generate a compelling page title for an About Us page of a vacation rental company. It should be warm, inviting, and set the tone for the company story."
+                aiTooltip="Generate title with AI"
+              />
+              <AITextarea
+                label="Hero Subtitle"
+                id="aboutHeroSubtitle"
+                value={localData.aboutHeroSubtitle}
+                onChange={(e) => onInputChange('aboutHeroSubtitle', e.target.value)}
+                onValueChange={(value) => onInputChange('aboutHeroSubtitle', value)}
+                placeholder="We're passionate about creating unforgettable vacation experiences..."
+                rows={3}
+                aiPrompt="Write an engaging hero subtitle for a vacation rental company's About page. It should be 2-3 sentences that capture the company's passion and commitment to guest experiences."
+                aiTooltip="Generate subtitle with AI"
+              />
             </CardContent>
           </CollapsibleContent>
         </Card>
@@ -221,16 +225,17 @@ const AboutPageSettings: React.FC<AboutPageSettingsProps> = ({
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="aboutDescription">Introduction</Label>
-                <Textarea
-                  id="aboutDescription"
-                  value={localData.aboutDescription}
-                  onChange={(e) => onInputChange('aboutDescription', e.target.value)}
-                  placeholder="Tell visitors about your company..."
-                  rows={4}
-                />
-              </div>
+              <AITextarea
+                label="Introduction"
+                id="aboutDescription"
+                value={localData.aboutDescription}
+                onChange={(e) => onInputChange('aboutDescription', e.target.value)}
+                onValueChange={(value) => onInputChange('aboutDescription', value)}
+                placeholder="Tell visitors about your company..."
+                rows={4}
+                aiPrompt="Write a warm, engaging introduction for a vacation rental company's About page. Describe the company story, values, and what makes their properties special. 3-4 sentences."
+                aiTooltip="Generate introduction with AI"
+              />
 
               {/* Team Photo Upload */}
               <div className="space-y-2">
@@ -292,36 +297,38 @@ const AboutPageSettings: React.FC<AboutPageSettingsProps> = ({
               {renderCardEditor('aboutFeatureCards', 'Feature Highlight Cards (4 cards)', 4)}
 
               {/* Founder Quote */}
-              <div className="space-y-2">
-                <Label htmlFor="founderNames">Founder/Team Names</Label>
-                <Input
-                  id="founderNames"
-                  value={localData.founderNames}
-                  onChange={(e) => onInputChange('founderNames', e.target.value)}
-                  placeholder="John & Jane Doe"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="aboutFounderQuote">Founder Quote</Label>
-                <Textarea
-                  id="aboutFounderQuote"
-                  value={localData.aboutFounderQuote}
-                  onChange={(e) => onInputChange('aboutFounderQuote', e.target.value)}
-                  placeholder="We believe in creating spaces where families can come together..."
-                  rows={3}
-                />
-              </div>
+              <AIInput
+                label="Founder/Team Names"
+                id="founderNames"
+                value={localData.founderNames}
+                onChange={(e) => onInputChange('founderNames', e.target.value)}
+                onValueChange={(value) => onInputChange('founderNames', value)}
+                placeholder="John & Jane Doe"
+                enableAI={false}
+              />
+              <AITextarea
+                label="Founder Quote"
+                id="aboutFounderQuote"
+                value={localData.aboutFounderQuote}
+                onChange={(e) => onInputChange('aboutFounderQuote', e.target.value)}
+                onValueChange={(value) => onInputChange('aboutFounderQuote', value)}
+                placeholder="We believe in creating spaces where families can come together..."
+                rows={3}
+                aiPrompt="Write an authentic, heartfelt quote from a vacation rental company founder about their passion for hospitality and creating memorable guest experiences. 2-3 sentences."
+                aiTooltip="Generate quote with AI"
+              />
 
               {/* Tagline and Tags */}
-              <div className="space-y-2">
-                <Label htmlFor="aboutTagline">Tagline</Label>
-                <Input
-                  id="aboutTagline"
-                  value={localData.aboutTagline}
-                  onChange={(e) => onInputChange('aboutTagline', e.target.value)}
-                  placeholder="Your local ambassadors to exceptional vacation experiences"
-                />
-              </div>
+              <AIInput
+                label="Tagline"
+                id="aboutTagline"
+                value={localData.aboutTagline}
+                onChange={(e) => onInputChange('aboutTagline', e.target.value)}
+                onValueChange={(value) => onInputChange('aboutTagline', value)}
+                placeholder="Your local ambassadors to exceptional vacation experiences"
+                aiPrompt="Create a memorable tagline for a vacation rental company's About page. It should convey trust, local expertise, and commitment to quality. Under 10 words."
+                aiTooltip="Generate tagline with AI"
+              />
               <div className="space-y-2">
                 <Label htmlFor="aboutTags">Tags (comma-separated)</Label>
                 <Input
@@ -353,26 +360,28 @@ const AboutPageSettings: React.FC<AboutPageSettingsProps> = ({
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="missionStatement">Mission Statement</Label>
-                <Textarea
-                  id="missionStatement"
-                  value={localData.missionStatement}
-                  onChange={(e) => onInputChange('missionStatement', e.target.value)}
-                  placeholder="Our mission is to..."
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="missionDescription">Additional Details</Label>
-                <Textarea
-                  id="missionDescription"
-                  value={localData.missionDescription}
-                  onChange={(e) => onInputChange('missionDescription', e.target.value)}
-                  placeholder="Expand on your mission..."
-                  rows={4}
-                />
-              </div>
+              <AITextarea
+                label="Mission Statement"
+                id="missionStatement"
+                value={localData.missionStatement}
+                onChange={(e) => onInputChange('missionStatement', e.target.value)}
+                onValueChange={(value) => onInputChange('missionStatement', value)}
+                placeholder="Our mission is to..."
+                rows={3}
+                aiPrompt="Write a compelling mission statement for a vacation rental company. Focus on guest experience, quality accommodations, and creating memorable stays. 2-3 sentences."
+                aiTooltip="Generate mission statement with AI"
+              />
+              <AITextarea
+                label="Additional Details"
+                id="missionDescription"
+                value={localData.missionDescription}
+                onChange={(e) => onInputChange('missionDescription', e.target.value)}
+                onValueChange={(value) => onInputChange('missionDescription', value)}
+                placeholder="Expand on your mission..."
+                rows={4}
+                aiPrompt="Expand on a vacation rental company's mission with additional details about their approach, values, and commitment to guests. 3-4 sentences."
+                aiTooltip="Generate details with AI"
+              />
               {renderCardEditor('aboutMissionCards', 'Specialty Cards (2 cards)', 2)}
             </CardContent>
           </CollapsibleContent>
@@ -419,48 +428,50 @@ const AboutPageSettings: React.FC<AboutPageSettingsProps> = ({
             <CardContent className="space-y-6">
               <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
                 <Label className="text-base font-medium">Excellence Card</Label>
-                <div className="space-y-2">
-                  <Label htmlFor="aboutExcellenceTitle">Title</Label>
-                  <Input
-                    id="aboutExcellenceTitle"
-                    value={localData.aboutExcellenceTitle}
-                    onChange={(e) => onInputChange('aboutExcellenceTitle', e.target.value)}
-                    placeholder="Excellence"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="aboutExcellenceDescription">Description</Label>
-                  <Textarea
-                    id="aboutExcellenceDescription"
-                    value={localData.aboutExcellenceDescription}
-                    onChange={(e) => onInputChange('aboutExcellenceDescription', e.target.value)}
-                    placeholder="We strive for excellence..."
-                    rows={3}
-                  />
-                </div>
+                <AIInput
+                  label="Title"
+                  id="aboutExcellenceTitle"
+                  value={localData.aboutExcellenceTitle}
+                  onChange={(e) => onInputChange('aboutExcellenceTitle', e.target.value)}
+                  onValueChange={(value) => onInputChange('aboutExcellenceTitle', value)}
+                  placeholder="Excellence"
+                  enableAI={false}
+                />
+                <AITextarea
+                  label="Description"
+                  id="aboutExcellenceDescription"
+                  value={localData.aboutExcellenceDescription}
+                  onChange={(e) => onInputChange('aboutExcellenceDescription', e.target.value)}
+                  onValueChange={(value) => onInputChange('aboutExcellenceDescription', value)}
+                  placeholder="We strive for excellence..."
+                  rows={3}
+                  aiPrompt="Write a compelling description for a vacation rental company's 'Excellence' value card. Explain their commitment to high standards and quality guest experiences. 2-3 sentences."
+                  aiTooltip="Generate description with AI"
+                />
               </div>
 
               <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
                 <Label className="text-base font-medium">Authenticity Card</Label>
-                <div className="space-y-2">
-                  <Label htmlFor="aboutAuthenticityTitle">Title</Label>
-                  <Input
-                    id="aboutAuthenticityTitle"
-                    value={localData.aboutAuthenticityTitle}
-                    onChange={(e) => onInputChange('aboutAuthenticityTitle', e.target.value)}
-                    placeholder="Authenticity"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="aboutAuthenticityDescription">Description</Label>
-                  <Textarea
-                    id="aboutAuthenticityDescription"
-                    value={localData.aboutAuthenticityDescription}
-                    onChange={(e) => onInputChange('aboutAuthenticityDescription', e.target.value)}
-                    placeholder="We believe in showcasing the true essence..."
-                    rows={3}
-                  />
-                </div>
+                <AIInput
+                  label="Title"
+                  id="aboutAuthenticityTitle"
+                  value={localData.aboutAuthenticityTitle}
+                  onChange={(e) => onInputChange('aboutAuthenticityTitle', e.target.value)}
+                  onValueChange={(value) => onInputChange('aboutAuthenticityTitle', value)}
+                  placeholder="Authenticity"
+                  enableAI={false}
+                />
+                <AITextarea
+                  label="Description"
+                  id="aboutAuthenticityDescription"
+                  value={localData.aboutAuthenticityDescription}
+                  onChange={(e) => onInputChange('aboutAuthenticityDescription', e.target.value)}
+                  onValueChange={(value) => onInputChange('aboutAuthenticityDescription', value)}
+                  placeholder="We believe in showcasing the true essence..."
+                  rows={3}
+                  aiPrompt="Write a compelling description for a vacation rental company's 'Authenticity' value card. Explain how they provide genuine, local experiences for guests. 2-3 sentences."
+                  aiTooltip="Generate description with AI"
+                />
               </div>
             </CardContent>
           </CollapsibleContent>
@@ -483,19 +494,20 @@ const AboutPageSettings: React.FC<AboutPageSettingsProps> = ({
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="aboutClosingQuote">Closing Quote</Label>
-                <Textarea
-                  id="aboutClosingQuote"
-                  value={localData.aboutClosingQuote}
-                  onChange={(e) => onInputChange('aboutClosingQuote', e.target.value)}
-                  placeholder="Immerse yourself in the wonders of the area..."
-                  rows={3}
-                />
-                <p className="text-sm text-muted-foreground">
-                  This quote appears at the bottom of the "What Sets Us Apart" section
-                </p>
-              </div>
+              <AITextarea
+                label="Closing Quote"
+                id="aboutClosingQuote"
+                value={localData.aboutClosingQuote}
+                onChange={(e) => onInputChange('aboutClosingQuote', e.target.value)}
+                onValueChange={(value) => onInputChange('aboutClosingQuote', value)}
+                placeholder="Immerse yourself in the wonders of the area..."
+                rows={3}
+                aiPrompt="Write an inspiring closing quote for a vacation rental company's About page. It should invite guests to explore the area and book their stay. 2-3 sentences."
+                aiTooltip="Generate closing quote with AI"
+              />
+              <p className="text-sm text-muted-foreground">
+                This quote appears at the bottom of the "What Sets Us Apart" section
+              </p>
             </CardContent>
           </CollapsibleContent>
         </Card>
