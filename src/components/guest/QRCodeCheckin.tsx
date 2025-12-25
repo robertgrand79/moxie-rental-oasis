@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { tenantId } = useTenant();
+  const navigate = useNavigate();
   const [manualCode, setManualCode] = useState('');
   const [checkinStatus, setCheckinStatus] = useState<'pending' | 'checking' | 'success' | 'error'>('pending');
   const [currentReservationId, setCurrentReservationId] = useState(reservationId);
@@ -216,7 +218,7 @@ const QRCodeCheckin = ({ reservationId, accessCode }: QRCodeCheckinProps) => {
             )}
 
             <div className="mt-6 space-y-2">
-              <Button className="w-full" onClick={() => window.location.href = '/guest/portal'}>
+              <Button className="w-full" onClick={() => navigate('/guest/portal')}>
                 Open Guest Portal
               </Button>
               <Button variant="outline" className="w-full">

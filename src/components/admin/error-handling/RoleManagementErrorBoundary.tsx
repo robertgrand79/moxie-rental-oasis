@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminErrorBoundary from './AdminErrorBoundary';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
@@ -10,6 +10,8 @@ interface RoleManagementErrorBoundaryProps {
 }
 
 const RoleManagementErrorBoundary = ({ children }: RoleManagementErrorBoundaryProps) => {
+  const navigate = useNavigate();
+
   const handleRoleError = (error: Error) => {
     console.error('Role Management Error:', error);
     
@@ -42,7 +44,7 @@ const RoleManagementErrorBoundary = ({ children }: RoleManagementErrorBoundaryPr
               Reload Page
             </EnhancedButton>
             <EnhancedButton
-              onClick={() => window.location.href = '/admin'}
+              onClick={() => navigate('/admin')}
               variant="ghost"
               size="sm"
             >
