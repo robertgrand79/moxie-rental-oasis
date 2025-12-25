@@ -20,7 +20,7 @@ const SupportWidget: React.FC = () => {
     { label: 'Getting Started Guide', href: '/admin/help/getting-started', icon: Book },
     { label: 'FAQ', href: '/admin/help/faq', icon: FileQuestion },
     { label: 'Documentation', href: '/admin/help', icon: ExternalLink },
-    { label: 'System Status', href: '/status', icon: ExternalLink },
+    { label: 'System Status', href: '/admin/status', icon: ExternalLink },
   ];
 
   return (

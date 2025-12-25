@@ -215,6 +215,7 @@ const AppRoutes: React.FC = () => {
             <Route path="ai-assistant" element={<AdminAIAssistant />} />
             <Route path="help" element={<HelpCenterPage />} />
             <Route path="support-tickets" element={<SupportTicketsPage />} />
+            <Route path="status" element={<StatusPage />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
