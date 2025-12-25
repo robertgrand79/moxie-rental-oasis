@@ -58,12 +58,14 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
 
   const fetchPosts = useCallback(async (page: number, append: boolean = false, attempt = 0) => {
     console.log(`🔄 useOptimizedBlogPosts - fetching page ${page}, append: ${append}, attempt: ${attempt + 1}`);
-    
+
+    let didScheduleRetry = false;
+
     // Cancel any existing request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
+
     // Clear any existing timeout
     if (fetchTimeoutRef.current) {
       clearTimeout(fetchTimeoutRef.current);
@@ -71,7 +73,7 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
 
     // Create new abort controller for this request
     abortControllerRef.current = new AbortController();
-    
+
     if (!append && attempt === 0) {
       if (!isInitialLoadRef.current) {
         setLoading(true);
@@ -84,7 +86,7 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
     try {
       // Use different page sizes for initial load vs load more
       const currentPageSize = page === 1 ? pageSize : loadMoreSize;
-      
+
       const response: PaginatedBlogResponse = await optimizedBlogService.fetchBlogPostSummaries(
         publishedOnly,
         page,
@@ -106,7 +108,7 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
       } else {
         setPosts(response.posts);
       }
-      
+
       setHasMore(response.hasMore);
       setTotalCount(response.totalCount);
       setError(null);
@@ -118,26 +120,35 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
       }
 
       console.error('❌ Error in useOptimizedBlogPosts fetchPosts:', error);
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
+      const isRetryableError =
+        errorMessage.includes('Failed to fetch') ||
+        errorMessage.includes('Network connection error') ||
+        errorMessage.includes('Network request failed');
+
       // Check if we should retry
-      if (attempt < MAX_RETRIES && errorMessage.includes('Failed to fetch')) {
-        console.log(`🔄 Retrying blog posts fetch in ${RETRY_DELAY}ms (attempt ${attempt + 1}/${MAX_RETRIES})`);
-        
+      if (attempt < MAX_RETRIES && isRetryableError) {
+        const nextAttempt = attempt + 1;
+        const delayMs = RETRY_DELAY * nextAttempt;
+
+        didScheduleRetry = true;
+        console.log(`🔄 Retrying blog posts fetch in ${delayMs}ms (attempt ${nextAttempt}/${MAX_RETRIES})`);
+
         fetchTimeoutRef.current = setTimeout(() => {
-          fetchPosts(page, append, attempt + 1);
-        }, RETRY_DELAY * (attempt + 1));
-        
+          fetchPosts(page, append, nextAttempt);
+        }, delayMs);
+
         return;
       }
-      
+
       // Max retries reached or non-network error
       setError(errorMessage);
       if (!append) {
         setPosts([]);
       }
-      
+
       if (attempt >= MAX_RETRIES) {
         toast({
           title: 'Network Error',
@@ -146,7 +157,7 @@ export const useOptimizedBlogPosts = (options: UseOptimizedBlogPostsOptions = {}
         });
       }
     } finally {
-      if (attempt === 0 || attempt >= MAX_RETRIES) {
+      if (!didScheduleRetry && (attempt === 0 || attempt >= MAX_RETRIES)) {
         setLoading(false);
         setIsLoadingMore(false);
       }

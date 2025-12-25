@@ -27,7 +27,8 @@ const BlogsManager = ({
   // Use optimized hook that excludes content field for fast loading
   const { 
     posts: blogPosts, 
-    loading, 
+    loading,
+    error,
     refetch, 
     totalCount,
     hasMore,
@@ -221,6 +222,32 @@ const BlogsManager = ({
     );
   }
 
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="text-lg font-semibold text-foreground">Couldn’t load blog posts</h2>
+          <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              onClick={refetch}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            >
+              Retry
+            </button>
+            <button
+              onClick={handleRefresh}
+              className="px-4 py-2 border border-border bg-background text-foreground rounded-md hover:bg-accent"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <ModernBlogsHeader
@@ -241,7 +268,24 @@ const BlogsManager = ({
         onRefresh={handleRefresh}
       />
 
-      {viewMode === 'grid' ? (
+      {postsForDisplay.length === 0 ? (
+        <div className="rounded-lg border border-border bg-card p-10 text-center">
+          <h2 className="text-lg font-semibold text-foreground">No blog posts found</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {searchQuery || contentTypeFilter !== 'all' || statusFilter !== 'all'
+              ? 'Try adjusting your search or filters.'
+              : 'Create your first blog post to get started.'}
+          </p>
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={handleAddNew}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            >
+              Add Blog Post
+            </button>
+          </div>
+        </div>
+      ) : viewMode === 'grid' ? (
         <BlogsGrid 
           posts={postsForDisplay} 
           onEdit={handleEdit}
