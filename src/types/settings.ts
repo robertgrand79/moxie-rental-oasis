@@ -53,6 +53,10 @@ export interface SEOData {
   ogDescription: string;
   ogImage: string;
   favicon: string;
+  keywords: string;
+  canonicalBase: string;
+  twitterCardType: string;
+  twitterSite: string;
 }
 
 export interface AnalyticsData {
