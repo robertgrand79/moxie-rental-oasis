@@ -5,6 +5,7 @@ const isRedirecting = performDomainRedirect();
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { HelmetProvider } from 'react-helmet-async';
 import App from './App.tsx';
 import './index.css';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -63,10 +64,12 @@ if (!isRedirecting) {
   });
 
   createRoot(document.getElementById("root")!).render(
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
