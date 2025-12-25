@@ -263,7 +263,7 @@ const AppRoutes: React.FC = () => {
         {/* Public standalone routes */}
         <Route path="/acknowledge" element={<AcknowledgePage />} />
         <Route path="/contractor/:token" element={<ContractorPortal />} />
-        <Route path="/status" element={<StatusPage />} />
+        <Route path="/status" element={<Navigate to="/admin/status" replace />} />
 
         {/* Onboarding Routes */}
         <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
@@ -338,6 +338,7 @@ const AppRoutes: React.FC = () => {
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
           <Route path="help" element={<HelpCenterPage />} />
           <Route path="support-tickets" element={<SupportTicketsPage />} />
+          <Route path="status" element={<StatusPage />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
