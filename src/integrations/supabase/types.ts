@@ -7511,6 +7511,15 @@ export type Database = {
           domain_last_checked_at: string | null
           domain_verification_status: string | null
           domain_verified_at: string | null
+          has_openphone_configured: boolean | null
+          has_openweather_configured: boolean | null
+          has_pricelabs_configured: boolean | null
+          has_resend_configured: boolean | null
+          has_seam_configured: boolean | null
+          has_stripe_configured: boolean | null
+          has_stripe_publishable_configured: boolean | null
+          has_stripe_webhook_configured: boolean | null
+          has_turno_configured: boolean | null
           id: string | null
           is_active: boolean | null
           is_template: boolean | null
@@ -7518,26 +7527,14 @@ export type Database = {
           name: string | null
           onboarding_completed: boolean | null
           onboarding_step: number | null
-          openphone_api_key: string | null
           openphone_phone_number: string | null
-          openphone_webhook_secret: string | null
-          openweather_api_key: string | null
-          pricelabs_api_key: string | null
-          resend_api_key: string | null
-          seam_api_key: string | null
-          seam_webhook_secret: string | null
           slug: string | null
           stripe_account_id: string | null
           stripe_customer_id: string | null
-          stripe_publishable_key: string | null
-          stripe_secret_key: string | null
-          stripe_webhook_secret: string | null
           subscription_status: string | null
           subscription_tier: string | null
           template_type: string | null
           trial_ends_at: string | null
-          turno_api_secret: string | null
-          turno_api_token: string | null
           turno_partner_id: string | null
           updated_at: string | null
           website: string | null
@@ -7549,6 +7546,15 @@ export type Database = {
           domain_last_checked_at?: string | null
           domain_verification_status?: string | null
           domain_verified_at?: string | null
+          has_openphone_configured?: never
+          has_openweather_configured?: never
+          has_pricelabs_configured?: never
+          has_resend_configured?: never
+          has_seam_configured?: never
+          has_stripe_configured?: never
+          has_stripe_publishable_configured?: never
+          has_stripe_webhook_configured?: never
+          has_turno_configured?: never
           id?: string | null
           is_active?: boolean | null
           is_template?: boolean | null
@@ -7556,26 +7562,14 @@ export type Database = {
           name?: string | null
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
-          openphone_api_key?: never
           openphone_phone_number?: string | null
-          openphone_webhook_secret?: never
-          openweather_api_key?: never
-          pricelabs_api_key?: never
-          resend_api_key?: never
-          seam_api_key?: never
-          seam_webhook_secret?: never
           slug?: string | null
           stripe_account_id?: string | null
           stripe_customer_id?: string | null
-          stripe_publishable_key?: never
-          stripe_secret_key?: never
-          stripe_webhook_secret?: never
           subscription_status?: string | null
           subscription_tier?: string | null
           template_type?: string | null
           trial_ends_at?: string | null
-          turno_api_secret?: never
-          turno_api_token?: never
           turno_partner_id?: string | null
           updated_at?: string | null
           website?: string | null
@@ -7587,6 +7581,15 @@ export type Database = {
           domain_last_checked_at?: string | null
           domain_verification_status?: string | null
           domain_verified_at?: string | null
+          has_openphone_configured?: never
+          has_openweather_configured?: never
+          has_pricelabs_configured?: never
+          has_resend_configured?: never
+          has_seam_configured?: never
+          has_stripe_configured?: never
+          has_stripe_publishable_configured?: never
+          has_stripe_webhook_configured?: never
+          has_turno_configured?: never
           id?: string | null
           is_active?: boolean | null
           is_template?: boolean | null
@@ -7594,26 +7597,14 @@ export type Database = {
           name?: string | null
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
-          openphone_api_key?: never
           openphone_phone_number?: string | null
-          openphone_webhook_secret?: never
-          openweather_api_key?: never
-          pricelabs_api_key?: never
-          resend_api_key?: never
-          seam_api_key?: never
-          seam_webhook_secret?: never
           slug?: string | null
           stripe_account_id?: string | null
           stripe_customer_id?: string | null
-          stripe_publishable_key?: never
-          stripe_secret_key?: never
-          stripe_webhook_secret?: never
           subscription_status?: string | null
           subscription_tier?: string | null
           template_type?: string | null
           trial_ends_at?: string | null
-          turno_api_secret?: never
-          turno_api_token?: never
           turno_partner_id?: string | null
           updated_at?: string | null
           website?: string | null
