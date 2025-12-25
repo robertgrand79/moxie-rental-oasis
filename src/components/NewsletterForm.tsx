@@ -55,9 +55,17 @@ const NewsletterForm = ({
               name="subject"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email Subject</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your newsletter subject..." {...field} />
+                    <Input 
+                      placeholder="Your newsletter subject..." 
+                      enableAI={true}
+                      aiLabel="Email Subject"
+                      aiPrompt="Generate an engaging email subject line for a vacation rental newsletter that will increase open rates. Keep it concise and compelling."
+                      aiTooltip="Generate subject with AI"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onValueChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

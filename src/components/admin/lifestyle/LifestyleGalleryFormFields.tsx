@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -40,22 +39,30 @@ const LifestyleGalleryFormFields = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="md:col-span-2">
-        <Label htmlFor="title">Title *</Label>
         <Input
           id="title"
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           required
+          enableAI={true}
+          aiLabel="Title *"
+          aiPrompt="Generate an engaging title for a local lifestyle/activity highlight that will appeal to vacation guests. Make it catchy and descriptive."
+          aiTooltip="Generate title with AI"
+          onValueChange={(value) => setFormData({ ...formData, title: value })}
         />
       </div>
 
       <div className="md:col-span-2">
-        <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={3}
+          enableAI={true}
+          aiLabel="Description"
+          aiPrompt="Write an enticing description for a local activity or experience that will appeal to vacation guests. Highlight what makes this activity special and why guests should try it."
+          aiTooltip="Generate description with AI"
+          onValueChange={(value) => setFormData({ ...formData, description: value })}
         />
       </div>
 
