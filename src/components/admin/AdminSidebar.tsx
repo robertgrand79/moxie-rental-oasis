@@ -59,11 +59,11 @@ const AdminSidebar = () => {
             {!isCollapsed && (
               <>
                 {logoUrl ? (
-                              <div className="flex items-center flex-1 min-w-0">
+                <div className="flex items-center flex-1 min-w-0">
                     <img 
                       src={logoUrl} 
                       alt="Site Logo" 
-                      className={`${isMobile ? 'h-10' : 'h-12'} w-auto max-w-[160px] object-contain`}
+                      className={`${isMobile ? 'h-14' : 'h-16'} w-auto max-w-[200px] object-contain`}
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                       }}
