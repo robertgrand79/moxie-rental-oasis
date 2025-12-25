@@ -140,7 +140,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/acknowledge" element={<AcknowledgePage />} />
           <Route path="/contractor/:token" element={<ContractorPortal />} />
           <Route path="/accept-invite" element={<AcceptInvitation />} />
-          <Route path="/status" element={<StatusPage />} />
+          <Route path="/status" element={<Navigate to="/admin/status" replace />} />
 
           {/* Shared Onboarding Routes */}
           <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
