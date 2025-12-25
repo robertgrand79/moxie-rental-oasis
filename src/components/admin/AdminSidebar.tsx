@@ -63,7 +63,7 @@ const AdminSidebar = () => {
                     <img 
                       src={logoUrl} 
                       alt="Site Logo" 
-                      className={`${isMobile ? 'h-14' : 'h-16'} w-auto max-w-[200px] object-contain`}
+                      className={`${isMobile ? 'h-16' : 'h-20'} min-w-[64px] max-w-[200px] object-contain`}
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                       }}

@@ -67,7 +67,7 @@ const LogoSection = () => {
           <img 
             src={currentSettings.logoUrl} 
             alt={currentSettings.siteName} 
-            className="h-12 w-auto max-w-[180px] object-contain"
+            className="h-14 min-w-[56px] max-w-[200px] object-contain"
           />
         ) : (
           <span className="text-xl font-bold text-foreground">
