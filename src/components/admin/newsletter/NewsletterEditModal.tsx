@@ -90,7 +90,16 @@ const NewsletterEditModal = ({
                 <FormItem>
                   <FormLabel>Subject</FormLabel>
                   <FormControl>
-                    <Input placeholder="Newsletter subject line" {...field} />
+                    <Input 
+                      placeholder="Newsletter subject line" 
+                      value={field.value}
+                      onChange={field.onChange}
+                      onValueChange={field.onChange}
+                      enableAI={true}
+                      aiLabel="Subject Line"
+                      aiPrompt="Generate an engaging email subject line for a newsletter that will increase open rates. Keep it concise (50 characters max), compelling, and create curiosity."
+                      aiTooltip="Generate subject with AI"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

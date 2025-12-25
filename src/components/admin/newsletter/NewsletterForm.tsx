@@ -334,9 +334,15 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                     <FormControl>
                       <Input 
                         placeholder="Enter your newsletter subject..." 
-                        {...field} 
+                        value={field.value}
+                        onChange={field.onChange}
+                        onValueChange={field.onChange}
                         disabled={isLoading || isSaving}
                         className="text-base"
+                        enableAI={true}
+                        aiLabel="Subject Line"
+                        aiPrompt="Generate an engaging email subject line for a newsletter that will increase open rates. Keep it concise (50 characters max), compelling, and create curiosity."
+                        aiTooltip="Generate subject with AI"
                       />
                     </FormControl>
                     <FormMessage />
