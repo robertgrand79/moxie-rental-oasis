@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import { SettingsState } from './types';
 import { debug } from '@/utils/debug';
+import type { Json } from '@/integrations/supabase/types';
 
 export const useSettingsOperations = (
   setSettings: React.Dispatch<React.SetStateAction<SettingsState>>,
@@ -16,7 +17,7 @@ export const useSettingsOperations = (
   const { triggerAutoSync } = useAutoSync({ enabled: true, debounceMs: 1500 });
 
   // Improved serialization function that handles JSONB properly
-  const serializeSettingValue = (value: any): any => {
+  const serializeSettingValue = (value: unknown): Json => {
     debug.settings('Serializing value:', value, 'type:', typeof value);
     
     // Handle null and undefined
@@ -36,14 +37,14 @@ export const useSettingsOperations = (
     
     // Handle objects and arrays - JSONB column will handle JSON automatically
     if (typeof value === 'object') {
-      return value; // Don't JSON.stringify for JSONB columns
+      return value as Json;
     }
     
-    return value;
+    return value as Json;
   };
 
   // Save individual setting with improved error handling and auto-sync - scoped by organization
-  const saveSetting = useCallback(async (key: string, value: any): Promise<boolean> => {
+  const saveSetting = useCallback(async (key: string, value: unknown): Promise<boolean> => {
     debug.settings(`Starting save for ${key}:`, value);
 
     if (!user) {

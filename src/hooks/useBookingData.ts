@@ -2,6 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DynamicPricing, AvailabilityBlock, ExternalCalendar } from '@/types/booking';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import type { Database } from '@/integrations/supabase/types';
+import type { 
+  ReservationCreateData, 
+  ReservationUpdateData, 
+  DynamicPricingUpsertData, 
+  AvailabilityBlockCreateData,
+  WebhookEventData 
+} from '@/types/mutations';
 
 // Hook to get organization-scoped property IDs
 const useOrganizationPropertyIds = () => {
@@ -67,10 +75,10 @@ export const useCreateReservation = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (reservation: any) => {
+    mutationFn: async (reservation: ReservationCreateData) => {
       const { data, error } = await supabase
         .from('property_reservations')
-        .insert(reservation)
+        .insert(reservation as unknown as Database['public']['Tables']['property_reservations']['Insert'])
         .select()
         .single();
       
@@ -87,10 +95,10 @@ export const useUpdateReservation = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: ReservationUpdateData }) => {
       const { data, error } = await supabase
         .from('property_reservations')
-        .update(updates)
+        .update(updates as unknown as Database['public']['Tables']['property_reservations']['Update'])
         .eq('id', id)
         .select()
         .single();
@@ -212,10 +220,10 @@ export const useUpdatePricing = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (pricing: any) => {
+    mutationFn: async (pricing: DynamicPricingUpsertData) => {
       const { data, error } = await supabase
         .from('dynamic_pricing')
-        .upsert(pricing, { onConflict: 'property_id,date' })
+        .upsert(pricing as unknown as Database['public']['Tables']['dynamic_pricing']['Insert'], { onConflict: 'property_id,date' })
         .select()
         .single();
       
@@ -258,10 +266,10 @@ export const useCreateAvailabilityBlock = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (block: any) => {
+    mutationFn: async (block: AvailabilityBlockCreateData) => {
       const { data, error } = await supabase
         .from('availability_blocks')
-        .insert(block)
+        .insert(block as unknown as Database['public']['Tables']['availability_blocks']['Insert'])
         .select()
         .single();
       
@@ -323,11 +331,7 @@ export const useSyncPriceLabs = () => {
 
 export const useProcessWebhook = () => {
   return useMutation({
-    mutationFn: async ({ platform, eventType, data }: { 
-      platform: string; 
-      eventType: string; 
-      data: any; 
-    }) => {
+    mutationFn: async ({ platform, eventType, data }: WebhookEventData) => {
       const { data: result, error } = await supabase.functions.invoke('booking-webhook', {
         body: {
           platform,

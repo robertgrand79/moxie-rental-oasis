@@ -2,6 +2,7 @@
 import { usePropertyFetch } from './usePropertyFetch';
 import { usePropertyOperations } from './usePropertyOperations';
 import { usePropertyDeletion } from './usePropertyDeletion';
+import type { PropertyFormData } from '@/types/property-form';
 
 export const useProperties = () => {
   const { properties, setProperties, loading, error, refetch } = usePropertyFetch();
@@ -11,7 +12,7 @@ export const useProperties = () => {
   // Ensure properties is always an array
   const safeProperties = Array.isArray(properties) ? properties : [];
 
-  const addProperty = async (propertyData: any) => {
+  const addProperty = async (propertyData: PropertyFormData) => {
     const result = await addPropertyOperation(propertyData);
     if (result) {
       setProperties(prev => {
@@ -22,7 +23,7 @@ export const useProperties = () => {
     return result;
   };
 
-  const editProperty = async (propertyId: string, propertyData: any) => {
+  const editProperty = async (propertyId: string, propertyData: PropertyFormData) => {
     const result = await editPropertyOperation(propertyId, propertyData);
     if (result) {
       setProperties(prev => {

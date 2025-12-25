@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useWorkOrderManagement, WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { useWorkOrderEmail, SendMethod } from '@/hooks/useWorkOrderEmail';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import type { WorkOrderFormData } from '@/types/mutations';
 
 export const useWorkOrderOperations = () => {
   const {
@@ -25,7 +25,7 @@ export const useWorkOrderOperations = () => {
 
   const [updatingWorkOrders, setUpdatingWorkOrders] = useState<Set<string>>(new Set());
 
-  const handleSaveWorkOrder = async (workOrderData: any, editingWorkOrder: WorkOrder | null) => {
+  const handleSaveWorkOrder = async (workOrderData: WorkOrderFormData, editingWorkOrder: WorkOrder | null) => {
     try {
       if (editingWorkOrder) {
         await updateWorkOrder(editingWorkOrder.id, workOrderData);
@@ -65,7 +65,7 @@ export const useWorkOrderOperations = () => {
 
     try {
       const currentWorkOrder = workOrders.find(wo => wo.id === workOrderId);
-      const updateData: any = { status };
+      const updateData: Partial<WorkOrderFormData> = { status };
       
       // Set timestamps when moving TO certain statuses
       if (status === 'sent' && !currentWorkOrder?.sent_at) {
