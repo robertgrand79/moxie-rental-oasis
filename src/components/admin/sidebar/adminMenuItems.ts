@@ -191,7 +191,7 @@ export const adminMenuItems = [
       },
       {
         title: 'System Status',
-        href: '/status',
+        href: '/admin/status',
         icon: Activity,
         description: 'Check system health and status'
       }
