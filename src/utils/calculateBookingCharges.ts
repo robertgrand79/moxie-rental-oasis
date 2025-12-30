@@ -75,26 +75,28 @@ export async function calculateBookingCharges(
     throw new Error('Property not found');
   }
 
-  // Fetch dynamic pricing for each night of the stay
+  // Fetch dynamic pricing for each night of the stay using secure RPC function
   const stayDates = eachDayOfInterval({ 
     start: checkIn, 
     end: addDays(checkOut, -1)
   });
 
+  // Use the secure get_public_pricing function that only exposes guest-facing prices
   const { data: dynamicPrices, error: pricingError } = await supabase
-    .from('dynamic_pricing')
-    .select('date, final_price, pricing_source')
-    .eq('property_id', propertyId)
-    .in('date', stayDates.map(d => format(d, 'yyyy-MM-dd')));
+    .rpc('get_public_pricing', {
+      p_property_id: propertyId,
+      p_start_date: format(checkIn, 'yyyy-MM-dd'),
+      p_end_date: format(addDays(checkOut, -1), 'yyyy-MM-dd')
+    });
 
   if (pricingError) {
     console.error('Error fetching dynamic pricing:', pricingError);
   }
 
-  // Create a map of date -> price
+  // Create a map of date -> price (pricing_source not exposed for security)
   const priceMap = new Map<string, { price: number; source: string }>();
   (dynamicPrices || []).forEach(p => {
-    priceMap.set(p.date, { price: p.final_price, source: p.pricing_source });
+    priceMap.set(p.date, { price: p.final_price, source: 'dynamic' });
   });
 
   // Calculate accommodation total using dynamic pricing with fallback to base price
