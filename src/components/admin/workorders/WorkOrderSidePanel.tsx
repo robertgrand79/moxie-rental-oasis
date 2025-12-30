@@ -81,30 +81,39 @@ const WorkOrderSidePanel = ({
     const fetchOrganizationUsers = async () => {
       if (!organization?.id) return;
       
-      const { data, error } = await supabase
+      // First get organization member user IDs
+      const { data: members, error: membersError } = await supabase
         .from('organization_members')
-        .select(`
-          user_id,
-          profiles!organization_members_user_id_fkey (
-            id,
-            full_name,
-            email
-          )
-        `)
+        .select('user_id')
         .eq('organization_id', organization.id);
 
-      if (error) {
-        console.error('Error fetching organization users:', error);
+      if (membersError) {
+        console.error('Error fetching organization members:', membersError);
         return;
       }
 
-      const users: OrganizationUser[] = (data || [])
-        .filter((member: any) => member.profiles)
-        .map((member: any) => ({
-          id: member.profiles.id,
-          full_name: member.profiles.full_name,
-          email: member.profiles.email,
-        }));
+      if (!members || members.length === 0) {
+        setOrganizationUsers([]);
+        return;
+      }
+
+      // Then fetch profiles for those user IDs
+      const userIds = members.map(m => m.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        return;
+      }
+
+      const users: OrganizationUser[] = (profiles || []).map((profile: any) => ({
+        id: profile.id,
+        full_name: profile.full_name,
+        email: profile.email,
+      }));
 
       setOrganizationUsers(users);
     };
