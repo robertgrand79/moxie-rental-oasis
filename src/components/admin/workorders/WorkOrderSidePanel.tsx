@@ -85,7 +85,7 @@ const WorkOrderSidePanel = ({
         .from('organization_members')
         .select(`
           user_id,
-          profiles:user_id (
+          profiles!organization_members_user_id_fkey (
             id,
             full_name,
             email
