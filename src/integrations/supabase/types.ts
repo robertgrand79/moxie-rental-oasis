@@ -7785,6 +7785,21 @@ export type Database = {
           stripe_webhook_secret: string
         }[]
       }
+      get_public_pricing: {
+        Args: {
+          p_end_date: string
+          p_property_id: string
+          p_start_date: string
+        }
+        Returns: {
+          checkin_allowed: boolean
+          checkout_allowed: boolean
+          currency: string
+          date: string
+          final_price: number
+          min_stay: number
+        }[]
+      }
       get_reservation_by_id_and_email: {
         Args: { p_guest_email: string; p_reservation_id: string }
         Returns: {
