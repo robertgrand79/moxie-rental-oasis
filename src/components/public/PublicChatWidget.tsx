@@ -7,7 +7,59 @@ import { useTenant } from '@/contexts/TenantContext';
 import { cn } from '@/lib/utils';
 import { useLocation } from 'react-router-dom';
 import ChatAvatar from '@/components/chat/ChatAvatar';
-import { AvatarType } from '@/components/chat/avatars';
+import { AvatarType, avatarInfo } from '@/components/chat/avatars';
+
+// Fun, personality-driven welcome messages for each avatar
+const getPersonalizedWelcome = (avatarType: AvatarType, customWelcome?: string): string => {
+  if (customWelcome && customWelcome.trim()) return customWelcome;
+  
+  const avatarName = avatarInfo[avatarType]?.name || 'Assistant';
+  
+  const greetings: Partial<Record<AvatarType, string>> = {
+    'captain-moxie': `Hey there, traveler! I'm ${avatarName} - your heroic guide to an amazing stay! What can I help you with?`,
+    'pop-art-moxie': `WOW! Hey! I'm ${avatarName}! Ready to make your stay POP? What's on your mind?`,
+    'action-moxie': `Yo! I'm ${avatarName}, ready for action! How can I help make your stay legendary?`,
+    'retro-comic-host': `Golly gee! I'm ${avatarName}, at your service! How may I assist you today, friend?`,
+    'moxie-mascot': `Hey hey! ${avatarName} here, your #1 travel buddy! What can I help you with?`,
+    'ink-style-moxie': `*sketches a wave* Hey! I'm ${avatarName}. What's your story? How can I help?`,
+    'berry-mascot': `Hiii! I'm ${avatarName}! So excited to help you! What do you need?`,
+    'blaze-mascot': `What's up! ${avatarName} here, fired up to help you! What can I do?`,
+    'cool-mascot': `Hey there~ I'm ${avatarName}. Chill vibes only! How can I help you out?`,
+    'mint-mascot': `🎧 Yo! ${avatarName} here, ready to tune into your needs! What's up?`,
+    'rose-mascot': `Hello lovely! I'm ${avatarName}. How can I brighten your stay today?`,
+    'spark-mascot': `⚡ ZAP! I'm ${avatarName}! Electrified to help! What do you need?`,
+    'sunny-mascot': `Hey sunshine! I'm ${avatarName}! Ready to make your day brighter! What's up?`,
+    'moxie-fox': `Hey there! I'm ${avatarName} - your clever travel buddy! 🦊 How can I make your stay amazing?`,
+    'hoot-owl': `Hoo-hoo! I'm ${avatarName}, your wise guide. 🦉 What would you like to know about your stay?`,
+    'casita-house': `Welcome home! I'm ${avatarName}, and I'm so happy you're here! 🏠 How can I help you settle in?`,
+    'genie-mo': `Your wish is my command! ✨ I'm ${avatarName} - ready to make your stay magical!`,
+    'blobby': `Bloop bloop! I'm ${avatarName}! 🫧 Super excited to help you with your stay!`,
+    'paw-dog': `Woof woof! I'm ${avatarName}, your loyal travel buddy! 🐕 What can I help you sniff out?`,
+    'robo-host': `Greetings, traveler! I'm ${avatarName}, at your service. 🤖 How may I assist with your stay?`,
+    'tropico-drink': `Aloha! I'm ${avatarName} - bringing those vacation vibes! 🍹 How can I help you relax?`,
+    // Big Ten mascots
+    'brutus-buckeye': `O-H-I-O! I'm ${avatarName}, ready to help you score an amazing stay! 🏈`,
+    'sparty': `THIS IS SPARTA... I mean, your vacation! I'm ${avatarName}, at your service! 💪`,
+    'herky-hawk': `Go Hawks! I'm ${avatarName}, ready to swoop in and help with your stay! 🦅`,
+    'bucky-badger': `On, Wisconsin! I'm ${avatarName}, here to make your stay great! 🦡`,
+    'goldy-gopher': `Ski-U-Mah! I'm ${avatarName}, ready to dig into your questions! 🐿️`,
+    'nittany-lion': `We Are... here to help! I'm ${avatarName}, your Penn State guide! 🦁`,
+    'purdue-pete': `Boiler Up! I'm ${avatarName}, engineering the perfect stay for you! 🔧`,
+    'wolverine': `Go Blue! I'm ${avatarName}, fierce about helping you! 💛💙`,
+    'herbie-husker': `Go Big Red! I'm ${avatarName}, ready to help with your cornhusker stay! 🌽`,
+    'willie-wildcat': `Go 'Cats! I'm ${avatarName}, purr-fectly ready to assist! 🐱`,
+    'testudo': `Fear the Turtle! I'm ${avatarName}, slowly and surely helping you! 🐢`,
+    'scarlet-knight': `Rutgers pride! I'm ${avatarName}, ready to champion your stay! ⚔️`,
+    'oregon-duck': `Sco Ducks! I'm ${avatarName}, ready to waddle into action for you! 🦆`,
+    'joe-bruin': `Go Bruins! I'm ${avatarName}, bear-y excited to help! 🐻`,
+    'tommy-trojan': `Fight On! I'm ${avatarName}, ready to conquer your stay questions! ⚔️`,
+    'harry-husky': `Go Huskies! I'm ${avatarName}, howling to help you! 🐺`,
+    'illini': `I-L-L-I-N-I! I'm your Fighting Illini guide, ready to help! 🔶`,
+    'hoosiers': `Go Hoosiers! I'm here to help with your Indiana stay! 🔴`,
+  };
+  
+  return greetings[avatarType] || `Hi! I'm ${avatarName}, here to help you with your stay!`;
+};
 
 interface Message {
   role: 'user' | 'assistant';
@@ -452,7 +504,7 @@ const PublicChatWidget = () => {
                 />
               </div>
               <div>
-                <span className="font-semibold">{settings.display_name}</span>
+                <span className="font-semibold">{settings.display_name || avatarInfo[avatarType]?.name || 'Assistant'}</span>
                 <p className="text-xs opacity-80">Online now</p>
               </div>
             </div>
@@ -503,8 +555,8 @@ const PublicChatWidget = () => {
                         backgroundColorEnd={settings.avatar_background_color_end}
                       />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">{settings.display_name}</h3>
-                    <p className="text-sm text-muted-foreground">{settings.welcome_message}</p>
+                    <h3 className="font-semibold text-lg mb-2">{settings.display_name || avatarInfo[avatarType]?.name || 'Assistant'}</h3>
+                    <p className="text-sm text-muted-foreground">{getPersonalizedWelcome(avatarType, settings.welcome_message)}</p>
                     
                     {/* Quick action suggestions */}
                     <div className="mt-6 flex flex-wrap gap-2 justify-center">
