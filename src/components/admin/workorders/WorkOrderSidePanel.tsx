@@ -4,7 +4,7 @@ import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Paperclip, Edit, Calendar, User, Building, FileText, DollarSign, Clock, MessageSquare, CheckCircle, Send, Eye } from 'lucide-react';
+import { Paperclip, Edit, Calendar, User, Building, FileText, DollarSign, Clock, MessageSquare, CheckCircle, Send, Eye, Wrench } from 'lucide-react';
 import WorkOrderFileUpload from './WorkOrderFileUpload';
 import WorkOrderCompletionPhotos from './WorkOrderCompletionPhotos';
 import WorkOrderBillingFields from './WorkOrderBillingFields';
@@ -17,6 +17,14 @@ import WorkOrderDetailsFields from './WorkOrderDetailsFields';
 import WorkOrderFormActions from './WorkOrderFormActions';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+
+interface OrganizationUser {
+  id: string;
+  full_name?: string;
+  email: string;
+}
 
 interface WorkOrderSidePanelProps {
   isOpen: boolean;
@@ -41,6 +49,8 @@ const WorkOrderSidePanel = ({
 }: WorkOrderSidePanelProps) => {
   const { properties } = useProperties();
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
+  const [organizationUsers, setOrganizationUsers] = React.useState<OrganizationUser[]>([]);
   
   const [formData, setFormData] = React.useState({
     title: '',
@@ -48,6 +58,7 @@ const WorkOrderSidePanel = ({
     priority: 'medium',
     status: 'draft',
     contractor_id: '',
+    assigned_user_id: '',
     property_id: '',
     estimated_completion_date: '',
     scope_of_work: '',
@@ -65,6 +76,42 @@ const WorkOrderSidePanel = ({
   const [attachments, setAttachments] = React.useState<WorkOrderFile[]>([]);
   const [completionPhotos, setCompletionPhotos] = React.useState<WorkOrderFile[]>([]);
 
+  // Fetch organization users
+  React.useEffect(() => {
+    const fetchOrganizationUsers = async () => {
+      if (!organization?.id) return;
+      
+      const { data, error } = await supabase
+        .from('organization_members')
+        .select(`
+          user_id,
+          profiles:user_id (
+            id,
+            full_name,
+            email
+          )
+        `)
+        .eq('organization_id', organization.id);
+
+      if (error) {
+        console.error('Error fetching organization users:', error);
+        return;
+      }
+
+      const users: OrganizationUser[] = (data || [])
+        .filter((member: any) => member.profiles)
+        .map((member: any) => ({
+          id: member.profiles.id,
+          full_name: member.profiles.full_name,
+          email: member.profiles.email,
+        }));
+
+      setOrganizationUsers(users);
+    };
+
+    fetchOrganizationUsers();
+  }, [organization?.id]);
+
   React.useEffect(() => {
     if (workOrder) {
       // Editing existing work order
@@ -74,6 +121,7 @@ const WorkOrderSidePanel = ({
         priority: workOrder.priority || 'medium',
         status: workOrder.status || 'draft',
         contractor_id: workOrder.contractor_id || '',
+        assigned_user_id: workOrder.assigned_user_id || '',
         property_id: workOrder.property_id || '',
         estimated_completion_date: workOrder.estimated_completion_date || '',
         scope_of_work: workOrder.scope_of_work || '',
@@ -120,6 +168,7 @@ const WorkOrderSidePanel = ({
         priority: 'medium',
         status: 'draft',
         contractor_id: '',
+        assigned_user_id: '',
         property_id: '',
         estimated_completion_date: '',
         scope_of_work: '',
@@ -157,6 +206,7 @@ const WorkOrderSidePanel = ({
       ...formData,
       property_id: formData.property_id === '' || formData.property_id === 'none' ? undefined : formData.property_id,
       contractor_id: formData.contractor_id === '' || formData.contractor_id === 'none' ? undefined : formData.contractor_id,
+      assigned_user_id: formData.assigned_user_id === '' || formData.assigned_user_id === 'none' ? undefined : formData.assigned_user_id,
       estimated_completion_date: formData.estimated_completion_date === '' ? undefined : formData.estimated_completion_date,
       attachments: attachments.map(file => file.url),
       completion_photos: completionPhotos.map(file => file.url),
@@ -260,13 +310,23 @@ const WorkOrderSidePanel = ({
                 )}
                 {workOrder.contractor && (
                   <div className="flex items-start gap-3">
-                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <Wrench className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <p className="text-sm text-muted-foreground">Contractor</p>
                       <p className="font-medium">{workOrder.contractor.name}</p>
                       {workOrder.contractor.company_name && (
                         <p className="text-sm text-muted-foreground">{workOrder.contractor.company_name}</p>
                       )}
+                    </div>
+                  </div>
+                )}
+                {workOrder.assigned_user && (
+                  <div className="flex items-start gap-3">
+                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Assigned Team Member</p>
+                      <p className="font-medium">{workOrder.assigned_user.full_name || workOrder.assigned_user.email}</p>
+                      <Badge variant="secondary" className="mt-1 text-xs">Internal</Badge>
                     </div>
                   </div>
                 )}
@@ -518,6 +578,7 @@ const WorkOrderSidePanel = ({
               setFormData={setFormData}
               properties={properties}
               contractors={contractors}
+              organizationUsers={organizationUsers}
             />
 
             <WorkOrderDateAccessFields

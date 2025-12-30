@@ -117,6 +117,11 @@ const WorkOrderRow = ({
       <TableCell>
         {workOrder.contractor ? (
           <span className="text-sm">{workOrder.contractor.name}</span>
+        ) : workOrder.assigned_user ? (
+          <span className="text-sm flex items-center gap-1">
+            {workOrder.assigned_user.full_name || workOrder.assigned_user.email}
+            <span className="text-xs text-muted-foreground">(Internal)</span>
+          </span>
         ) : (
           <span className="text-muted-foreground">Unassigned</span>
         )}
