@@ -10,6 +10,39 @@ import { useTurnstile } from '@/hooks/useTurnstile';
 import ChatAvatar from './ChatAvatar';
 import { AvatarType, avatarInfo } from './avatars';
 
+// Fun, personality-driven welcome messages for each avatar
+const getPersonalizedWelcome = (avatarType: AvatarType, customWelcome?: string): string => {
+  if (customWelcome) return customWelcome;
+  
+  const avatarName = avatarInfo[avatarType]?.name || 'Assistant';
+  
+  const greetings: Partial<Record<AvatarType, string>> = {
+    'captain-moxie': `Hey there, traveler! I'm ${avatarName} - your heroic guide to an amazing stay! What can I help you with?`,
+    'pop-art-moxie': `WOW! Hey! I'm ${avatarName}! Ready to make your stay POP? What's on your mind?`,
+    'action-moxie': `Yo! I'm ${avatarName}, ready for action! How can I help make your stay legendary?`,
+    'retro-comic-host': `Golly gee! I'm ${avatarName}, at your service! How may I assist you today, friend?`,
+    'moxie-mascot': `Hey hey! ${avatarName} here, your #1 travel buddy! What can I help you with?`,
+    'ink-style-moxie': `*sketches a wave* Hey! I'm ${avatarName}. What's your story? How can I help?`,
+    'berry-mascot': `Hiii! I'm ${avatarName}! So excited to help you! What do you need?`,
+    'blaze-mascot': `What's up! ${avatarName} here, fired up to help you! What can I do?`,
+    'cool-mascot': `Hey there~ I'm ${avatarName}. Chill vibes only! How can I help you out?`,
+    'mint-mascot': `🎧 Yo! ${avatarName} here, ready to tune into your needs! What's up?`,
+    'rose-mascot': `Hello lovely! I'm ${avatarName}. How can I brighten your stay today?`,
+    'spark-mascot': `⚡ ZAP! I'm ${avatarName}! Electrified to help! What do you need?`,
+    'sunny-mascot': `Hey sunshine! I'm ${avatarName}! Ready to make your day brighter! What's up?`,
+    'moxie-fox': `Hey there! I'm ${avatarName} - your clever travel buddy! 🦊 How can I make your stay amazing?`,
+    'hoot-owl': `Hoo-hoo! I'm ${avatarName}, your wise guide. 🦉 What would you like to know about your stay?`,
+    'casita-house': `Welcome home! I'm ${avatarName}, and I'm so happy you're here! 🏠 How can I help you settle in?`,
+    'genie-mo': `Your wish is my command! ✨ I'm ${avatarName} - ready to make your stay magical!`,
+    'blobby': `Bloop bloop! I'm ${avatarName}! 🫧 Super excited to help you with your stay!`,
+    'paw-dog': `Woof woof! I'm ${avatarName}, your loyal travel buddy! 🐕 What can I help you sniff out?`,
+    'robo-host': `Greetings, traveler! I'm ${avatarName}, at your service. 🤖 How may I assist with your stay?`,
+    'tropico-drink': `Aloha! I'm ${avatarName} - bringing those vacation vibes! 🍹 How can I help you relax?`,
+  };
+  
+  return greetings[avatarType] || `Hi! I'm ${avatarName}, here to help you with your stay!`;
+};
+
 interface Message {
   id: string;
   text: string;
@@ -65,21 +98,24 @@ const ChatWidget = () => {
         if (error) throw error;
         
         if (data) {
+          const avatarType = (data.avatar_type as AvatarType) || 'captain-moxie';
+          const welcomeMessage = getPersonalizedWelcome(avatarType, data.welcome_message);
+          
           setAssistantSettings({
-            display_name: data.display_name || 'Travel Assistant',
-            welcome_message: data.welcome_message || 'Hi! How can I help you today?',
+            display_name: data.display_name || '',
+            welcome_message: welcomeMessage,
             bubble_color: data.bubble_color || 'hsl(var(--primary))',
-            avatar_type: (data.avatar_type as AvatarType) || 'captain-moxie',
+            avatar_type: avatarType,
             avatar_background_color: data.avatar_background_color || '#3B82F6',
             avatar_background_color_end: data.avatar_background_color_end || '#8B5CF6',
             custom_avatar_url: data.custom_avatar_url || '',
             use_custom_avatar: data.use_custom_avatar || false
           });
           
-          // Set initial welcome message
+          // Set initial welcome message with personality
           setMessages([{
             id: '1',
-            text: data.welcome_message || 'Hi! How can I help you today?',
+            text: welcomeMessage,
             isUser: false,
             timestamp: new Date(),
           }]);
