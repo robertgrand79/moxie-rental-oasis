@@ -7364,6 +7364,7 @@ export type Database = {
           acknowledged_at: string | null
           actual_completion_date: string | null
           actual_cost: number | null
+          assigned_user_id: string | null
           attachments: string[] | null
           billing_amount: number | null
           billing_rate: number | null
@@ -7401,6 +7402,7 @@ export type Database = {
           acknowledged_at?: string | null
           actual_completion_date?: string | null
           actual_cost?: number | null
+          assigned_user_id?: string | null
           attachments?: string[] | null
           billing_amount?: number | null
           billing_rate?: number | null
@@ -7438,6 +7440,7 @@ export type Database = {
           acknowledged_at?: string | null
           actual_completion_date?: string | null
           actual_cost?: number | null
+          assigned_user_id?: string | null
           attachments?: string[] | null
           billing_amount?: number | null
           billing_rate?: number | null
@@ -7471,6 +7474,13 @@ export type Database = {
           work_order_number?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "work_orders_assigned_user_id_fkey"
+            columns: ["assigned_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "work_orders_contractor_id_fkey"
             columns: ["contractor_id"]

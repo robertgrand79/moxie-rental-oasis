@@ -185,6 +185,16 @@ const WorkOrderCard = ({
           </div>
         )}
         
+        {workOrder.assigned_user && !workOrder.contractor && (
+          <div className="flex items-center gap-2">
+            <User className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">
+              {workOrder.assigned_user.full_name || workOrder.assigned_user.email}
+              <span className="opacity-70 ml-1">(Internal)</span>
+            </span>
+          </div>
+        )}
+        
         {workOrder.property && (
           <div className="flex items-center gap-2">
             <Building className="h-3.5 w-3.5 shrink-0" />

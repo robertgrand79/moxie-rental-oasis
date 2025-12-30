@@ -13,6 +13,7 @@ export interface WorkOrder {
   priority: string;
   property_id?: string;
   contractor_id?: string;
+  assigned_user_id?: string;
   estimated_cost?: number;
   actual_cost?: number;
   estimated_completion_date?: string;
@@ -52,6 +53,11 @@ export interface WorkOrder {
     phone?: string;
     hourly_rate?: number;
     default_billing_type?: string;
+  };
+  assigned_user?: {
+    id: string;
+    full_name?: string;
+    email: string;
   };
 }
 
@@ -111,7 +117,8 @@ export const useWorkOrderManagement = () => {
         .select(`
           *,
           property:properties(*),
-          contractor:contractors(*)
+          contractor:contractors(*),
+          assigned_user:profiles!work_orders_assigned_user_id_fkey(id, full_name, email)
         `)
         .in('property_id', propertyIds)
         .order('created_at', { ascending: false });
@@ -160,7 +167,7 @@ export const useWorkOrderManagement = () => {
       if (!user) throw new Error('User not authenticated');
 
       // Remove fields that don't exist in the database schema or are auto-generated
-      const { property, contractor, ...cleanData } = workOrderData as any;
+      const { property, contractor, assigned_user, ...cleanData } = workOrderData as any;
 
       // Ensure organization_id is set - get from property if not provided
       let organizationId = cleanData.organization_id;
@@ -187,7 +194,8 @@ export const useWorkOrderManagement = () => {
         .select(`
           *,
           property:properties(*),
-          contractor:contractors(*)
+          contractor:contractors(*),
+          assigned_user:profiles!work_orders_assigned_user_id_fkey(id, full_name, email)
         `)
         .single();
 
@@ -239,7 +247,7 @@ export const useWorkOrderManagement = () => {
       const currentWorkOrder = workOrders.find(wo => wo.id === id);
       
       // Remove fields that don't belong in the database update
-      const { property, contractor, ...cleanUpdates } = updates as any;
+      const { property, contractor, assigned_user, ...cleanUpdates } = updates as any;
 
       const { data, error } = await supabase
         .from('work_orders')
@@ -248,7 +256,8 @@ export const useWorkOrderManagement = () => {
         .select(`
           *,
           property:properties(*),
-          contractor:contractors(*)
+          contractor:contractors(*),
+          assigned_user:profiles!work_orders_assigned_user_id_fkey(id, full_name, email)
         `)
         .single();
 
