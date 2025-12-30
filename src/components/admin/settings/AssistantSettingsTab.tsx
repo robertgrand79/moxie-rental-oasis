@@ -151,7 +151,7 @@ const AssistantSettingsTab = () => {
       setSettings({
         organization_id: organization.id,
         is_enabled: false,
-        display_name: 'Stay Moxie Assistant',
+        display_name: '',
         welcome_message: 'Hi! I\'m your AI assistant. How can I help you today?',
         bubble_color: '#3B82F6',
         personality: 'friendly',
@@ -309,8 +309,11 @@ const AssistantSettingsTab = () => {
                   onChange={(e) =>
                     setSettings({ ...settings, display_name: e.target.value })
                   }
-                  placeholder="Stay Moxie Assistant"
+                  placeholder={avatarInfo[settings.avatar_type]?.name || 'Assistant'}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Leave empty to use the avatar's name ({avatarInfo[settings.avatar_type]?.name})
+                </p>
               </div>
 
               {/* Welcome Message */}

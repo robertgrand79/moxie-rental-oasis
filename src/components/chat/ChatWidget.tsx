@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import TurnstileWidget from '@/components/security/TurnstileWidget';
 import { useTurnstile } from '@/hooks/useTurnstile';
 import ChatAvatar from './ChatAvatar';
-import { AvatarType } from './avatars';
+import { AvatarType, avatarInfo } from './avatars';
 
 interface Message {
   id: string;
@@ -205,7 +205,7 @@ const ChatWidget = () => {
             customAvatarUrl={assistantSettings.custom_avatar_url}
             useCustomAvatar={assistantSettings.use_custom_avatar}
           />
-          <h3 className="font-semibold">{assistantSettings.display_name}</h3>
+          <h3 className="font-semibold">{assistantSettings.display_name || avatarInfo[assistantSettings.avatar_type]?.name || 'Assistant'}</h3>
         </div>
         <div className="flex items-center space-x-1">
           <Button
