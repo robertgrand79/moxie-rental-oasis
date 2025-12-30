@@ -64,6 +64,37 @@ const CHAT_STYLES: { value: ChatStyle; label: string; description: string }[] = 
   { value: 'elegant', label: 'Elegant', description: 'Refined with subtle details' },
 ];
 
+// Fun, personality-driven welcome messages for each avatar
+const getPersonalizedWelcome = (avatarType: AvatarType): string => {
+  const avatarName = avatarInfo[avatarType]?.name || 'Assistant';
+  
+  const greetings: Partial<Record<AvatarType, string>> = {
+    'captain-moxie': `Hey there, traveler! I'm ${avatarName} - your heroic guide to an amazing stay!`,
+    'pop-art-moxie': `WOW! Hey! I'm ${avatarName}! Ready to make your stay POP?`,
+    'action-moxie': `Yo! I'm ${avatarName}, ready for action! How can I help make your stay legendary?`,
+    'retro-comic-host': `Golly gee! I'm ${avatarName}, at your service!`,
+    'moxie-mascot': `Hey hey! ${avatarName} here, your #1 travel buddy!`,
+    'ink-style-moxie': `*sketches a wave* Hey! I'm ${avatarName}. How can I help?`,
+    'berry-mascot': `Hiii! I'm ${avatarName}! So excited to help you!`,
+    'blaze-mascot': `What's up! ${avatarName} here, fired up to help you!`,
+    'cool-mascot': `Hey there~ I'm ${avatarName}. Chill vibes only!`,
+    'mint-mascot': `🎧 Yo! ${avatarName} here, ready to tune into your needs!`,
+    'rose-mascot': `Hello lovely! I'm ${avatarName}. How can I brighten your stay?`,
+    'spark-mascot': `⚡ ZAP! I'm ${avatarName}! Electrified to help!`,
+    'sunny-mascot': `Hey sunshine! I'm ${avatarName}! Ready to make your day brighter!`,
+    'moxie-fox': `Hey there! I'm ${avatarName} - your clever travel buddy! 🦊 How can I make your stay amazing?`,
+    'hoot-owl': `Hoo-hoo! I'm ${avatarName}, your wise guide. 🦉 What would you like to know?`,
+    'casita-house': `Welcome home! I'm ${avatarName}, and I'm so happy you're here! 🏠`,
+    'genie-mo': `Your wish is my command! ✨ I'm ${avatarName} - ready to make your stay magical!`,
+    'blobby': `Bloop bloop! I'm ${avatarName}! 🫧 Super excited to help you!`,
+    'paw-dog': `Woof woof! I'm ${avatarName}, your loyal travel buddy! 🐕`,
+    'robo-host': `Greetings, traveler! I'm ${avatarName}, at your service. 🤖`,
+    'tropico-drink': `Aloha! I'm ${avatarName} - bringing those vacation vibes! 🍹`,
+  };
+  
+  return greetings[avatarType] || `Hi! I'm ${avatarName}, here to help you with your stay!`;
+};
+
 const AssistantSettingsTab = () => {
   const { organization } = useCurrentOrganization();
   const [settings, setSettings] = useState<AssistantSettings | null>(null);
@@ -325,9 +356,12 @@ const AssistantSettingsTab = () => {
                   onChange={(e) =>
                     setSettings({ ...settings, welcome_message: e.target.value })
                   }
-                  placeholder="Hi! How can I help you today?"
+                  placeholder={getPersonalizedWelcome(settings.avatar_type)}
                   rows={3}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Leave empty to use the avatar's personality greeting ({avatarInfo[settings.avatar_type]?.name})
+                </p>
               </div>
             </CardContent>
           </Card>
