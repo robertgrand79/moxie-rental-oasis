@@ -218,20 +218,30 @@ const WorkOrderBasicFields = ({
       {assignmentType === 'user' && (
         <div className="space-y-2">
           <Label htmlFor="assigned_user">Team Member</Label>
-          <Select value={formData.assigned_user_id || 'none'} onValueChange={handleUserChange}>
+          <Select 
+            value={formData.assigned_user_id || 'none'} 
+            onValueChange={handleUserChange}
+            disabled={organizationUsers.length === 0}
+          >
             <SelectTrigger>
-              <SelectValue placeholder="Select team member" />
+              <SelectValue placeholder={organizationUsers.length === 0 ? "Loading team members..." : "Select team member"} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">No Team Member</SelectItem>
-              {organizationUsers.map((user) => (
-                <SelectItem key={user.id} value={user.id}>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span>{user.full_name || user.email}</span>
-                  </div>
+              {organizationUsers.length > 0 ? (
+                organizationUsers.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>{user.full_name || user.email}</span>
+                    </div>
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="loading" disabled>
+                  <span className="text-muted-foreground">No team members found</span>
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>

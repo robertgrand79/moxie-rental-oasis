@@ -79,43 +79,53 @@ const WorkOrderSidePanel = ({
   // Fetch organization users
   React.useEffect(() => {
     const fetchOrganizationUsers = async () => {
-      if (!organization?.id) return;
-      
-      // First get organization member user IDs
-      const { data: members, error: membersError } = await supabase
-        .from('organization_members')
-        .select('user_id')
-        .eq('organization_id', organization.id);
-
-      if (membersError) {
-        console.error('Error fetching organization members:', membersError);
-        return;
-      }
-
-      if (!members || members.length === 0) {
+      if (!organization?.id) {
         setOrganizationUsers([]);
         return;
       }
+      
+      try {
+        // First get organization member user IDs
+        const { data: members, error: membersError } = await supabase
+          .from('organization_members')
+          .select('user_id')
+          .eq('organization_id', organization.id);
 
-      // Then fetch profiles for those user IDs
-      const userIds = members.map(m => m.user_id);
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .in('id', userIds);
+        if (membersError) {
+          console.error('Error fetching organization members:', membersError);
+          setOrganizationUsers([]);
+          return;
+        }
 
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        return;
+        if (!members || members.length === 0) {
+          setOrganizationUsers([]);
+          return;
+        }
+
+        // Then fetch profiles for those user IDs
+        const userIds = members.map(m => m.user_id);
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+          setOrganizationUsers([]);
+          return;
+        }
+
+        const users: OrganizationUser[] = (profiles || []).map((profile: any) => ({
+          id: profile.id,
+          full_name: profile.full_name,
+          email: profile.email,
+        }));
+
+        setOrganizationUsers(users);
+      } catch (err) {
+        console.error('Unexpected error fetching organization users:', err);
+        setOrganizationUsers([]);
       }
-
-      const users: OrganizationUser[] = (profiles || []).map((profile: any) => ({
-        id: profile.id,
-        full_name: profile.full_name,
-        email: profile.email,
-      }));
-
-      setOrganizationUsers(users);
     };
 
     fetchOrganizationUsers();
