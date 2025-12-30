@@ -207,10 +207,12 @@ export const useWorkOrderManagement = () => {
         description: 'Work order created successfully',
       });
 
-      // Create notification for new work order
+      // Create notifications
       if (organization?.id && data) {
         const workOrder = data as WorkOrder;
         const propertyName = workOrder.property?.title || 'Unknown Property';
+        
+        // Notify all org admins about new work order
         await supabase.from('admin_notifications').insert({
           organization_id: organization.id,
           user_id: null, // Notify all org admins
@@ -227,6 +229,27 @@ export const useWorkOrderManagement = () => {
             priority: workOrder.priority
           }
         });
+
+        // Notify assigned team member if one is set
+        if (workOrder.assigned_user_id) {
+          const assigneeName = workOrder.assigned_user?.full_name || 'You';
+          await supabase.from('admin_notifications').insert({
+            organization_id: organization.id,
+            user_id: workOrder.assigned_user_id, // Only notify this specific user
+            notification_type: 'work_order_assigned',
+            category: 'operations',
+            title: 'Work Order Assigned to You',
+            message: `You've been assigned to "${workOrder.title}" at ${propertyName}`,
+            action_url: `/admin/work-orders?id=${workOrder.id}`,
+            priority: workOrder.priority === 'critical' || workOrder.priority === 'high' ? 'high' : 'normal',
+            metadata: {
+              work_order_id: workOrder.id,
+              work_order_number: workOrder.work_order_number,
+              property_id: workOrder.property_id,
+              priority: workOrder.priority
+            }
+          });
+        }
       }
       
       return data;
@@ -243,7 +266,7 @@ export const useWorkOrderManagement = () => {
 
   const updateWorkOrder = async (id: string, updates: Partial<WorkOrder>) => {
     try {
-      // Get current work order to check status change
+      // Get current work order to check status and assignment changes
       const currentWorkOrder = workOrders.find(wo => wo.id === id);
       
       // Remove fields that don't belong in the database update
@@ -269,25 +292,50 @@ export const useWorkOrderManagement = () => {
         description: 'Work order updated successfully',
       });
 
-      // Create notification if work order was completed
-      if (organization?.id && data && currentWorkOrder?.status !== 'completed' && updates.status === 'completed') {
+      if (organization?.id && data) {
         const workOrder = data as WorkOrder;
         const propertyName = workOrder.property?.title || 'Unknown Property';
-        await supabase.from('admin_notifications').insert({
-          organization_id: organization.id,
-          user_id: null,
-          notification_type: 'work_order_completed',
-          category: 'operations',
-          title: 'Work Order Completed',
-          message: `Work order "${workOrder.title}" at ${propertyName} has been completed`,
-          action_url: `/admin/work-orders`,
-          priority: 'normal',
-          metadata: {
-            work_order_id: workOrder.id,
-            work_order_number: workOrder.work_order_number,
-            property_id: workOrder.property_id
-          }
-        });
+
+        // Create notification if work order was completed
+        if (currentWorkOrder?.status !== 'completed' && updates.status === 'completed') {
+          await supabase.from('admin_notifications').insert({
+            organization_id: organization.id,
+            user_id: null,
+            notification_type: 'work_order_completed',
+            category: 'operations',
+            title: 'Work Order Completed',
+            message: `Work order "${workOrder.title}" at ${propertyName} has been completed`,
+            action_url: `/admin/work-orders`,
+            priority: 'normal',
+            metadata: {
+              work_order_id: workOrder.id,
+              work_order_number: workOrder.work_order_number,
+              property_id: workOrder.property_id
+            }
+          });
+        }
+
+        // Notify team member if assignment changed
+        const previousAssignee = currentWorkOrder?.assigned_user_id;
+        const newAssignee = workOrder.assigned_user_id;
+        if (newAssignee && newAssignee !== previousAssignee) {
+          await supabase.from('admin_notifications').insert({
+            organization_id: organization.id,
+            user_id: newAssignee, // Only notify this specific user
+            notification_type: 'work_order_assigned',
+            category: 'operations',
+            title: 'Work Order Assigned to You',
+            message: `You've been assigned to "${workOrder.title}" at ${propertyName}`,
+            action_url: `/admin/work-orders?id=${workOrder.id}`,
+            priority: workOrder.priority === 'critical' || workOrder.priority === 'high' ? 'high' : 'normal',
+            metadata: {
+              work_order_id: workOrder.id,
+              work_order_number: workOrder.work_order_number,
+              property_id: workOrder.property_id,
+              priority: workOrder.priority
+            }
+          });
+        }
       }
       
       return data;

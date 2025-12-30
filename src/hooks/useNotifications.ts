@@ -218,6 +218,7 @@ export const NOTIFICATION_TYPES = {
   // Operations notifications
   WORK_ORDER_CREATED: 'work_order_created',
   WORK_ORDER_COMPLETED: 'work_order_completed',
+  WORK_ORDER_ASSIGNED: 'work_order_assigned',
   
   // Payment notifications
   PAYMENT_RECEIVED: 'payment_received',
