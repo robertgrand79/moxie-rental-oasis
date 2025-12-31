@@ -1,5 +1,6 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { WorkOrder } from '@/hooks/useWorkOrderManagement';
 import { useWorkOrderOperations } from '@/hooks/useWorkOrderOperations';
 import { useWorkOrderFilters } from '@/hooks/useWorkOrderFilters';
@@ -17,6 +18,8 @@ import { SendMethod } from '@/hooks/useWorkOrderEmail';
 import { useAdminStateReset } from '@/hooks/useAdminStateReset';
 
 const AdminWorkOrders = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const {
     workOrders,
     contractors,
@@ -54,6 +57,22 @@ const AdminWorkOrders = () => {
   // Selection state
   const [selectedWorkOrders, setSelectedWorkOrders] = useState<Set<string>>(new Set());
   const [isContractorModalOpen, setIsContractorModalOpen] = useState(false);
+
+  // Handle opening a specific work order from URL query param (e.g., from notification click)
+  useEffect(() => {
+    if (loading || workOrders.length === 0) return;
+    
+    const workOrderId = searchParams.get('id');
+    if (workOrderId) {
+      const targetWorkOrder = workOrders.find(wo => wo.id === workOrderId);
+      if (targetWorkOrder) {
+        setViewingWorkOrder(targetWorkOrder);
+        setIsWorkOrderPanelOpen(true);
+        // Clear the query param after opening
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [loading, workOrders, searchParams, setSearchParams]);
 
   const handleSelectWorkOrder = useCallback((workOrderId: string, selected: boolean) => {
     setSelectedWorkOrders(prev => {

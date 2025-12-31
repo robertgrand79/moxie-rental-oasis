@@ -212,23 +212,26 @@ export const useWorkOrderManagement = () => {
         const workOrder = data as WorkOrder;
         const propertyName = workOrder.property?.title || 'Unknown Property';
         
-        // Notify all org admins about new work order
-        await supabase.from('admin_notifications').insert({
-          organization_id: organization.id,
-          user_id: null, // Notify all org admins
-          notification_type: 'work_order_created',
-          category: 'operations',
-          title: 'New Work Order Created',
-          message: `Work order "${workOrder.title}" created for ${propertyName}`,
-          action_url: `/admin/work-orders`,
-          priority: workOrder.priority === 'urgent' ? 'high' : 'normal',
-          metadata: {
-            work_order_id: workOrder.id,
-            work_order_number: workOrder.work_order_number,
-            property_id: workOrder.property_id,
-            priority: workOrder.priority
-          }
-        });
+        // If no assignee, notify all org admins. If assigned, only notify the assignee
+        if (!workOrder.assigned_user_id) {
+          // No assignee - notify all team members
+          await supabase.from('admin_notifications').insert({
+            organization_id: organization.id,
+            user_id: null, // Notify all org admins
+            notification_type: 'work_order_created',
+            category: 'operations',
+            title: 'New Work Order Created',
+            message: `Work order "${workOrder.title}" created for ${propertyName}`,
+            action_url: `/admin/work-orders?id=${workOrder.id}`,
+            priority: workOrder.priority === 'urgent' || workOrder.priority === 'critical' ? 'high' : 'normal',
+            metadata: {
+              work_order_id: workOrder.id,
+              work_order_number: workOrder.work_order_number,
+              property_id: workOrder.property_id,
+              priority: workOrder.priority
+            }
+          });
+        }
 
         // Notify assigned team member if one is set
         if (workOrder.assigned_user_id) {
@@ -305,7 +308,7 @@ export const useWorkOrderManagement = () => {
             category: 'operations',
             title: 'Work Order Completed',
             message: `Work order "${workOrder.title}" at ${propertyName} has been completed`,
-            action_url: `/admin/work-orders`,
+            action_url: `/admin/work-orders?id=${workOrder.id}`,
             priority: 'normal',
             metadata: {
               work_order_id: workOrder.id,
