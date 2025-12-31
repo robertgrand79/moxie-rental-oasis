@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +8,7 @@ import { SettingsState } from './settings/types';
 import { defaultSettings } from './settings/constants';
 import { parseSettingsFromDatabase, mergeWithDefaults } from './settings/utils';
 import { debug } from '@/utils/debug';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 export const useSimplifiedSiteSettings = () => {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ export const useSimplifiedSiteSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   // Fetch settings from database - filtered by organization
   const fetchSettings = useCallback(async () => {
@@ -253,10 +255,47 @@ export const useSimplifiedSiteSettings = () => {
     setSettings(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // Initialize on mount
+  // Initialize on mount and set up realtime subscription
   useEffect(() => {
     fetchSettings();
   }, [fetchSettings]);
+
+  // Realtime subscription for live updates across users
+  useEffect(() => {
+    if (!organization?.id) return;
+
+    // Clean up existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
+    const channel = supabase
+      .channel(`site_settings:${organization.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'site_settings',
+          filter: `organization_id=eq.${organization.id}`
+        },
+        (payload) => {
+          debug.settings('Realtime update received:', payload.eventType);
+          // Refetch all settings to ensure consistency
+          fetchSettings();
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [organization?.id, fetchSettings]);
 
   return {
     settings,

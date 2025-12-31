@@ -236,7 +236,7 @@ const AppRoutes: React.FC = () => {
           <Route path="home" element={<Navigate to="/" replace />} />
           <Route path="/properties" element={<Properties />} />
           <Route path="/property/:addressSlug" element={<PropertyPage />} />
-          {/* About page now handled by DynamicPage via /:slug route */}
+          <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/experiences" element={<Experiences />} />
           <Route path="/events" element={<Events />} />

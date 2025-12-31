@@ -1,7 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { debug } from '@/utils/debug';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 interface TenantSettings {
   site_name?: string;
@@ -63,9 +65,12 @@ interface TenantSettings {
 /**
  * Hook to fetch site settings for the current tenant.
  * Transforms key/value rows into a settings object.
+ * Includes realtime subscription for live updates.
  */
 export const useTenantSettings = () => {
   const { tenantId, tenant, loading: tenantLoading } = useTenant();
+  const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   const query = useQuery({
     queryKey: ['tenant-settings', tenantId],
@@ -101,6 +106,43 @@ export const useTenantSettings = () => {
     enabled: !!tenantId && !tenantLoading,
     staleTime: 5 * 60 * 1000,
   });
+
+  // Realtime subscription for live updates
+  useEffect(() => {
+    if (!tenantId) return;
+
+    // Clean up existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
+    const channel = supabase
+      .channel(`tenant_settings:${tenantId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'site_settings',
+          filter: `organization_id=eq.${tenantId}`
+        },
+        (payload) => {
+          debug.settings('Tenant settings realtime update:', payload.eventType);
+          // Invalidate and refetch
+          queryClient.invalidateQueries({ queryKey: ['tenant-settings', tenantId] });
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [tenantId, queryClient]);
 
   // Merge tenant info with settings - look for both camelCase and snake_case keys
   // siteLogo is the key used by LogoUploader, so check it first
