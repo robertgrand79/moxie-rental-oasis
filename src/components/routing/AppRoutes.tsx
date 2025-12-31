@@ -107,6 +107,12 @@ const ServicesSettingsPage = lazy(() => import('@/pages/admin/settings/ServicesS
 const StripeSettingsPage = lazy(() => import('@/pages/admin/settings/StripeSettingsPage'));
 const PriceLabsSettingsPage = lazy(() => import('@/pages/admin/settings/PriceLabsSettingsPage'));
 const SetupWizardPage = lazy(() => import('@/pages/admin/settings/SetupWizardPage'));
+const TVDevicesSettingsPage = lazy(() => import('@/pages/admin/settings/TVDevicesSettingsPage'));
+
+// TV Pages
+const TVWelcome = lazy(() => import('@/pages/tv/TVWelcome'));
+const TVGuestPortal = lazy(() => import('@/pages/tv/TVGuestPortal'));
+const PairTV = lazy(() => import('@/pages/tv/PairTV'));
 
 const AppRoutes: React.FC = () => {
   const { isPlatformSite } = usePlatform();
@@ -132,6 +138,11 @@ const AppRoutes: React.FC = () => {
           <Route path="/contractor/:token" element={<ContractorPortal />} />
           <Route path="/accept-invite" element={<AcceptInvitation />} />
           <Route path="/status" element={<Navigate to="/admin/status" replace />} />
+
+          {/* TV Routes */}
+          <Route path="/tv/:propertyId" element={<TVWelcome />} />
+          <Route path="/tv/:propertyId/portal" element={<TVGuestPortal />} />
+          <Route path="/pair-tv" element={<PairTV />} />
 
           {/* Shared Onboarding Routes */}
           <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
@@ -170,6 +181,7 @@ const AppRoutes: React.FC = () => {
             <Route path="settings/services" element={<ServicesSettingsPage />} />
             <Route path="settings/stripe" element={<StripeSettingsPage />} />
             <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
+            <Route path="settings/tv-devices" element={<TVDevicesSettingsPage />} />
             {/* Redirects for old settings routes */}
             <Route path="settings/organization" element={<Navigate to="/admin/settings/general" replace />} />
             <Route path="settings/site-content" element={<Navigate to="/admin/settings/site-info" replace />} />
@@ -254,6 +266,11 @@ const AppRoutes: React.FC = () => {
         <Route path="/contractor/:token" element={<ContractorPortal />} />
         <Route path="/status" element={<Navigate to="/admin/status" replace />} />
 
+        {/* TV Routes */}
+        <Route path="/tv/:propertyId" element={<TVWelcome />} />
+        <Route path="/tv/:propertyId/portal" element={<TVGuestPortal />} />
+        <Route path="/pair-tv" element={<PairTV />} />
+
         {/* Onboarding Routes */}
         <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
         <Route path="/admin/onboarding" element={<ProtectedRoute><OnboardingWizard /></ProtectedRoute>} />
@@ -290,6 +307,7 @@ const AppRoutes: React.FC = () => {
           <Route path="settings/services" element={<ServicesSettingsPage />} />
           <Route path="settings/stripe" element={<StripeSettingsPage />} />
           <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
+          <Route path="settings/tv-devices" element={<TVDevicesSettingsPage />} />
           {/* Redirects for old settings routes */}
           <Route path="settings/organization" element={<Navigate to="/admin/settings/general" replace />} />
           <Route path="settings/site-content" element={<Navigate to="/admin/settings/site-info" replace />} />

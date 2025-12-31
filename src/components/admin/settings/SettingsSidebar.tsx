@@ -24,6 +24,7 @@ import {
   CreditCard,
   DollarSign,
   Rocket,
+  Tv,
 } from 'lucide-react';
 import {
   Collapsible,
@@ -84,6 +85,7 @@ const settingsNavGroups: SettingsNavGroup[] = [
     title: 'Integrations',
     items: [
       { label: 'AI Assistant', href: '/admin/settings/ai-assistant', icon: Bot },
+      { label: 'TV Devices', href: '/admin/settings/tv-devices', icon: Tv },
       { label: 'Communications', href: '/admin/settings/communications', icon: MessageSquare },
       { label: 'Smart Home', href: '/admin/settings/smart-home', icon: Lock },
       { label: 'Services', href: '/admin/settings/services', icon: Plug },
