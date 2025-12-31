@@ -111,19 +111,19 @@ const TVQRCodeDialog: React.FC<TVQRCodeDialogProps> = ({
           </div>
 
           {/* Pairing Code */}
-          <div className="text-center">
+          <div className="text-center w-full">
             <p className="text-sm text-muted-foreground mb-1">Pairing Code</p>
-            <p className="text-3xl font-mono font-bold tracking-[0.5em]">{pairingCode}</p>
+            <p className="text-2xl font-mono font-bold tracking-widest">{pairingCode}</p>
           </div>
 
           {/* Pairing URL */}
-          <div className="w-full">
+          <div className="w-full overflow-hidden">
             <p className="text-xs text-muted-foreground mb-2 text-center">Pairing URL</p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 text-xs bg-muted p-2 rounded truncate">
+            <div className="flex items-center gap-2 w-full">
+              <code className="flex-1 text-xs bg-muted p-2 rounded truncate min-w-0">
                 {pairingUrl}
               </code>
-              <Button variant="outline" size="icon" onClick={handleCopyUrl}>
+              <Button variant="outline" size="icon" className="flex-shrink-0" onClick={handleCopyUrl}>
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
