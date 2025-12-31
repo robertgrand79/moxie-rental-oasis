@@ -59,6 +59,20 @@ export const useUserOperations = () => {
 
       if (profileError) throw profileError;
 
+      // Also update organization_members role (admin/member mapping)
+      if (organization?.id) {
+        const orgRole = newRole === 'admin' ? 'admin' : 'member';
+        const { error: orgMemberError } = await supabase
+          .from('organization_members')
+          .update({ role: orgRole })
+          .eq('user_id', userId)
+          .eq('organization_id', organization.id);
+
+        if (orgMemberError) {
+          console.warn('Could not update organization member role:', orgMemberError);
+        }
+      }
+
       // Try to update new role system if it exists
       try {
         // Get the role ID for the new role
