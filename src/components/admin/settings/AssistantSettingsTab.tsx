@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bot, Save, Loader2, Plus, Trash2, MessageSquare, Sparkles, Palette, FileText, Upload, X, Image as ImageIcon, Send } from 'lucide-react';
+import { Bot, Save, Loader2, Plus, Trash2, MessageSquare, Sparkles, Palette, FileText, Upload, X, Image as ImageIcon, Send, Tv } from 'lucide-react';
 import { PropertyDocumentsTab } from './PropertyDocumentsTab';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,11 @@ interface AssistantSettings {
   submit_button_color: string;
   user_message_text_color: string;
   assistant_message_bg_color: string;
+  // TV Display Settings
+  tv_chat_enabled: boolean;
+  tv_show_avatar: boolean;
+  tv_welcome_message: string;
+  tv_signage_rotation_seconds: number;
 }
 
 const DEFAULT_COLORS = [
@@ -176,7 +181,11 @@ const AssistantSettingsTab = () => {
         text_color: data.text_color || '#1F2937',
         submit_button_color: data.submit_button_color || data.bubble_color || '#3B82F6',
         user_message_text_color: data.user_message_text_color || '#FFFFFF',
-        assistant_message_bg_color: data.assistant_message_bg_color || ''
+        assistant_message_bg_color: data.assistant_message_bg_color || '',
+        tv_chat_enabled: data.tv_chat_enabled ?? true,
+        tv_show_avatar: data.tv_show_avatar ?? true,
+        tv_welcome_message: data.tv_welcome_message || '',
+        tv_signage_rotation_seconds: data.tv_signage_rotation_seconds || 30
       });
     } else {
       setSettings({
@@ -196,7 +205,11 @@ const AssistantSettingsTab = () => {
         text_color: '#1F2937',
         submit_button_color: '#3B82F6',
         user_message_text_color: '#FFFFFF',
-        assistant_message_bg_color: ''
+        assistant_message_bg_color: '',
+        tv_chat_enabled: true,
+        tv_show_avatar: true,
+        tv_welcome_message: '',
+        tv_signage_rotation_seconds: 30
       });
     }
     setIsLoading(false);
@@ -226,6 +239,10 @@ const AssistantSettingsTab = () => {
           text_color: settings.text_color,
           submit_button_color: settings.submit_button_color,
           user_message_text_color: settings.user_message_text_color,
+          tv_chat_enabled: settings.tv_chat_enabled,
+          tv_show_avatar: settings.tv_show_avatar,
+          tv_welcome_message: settings.tv_welcome_message,
+          tv_signage_rotation_seconds: settings.tv_signage_rotation_seconds,
           assistant_message_bg_color: settings.assistant_message_bg_color
         }], { onConflict: 'organization_id' });
 
@@ -283,7 +300,7 @@ const AssistantSettingsTab = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />
             <span className="hidden sm:inline">General</span>
@@ -303,6 +320,10 @@ const AssistantSettingsTab = () => {
           <TabsTrigger value="documents" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             <span className="hidden sm:inline">Documents</span>
+          </TabsTrigger>
+          <TabsTrigger value="tv-display" className="flex items-center gap-2">
+            <Tv className="h-4 w-4" />
+            <span className="hidden sm:inline">TV Display</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1108,6 +1129,98 @@ const AssistantSettingsTab = () => {
 
         <TabsContent value="documents" className="mt-6">
           <PropertyDocumentsTab />
+        </TabsContent>
+
+        <TabsContent value="tv-display" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Tv className="h-5 w-5" />
+                TV Display Settings
+              </CardTitle>
+              <CardDescription>
+                Configure how the AI Assistant appears on Guidio TV devices.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Enable TV Chat */}
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Enable AI Chat on TV</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Allow guests to interact with the AI assistant on the TV
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.tv_chat_enabled}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, tv_chat_enabled: checked })
+                  }
+                />
+              </div>
+
+              {/* Show Avatar on TV */}
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Show Avatar on TV</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Display the assistant avatar on the TV interface
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.tv_show_avatar}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, tv_show_avatar: checked })
+                  }
+                />
+              </div>
+
+              {/* TV Welcome Message */}
+              <div className="space-y-2">
+                <Label htmlFor="tv_welcome_message">TV Welcome Message</Label>
+                <Textarea
+                  id="tv_welcome_message"
+                  value={settings.tv_welcome_message}
+                  onChange={(e) =>
+                    setSettings({ ...settings, tv_welcome_message: e.target.value })
+                  }
+                  placeholder="Welcome to your stay! I'm here to help with anything you need."
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Custom greeting shown on the TV guest portal. Leave empty to use the default.
+                </p>
+              </div>
+
+              {/* Signage Rotation */}
+              <div className="space-y-2">
+                <Label htmlFor="tv_signage_rotation">Signage Rotation (seconds)</Label>
+                <Input
+                  id="tv_signage_rotation"
+                  type="number"
+                  min={10}
+                  max={120}
+                  value={settings.tv_signage_rotation_seconds}
+                  onChange={(e) =>
+                    setSettings({ ...settings, tv_signage_rotation_seconds: parseInt(e.target.value) || 30 })
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  How long each slide displays in digital signage mode (10-120 seconds)
+                </p>
+              </div>
+
+              {/* Info about TV Devices */}
+              <div className="rounded-lg bg-muted/50 p-4">
+                <p className="text-sm text-muted-foreground">
+                  <strong>Tip:</strong> To manage TV devices and their display modes, visit{' '}
+                  <a href="/admin/settings/tv-devices" className="text-primary hover:underline">
+                    TV Devices Settings
+                  </a>.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
