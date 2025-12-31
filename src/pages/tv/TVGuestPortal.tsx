@@ -91,7 +91,7 @@ const TVGuestPortal: React.FC = () => {
       // Fetch property
       const { data: propertyData } = await supabase
         .from('properties')
-        .select('id, title, street_address, city, state')
+        .select('id, title, location')
         .eq('id', propertyId)
         .single();
 
@@ -99,7 +99,7 @@ const TVGuestPortal: React.FC = () => {
         setProperty({
           id: propertyData.id,
           name: propertyData.title,
-          address: [propertyData.street_address, propertyData.city, propertyData.state].filter(Boolean).join(', '),
+          address: propertyData.location || '',
           wifi_network: 'See house manual',
           wifi_password: 'See house manual',
           check_in_time: '3:00 PM',
