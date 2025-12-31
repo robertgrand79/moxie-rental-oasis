@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useSettingsLocalData } from '@/hooks/useSettingsLocalData';
 import AboutPageSettings from '@/components/admin/settings/AboutPageSettings';
+import { useToast } from '@/hooks/use-toast';
 
 interface AboutSettingsDrawerProps {
   open: boolean;
@@ -20,6 +21,7 @@ const AboutSettingsDrawer: React.FC<AboutSettingsDrawerProps> = ({ open, onOpenC
   const { settings, loading, saveSetting } = useSimplifiedSiteSettings();
   const { localData, setLocalData } = useSettingsLocalData(settings, loading);
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   const aboutData = {
     aboutTitle: localData?.siteData?.aboutTitle || '',
@@ -51,6 +53,9 @@ const AboutSettingsDrawer: React.FC<AboutSettingsDrawerProps> = ({ open, onOpenC
 
   const handleSave = async () => {
     setSaving(true);
+    let successCount = 0;
+    const failedFields: string[] = [];
+    
     try {
       const fieldsToSave = [
         'aboutTitle', 'aboutDescription', 'aboutImageUrl', 'founderNames', 'missionStatement', 'missionDescription',
@@ -58,12 +63,37 @@ const AboutSettingsDrawer: React.FC<AboutSettingsDrawerProps> = ({ open, onOpenC
         'aboutMissionCards', 'aboutValuesCards', 'aboutExcellenceTitle', 'aboutExcellenceDescription',
         'aboutAuthenticityTitle', 'aboutAuthenticityDescription', 'aboutClosingQuote'
       ];
+      
       for (const field of fieldsToSave) {
         const value = localData.siteData[field];
         if (value !== undefined) {
-          await saveSetting(field, value);
+          const success = await saveSetting(field, value);
+          if (success !== false) {
+            successCount++;
+          } else {
+            failedFields.push(field);
+          }
         }
       }
+
+      if (failedFields.length === 0) {
+        toast({
+          title: "Settings Saved",
+          description: "About page settings updated successfully.",
+        });
+      } else {
+        toast({
+          title: "Partial Save",
+          description: `Some settings failed to save: ${failedFields.join(', ')}`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Save Error",
+        description: "An unexpected error occurred while saving.",
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
