@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tv, Plus, Trash2, RefreshCw, QrCode, Eye, Settings2, MonitorPlay, Users, Loader2, Copy, Check } from 'lucide-react';
+import { Tv, Plus, Trash2, RefreshCw, QrCode, Eye, Settings2, MonitorPlay, Users, Loader2, Copy, Check, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,14 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-
+import TVQRCodeDialog from './TVQRCodeDialog';
+import TVPreviewModal from './TVPreviewModal';
+import TVAnalyticsDashboard from './TVAnalyticsDashboard';
 interface TVDevice {
   id: string;
   property_id: string;
@@ -45,6 +47,14 @@ const TVDevicesSettingsTab = () => {
   const [newDeviceName, setNewDeviceName] = useState('Living Room TV');
   const [isAddingDevice, setIsAddingDevice] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  
+  // QR Code Dialog
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [qrDialogDevice, setQrDialogDevice] = useState<TVDevice | null>(null);
+  
+  // Preview Modal
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewProperty, setPreviewProperty] = useState<Property | null>(null);
 
   useEffect(() => {
     if (organization?.id) {
@@ -225,6 +235,16 @@ const TVDevicesSettingsTab = () => {
     }
   };
 
+  const openQRDialog = (device: TVDevice) => {
+    setQrDialogDevice(device);
+    setQrDialogOpen(true);
+  };
+
+  const openPreviewModal = (property: Property) => {
+    setPreviewProperty(property);
+    setPreviewModalOpen(true);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -234,7 +254,23 @@ const TVDevicesSettingsTab = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="devices" className="space-y-6">
+      <TabsList>
+        <TabsTrigger value="devices" className="flex items-center gap-2">
+          <Tv className="h-4 w-4" />
+          Devices
+        </TabsTrigger>
+        <TabsTrigger value="analytics" className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4" />
+          Analytics
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="analytics">
+        <TVAnalyticsDashboard />
+      </TabsContent>
+
+      <TabsContent value="devices" className="space-y-6">
       {/* Add New Device */}
       <Card>
         <CardHeader>
@@ -421,7 +457,28 @@ const TVDevicesSettingsTab = () => {
                               )}
 
                               {/* Actions */}
-                              <div className="flex gap-2 pt-2 border-t">
+                              <div className="flex gap-2 pt-2 border-t flex-wrap">
+                                {!device.is_paired && device.pairing_code && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => openQRDialog(device)}
+                                  >
+                                    <QrCode className="h-4 w-4 mr-2" />
+                                    Show QR
+                                  </Button>
+                                )}
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    const prop = properties.find(p => p.id === device.property_id);
+                                    if (prop) openPreviewModal(prop);
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Preview
+                                </Button>
                                 <Button 
                                   variant="outline" 
                                   size="sm"
@@ -508,7 +565,29 @@ const TVDevicesSettingsTab = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </TabsContent>
+
+      {/* QR Code Dialog */}
+      {qrDialogDevice && (
+        <TVQRCodeDialog
+          open={qrDialogOpen}
+          onOpenChange={setQrDialogOpen}
+          pairingCode={qrDialogDevice.pairing_code || ''}
+          deviceName={qrDialogDevice.device_name}
+          propertyName={properties.find(p => p.id === qrDialogDevice.property_id)?.name || 'Property'}
+        />
+      )}
+
+      {/* Preview Modal */}
+      {previewProperty && (
+        <TVPreviewModal
+          open={previewModalOpen}
+          onOpenChange={setPreviewModalOpen}
+          propertyId={previewProperty.id}
+          propertyName={previewProperty.name}
+        />
+      )}
+    </Tabs>
   );
 };
 
