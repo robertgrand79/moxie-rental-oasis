@@ -44,6 +44,7 @@ const handler = async (req: Request): Promise<Response> => {
     const effectiveTeamRole = team_role || 'staff';
 
     if (!organizationId) {
+      console.warn('Invite user failed: Missing organization ID');
       return new Response(
         JSON.stringify({ error: 'Organization ID is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -123,6 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
         .single();
 
       if (existingMembership) {
+        console.warn('Invite user failed: User already a member:', email);
         return new Response(
           JSON.stringify({ error: 'User is already a member of this organization' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -194,6 +196,7 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (existingInvitation) {
+      console.warn('Invite user failed: Active invitation already exists:', email);
       return new Response(
         JSON.stringify({ error: 'Active invitation already exists for this email in this organization' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -190,7 +190,20 @@ export const useUserOperations = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Extract the actual error message from the edge function response
+        let errorMessage = 'Failed to invite user';
+        try {
+          if (error.context?.body) {
+            const bodyText = await error.context.body.text();
+            const parsed = JSON.parse(bodyText);
+            errorMessage = parsed.error || errorMessage;
+          }
+        } catch {
+          // Use default message if parsing fails
+        }
+        throw new Error(errorMessage);
+      }
 
       // Send invitation email
       const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
