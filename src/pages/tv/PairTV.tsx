@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Tv, Check, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { useTVPairing } from '@/hooks/useTVPairing';
 import { toast } from '@/hooks/use-toast';
 
 /**
@@ -18,50 +18,36 @@ import { toast } from '@/hooks/use-toast';
  */
 const PairTV: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  
   const codeFromUrl = searchParams.get('code') || '';
-  const propertyFromUrl = searchParams.get('property') || '';
   
   const [pairingCode, setPairingCode] = useState(codeFromUrl);
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPaired, setIsPaired] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const {
+    isPaired,
+    pairingResult,
+    pairDevice,
+    isLoading,
+    error,
+    isValidCodeFormat,
+    isValidEmailFormat,
+  } = useTVPairing();
 
   const handlePair = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pairingCode || !email) return;
+    if (!isValidCodeFormat(pairingCode) || !isValidEmailFormat(email)) return;
 
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Call edge function to validate and pair
-      const { data, error: fnError } = await supabase.functions.invoke('tv-pairing-validate', {
-        body: { pairing_code: pairingCode, email }
-      });
-
-      if (fnError) {
-        throw new Error(fnError.message || 'Failed to connect to pairing service');
+    pairDevice.mutate(
+      { pairing_code: pairingCode, email },
+      {
+        onSuccess: (data) => {
+          toast({
+            title: 'Successfully paired!',
+            description: data.message || 'The TV will now show your guest portal.',
+          });
+        },
       }
-
-      if (!data?.success) {
-        throw new Error(data?.error || 'Invalid or expired pairing code');
-      }
-
-      setIsPaired(true);
-      toast({
-        title: 'Successfully paired!',
-        description: data.message || 'The TV will now show your guest portal.'
-      });
-
-    } catch (err: any) {
-      console.error('Pairing error:', err);
-      setError(err.message || 'Failed to pair with TV');
-    } finally {
-      setIsLoading(false);
-    }
+    );
   };
 
   if (isPaired) {
@@ -77,12 +63,19 @@ const PairTV: React.FC = () => {
               <p className="text-muted-foreground">
                 Your TV is now connected. The guest portal should appear on the TV screen.
               </p>
+              {pairingResult?.property_name && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Property: {pairingResult.property_name}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
     );
   }
+
+  const canSubmit = isValidCodeFormat(pairingCode) && isValidEmailFormat(email) && !isLoading;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -136,12 +129,7 @@ const PairTV: React.FC = () => {
               </div>
             )}
 
-            <Button 
-              type="submit" 
-              className="w-full" 
-              size="lg"
-              disabled={pairingCode.length !== 6 || !email || isLoading}
-            >
+            <Button type="submit" className="w-full" size="lg" disabled={!canSubmit}>
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
