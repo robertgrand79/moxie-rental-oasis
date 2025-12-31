@@ -112,6 +112,7 @@ const TVDevicesSettingsPage = lazy(() => import('@/pages/admin/settings/TVDevice
 // TV Pages
 const TVWelcome = lazy(() => import('@/pages/tv/TVWelcome'));
 const TVGuestPortal = lazy(() => import('@/pages/tv/TVGuestPortal'));
+const TVSignage = lazy(() => import('@/pages/tv/TVSignage'));
 const PairTV = lazy(() => import('@/pages/tv/PairTV'));
 
 const AppRoutes: React.FC = () => {
@@ -142,6 +143,7 @@ const AppRoutes: React.FC = () => {
           {/* TV Routes */}
           <Route path="/tv/:propertyId" element={<TVWelcome />} />
           <Route path="/tv/:propertyId/portal" element={<TVGuestPortal />} />
+          <Route path="/tv/:propertyId/signage" element={<TVSignage />} />
           <Route path="/pair-tv" element={<PairTV />} />
 
           {/* Shared Onboarding Routes */}
@@ -269,6 +271,7 @@ const AppRoutes: React.FC = () => {
         {/* TV Routes */}
         <Route path="/tv/:propertyId" element={<TVWelcome />} />
         <Route path="/tv/:propertyId/portal" element={<TVGuestPortal />} />
+        <Route path="/tv/:propertyId/signage" element={<TVSignage />} />
         <Route path="/pair-tv" element={<PairTV />} />
 
         {/* Onboarding Routes */}
