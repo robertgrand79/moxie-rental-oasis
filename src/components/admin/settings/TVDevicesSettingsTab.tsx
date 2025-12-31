@@ -60,12 +60,12 @@ const TVDevicesSettingsTab = () => {
       // Fetch properties
       const { data: propertiesData, error: propertiesError } = await supabase
         .from('properties')
-        .select('id, title, street_address')
+        .select('id, title, location')
         .eq('organization_id', organization.id)
         .order('title');
       
       if (propertiesError) throw propertiesError;
-      setProperties((propertiesData || []).map(p => ({ id: p.id, name: p.title, address: p.street_address || '' })));
+      setProperties((propertiesData || []).map(p => ({ id: p.id, name: p.title, address: p.location || '' })));
 
       // Fetch TV devices
       const { data: devicesData, error: devicesError } = await supabase
