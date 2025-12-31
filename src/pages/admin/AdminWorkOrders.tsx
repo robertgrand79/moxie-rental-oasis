@@ -60,17 +60,19 @@ const AdminWorkOrders = () => {
 
   // Handle opening a specific work order from URL query param (e.g., from notification click)
   useEffect(() => {
-    if (loading || workOrders.length === 0) return;
-    
     const workOrderId = searchParams.get('id');
-    if (workOrderId) {
-      const targetWorkOrder = workOrders.find(wo => wo.id === workOrderId);
-      if (targetWorkOrder) {
-        setViewingWorkOrder(targetWorkOrder);
-        setIsWorkOrderPanelOpen(true);
-        // Clear the query param after opening
-        setSearchParams({}, { replace: true });
-      }
+    
+    // Only proceed if we have an ID param and data has loaded
+    if (!workOrderId || loading) return;
+    
+    const targetWorkOrder = workOrders.find(wo => wo.id === workOrderId);
+    if (targetWorkOrder) {
+      setViewingWorkOrder(targetWorkOrder);
+      setIsWorkOrderPanelOpen(true);
+      // Clear only the id param, preserve others
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('id');
+      setSearchParams(newParams, { replace: true });
     }
   }, [loading, workOrders, searchParams, setSearchParams]);
 
