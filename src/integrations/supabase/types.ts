@@ -556,6 +556,10 @@ export type Database = {
           personality: string | null
           submit_button_color: string | null
           text_color: string | null
+          tv_chat_enabled: boolean | null
+          tv_show_avatar: boolean | null
+          tv_signage_rotation_seconds: number | null
+          tv_welcome_message: string | null
           updated_at: string
           use_custom_avatar: boolean | null
           user_message_text_color: string | null
@@ -578,6 +582,10 @@ export type Database = {
           personality?: string | null
           submit_button_color?: string | null
           text_color?: string | null
+          tv_chat_enabled?: boolean | null
+          tv_show_avatar?: boolean | null
+          tv_signage_rotation_seconds?: number | null
+          tv_welcome_message?: string | null
           updated_at?: string
           use_custom_avatar?: boolean | null
           user_message_text_color?: string | null
@@ -600,6 +608,10 @@ export type Database = {
           personality?: string | null
           submit_button_color?: string | null
           text_color?: string | null
+          tv_chat_enabled?: boolean | null
+          tv_show_avatar?: boolean | null
+          tv_signage_rotation_seconds?: number | null
+          tv_welcome_message?: string | null
           updated_at?: string
           use_custom_avatar?: boolean | null
           user_message_text_color?: string | null
@@ -7013,6 +7025,157 @@ export type Database = {
             columns: ["work_order_id"]
             isOneToOne: false
             referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tv_device_pairings: {
+        Row: {
+          created_at: string
+          current_reservation_id: string | null
+          device_id: string
+          device_name: string | null
+          display_mode: string
+          guest_email: string | null
+          id: string
+          is_paired: boolean
+          last_seen_at: string | null
+          organization_id: string
+          paired_at: string | null
+          pairing_code: string | null
+          pairing_code_expires_at: string | null
+          property_id: string
+          settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_reservation_id?: string | null
+          device_id: string
+          device_name?: string | null
+          display_mode?: string
+          guest_email?: string | null
+          id?: string
+          is_paired?: boolean
+          last_seen_at?: string | null
+          organization_id: string
+          paired_at?: string | null
+          pairing_code?: string | null
+          pairing_code_expires_at?: string | null
+          property_id: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_reservation_id?: string | null
+          device_id?: string
+          device_name?: string | null
+          display_mode?: string
+          guest_email?: string | null
+          id?: string
+          is_paired?: boolean
+          last_seen_at?: string | null
+          organization_id?: string
+          paired_at?: string | null
+          pairing_code?: string | null
+          pairing_code_expires_at?: string | null
+          property_id?: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tv_device_pairings_current_reservation_id_fkey"
+            columns: ["current_reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tv_device_pairings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tv_device_pairings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tv_device_pairings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tv_pairing_audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          device_pairing_id: string | null
+          guest_email: string | null
+          id: string
+          ip_address: string | null
+          organization_id: string
+          performed_by: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          device_pairing_id?: string | null
+          guest_email?: string | null
+          id?: string
+          ip_address?: string | null
+          organization_id: string
+          performed_by?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          device_pairing_id?: string | null
+          guest_email?: string | null
+          id?: string
+          ip_address?: string | null
+          organization_id?: string
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tv_pairing_audit_logs_device_pairing_id_fkey"
+            columns: ["device_pairing_id"]
+            isOneToOne: false
+            referencedRelation: "tv_device_pairings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tv_pairing_audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tv_pairing_audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tv_pairing_audit_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
