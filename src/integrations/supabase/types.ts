@@ -7853,7 +7853,9 @@ export type Database = {
         }
         Returns: Json
       }
+      current_user_is_admin: { Args: never; Returns: boolean }
       generate_work_order_number: { Args: never; Returns: string }
+      get_current_user_role: { Args: never; Returns: string }
       get_or_create_contractor_token: {
         Args: { p_contractor_id: string }
         Returns: string
