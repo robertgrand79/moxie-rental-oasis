@@ -37,64 +37,23 @@ const PairTV: React.FC = () => {
     setError(null);
 
     try {
-      // Find device with this pairing code
-      const { data: device, error: deviceError } = await supabase
-        .from('tv_device_pairings')
-        .select('id, property_id, organization_id, pairing_code_expires_at')
-        .eq('pairing_code', pairingCode)
-        .eq('is_paired', false)
-        .single();
+      // Call edge function to validate and pair
+      const { data, error: fnError } = await supabase.functions.invoke('tv-pairing-validate', {
+        body: { pairing_code: pairingCode, email }
+      });
 
-      if (deviceError || !device) {
-        throw new Error('Invalid or expired pairing code');
+      if (fnError) {
+        throw new Error(fnError.message || 'Failed to connect to pairing service');
       }
 
-      // Check if code is expired
-      if (device.pairing_code_expires_at && new Date(device.pairing_code_expires_at) < new Date()) {
-        throw new Error('Pairing code has expired. Please use the code shown on the TV.');
+      if (!data?.success) {
+        throw new Error(data?.error || 'Invalid or expired pairing code');
       }
-
-      // Optional: Validate email against reservation
-      // For now, we'll just accept any email
-      const { data: reservation } = await supabase
-        .from('reservations')
-        .select('id, guest_name')
-        .eq('property_id', device.property_id)
-        .ilike('guest_email', email)
-        .gte('check_out_date', new Date().toISOString().split('T')[0])
-        .order('check_in_date', { ascending: true })
-        .limit(1)
-        .single();
-
-      // Update device as paired
-      const { error: updateError } = await supabase
-        .from('tv_device_pairings')
-        .update({
-          is_paired: true,
-          paired_at: new Date().toISOString(),
-          guest_email: email,
-          current_reservation_id: reservation?.id || null,
-          display_mode: 'guest_portal'
-        })
-        .eq('id', device.id);
-
-      if (updateError) throw updateError;
-
-      // Log the pairing
-      await supabase
-        .from('tv_pairing_audit_logs')
-        .insert({
-          device_pairing_id: device.id,
-          organization_id: device.organization_id,
-          action: 'paired',
-          guest_email: email,
-          details: { reservation_id: reservation?.id }
-        });
 
       setIsPaired(true);
       toast({
         title: 'Successfully paired!',
-        description: 'The TV will now show your guest portal.'
+        description: data.message || 'The TV will now show your guest portal.'
       });
 
     } catch (err: any) {
