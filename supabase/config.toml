@@ -199,6 +199,9 @@ verify_jwt = false
 [functions.tv-device-unpair]
 verify_jwt = false
 
+[functions.get-weather]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323
