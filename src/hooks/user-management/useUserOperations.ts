@@ -191,12 +191,13 @@ export const useUserOperations = () => {
       });
 
       if (error) {
-        // Extract the actual error message from the edge function response
+        // Extract the actual error message from the Supabase error
+        // Format is typically: "Edge function returned 400: Error, {"error":"..."}"
         let errorMessage = 'Failed to invite user';
         try {
-          if (error.context?.body) {
-            const bodyText = await error.context.body.text();
-            const parsed = JSON.parse(bodyText);
+          const jsonMatch = error.message?.match(/\{.*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
             errorMessage = parsed.error || errorMessage;
           }
         } catch {
