@@ -1,6 +1,6 @@
 import React from 'react';
 import HeroSection from '@/components/platform/homepage/HeroSection';
-import SocialProofBar from '@/components/platform/homepage/SocialProofBar';
+// import SocialProofBar from '@/components/platform/homepage/SocialProofBar'; // Hidden until we have real conversions
 import ProblemSection from '@/components/platform/homepage/ProblemSection';
 import PillarsSection from '@/components/platform/homepage/PillarsSection';
 import MoxieAISection from '@/components/platform/homepage/MoxieAISection';
@@ -15,7 +15,7 @@ const PlatformHome: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       <HeroSection />
-      <SocialProofBar />
+      {/* <SocialProofBar /> - Hidden until we have real conversions */}
       <ProblemSection />
       <PillarsSection />
       <MoxieAISection />
