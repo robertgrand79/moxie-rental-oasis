@@ -17,8 +17,8 @@ const PlatformNavbar: React.FC = () => {
   }, [isPlatformSite, location.pathname]);
 
   const navLinks = [
-    { href: `${basePath}/features`, label: 'Features' },
-    { href: `${basePath}/pricing`, label: 'Pricing' },
+    { href: `${basePath}/#features`, label: 'Features' },
+    { href: `${basePath}/#pricing`, label: 'Pricing' },
     { href: `${basePath}/#faq`, label: 'FAQ' },
   ];
 

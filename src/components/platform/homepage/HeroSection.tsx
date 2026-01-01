@@ -77,14 +77,13 @@ const HeroSection: React.FC = () => {
             </Button>
             <Button
               asChild
-              variant="outline"
               size="lg"
-              className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-6 text-lg rounded-xl"
+              className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-6 text-lg rounded-xl"
             >
-              <Link to={`${basePath}/features`}>
+              <a href="#features">
                 <Play className="mr-2 w-5 h-5" />
                 See How It Works
-              </Link>
+              </a>
             </Button>
           </div>
 

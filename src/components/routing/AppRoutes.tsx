@@ -126,8 +126,8 @@ const AppRoutes: React.FC = () => {
         <Route path="/" element={<PlatformLayout />}>
             <Route index element={<PlatformHome />} />
             <Route path="home" element={<Navigate to="/" replace />} />
-            <Route path="features" element={<Features />} />
-            <Route path="pricing" element={<Pricing />} />
+            <Route path="features" element={<Navigate to="/#features" replace />} />
+            <Route path="pricing" element={<Navigate to="/#pricing" replace />} />
             <Route path="about" element={<PlatformAbout />} />
             <Route path="blog" element={<PlatformBlog />} />
             <Route path="auth" element={<PlatformAuth />} />
@@ -236,8 +236,8 @@ const AppRoutes: React.FC = () => {
         {/* Platform Marketing Routes (accessible via /platform on any domain) */}
         <Route path="/platform" element={<PlatformLayout />}>
           <Route index element={<PlatformHome />} />
-          <Route path="features" element={<Features />} />
-          <Route path="pricing" element={<Pricing />} />
+          <Route path="features" element={<Navigate to="/platform/#features" replace />} />
+          <Route path="pricing" element={<Navigate to="/platform/#pricing" replace />} />
           <Route path="about" element={<PlatformAbout />} />
           <Route path="blog" element={<PlatformBlog />} />
         </Route>
