@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
+import { Check, Sparkles } from 'lucide-react';
 
 const plans = [
   {
@@ -66,9 +66,12 @@ const PricingSection: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-12">
-          <span className="text-sm font-semibold text-blue-600 uppercase tracking-wider">
-            Pricing
-          </span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-200 mb-6">
+            <Sparkles className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-semibold text-blue-600 uppercase tracking-wider">
+              Simple Pricing
+            </span>
+          </div>
           <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 font-fraunces">
             Simple, transparent pricing
           </h2>

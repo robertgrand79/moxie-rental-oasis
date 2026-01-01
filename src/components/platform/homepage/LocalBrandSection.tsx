@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Mail, Calendar, MapPin } from 'lucide-react';
+import { FileText, Mail, Calendar, MapPin, Sparkles } from 'lucide-react';
 
 const contentPillars = [
   {
@@ -34,9 +34,12 @@ const LocalBrandSection: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-16">
-          <span className="text-sm font-semibold text-blue-200 uppercase tracking-wider">
-            Your Content Machine
-          </span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full border border-white/20 mb-6">
+            <Sparkles className="w-4 h-4 text-blue-200" />
+            <span className="text-sm font-semibold text-blue-200 uppercase tracking-wider">
+              AI-Powered Content
+            </span>
+          </div>
           <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold text-white font-fraunces">
             Four pillars that make
             <br />
