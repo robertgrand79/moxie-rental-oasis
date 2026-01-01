@@ -62,7 +62,7 @@ const CalculatorSection: React.FC = () => {
                 min={25000}
                 max={500000}
                 step={5000}
-                className="w-full"
+                className="w-full [&_[data-slot=track]]:bg-blue-100 [&_[data-slot=range]]:bg-blue-600 [&_[data-slot=thumb]]:border-blue-600 [&>span:first-child]:bg-blue-100 [&>span:first-child>span]:bg-blue-600 [&>span:last-child]:border-blue-600"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-2">
                 <span>$25K</span>
@@ -86,7 +86,7 @@ const CalculatorSection: React.FC = () => {
                 min={10}
                 max={80}
                 step={5}
-                className="w-full"
+                className="w-full [&_[data-slot=track]]:bg-blue-100 [&_[data-slot=range]]:bg-blue-600 [&_[data-slot=thumb]]:border-blue-600 [&>span:first-child]:bg-blue-100 [&>span:first-child>span]:bg-blue-600 [&>span:last-child]:border-blue-600"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-2">
                 <span>10%</span>
