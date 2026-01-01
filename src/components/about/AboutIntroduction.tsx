@@ -32,18 +32,19 @@ const parseCards = (jsonString: string | undefined, fallback: string): FeatureCa
 
 const AboutIntroduction = () => {
   const { settings } = useTenantSettings();
-  const siteName = settings.site_name || 'Our Team';
-  const aboutTitle = settings.aboutTitle || 'Meet Our Team';
-  const aboutDescription = settings.aboutDescription || 
+  const siteName = settings?.site_name || 'Our Team';
+  const aboutTitle = settings?.aboutTitle || 'Meet Our Team';
+  const aboutDescription = settings?.aboutDescription || 
     `Welcome to ${siteName}! We're dedicated to providing exceptional vacation rental experiences with personalized service and attention to detail.`;
-  const aboutImageUrl = settings.aboutImageUrl;
-  const founderNames = settings.founderNames;
+  const aboutImageUrl = settings?.aboutImageUrl;
+  const founderNames = settings?.founderNames;
   
   // Extended settings with fallbacks
-  const featureCards = parseCards(settings.aboutFeatureCards, defaultSettings.aboutFeatureCards);
-  const founderQuote = settings.aboutFounderQuote || defaultSettings.aboutFounderQuote;
-  const tagline = settings.aboutTagline || defaultSettings.aboutTagline;
-  const tags = (settings.aboutTags || defaultSettings.aboutTags).split(',').map(t => t.trim()).filter(Boolean);
+  const featureCards = parseCards(settings?.aboutFeatureCards, defaultSettings.aboutFeatureCards);
+  const founderQuote = settings?.aboutFounderQuote || defaultSettings.aboutFounderQuote;
+  const tagline = settings?.aboutTagline || defaultSettings.aboutTagline;
+  const tagsRaw = settings?.aboutTags || defaultSettings.aboutTags || '';
+  const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
 
   const cardStyles = [
     "bg-gradient-to-br from-gradient-from to-gradient-to",
