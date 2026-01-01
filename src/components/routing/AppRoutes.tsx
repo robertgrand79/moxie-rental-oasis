@@ -108,6 +108,7 @@ const StripeSettingsPage = lazy(() => import('@/pages/admin/settings/StripeSetti
 const PriceLabsSettingsPage = lazy(() => import('@/pages/admin/settings/PriceLabsSettingsPage'));
 const SetupWizardPage = lazy(() => import('@/pages/admin/settings/SetupWizardPage'));
 const TVDevicesSettingsPage = lazy(() => import('@/pages/admin/settings/TVDevicesSettingsPage'));
+const NavigationSettingsPage = lazy(() => import('@/pages/admin/settings/NavigationSettingsPage'));
 
 // TV Pages
 const TVWelcome = lazy(() => import('@/pages/tv/TVWelcome'));
@@ -166,6 +167,7 @@ const AppRoutes: React.FC = () => {
             <Route path="settings/domain" element={<DomainSettingsPage />} />
             <Route path="settings/billing" element={<BillingSettingsPage />} />
             <Route path="settings/site-info" element={<SiteInfoSettingsPage />} />
+            <Route path="settings/navigation" element={<NavigationSettingsPage />} />
             <Route path="settings/hero" element={<HeroSettingsPage />} />
             <Route path="settings/about" element={<AboutSettingsPage />} />
             <Route path="settings/contact" element={<ContactSettingsPage />} />
@@ -293,6 +295,7 @@ const AppRoutes: React.FC = () => {
           <Route path="settings/domain" element={<DomainSettingsPage />} />
           <Route path="settings/billing" element={<BillingSettingsPage />} />
           <Route path="settings/site-info" element={<SiteInfoSettingsPage />} />
+          <Route path="settings/navigation" element={<NavigationSettingsPage />} />
           <Route path="settings/hero" element={<HeroSettingsPage />} />
           <Route path="settings/about" element={<AboutSettingsPage />} />
           <Route path="settings/contact" element={<ContactSettingsPage />} />

@@ -6,7 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { shouldShowAdminFeatures } from '@/utils/domainUtils';
-import { useNavigationPages } from '@/hooks/useNavigationPages';
+import { useNavigationConfig } from '@/hooks/useNavigationConfig';
+import { useTenant } from '@/contexts/TenantContext';
 import {
   Sheet,
   SheetContent,
@@ -19,6 +20,13 @@ interface MobileNavigationDrawerProps {
   onClose: () => void;
 }
 
+// Map of core nav IDs to their data
+const coreNavMap = new Map(
+  navigationItems
+    .filter(item => item.href !== '/admin')
+    .map(item => [item.name.toLowerCase(), item])
+);
+
 const MobileNavigationDrawer = ({ 
   isOpen, 
   onClose 
@@ -26,7 +34,8 @@ const MobileNavigationDrawer = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { data: customPages = [] } = useNavigationPages();
+  const { isSingleProperty } = useTenant();
+  const { config, isLoading } = useNavigationConfig();
 
   const handleLinkClick = () => {
     onClose();
@@ -62,14 +71,54 @@ const MobileNavigationDrawer = ({
 
   const displayName = user?.user_metadata?.full_name || user?.email || 'User';
 
-  // Filter navigation items based on domain
-  const filteredNavItems = navigationItems.filter(item => {
-    // Hide admin navigation if not on admin domain
-    if (item.href === '/admin' && !shouldShowAdminFeatures()) {
-      return false;
+  // Build the navigation items from config
+  const getNavigationItems = () => {
+    if (!config?.items) {
+      // Fallback to default navigation (excluding admin)
+      return navigationItems
+        .filter(item => item.href !== '/admin')
+        .map(item => ({
+          key: item.name,
+          href: item.href,
+          title: item.title,
+          icon: item.icon,
+        }));
     }
-    return true;
-  });
+
+    // Use configured items
+    return config.items
+      .filter(item => item.enabled)
+      .sort((a, b) => a.order - b.order)
+      .map(item => {
+        if (item.type === 'core') {
+          const coreItem = coreNavMap.get(item.id);
+          if (!coreItem) return null;
+          
+          // Apply filters
+          if ((coreItem.href === '/properties' || coreItem.href === '/listings') && isSingleProperty) {
+            return null;
+          }
+
+          return {
+            key: item.id,
+            href: coreItem.href,
+            title: item.customLabel || coreItem.title,
+            icon: coreItem.icon,
+          };
+        } else {
+          // Custom page
+          return {
+            key: item.id,
+            href: `/${item.slug}`,
+            title: item.customLabel || item.originalTitle || item.slug,
+            icon: FileText,
+          };
+        }
+      })
+      .filter(Boolean) as Array<{ key: string; href: string; title: string; icon: React.ElementType }>;
+  };
+
+  const navItems = getNavigationItems();
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -82,45 +131,33 @@ const MobileNavigationDrawer = ({
         
         {/* Navigation Links */}
         <nav className="flex flex-col space-y-2">
-          {filteredNavItems.map((item) => {
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <Link
-                key={item.title}
-                to={item.href}
-                className={`flex items-center px-4 py-4 rounded-xl font-medium transition-all duration-200 ${
-                  isActive 
-                    ? 'text-primary bg-primary/10 border border-primary/20' 
-                    : 'text-foreground hover:text-foreground hover:bg-accent border border-transparent'
-                }`}
-                onClick={handleLinkClick}
-              >
-                <span className="text-base">{item.title}</span>
-              </Link>
-            );
-          })}
-          
-          {/* Custom pages from CMS */}
-          {customPages.map((page) => {
-            const isActive = location.pathname === `/${page.slug}`;
-            
-            return (
-              <Link
-                key={page.id}
-                to={`/${page.slug}`}
-                className={`flex items-center px-4 py-4 rounded-xl font-medium transition-all duration-200 ${
-                  isActive 
-                    ? 'text-primary bg-primary/10 border border-primary/20' 
-                    : 'text-foreground hover:text-foreground hover:bg-accent border border-transparent'
-                }`}
-                onClick={handleLinkClick}
-              >
-                <FileText className="h-5 w-5 mr-3" />
-                <span className="text-base">{page.title}</span>
-              </Link>
-            );
-          })}
+          {isLoading ? (
+            // Loading skeleton
+            [1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-14 bg-muted/50 rounded-xl animate-pulse" />
+            ))
+          ) : (
+            navItems.map((item) => {
+              const isActive = location.pathname === item.href;
+              const Icon = item.icon;
+              
+              return (
+                <Link
+                  key={item.key}
+                  to={item.href}
+                  className={`flex items-center px-4 py-4 rounded-xl font-medium transition-all duration-200 ${
+                    isActive 
+                      ? 'text-primary bg-primary/10 border border-primary/20' 
+                      : 'text-foreground hover:text-foreground hover:bg-accent border border-transparent'
+                  }`}
+                  onClick={handleLinkClick}
+                >
+                  <Icon className="h-5 w-5 mr-3" />
+                  <span className="text-base">{item.title}</span>
+                </Link>
+              );
+            })
+          )}
         </nav>
 
         {/* Separator */}
