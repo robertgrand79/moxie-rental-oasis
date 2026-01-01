@@ -22,7 +22,8 @@ const EnhancedPageForm = ({ page, onSubmit, onCancel }: EnhancedPageFormProps) =
     slug: '',
     content: '',
     meta_description: '',
-    is_published: false
+    is_published: false,
+    show_in_nav: false
   });
 
   useEffect(() => {
@@ -32,7 +33,8 @@ const EnhancedPageForm = ({ page, onSubmit, onCancel }: EnhancedPageFormProps) =
         slug: page.slug || '',
         content: page.content || '',
         meta_description: page.meta_description || '',
-        is_published: page.is_published || false
+        is_published: page.is_published || false,
+        show_in_nav: page.show_in_nav || false
       });
     }
   }, [page]);
@@ -148,13 +150,27 @@ const EnhancedPageForm = ({ page, onSubmit, onCancel }: EnhancedPageFormProps) =
             />
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_published"
-              checked={formData.is_published}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_published: checked }))}
-            />
-            <Label htmlFor="is_published">Publish immediately</Label>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is_published"
+                checked={formData.is_published}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_published: checked }))}
+              />
+              <Label htmlFor="is_published">Publish immediately</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show_in_nav"
+                checked={formData.show_in_nav}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, show_in_nav: checked }))}
+              />
+              <div>
+                <Label htmlFor="show_in_nav">Show in Navigation</Label>
+                <p className="text-sm text-muted-foreground">Display this page as a link in the main navigation menu</p>
+              </div>
+            </div>
           </div>
 
           <div className="flex space-x-4">

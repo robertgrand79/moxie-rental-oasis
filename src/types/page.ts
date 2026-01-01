@@ -6,6 +6,8 @@ export interface Page {
   content?: string;
   meta_description?: string;
   is_published: boolean;
+  show_in_nav?: boolean;
+  nav_order?: number;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -18,6 +20,7 @@ export interface PageFormData {
   content: string;
   meta_description: string;
   is_published: boolean;
+  show_in_nav: boolean;
 }
 
 export interface CreatePageData extends PageFormData {

@@ -26,6 +26,7 @@ export const getDefaultPages = (userId: string, organizationId: string): CreateP
     `,
     meta_description: 'Welcome to our vacation rentals - Premium accommodations for your perfect getaway.',
     is_published: true,
+    show_in_nav: false,
     created_by: userId,
     organization_id: organizationId
   },
@@ -58,6 +59,7 @@ export const getDefaultPages = (userId: string, organizationId: string): CreateP
     `,
     meta_description: 'Learn about us - your trusted partner for exceptional vacation rental experiences.',
     is_published: true,
+    show_in_nav: false,
     created_by: userId,
     organization_id: organizationId
   },
@@ -94,6 +96,7 @@ export const getDefaultPages = (userId: string, organizationId: string): CreateP
     `,
     meta_description: 'Contact us for booking assistance, local recommendations, and support. Available 24/7 for your needs.',
     is_published: true,
+    show_in_nav: false,
     created_by: userId,
     organization_id: organizationId
   },
@@ -185,6 +188,7 @@ export const getDefaultPages = (userId: string, organizationId: string): CreateP
     `,
     meta_description: 'Find answers to frequently asked questions including check-in, amenities, and guest support.',
     is_published: true,
+    show_in_nav: false,
     created_by: userId,
     organization_id: organizationId
   }

@@ -3959,7 +3959,9 @@ export type Database = {
           id: string
           is_published: boolean
           meta_description: string | null
+          nav_order: number | null
           organization_id: string
+          show_in_nav: boolean
           slug: string
           title: string
           updated_at: string
@@ -3971,7 +3973,9 @@ export type Database = {
           id?: string
           is_published?: boolean
           meta_description?: string | null
+          nav_order?: number | null
           organization_id: string
+          show_in_nav?: boolean
           slug: string
           title: string
           updated_at?: string
@@ -3983,7 +3987,9 @@ export type Database = {
           id?: string
           is_published?: boolean
           meta_description?: string | null
+          nav_order?: number | null
           organization_id?: string
+          show_in_nav?: boolean
           slug?: string
           title?: string
           updated_at?: string

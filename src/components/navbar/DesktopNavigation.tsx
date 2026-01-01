@@ -1,14 +1,17 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { FileText } from 'lucide-react';
 import { navigationItems } from './navigationItems';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldShowAdminFeatures } from '@/utils/domainUtils';
 import { useTenant } from '@/contexts/TenantContext';
+import { useNavigationPages } from '@/hooks/useNavigationPages';
 
 const DesktopNavigation = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { isSingleProperty } = useTenant();
+  const { data: customPages = [] } = useNavigationPages();
 
   // Filter navigation items based on domain, user authentication, and template type
   const filteredItems = navigationItems.filter(item => {
@@ -43,6 +46,24 @@ const DesktopNavigation = () => {
           >
             <IconComponent className="h-5 w-5" />
             <span>{item.title}</span>
+          </Link>
+        );
+      })}
+      
+      {/* Custom pages from CMS */}
+      {customPages.map((page) => {
+        const isActive = location.pathname === `/${page.slug}`;
+        
+        return (
+          <Link
+            key={page.id}
+            to={`/${page.slug}`}
+            className={`flex items-center space-x-1.5 font-medium text-sm transition-colors duration-200 hover:text-nav-hover px-2.5 py-2 rounded-md ${
+              isActive ? 'text-primary bg-primary/10' : 'text-nav-foreground'
+            }`}
+          >
+            <FileText className="h-5 w-5" />
+            <span>{page.title}</span>
           </Link>
         );
       })}
