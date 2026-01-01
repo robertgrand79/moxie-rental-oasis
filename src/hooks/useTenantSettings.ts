@@ -111,14 +111,21 @@ export const useTenantSettings = () => {
   useEffect(() => {
     if (!tenantId) return;
 
+    // Create stable channel name for this tenant
+    const channelName = `tenant_settings_${tenantId}`;
+    
+    // Check if already subscribed to avoid duplicate subscriptions
+    const existingChannel = supabase.getChannels().find(ch => ch.topic === `realtime:${channelName}`);
+    if (existingChannel) {
+      channelRef.current = existingChannel;
+      return;
+    }
+
     // Clean up any existing channel first
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
-
-    // Create unique channel name with timestamp to avoid conflicts
-    const channelName = `tenant_settings_${tenantId}_${Date.now()}`;
     
     const channel = supabase
       .channel(channelName)
@@ -135,14 +142,12 @@ export const useTenantSettings = () => {
           // Invalidate and refetch
           queryClient.invalidateQueries({ queryKey: ['tenant-settings', tenantId] });
         }
-      );
-    
-    // Subscribe only if not already subscribed
-    channel.subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        debug.settings('Tenant settings channel subscribed');
-      }
-    });
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          debug.settings('Tenant settings channel subscribed');
+        }
+      });
 
     channelRef.current = channel;
 
@@ -152,7 +157,7 @@ export const useTenantSettings = () => {
         channelRef.current = null;
       }
     };
-  }, [tenantId, queryClient]); // Include queryClient in deps
+  }, [tenantId, queryClient]);
 
   // Merge tenant info with settings - look for both camelCase and snake_case keys
   // siteLogo is the key used by LogoUploader, so check it first
