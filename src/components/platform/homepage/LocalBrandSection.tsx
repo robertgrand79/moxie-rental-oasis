@@ -30,7 +30,7 @@ const contentPillars = [
 
 const LocalBrandSection: React.FC = () => {
   return (
-    <section className="py-20 bg-gradient-to-br from-blue-600 to-blue-800">
+    <section id="content" className="py-20 bg-gradient-to-br from-blue-600 to-blue-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-16">
