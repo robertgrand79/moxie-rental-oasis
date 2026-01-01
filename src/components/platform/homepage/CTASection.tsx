@@ -40,9 +40,8 @@ const CTASection: React.FC = () => {
           </Button>
           <Button
             asChild
-            variant="outline"
             size="lg"
-            className="border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg rounded-xl"
+            className="bg-white/20 border border-white/40 text-white hover:bg-white/30 px-8 py-6 text-lg rounded-xl font-semibold"
           >
             <Link to="/demo">
               Watch Demo

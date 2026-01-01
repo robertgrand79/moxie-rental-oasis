@@ -16,12 +16,6 @@ const PlatformNavbar: React.FC = () => {
     return location.pathname.startsWith('/platform') ? '/platform' : '';
   }, [isPlatformSite, location.pathname]);
 
-  const navLinks = [
-    { href: `${basePath}/#features`, label: 'Features' },
-    { href: `${basePath}/#pricing`, label: 'Pricing' },
-    { href: `${basePath}/#faq`, label: 'FAQ' },
-  ];
-
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,19 +29,6 @@ const PlatformNavbar: React.FC = () => {
               StayMoxie
             </span>
           </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                to={link.href}
-                className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
@@ -77,26 +58,14 @@ const PlatformNavbar: React.FC = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-white border-b border-gray-100">
           <div className="px-4 py-4 space-y-3">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                to={link.href}
-                className="block py-2 text-gray-600 hover:text-blue-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <div className="pt-4 border-t border-gray-100 space-y-3">
-              <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
-                <Button variant="outline" className="w-full">Log In</Button>
-              </Link>
-              <Link to="/auth?tab=signup" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                  Start Free
-                </Button>
-              </Link>
-            </div>
+            <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+              <Button variant="outline" className="w-full">Log In</Button>
+            </Link>
+            <Link to="/auth?tab=signup" onClick={() => setIsMenuOpen(false)}>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                Start Free
+              </Button>
+            </Link>
           </div>
         </div>
       )}
