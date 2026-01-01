@@ -27,15 +27,15 @@ const CalculatorSection: React.FC = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 rounded-full mb-4">
             <Calculator className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-green-700">ROI Calculator</span>
+            <span className="text-sm font-medium text-green-700">Revenue Calculator</span>
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 font-fraunces">
             Calculate your
             <br />
-            <span className="text-blue-600">direct booking savings</span>
+            <span className="text-blue-600">direct booking revenue</span>
           </h2>
           <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
-            See how much you could save by shifting bookings from OTAs to your own website.
+            See how adding a direct booking channel increases your total revenue alongside your OTA presence.
           </p>
         </div>
 
@@ -99,13 +99,13 @@ const CalculatorSection: React.FC = () => {
                 <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-green-600" />
                 </div>
-                <span className="text-gray-700 font-medium">Annual Savings</span>
+                <span className="text-gray-700 font-medium">Additional Annual Revenue</span>
               </div>
               <div className="text-4xl font-bold text-green-600 font-fraunces">
                 {formatCurrency(annualSavings)}
               </div>
               <p className="text-sm text-gray-500 mt-2">
-                Saved in OTA commissions
+                Extra revenue from direct bookings
               </p>
             </div>
 
@@ -120,14 +120,14 @@ const CalculatorSection: React.FC = () => {
                 {formatCurrency(fiveYearSavings)}
               </div>
               <p className="text-sm text-gray-500 mt-2">
-                Total savings over 5 years
+                Total additional revenue over 5 years
               </p>
             </div>
           </div>
 
           {/* Assumption note */}
           <p className="text-center text-sm text-gray-500 mt-8">
-            Based on average 15% OTA commission rate. Actual savings may vary.
+            Based on keeping full booking value vs. 15% OTA commission. Use alongside your OTA channels for maximum reach.
           </p>
         </div>
       </div>

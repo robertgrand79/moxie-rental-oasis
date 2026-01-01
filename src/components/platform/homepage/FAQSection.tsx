@@ -8,16 +8,16 @@ import {
 
 const faqs = [
   {
-    question: 'How does StayMoxie sync with Airbnb and VRBO?',
-    answer: 'StayMoxie connects to your Airbnb and VRBO accounts via their official APIs and iCal feeds. Once connected, your calendars sync automatically every 15 minutes, ensuring your availability is always accurate across all platforms. You can also trigger manual syncs anytime.',
+    question: 'How does StayMoxie integrate with Airbnb and VRBO?',
+    answer: 'StayMoxie fully integrates with Airbnb and VRBO via their official APIs and iCal feeds. Your calendars sync automatically every 15 minutes, keeping availability accurate across all platforms. Manage all your channels from one dashboard—no need to log into multiple sites.',
   },
   {
     question: 'Do I need to leave Airbnb to use StayMoxie?',
-    answer: 'Not at all! StayMoxie works alongside your existing OTA listings. Keep your Airbnb and VRBO presence while also building your direct booking channel. Many hosts find that direct bookings grow over time as guests discover their branded website.',
+    answer: 'Absolutely not! StayMoxie is designed to work WITH your OTA listings, not replace them. Keep your Airbnb and VRBO presence—they bring new guests. StayMoxie helps you manage those channels more efficiently while building a complementary direct booking channel for repeat guests.',
   },
   {
     question: 'How does the direct booking website help me get bookings?',
-    answer: 'Your StayMoxie website is SEO-optimized and designed to convert visitors into guests. By adding local content like area guides, events, and blog posts, you attract travelers searching for your destination. Returning guests can book directly, saving you OTA fees.',
+    answer: 'Your StayMoxie website is SEO-optimized to attract travelers searching for your destination. Add local content like area guides and events to draw organic traffic. Returning guests can book directly—keeping the full booking value on those reservations while your OTAs continue bringing new guests.',
   },
   {
     question: 'What can Moxie AI actually do?',

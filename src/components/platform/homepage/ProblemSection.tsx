@@ -10,7 +10,7 @@ const problems = [
   {
     icon: Eye,
     title: 'Invisible Brand',
-    description: 'Your properties get lost in OTA search results. Guests remember Airbnb, not you.',
+    description: 'OTAs bring bookings, but guests remember them, not you. Build recognition that drives repeat direct bookings.',
   },
   {
     icon: MessageCircle,

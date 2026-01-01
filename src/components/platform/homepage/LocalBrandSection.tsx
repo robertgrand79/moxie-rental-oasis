@@ -5,7 +5,7 @@ const features = [
   {
     icon: Globe,
     title: 'Your Own Booking Website',
-    description: 'Professional, mobile-first website with your branding. Accept direct bookings with no OTA fees.',
+    description: 'Professional, mobile-first website with your branding. Accept direct bookings alongside your OTA presence.',
   },
   {
     icon: Search,
@@ -34,13 +34,13 @@ const LocalBrandSection: React.FC = () => {
             Direct Booking Engine
           </span>
           <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold text-white font-fraunces">
-            Stop paying 15% to OTAs
+            Maximize Every Channel
             <br />
             <span className="text-blue-200">Build your local brand</span>
           </h2>
           <p className="mt-6 text-xl text-blue-100 max-w-3xl mx-auto">
-            Your properties deserve more than a listing. Build a destination brand that 
-            guests remember and return to—without Airbnb taking the credit (or the fees).
+            Your properties deserve more than OTA listings alone. Build a destination brand that 
+            guests remember and return to—with bookings flowing from Airbnb, VRBO, and your own website.
           </p>
         </div>
 
@@ -68,8 +68,8 @@ const LocalBrandSection: React.FC = () => {
         <div className="mt-16 bg-white/10 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-white/20">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-4xl md:text-5xl font-bold text-white font-fraunces">15%</div>
-              <div className="text-blue-200 mt-2">Average OTA commission you can save</div>
+              <div className="text-4xl md:text-5xl font-bold text-white font-fraunces">100%</div>
+              <div className="text-blue-200 mt-2">Revenue kept on direct bookings</div>
             </div>
             <div>
               <div className="text-4xl md:text-5xl font-bold text-white font-fraunces">40%</div>
