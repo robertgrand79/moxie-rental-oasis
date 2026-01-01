@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Menu } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
@@ -8,7 +9,6 @@ import SupportWidget from '@/components/support/SupportWidget';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -16,7 +16,6 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const isMobile = useIsMobile();
-  const { organization } = useCurrentOrganization();
   const queryClient = useQueryClient();
 
   // Clear stale tenant-related caches when entering admin to ensure fresh data
@@ -51,12 +50,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     asChild 
                     className={isMobile ? 'min-h-[44px]' : ''}
                   >
-                    {/* Always use <a> tag to force full page reload for clean tenant detection */}
-                    <a href={backUrl} className="flex items-center gap-2">
+                    <Link to={backUrl} className="flex items-center gap-2">
                       <ArrowLeft className="h-4 w-4" />
                       <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
                       <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                    </a>
+                    </Link>
                   </EnhancedButton>
                 </div>
                 
