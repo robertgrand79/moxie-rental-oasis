@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Upload, X, Loader2, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { AIInput } from '@/components/ui/ai-input';
 import { AITextarea } from '@/components/ui/ai-textarea';
+import ReactQuillEditor from '@/components/ReactQuillEditor';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from 'sonner';
@@ -225,17 +226,17 @@ const AboutPageSettings: React.FC<AboutPageSettingsProps> = ({
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className="space-y-6">
-              <AITextarea
-                label="Introduction"
-                id="aboutDescription"
-                value={localData.aboutDescription}
-                onChange={(e) => onInputChange('aboutDescription', e.target.value)}
-                onValueChange={(value) => onInputChange('aboutDescription', value)}
-                placeholder="Tell visitors about your company..."
-                rows={4}
-                aiPrompt="Write a warm, engaging introduction for a vacation rental company's About page. Describe the company story, values, and what makes their properties special. 3-4 sentences."
-                aiTooltip="Generate introduction with AI"
-              />
+              <div className="space-y-2">
+                <Label htmlFor="aboutDescription">Introduction</Label>
+                <ReactQuillEditor
+                  content={localData.aboutDescription}
+                  onChange={(value) => onInputChange('aboutDescription', value)}
+                  placeholder="Tell visitors about your company... Use multiple paragraphs, bold, lists, etc."
+                />
+                <p className="text-sm text-muted-foreground">
+                  Rich text supported: paragraphs, bold, italic, lists, links
+                </p>
+              </div>
 
               {/* Team Photo Upload */}
               <div className="space-y-2">

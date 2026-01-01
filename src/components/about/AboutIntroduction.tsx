@@ -1,6 +1,7 @@
 import React from 'react';
 import { Home, Award, Heart, Star } from 'lucide-react';
 import OptimizedImage from '@/components/ui/optimized-image';
+import SecureContentRenderer from '@/components/SecureContentRenderer';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
 import { defaultSettings } from '@/hooks/settings/constants';
 
@@ -60,9 +61,9 @@ const AboutIntroduction = () => {
           {/* Header Section */}
           <div className="text-center">
             <h2 className="text-3xl font-bold text-foreground mb-4">{aboutTitle}</h2>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-              {aboutDescription}
-            </p>
+            <div className="text-lg text-muted-foreground leading-relaxed mb-6 prose prose-lg max-w-none prose-p:text-muted-foreground prose-strong:text-foreground prose-a:text-primary">
+              <SecureContentRenderer content={aboutDescription} />
+            </div>
           </div>
 
           {/* Hero Photo Section - Only show if configured */}
