@@ -111,13 +111,11 @@ export const useTenantSettings = () => {
   useEffect(() => {
     if (!tenantId) return;
 
-    // Clean up existing channel
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-    }
-
+    // Create unique channel name with timestamp to avoid conflicts
+    const channelName = `tenant_settings_${tenantId}_${Date.now()}`;
+    
     const channel = supabase
-      .channel(`tenant_settings:${tenantId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -137,12 +135,10 @@ export const useTenantSettings = () => {
     channelRef.current = channel;
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
+      supabase.removeChannel(channel);
+      channelRef.current = null;
     };
-  }, [tenantId, queryClient]);
+  }, [tenantId]); // Only depend on tenantId
 
   // Merge tenant info with settings - look for both camelCase and snake_case keys
   // siteLogo is the key used by LogoUploader, so check it first
