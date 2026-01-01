@@ -99,22 +99,26 @@ const mergeConfigWithCurrentItems = (
   return { items };
 };
 
-export const useNavigationConfig = () => {
+export const useNavigationConfig = (organizationId?: string | null) => {
   const { tenantId } = useTenant();
   const queryClient = useQueryClient();
-  const { data: customPages = [] } = useNavigationPages();
+  
+  // Use provided organizationId or fall back to tenantId from context
+  const effectiveOrgId = organizationId ?? tenantId;
+  
+  const { data: customPages = [] } = useNavigationPages(effectiveOrgId);
 
   const query = useQuery({
-    queryKey: ['navigation-config', tenantId],
+    queryKey: ['navigation-config', effectiveOrgId],
     queryFn: async (): Promise<NavigationConfig> => {
-      if (!tenantId) {
+      if (!effectiveOrgId) {
         return generateDefaultConfig([]);
       }
 
       const { data, error } = await supabase
         .from('site_settings')
         .select('value')
-        .eq('organization_id', tenantId)
+        .eq('organization_id', effectiveOrgId)
         .eq('key', NAVIGATION_CONFIG_KEY)
         .maybeSingle();
 
@@ -126,19 +130,19 @@ export const useNavigationConfig = () => {
       const savedConfig = data?.value as unknown as NavigationConfig | null;
       return mergeConfigWithCurrentItems(savedConfig, customPages);
     },
-    enabled: !!tenantId,
+    enabled: !!effectiveOrgId,
     staleTime: 1000 * 60 * 5,
   });
 
   const saveMutation = useMutation({
     mutationFn: async (config: NavigationConfig) => {
-      if (!tenantId) throw new Error('No tenant ID');
+      if (!effectiveOrgId) throw new Error('No organization ID');
 
       // Check if record exists
       const { data: existing } = await supabase
         .from('site_settings')
         .select('id')
-        .eq('organization_id', tenantId)
+        .eq('organization_id', effectiveOrgId)
         .eq('key', NAVIGATION_CONFIG_KEY)
         .maybeSingle();
 
@@ -146,14 +150,14 @@ export const useNavigationConfig = () => {
         const { error } = await supabase
           .from('site_settings')
           .update({ value: config as unknown as Json })
-          .eq('organization_id', tenantId)
+          .eq('organization_id', effectiveOrgId)
           .eq('key', NAVIGATION_CONFIG_KEY);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('site_settings')
           .insert({
-            organization_id: tenantId,
+            organization_id: effectiveOrgId,
             key: NAVIGATION_CONFIG_KEY,
             value: config as unknown as Json,
           });
@@ -164,7 +168,7 @@ export const useNavigationConfig = () => {
       return config;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['navigation-config', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['navigation-config', effectiveOrgId] });
       toast({
         title: 'Navigation updated',
         description: 'Your navigation menu has been saved.',
@@ -182,18 +186,18 @@ export const useNavigationConfig = () => {
 
   const resetMutation = useMutation({
     mutationFn: async () => {
-      if (!tenantId) throw new Error('No tenant ID');
+      if (!effectiveOrgId) throw new Error('No organization ID');
 
       const { error } = await supabase
         .from('site_settings')
         .delete()
-        .eq('organization_id', tenantId)
+        .eq('organization_id', effectiveOrgId)
         .eq('key', NAVIGATION_CONFIG_KEY);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['navigation-config', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['navigation-config', effectiveOrgId] });
       toast({
         title: 'Navigation reset',
         description: 'Navigation menu has been reset to defaults.',

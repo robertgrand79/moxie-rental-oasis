@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigationConfig } from '@/hooks/useNavigationConfig';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import type { NavigationItemConfig } from '@/types/navigation';
 
 const iconMap: Record<string, React.ElementType> = {
@@ -107,7 +108,8 @@ const SortableNavItem: React.FC<SortableNavItemProps> = ({ item, onToggle, onLab
 };
 
 const NavigationOrderManager: React.FC = () => {
-  const { config, isLoading, saveConfig, isSaving, resetConfig, isResetting } = useNavigationConfig();
+  const { organization, loading: orgLoading } = useCurrentOrganization();
+  const { config, isLoading, saveConfig, isSaving, resetConfig, isResetting } = useNavigationConfig(organization?.id);
   const [items, setItems] = useState<NavigationItemConfig[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -168,7 +170,7 @@ const NavigationOrderManager: React.FC = () => {
     resetConfig();
   };
 
-  if (isLoading) {
+  if (orgLoading || isLoading) {
     return (
       <Card>
         <CardContent className="p-6">

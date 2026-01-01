@@ -3,18 +3,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import type { Page } from '@/types/page';
 
-export const useNavigationPages = () => {
+export const useNavigationPages = (organizationId?: string | null) => {
   const { tenantId } = useTenant();
+  
+  // Use provided organizationId or fall back to tenantId from context
+  const effectiveOrgId = organizationId ?? tenantId;
 
   return useQuery({
-    queryKey: ['navigation-pages', tenantId],
+    queryKey: ['navigation-pages', effectiveOrgId],
     queryFn: async (): Promise<Page[]> => {
-      if (!tenantId) return [];
+      if (!effectiveOrgId) return [];
 
       const { data, error } = await supabase
         .from('pages')
         .select('*')
-        .eq('organization_id', tenantId)
+        .eq('organization_id', effectiveOrgId)
         .eq('is_published', true)
         .eq('show_in_nav', true)
         .order('nav_order', { ascending: true });
@@ -26,7 +29,7 @@ export const useNavigationPages = () => {
 
       return data as Page[];
     },
-    enabled: !!tenantId,
+    enabled: !!effectiveOrgId,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 };
