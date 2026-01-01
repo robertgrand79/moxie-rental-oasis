@@ -77,24 +77,28 @@ const PricingSection: React.FC = () => {
           </p>
 
           {/* Billing toggle */}
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <span className={`text-sm font-medium ${!isYearly ? 'text-gray-900' : 'text-gray-500'}`}>
-              Monthly
-            </span>
+          <div className="inline-flex items-center bg-gray-100 rounded-full p-1 mt-8">
             <button
-              onClick={() => setIsYearly(!isYearly)}
-              className="relative w-14 h-7 rounded-full bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              onClick={() => setIsYearly(false)}
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
+                !isYearly
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
-              <span
-                className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
-                  isYearly ? 'translate-x-8' : 'translate-x-1'
-                }`}
-              />
+              Monthly
             </button>
-            <span className={`text-sm font-medium ${isYearly ? 'text-gray-900' : 'text-gray-500'}`}>
+            <button
+              onClick={() => setIsYearly(true)}
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
+                isYearly
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
               Yearly
-              <span className="ml-1 text-green-600">(Save 17%)</span>
-            </span>
+              <span className="ml-1 text-green-600 text-xs">(Save 17%)</span>
+            </button>
           </div>
         </div>
 
