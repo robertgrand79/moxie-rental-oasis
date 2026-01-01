@@ -191,15 +191,15 @@ const GeneralChatTab = () => {
 
   // Fetch assistant settings
   useEffect(() => {
+    if (!organization?.id) return;
+
     const fetchSettings = async () => {
-      if (!organization?.id) return;
-      
       const { data } = await supabase
         .from('assistant_settings')
         .select('avatar_type, display_name, bubble_color, submit_button_color, chat_style')
         .eq('organization_id', organization.id)
         .maybeSingle();
-      
+
       if (data) {
         setAvatarType((data.avatar_type as AvatarType) || 'captain-moxie');
         setDisplayName(data.display_name || 'AI Assistant');
@@ -211,7 +211,7 @@ const GeneralChatTab = () => {
     fetchSettings();
 
     // Subscribe to real-time changes for instant preview updates
-    const channelName = `assistant-settings-changes-${organization.id}-${Date.now()}`;
+    const channelName = `assistant-settings-changes-${organization.id}-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const channel = supabase
       .channel(channelName)
       .on(

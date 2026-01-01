@@ -88,7 +88,7 @@ export function useGuestNotifications(guestProfileId: string | null) {
       channelRef.current = null;
     }
 
-    const channelName = `guest-notifications-${guestProfileId}-${Date.now()}`;
+    const channelName = `guest-notifications-${guestProfileId}-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const channel = supabase
       .channel(channelName)
       .on(

@@ -196,7 +196,7 @@ const PublicChatWidget = () => {
       escalationChannelRef.current = null;
     }
 
-    const channelName = `escalation-responses-${sessionId}-${Date.now()}`;
+    const channelName = `escalation-responses-${sessionId}-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
 
     const channel = supabase
       .channel(channelName)

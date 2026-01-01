@@ -170,7 +170,7 @@ export const useTVDevice = (propertyId: string | undefined) => {
       channelRef.current = null;
     }
 
-    const channelName = `tv-device-${device.id}-${Date.now()}`;
+    const channelName = `tv-device-${device.id}-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const channel = supabase
       .channel(channelName)
       .on(

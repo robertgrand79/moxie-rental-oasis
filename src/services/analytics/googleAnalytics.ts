@@ -194,7 +194,7 @@ export class GoogleAnalyticsService {
 
     // Listen for changes to GA settings
     try {
-      const channelName = `ga-settings-changes-${Date.now()}`;
+      const channelName = `ga-settings-changes-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
       this.settingsSubscription = supabase
         .channel(channelName)
         .on('postgres_changes', 

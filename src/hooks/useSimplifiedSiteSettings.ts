@@ -275,9 +275,9 @@ export const useSimplifiedSiteSettings = () => {
       channelRef.current = null;
     }
 
-    // Create unique channel name with timestamp to avoid conflicts
-    const channelName = `admin_site_settings_${orgId}_${Date.now()}`;
-    
+    // Create unique channel name to avoid conflicts
+    const channelName = `admin_site_settings_${orgId}_${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
+
     const channel = supabase
       .channel(channelName)
       .on(

@@ -120,7 +120,7 @@ export const useNotifications = () => {
     }
 
     try {
-      const channelName = `admin-notifications-${organization.id}-${user.id}-${Date.now()}`;
+      const channelName = `admin-notifications-${organization.id}-${user.id}-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
       const channel = supabase
         .channel(channelName)
         .on(
