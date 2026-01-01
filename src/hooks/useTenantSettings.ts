@@ -1,9 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { debug } from '@/utils/debug';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { acquireTenantSettingsChannel } from '@/hooks/tenantSettingsRealtime';
 
 interface TenantSettings {
   site_name?: string;
@@ -70,7 +70,6 @@ interface TenantSettings {
 export const useTenantSettings = () => {
   const { tenantId, tenant, loading: tenantLoading } = useTenant();
   const queryClient = useQueryClient();
-  const channelRef = useRef<RealtimeChannel | null>(null);
 
   const query = useQuery({
     queryKey: ['tenant-settings', tenantId],
@@ -107,57 +106,12 @@ export const useTenantSettings = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Realtime subscription for live updates
+  // Realtime subscription for live updates (shared per-tenant)
   useEffect(() => {
     if (!tenantId) return;
-
-    // Create stable channel name for this tenant
-    const channelName = `tenant_settings_${tenantId}`;
-    
-    // Check if already subscribed to avoid duplicate subscriptions
-    const existingChannel = supabase.getChannels().find(ch => ch.topic === `realtime:${channelName}`);
-    if (existingChannel) {
-      channelRef.current = existingChannel;
-      return;
-    }
-
-    // Clean up any existing channel first
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-    
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'site_settings',
-          filter: `organization_id=eq.${tenantId}`
-        },
-        (payload) => {
-          debug.settings('Tenant settings realtime update:', payload.eventType);
-          // Invalidate and refetch
-          queryClient.invalidateQueries({ queryKey: ['tenant-settings', tenantId] });
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          debug.settings('Tenant settings channel subscribed');
-        }
-      });
-
-    channelRef.current = channel;
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
+    return acquireTenantSettingsChannel(tenantId, queryClient);
   }, [tenantId, queryClient]);
+
 
   // Merge tenant info with settings - look for both camelCase and snake_case keys
   // siteLogo is the key used by LogoUploader, so check it first
