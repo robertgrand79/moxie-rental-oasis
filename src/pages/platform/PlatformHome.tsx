@@ -5,6 +5,7 @@ import ProblemSection from '@/components/platform/homepage/ProblemSection';
 import PillarsSection from '@/components/platform/homepage/PillarsSection';
 import MoxieAISection from '@/components/platform/homepage/MoxieAISection';
 import LocalBrandSection from '@/components/platform/homepage/LocalBrandSection';
+import TVAppSection from '@/components/platform/homepage/TVAppSection';
 import CalculatorSection from '@/components/platform/homepage/CalculatorSection';
 import PricingSection from '@/components/platform/homepage/PricingSection';
 import FAQSection from '@/components/platform/homepage/FAQSection';
@@ -19,6 +20,7 @@ const PlatformHome: React.FC = () => {
       <PillarsSection />
       <MoxieAISection />
       <LocalBrandSection />
+      <TVAppSection />
       <CalculatorSection />
       <PricingSection />
       <FAQSection />
