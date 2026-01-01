@@ -3,6 +3,7 @@ import { MessageCircle, X, Send, Minimize2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { useTenant } from '@/contexts/TenantContext';
 import { cn } from '@/lib/utils';
 import { useLocation } from 'react-router-dom';
@@ -156,6 +157,7 @@ const PublicChatWidget = () => {
   const [lastMessageTime, setLastMessageTime] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const escalationChannelRef = useRef<RealtimeChannel | null>(null);
 
   // Load conversation from localStorage on mount
   useEffect(() => {
@@ -184,8 +186,20 @@ const PublicChatWidget = () => {
   useEffect(() => {
     if (!tenant?.id || !sessionId) return;
 
+    // Clean up any previous channel first (prevents "subscribe multiple times" race)
+    if (escalationChannelRef.current) {
+      try {
+        supabase.removeChannel(escalationChannelRef.current);
+      } catch {
+        // ignore
+      }
+      escalationChannelRef.current = null;
+    }
+
+    const channelName = `escalation-responses-${sessionId}-${Date.now()}`;
+
     const channel = supabase
-      .channel(`escalation-responses-${sessionId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -204,8 +218,8 @@ const PublicChatWidget = () => {
             };
             setMessages(prev => {
               // Avoid duplicates by checking if we already have this response
-              const alreadyHasResponse = prev.some(m => 
-                m.role === 'assistant' && m.content.includes(escalation.host_response)
+              const alreadyHasResponse = prev.some(m =>
+                m.role === 'assistant' && m.content.includes(escalation.host_response as string)
               );
               if (alreadyHasResponse) return prev;
               return [...prev, hostMessage];
@@ -215,8 +229,17 @@ const PublicChatWidget = () => {
       )
       .subscribe();
 
+    escalationChannelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (escalationChannelRef.current) {
+        try {
+          supabase.removeChannel(escalationChannelRef.current);
+        } catch {
+          // ignore
+        }
+        escalationChannelRef.current = null;
+      }
     };
   }, [tenant?.id, sessionId]);
 
