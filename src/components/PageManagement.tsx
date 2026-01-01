@@ -6,8 +6,8 @@ import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 const PageManagement = () => {
   return (
     <AdminPageWrapper
-      title="Page Management"
-      description="Manage your website pages with enhanced content editor"
+      title="Custom Pages"
+      description="Create additional custom pages for your site"
     >
       <div className="p-8">
         <PagesManager />
