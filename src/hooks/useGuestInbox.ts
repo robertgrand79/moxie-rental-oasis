@@ -355,7 +355,7 @@ export function useGuestInbox() {
     }
 
     try {
-      const channelName = `inbox-updates-${organization.id}-${Date.now()}`;
+      const channelName = `inbox-updates-${organization.id}-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
       const channel = supabase
         .channel(channelName)
         .on(
