@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface TVDeviceStatus {
   id: string;
@@ -28,7 +29,7 @@ export interface TVDeviceRegistration {
 
 /**
  * useTVDevice - Hook for TV device management
- * 
+ *
  * Features:
  * - Device registration with property
  * - Pairing code generation
@@ -38,6 +39,7 @@ export interface TVDeviceRegistration {
 export const useTVDevice = (propertyId: string | undefined) => {
   const queryClient = useQueryClient();
   const [localDeviceId, setLocalDeviceId] = useState<string | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   // Get or create persistent device ID
   useEffect(() => {
@@ -50,12 +52,7 @@ export const useTVDevice = (propertyId: string | undefined) => {
   }, []);
 
   // Fetch device status
-  const {
-    data: device,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery<TVDeviceStatus | null>({
+  const { data: device, isLoading, error, refetch } = useQuery<TVDeviceStatus | null>({
     queryKey: ['tv-device', propertyId, localDeviceId],
     queryFn: async () => {
       if (!propertyId || !localDeviceId) return null;
@@ -80,7 +77,7 @@ export const useTVDevice = (propertyId: string | undefined) => {
         .maybeSingle();
 
       if (error) throw error;
-      
+
       if (data) {
         return {
           ...data,
@@ -108,7 +105,7 @@ export const useTVDevice = (propertyId: string | undefined) => {
 
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || 'Registration failed');
-      
+
       return data;
     },
     onSuccess: () => {
@@ -163,8 +160,19 @@ export const useTVDevice = (propertyId: string | undefined) => {
   useEffect(() => {
     if (!device?.id) return;
 
+    // Clean up any previous channel first (prevents "subscribe multiple times" crashes)
+    if (channelRef.current) {
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch {
+        // ignore
+      }
+      channelRef.current = null;
+    }
+
+    const channelName = `tv-device-${device.id}-${Date.now()}`;
     const channel = supabase
-      .channel(`tv_device_${device.id}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -180,8 +188,17 @@ export const useTVDevice = (propertyId: string | undefined) => {
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch {
+          // ignore
+        }
+        channelRef.current = null;
+      }
     };
   }, [device?.id, propertyId, localDeviceId, queryClient]);
 
@@ -207,11 +224,14 @@ export const useTVDevice = (propertyId: string | undefined) => {
   }, [device?.pairing_code_expires_at]);
 
   // Generate QR code URL
-  const getQRCodeUrl = useCallback((baseUrl: string) => {
-    if (!device?.pairing_code || !propertyId) return null;
-    const pairUrl = `${baseUrl}/pair-tv?code=${device.pairing_code}&property=${propertyId}`;
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(pairUrl)}`;
-  }, [device?.pairing_code, propertyId]);
+  const getQRCodeUrl = useCallback(
+    (baseUrl: string) => {
+      if (!device?.pairing_code || !propertyId) return null;
+      const pairUrl = `${baseUrl}/pair-tv?code=${device.pairing_code}&property=${propertyId}`;
+      return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(pairUrl)}`;
+    },
+    [device?.pairing_code, propertyId]
+  );
 
   return {
     device,

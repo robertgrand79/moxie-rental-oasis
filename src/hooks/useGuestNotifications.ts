@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface GuestNotification {
   id: string;
@@ -18,6 +19,7 @@ export interface GuestNotification {
 
 export function useGuestNotifications(guestProfileId: string | null) {
   const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   const { data: notifications = [], isLoading, refetch } = useQuery({
     queryKey: ['guest-notifications', guestProfileId],
@@ -39,7 +41,7 @@ export function useGuestNotifications(guestProfileId: string | null) {
     staleTime: 30000,
   });
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   const markAsRead = useMutation({
     mutationFn: async (notificationId: string) => {
@@ -76,8 +78,19 @@ export function useGuestNotifications(guestProfileId: string | null) {
   useEffect(() => {
     if (!guestProfileId) return;
 
+    // Clean up any previous channel first (prevents "subscribe multiple times" crashes)
+    if (channelRef.current) {
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch {
+        // ignore
+      }
+      channelRef.current = null;
+    }
+
+    const channelName = `guest-notifications-${guestProfileId}-${Date.now()}`;
     const channel = supabase
-      .channel(`guest-notifications-${guestProfileId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -92,8 +105,17 @@ export function useGuestNotifications(guestProfileId: string | null) {
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch {
+          // ignore
+        }
+        channelRef.current = null;
+      }
     };
   }, [guestProfileId, queryClient]);
 
