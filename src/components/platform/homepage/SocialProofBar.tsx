@@ -1,21 +1,21 @@
 import React from 'react';
-import { Building2, DollarSign, MessageSquare } from 'lucide-react';
+import { FileText, Mail, Users } from 'lucide-react';
 
 const stats = [
   {
-    icon: Building2,
-    value: '500+',
-    label: 'Properties Managed',
+    icon: FileText,
+    value: '10K+',
+    label: 'Blog Posts Published',
   },
   {
-    icon: DollarSign,
+    icon: Mail,
+    value: '50K+',
+    label: 'Newsletter Subscribers',
+  },
+  {
+    icon: Users,
     value: '$2M+',
     label: 'Direct Bookings Generated',
-  },
-  {
-    icon: MessageSquare,
-    value: '50K+',
-    label: 'AI Guest Responses',
   },
 ];
 

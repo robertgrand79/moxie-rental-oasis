@@ -1,21 +1,26 @@
 import React from 'react';
-import { Layers, Eye, MessageCircle } from 'lucide-react';
+import { Ghost, Search, Mail, Calendar } from 'lucide-react';
 
 const problems = [
   {
-    icon: Layers,
-    title: 'Scattered Tools',
-    description: 'Jumping between platforms for bookings, messaging, and pricing wastes hours every week.',
+    icon: Ghost,
+    title: 'Abandoned Sites',
+    description: 'You built a direct booking site. Then what? Without fresh content, it sits invisible to Google and forgettable to guests.',
   },
   {
-    icon: Eye,
-    title: 'Invisible Brand',
-    description: 'OTAs bring bookings, but guests remember them, not you. Build recognition that drives repeat direct bookings.',
+    icon: Search,
+    title: 'No SEO Strategy',
+    description: "Your direct site doesn't rank because there's no blog, no local content, no reason for Google to surface it in search results.",
   },
   {
-    icon: MessageCircle,
-    title: '24/7 Questions',
-    description: 'Late-night check-in questions, WiFi passwords, local tips—the messages never stop.',
+    icon: Mail,
+    title: 'Zero Retention',
+    description: 'Guests book once and forget you. No newsletters, no updates, no relationship building to bring them back.',
+  },
+  {
+    icon: Calendar,
+    title: 'Missed Local Opportunity',
+    description: "Travelers search 'things to do in [your area]' every day. Without a local hub, you're invisible to that traffic.",
   },
 ];
 
@@ -29,26 +34,29 @@ const ProblemSection: React.FC = () => {
             The Problem
           </span>
           <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 font-fraunces">
-            Running rentals shouldn't feel like
+            Direct booking sites fail
             <br />
-            <span className="text-blue-600">running in circles</span>
+            <span className="text-blue-600">because nobody does the work</span>
           </h2>
+          <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
+            Everyone can set up a booking page. But without ongoing content, it becomes a ghost town.
+          </p>
         </div>
 
         {/* Problem cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {problems.map((problem, index) => (
             <div
               key={index}
-              className="group p-8 bg-gray-50 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-lg transition-all duration-300"
+              className="group p-6 bg-gray-50 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-lg transition-all duration-300"
             >
-              <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-red-200 transition-colors">
-                <problem.icon className="w-7 h-7 text-red-600" />
+              <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-5 group-hover:bg-red-200 transition-colors">
+                <problem.icon className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3 font-fraunces">
+              <h3 className="text-lg font-bold text-gray-900 mb-2 font-fraunces">
                 {problem.title}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 text-sm leading-relaxed">
                 {problem.description}
               </p>
             </div>

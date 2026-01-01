@@ -1,29 +1,29 @@
 import React from 'react';
-import { Globe, MapPin, Settings } from 'lucide-react';
+import { MapPin, Globe, Settings } from 'lucide-react';
 
 const pillars = [
   {
-    icon: Globe,
+    icon: MapPin,
     number: '01',
-    title: 'Book Everywhere',
-    description: 'Sync all your booking channels in real-time. One calendar, zero double-bookings.',
-    features: ['Airbnb & VRBO sync', 'Direct booking website', 'Unified calendar', 'Instant availability updates'],
-    color: 'blue',
+    title: 'Become the Local Hub',
+    description: 'Build a content-rich destination site that attracts travelers and keeps them coming back.',
+    features: ['SEO-optimized blog', 'Email newsletters', 'Local events calendar', 'Places & guides directory'],
+    color: 'green',
   },
   {
-    icon: MapPin,
+    icon: Globe,
     number: '02',
-    title: 'Become the Local Brand',
-    description: 'Build a direct booking website that showcases your properties and your community.',
-    features: ['Custom branded website', 'Local guides & events', 'Blog & content hub', 'SEO optimized pages'],
-    color: 'green',
+    title: 'Book Everywhere',
+    description: 'Sync all your booking channels in real-time. Airbnb, VRBO, and direct—one calendar.',
+    features: ['Full Airbnb & VRBO API integration', 'Direct booking website', 'Unified calendar', 'Instant availability updates'],
+    color: 'blue',
   },
   {
     icon: Settings,
     number: '03',
-    title: 'Run Your Operation',
-    description: 'Manage reservations, guest communication, and maintenance from one dashboard.',
-    features: ['Unified inbox', 'AI guest responses', 'Task management', 'Team collaboration'],
+    title: 'Automate Operations',
+    description: 'Let AI handle guest questions while you manage reservations from one dashboard.',
+    features: ['AI guest responses 24/7', 'Unified inbox', 'Task management', 'Team collaboration'],
     color: 'purple',
   },
 ];
@@ -65,10 +65,11 @@ const PillarsSection: React.FC = () => {
             The Three Pillars
           </span>
           <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 font-fraunces">
-            Everything you need to run a
-            <br />
-            <span className="text-blue-600">successful rental business</span>
+            Content first. Bookings follow.
           </h2>
+          <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
+            Build a local brand that guests remember, then manage every booking channel from one place.
+          </p>
         </div>
 
         {/* Pillar cards */}

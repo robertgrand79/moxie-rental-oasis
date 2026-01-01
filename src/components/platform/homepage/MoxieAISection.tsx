@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Send } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Sparkles } from 'lucide-react';
 
 const sampleConversations = [
   {
@@ -8,12 +7,12 @@ const sampleConversations = [
     answer: "The WiFi network is 'CoastalRetreat' and the password is 'beachvibes2024'. You'll find it printed on the welcome card on the kitchen counter too! 🏖️",
   },
   {
-    question: "What time is checkout?",
-    answer: "Checkout is at 11 AM. If you need a late checkout, I can check availability—just let me know! We're usually flexible when there's no same-day arrival.",
-  },
-  {
     question: "Best coffee shop nearby?",
     answer: "Blue Bottle is just a 3-minute walk—turn right on Ocean Ave. They open at 6:30 AM. For a local favorite, try Coastal Roasters on Pine Street (5 min). Both have great espresso! ☕",
+  },
+  {
+    question: "Help me write a blog post about local beaches",
+    answer: "I'd love to help! Here's a draft: '5 Hidden Beaches Near [Your Property]' — Start with Sunset Cove (quietest at sunrise), then cover Shell Beach for families, Surfer's Point for waves... Want me to expand on any section?",
   },
 ];
 
@@ -41,19 +40,21 @@ const MoxieAISection: React.FC = () => {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-fraunces">
               Meet Moxie AI
               <br />
-              <span className="text-blue-600">Your 24/7 concierge</span>
+              <span className="text-blue-600">Concierge + Content Creator</span>
             </h2>
             
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Moxie answers guest questions instantly—WiFi passwords, check-in instructions, 
-              local recommendations. Trained on your property details and local knowledge.
+              Moxie does double duty: answers guest questions 24/7 AND helps you create 
+              local content. Blog posts, newsletter drafts, event descriptions—powered 
+              by your property knowledge and local expertise.
             </p>
 
             <ul className="space-y-4">
               {[
-                'Responds in seconds, any time of day',
-                'Learns your property details automatically',
-                'Escalates complex issues to you',
+                'Answers guest questions in seconds',
+                'Drafts blog posts about local attractions',
+                'Helps write newsletter content',
+                'Suggests local events to feature',
                 'Available in 50+ languages',
               ].map((feature, idx) => (
                 <li key={idx} className="flex items-center gap-3">
