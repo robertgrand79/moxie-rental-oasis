@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Play } from 'lucide-react';
+import { ArrowRight, Play, FileText, Mail, Calendar, MapPin, LucideIcon } from 'lucide-react';
 import { usePlatform } from '@/contexts/PlatformContext';
 
-const contentPillars = [
-  { name: 'Blog', color: '#22c55e' },
-  { name: 'Newsletter', color: '#8b5cf6' },
-  { name: 'Events', color: '#f59e0b' },
-  { name: 'Local Guide', color: '#06b6d4' },
+const contentPillars: { name: string; icon: LucideIcon }[] = [
+  { name: 'Blog', icon: FileText },
+  { name: 'Newsletter', icon: Mail },
+  { name: 'Events', icon: Calendar },
+  { name: 'Local Guide', icon: MapPin },
 ];
 
 const HeroSection: React.FC = () => {
@@ -49,18 +49,18 @@ const HeroSection: React.FC = () => {
 
           {/* Content pillars */}
           <div className="flex items-center justify-center gap-6 mb-10 flex-wrap">
-            {contentPillars.map((pillar) => (
-              <div
-                key={pillar.name}
-                className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-lg"
-              >
+            {contentPillars.map((pillar) => {
+              const Icon = pillar.icon;
+              return (
                 <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: pillar.color }}
-                />
-                <span className="text-sm text-gray-300">{pillar.name}</span>
-              </div>
-            ))}
+                  key={pillar.name}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg"
+                >
+                  <Icon className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm text-gray-300">{pillar.name}</span>
+                </div>
+              );
+            })}
           </div>
 
           {/* CTA Buttons */}
