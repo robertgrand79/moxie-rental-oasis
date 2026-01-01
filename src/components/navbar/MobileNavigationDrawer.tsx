@@ -1,12 +1,12 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { User, Shield, LogOut, Settings } from 'lucide-react';
+import { User, Shield, LogOut, Settings, FileText } from 'lucide-react';
 import { navigationItems } from './navigationItems';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { shouldShowAdminFeatures } from '@/utils/domainUtils';
+import { useNavigationPages } from '@/hooks/useNavigationPages';
 import {
   Sheet,
   SheetContent,
@@ -26,6 +26,7 @@ const MobileNavigationDrawer = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { data: customPages = [] } = useNavigationPages();
 
   const handleLinkClick = () => {
     onClose();
@@ -96,6 +97,27 @@ const MobileNavigationDrawer = ({
                 onClick={handleLinkClick}
               >
                 <span className="text-base">{item.title}</span>
+              </Link>
+            );
+          })}
+          
+          {/* Custom pages from CMS */}
+          {customPages.map((page) => {
+            const isActive = location.pathname === `/${page.slug}`;
+            
+            return (
+              <Link
+                key={page.id}
+                to={`/${page.slug}`}
+                className={`flex items-center px-4 py-4 rounded-xl font-medium transition-all duration-200 ${
+                  isActive 
+                    ? 'text-primary bg-primary/10 border border-primary/20' 
+                    : 'text-foreground hover:text-foreground hover:bg-accent border border-transparent'
+                }`}
+                onClick={handleLinkClick}
+              >
+                <FileText className="h-5 w-5 mr-3" />
+                <span className="text-base">{page.title}</span>
               </Link>
             );
           })}
