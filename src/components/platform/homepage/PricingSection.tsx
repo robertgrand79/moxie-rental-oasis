@@ -6,10 +6,10 @@ import { Check } from 'lucide-react';
 const plans = [
   {
     name: 'Starter',
-    description: 'For hosts just getting started',
+    description: 'Perfect for single property hosts',
     monthlyPrice: 79,
     yearlyPrice: 66,
-    properties: 'Up to 3 properties',
+    properties: '1 property',
     features: [
       'Multi-channel calendar sync',
       'Unified guest inbox',
@@ -25,7 +25,7 @@ const plans = [
     description: 'For growing rental businesses',
     monthlyPrice: 179,
     yearlyPrice: 149,
-    properties: 'Up to 10 properties',
+    properties: 'Up to 5 properties',
     features: [
       'Everything in Starter',
       'Advanced website with SEO',
@@ -59,7 +59,7 @@ const plans = [
 ];
 
 const PricingSection: React.FC = () => {
-  const [isYearly, setIsYearly] = useState(true);
+  const [isYearly, setIsYearly] = useState(false);
 
   return (
     <section className="py-20 bg-white" id="pricing">
@@ -83,12 +83,10 @@ const PricingSection: React.FC = () => {
             </span>
             <button
               onClick={() => setIsYearly(!isYearly)}
-              className={`relative w-14 h-7 rounded-full transition-colors ${
-                isYearly ? 'bg-blue-600' : 'bg-gray-300'
-              }`}
+              className="relative w-14 h-7 rounded-full bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <span
-                className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
                   isYearly ? 'translate-x-8' : 'translate-x-1'
                 }`}
               />
