@@ -25,6 +25,7 @@ import {
   DollarSign,
   Rocket,
   Tv,
+  Menu,
 } from 'lucide-react';
 import {
   Collapsible,
@@ -58,6 +59,7 @@ const settingsNavGroups: SettingsNavGroup[] = [
     title: 'Site & Content',
     items: [
       { label: 'Site Info', href: '/admin/settings/site-info', icon: FileText },
+      { label: 'Navigation', href: '/admin/settings/navigation', icon: Menu },
       { label: 'Hero Section', href: '/admin/settings/hero', icon: Image },
       { label: 'About Page', href: '/admin/settings/about', icon: UsersIcon },
       { label: 'Contact', href: '/admin/settings/contact', icon: Phone },
