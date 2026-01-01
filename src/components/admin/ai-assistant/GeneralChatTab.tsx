@@ -211,8 +211,9 @@ const GeneralChatTab = () => {
     fetchSettings();
 
     // Subscribe to real-time changes for instant preview updates
+    const channelName = `assistant-settings-changes-${organization.id}-${Date.now()}`;
     const channel = supabase
-      .channel('assistant-settings-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
