@@ -6,7 +6,7 @@ const CalculatorSection: React.FC = () => {
   const [annualRevenue, setAnnualRevenue] = useState(100000);
   const [directBookingPercent, setDirectBookingPercent] = useState(30);
 
-  const otaFeeRate = 0.15; // 15% OTA fees
+  const otaFeeRate = 0.155; // 15.5% OTA fees (Airbnb host fee)
   const directBookingRevenue = annualRevenue * (directBookingPercent / 100);
   const annualSavings = directBookingRevenue * otaFeeRate;
   const fiveYearSavings = annualSavings * 5;
@@ -130,7 +130,7 @@ const CalculatorSection: React.FC = () => {
 
           {/* Assumption note */}
           <p className="text-center text-sm text-gray-500 mt-8">
-            If 100% of your bookings went through OTAs, you'd pay {formatCurrency(totalOtaFees)}/year in fees (15%). 
+            If 100% of your bookings went through OTAs, you'd pay {formatCurrency(totalOtaFees)}/year in fees (15.5%). 
             By converting {directBookingPercent}% to direct bookings, you keep {formatCurrency(annualSavings)} more per year.
           </p>
         </div>
