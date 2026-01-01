@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Globe, Settings } from 'lucide-react';
+import { MapPin, Globe, Settings, Sparkles } from 'lucide-react';
 
 const pillars = [
   {
@@ -61,9 +61,12 @@ const PillarsSection: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-16">
-          <span className="text-sm font-semibold text-blue-600 uppercase tracking-wider">
-            The Three Pillars
-          </span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-200 mb-6">
+            <Sparkles className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-semibold text-blue-600 uppercase tracking-wider">
+              AI-Powered
+            </span>
+          </div>
           <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 font-fraunces">
             Content first. Bookings follow.
           </h2>
