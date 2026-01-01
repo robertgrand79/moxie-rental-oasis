@@ -6,7 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { pageService } from '@/services/pageService';
 import { usePageOperations } from '@/hooks/usePageOperations';
 import { Page } from '@/types/page';
-import { isProtectedSlug } from '@/constants/protectedSlugs';
+import { isProtectedSlug, isPropertyPageSlug } from '@/constants/protectedSlugs';
 
 export const usePages = () => {
   const [pages, setPages] = useState<Page[]>([]);
@@ -54,9 +54,11 @@ export const usePages = () => {
     loadPages();
   }, [user, organization?.id]);
 
-  // Filter out protected slugs from the pages list
+  // Filter out protected slugs and auto-generated property pages from the list
   const filteredPages = useMemo(() => {
-    return pages.filter(page => !isProtectedSlug(page.slug));
+    return pages.filter(page => 
+      !isProtectedSlug(page.slug) && !isPropertyPageSlug(page.slug)
+    );
   }, [pages]);
 
   return {
