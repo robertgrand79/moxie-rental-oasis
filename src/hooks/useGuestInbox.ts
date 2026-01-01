@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useToast } from '@/hooks/use-toast';
@@ -339,14 +339,24 @@ export function useGuestInbox() {
   }, [fetchThreads]);
 
   // Real-time subscription for new messages
+  const inboxChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
   useEffect(() => {
     if (!organization?.id) return;
 
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    // Clean up any previous channel first (prevents "subscribe multiple times" race)
+    if (inboxChannelRef.current) {
+      try {
+        supabase.removeChannel(inboxChannelRef.current);
+      } catch {
+        // ignore
+      }
+      inboxChannelRef.current = null;
+    }
 
     try {
       const channelName = `inbox-updates-${organization.id}-${Date.now()}`;
-      channel = supabase
+      const channel = supabase
         .channel(channelName)
         .on(
           'postgres_changes',
@@ -361,21 +371,24 @@ export function useGuestInbox() {
           }
         )
         .subscribe();
+      
+      inboxChannelRef.current = channel;
     } catch (error) {
       // WebSocket may be blocked in preview/iframe environments
       console.warn('Realtime subscription unavailable:', error);
     }
 
     return () => {
-      if (channel) {
+      if (inboxChannelRef.current) {
         try {
-          supabase.removeChannel(channel);
-        } catch (e) {
+          supabase.removeChannel(inboxChannelRef.current);
+        } catch {
           // Ignore cleanup errors
         }
+        inboxChannelRef.current = null;
       }
     };
-  }, [organization?.id, fetchThreads]);
+  }, [organization?.id]); // Only depend on org ID, not fetchThreads to avoid re-subscription loops
 
   return {
     threads,
