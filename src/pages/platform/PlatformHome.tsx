@@ -1,35 +1,51 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Zap, 
-  Home, 
-  CreditCard, 
-  Bot, 
-  Lock, 
-  Calendar, 
+import { usePlatform } from '@/contexts/PlatformContext';
+import {
+  Zap,
+  Home,
+  CreditCard,
+  Bot,
+  Lock,
+  Calendar,
   Star,
   TrendingUp,
   MapPin,
   MessageSquare,
   ArrowRight,
   CheckCircle2,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 
 const PlatformHome: React.FC = () => {
+  const location = useLocation();
+  const { isPlatformSite } = usePlatform();
+
+  // On platform domain: marketing lives at '/'.
+  // On tenant/custom domains: marketing lives at '/platform/*'.
+  const basePath = useMemo(() => {
+    if (isPlatformSite) return '';
+    return location.pathname.startsWith('/platform') ? '/platform' : '';
+  }, [isPlatformSite, location.pathname]);
+
+  const featuresPath = `${basePath}/features`;
+  const pricingPath = `${basePath}/pricing`;
+
   const features = [
     {
       icon: MapPin,
       title: 'Local Content Hub',
-      description: 'SEO-optimized blog, events calendar, and local guides that drive organic traffic and establish your market authority.',
+      description:
+        'SEO-optimized blog, events calendar, and local guides that drive organic traffic and establish your market authority.',
       color: 'text-emerald-500',
     },
     {
       icon: CreditCard,
       title: 'Direct Booking Engine',
-      description: 'Skip OTA fees with integrated Stripe payments, dynamic pricing, and a seamless guest booking experience.',
+      description:
+        'Skip OTA fees with integrated Stripe payments, dynamic pricing, and a seamless guest booking experience.',
       color: 'text-blue-500',
     },
     {
@@ -67,19 +83,19 @@ const PlatformHome: React.FC = () => {
 
   const testimonials = [
     {
-      quote: "StayMoxie transformed our vacation rental business. We went from 10% direct bookings to over 50% in just 6 months.",
-      author: "Sarah M.",
-      role: "Property Manager, 12 units",
+      quote: 'StayMoxie transformed our vacation rental business. We went from 10% direct bookings to over 50% in just 6 months.',
+      author: 'Sarah M.',
+      role: 'Property Manager, 12 units',
     },
     {
-      quote: "The local content hub is a game-changer. Our blog posts now drive more bookings than our OTA listings combined.",
-      author: "Mike T.",
-      role: "Vacation Rental Owner",
+      quote: 'The local content hub is a game-changer. Our blog posts now drive more bookings than our OTA listings combined.',
+      author: 'Mike T.',
+      role: 'Vacation Rental Owner',
     },
     {
-      quote: "Finally, software that understands vacation rentals. The AI messaging alone saves me 10+ hours every week.",
-      author: "Jennifer L.",
-      role: "Superhost, 8 properties",
+      quote: 'Finally, software that understands vacation rentals. The AI messaging alone saves me 10+ hours every week.',
+      author: 'Jennifer L.',
+      role: 'Superhost, 8 properties',
     },
   ];
 
@@ -90,14 +106,14 @@ const PlatformHome: React.FC = () => {
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/20 dark:via-teal-950/20 dark:to-cyan-950/20" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-full text-emerald-700 dark:text-emerald-300 text-sm font-medium mb-8">
               <Sparkles className="w-4 h-4" />
               All-in-One Vacation Rental Software
             </div>
-            
+
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
               <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
                 Dominate Your Local Market
@@ -105,11 +121,12 @@ const PlatformHome: React.FC = () => {
               <br />
               <span className="text-foreground">with Direct Bookings</span>
             </h1>
-            
+
             <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-              Stop paying OTA fees. Build your brand with a local content hub, AI-powered operations, and a direct booking engine that converts.
+              Stop paying OTA fees. Build your brand with a local content hub, AI-powered operations, and a direct booking engine that
+              converts.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/auth?tab=signup">
                 <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-lg px-8 h-14">
@@ -117,16 +134,14 @@ const PlatformHome: React.FC = () => {
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              <Link to="/features">
+              <Link to={featuresPath}>
                 <Button size="lg" variant="outline" className="text-lg px-8 h-14">
                   See How It Works
                 </Button>
               </Link>
             </div>
-            
-            <p className="text-sm text-muted-foreground mt-6">
-              No credit card required • 14-day free trial • Cancel anytime
-            </p>
+
+            <p className="text-sm text-muted-foreground mt-6">No credit card required • 14-day free trial • Cancel anytime</p>
           </div>
         </div>
       </section>
@@ -151,14 +166,12 @@ const PlatformHome: React.FC = () => {
       <section className="py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Everything You Need to Succeed
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything You Need to Succeed</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Built specifically for vacation rental hosts who want to take control of their business.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
@@ -172,9 +185,9 @@ const PlatformHome: React.FC = () => {
               </Card>
             ))}
           </div>
-          
+
           <div className="text-center mt-12">
-            <Link to="/features">
+            <Link to={featuresPath}>
               <Button variant="outline" size="lg">
                 Explore All Features
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -188,14 +201,10 @@ const PlatformHome: React.FC = () => {
       <section className="py-20 lg:py-32 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Get Started in Minutes
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Launch your direct booking website and start capturing more revenue.
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Get Started in Minutes</h2>
+            <p className="text-xl text-muted-foreground">Launch your direct booking website and start capturing more revenue.</p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
@@ -230,14 +239,10 @@ const PlatformHome: React.FC = () => {
       <section className="py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Loved by Vacation Rental Hosts
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Join hundreds of hosts who've transformed their business with StayMoxie.
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Loved by Vacation Rental Hosts</h2>
+            <p className="text-xl text-muted-foreground">Join hundreds of hosts who've transformed their business with StayMoxie.</p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="border-0 shadow-lg">
@@ -262,13 +267,9 @@ const PlatformHome: React.FC = () => {
       {/* CTA Section */}
       <section className="py-20 lg:py-32 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Take Control of Your Rentals?
-          </h2>
-          <p className="text-xl text-white/80 mb-10">
-            Start your 14-day free trial today. No credit card required.
-          </p>
-          
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Take Control of Your Rentals?</h2>
+          <p className="text-xl text-white/80 mb-10">Start your 14-day free trial today. No credit card required.</p>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth?tab=signup">
               <Button size="lg" className="bg-white text-emerald-600 hover:bg-white/90 text-lg px-8 h-14">
@@ -276,13 +277,13 @@ const PlatformHome: React.FC = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Link to="/pricing">
+            <Link to={pricingPath}>
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg px-8 h-14">
                 View Pricing
               </Button>
             </Link>
           </div>
-          
+
           <div className="flex flex-wrap justify-center gap-6 mt-10 text-white/80 text-sm">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5" />
@@ -304,3 +305,4 @@ const PlatformHome: React.FC = () => {
 };
 
 export default PlatformHome;
+
