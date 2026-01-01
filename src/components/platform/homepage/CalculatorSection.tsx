@@ -7,9 +7,12 @@ const CalculatorSection: React.FC = () => {
   const [directBookingPercent, setDirectBookingPercent] = useState(30);
 
   const otaFeeRate = 0.15; // 15% OTA fees
-  const potentialDirectRevenue = annualRevenue * (directBookingPercent / 100);
-  const annualSavings = potentialDirectRevenue * otaFeeRate;
+  const directBookingRevenue = annualRevenue * (directBookingPercent / 100);
+  const annualSavings = directBookingRevenue * otaFeeRate;
   const fiveYearSavings = annualSavings * 5;
+  
+  // For display: show what 15% of total revenue would be as context
+  const totalOtaFees = annualRevenue * otaFeeRate;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -127,7 +130,8 @@ const CalculatorSection: React.FC = () => {
 
           {/* Assumption note */}
           <p className="text-center text-sm text-gray-500 mt-8">
-            Based on keeping full booking value vs. 15% OTA commission. Use alongside your OTA channels for maximum reach.
+            If 100% of your bookings went through OTAs, you'd pay {formatCurrency(totalOtaFees)}/year in fees (15%). 
+            By converting {directBookingPercent}% to direct bookings, you keep {formatCurrency(annualSavings)} more per year.
           </p>
         </div>
       </div>
