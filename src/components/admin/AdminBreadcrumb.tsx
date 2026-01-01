@@ -19,14 +19,14 @@ const routeLabels: Record<string, string> = {
   '/admin/task-management': 'Task Management',
   '/admin/work-orders': 'Work Orders',
   '/admin/blog': 'Blog Posts',
-  '/admin/pages': 'Pages',
+  '/admin/pages': 'Custom Pages',
   '/admin/newsletter-management': 'Newsletter Management',
   '/admin/user-management': 'User Management',
   '/admin/roles-permissions': 'Roles & Permissions',
   '/admin/site-metrics': 'Site Metrics',
   // Legacy routes for compatibility
   '/properties': 'Properties',
-  '/page-management': 'Page Management',
+  '/page-management': 'Custom Pages',
   '/blog-management': 'Blog Management',
   '/site-settings': 'Site Settings',
 };

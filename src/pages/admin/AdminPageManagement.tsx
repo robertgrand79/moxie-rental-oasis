@@ -106,8 +106,8 @@ const AdminPageManagement = () => {
 
   return (
     <AdminPageWrapper
-      title="Page Management"
-      description={`Create and manage your website pages with rich content editor (${pages.length} pages total)`}
+      title="Custom Pages"
+      description={`Create additional custom pages like house rules, local guides, or FAQs (${pages.length} pages total)`}
       actions={pageActions}
     >
       <div className="p-8">

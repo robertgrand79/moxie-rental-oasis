@@ -41,11 +41,11 @@ const AdminQuickStats = ({ properties, blogPosts, pages, events }: AdminQuickSta
       actionText: 'Write Post'
     },
     {
-      title: 'Pages',
+      title: 'Custom Pages',
       value: pages.length,
       icon: FileText,
       color: 'text-purple-600',
-      href: '/page-management',
+      href: '/admin/pages',
       actionText: 'Create Page'
     },
     {

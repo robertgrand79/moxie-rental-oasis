@@ -51,10 +51,10 @@ export const adminMenuItems = [
         description: 'Create and manage blog posts'
       },
       {
-        title: 'Page Management',
+        title: 'Custom Pages',
         href: '/admin/pages',
         icon: FileText,
-        description: 'Manage website pages'
+        description: 'Create additional custom pages for your site'
       },
       {
         title: 'Newsletter',

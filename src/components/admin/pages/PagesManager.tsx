@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Plus, FileText, Eye, Archive } from 'lucide-react';
+import { Plus, FileText, Eye, Archive, Info, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { usePages } from '@/hooks/usePages';
 import PagesGrid from './PagesGrid';
 import PagesListView from './PagesListView';
@@ -67,9 +69,9 @@ const PagesManager = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <CardTitle className="text-2xl font-semibold">Page Management</CardTitle>
+              <CardTitle className="text-2xl font-semibold">Custom Pages</CardTitle>
               <p className="text-muted-foreground">
-                Create and manage your website pages with enhanced content editor ({pages.length} pages total)
+                Create additional custom pages like house rules, local guides, or FAQs ({pages.length} pages total)
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -85,6 +87,16 @@ const PagesManager = () => {
           </div>
         </CardHeader>
         <CardContent>
+          <Alert className="mb-6 border-blue-200 bg-blue-50">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              Create custom pages for content like house rules, local guides, or special information. 
+              Core site pages (About, Contact, etc.) are managed in{' '}
+              <Link to="/admin/settings/about" className="font-medium underline hover:text-blue-900">
+                Settings → About
+              </Link>.
+            </AlertDescription>
+          </Alert>
           <Tabs value={selectedStatus} onValueChange={setSelectedStatus}>
             <TabsList className="grid w-full grid-cols-3 h-auto">
               {statusCategories.map((category) => (

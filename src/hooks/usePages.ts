@@ -1,11 +1,12 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 import { pageService } from '@/services/pageService';
 import { usePageOperations } from '@/hooks/usePageOperations';
 import { Page } from '@/types/page';
+import { isProtectedSlug } from '@/constants/protectedSlugs';
 
 export const usePages = () => {
   const [pages, setPages] = useState<Page[]>([]);
@@ -53,8 +54,13 @@ export const usePages = () => {
     loadPages();
   }, [user, organization?.id]);
 
+  // Filter out protected slugs from the pages list
+  const filteredPages = useMemo(() => {
+    return pages.filter(page => !isProtectedSlug(page.slug));
+  }, [pages]);
+
   return {
-    pages,
+    pages: filteredPages,
     loading,
     addPage: pageOperations.addPage,
     editPage: pageOperations.editPage,

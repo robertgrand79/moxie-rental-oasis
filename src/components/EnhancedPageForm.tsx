@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/hooks/use-toast';
 import ContentEditor from './page-editor/ContentEditor';
 import { FileText } from 'lucide-react';
+import { isProtectedSlug, PROTECTED_SLUGS } from '@/constants/protectedSlugs';
 
 interface EnhancedPageFormProps {
   page?: any;
@@ -72,6 +73,16 @@ const EnhancedPageForm = ({ page, onSubmit, onCancel }: EnhancedPageFormProps) =
       toast({
         title: 'Validation Error',
         description: 'Page slug is required.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Check for protected slugs
+    if (isProtectedSlug(formData.slug)) {
+      toast({
+        title: 'Reserved URL',
+        description: 'This URL is reserved for a core site page. Please use a different URL. Core pages like About, Contact, etc. are managed in Settings.',
         variant: 'destructive'
       });
       return;
