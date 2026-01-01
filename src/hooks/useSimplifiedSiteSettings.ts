@@ -265,6 +265,16 @@ export const useSimplifiedSiteSettings = () => {
     const orgId = organization?.id;
     if (!orgId) return;
 
+    // Clean up any previous channel first (prevents "subscribe multiple times" race)
+    if (channelRef.current) {
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch {
+        // ignore
+      }
+      channelRef.current = null;
+    }
+
     // Create unique channel name with timestamp to avoid conflicts
     const channelName = `admin_site_settings_${orgId}_${Date.now()}`;
     
@@ -289,8 +299,14 @@ export const useSimplifiedSiteSettings = () => {
     channelRef.current = channel;
 
     return () => {
-      supabase.removeChannel(channel);
-      channelRef.current = null;
+      if (channelRef.current) {
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch {
+          // ignore
+        }
+        channelRef.current = null;
+      }
     };
   }, [organization?.id]); // Only depend on org ID, not fetchSettings
 
