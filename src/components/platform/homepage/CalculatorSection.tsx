@@ -28,9 +28,9 @@ const CalculatorSection: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 rounded-full mb-4">
-            <Calculator className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-green-700">Revenue Calculator</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 rounded-full mb-4">
+            <Calculator className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-700">Revenue Calculator</span>
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 font-fraunces">
             Calculate your
@@ -97,14 +97,14 @@ const CalculatorSection: React.FC = () => {
 
           {/* Results */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-green-50 rounded-2xl p-6 border border-green-100">
+            <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-blue-600" />
                 </div>
                 <span className="text-gray-700 font-medium">Additional Annual Revenue</span>
               </div>
-              <div className="text-4xl font-bold text-green-600 font-fraunces">
+              <div className="text-4xl font-bold text-blue-600 font-fraunces">
                 {formatCurrency(annualSavings)}
               </div>
               <p className="text-sm text-gray-500 mt-2">
