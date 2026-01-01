@@ -233,6 +233,15 @@ const AppRoutes: React.FC = () => {
   // Tenant Routes (tenant.lovable.app or custom domains)
   return (
       <Routes>
+        {/* Platform Marketing Routes (accessible via /platform on any domain) */}
+        <Route path="/platform" element={<PlatformLayout />}>
+          <Route index element={<PlatformHome />} />
+          <Route path="features" element={<Features />} />
+          <Route path="pricing" element={<Pricing />} />
+          <Route path="about" element={<PlatformAbout />} />
+          <Route path="blog" element={<PlatformBlog />} />
+        </Route>
+
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<Index />} />
           <Route path="home" element={<Navigate to="/" replace />} />
