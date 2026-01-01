@@ -262,22 +262,21 @@ export const useSimplifiedSiteSettings = () => {
 
   // Realtime subscription for live updates across users
   useEffect(() => {
-    if (!organization?.id) return;
+    const orgId = organization?.id;
+    if (!orgId) return;
 
-    // Clean up existing channel
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-    }
-
+    // Create unique channel name with timestamp to avoid conflicts
+    const channelName = `admin_site_settings_${orgId}_${Date.now()}`;
+    
     const channel = supabase
-      .channel(`site_settings:${organization.id}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'site_settings',
-          filter: `organization_id=eq.${organization.id}`
+          filter: `organization_id=eq.${orgId}`
         },
         (payload) => {
           debug.settings('Realtime update received:', payload.eventType);
@@ -290,12 +289,10 @@ export const useSimplifiedSiteSettings = () => {
     channelRef.current = channel;
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
+      supabase.removeChannel(channel);
+      channelRef.current = null;
     };
-  }, [organization?.id, fetchSettings]);
+  }, [organization?.id]); // Only depend on org ID, not fetchSettings
 
   return {
     settings,
