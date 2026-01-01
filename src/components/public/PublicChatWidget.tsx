@@ -142,8 +142,8 @@ const PublicChatWidget = () => {
   const location = useLocation();
   const { tenant } = useTenant();
   
-  // Don't render on admin routes - admins have dedicated Stay Moxie Assistant
-  if (location.pathname.startsWith('/admin')) {
+  // Don't render on admin routes or platform marketing pages
+  if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/platform')) {
     return null;
   }
   
