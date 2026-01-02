@@ -100,10 +100,10 @@ const PricingSection: React.FC = () => {
     name: template.name,
     slug: template.slug,
     description: template.description || '',
-    monthlyPrice: Math.round(template.monthly_price_cents / 100),
+    monthlyPrice: template.monthly_price_cents / 100,
     yearlyPrice: template.annual_price_cents 
-      ? Math.round(template.annual_price_cents / 100 / 12) // Show monthly equivalent
-      : Math.round(template.monthly_price_cents / 100 * 0.83), // 17% discount default
+      ? Math.floor(template.annual_price_cents / 100 / 12) // Show monthly equivalent
+      : Math.floor(template.monthly_price_cents / 100 * 0.83), // 17% discount default
     properties: template.max_properties 
       ? template.max_properties === 1 
         ? '1 property' 
@@ -111,7 +111,9 @@ const PricingSection: React.FC = () => {
           ? 'Unlimited properties'
           : `Up to ${template.max_properties} properties`
       : '',
-    features: template.features || [],
+    features: template.features && template.features.length > 0 
+      ? template.features 
+      : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []),
     cta: template.slug === 'portfolio' ? 'Contact Sales' : 'Start Free Trial',
     popular: template.is_popular || false,
     hasStripePrice: !!template.stripe_price_id,
