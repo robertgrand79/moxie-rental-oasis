@@ -195,25 +195,26 @@ const TemplatesManager = () => {
                       <Label>Monthly Price ($)</Label>
                       <Input
                         type="number"
-                        step="0.01"
-                        value={(newTemplate.monthly_price_cents / 100).toFixed(2)}
+                        min="0"
+                        value={newTemplate.monthly_price_cents / 100 || ''}
                         onChange={(e) => setNewTemplate({ 
                           ...newTemplate, 
                           monthly_price_cents: Math.round(parseFloat(e.target.value || '0') * 100)
                         })}
+                        placeholder="79"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Annual Price ($)</Label>
                       <Input
                         type="number"
-                        step="0.01"
-                        value={newTemplate.annual_price_cents ? (newTemplate.annual_price_cents / 100).toFixed(2) : ''}
+                        min="0"
+                        value={newTemplate.annual_price_cents ? newTemplate.annual_price_cents / 100 : ''}
                         onChange={(e) => setNewTemplate({ 
                           ...newTemplate, 
                           annual_price_cents: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : 0
                         })}
-                        placeholder="Optional"
+                        placeholder="790"
                       />
                     </div>
                   </div>
@@ -329,25 +330,26 @@ const TemplatesManager = () => {
                             <Label>Monthly Price ($)</Label>
                             <Input
                               type="number"
-                              step="0.01"
-                              value={(editingTemplate.monthly_price_cents / 100).toFixed(2)}
+                              min="0"
+                              value={editingTemplate.monthly_price_cents / 100 || ''}
                               onChange={(e) => setEditingTemplate({ 
                                 ...editingTemplate, 
                                 monthly_price_cents: Math.round(parseFloat(e.target.value || '0') * 100)
                               })}
+                              placeholder="79"
                             />
                           </div>
                           <div className="space-y-2">
                             <Label>Annual Price ($)</Label>
                             <Input
                               type="number"
-                              step="0.01"
-                              value={editingTemplate.annual_price_cents ? (editingTemplate.annual_price_cents / 100).toFixed(2) : ''}
+                              min="0"
+                              value={editingTemplate.annual_price_cents ? editingTemplate.annual_price_cents / 100 : ''}
                               onChange={(e) => setEditingTemplate({ 
                                 ...editingTemplate, 
                                 annual_price_cents: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null
                               })}
-                              placeholder="Leave empty if no annual option"
+                              placeholder="790"
                             />
                           </div>
                         </div>
