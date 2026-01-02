@@ -114,7 +114,7 @@ const PricingSection: React.FC = () => {
     features: template.features && template.features.length > 0 
       ? template.features 
       : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []),
-    cta: template.slug === 'portfolio' ? 'Contact Sales' : 'Start Free Trial',
+    cta: 'Start Free Trial',
     popular: template.is_popular || false,
     hasStripePrice: !!template.stripe_price_id,
     hasAnnualPrice: !!template.stripe_annual_price_id,
