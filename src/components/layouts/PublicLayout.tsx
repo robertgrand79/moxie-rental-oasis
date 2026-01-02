@@ -2,7 +2,6 @@ import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
-import ChatWidget from '@/components/chat/ChatWidget';
 import PublicSidebar from '@/components/navbar/PublicSidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
@@ -56,7 +55,6 @@ const PublicLayout = () => {
               </Suspense>
             </main>
             <Footer />
-            <ChatWidget />
             <Toaster position="top-center" richColors />
           </SidebarInset>
         </div>
