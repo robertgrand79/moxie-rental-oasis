@@ -46,8 +46,8 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    const { organizationId, templateSlug, successUrl, cancelUrl } = await req.json();
-    logStep("Checkout request", { organizationId, templateSlug });
+    const { organizationId, templateSlug, billingCycle, successUrl, cancelUrl } = await req.json();
+    logStep("Checkout request", { organizationId, templateSlug, billingCycle });
 
     // Get organization details
     const { data: org, error: orgError } = await supabaseClient
@@ -71,9 +71,24 @@ serve(async (req) => {
       throw new Error("Template not found");
     }
 
-    if (!template.stripe_price_id) {
+    // Determine which price ID to use based on billing cycle
+    let stripePriceId: string | null = null;
+    
+    if (billingCycle === 'yearly') {
+      stripePriceId = template.stripe_annual_price_id;
+      if (!stripePriceId) {
+        logStep("No annual price ID configured, falling back to monthly");
+        stripePriceId = template.stripe_price_id;
+      }
+    } else {
+      stripePriceId = template.stripe_price_id;
+    }
+
+    if (!stripePriceId) {
       throw new Error("Template Stripe price not configured");
     }
+
+    logStep("Using price ID", { stripePriceId, billingCycle });
 
     // Get or create Stripe customer
     let customerId = org.stripe_customer_id;
@@ -122,7 +137,7 @@ serve(async (req) => {
       payment_method_types: ["card"],
       line_items: [
         {
-          price: template.stripe_price_id,
+          price: stripePriceId,
           quantity: 1,
         },
       ],
@@ -132,12 +147,14 @@ serve(async (req) => {
         trial_period_days: 14,
         metadata: {
           organization_id: organizationId,
-          template_slug: templateSlug
+          template_slug: templateSlug,
+          billing_cycle: billingCycle || 'monthly'
         }
       },
       metadata: {
         organization_id: organizationId,
-        template_slug: templateSlug
+        template_slug: templateSlug,
+        billing_cycle: billingCycle || 'monthly'
       }
     });
 
