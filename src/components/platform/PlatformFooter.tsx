@@ -5,26 +5,33 @@
  */
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Sparkles, Twitter, Linkedin, Youtube, Mail } from 'lucide-react';
+import { usePlatform } from '@/contexts/PlatformContext';
 
 const PlatformFooter: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const { isPlatformSite } = usePlatform();
+  const location = useLocation();
+  
+  // Determine if we're in /platform/* context on a tenant domain
+  const isInPlatformPath = location.pathname.startsWith('/platform');
+  const pathPrefix = isPlatformSite ? '' : (isInPlatformPath ? '/platform' : '');
 
   const footerLinks = {
     product: [
-      { label: 'Features', href: '/#features' },
-      { label: 'Pricing', href: '/#pricing' },
-      { label: 'FAQ', href: '/#faq' },
+      { label: 'Features', href: `${pathPrefix}/#features` },
+      { label: 'Pricing', href: `${pathPrefix}/#pricing` },
+      { label: 'FAQ', href: `${pathPrefix}/#faq` },
     ],
     company: [
-      { label: 'About', href: '/about' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Contact', href: '/contact' },
+      { label: 'About', href: `${pathPrefix}/about` },
+      { label: 'Blog', href: `${pathPrefix}/blog` },
+      { label: 'Contact', href: `${pathPrefix}/contact` },
     ],
     legal: [
-      { label: 'Privacy Policy', href: '/privacy' },
-      { label: 'Terms of Service', href: '/terms' },
+      { label: 'Privacy Policy', href: `${pathPrefix}/privacy` },
+      { label: 'Terms of Service', href: `${pathPrefix}/terms` },
     ],
   };
 
@@ -34,7 +41,7 @@ const PlatformFooter: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2 mb-4">
+            <Link to={pathPrefix || '/'} className="flex items-center gap-2 mb-4">
               <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
