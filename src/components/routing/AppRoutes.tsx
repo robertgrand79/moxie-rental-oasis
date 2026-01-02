@@ -9,6 +9,7 @@ import Features from '@/pages/platform/Features';
 import Pricing from '@/pages/platform/Pricing';
 import PlatformAbout from '@/pages/platform/PlatformAbout';
 import PlatformBlog from '@/pages/platform/PlatformBlog';
+import PlatformContact from '@/pages/platform/PlatformContact';
 import PlatformAuth from '@/pages/platform/PlatformAuth';
 
 // Core public pages (loaded eagerly - critical path)
@@ -129,6 +130,7 @@ const AppRoutes: React.FC = () => {
             <Route path="features" element={<Navigate to="/#features" replace />} />
             <Route path="pricing" element={<Navigate to="/#pricing" replace />} />
             <Route path="about" element={<PlatformAbout />} />
+            <Route path="contact" element={<PlatformContact />} />
             <Route path="blog" element={<PlatformBlog />} />
             <Route path="auth" element={<PlatformAuth />} />
             <Route path="login" element={<PlatformAuth />} />
@@ -239,6 +241,7 @@ const AppRoutes: React.FC = () => {
           <Route path="features" element={<Navigate to="/platform/#features" replace />} />
           <Route path="pricing" element={<Navigate to="/platform/#pricing" replace />} />
           <Route path="about" element={<PlatformAbout />} />
+          <Route path="contact" element={<PlatformContact />} />
           <Route path="blog" element={<PlatformBlog />} />
         </Route>
 
