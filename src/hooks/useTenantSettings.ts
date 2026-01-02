@@ -1,10 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { debug } from '@/utils/debug';
 import { acquireTenantSettingsChannel } from '@/hooks/tenantSettingsRealtime';
-
 interface TenantSettings {
   site_name?: string;
   site_description?: string;
@@ -107,9 +106,28 @@ export const useTenantSettings = () => {
   });
 
   // Realtime subscription for live updates (shared per-tenant)
+  // Use ref to prevent duplicate acquisitions on re-renders
+  const channelAcquiredRef = useRef(false);
+  const currentTenantRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!tenantId) return;
-    return acquireTenantSettingsChannel(tenantId, queryClient);
+    
+    // Only acquire if tenant changed or not yet acquired
+    if (channelAcquiredRef.current && currentTenantRef.current === tenantId) {
+      return;
+    }
+    
+    channelAcquiredRef.current = true;
+    currentTenantRef.current = tenantId;
+    
+    const release = acquireTenantSettingsChannel(tenantId, queryClient);
+    
+    return () => {
+      channelAcquiredRef.current = false;
+      currentTenantRef.current = null;
+      release();
+    };
   }, [tenantId, queryClient]);
 
 
