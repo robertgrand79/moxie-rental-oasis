@@ -38,7 +38,8 @@ import {
   Rocket,
   HelpCircle,
   Ticket,
-  MessageSquare
+  MessageSquare,
+  FileText
 } from 'lucide-react';
 import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
@@ -54,6 +55,7 @@ import TenantDetailView from '@/components/admin/superadmin/TenantDetailView';
 import HelpContentManager from '@/components/admin/superadmin/HelpContentManager';
 import SupportTicketsManagement from '@/components/admin/superadmin/SupportTicketsManagement';
 import UserFeedbackManagement from '@/components/admin/superadmin/UserFeedbackManagement';
+import PlatformBlogManager from '@/components/admin/superadmin/PlatformBlogManager';
 import { format } from 'date-fns';
 import {
   AlertDialog,

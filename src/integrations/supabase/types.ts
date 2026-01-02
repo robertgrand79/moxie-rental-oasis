@@ -4302,6 +4302,63 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_blog_posts: {
+        Row: {
+          author: string
+          category: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          excerpt: string
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          published_at: string | null
+          read_time: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string
+          category?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          excerpt: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          published_at?: string | null
+          read_time?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          category?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          published_at?: string | null
+          read_time?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_metrics: {
         Row: {
           dimensions: Json | null
