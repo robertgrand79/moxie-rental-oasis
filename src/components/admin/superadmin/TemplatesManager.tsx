@@ -53,7 +53,8 @@ const TemplatesManager = () => {
         max_properties: editingTemplate.max_properties,
         is_active: editingTemplate.is_active,
         stripe_product_id: editingTemplate.stripe_product_id,
-        stripe_price_id: editingTemplate.stripe_price_id
+        stripe_price_id: editingTemplate.stripe_price_id,
+        stripe_annual_price_id: editingTemplate.stripe_annual_price_id
       }
     });
     setEditingTemplate(null);
@@ -63,7 +64,8 @@ const TemplatesManager = () => {
     await createTemplate.mutateAsync({
       ...newTemplate,
       stripe_product_id: null,
-      stripe_price_id: null
+      stripe_price_id: null,
+      stripe_annual_price_id: null
     });
     setIsCreateOpen(false);
     setNewTemplate({
@@ -191,17 +193,30 @@ const TemplatesManager = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Max Properties</Label>
+                      <Label>Annual Price ($)</Label>
                       <Input
                         type="number"
-                        value={newTemplate.max_properties || ''}
+                        step="0.01"
+                        value={newTemplate.annual_price_cents ? (newTemplate.annual_price_cents / 100).toFixed(2) : ''}
                         onChange={(e) => setNewTemplate({ 
                           ...newTemplate, 
-                          max_properties: e.target.value ? parseInt(e.target.value) : null
+                          annual_price_cents: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : 0
                         })}
-                        placeholder="Unlimited"
+                        placeholder="Optional"
                       />
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Max Properties</Label>
+                    <Input
+                      type="number"
+                      value={newTemplate.max_properties || ''}
+                      onChange={(e) => setNewTemplate({ 
+                        ...newTemplate, 
+                        max_properties: e.target.value ? parseInt(e.target.value) : null
+                      })}
+                      placeholder="Unlimited"
+                    />
                   </div>
                 </div>
                 <DialogFooter>
@@ -243,8 +258,13 @@ const TemplatesManager = () => {
                     <div className="flex items-center gap-4 mt-1 text-sm">
                       <span className="flex items-center gap-1">
                         <DollarSign className="h-3 w-3" />
-                        {formatPrice(template.monthly_price_cents)}/month
+                        {formatPrice(template.monthly_price_cents)}/mo
                       </span>
+                      {template.annual_price_cents && (
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          {formatPrice(template.annual_price_cents)}/yr
+                        </span>
+                      )}
                       <span>
                         {template.max_properties ? `${template.max_properties} property` : 'Unlimited properties'}
                       </span>
@@ -306,17 +326,30 @@ const TemplatesManager = () => {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Max Properties</Label>
+                            <Label>Annual Price ($)</Label>
                             <Input
                               type="number"
-                              value={editingTemplate.max_properties || ''}
+                              step="0.01"
+                              value={editingTemplate.annual_price_cents ? (editingTemplate.annual_price_cents / 100).toFixed(2) : ''}
                               onChange={(e) => setEditingTemplate({ 
                                 ...editingTemplate, 
-                                max_properties: e.target.value ? parseInt(e.target.value) : null
+                                annual_price_cents: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null
                               })}
-                              placeholder="Unlimited"
+                              placeholder="Leave empty if no annual option"
                             />
                           </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Max Properties</Label>
+                          <Input
+                            type="number"
+                            value={editingTemplate.max_properties || ''}
+                            onChange={(e) => setEditingTemplate({ 
+                              ...editingTemplate, 
+                              max_properties: e.target.value ? parseInt(e.target.value) : null
+                            })}
+                            placeholder="Unlimited"
+                          />
                         </div>
                         <div className="space-y-2">
                           <Label>Stripe Product ID</Label>
@@ -326,13 +359,23 @@ const TemplatesManager = () => {
                             placeholder="prod_..."
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label>Stripe Price ID</Label>
-                          <Input
-                            value={editingTemplate.stripe_price_id || ''}
-                            onChange={(e) => setEditingTemplate({ ...editingTemplate, stripe_price_id: e.target.value || null })}
-                            placeholder="price_..."
-                          />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Monthly Price ID</Label>
+                            <Input
+                              value={editingTemplate.stripe_price_id || ''}
+                              onChange={(e) => setEditingTemplate({ ...editingTemplate, stripe_price_id: e.target.value || null })}
+                              placeholder="price_..."
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Annual Price ID</Label>
+                            <Input
+                              value={editingTemplate.stripe_annual_price_id || ''}
+                              onChange={(e) => setEditingTemplate({ ...editingTemplate, stripe_annual_price_id: e.target.value || null })}
+                              placeholder="price_..."
+                            />
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Switch
