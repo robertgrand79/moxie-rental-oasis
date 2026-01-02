@@ -21,6 +21,7 @@ export interface SiteTemplate {
   features: string[];
   stripe_product_id: string | null;
   stripe_price_id: string | null;
+  stripe_annual_price_id: string | null;
   is_active: boolean;
   display_order: number;
   created_at: string;
