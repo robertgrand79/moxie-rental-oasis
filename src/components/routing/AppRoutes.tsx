@@ -245,6 +245,8 @@ const AppRoutes: React.FC = () => {
           <Route path="about" element={<PlatformAbout />} />
           <Route path="contact" element={<PlatformContact />} />
           <Route path="blog" element={<PlatformBlog />} />
+          <Route path="get-started" element={<PlatformGetStarted />} />
+          <Route path="auth" element={<PlatformAuth />} />
         </Route>
 
         <Route path="/" element={<PublicLayout />}>
