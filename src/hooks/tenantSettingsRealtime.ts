@@ -10,10 +10,18 @@ type TenantChannelEntry = {
 };
 
 const tenantSettingsChannels = new Map<string, TenantChannelEntry>();
+const pendingSubscriptions = new Set<string>();
 let channelCounter = 0;
 
 export const acquireTenantSettingsChannel = (tenantId: string, queryClient: QueryClient) => {
   const key = tenantId;
+
+  // If subscription is already in progress, return no-op to avoid duplicate
+  if (pendingSubscriptions.has(key)) {
+    debug.settings('Subscription already pending for tenant:', tenantId);
+    return () => {};
+  }
+
   const existing = tenantSettingsChannels.get(key);
 
   if (existing) {
@@ -31,6 +39,9 @@ export const acquireTenantSettingsChannel = (tenantId: string, queryClient: Quer
       }
     };
   }
+
+  // Mark as pending BEFORE creating channel to prevent race conditions
+  pendingSubscriptions.add(key);
 
   // Use unique channel name with counter to avoid duplicate subscription errors
   channelCounter += 1;
@@ -60,12 +71,13 @@ export const acquireTenantSettingsChannel = (tenantId: string, queryClient: Quer
       });
   } catch (error) {
     debug.error('Failed to create tenant settings channel:', error);
-    // Return no-op cleanup if channel creation fails
+    pendingSubscriptions.delete(key);
     return () => {};
   }
 
   const entry: TenantChannelEntry = { channel, refCount: 1, channelName };
   tenantSettingsChannels.set(key, entry);
+  pendingSubscriptions.delete(key);
 
   return () => {
     entry.refCount -= 1;
