@@ -118,6 +118,26 @@ export const usePlatformSettings = () => {
     }
   });
 
+  // Delete template
+  const deleteTemplate = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('site_templates')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['site-templates'] });
+      toast.success('Template deleted');
+    },
+    onError: (error) => {
+      console.error('Failed to delete template:', error);
+      toast.error('Failed to delete template');
+    }
+  });
+
   // Helper to get setting value
   const getSetting = (key: string): string | null => {
     return settings?.find(s => s.key === key)?.value || null;
@@ -139,6 +159,7 @@ export const usePlatformSettings = () => {
     loadingTemplates,
     updateTemplate,
     createTemplate,
-    isUpdating: updateSetting.isPending || updateTemplate.isPending || createTemplate.isPending
+    deleteTemplate,
+    isUpdating: updateSetting.isPending || updateTemplate.isPending || createTemplate.isPending || deleteTemplate.isPending
   };
 };

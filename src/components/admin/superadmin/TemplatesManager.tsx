@@ -15,16 +15,27 @@ import {
   DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
-import { Layout, Plus, Edit, DollarSign, Building, Home, Loader2, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Layout, Plus, Edit, DollarSign, Building, Home, Loader2, RefreshCw, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { usePlatformSettings, SiteTemplate } from '@/hooks/usePlatformSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const TemplatesManager = () => {
-  const { templates, loadingTemplates, updateTemplate, createTemplate, isUpdating } = usePlatformSettings();
+  const { templates, loadingTemplates, updateTemplate, createTemplate, deleteTemplate, isUpdating } = usePlatformSettings();
   const [editingTemplate, setEditingTemplate] = useState<SiteTemplate | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [deletingTemplate, setDeletingTemplate] = useState<SiteTemplate | null>(null);
   const [newTemplate, setNewTemplate] = useState({
     name: '',
     slug: '',
@@ -282,13 +293,14 @@ const TemplatesManager = () => {
                     </div>
                   </div>
                 </div>
-                <Dialog open={editingTemplate?.id === template.id} onOpenChange={(open) => !open && setEditingTemplate(null)}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" onClick={() => setEditingTemplate(template)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                  </DialogTrigger>
+                <div className="flex items-center gap-2">
+                  <Dialog open={editingTemplate?.id === template.id} onOpenChange={(open) => !open && setEditingTemplate(null)}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => setEditingTemplate(template)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Edit Template</DialogTitle>
@@ -396,11 +408,45 @@ const TemplatesManager = () => {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => setDeletingTemplate(template)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!deletingTemplate} onOpenChange={(open) => !open && setDeletingTemplate(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingTemplate?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={() => {
+                if (deletingTemplate) {
+                  deleteTemplate.mutate(deletingTemplate.id);
+                  setDeletingTemplate(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
