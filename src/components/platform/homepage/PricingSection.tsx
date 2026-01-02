@@ -121,13 +121,9 @@ const PricingSection: React.FC = () => {
   })) : fallbackPlans;
 
   const getCtaLink = (plan: typeof plans[0]) => {
-    // Portfolio tier goes to contact sales
-    if (plan.slug === 'portfolio' || plan.cta === 'Contact Sales') {
-      return '/contact';
-    }
-    // Other tiers go to get-started with plan info
+    // All tiers go to platform get-started with plan info
     const billing = isYearly ? 'yearly' : 'monthly';
-    return `/get-started?plan=${plan.slug}&billing=${billing}`;
+    return `/platform/get-started?plan=${plan.slug}&billing=${billing}`;
   };
 
   return (
