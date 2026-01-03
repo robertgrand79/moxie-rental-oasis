@@ -392,7 +392,14 @@ const UserFeedbackManagement = () => {
                   {filteredFeedback.map((item) => {
                     const TypeIcon = typeIcons[item.feedback_type] || HelpCircle;
                     return (
-                      <TableRow key={item.id}>
+                      <TableRow 
+                        key={item.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => {
+                          setSelectedFeedback(item);
+                          setAdminNotes(item.admin_notes || '');
+                        }}
+                      >
                         <TableCell>
                           <Badge 
                             variant="outline" 
@@ -411,7 +418,7 @@ const UserFeedbackManagement = () => {
                             <span className="text-sm">{getOrganizationName(item.organization_id)}</span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Select 
                             value={item.priority || 'medium'} 
                             onValueChange={(value) => handlePriorityChange(item.id, value)}
@@ -427,7 +434,7 @@ const UserFeedbackManagement = () => {
                             </SelectContent>
                           </Select>
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Select 
                             value={item.status} 
                             onValueChange={(value) => handleStatusChange(item.id, value)}
@@ -455,7 +462,7 @@ const UserFeedbackManagement = () => {
                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(item.created_at), 'MMM d, yyyy')}
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-1">
                             <Button 
                               variant="ghost" 
