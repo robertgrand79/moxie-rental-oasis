@@ -863,6 +863,7 @@ export type Database = {
           charge_type: string
           created_at: string | null
           id: string
+          organization_id: string | null
           reservation_id: string
           tax_rate_id: string | null
         }
@@ -872,6 +873,7 @@ export type Database = {
           charge_type: string
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           reservation_id: string
           tax_rate_id?: string | null
         }
@@ -881,10 +883,25 @@ export type Database = {
           charge_type?: string
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           reservation_id?: string
           tax_rate_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "booking_charges_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_charges_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "booking_charges_reservation_id_fkey"
             columns: ["reservation_id"]
@@ -3782,6 +3799,7 @@ export type Database = {
           id: string
           notes: string | null
           office_space_id: string
+          organization_id: string | null
           status: string
           updated_at: string
           user_id: string | null
@@ -3797,6 +3815,7 @@ export type Database = {
           id?: string
           notes?: string | null
           office_space_id: string
+          organization_id?: string | null
           status?: string
           updated_at?: string
           user_id?: string | null
@@ -3812,6 +3831,7 @@ export type Database = {
           id?: string
           notes?: string | null
           office_space_id?: string
+          organization_id?: string | null
           status?: string
           updated_at?: string
           user_id?: string | null
@@ -3822,6 +3842,20 @@ export type Database = {
             columns: ["office_space_id"]
             isOneToOne: false
             referencedRelation: "office_spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "office_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "office_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -3838,6 +3872,7 @@ export type Database = {
           name: string
           notes: string | null
           office_space_id: string
+          organization_id: string | null
           phone: string | null
           rental_type: string
           start_date: string | null
@@ -3858,6 +3893,7 @@ export type Database = {
           name: string
           notes?: string | null
           office_space_id: string
+          organization_id?: string | null
           phone?: string | null
           rental_type?: string
           start_date?: string | null
@@ -3878,6 +3914,7 @@ export type Database = {
           name?: string
           notes?: string | null
           office_space_id?: string
+          organization_id?: string | null
           phone?: string | null
           rental_type?: string
           start_date?: string | null
@@ -3895,6 +3932,20 @@ export type Database = {
             referencedRelation: "office_spaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "office_rentals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "office_rentals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       office_spaces: {
@@ -3909,6 +3960,7 @@ export type Database = {
           images: string[] | null
           is_available: boolean
           name: string
+          organization_id: string | null
           price_per_day: number | null
           price_per_hour: number | null
           price_per_month: number | null
@@ -3928,6 +3980,7 @@ export type Database = {
           images?: string[] | null
           is_available?: boolean
           name: string
+          organization_id?: string | null
           price_per_day?: number | null
           price_per_hour?: number | null
           price_per_month?: number | null
@@ -3947,6 +4000,7 @@ export type Database = {
           images?: string[] | null
           is_available?: boolean
           name?: string
+          organization_id?: string | null
           price_per_day?: number | null
           price_per_hour?: number | null
           price_per_month?: number | null
@@ -3955,7 +4009,22 @@ export type Database = {
           space_type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "office_spaces_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "office_spaces_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
