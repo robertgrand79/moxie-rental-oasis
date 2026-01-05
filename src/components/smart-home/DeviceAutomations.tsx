@@ -8,6 +8,7 @@ import { Property } from '@/types/property';
 import { Settings, Plus, Clock, LogIn, LogOut, Thermometer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface Device {
   id: string;
@@ -48,6 +49,7 @@ interface DeviceAutomationsProps {
 export const DeviceAutomations = ({ property, devices }: DeviceAutomationsProps) => {
   const [automations, setAutomations] = useState<DeviceAutomation[]>([]);
   const [loading, setLoading] = useState(true);
+  const { organization } = useCurrentOrganization();
 
   useEffect(() => {
     loadAutomations();
@@ -115,6 +117,7 @@ export const DeviceAutomations = ({ property, devices }: DeviceAutomationsProps)
       if (smartLocks.length > 0) {
         defaultAutomations.push({
           property_id: property.id,
+          organization_id: organization?.id || null,
           automation_name: 'Guest Check-in: Unlock Doors',
           automation_type: 'checkin',
           trigger_conditions: {
@@ -134,6 +137,7 @@ export const DeviceAutomations = ({ property, devices }: DeviceAutomationsProps)
       if (smartLocks.length > 0) {
         defaultAutomations.push({
           property_id: property.id,
+          organization_id: organization?.id || null,
           automation_name: 'Guest Check-out: Lock Doors',
           automation_type: 'checkout',
           trigger_conditions: {
@@ -153,6 +157,7 @@ export const DeviceAutomations = ({ property, devices }: DeviceAutomationsProps)
       if (thermostats.length > 0) {
         defaultAutomations.push({
           property_id: property.id,
+          organization_id: organization?.id || null,
           automation_name: 'Guest Arrival: Comfort Temperature',
           automation_type: 'checkin',
           trigger_conditions: {
@@ -173,6 +178,7 @@ export const DeviceAutomations = ({ property, devices }: DeviceAutomationsProps)
       if (thermostats.length > 0) {
         defaultAutomations.push({
           property_id: property.id,
+          organization_id: organization?.id || null,
           automation_name: 'Guest Departure: Energy Saving',
           automation_type: 'checkout',
           trigger_conditions: {
