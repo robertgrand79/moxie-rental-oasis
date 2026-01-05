@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +10,6 @@ import { useToast } from '@/hooks/use-toast';
 import TemplateDialog from './TemplateDialog';
 import StarterTemplatesButton from './StarterTemplatesButton';
 import TemplateVariablesReference from './TemplateVariablesReference';
-import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,26 +52,23 @@ const MessageTemplatesTab = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  // Get organization-scoped property IDs
-  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
-  const orgPropertyIds = orgProperties.map(p => p.id);
+  const { organization } = useCurrentOrganization();
 
   const { data: templates, isLoading } = useQuery({
-    queryKey: ['message-templates', orgPropertyIds],
+    queryKey: ['message-templates', organization?.id],
     queryFn: async () => {
-      if (orgPropertyIds.length === 0) return [];
+      if (!organization?.id) return [];
       
       const { data, error } = await supabase
         .from('message_templates')
         .select('*, properties(title)')
-        .or(`property_id.is.null,property_id.in.(${orgPropertyIds.join(',')})`)
+        .eq('organization_id', organization.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as MessageTemplate[];
     },
-    enabled: !propertiesLoading && orgPropertyIds.length > 0,
+    enabled: !!organization?.id,
   });
 
   const deleteMutation = useMutation({

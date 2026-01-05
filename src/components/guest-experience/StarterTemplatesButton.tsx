@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { PackagePlus, Loader2, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -119,6 +120,7 @@ const StarterTemplatesButton: React.FC<StarterTemplatesButtonProps> = ({ existin
   const [added, setAdded] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { organization } = useCurrentOrganization();
 
   const missingTemplates = STARTER_TEMPLATES.filter(
     (t) => !existingCategories.includes(t.category)
@@ -126,13 +128,14 @@ const StarterTemplatesButton: React.FC<StarterTemplatesButtonProps> = ({ existin
 
   const addMutation = useMutation({
     mutationFn: async () => {
-      if (missingTemplates.length === 0) return;
+      if (missingTemplates.length === 0 || !organization?.id) return;
 
       const templatesWithDefaults = missingTemplates.map((t) => ({
         ...t,
         is_default: true,
         is_active: true,
         property_id: null,
+        organization_id: organization.id,
       }));
 
       const { error } = await supabase

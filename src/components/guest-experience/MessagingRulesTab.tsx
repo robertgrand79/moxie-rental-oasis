@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +9,6 @@ import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Globe, Home, Mail, MessageSquare, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import RuleDialog from './RuleDialog';
-import { usePropertyFetch } from '@/hooks/usePropertyFetch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,26 +71,23 @@ const MessagingRulesTab = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  // Get organization-scoped property IDs
-  const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
-  const orgPropertyIds = orgProperties.map(p => p.id);
+  const { organization } = useCurrentOrganization();
 
   const { data: rules, isLoading } = useQuery({
-    queryKey: ['messaging-rules', orgPropertyIds],
+    queryKey: ['messaging-rules', organization?.id],
     queryFn: async () => {
-      if (orgPropertyIds.length === 0) return [];
+      if (!organization?.id) return [];
       
       const { data, error } = await supabase
         .from('messaging_rules')
         .select('*, properties(title), message_templates(name, subject)')
-        .or(`property_id.is.null,property_id.in.(${orgPropertyIds.join(',')})`)
+        .eq('organization_id', organization.id)
         .order('priority', { ascending: true });
       
       if (error) throw error;
       return data as MessagingRule[];
     },
-    enabled: !propertiesLoading && orgPropertyIds.length > 0,
+    enabled: !!organization?.id,
   });
 
   const toggleMutation = useMutation({

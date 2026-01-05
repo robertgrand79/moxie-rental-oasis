@@ -2955,6 +2955,7 @@ export type Database = {
           is_active: boolean | null
           is_default: boolean | null
           name: string
+          organization_id: string | null
           property_id: string | null
           subject: string
           updated_at: string
@@ -2968,6 +2969,7 @@ export type Database = {
           is_active?: boolean | null
           is_default?: boolean | null
           name: string
+          organization_id?: string | null
           property_id?: string | null
           subject: string
           updated_at?: string
@@ -2981,11 +2983,26 @@ export type Database = {
           is_active?: boolean | null
           is_default?: boolean | null
           name?: string
+          organization_id?: string | null
           property_id?: string | null
           subject?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "message_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "message_templates_property_id_fkey"
             columns: ["property_id"]
@@ -3005,6 +3022,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           name: string
+          organization_id: string | null
           priority: number | null
           property_id: string | null
           template_id: string
@@ -3022,6 +3040,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name: string
+          organization_id?: string | null
           priority?: number | null
           property_id?: string | null
           template_id: string
@@ -3039,6 +3058,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name?: string
+          organization_id?: string | null
           priority?: number | null
           property_id?: string | null
           template_id?: string
@@ -3048,6 +3068,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "messaging_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messaging_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messaging_rules_property_id_fkey"
             columns: ["property_id"]
