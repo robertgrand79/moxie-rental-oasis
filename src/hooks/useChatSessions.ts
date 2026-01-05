@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { debug } from '@/utils/debug';
@@ -27,14 +27,22 @@ export const useChatSessions = () => {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
 
   const fetchChatSessions = async () => {
+    if (!organization?.id) {
+      setChatSessions([]);
+      setLoading(false);
+      return;
+    }
+
     debug.log('[Chat]', 'Fetching chat sessions...');
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('chat_sessions')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('updated_at', { ascending: false });
 
       if (error) {
@@ -106,13 +114,23 @@ export const useChatSessions = () => {
       return null;
     }
 
+    if (!organization?.id) {
+      toast({
+        title: 'Error',
+        description: 'Organization context is required.',
+        variant: 'destructive'
+      });
+      return null;
+    }
+
     try {
       const { data, error } = await supabase
         .from('chat_messages')
         .insert({
           session_id: sessionId,
           content,
-          sender: 'admin'
+          sender: 'admin',
+          organization_id: organization.id
         })
         .select()
         .single();
@@ -131,7 +149,8 @@ export const useChatSessions = () => {
       await supabase
         .from('chat_sessions')
         .update({ last_message: content })
-        .eq('id', sessionId);
+        .eq('id', sessionId)
+        .eq('organization_id', organization.id);
 
       // Type assertion for the returned message
       return {
@@ -145,11 +164,14 @@ export const useChatSessions = () => {
   };
 
   const updateSessionStatus = async (sessionId: string, status: 'active' | 'pending' | 'resolved'): Promise<boolean> => {
+    if (!organization?.id) return false;
+
     try {
       const { error } = await supabase
         .from('chat_sessions')
         .update({ status })
-        .eq('id', sessionId);
+        .eq('id', sessionId)
+        .eq('organization_id', organization.id);
 
       if (error) {
         console.error('Error updating session status:', error);
@@ -180,7 +202,7 @@ export const useChatSessions = () => {
 
   useEffect(() => {
     fetchChatSessions();
-  }, []);
+  }, [organization?.id]);
 
   return {
     chatSessions,

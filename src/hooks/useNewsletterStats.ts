@@ -1,13 +1,21 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export const useNewsletterStats = () => {
   const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
   const [smsSubscriberCount, setSmsSubscriberCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const { organization } = useCurrentOrganization();
 
   const fetchStats = async () => {
+    if (!organization?.id) {
+      setSubscriberCount(null);
+      setSmsSubscriberCount(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -15,6 +23,7 @@ export const useNewsletterStats = () => {
       const { count: emailCount, error: emailError } = await supabase
         .from('newsletter_subscribers')
         .select('*', { count: 'exact', head: true })
+        .eq('organization_id', organization.id)
         .eq('is_active', true)
         .eq('email_opt_in', true);
 
@@ -28,6 +37,7 @@ export const useNewsletterStats = () => {
       const { count: smsCount, error: smsError } = await supabase
         .from('newsletter_subscribers')
         .select('*', { count: 'exact', head: true })
+        .eq('organization_id', organization.id)
         .eq('is_active', true)
         .eq('sms_opt_in', true)
         .not('phone', 'is', null);
@@ -47,7 +57,7 @@ export const useNewsletterStats = () => {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [organization?.id]);
 
   const refetch = () => {
     fetchStats();

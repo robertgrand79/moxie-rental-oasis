@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { NewsletterCampaign } from '@/components/admin/newsletter/types';
 
 export const useNewsletterCampaigns = () => {
@@ -10,13 +11,21 @@ export const useNewsletterCampaigns = () => {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
 
   const fetchCampaigns = async () => {
+    if (!organization?.id) {
+      setCampaigns([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('newsletter_campaigns')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -31,13 +40,16 @@ export const useNewsletterCampaigns = () => {
   };
 
   const deleteCampaign = async (campaignId: string) => {
+    if (!organization?.id) return;
+
     try {
       setDeleting(campaignId);
       
       const { error } = await supabase
         .from('newsletter_campaigns')
         .delete()
-        .eq('id', campaignId);
+        .eq('id', campaignId)
+        .eq('organization_id', organization.id);
 
       if (error) throw error;
 
@@ -63,6 +75,8 @@ export const useNewsletterCampaigns = () => {
   };
 
   const editCampaign = async (campaignId: string, data: { subject: string; content: string }) => {
+    if (!organization?.id) return;
+
     try {
       setEditing(campaignId);
       
@@ -73,7 +87,8 @@ export const useNewsletterCampaigns = () => {
           content: data.content,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', campaignId);
+        .eq('id', campaignId)
+        .eq('organization_id', organization.id);
 
       if (error) throw error;
 
@@ -104,7 +119,7 @@ export const useNewsletterCampaigns = () => {
 
   useEffect(() => {
     fetchCampaigns();
-  }, []);
+  }, [organization?.id]);
 
   return {
     campaigns,

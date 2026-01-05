@@ -1,23 +1,34 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { AddSubscriberFormData } from '@/components/newsletter/types';
 
 export const useNewsletterSubscribersCRUD = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
 
   const addSubscriber = async (data: AddSubscriberFormData): Promise<void> => {
+    if (!organization?.id) {
+      toast({
+        title: "Error",
+        description: "Organization context is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
       
-      // Check if email already exists
+      // Check if email already exists in this organization
       const { data: existing } = await supabase
         .from('newsletter_subscribers')
         .select('id')
         .eq('email', data.email.toLowerCase())
+        .eq('organization_id', organization.id)
         .single();
 
       if (existing) {
@@ -41,6 +52,7 @@ export const useNewsletterSubscribersCRUD = () => {
           communication_preferences: data.communicationPreferences,
           contact_source: data.contactSource,
           last_engagement_date: new Date().toISOString(),
+          organization_id: organization.id,
         });
 
       if (error) throw error;
@@ -63,6 +75,8 @@ export const useNewsletterSubscribersCRUD = () => {
   };
 
   const editSubscriber = async (id: string, data: Partial<AddSubscriberFormData>): Promise<void> => {
+    if (!organization?.id) return;
+
     try {
       setIsLoading(true);
       
@@ -72,7 +86,8 @@ export const useNewsletterSubscribersCRUD = () => {
           ...data,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('organization_id', organization.id);
 
       if (error) throw error;
 
@@ -94,13 +109,16 @@ export const useNewsletterSubscribersCRUD = () => {
   };
 
   const deleteSubscriber = async (id: string): Promise<void> => {
+    if (!organization?.id) return;
+
     try {
       setDeleting(id);
       
       const { error } = await supabase
         .from('newsletter_subscribers')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('organization_id', organization.id);
 
       if (error) throw error;
 

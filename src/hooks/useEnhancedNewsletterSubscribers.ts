@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { EnhancedSubscriber } from '@/components/newsletter/types';
 
 export const useEnhancedNewsletterSubscribers = () => {
@@ -9,13 +9,21 @@ export const useEnhancedNewsletterSubscribers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
 
   const fetchSubscribers = async () => {
+    if (!organization?.id) {
+      setSubscribers([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('newsletter_subscribers')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('subscribed_at', { ascending: false });
       
       if (error) throw error;
@@ -44,6 +52,8 @@ export const useEnhancedNewsletterSubscribers = () => {
       phone?: string;
     }
   ) => {
+    if (!organization?.id) return false;
+
     try {
       const { error } = await supabase
         .from('newsletter_subscribers')
@@ -52,7 +62,8 @@ export const useEnhancedNewsletterSubscribers = () => {
           updated_at: new Date().toISOString(),
           last_engagement_date: new Date().toISOString(),
         })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('organization_id', organization.id);
 
       if (error) throw error;
 
@@ -96,7 +107,7 @@ export const useEnhancedNewsletterSubscribers = () => {
 
   useEffect(() => {
     fetchSubscribers();
-  }, []);
+  }, [organization?.id]);
 
   return {
     subscribers,
