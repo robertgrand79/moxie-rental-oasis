@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export interface PropertyFee {
   id: string;
@@ -40,6 +41,7 @@ export interface UpdatePropertyFee {
 
 export const usePropertyFees = (propertyId: string) => {
   const queryClient = useQueryClient();
+  const { organization } = useCurrentOrganization();
   const queryKey = ['property-fees', propertyId];
 
   const { data: fees = [], isLoading, error } = useQuery({
@@ -61,7 +63,7 @@ export const usePropertyFees = (propertyId: string) => {
     mutationFn: async (fee: CreatePropertyFee) => {
       const { data, error } = await supabase
         .from('property_fees')
-        .insert(fee)
+        .insert({ ...fee, organization_id: organization?.id || null })
         .select()
         .single();
 

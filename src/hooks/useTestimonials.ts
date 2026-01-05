@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { debug } from '@/utils/debug';
 
 export interface Testimonial {
@@ -47,6 +48,7 @@ export interface CreateTestimonialData {
 export const useTestimonials = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { organization } = useCurrentOrganization();
   
   // Get organization-scoped property IDs
   const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
@@ -79,12 +81,13 @@ export const useTestimonials = () => {
     mutationFn: async (testimonial: CreateTestimonialData) => {
       debug.db('Creating testimonial:', testimonial.guest_name);
       
-      // Clean up the data - convert empty property_id to null
+      // Clean up the data - convert empty property_id to null, add organization_id
       const cleanData = {
         ...testimonial,
         property_id: testimonial.property_id && testimonial.property_id.trim() !== '' ? testimonial.property_id : null,
         content: testimonial.content || testimonial.review_text,
-        review_text: testimonial.review_text || testimonial.content
+        review_text: testimonial.review_text || testimonial.content,
+        organization_id: organization?.id || null
       };
       
       const { data, error } = await supabase

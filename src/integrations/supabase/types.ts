@@ -1400,6 +1400,7 @@ export type Database = {
           created_by: string | null
           id: string
           is_active: boolean | null
+          organization_id: string | null
           property_id: string | null
           target_devices: string[] | null
           trigger_conditions: Json | null
@@ -1413,6 +1414,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean | null
+          organization_id?: string | null
           property_id?: string | null
           target_devices?: string[] | null
           trigger_conditions?: Json | null
@@ -1426,6 +1428,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean | null
+          organization_id?: string | null
           property_id?: string | null
           target_devices?: string[] | null
           trigger_conditions?: Json | null
@@ -1437,6 +1440,20 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_automations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_automations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
           {
@@ -1465,6 +1482,7 @@ export type Database = {
           last_active: string | null
           last_health_check: string | null
           last_seam_sync: string | null
+          organization_id: string | null
           property_id: string
           registered_at: string | null
           seam_device_id: string | null
@@ -1489,6 +1507,7 @@ export type Database = {
           last_active?: string | null
           last_health_check?: string | null
           last_seam_sync?: string | null
+          organization_id?: string | null
           property_id: string
           registered_at?: string | null
           seam_device_id?: string | null
@@ -1513,6 +1532,7 @@ export type Database = {
           last_active?: string | null
           last_health_check?: string | null
           last_seam_sync?: string | null
+          organization_id?: string | null
           property_id?: string
           registered_at?: string | null
           seam_device_id?: string | null
@@ -1522,6 +1542,20 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "device_configurations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_configurations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "device_configurations_property_id_fkey"
             columns: ["property_id"]
@@ -1972,6 +2006,7 @@ export type Database = {
           id: string
           last_failure_at: string | null
           last_sync_at: string | null
+          organization_id: string | null
           platform: string
           property_id: string
           sync_enabled: boolean
@@ -1989,6 +2024,7 @@ export type Database = {
           id?: string
           last_failure_at?: string | null
           last_sync_at?: string | null
+          organization_id?: string | null
           platform: string
           property_id: string
           sync_enabled?: boolean
@@ -2006,6 +2042,7 @@ export type Database = {
           id?: string
           last_failure_at?: string | null
           last_sync_at?: string | null
+          organization_id?: string | null
           platform?: string
           property_id?: string
           sync_enabled?: boolean
@@ -2014,6 +2051,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "external_calendars_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_calendars_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "external_calendars_property_id_fkey"
             columns: ["property_id"]
@@ -2787,6 +2838,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           min_nights: number
+          organization_id: string | null
           property_id: string
           updated_at: string | null
         }
@@ -2796,6 +2848,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           min_nights: number
+          organization_id?: string | null
           property_id: string
           updated_at?: string | null
         }
@@ -2805,10 +2858,25 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           min_nights?: number
+          organization_id?: string | null
           property_id?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "length_of_stay_discounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "length_of_stay_discounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "length_of_stay_discounts_property_id_fkey"
             columns: ["property_id"]
@@ -4550,6 +4618,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          organization_id: string | null
           priority: number | null
           property_id: string
           rule_name: string
@@ -4563,6 +4632,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          organization_id?: string | null
           priority?: number | null
           property_id: string
           rule_name: string
@@ -4576,6 +4646,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          organization_id?: string | null
           priority?: number | null
           property_id?: string
           rule_name?: string
@@ -4583,6 +4654,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pricing_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pricing_rules_property_id_fkey"
             columns: ["property_id"]
@@ -4981,6 +5066,7 @@ export type Database = {
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           id: string
+          organization_id: string | null
           personal_message: string | null
           property_id: string
           updated_at: string
@@ -4994,6 +5080,7 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           id?: string
+          organization_id?: string | null
           personal_message?: string | null
           property_id: string
           updated_at?: string
@@ -5007,6 +5094,7 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           id?: string
+          organization_id?: string | null
           personal_message?: string | null
           property_id?: string
           updated_at?: string
@@ -5014,6 +5102,20 @@ export type Database = {
           wifi_password?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "property_access_details_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_access_details_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "property_access_details_property_id_fkey"
             columns: ["property_id"]
@@ -5075,6 +5177,7 @@ export type Database = {
           item_id: string
           needs_work: boolean | null
           notes: string | null
+          organization_id: string | null
           photos: string[] | null
           run_id: string
           work_order_id: string | null
@@ -5088,6 +5191,7 @@ export type Database = {
           item_id: string
           needs_work?: boolean | null
           notes?: string | null
+          organization_id?: string | null
           photos?: string[] | null
           run_id: string
           work_order_id?: string | null
@@ -5101,6 +5205,7 @@ export type Database = {
           item_id?: string
           needs_work?: boolean | null
           notes?: string | null
+          organization_id?: string | null
           photos?: string[] | null
           run_id?: string
           work_order_id?: string | null
@@ -5111,6 +5216,20 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "maintenance_checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_checklist_item_completions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_checklist_item_completions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
           {
@@ -5137,6 +5256,7 @@ export type Database = {
           due_date: string | null
           id: string
           notes: string | null
+          organization_id: string | null
           period: string
           property_id: string
           started_at: string | null
@@ -5151,6 +5271,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           notes?: string | null
+          organization_id?: string | null
           period: string
           property_id: string
           started_at?: string | null
@@ -5165,6 +5286,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           notes?: string | null
+          organization_id?: string | null
           period?: string
           property_id?: string
           started_at?: string | null
@@ -5173,6 +5295,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "property_checklist_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_checklist_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "property_checklist_runs_property_id_fkey"
             columns: ["property_id"]
@@ -5261,6 +5397,7 @@ export type Database = {
           fee_type: string
           id: string
           is_active: boolean | null
+          organization_id: string | null
           property_id: string
           updated_at: string | null
         }
@@ -5274,6 +5411,7 @@ export type Database = {
           fee_type?: string
           id?: string
           is_active?: boolean | null
+          organization_id?: string | null
           property_id: string
           updated_at?: string | null
         }
@@ -5287,10 +5425,25 @@ export type Database = {
           fee_type?: string
           id?: string
           is_active?: boolean | null
+          organization_id?: string | null
           property_id?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "property_fees_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_fees_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "property_fees_property_id_fkey"
             columns: ["property_id"]
@@ -5306,6 +5459,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          organization_id: string | null
           property_id: string
           title: string
           updated_at: string
@@ -5315,6 +5469,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          organization_id?: string | null
           property_id: string
           title: string
           updated_at?: string
@@ -5324,11 +5479,27 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          organization_id?: string | null
           property_id?: string
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "property_guidebooks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_guidebooks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       property_reservations: {
         Row: {
@@ -5841,6 +6012,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           max_usage_count: number | null
+          organization_id: string | null
           reservation_id: string | null
           seam_access_code_id: string
           starts_at: string | null
@@ -5858,6 +6030,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_usage_count?: number | null
+          organization_id?: string | null
           reservation_id?: string | null
           seam_access_code_id: string
           starts_at?: string | null
@@ -5875,6 +6048,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_usage_count?: number | null
+          organization_id?: string | null
           reservation_id?: string | null
           seam_access_code_id?: string
           starts_at?: string | null
@@ -5894,6 +6068,20 @@ export type Database = {
             columns: ["device_id"]
             isOneToOne: false
             referencedRelation: "seam_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seam_access_codes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seam_access_codes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
           {
@@ -5922,6 +6110,7 @@ export type Database = {
           is_online: boolean | null
           last_seen_at: string | null
           location: string | null
+          organization_id: string | null
           property_id: string | null
           seam_device_id: string
           updated_at: string | null
@@ -5943,6 +6132,7 @@ export type Database = {
           is_online?: boolean | null
           last_seen_at?: string | null
           location?: string | null
+          organization_id?: string | null
           property_id?: string | null
           seam_device_id: string
           updated_at?: string | null
@@ -5964,12 +6154,27 @@ export type Database = {
           is_online?: boolean | null
           last_seen_at?: string | null
           location?: string | null
+          organization_id?: string | null
           property_id?: string | null
           seam_device_id?: string
           updated_at?: string | null
           workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "seam_devices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seam_devices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "seam_devices_property_id_fkey"
             columns: ["property_id"]
@@ -6687,6 +6892,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          organization_id: string | null
           priority: string
           project_id: string | null
           property_id: string | null
@@ -6703,6 +6909,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          organization_id?: string | null
           priority?: string
           project_id?: string | null
           property_id?: string | null
@@ -6719,6 +6926,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          organization_id?: string | null
           priority?: string
           project_id?: string | null
           property_id?: string | null
@@ -6727,6 +6935,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_project_id_fkey"
             columns: ["project_id"]
@@ -6898,6 +7120,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_featured: boolean | null
+          organization_id: string | null
           property_id: string | null
           property_name: string | null
           rating: number
@@ -6919,6 +7142,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
+          organization_id?: string | null
           property_id?: string | null
           property_name?: string | null
           rating?: number
@@ -6940,6 +7164,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
+          organization_id?: string | null
           property_id?: string | null
           property_name?: string | null
           rating?: number
@@ -6948,7 +7173,22 @@ export type Database = {
           stay_date?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "testimonials_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "testimonials_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tour_requests: {
         Row: {
