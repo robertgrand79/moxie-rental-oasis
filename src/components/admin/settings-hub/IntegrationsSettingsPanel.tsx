@@ -35,7 +35,7 @@ const IntegrationsSettingsPanel = () => {
   const { settings, saveSetting } = useSimplifiedSiteSettings();
   const { toast } = useToast();
   
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     openphone_api_key: '',
     openphone_phone_number: '',
     resend_api_key: '',
@@ -47,7 +47,16 @@ const IntegrationsSettingsPanel = () => {
     apify_api_key: '',
     openweather_api_key: '',
     mapboxToken: '',
-  });
+  };
+  
+  const [formData, setFormData] = useState(initialFormState);
+  
+  // Security: Clear sensitive data from state on unmount
+  useEffect(() => {
+    return () => {
+      setFormData(initialFormState);
+    };
+  }, []);
 
   const [phoneNumbers, setPhoneNumbers] = useState<Array<{ id: string; formattedNumber: string; name: string }>>([]);
   const [fetchingPhones, setFetchingPhones] = useState(false);
@@ -228,6 +237,13 @@ const IntegrationsSettingsPanel = () => {
       const success = await setApiKey(organization.id, 'mapbox_api_key', formData.mapboxToken);
       if (success) {
         await saveSetting('mapboxToken', formData.mapboxToken);
+        // Security: Clear sensitive data from state after save
+        setFormData(prev => ({ ...prev, mapboxToken: '' }));
+        refetch();
+        toast({
+          title: "Settings saved",
+          description: "Map settings updated successfully",
+        });
       }
     }
   };

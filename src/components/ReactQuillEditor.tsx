@@ -97,11 +97,15 @@ const ReactQuillEditor = ({ content, onChange, placeholder = "Start writing...",
   };
 
   // Sync content prop changes with editor (only when different)
+  // Uses Quill's clipboard API instead of innerHTML to prevent XSS
   useEffect(() => {
     const editor = quillRef.current?.getEditor();
     if (editor && content !== editor.root.innerHTML) {
       debug.log('[Editor]', '🔄 Syncing content prop with ReactQuill editor');
-      editor.root.innerHTML = content;
+      // Sanitize content first, then use Quill's safe paste method
+      const sanitizedContent = sanitizeRichTextContent(content);
+      const delta = editor.clipboard.convert(sanitizedContent);
+      editor.setContents(delta, 'silent');
     }
   }, [content]);
 
