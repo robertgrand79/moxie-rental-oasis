@@ -643,6 +643,7 @@ export type Database = {
           guest_count: number | null
           id: string
           notes: string | null
+          organization_id: string | null
           property_id: string
           source_platform: string | null
           start_date: string
@@ -657,6 +658,7 @@ export type Database = {
           guest_count?: number | null
           id?: string
           notes?: string | null
+          organization_id?: string | null
           property_id: string
           source_platform?: string | null
           start_date: string
@@ -671,6 +673,7 @@ export type Database = {
           guest_count?: number | null
           id?: string
           notes?: string | null
+          organization_id?: string | null
           property_id?: string
           source_platform?: string | null
           start_date?: string
@@ -678,6 +681,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "availability_blocks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_blocks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "availability_blocks_property_id_fkey"
             columns: ["property_id"]
@@ -1650,6 +1667,7 @@ export type Database = {
           min_price_limit: number | null
           min_stay: number | null
           occupancy_rate: number | null
+          organization_id: string | null
           pricelabs_price: number | null
           pricing_source: string
           property_id: string
@@ -1672,6 +1690,7 @@ export type Database = {
           min_price_limit?: number | null
           min_stay?: number | null
           occupancy_rate?: number | null
+          organization_id?: string | null
           pricelabs_price?: number | null
           pricing_source?: string
           property_id: string
@@ -1694,6 +1713,7 @@ export type Database = {
           min_price_limit?: number | null
           min_stay?: number | null
           occupancy_rate?: number | null
+          organization_id?: string | null
           pricelabs_price?: number | null
           pricing_source?: string
           property_id?: string
@@ -1701,6 +1721,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "dynamic_pricing_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dynamic_pricing_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "dynamic_pricing_property_id_fkey"
             columns: ["property_id"]
