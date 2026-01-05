@@ -1255,6 +1255,7 @@ export type Database = {
           created_by: string
           feedback: string | null
           id: string
+          organization_id: string | null
           original_prompt: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -1269,6 +1270,7 @@ export type Database = {
           created_by?: string
           feedback?: string | null
           id?: string
+          organization_id?: string | null
           original_prompt?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -1283,6 +1285,7 @@ export type Database = {
           created_by?: string
           feedback?: string | null
           id?: string
+          organization_id?: string | null
           original_prompt?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -1291,7 +1294,22 @@ export type Database = {
           type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_approval_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_approval_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contractor_access_tokens: {
         Row: {
@@ -1300,6 +1318,7 @@ export type Database = {
           id: string
           is_active: boolean
           last_accessed_at: string | null
+          organization_id: string | null
           token: string
         }
         Insert: {
@@ -1308,6 +1327,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_accessed_at?: string | null
+          organization_id?: string | null
           token?: string
         }
         Update: {
@@ -1316,6 +1336,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_accessed_at?: string | null
+          organization_id?: string | null
           token?: string
         }
         Relationships: [
@@ -1324,6 +1345,20 @@ export type Database = {
             columns: ["contractor_id"]
             isOneToOne: false
             referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_access_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_access_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -2603,6 +2638,7 @@ export type Database = {
           id: string
           is_primary_guest: boolean
           last_name: string
+          organization_id: string | null
           phone: string | null
           reservation_id: string
           updated_at: string
@@ -2614,6 +2650,7 @@ export type Database = {
           id?: string
           is_primary_guest?: boolean
           last_name: string
+          organization_id?: string | null
           phone?: string | null
           reservation_id: string
           updated_at?: string
@@ -2625,11 +2662,26 @@ export type Database = {
           id?: string
           is_primary_guest?: boolean
           last_name?: string
+          organization_id?: string | null
           phone?: string | null
           reservation_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "guests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "guests_reservation_id_fkey"
             columns: ["reservation_id"]
@@ -3912,6 +3964,7 @@ export type Database = {
           created_at: string
           currency: string | null
           id: string
+          organization_id: string | null
           product_type: string | null
           status: string | null
           stripe_session_id: string | null
@@ -3924,6 +3977,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           id?: string
+          organization_id?: string | null
           product_type?: string | null
           status?: string | null
           stripe_session_id?: string | null
@@ -3936,6 +3990,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           id?: string
+          organization_id?: string | null
           product_type?: string | null
           status?: string | null
           stripe_session_id?: string | null
@@ -3948,6 +4003,20 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -4981,6 +5050,7 @@ export type Database = {
           description: string | null
           end_date: string | null
           id: string
+          organization_id: string | null
           priority: string
           start_date: string | null
           status: string
@@ -4993,6 +5063,7 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           id?: string
+          organization_id?: string | null
           priority?: string
           start_date?: string | null
           status?: string
@@ -5005,13 +5076,29 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           id?: string
+          organization_id?: string | null
           priority?: string
           start_date?: string | null
           status?: string
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       promo_code_usage: {
         Row: {
@@ -6749,6 +6836,7 @@ export type Database = {
           icon_name: string
           id: string
           is_active: boolean
+          organization_id: string | null
           platform: string
           updated_at: string
           url: string
@@ -6760,6 +6848,7 @@ export type Database = {
           icon_name: string
           id?: string
           is_active?: boolean
+          organization_id?: string | null
           platform: string
           updated_at?: string
           url: string
@@ -6771,11 +6860,27 @@ export type Database = {
           icon_name?: string
           id?: string
           is_active?: boolean
+          organization_id?: string | null
           platform?: string
           updated_at?: string
           url?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "social_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stripe_webhook_events: {
         Row: {
@@ -6809,6 +6914,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          organization_id: string | null
           stripe_customer_id: string | null
           subscribed: boolean
           subscription_end: string | null
@@ -6820,6 +6926,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          organization_id?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
@@ -6831,6 +6938,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          organization_id?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
@@ -6838,7 +6946,22 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subscribers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscribers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_ticket_responses: {
         Row: {
