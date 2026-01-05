@@ -333,6 +333,7 @@ export const useChecklistManagement = () => {
           description: templateData.description || null,
           is_system_template: false,
           created_by: user?.id,
+          organization_id: organization?.id || null,
         })
         .select()
         .single();
