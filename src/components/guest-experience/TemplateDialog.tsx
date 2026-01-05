@@ -129,6 +129,7 @@ const TemplateDialog: React.FC<TemplateDialogProps> = ({ open, onOpenChange, tem
         content: data.content,
         is_default: data.is_default,
         is_active: data.is_active,
+        organization_id: organization?.id,
       };
 
       if (isEditing && template) {

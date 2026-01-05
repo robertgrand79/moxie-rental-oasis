@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import {
   Dialog,
   DialogContent,
@@ -68,6 +69,7 @@ const TRIGGER_TYPES = [
 const RuleDialog: React.FC<RuleDialogProps> = ({ open, onOpenChange, rule }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { organization } = useCurrentOrganization();
   const isEditing = !!rule;
   
   // Use organization-scoped properties
@@ -93,15 +95,15 @@ const RuleDialog: React.FC<RuleDialogProps> = ({ open, onOpenChange, rule }) => 
   const propertyId = watch('property_id');
 
   const { data: templates } = useQuery({
-    queryKey: ['message-templates-for-rule', propertyId, orgPropertyIds],
+    queryKey: ['message-templates-for-rule', organization?.id, propertyId],
     queryFn: async () => {
-      if (orgPropertyIds.length === 0) return [];
+      if (!organization?.id) return [];
       
       const { data, error } = await supabase
         .from('message_templates')
         .select('id, name, property_id')
         .eq('is_active', true)
-        .or(`property_id.is.null,property_id.in.(${orgPropertyIds.join(',')})`)
+        .eq('organization_id', organization.id)
         .order('name');
 
       if (error) throw error;
@@ -113,7 +115,7 @@ const RuleDialog: React.FC<RuleDialogProps> = ({ open, onOpenChange, rule }) => 
         t.property_id === propertyId
       );
     },
-    enabled: orgPropertyIds.length > 0,
+    enabled: !!organization?.id,
   });
 
   useEffect(() => {
@@ -172,6 +174,7 @@ const RuleDialog: React.FC<RuleDialogProps> = ({ open, onOpenChange, rule }) => 
         delivery_channel: data.delivery_channel,
         is_active: data.is_active,
         priority: data.priority,
+        organization_id: organization?.id,
       };
 
       if (isEditing && rule) {
