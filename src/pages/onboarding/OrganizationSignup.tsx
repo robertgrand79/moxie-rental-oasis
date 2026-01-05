@@ -7,8 +7,9 @@ import { useOrganizationTemplates, OrganizationTemplate } from '@/hooks/useOrgan
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Loader2, CheckCircle2, XCircle, Plus } from 'lucide-react';
+import { Building2, Loader2, CheckCircle2, XCircle, Plus, Package } from 'lucide-react';
 import { TemplateCard } from '@/components/signup/TemplateCard';
 import { TemplatePreviewDrawer } from '@/components/signup/TemplatePreviewDrawer';
 
@@ -24,6 +25,7 @@ const OrganizationSignup = () => {
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [selectedTemplate, setSelectedTemplate] = useState<OrganizationTemplate | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<OrganizationTemplate | null>(null);
+  const [includeDemoData, setIncludeDemoData] = useState(false);
 
   // Redirect if already has organization - go to dashboard instead of onboarding
   useEffect(() => {
@@ -65,6 +67,13 @@ const OrganizationSignup = () => {
     return () => clearTimeout(timer);
   }, [slug, checkSlugAvailability]);
 
+  // When template is selected, sync its demo data default
+  useEffect(() => {
+    if (selectedTemplate) {
+      setIncludeDemoData(selectedTemplate.include_demo_data);
+    }
+  }, [selectedTemplate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !slug || slugStatus !== 'available' || !selectedTemplate) return;
@@ -72,7 +81,8 @@ const OrganizationSignup = () => {
     const orgId = await createOrganization({ 
       name, 
       slug, 
-      templateId: selectedTemplate.id 
+      visualTemplateId: selectedTemplate.id,
+      includeDemoData,
     });
     if (orgId) {
       // Use full page reload to ensure context picks up new org
@@ -88,6 +98,9 @@ const OrganizationSignup = () => {
       </div>
     );
   }
+
+  // Check if selected template has demo data available
+  const hasDemoDataAvailable = selectedTemplate?.source_organization_id != null;
 
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
@@ -199,6 +212,30 @@ const OrganizationSignup = () => {
                   )}
                 </div>
               </div>
+
+              {/* Demo Data Toggle */}
+              {hasDemoDataAvailable && (
+                <div className="flex items-center justify-between rounded-lg border p-4 bg-muted/30">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 p-2 rounded-lg bg-primary/10">
+                      <Package className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="demo-data" className="text-base font-medium cursor-pointer">
+                        Include sample content
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Start with demo properties, blog posts, testimonials, and more to see how your site will look
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="demo-data"
+                    checked={includeDemoData}
+                    onCheckedChange={setIncludeDemoData}
+                  />
+                </div>
+              )}
 
               <Button
                 type="submit"

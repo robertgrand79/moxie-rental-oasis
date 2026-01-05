@@ -4229,14 +4229,18 @@ export type Database = {
         Row: {
           created_at: string | null
           default_settings: Json | null
+          demo_data_config: Json | null
           description: string | null
           display_order: number | null
           features: Json | null
           id: string
+          include_demo_data: boolean | null
           is_active: boolean | null
           name: string
           preview_image_url: string | null
+          pricing_tier_id: string | null
           slug: string
+          source_organization_id: string | null
           template_type: string
           thumbnail_url: string | null
           updated_at: string | null
@@ -4244,14 +4248,18 @@ export type Database = {
         Insert: {
           created_at?: string | null
           default_settings?: Json | null
+          demo_data_config?: Json | null
           description?: string | null
           display_order?: number | null
           features?: Json | null
           id?: string
+          include_demo_data?: boolean | null
           is_active?: boolean | null
           name: string
           preview_image_url?: string | null
+          pricing_tier_id?: string | null
           slug: string
+          source_organization_id?: string | null
           template_type: string
           thumbnail_url?: string | null
           updated_at?: string | null
@@ -4259,23 +4267,50 @@ export type Database = {
         Update: {
           created_at?: string | null
           default_settings?: Json | null
+          demo_data_config?: Json | null
           description?: string | null
           display_order?: number | null
           features?: Json | null
           id?: string
+          include_demo_data?: boolean | null
           is_active?: boolean | null
           name?: string
           preview_image_url?: string | null
+          pricing_tier_id?: string | null
           slug?: string
+          source_organization_id?: string | null
           template_type?: string
           thumbnail_url?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organization_templates_pricing_tier_id_fkey"
+            columns: ["pricing_tier_id"]
+            isOneToOne: false
+            referencedRelation: "site_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_templates_source_organization_id_fkey"
+            columns: ["source_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_templates_source_organization_id_fkey"
+            columns: ["source_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organizations: {
         Row: {
           created_at: string | null
+          created_from_template_id: string | null
           custom_domain: string | null
           domain_dns_records: Json | null
           domain_last_checked_at: string | null
@@ -4314,6 +4349,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          created_from_template_id?: string | null
           custom_domain?: string | null
           domain_dns_records?: Json | null
           domain_last_checked_at?: string | null
@@ -4352,6 +4388,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          created_from_template_id?: string | null
           custom_domain?: string | null
           domain_dns_records?: Json | null
           domain_last_checked_at?: string | null
@@ -4388,7 +4425,15 @@ export type Database = {
           updated_at?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organizations_created_from_template_id_fkey"
+            columns: ["created_from_template_id"]
+            isOneToOne: false
+            referencedRelation: "organization_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       page_views: {
         Row: {
@@ -8824,12 +8869,23 @@ export type Database = {
       cleanup_old_logs: { Args: never; Returns: undefined }
       cleanup_old_webhook_events: { Args: never; Returns: undefined }
       clear_failed_logins: { Args: { p_email: string }; Returns: undefined }
+      copy_organization_demo_data: {
+        Args: {
+          _demo_config?: Json
+          _source_org_id: string
+          _target_org_id: string
+          _target_user_id: string
+        }
+        Returns: undefined
+      }
       create_organization_with_owner: {
         Args: {
+          _include_demo_data?: boolean
           _name: string
           _slug: string
           _template_id?: string
           _user_id: string
+          _visual_template_id?: string
         }
         Returns: string
       }

@@ -1,4 +1,4 @@
-import { Home, Building, CheckCircle2, Eye, Sparkles } from 'lucide-react';
+import { Home, Building, CheckCircle2, Eye, Sparkles, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -11,8 +11,14 @@ interface TemplateCardProps {
   onPreview: () => void;
 }
 
+// Format price from cents to dollars
+const formatPrice = (cents: number): string => {
+  return `$${(cents / 100).toFixed(0)}`;
+};
+
 export const TemplateCard = ({ template, isSelected, onSelect, onPreview }: TemplateCardProps) => {
   const Icon = template.template_type === 'single_property' ? Home : Building;
+  const pricingTier = template.pricing_tier;
   
   return (
     <div
@@ -41,6 +47,15 @@ export const TemplateCard = ({ template, isSelected, onSelect, onPreview }: Temp
           </div>
         )}
         
+        {/* Pricing Badge */}
+        {pricingTier && (
+          <div className="absolute top-3 left-3">
+            <Badge className="bg-primary text-primary-foreground shadow-md">
+              {formatPrice(pricingTier.monthly_price_cents)}/mo
+            </Badge>
+          </div>
+        )}
+        
         {/* Preview Button Overlay */}
         <Button
           variant="secondary"
@@ -66,9 +81,17 @@ export const TemplateCard = ({ template, isSelected, onSelect, onPreview }: Temp
       <div className="flex flex-col flex-1 p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className="font-semibold text-lg">{template.name}</h3>
-          <Badge variant="secondary" className="text-xs shrink-0">
-            {template.template_type === 'single_property' ? 'Single' : 'Multi'}
-          </Badge>
+          <div className="flex gap-1 shrink-0">
+            <Badge variant="secondary" className="text-xs">
+              {template.template_type === 'single_property' ? 'Single' : 'Multi'}
+            </Badge>
+            {template.include_demo_data && (
+              <Badge variant="outline" className="text-xs">
+                <Package className="h-3 w-3 mr-1" />
+                Demo
+              </Badge>
+            )}
+          </div>
         </div>
         
         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
@@ -89,6 +112,13 @@ export const TemplateCard = ({ template, isSelected, onSelect, onPreview }: Temp
             </Badge>
           )}
         </div>
+        
+        {/* Pricing Tier Name */}
+        {pricingTier && (
+          <p className="text-xs text-muted-foreground mb-3">
+            Includes <span className="font-medium text-foreground">{pricingTier.name}</span> plan
+          </p>
+        )}
         
         {/* Select Button */}
         <Button
