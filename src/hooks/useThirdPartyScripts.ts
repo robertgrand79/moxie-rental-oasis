@@ -1,5 +1,5 @@
-
 import { useEffect } from 'react';
+import DOMPurify from 'dompurify';
 
 export const useThirdPartyScripts = (
   googleTagManagerId: string,
@@ -8,21 +8,29 @@ export const useThirdPartyScripts = (
   customFooterScripts: string,
   customCss: string
 ) => {
-  // Security function to validate and sanitize scripts
+  // Security function to validate and sanitize scripts using DOMPurify
   const sanitizeScript = (script: string): string => {
-    // Remove potentially dangerous patterns
+    // Remove potentially dangerous patterns first
     const dangerousPatterns = [
       /document\.write/gi,
       /eval\(/gi,
       /Function\(/gi,
       /setTimeout\s*\(\s*["'].*["']/gi,
       /setInterval\s*\(\s*["'].*["']/gi,
-      /<script[^>]*src=[^>]*>/gi
+      /<script[^>]*src=[^>]*>/gi,
+      /javascript:/gi,
+      /on\w+\s*=/gi,  // Event handlers like onclick=
     ];
 
     let sanitized = script;
     dangerousPatterns.forEach(pattern => {
       sanitized = sanitized.replace(pattern, '');
+    });
+
+    // Additional DOMPurify sanitization for any HTML content
+    sanitized = DOMPurify.sanitize(sanitized, {
+      ALLOWED_TAGS: [], // Strip all HTML tags, keep only text/script content
+      KEEP_CONTENT: true,
     });
 
     return sanitized;
