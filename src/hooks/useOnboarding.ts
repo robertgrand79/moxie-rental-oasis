@@ -16,7 +16,9 @@ interface OnboardingStep {
 interface CreateOrganizationParams {
   name: string;
   slug: string;
-  templateId?: string;
+  templateId?: string; // Legacy: organizations.is_template=true
+  visualTemplateId?: string; // New: organization_templates.id
+  includeDemoData?: boolean;
 }
 
 export const useOnboarding = (organizationId: string | null) => {
@@ -128,7 +130,12 @@ export const useCreateOrganization = () => {
     setCreating(true);
     setError(null);
     
-    logger.info('Starting organization creation', { component: 'Onboarding', orgName: params.name });
+    logger.info('Starting organization creation', { 
+      component: 'Onboarding', 
+      orgName: params.name,
+      visualTemplateId: params.visualTemplateId,
+      includeDemoData: params.includeDemoData,
+    });
     
     try {
       // Step 1: Verify authentication
@@ -160,14 +167,22 @@ export const useCreateOrganization = () => {
       }
       logger.debug('Slug available', { component: 'Onboarding', slug: params.slug });
 
-      // Step 3: Create organization with all related records
-      logger.info('Creating organization with template', { component: 'Onboarding', templateId: params.templateId });
+      // Step 3: Create organization with unified template system
+      logger.info('Creating organization with unified template', { 
+        component: 'Onboarding', 
+        visualTemplateId: params.visualTemplateId,
+        legacyTemplateId: params.templateId,
+        includeDemoData: params.includeDemoData,
+      });
+      
       const { data: orgId, error: createError } = await supabase
         .rpc('create_organization_with_owner', {
           _name: params.name,
           _slug: params.slug,
           _user_id: user.id,
-          _template_id: params.templateId || null,
+          _template_id: params.templateId || null, // Legacy fallback
+          _visual_template_id: params.visualTemplateId || null, // New unified template
+          _include_demo_data: params.includeDemoData ?? false,
         });
 
       if (createError) {
@@ -220,7 +235,9 @@ export const useCreateOrganization = () => {
 
       toast({ 
         title: 'Organization created!', 
-        description: 'Setting up your site. Redirecting to onboarding...' 
+        description: params.includeDemoData 
+          ? 'Your site is ready with sample content. Redirecting...'
+          : 'Setting up your site. Redirecting to dashboard...' 
       });
       
       // Invalidate all caches to ensure fresh data
