@@ -7751,6 +7751,7 @@ export type Database = {
           id: string
           message: string | null
           name: string
+          organization_id: string | null
           phone: string | null
           second_preferred_date: string | null
           second_preferred_time: string | null
@@ -7765,6 +7766,7 @@ export type Database = {
           id?: string
           message?: string | null
           name: string
+          organization_id?: string | null
           phone?: string | null
           second_preferred_date?: string | null
           second_preferred_time?: string | null
@@ -7779,13 +7781,29 @@ export type Database = {
           id?: string
           message?: string | null
           name?: string
+          organization_id?: string | null
           phone?: string | null
           second_preferred_date?: string | null
           second_preferred_time?: string | null
           status?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tour_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       turno_problems: {
         Row: {
