@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface AnalyticsData {
   totalCampaigns: number;
@@ -36,8 +36,15 @@ export const useNewsletterAnalytics = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { organization } = useCurrentOrganization();
 
   const fetchAnalyticsData = async () => {
+    if (!organization?.id) {
+      setAnalyticsData(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -46,6 +53,7 @@ export const useNewsletterAnalytics = () => {
       const { data: campaigns, error: campaignsError } = await supabase
         .from('newsletter_campaigns')
         .select('*')
+        .eq('organization_id', organization.id)
         .not('sent_at', 'is', null)
         .order('sent_at', { ascending: false });
 
@@ -61,6 +69,7 @@ export const useNewsletterAnalytics = () => {
           created_at,
           campaign_id
         `)
+        .eq('organization_id', organization.id)
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -109,7 +118,7 @@ export const useNewsletterAnalytics = () => {
 
   useEffect(() => {
     fetchAnalyticsData();
-  }, []);
+  }, [organization?.id]);
 
   return {
     analyticsData,
