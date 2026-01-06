@@ -4321,6 +4321,9 @@ export type Database = {
       }
       organizations: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           created_at: string | null
           created_from_template_id: string | null
           custom_domain: string | null
@@ -4362,6 +4365,9 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string | null
           created_from_template_id?: string | null
           custom_domain?: string | null
@@ -4403,6 +4409,9 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string | null
           created_from_template_id?: string | null
           custom_domain?: string | null
