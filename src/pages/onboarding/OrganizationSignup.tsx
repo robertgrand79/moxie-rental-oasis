@@ -9,9 +9,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Loader2, CheckCircle2, XCircle, Plus, Package } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Building2, Loader2, CheckCircle2, XCircle, Plus, Package, Star, ChevronDown, DollarSign } from 'lucide-react';
 import { TemplateCard } from '@/components/signup/TemplateCard';
 import { TemplatePreviewDrawer } from '@/components/signup/TemplatePreviewDrawer';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
+
+// Format price from cents to dollars
+const formatPrice = (cents: number): string => {
+  return `$${(cents / 100).toFixed(0)}`;
+};
 
 const OrganizationSignup = () => {
   const navigate = useNavigate();
@@ -25,7 +37,8 @@ const OrganizationSignup = () => {
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [selectedTemplate, setSelectedTemplate] = useState<OrganizationTemplate | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<OrganizationTemplate | null>(null);
-  const [includeDemoData, setIncludeDemoData] = useState(false);
+  const [includeDemoData, setIncludeDemoData] = useState(true); // Default to ON
+  const [isWhatsIncludedOpen, setIsWhatsIncludedOpen] = useState(false);
 
   // Redirect if already has organization - go to dashboard instead of onboarding
   useEffect(() => {
@@ -67,10 +80,11 @@ const OrganizationSignup = () => {
     return () => clearTimeout(timer);
   }, [slug, checkSlugAvailability]);
 
-  // When template is selected, sync its demo data default
+  // When template is selected, sync its demo data default (defaulting to ON if available)
   useEffect(() => {
     if (selectedTemplate) {
-      setIncludeDemoData(selectedTemplate.include_demo_data);
+      // Default to ON if demo data is available
+      setIncludeDemoData(selectedTemplate.include_demo_data && selectedTemplate.source_organization_id != null);
     }
   }, [selectedTemplate]);
 
@@ -100,7 +114,9 @@ const OrganizationSignup = () => {
   }
 
   // Check if selected template has demo data available
-  const hasDemoDataAvailable = selectedTemplate?.source_organization_id != null;
+  const hasDemoDataAvailable = selectedTemplate?.include_demo_data && selectedTemplate?.source_organization_id != null;
+  const pricingTier = selectedTemplate?.pricing_tier;
+  const featureHighlights = selectedTemplate?.feature_highlights || [];
 
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
@@ -213,12 +229,67 @@ const OrganizationSignup = () => {
                 </div>
               </div>
 
+              {/* Selected Template Info */}
+              {selectedTemplate && pricingTier && (
+                <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <DollarSign className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">
+                          {selectedTemplate.name} Template
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Includes the {pricingTier.name} plan
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className="bg-primary text-primary-foreground text-lg px-3 py-1">
+                      {formatPrice(pricingTier.monthly_price_cents)}/mo
+                    </Badge>
+                  </div>
+                </div>
+              )}
+
+              {/* What's Included Collapsible */}
+              {selectedTemplate && featureHighlights.length > 0 && (
+                <Collapsible open={isWhatsIncludedOpen} onOpenChange={setIsWhatsIncludedOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between p-4 h-auto rounded-lg border bg-muted/30 hover:bg-muted/50">
+                      <span className="font-medium flex items-center gap-2">
+                        <Star className="h-4 w-4 text-amber-500" />
+                        What's Included
+                      </span>
+                      <ChevronDown className={cn(
+                        "h-4 w-4 transition-transform",
+                        isWhatsIncludedOpen && "rotate-180"
+                      )} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3">
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {featureHighlights.map((feature, idx) => (
+                        <div 
+                          key={idx} 
+                          className="flex items-center gap-3 p-3 rounded-lg bg-muted/50"
+                        >
+                          <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                          <span className="text-sm">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+
               {/* Demo Data Toggle */}
               {hasDemoDataAvailable && (
-                <div className="flex items-center justify-between rounded-lg border p-4 bg-muted/30">
+                <div className="flex items-center justify-between rounded-lg border p-4 bg-green-500/5 border-green-500/20">
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 p-2 rounded-lg bg-primary/10">
-                      <Package className="h-5 w-5 text-primary" />
+                    <div className="mt-0.5 p-2 rounded-lg bg-green-500/10">
+                      <Package className="h-5 w-5 text-green-600" />
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="demo-data" className="text-base font-medium cursor-pointer">
@@ -233,6 +304,7 @@ const OrganizationSignup = () => {
                     id="demo-data"
                     checked={includeDemoData}
                     onCheckedChange={setIncludeDemoData}
+                    className="data-[state=checked]:bg-green-500"
                   />
                 </div>
               )}
