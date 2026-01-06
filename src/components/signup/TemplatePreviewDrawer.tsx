@@ -18,6 +18,7 @@ import { OrganizationTemplate } from '@/hooks/useOrganizationTemplates';
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { openTemplatePreview } from '@/utils/templatePreview';
 
 interface TemplatePreviewDrawerProps {
   template: OrganizationTemplate | null;
@@ -95,7 +96,7 @@ export const TemplatePreviewDrawer = ({
               <Button
                 size="sm"
                 className="absolute bottom-3 right-3 shadow-lg"
-                onClick={() => window.open(template.preview_url!, '_blank')}
+                onClick={() => openTemplatePreview(template.preview_url!)}
               >
                 <ExternalLink className="h-4 w-4 mr-1" />
                 View Live Demo
@@ -227,7 +228,7 @@ export const TemplatePreviewDrawer = ({
             {template.preview_url && (
               <Button 
                 variant="outline"
-                onClick={() => window.open(template.preview_url!, '_blank')}
+                onClick={() => openTemplatePreview(template.preview_url!)}
               >
                 <ExternalLink className="h-4 w-4" />
               </Button>

@@ -2,6 +2,7 @@ import { Home, Building, CheckCircle2, Eye, Sparkles, Package, ExternalLink, Sta
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { openTemplatePreview } from '@/utils/templatePreview';
 import { OrganizationTemplate } from '@/hooks/useOrganizationTemplates';
 import {
   Tooltip,
@@ -104,7 +105,7 @@ export const TemplateCard = ({ template, isSelected, onSelect, onPreview }: Temp
             className="absolute bottom-3 left-3 shadow-md"
             onClick={(e) => {
               e.stopPropagation();
-              window.open(template.preview_url!, '_blank');
+              openTemplatePreview(template.preview_url!);
             }}
           >
             <ExternalLink className="h-4 w-4 mr-1" />
