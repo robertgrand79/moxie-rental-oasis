@@ -184,10 +184,10 @@ export const adminMenuItems = [
         description: 'Documentation, guides, and FAQs'
       },
       {
-        title: 'My Tickets',
-        href: '/admin/support-tickets',
+        title: 'My Requests',
+        href: '/admin/my-requests',
         icon: Ticket,
-        description: 'View your support tickets'
+        description: 'View your support tickets and feedback'
       },
       {
         title: 'System Status',
