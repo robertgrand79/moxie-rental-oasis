@@ -4670,7 +4670,7 @@ export type Database = {
           address: string | null
           category: string
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string | null
           display_order: number | null
           distance_from_properties: number | null
@@ -4700,7 +4700,7 @@ export type Database = {
           address?: string | null
           category: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description?: string | null
           display_order?: number | null
           distance_from_properties?: number | null
@@ -4730,7 +4730,7 @@ export type Database = {
           address?: string | null
           category?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           display_order?: number | null
           distance_from_properties?: number | null
