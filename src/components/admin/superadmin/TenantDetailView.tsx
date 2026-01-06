@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,18 +29,66 @@ import {
   CreditCard,
   Eye,
   MessageSquare,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface TenantDetailViewProps {
   organizationId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onImpersonate?: () => void;
 }
 
-const TenantDetailView = ({ organizationId, open, onOpenChange, onImpersonate }: TenantDetailViewProps) => {
+const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailViewProps) => {
+  const navigate = useNavigate();
+  const { switchOrganization } = useCurrentOrganization();
+  const [isImpersonating, setIsImpersonating] = useState(false);
+
+  // Handle View As Tenant - switch to this organization
+  const handleViewAsTenant = async () => {
+    if (!org) return;
+    
+    setIsImpersonating(true);
+    try {
+      const success = await switchOrganization(organizationId);
+      if (success) {
+        toast.success(`Switched to ${org.name}`);
+        onOpenChange(false);
+        navigate('/admin');
+      } else {
+        toast.error('Failed to switch organization');
+      }
+    } catch (error) {
+      console.error('Error switching organization:', error);
+      toast.error('Failed to switch organization');
+    } finally {
+      setIsImpersonating(false);
+    }
+  };
+
+  // Handle Send Email - find owner email
+  const handleSendEmail = () => {
+    // Cast to any to handle runtime data structure
+    const owner = (members as any[]).find((m) => m.role === 'owner');
+    const email = owner?.profiles?.email;
+    if (email) {
+      window.location.href = `mailto:${email}`;
+    } else {
+      toast.error('No owner email found');
+    }
+  };
+
+  // Handle Manage Subscription - navigate to subscription controls or Stripe
+  const handleManageSubscription = () => {
+    if (org?.stripe_customer_id) {
+      // Open Stripe dashboard for this customer
+      window.open(`https://dashboard.stripe.com/customers/${org.stripe_customer_id}`, '_blank');
+    } else {
+      toast.info('No Stripe customer linked to this organization');
+    }
+  };
   // Fetch organization details
   const { data: org, isLoading: loadingOrg } = useQuery({
     queryKey: ['tenant-detail', organizationId],
@@ -261,15 +311,24 @@ const TenantDetailView = ({ organizationId, open, onOpenChange, onImpersonate }:
                   <CardTitle className="text-lg">Admin Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={onImpersonate}>
-                    <Eye className="h-4 w-4 mr-2" />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleViewAsTenant}
+                    disabled={isImpersonating}
+                  >
+                    {isImpersonating ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Eye className="h-4 w-4 mr-2" />
+                    )}
                     View As Tenant
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={handleSendEmail}>
                     <Mail className="h-4 w-4 mr-2" />
                     Send Email
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={handleManageSubscription}>
                     <CreditCard className="h-4 w-4 mr-2" />
                     Manage Subscription
                   </Button>
