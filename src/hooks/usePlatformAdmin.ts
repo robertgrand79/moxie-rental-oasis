@@ -15,7 +15,9 @@ export interface PlatformOrganization {
   custom_domain: string | null;
   is_active: boolean;
   is_template: boolean;
+  is_template_source: boolean;
   template_type: TemplateType;
+  template_category: string | null;
   onboarding_completed: boolean;
   onboarding_step: number;
   subscription_status: string | null;
