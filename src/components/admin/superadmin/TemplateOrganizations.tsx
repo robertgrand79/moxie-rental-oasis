@@ -21,12 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Building2, Plus, Home, Building, Globe, Users, Eye, Settings, Loader2, ExternalLink } from 'lucide-react';
+import { Building2, Plus, Home, Building, Globe, Users, Eye, Settings, Loader2, ExternalLink, Edit } from 'lucide-react';
 import { PlatformOrganization, TemplateType } from '@/hooks/usePlatformAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { TemplatePreviewModal } from './TemplatePreviewModal';
 import { Organization } from '@/types/organizations';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface TemplateOrganizationsProps {
   organizations: PlatformOrganization[] | undefined;
@@ -40,8 +41,10 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
   onRefresh 
 }) => {
   const navigate = useNavigate();
+  const { switchOrganization, isPlatformAdmin } = useCurrentOrganization();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isSwitching, setSwitching] = useState<string | null>(null);
   const [newTemplate, setNewTemplate] = useState({
     name: '',
     slug: '',
@@ -53,8 +56,8 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
 
-  // Filter to only show template organizations
-  const templateOrgs = organizations?.filter(org => org.is_template) || [];
+  // Filter to only show template SOURCE organizations (not just is_template)
+  const templateOrgs = organizations?.filter(org => org.is_template_source) || [];
 
   const handleCreateTemplate = async () => {
     if (!newTemplate.name || !newTemplate.slug) {
@@ -91,7 +94,9 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
           name: newTemplate.name,
           slug: newTemplate.slug,
           template_type: newTemplate.template_type,
+          template_category: newTemplate.template_type === 'single_property' ? 'single' : 'multi',
           is_template: true,
+          is_template_source: true,
           is_active: true
         });
 
@@ -135,6 +140,29 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
     // Navigate to the organization's admin settings
     window.open(`/${org.slug}/admin/settings`, '_blank');
     setPreviewOpen(false);
+  };
+
+  const handleEditTemplate = async (org: PlatformOrganization) => {
+    if (!isPlatformAdmin) {
+      toast.error('Platform admin access required');
+      return;
+    }
+
+    setSwitching(org.id);
+    try {
+      const success = await switchOrganization(org.id);
+      if (success) {
+        toast.success(`Switched to ${org.name}`);
+        navigate('/admin');
+      } else {
+        toast.error('Failed to switch organization');
+      }
+    } catch (error) {
+      console.error('Failed to switch organization:', error);
+      toast.error('Failed to switch organization');
+    } finally {
+      setSwitching(null);
+    }
   };
 
   if (loading) {
@@ -301,6 +329,19 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => handleEditTemplate(org)}
+                      disabled={isSwitching === org.id}
+                    >
+                      {isSwitching === org.id ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Edit className="h-4 w-4 mr-2" />
+                      )}
+                      Edit Template
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"

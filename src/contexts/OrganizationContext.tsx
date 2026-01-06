@@ -14,6 +14,7 @@ interface OrganizationContextType {
   isOrgOwner: () => boolean;
   canManageOrganization: () => boolean;
   refetch: () => Promise<void>;
+  switchOrganization: (orgId: string) => Promise<boolean>;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
@@ -33,6 +34,7 @@ export const useCurrentOrganization = () => {
       isOrgOwner: () => false,
       canManageOrganization: () => false,
       refetch: async () => {},
+      switchOrganization: async () => false,
     };
   }
   return context;
@@ -178,6 +180,72 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return isOrgOwner() || isPlatformAdmin;
   }, [isOrgOwner, isPlatformAdmin]);
 
+  // Platform admin function to switch to any organization
+  const switchOrganization = useCallback(async (orgId: string): Promise<boolean> => {
+    if (!user || !isPlatformAdmin) {
+      debug.error('switchOrganization: User not authenticated or not platform admin');
+      return false;
+    }
+
+    try {
+      debug.org('Platform admin switching to organization:', orgId);
+      
+      // Fetch the target organization
+      const { data: targetOrg, error: orgError } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', orgId)
+        .single();
+
+      if (orgError || !targetOrg) {
+        debug.error('Failed to fetch target organization:', orgError);
+        return false;
+      }
+
+      // Check if already a member
+      const { data: existingMembership } = await supabase
+        .from('organization_members')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('organization_id', orgId)
+        .maybeSingle();
+
+      if (!existingMembership) {
+        // Add platform admin as owner of this org temporarily
+        const { error: memberError } = await supabase
+          .from('organization_members')
+          .insert({
+            user_id: user.id,
+            organization_id: orgId,
+            role: 'owner',
+            invited_by: user.id,
+          });
+
+        if (memberError) {
+          debug.error('Failed to add platform admin to organization:', memberError);
+          return false;
+        }
+      }
+
+      // Update local state immediately
+      setOrganization(targetOrg as unknown as Organization);
+      setMembership({
+        id: existingMembership?.id || 'temp',
+        organization_id: orgId,
+        user_id: user.id,
+        role: 'owner',
+        invited_by: user.id,
+        joined_at: new Date().toISOString(),
+      });
+
+      debug.org('Successfully switched to organization:', targetOrg.name);
+      return true;
+    } catch (err) {
+      debug.error('Error switching organization:', err);
+      return false;
+    }
+  }, [user, isPlatformAdmin]);
+
   const value: OrganizationContextType = {
     organization,
     membership,
@@ -188,6 +256,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     isOrgOwner,
     canManageOrganization,
     refetch: fetchOrganizationData,
+    switchOrganization,
   };
 
   return (
