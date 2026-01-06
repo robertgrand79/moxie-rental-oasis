@@ -201,10 +201,10 @@ export const adminMenuItems = [
     title: 'Platform Administration',
     items: [
       {
-        title: 'Super Admin Panel',
+        title: 'Platform Command Center',
         href: '/admin/platform',
         icon: Shield,
-        description: 'Platform-wide organization management (Super Admins only)'
+        description: 'Platform-wide administration and organization management (Super Admins only)'
       }
     ]
   }

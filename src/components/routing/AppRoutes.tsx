@@ -75,7 +75,6 @@ const AdminTurnoProblems = lazy(() => import('@/pages/admin/AdminTurnoProblems')
 const AdminPriceLabs = lazy(() => import('@/pages/admin/AdminPriceLabs'));
 const GuestExperiencePage = lazy(() => import('@/pages/admin/GuestExperiencePage'));
 const AdminChecklists = lazy(() => import('@/pages/admin/AdminChecklists'));
-const SuperAdminPanel = lazy(() => import('@/pages/admin/SuperAdminPanel'));
 const AdminAIAssistant = lazy(() => import('@/pages/admin/AdminAIAssistant'));
 const GuidebookEditorPage = lazy(() => import('@/pages/admin/GuidebookEditorPage'));
 const InboxPage = lazy(() => import('@/pages/admin/InboxPage'));
@@ -85,6 +84,22 @@ const SupportTicketsPage = lazy(() => import('@/pages/admin/SupportTicketsPage')
 const NotificationsPage = lazy(() => import('@/pages/admin/NotificationsPage'));
 const OrganizationSignup = lazy(() => import('@/pages/onboarding/OrganizationSignup'));
 const OnboardingWizard = lazy(() => import('@/pages/onboarding/OnboardingWizard'));
+
+// Platform Admin pages (new command center)
+import PlatformAdminLayout from '@/components/admin/platform/PlatformAdminLayout';
+import PlatformDashboard from '@/components/admin/platform/PlatformDashboard';
+const PlatformOrganizationsPage = lazy(() => import('@/pages/admin/platform/PlatformOrganizationsPage'));
+const PlatformUsersPage = lazy(() => import('@/pages/admin/platform/PlatformUsersPage'));
+const PlatformTemplatesPage = lazy(() => import('@/pages/admin/platform/PlatformTemplatesPage'));
+const PlatformSettingsPage = lazy(() => import('@/pages/admin/platform/PlatformSettingsPage'));
+const PlatformMonitoringPage = lazy(() => import('@/pages/admin/platform/PlatformMonitoringPage'));
+const PlatformHelpCenterPage = lazy(() => import('@/pages/admin/platform/PlatformHelpCenterPage'));
+const PlatformSupportPage = lazy(() => import('@/pages/admin/platform/PlatformSupportPage'));
+const PlatformFeedbackPage = lazy(() => import('@/pages/admin/platform/PlatformFeedbackPage'));
+const PlatformLaunchPage = lazy(() => import('@/pages/admin/platform/PlatformLaunchPage'));
+const PlatformAuditPage = lazy(() => import('@/pages/admin/platform/PlatformAuditPage'));
+const PlatformLookupPage = lazy(() => import('@/pages/admin/platform/PlatformLookupPage'));
+const PlatformTemplateTestPage = lazy(() => import('@/pages/admin/platform/PlatformTemplateTestPage'));
 
 // Lazy-loaded settings pages
 const GeneralSettingsPage = lazy(() => import('@/pages/admin/settings/GeneralSettingsPage'));
@@ -222,7 +237,22 @@ const AppRoutes: React.FC = () => {
             <Route path="guest-experience" element={<GuestExperiencePage />} />
             <Route path="guidebooks/:propertyId/edit" element={<GuidebookEditorPage />} />
             <Route path="profile" element={<AdminProfile />} />
-            <Route path="platform" element={<SuperAdminPanel />} />
+            {/* Platform Admin Command Center - nested routes */}
+          </Route>
+          <Route path="/admin/platform" element={<ProtectedRoute><PlatformAdminLayout /></ProtectedRoute>}>
+            <Route index element={<PlatformDashboard />} />
+            <Route path="organizations" element={<PlatformOrganizationsPage />} />
+            <Route path="users" element={<PlatformUsersPage />} />
+            <Route path="templates" element={<PlatformTemplatesPage />} />
+            <Route path="settings" element={<PlatformSettingsPage />} />
+            <Route path="monitoring" element={<PlatformMonitoringPage />} />
+            <Route path="help-center" element={<PlatformHelpCenterPage />} />
+            <Route path="support" element={<PlatformSupportPage />} />
+            <Route path="feedback" element={<PlatformFeedbackPage />} />
+            <Route path="launch" element={<PlatformLaunchPage />} />
+            <Route path="audit" element={<PlatformAuditPage />} />
+            <Route path="lookup" element={<PlatformLookupPage />} />
+            <Route path="template-test" element={<PlatformTemplateTestPage />} />
             <Route path="ai-assistant" element={<AdminAIAssistant />} />
             <Route path="help" element={<HelpCenterPage />} />
             <Route path="support-tickets" element={<SupportTicketsPage />} />
@@ -363,7 +393,24 @@ const AppRoutes: React.FC = () => {
           <Route path="guest-experience" element={<GuestExperiencePage />} />
           <Route path="guidebooks/:propertyId/edit" element={<GuidebookEditorPage />} />
           <Route path="profile" element={<AdminProfile />} />
-          <Route path="platform" element={<SuperAdminPanel />} />
+          {/* Platform Admin Command Center - nested routes */}
+        </Route>
+        <Route path="/admin/platform" element={<ProtectedRoute><PlatformAdminLayout /></ProtectedRoute>}>
+          <Route index element={<PlatformDashboard />} />
+          <Route path="organizations" element={<PlatformOrganizationsPage />} />
+          <Route path="users" element={<PlatformUsersPage />} />
+          <Route path="templates" element={<PlatformTemplatesPage />} />
+          <Route path="settings" element={<PlatformSettingsPage />} />
+          <Route path="monitoring" element={<PlatformMonitoringPage />} />
+          <Route path="help-center" element={<PlatformHelpCenterPage />} />
+          <Route path="support" element={<PlatformSupportPage />} />
+          <Route path="feedback" element={<PlatformFeedbackPage />} />
+          <Route path="launch" element={<PlatformLaunchPage />} />
+          <Route path="audit" element={<PlatformAuditPage />} />
+          <Route path="lookup" element={<PlatformLookupPage />} />
+          <Route path="template-test" element={<PlatformTemplateTestPage />} />
+        </Route>
+        <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
           <Route path="help" element={<HelpCenterPage />} />
           <Route path="support-tickets" element={<SupportTicketsPage />} />
