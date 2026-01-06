@@ -2,8 +2,6 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,21 +13,14 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 import { Loader2, Send, Lightbulb, Bug, MessageSquare, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { usePlatformInbox } from '@/hooks/usePlatformInbox';
 
 const feedbackSchema = z.object({
-  feedback_type: z.enum(['feature_request', 'bug_report', 'general', 'improvement']),
-  title: z.string().min(5, 'Title must be at least 5 characters'),
+  category: z.enum(['feature_request', 'bug_report', 'general', 'improvement']),
+  subject: z.string().min(5, 'Title must be at least 5 characters'),
   description: z.string().min(20, 'Please provide more details (at least 20 characters)'),
 });
 
@@ -40,52 +31,35 @@ interface FeedbackFormProps {
 }
 
 const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSuccess }) => {
-  const { toast } = useToast();
   const { user } = useAuth();
   const { organization } = useCurrentOrganization();
-  const queryClient = useQueryClient();
+  const { createItemAsync, isCreating } = usePlatformInbox();
 
   const form = useForm<FeedbackFormData>({
     resolver: zodResolver(feedbackSchema),
     defaultValues: {
-      feedback_type: 'feature_request',
-      title: '',
+      category: 'feature_request',
+      subject: '',
       description: '',
     },
   });
 
-  const submitFeedback = useMutation({
-    mutationFn: async (data: FeedbackFormData) => {
-      const { error } = await supabase.from('user_feedback').insert([{
+  const onSubmit = async (data: FeedbackFormData) => {
+    try {
+      await createItemAsync({
+        type: 'feedback',
+        category: data.category,
+        subject: data.subject,
+        description: data.description,
         user_id: user?.id,
         organization_id: organization?.id,
-        feedback_type: data.feedback_type,
-        title: data.title,
-        description: data.description,
-      }]);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Feedback submitted',
-        description: 'Thank you for helping us improve!',
+        email: user?.email,
       });
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ['user-feedback'] });
       onSuccess?.();
-    },
-    onError: (error) => {
-      toast({
-        title: 'Failed to submit feedback',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const onSubmit = (data: FeedbackFormData) => {
-    submitFeedback.mutate(data);
+    } catch (error) {
+      // Error is already handled by the hook
+    }
   };
 
   const feedbackTypes = [
@@ -95,14 +69,14 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSuccess }) => {
     { value: 'general', label: 'General Feedback', icon: MessageSquare, description: 'Share your thoughts' },
   ];
 
-  const selectedType = form.watch('feedback_type');
+  const selectedType = form.watch('category');
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="feedback_type"
+          name="category"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Feedback Type</FormLabel>
@@ -133,7 +107,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSuccess }) => {
 
         <FormField
           control={form.control}
-          name="title"
+          name="subject"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Title</FormLabel>
@@ -169,8 +143,8 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSuccess }) => {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={submitFeedback.isPending}>
-          {submitFeedback.isPending ? (
+        <Button type="submit" className="w-full" disabled={isCreating}>
+          {isCreating ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               Submitting...

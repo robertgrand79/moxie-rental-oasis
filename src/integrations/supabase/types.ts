@@ -4954,6 +4954,99 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_inbox: {
+        Row: {
+          admin_notes: string | null
+          archived_at: string | null
+          assigned_to: string | null
+          attachments: string[] | null
+          category: string
+          created_at: string | null
+          description: string
+          email: string | null
+          id: string
+          is_archived: boolean | null
+          name: string | null
+          organization_id: string | null
+          priority: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          subject: string
+          ticket_number: string | null
+          type: string
+          updated_at: string | null
+          user_id: string | null
+          votes: number | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          archived_at?: string | null
+          assigned_to?: string | null
+          attachments?: string[] | null
+          category: string
+          created_at?: string | null
+          description: string
+          email?: string | null
+          id?: string
+          is_archived?: boolean | null
+          name?: string | null
+          organization_id?: string | null
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          subject: string
+          ticket_number?: string | null
+          type: string
+          updated_at?: string | null
+          user_id?: string | null
+          votes?: number | null
+        }
+        Update: {
+          admin_notes?: string | null
+          archived_at?: string | null
+          assigned_to?: string | null
+          attachments?: string[] | null
+          category?: string
+          created_at?: string | null
+          description?: string
+          email?: string | null
+          id?: string
+          is_archived?: boolean | null
+          name?: string | null
+          organization_id?: string | null
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          subject?: string
+          ticket_number?: string | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string | null
+          votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_inbox_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_inbox_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_metrics: {
         Row: {
           dimensions: Json | null

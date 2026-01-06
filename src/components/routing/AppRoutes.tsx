@@ -80,7 +80,7 @@ const GuidebookEditorPage = lazy(() => import('@/pages/admin/GuidebookEditorPage
 const InboxPage = lazy(() => import('@/pages/admin/InboxPage'));
 const ConversationDetailPage = lazy(() => import('@/pages/admin/ConversationDetailPage'));
 const HelpCenterPage = lazy(() => import('@/pages/admin/HelpCenterPage'));
-const SupportTicketsPage = lazy(() => import('@/pages/admin/SupportTicketsPage'));
+const MyRequestsPage = lazy(() => import('@/pages/admin/MyRequestsPage'));
 const NotificationsPage = lazy(() => import('@/pages/admin/NotificationsPage'));
 const OrganizationSignup = lazy(() => import('@/pages/onboarding/OrganizationSignup'));
 const OnboardingWizard = lazy(() => import('@/pages/onboarding/OnboardingWizard'));
@@ -94,8 +94,7 @@ const PlatformTemplatesPage = lazy(() => import('@/pages/admin/platform/Platform
 const PlatformSettingsPage = lazy(() => import('@/pages/admin/platform/PlatformSettingsPage'));
 const PlatformMonitoringPage = lazy(() => import('@/pages/admin/platform/PlatformMonitoringPage'));
 const PlatformHelpCenterPage = lazy(() => import('@/pages/admin/platform/PlatformHelpCenterPage'));
-const PlatformSupportPage = lazy(() => import('@/pages/admin/platform/PlatformSupportPage'));
-const PlatformFeedbackPage = lazy(() => import('@/pages/admin/platform/PlatformFeedbackPage'));
+const PlatformInboxPage = lazy(() => import('@/pages/admin/platform/PlatformInboxPage'));
 const PlatformLaunchPage = lazy(() => import('@/pages/admin/platform/PlatformLaunchPage'));
 const PlatformAuditPage = lazy(() => import('@/pages/admin/platform/PlatformAuditPage'));
 const PlatformLookupPage = lazy(() => import('@/pages/admin/platform/PlatformLookupPage'));
@@ -247,15 +246,14 @@ const AppRoutes: React.FC = () => {
             <Route path="settings" element={<PlatformSettingsPage />} />
             <Route path="monitoring" element={<PlatformMonitoringPage />} />
             <Route path="help-center" element={<PlatformHelpCenterPage />} />
-            <Route path="support" element={<PlatformSupportPage />} />
-            <Route path="feedback" element={<PlatformFeedbackPage />} />
+            <Route path="inbox" element={<PlatformInboxPage />} />
             <Route path="launch" element={<PlatformLaunchPage />} />
             <Route path="audit" element={<PlatformAuditPage />} />
             <Route path="lookup" element={<PlatformLookupPage />} />
             <Route path="template-test" element={<PlatformTemplateTestPage />} />
             <Route path="ai-assistant" element={<AdminAIAssistant />} />
             <Route path="help" element={<HelpCenterPage />} />
-            <Route path="support-tickets" element={<SupportTicketsPage />} />
+            <Route path="my-requests" element={<MyRequestsPage />} />
             <Route path="status" element={<StatusPage />} />
           </Route>
 
@@ -403,8 +401,7 @@ const AppRoutes: React.FC = () => {
           <Route path="settings" element={<PlatformSettingsPage />} />
           <Route path="monitoring" element={<PlatformMonitoringPage />} />
           <Route path="help-center" element={<PlatformHelpCenterPage />} />
-          <Route path="support" element={<PlatformSupportPage />} />
-          <Route path="feedback" element={<PlatformFeedbackPage />} />
+          <Route path="inbox" element={<PlatformInboxPage />} />
           <Route path="launch" element={<PlatformLaunchPage />} />
           <Route path="audit" element={<PlatformAuditPage />} />
           <Route path="lookup" element={<PlatformLookupPage />} />
@@ -413,7 +410,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
           <Route path="help" element={<HelpCenterPage />} />
-          <Route path="support-tickets" element={<SupportTicketsPage />} />
+          <Route path="my-requests" element={<MyRequestsPage />} />
           <Route path="status" element={<StatusPage />} />
         </Route>
 
