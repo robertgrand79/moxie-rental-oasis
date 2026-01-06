@@ -201,16 +201,18 @@ export const usePlatformInbox = () => {
     },
   });
 
-  // Helper to get counts
-  const getCounts = (itemsList: PlatformInboxItem[] | undefined) => {
+  // Helper to get counts (excludes archived items by default)
+  const getCounts = (itemsList: PlatformInboxItem[] | undefined, includeArchived = false) => {
     if (!itemsList) return { total: 0, support: 0, feedback: 0, open: 0, inProgress: 0 };
     
+    const filteredList = includeArchived ? itemsList : itemsList.filter(i => !i.is_archived);
+    
     return {
-      total: itemsList.length,
-      support: itemsList.filter(i => i.type === 'support').length,
-      feedback: itemsList.filter(i => i.type === 'feedback').length,
-      open: itemsList.filter(i => i.status === 'open').length,
-      inProgress: itemsList.filter(i => i.status === 'in_progress').length,
+      total: filteredList.length,
+      support: filteredList.filter(i => i.type === 'support').length,
+      feedback: filteredList.filter(i => i.type === 'feedback').length,
+      open: filteredList.filter(i => i.status === 'open').length,
+      inProgress: filteredList.filter(i => i.status === 'in_progress').length,
     };
   };
 
