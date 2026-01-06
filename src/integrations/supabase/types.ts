@@ -4834,6 +4834,33 @@ export type Database = {
           },
         ]
       }
+      platform_admin_preferences: {
+        Row: {
+          created_at: string | null
+          id: string
+          sidebar_collapsed: boolean | null
+          starred_sections: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          sidebar_collapsed?: boolean | null
+          starred_sections?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          sidebar_collapsed?: boolean | null
+          starred_sections?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       platform_admins: {
         Row: {
           created_at: string
