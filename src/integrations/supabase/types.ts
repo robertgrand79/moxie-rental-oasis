@@ -8894,7 +8894,7 @@ export type Database = {
           _target_org_id: string
           _target_user_id: string
         }
-        Returns: undefined
+        Returns: Json
       }
       create_organization_with_owner: {
         Args: {
