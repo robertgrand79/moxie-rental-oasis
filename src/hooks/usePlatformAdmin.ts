@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,6 +26,9 @@ export interface PlatformOrganization {
   stripe_customer_id: string | null;
   created_at: string;
   updated_at: string;
+  archived_at: string | null;
+  archived_by: string | null;
+  archive_reason: string | null;
   member_count?: number;
   property_count?: number;
 }
@@ -33,6 +36,7 @@ export interface PlatformOrganization {
 export interface PlatformStats {
   totalOrganizations: number;
   activeOrganizations: number;
+  archivedOrganizations: number;
   totalUsers: number;
   totalProperties: number;
   totalReservations: number;
@@ -42,6 +46,7 @@ export interface PlatformStats {
 export const usePlatformAdmin = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [showArchived, setShowArchived] = useState(false);
 
   // Check if current user is platform admin
   const { data: isPlatformAdmin, isLoading: checkingAdmin } = useQuery({
@@ -64,12 +69,21 @@ export const usePlatformAdmin = () => {
 
   // Fetch all organizations with counts
   const { data: organizations, isLoading: loadingOrgs, refetch: refetchOrgs } = useQuery({
-    queryKey: ['platform-organizations'],
+    queryKey: ['platform-organizations', showArchived],
     queryFn: async () => {
-      const { data: orgs, error } = await supabase
+      let query = supabase
         .from('organizations')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Filter based on archived status
+      if (showArchived) {
+        query = query.not('archived_at', 'is', null);
+      } else {
+        query = query.is('archived_at', null);
+      }
+
+      const { data: orgs, error } = await query;
 
       if (error) throw error;
 
@@ -98,7 +112,7 @@ export const usePlatformAdmin = () => {
     queryKey: ['platform-stats'],
     queryFn: async (): Promise<PlatformStats> => {
       const [orgsResult, usersResult, propsResult, reservationsResult, recentReservationsResult] = await Promise.all([
-        supabase.from('organizations').select('id, is_active'),
+        supabase.from('organizations').select('id, is_active, archived_at'),
         supabase.from('profiles').select('id', { count: 'exact' }),
         supabase.from('properties').select('id', { count: 'exact' }),
         supabase.from('property_reservations').select('id', { count: 'exact' }),
@@ -107,9 +121,13 @@ export const usePlatformAdmin = () => {
           .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
       ]);
 
+      const activeOrgs = orgsResult.data?.filter(o => o.is_active && !o.archived_at) || [];
+      const archivedOrgs = orgsResult.data?.filter(o => o.archived_at) || [];
+
       return {
         totalOrganizations: orgsResult.data?.length || 0,
-        activeOrganizations: orgsResult.data?.filter(o => o.is_active).length || 0,
+        activeOrganizations: activeOrgs.length,
+        archivedOrganizations: archivedOrgs.length,
         totalUsers: usersResult.count || 0,
         totalProperties: propsResult.count || 0,
         totalReservations: reservationsResult.count || 0,
@@ -182,6 +200,56 @@ export const usePlatformAdmin = () => {
     },
   });
 
+  // Archive organization
+  const archiveOrganization = useMutation({
+    mutationFn: async ({ orgId, reason }: { orgId: string; reason?: string }) => {
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          archived_at: new Date().toISOString(),
+          archived_by: user?.id,
+          archive_reason: reason || 'manual',
+        })
+        .eq('id', orgId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platform-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['platform-stats'] });
+      toast.success('Organization archived');
+    },
+    onError: (error) => {
+      toast.error('Failed to archive organization');
+      console.error(error);
+    },
+  });
+
+  // Restore organization from archive
+  const restoreOrganization = useMutation({
+    mutationFn: async (orgId: string) => {
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          archived_at: null,
+          archived_by: null,
+          archive_reason: null,
+        })
+        .eq('id', orgId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platform-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['platform-stats'] });
+      toast.success('Organization restored');
+    },
+    onError: (error) => {
+      toast.error('Failed to restore organization');
+      console.error(error);
+    },
+  });
+
   // Delete organization and its users
   const deleteOrganization = useMutation({
     mutationFn: async (orgId: string) => {
@@ -216,10 +284,14 @@ export const usePlatformAdmin = () => {
     refetchOrgs,
     stats,
     loadingStats,
+    showArchived,
+    setShowArchived,
     toggleOrgStatus: toggleOrgStatus.mutate,
     toggleTemplateStatus: toggleTemplateStatus.mutate,
     updateTemplateType: updateTemplateType.mutate,
+    archiveOrganization: archiveOrganization.mutate,
+    restoreOrganization: restoreOrganization.mutate,
     deleteOrganization: deleteOrganization.mutate,
-    isUpdating: toggleOrgStatus.isPending || toggleTemplateStatus.isPending || updateTemplateType.isPending || deleteOrganization.isPending,
+    isUpdating: toggleOrgStatus.isPending || toggleTemplateStatus.isPending || updateTemplateType.isPending || archiveOrganization.isPending || restoreOrganization.isPending || deleteOrganization.isPending,
   };
 };

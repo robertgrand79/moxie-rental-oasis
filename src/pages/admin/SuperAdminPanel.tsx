@@ -24,7 +24,6 @@ import {
   Shield, 
   Search,
   ExternalLink,
-  Trash2,
   Copy,
   AlertTriangle,
   CheckCircle,
@@ -40,7 +39,8 @@ import {
   Ticket,
   MessageSquare,
   FileText,
-  FlaskConical
+  FlaskConical,
+  Archive
 } from 'lucide-react';
 import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
@@ -58,18 +58,8 @@ import SupportTicketsManagement from '@/components/admin/superadmin/SupportTicke
 import UserFeedbackManagement from '@/components/admin/superadmin/UserFeedbackManagement';
 import PlatformBlogManager from '@/components/admin/superadmin/PlatformBlogManager';
 import TemplateSystemTest from '@/pages/admin/superadmin/TemplateSystemTest';
+import OrganizationActionsMenu from '@/components/admin/superadmin/OrganizationActionsMenu';
 import { format } from 'date-fns';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 
 const SuperAdminPanel = () => {
   const { 
@@ -79,9 +69,13 @@ const SuperAdminPanel = () => {
     loadingOrgs, 
     stats, 
     loadingStats,
+    showArchived,
+    setShowArchived,
     toggleOrgStatus,
     toggleTemplateStatus,
     updateTemplateType,
+    archiveOrganization,
+    restoreOrganization,
     deleteOrganization,
     isUpdating,
     refetchOrgs
@@ -89,6 +83,7 @@ const SuperAdminPanel = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedOrgForDetail, setSelectedOrgForDetail] = useState<string | null>(null);
 
   if (checkingAdmin) {
     return (
@@ -144,174 +139,179 @@ const SuperAdminPanel = () => {
     </Card>
   );
 
-  const OrganizationRow = ({ org }: { org: PlatformOrganization }) => (
-    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-      <div className="flex items-center gap-4">
-        <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-          {org.logo_url ? (
-            <img src={org.logo_url} alt={org.name} className="h-10 w-10 object-contain rounded" />
-          ) : (
-            <Building2 className="h-6 w-6 text-primary" />
-          )}
-        </div>
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold">{org.name}</h3>
-            {org.is_template && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                {org.template_type === 'single_property' ? (
-                  <Home className="h-3 w-3" />
-                ) : (
-                  <Building className="h-3 w-3" />
-                )}
-                {org.template_type === 'single_property' ? 'Single' : 'Multi'} Template
-              </Badge>
-            )}
-            {!org.is_active && (
-              <Badge variant="destructive">Inactive</Badge>
-            )}
-            {!org.onboarding_completed && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                Onboarding
-              </Badge>
+  const OrganizationRow = ({ org }: { org: PlatformOrganization }) => {
+    const isArchived = !!org.archived_at;
+    
+    return (
+      <div className={`flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${isArchived ? 'opacity-60' : ''}`}>
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+            {org.logo_url ? (
+              <img src={org.logo_url} alt={org.name} className="h-10 w-10 object-contain rounded" />
+            ) : (
+              <Building2 className="h-6 w-6 text-primary" />
             )}
           </div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <a 
-              href={`/${org.slug}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 hover:text-primary hover:underline transition-colors"
-            >
-              <Globe className="h-3 w-3" />
-              {org.slug}
-              <ExternalLink className="h-3 w-3" />
-            </a>
-            {org.custom_domain && (
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-semibold">{org.name}</h3>
+              {isArchived && (
+                <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
+                  <Archive className="h-3 w-3" />
+                  Archived
+                </Badge>
+              )}
+              {org.is_template && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  {org.template_type === 'single_property' ? (
+                    <Home className="h-3 w-3" />
+                  ) : (
+                    <Building className="h-3 w-3" />
+                  )}
+                  {org.template_type === 'single_property' ? 'Single' : 'Multi'} Template
+                </Badge>
+              )}
+              {!org.is_active && !isArchived && (
+                <Badge variant="destructive">Inactive</Badge>
+              )}
+              {!org.onboarding_completed && !isArchived && (
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Onboarding
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <a 
-                href={`https://${org.custom_domain}`} 
+                href={`/${org.slug}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 hover:text-primary hover:underline transition-colors"
               >
                 <Globe className="h-3 w-3" />
-                {org.custom_domain}
+                {org.slug}
                 <ExternalLink className="h-3 w-3" />
               </a>
-            )}
-            <span className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
-              {org.member_count} members
-            </span>
-            <span className="flex items-center gap-1">
-              <Home className="h-3 w-3" />
-              {org.property_count} properties
-            </span>
+              {org.custom_domain && (
+                <a 
+                  href={`https://${org.custom_domain}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 hover:text-primary hover:underline transition-colors"
+                >
+                  <Globe className="h-3 w-3" />
+                  {org.custom_domain}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {org.member_count} members
+              </span>
+              <span className="flex items-center gap-1">
+                <Home className="h-3 w-3" />
+                {org.property_count} properties
+              </span>
+            </div>
           </div>
-        </div>
-      </div>
-      
-      <div className="flex items-center gap-4">
-        <div className="text-right text-sm space-y-2">
-          <SubscriptionControls 
-            organization={{
-              id: org.id,
-              name: org.name,
-              subscription_status: org.subscription_status,
-              subscription_tier: org.subscription_tier,
-              trial_ends_at: org.trial_ends_at,
-              stripe_customer_id: org.stripe_customer_id
-            }}
-            onUpdate={async () => { await refetchOrgs?.(); }}
-          />
-          <p className="text-xs text-muted-foreground">
-            Created {format(new Date(org.created_at), 'MMM d, yyyy')}
-          </p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-muted-foreground">Active</label>
-            <Switch
-              checked={org.is_active}
-              onCheckedChange={(checked) => toggleOrgStatus({ orgId: org.id, isActive: checked })}
-              disabled={isUpdating}
-            />
-          </div>
-          
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-muted-foreground">Template</label>
-            <Switch
-              checked={org.is_template}
-              onCheckedChange={(checked) => toggleTemplateStatus({ orgId: org.id, isTemplate: checked })}
-              disabled={isUpdating}
-            />
-          </div>
-
-          {org.is_template && (
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-muted-foreground">Type</label>
-              <Select
-                value={org.template_type}
-                onValueChange={(value: TemplateType) => updateTemplateType({ orgId: org.id, templateType: value })}
-                disabled={isUpdating}
-              >
-                <SelectTrigger className="h-8 w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="single_property">
-                    <span className="flex items-center gap-1">
-                      <Home className="h-3 w-3" /> Single
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="multi_property">
-                    <span className="flex items-center gap-1">
-                      <Building className="h-3 w-3" /> Multi
-                    </span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="flex items-center gap-4">
+          {!isArchived && (
+            <div className="text-right text-sm space-y-2">
+              <SubscriptionControls 
+                organization={{
+                  id: org.id,
+                  name: org.name,
+                  subscription_status: org.subscription_status,
+                  subscription_tier: org.subscription_tier,
+                  trial_ends_at: org.trial_ends_at,
+                  stripe_customer_id: org.stripe_customer_id
+                }}
+                onUpdate={async () => { await refetchOrgs?.(); }}
+              />
+              <p className="text-xs text-muted-foreground">
+                Created {format(new Date(org.created_at), 'MMM d, yyyy')}
+              </p>
             </div>
           )}
           
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-destructive" />
-                  Delete Organization?
-                </AlertDialogTitle>
-                <AlertDialogDescription className="space-y-2">
-                  <p>
-                    This will permanently delete <strong>{org.name}</strong> and <strong>all its members' user accounts</strong>.
-                  </p>
-                  <p className="text-destructive font-medium">
-                    {org.member_count} user account(s) will be permanently deleted. This action cannot be undone.
-                  </p>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={() => deleteOrganization(org.id)}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Delete Organization
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          {isArchived && org.archive_reason && (
+            <div className="text-right text-sm">
+              <p className="text-xs text-muted-foreground">Reason: {org.archive_reason}</p>
+              <p className="text-xs text-muted-foreground">
+                Archived {format(new Date(org.archived_at!), 'MMM d, yyyy')}
+              </p>
+            </div>
+          )}
+          
+          <div className="flex items-center gap-3">
+            {!isArchived && (
+              <>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-muted-foreground">Active</label>
+                  <Switch
+                    checked={org.is_active}
+                    onCheckedChange={(checked) => toggleOrgStatus({ orgId: org.id, isActive: checked })}
+                    disabled={isUpdating}
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-muted-foreground">Template</label>
+                  <Switch
+                    checked={org.is_template}
+                    onCheckedChange={(checked) => toggleTemplateStatus({ orgId: org.id, isTemplate: checked })}
+                    disabled={isUpdating}
+                  />
+                </div>
+
+                {org.is_template && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground">Type</label>
+                    <Select
+                      value={org.template_type}
+                      onValueChange={(value: TemplateType) => updateTemplateType({ orgId: org.id, templateType: value })}
+                      disabled={isUpdating}
+                    >
+                      <SelectTrigger className="h-8 w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="single_property">
+                          <span className="flex items-center gap-1">
+                            <Home className="h-3 w-3" /> Single
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="multi_property">
+                          <span className="flex items-center gap-1">
+                            <Building className="h-3 w-3" /> Multi
+                          </span>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </>
+            )}
+            
+            <OrganizationActionsMenu
+              organizationId={org.id}
+              organizationName={org.name}
+              memberCount={org.member_count || 0}
+              propertyCount={org.property_count || 0}
+              isArchived={isArchived}
+              onViewDetails={() => setSelectedOrgForDetail(org.id)}
+              onArchive={(reason) => archiveOrganization({ orgId: org.id, reason })}
+              onRestore={() => restoreOrganization(org.id)}
+              onDelete={() => deleteOrganization(org.id)}
+              isLoading={isUpdating}
+            />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <AdminPageWrapper 
@@ -430,8 +430,8 @@ const SuperAdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="organizations" className="mt-6 space-y-6">
-            {/* Search and Create */}
-            <div className="flex items-center gap-4">
+            {/* Search, Filter and Create */}
+            <div className="flex items-center gap-4 flex-wrap">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -441,20 +441,54 @@ const SuperAdminPanel = () => {
                   className="pl-10"
                 />
               </div>
+              
+              {/* Active/Archived Toggle */}
+              <div className="flex items-center gap-2 border rounded-lg p-1">
+                <Button
+                  variant={!showArchived ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setShowArchived(false)}
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Active
+                </Button>
+                <Button
+                  variant={showArchived ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setShowArchived(true)}
+                >
+                  <Archive className="h-4 w-4 mr-1" />
+                  Archived
+                  {stats?.archivedOrganizations ? (
+                    <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                      {stats.archivedOrganizations}
+                    </Badge>
+                  ) : null}
+                </Button>
+              </div>
+              
               <Badge variant="outline">
                 {filteredOrganizations.length} organization{filteredOrganizations.length !== 1 ? 's' : ''}
               </Badge>
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Organization
-              </Button>
+              
+              {!showArchived && (
+                <Button onClick={() => setShowCreateDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Organization
+                </Button>
+              )}
             </div>
 
             {/* Organizations List */}
             <Card>
               <CardHeader>
-                <CardTitle>All Organizations</CardTitle>
-                <CardDescription>Manage all organizations on the platform</CardDescription>
+                <CardTitle>{showArchived ? 'Archived Organizations' : 'All Organizations'}</CardTitle>
+                <CardDescription>
+                  {showArchived 
+                    ? 'Organizations that have been archived. You can restore or permanently delete them.'
+                    : 'Manage all active organizations on the platform'
+                  }
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {loadingOrgs ? (
@@ -467,11 +501,23 @@ const SuperAdminPanel = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    {searchTerm ? 'No organizations match your search' : 'No organizations found'}
+                    {searchTerm 
+                      ? 'No organizations match your search' 
+                      : showArchived 
+                        ? 'No archived organizations' 
+                        : 'No organizations found'
+                    }
                   </div>
                 )}
               </CardContent>
             </Card>
+            
+            {/* Tenant Detail Modal */}
+            <TenantDetailView
+              organizationId={selectedOrgForDetail || ''}
+              open={!!selectedOrgForDetail}
+              onOpenChange={(open) => !open && setSelectedOrgForDetail(null)}
+            />
           </TabsContent>
 
           <TabsContent value="users" className="mt-6 space-y-6">
