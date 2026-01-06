@@ -39,7 +39,8 @@ import {
   HelpCircle,
   Ticket,
   MessageSquare,
-  FileText
+  FileText,
+  FlaskConical
 } from 'lucide-react';
 import PlatformStripeSettings from '@/components/admin/superadmin/PlatformStripeSettings';
 import TemplatesManager from '@/components/admin/superadmin/TemplatesManager';
@@ -56,6 +57,7 @@ import HelpContentManager from '@/components/admin/superadmin/HelpContentManager
 import SupportTicketsManagement from '@/components/admin/superadmin/SupportTicketsManagement';
 import UserFeedbackManagement from '@/components/admin/superadmin/UserFeedbackManagement';
 import PlatformBlogManager from '@/components/admin/superadmin/PlatformBlogManager';
+import TemplateSystemTest from '@/pages/admin/superadmin/TemplateSystemTest';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -338,6 +340,10 @@ const SuperAdminPanel = () => {
               <Layout className="h-4 w-4" />
               Templates
             </TabsTrigger>
+            <TabsTrigger value="template-test" className="flex items-center gap-2">
+              <FlaskConical className="h-4 w-4" />
+              Test
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Settings
@@ -479,6 +485,10 @@ const SuperAdminPanel = () => {
               loading={loadingOrgs}
               onRefresh={() => refetchOrgs?.()}
             />
+          </TabsContent>
+
+          <TabsContent value="template-test" className="mt-6">
+            <TemplateSystemTest />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6 space-y-6">
