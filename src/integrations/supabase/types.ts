@@ -4232,13 +4232,17 @@ export type Database = {
           demo_data_config: Json | null
           description: string | null
           display_order: number | null
+          feature_highlights: Json | null
           features: Json | null
           id: string
           include_demo_data: boolean | null
           is_active: boolean | null
           name: string
           preview_image_url: string | null
+          preview_images: Json | null
+          preview_url: string | null
           pricing_tier_id: string | null
+          recommended_for: string[] | null
           slug: string
           source_organization_id: string | null
           template_type: string
@@ -4251,13 +4255,17 @@ export type Database = {
           demo_data_config?: Json | null
           description?: string | null
           display_order?: number | null
+          feature_highlights?: Json | null
           features?: Json | null
           id?: string
           include_demo_data?: boolean | null
           is_active?: boolean | null
           name: string
           preview_image_url?: string | null
+          preview_images?: Json | null
+          preview_url?: string | null
           pricing_tier_id?: string | null
+          recommended_for?: string[] | null
           slug: string
           source_organization_id?: string | null
           template_type: string
@@ -4270,13 +4278,17 @@ export type Database = {
           demo_data_config?: Json | null
           description?: string | null
           display_order?: number | null
+          feature_highlights?: Json | null
           features?: Json | null
           id?: string
           include_demo_data?: boolean | null
           is_active?: boolean | null
           name?: string
           preview_image_url?: string | null
+          preview_images?: Json | null
+          preview_url?: string | null
           pricing_tier_id?: string | null
+          recommended_for?: string[] | null
           slug?: string
           source_organization_id?: string | null
           template_type?: string
@@ -4319,6 +4331,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_template: boolean | null
+          is_template_source: boolean | null
           logo_url: string | null
           name: string
           onboarding_completed: boolean | null
@@ -4339,6 +4352,7 @@ export type Database = {
           stripe_webhook_secret: string | null
           subscription_status: string | null
           subscription_tier: string | null
+          template_category: string | null
           template_type: string | null
           trial_ends_at: string | null
           turno_api_secret: string | null
@@ -4358,6 +4372,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_template?: boolean | null
+          is_template_source?: boolean | null
           logo_url?: string | null
           name: string
           onboarding_completed?: boolean | null
@@ -4378,6 +4393,7 @@ export type Database = {
           stripe_webhook_secret?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
+          template_category?: string | null
           template_type?: string | null
           trial_ends_at?: string | null
           turno_api_secret?: string | null
@@ -4397,6 +4413,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_template?: boolean | null
+          is_template_source?: boolean | null
           logo_url?: string | null
           name?: string
           onboarding_completed?: boolean | null
@@ -4417,6 +4434,7 @@ export type Database = {
           stripe_webhook_secret?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
+          template_category?: string | null
           template_type?: string | null
           trial_ends_at?: string | null
           turno_api_secret?: string | null

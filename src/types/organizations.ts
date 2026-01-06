@@ -1,5 +1,7 @@
 export type TemplateType = 'single_property' | 'multi_property';
 
+export type TemplateCategory = 'single' | 'multi' | 'luxury';
+
 export interface Organization {
   id: string;
   name: string;
@@ -11,7 +13,9 @@ export interface Organization {
   updated_at: string;
   is_active: boolean;
   is_template: boolean;
+  is_template_source: boolean;
   template_type: TemplateType;
+  template_category: TemplateCategory | null;
   stripe_secret_key: string | null;
   stripe_publishable_key: string | null;
   stripe_webhook_secret: string | null;

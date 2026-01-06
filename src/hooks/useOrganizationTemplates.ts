@@ -46,6 +46,11 @@ export interface OrganizationTemplate {
   source_organization_id: string | null;
   include_demo_data: boolean;
   demo_data_config: DemoDataConfig;
+  // New template source fields
+  preview_url: string | null;
+  preview_images: string[];
+  feature_highlights: string[];
+  recommended_for: string[];
   // Joined pricing tier data
   pricing_tier: PricingTier | null;
 }
@@ -81,13 +86,14 @@ export const useOrganizationTemplates = () => {
         default_settings: (template.default_settings as Record<string, unknown>) || {},
         include_demo_data: template.include_demo_data ?? false,
         demo_data_config: (template.demo_data_config as DemoDataConfig) || {},
+        preview_images: (template.preview_images as string[]) || [],
+        feature_highlights: (template.feature_highlights as string[]) || [],
+        recommended_for: template.recommended_for || [],
         pricing_tier: template.pricing_tier as PricingTier | null,
       }));
     },
   });
 };
-
-// Hook to get a single template by ID with full details
 export const useOrganizationTemplate = (templateId: string | null) => {
   return useQuery({
     queryKey: ['organization-template', templateId],
@@ -121,6 +127,9 @@ export const useOrganizationTemplate = (templateId: string | null) => {
         default_settings: (data.default_settings as Record<string, unknown>) || {},
         include_demo_data: data.include_demo_data ?? false,
         demo_data_config: (data.demo_data_config as DemoDataConfig) || {},
+        preview_images: (data.preview_images as string[]) || [],
+        feature_highlights: (data.feature_highlights as string[]) || [],
+        recommended_for: data.recommended_for || [],
         pricing_tier: data.pricing_tier as PricingTier | null,
       };
     },
