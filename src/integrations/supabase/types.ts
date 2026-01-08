@@ -9018,10 +9018,10 @@ export type Database = {
       clear_failed_logins: { Args: { p_email: string }; Returns: undefined }
       copy_organization_demo_data: {
         Args: {
+          _created_by: string
           _demo_config?: Json
           _source_org_id: string
           _target_org_id: string
-          _target_user_id: string
         }
         Returns: Json
       }
