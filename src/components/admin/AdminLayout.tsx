@@ -9,6 +9,7 @@ import SupportWidget from '@/components/support/SupportWidget';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Toaster } from '@/components/ui/sonner';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -74,6 +75,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           
           {/* Support Widget */}
           <SupportWidget />
+          <Toaster position="top-center" richColors />
         </div>
       </SidebarProvider>
     </div>
