@@ -5,13 +5,26 @@ interface SecurityProviderProps {
   children: React.ReactNode;
 }
 
+// Check if we're in a preview/dev environment where CSP injection causes issues
+const isPreviewEnvironment = (): boolean => {
+  const hostname = window.location.hostname;
+  return (
+    hostname.includes('lovable.app') ||
+    hostname.includes('localhost') ||
+    hostname.includes('127.0.0.1') ||
+    !import.meta.env.PROD
+  );
+};
+
 const SecurityProvider = ({ children }: SecurityProviderProps) => {
 
   useEffect(() => {
-    // Add enhanced security headers
-    addSecurityHeaders();
+    // Only add CSP headers in production (not preview/dev)
+    if (!isPreviewEnvironment()) {
+      addSecurityHeaders();
+    }
 
-    // Set up global error handler for postMessage and WebSocket errors in preview environments
+    // Set up global error handler for postMessage, WebSocket, and CSP errors in preview environments
     const handleGlobalError = (event: ErrorEvent) => {
       const errorMessage = event.error?.message || event.message || '';
       
@@ -22,11 +35,18 @@ const SecurityProvider = ({ children }: SecurityProviderProps) => {
       }
       
       // Suppress WebSocket SecurityError in preview/iframe environments
-      // This happens when Supabase realtime tries to connect in restricted contexts
       if (errorMessage.includes('SecurityError') || 
           errorMessage.includes('The operation is insecure') ||
           (event.error?.name === 'SecurityError')) {
         console.warn('WebSocket connection blocked (preview environment) - realtime features disabled');
+        event.preventDefault();
+        return false;
+      }
+
+      // Suppress CSP and iframe-related errors in preview environments
+      if (errorMessage.includes('Content Security Policy') ||
+          errorMessage.includes('Loading a manifest') ||
+          errorMessage.includes('iframe-pos')) {
         event.preventDefault();
         return false;
       }
