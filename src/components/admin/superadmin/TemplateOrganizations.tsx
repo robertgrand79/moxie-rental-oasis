@@ -150,10 +150,23 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
 
     setSwitching(org.id);
     try {
+      // Store original org to return to later
+      const { data: currentOrg } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .order('joined_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (currentOrg) {
+        localStorage.setItem('platform_admin_original_org', currentOrg.organization_id);
+      }
+
       const success = await switchOrganization(org.id);
       if (success) {
         toast.success(`Switched to ${org.name}`);
-        navigate('/admin');
+        navigate('/admin/properties');
       } else {
         toast.error('Failed to switch organization');
       }

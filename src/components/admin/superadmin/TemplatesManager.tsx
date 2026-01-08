@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,17 +26,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Layout, Plus, Edit, DollarSign, Building, Home, Loader2, RefreshCw, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { Layout, Plus, Edit, DollarSign, Building, Home, Loader2, RefreshCw, CheckCircle, AlertCircle, Trash2, Pencil } from 'lucide-react';
 import { usePlatformSettings, SiteTemplate } from '@/hooks/usePlatformSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { useQuery } from '@tanstack/react-query';
 
 const TemplatesManager = () => {
   const { templates, loadingTemplates, updateTemplate, createTemplate, deleteTemplate, isUpdating } = usePlatformSettings();
+  const navigate = useNavigate();
+  const { switchOrganization, isPlatformAdmin } = useCurrentOrganization();
   const [editingTemplate, setEditingTemplate] = useState<SiteTemplate | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [deletingTemplate, setDeletingTemplate] = useState<SiteTemplate | null>(null);
+  const [switchingTemplateId, setSwitchingTemplateId] = useState<string | null>(null);
   const [newTemplate, setNewTemplate] = useState({
     name: '',
     slug: '',
@@ -47,6 +53,74 @@ const TemplatesManager = () => {
     is_active: true,
     display_order: 0
   });
+
+  // Fetch visual templates with their source organizations
+  const { data: visualTemplates } = useQuery({
+    queryKey: ['organization-templates-with-sources'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('organization_templates')
+        .select(`
+          id,
+          name,
+          pricing_tier_id,
+          source_organization_id,
+          source_org:organizations!organization_templates_source_organization_id_fkey(id, name, slug)
+        `)
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Map pricing tier to visual template source org
+  const getSourceOrgForTemplate = (template: SiteTemplate) => {
+    const visualTemplate = visualTemplates?.find(vt => vt.pricing_tier_id === template.id);
+    return visualTemplate?.source_org as { id: string; name: string; slug: string } | null;
+  };
+
+  const handleEditDemoContent = async (template: SiteTemplate) => {
+    const sourceOrg = getSourceOrgForTemplate(template);
+    if (!sourceOrg) {
+      toast.error('No source organization linked to this template');
+      return;
+    }
+
+    if (!isPlatformAdmin) {
+      toast.error('Platform admin access required');
+      return;
+    }
+
+    setSwitchingTemplateId(template.id);
+    try {
+      // Store original org to return to later
+      const { data: currentOrg } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .order('joined_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (currentOrg) {
+        localStorage.setItem('platform_admin_original_org', currentOrg.organization_id);
+      }
+
+      const success = await switchOrganization(sourceOrg.id);
+      if (success) {
+        toast.success(`Switched to ${sourceOrg.name}`);
+        navigate('/admin/properties');
+      } else {
+        toast.error('Failed to switch organization');
+      }
+    } catch (error) {
+      console.error('Failed to switch organization:', error);
+      toast.error('Failed to switch organization');
+    } finally {
+      setSwitchingTemplateId(null);
+    }
+  };
 
   const formatPrice = (cents: number) => {
     return `$${(cents / 100).toFixed(2)}`;
@@ -267,7 +341,7 @@ const TemplatesManager = () => {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">{template.description}</p>
-                    <div className="flex items-center gap-4 mt-1 text-sm">
+                    <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-1 text-sm">
                       <span className="flex items-center gap-1">
                         <DollarSign className="h-3 w-3" />
                         {formatPrice(template.monthly_price_cents)}/mo
@@ -291,15 +365,36 @@ const TemplatesManager = () => {
                           Not Synced
                         </Badge>
                       )}
+                      {getSourceOrgForTemplate(template) && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Building className="h-3 w-3 mr-1" />
+                          Source: {getSourceOrgForTemplate(template)?.name}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {getSourceOrgForTemplate(template) && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleEditDemoContent(template)}
+                      disabled={switchingTemplateId === template.id}
+                    >
+                      {switchingTemplateId === template.id ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Pencil className="h-4 w-4 mr-2" />
+                      )}
+                      Edit Demo Content
+                    </Button>
+                  )}
                   <Dialog open={editingTemplate?.id === template.id} onOpenChange={(open) => !open && setEditingTemplate(null)}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm" onClick={() => setEditingTemplate(template)}>
                         <Edit className="h-4 w-4 mr-2" />
-                        Edit
+                        Edit Pricing
                       </Button>
                     </DialogTrigger>
                   <DialogContent>
