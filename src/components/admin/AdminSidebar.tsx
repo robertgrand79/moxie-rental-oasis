@@ -19,6 +19,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
+import TemplateEditingBanner from './TemplateEditingBanner';
 
 const AdminSidebar = () => {
   const isMobile = useIsMobile();
@@ -107,6 +108,7 @@ const AdminSidebar = () => {
           </div>
         </div>
       </SidebarHeader>
+      <TemplateEditingBanner />
       <SidebarContent>
         {filteredMenuItems.map((section) => (
           <AdminSidebarSection 
