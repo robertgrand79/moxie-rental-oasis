@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Building2, Plus, Home, Building, Globe, Users, Eye, Settings, Loader2, ExternalLink, Edit } from 'lucide-react';
+import { Building2, Plus, Home, Building, Globe, Users, Eye, Settings, Loader2, ExternalLink, Edit, Play } from 'lucide-react';
 import { PlatformOrganization, TemplateType } from '@/hooks/usePlatformAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -136,10 +136,47 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
     }
   };
 
-  const handleConfigure = (org: Organization | PlatformOrganization) => {
-    // Navigate to the organization's admin settings
-    window.open(`/${org.slug}/admin/settings`, '_blank');
+  const handleConfigure = async (org: Organization | PlatformOrganization) => {
     setPreviewOpen(false);
+    
+    if (!isPlatformAdmin) {
+      toast.error('Platform admin access required');
+      return;
+    }
+
+    setSwitching(org.id);
+    try {
+      // Store original org to return to later
+      const { data: currentOrg } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .order('joined_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (currentOrg) {
+        localStorage.setItem('platform_admin_original_org', currentOrg.organization_id);
+      }
+
+      const success = await switchOrganization(org.id);
+      if (success) {
+        toast.success(`Switched to ${org.name}`);
+        navigate('/admin/settings/general');
+      } else {
+        toast.error('Failed to switch organization');
+      }
+    } catch (error) {
+      console.error('Failed to switch organization:', error);
+      toast.error('Failed to switch organization');
+    } finally {
+      setSwitching(null);
+    }
+  };
+
+  const handlePreviewSite = (org: PlatformOrganization) => {
+    const previewUrl = `${window.location.origin}/?org=${org.slug}`;
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleEditTemplate = async (org: PlatformOrganization) => {
@@ -345,6 +382,14 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
                     <Button 
                       variant="default" 
                       size="sm"
+                      onClick={() => handlePreviewSite(org)}
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Preview Site
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
                       onClick={() => handleEditTemplate(org)}
                       disabled={isSwitching === org.id}
                     >
@@ -353,7 +398,7 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
                       ) : (
                         <Edit className="h-4 w-4 mr-2" />
                       )}
-                      Edit Template
+                      Edit Content
                     </Button>
                     <Button 
                       variant="outline" 
@@ -366,16 +411,20 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
                       ) : (
                         <Eye className="h-4 w-4 mr-2" />
                       )}
-                      Preview
+                      Details
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => handleConfigure(org)}
+                      disabled={isSwitching === org.id}
                     >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Configure
-                      <ExternalLink className="h-3 w-3 ml-1" />
+                      {isSwitching === org.id ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Settings className="h-4 w-4 mr-2" />
+                      )}
+                      Settings
                     </Button>
                   </div>
                 </div>

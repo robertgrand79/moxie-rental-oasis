@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Palette } from 'lucide-react';
+import { ArrowLeft, Palette, ExternalLink } from 'lucide-react';
 import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
 
 const TemplateEditingBanner = () => {
@@ -25,6 +25,11 @@ const TemplateEditingBanner = () => {
     navigate('/admin/platform/templates');
   };
 
+  const handlePreviewSite = () => {
+    const previewUrl = `${window.location.origin}/?org=${organization.slug}`;
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="bg-primary/10 border-b border-primary/20 px-4 py-2">
       <div className="flex items-center justify-between gap-4">
@@ -33,15 +38,26 @@ const TemplateEditingBanner = () => {
           <span className="font-medium text-primary">Template Editing Mode:</span>
           <span className="text-foreground">{organization.name}</span>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleReturnToPlatform}
-          className="h-7 text-xs"
-        >
-          <ArrowLeft className="h-3 w-3 mr-1" />
-          Back to Platform Admin
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            onClick={handlePreviewSite}
+            className="h-7 text-xs"
+          >
+            <ExternalLink className="h-3 w-3 mr-1" />
+            Preview Site
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleReturnToPlatform}
+            className="h-7 text-xs"
+          >
+            <ArrowLeft className="h-3 w-3 mr-1" />
+            Back to Platform Admin
+          </Button>
+        </div>
       </div>
     </div>
   );

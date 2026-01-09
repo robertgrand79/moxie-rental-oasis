@@ -26,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Layout, Plus, Edit, DollarSign, Building, Home, Loader2, RefreshCw, CheckCircle, AlertCircle, Trash2, Pencil } from 'lucide-react';
+import { Layout, Plus, Edit, DollarSign, Building, Home, Loader2, RefreshCw, CheckCircle, AlertCircle, Trash2, Pencil, Play } from 'lucide-react';
 import { usePlatformSettings, SiteTemplate } from '@/hooks/usePlatformSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -78,6 +78,16 @@ const TemplatesManager = () => {
   const getSourceOrgForTemplate = (template: SiteTemplate) => {
     const visualTemplate = visualTemplates?.find(vt => vt.pricing_tier_id === template.id);
     return visualTemplate?.source_org as { id: string; name: string; slug: string } | null;
+  };
+
+  const handlePreviewSite = (template: SiteTemplate) => {
+    const sourceOrg = getSourceOrgForTemplate(template);
+    if (!sourceOrg) {
+      toast.error('No source organization linked to this template');
+      return;
+    }
+    const previewUrl = `${window.location.origin}/?org=${sourceOrg.slug}`;
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleEditDemoContent = async (template: SiteTemplate) => {
@@ -376,19 +386,29 @@ const TemplatesManager = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   {getSourceOrgForTemplate(template) && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleEditDemoContent(template)}
-                      disabled={switchingTemplateId === template.id}
-                    >
-                      {switchingTemplateId === template.id ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Pencil className="h-4 w-4 mr-2" />
-                      )}
-                      Edit Demo Content
-                    </Button>
+                    <>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={() => handlePreviewSite(template)}
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Preview Site
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleEditDemoContent(template)}
+                        disabled={switchingTemplateId === template.id}
+                      >
+                        {switchingTemplateId === template.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Pencil className="h-4 w-4 mr-2" />
+                        )}
+                        Edit Demo Content
+                      </Button>
+                    </>
                   )}
                   <Dialog open={editingTemplate?.id === template.id} onOpenChange={(open) => !open && setEditingTemplate(null)}>
                     <DialogTrigger asChild>
