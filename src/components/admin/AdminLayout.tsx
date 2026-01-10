@@ -6,10 +6,13 @@ import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
 import NotificationBell from './notifications/NotificationBell';
 import SupportWidget from '@/components/support/SupportWidget';
+import TemplateEditingBanner from './TemplateEditingBanner';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '@/components/ui/sonner';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -18,6 +21,10 @@ interface AdminLayoutProps {
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
+  const { organization } = useCurrentOrganization();
+  const { isPlatformAdmin } = usePlatformAdmin();
+  
+  const isTemplateEditing = isPlatformAdmin && organization?.is_template_source;
 
   // Clear stale tenant-related caches when entering admin to ensure fresh data
   useEffect(() => {
@@ -45,18 +52,23 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     </SidebarTrigger>
                   )}
                   
-                  <EnhancedButton 
-                    variant="outline" 
-                    size={isMobile ? "sm" : "default"} 
-                    asChild 
-                    className={isMobile ? 'min-h-[44px]' : ''}
-                  >
-                    <Link to={backUrl} className="flex items-center gap-2">
-                      <ArrowLeft className="h-4 w-4" />
-                      <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
-                      <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                    </Link>
-                  </EnhancedButton>
+                  {/* Show different header content based on template editing mode */}
+                  {isTemplateEditing ? (
+                    <TemplateEditingBanner variant="header" />
+                  ) : (
+                    <EnhancedButton 
+                      variant="outline" 
+                      size={isMobile ? "sm" : "default"} 
+                      asChild 
+                      className={isMobile ? 'min-h-[44px]' : ''}
+                    >
+                      <Link to={backUrl} className="flex items-center gap-2">
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
+                        <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
+                      </Link>
+                    </EnhancedButton>
+                  )}
                 </div>
                 
                 <div className="flex items-center gap-2">
