@@ -9,8 +9,8 @@ import PhotoSpotlight from '@/components/property/PhotoSpotlight';
 import PropertyDescription from '@/components/property/PropertyDescription';
 import AmenitiesSection from '@/components/property/AmenitiesSection';
 import PropertyReviewsSection from '@/components/property/PropertyReviewsSection';
-import IntegratedBookingSection from '@/components/property/IntegratedBookingSection';
-import TestimonialsSection from './TestimonialsSection';
+import CompactBookingCard from '@/components/property/CompactBookingCard';
+import StickyBookingBar from '@/components/property/StickyBookingBar';
 import EnhancedWhatsNearbySection from './EnhancedWhatsNearbySection';
 import EnhancedLocalEventsSection from './EnhancedLocalEventsSection';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
@@ -74,67 +74,48 @@ const SinglePropertyHome: React.FC = () => {
         {/* Hero Section */}
         <SinglePropertyHero property={property} coverImage={coverImage} />
 
-        {/* Booking Section - Prominent on single property sites */}
-        <section className="py-12 bg-background">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto">
-              <IntegratedBookingSection property={property} />
+        {/* Main Content with Sidebar Layout */}
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 py-12">
+            
+            {/* Main Content Column */}
+            <div className="lg:col-span-2 space-y-0">
+              
+              {/* Property Description */}
+              <section className="py-8 border-b border-border">
+                <h2 className="text-2xl font-bold text-foreground mb-6">
+                  About This Property
+                </h2>
+                <PropertyDescription description={property.description} isMobile={isMobile} />
+              </section>
+
+              {/* Photo Gallery - Full width within content area */}
+              {photos.length > 1 && (
+                <section className="py-8 border-b border-border -mx-4 lg:mx-0">
+                  <PhotoSpotlight 
+                    images={photos} 
+                    featuredPhotos={property.featured_photos}
+                    title={property.title} 
+                  />
+                </section>
+              )}
+
+              {/* Amenities */}
+              <section className="py-8">
+                <AmenitiesSection amenities={property.amenities} />
+              </section>
+            </div>
+
+            {/* Sticky Booking Sidebar - Desktop Only */}
+            <div className="hidden lg:block">
+              <CompactBookingCard property={property} />
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Photo Gallery */}
-        {photos.length > 1 && (
-          <section className="py-12 bg-muted/30">
-            <div className="container mx-auto px-4">
-              <PhotoSpotlight 
-                images={photos} 
-                featuredPhotos={property.featured_photos}
-                title={property.title} 
-              />
-            </div>
-          </section>
-        )}
-
-        {/* About the Property */}
-        <section className="py-16 bg-background">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-foreground mb-8">
-                About This Property
-              </h2>
-              <PropertyDescription description={property.description} isMobile={isMobile} />
-            </div>
-          </div>
-        </section>
-
-        {/* Amenities */}
-        <section className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
-              Amenities & Features
-            </h2>
-            <AmenitiesSection amenities={property.amenities} />
-          </div>
-        </section>
-
-        {/* Reviews */}
-        <section className="py-16 bg-background">
-          <div className="container mx-auto px-4">
-            <PropertyReviewsSection propertyId={property.id} />
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <TestimonialsSection />
-
-        {/* Newsletter */}
-        <section className="py-20 relative">
-          <div className="container mx-auto px-4">
-            <div className="bg-card/95 backdrop-blur-xl rounded-3xl shadow-2xl p-16 mx-auto border border-border/20">
-              <TravelNewsletterSignup />
-            </div>
-          </div>
+        {/* Reviews - Full Width */}
+        <section className="bg-muted/30">
+          <PropertyReviewsSection propertyId={property.id} />
         </section>
 
         {/* What's Nearby */}
@@ -142,6 +123,18 @@ const SinglePropertyHome: React.FC = () => {
 
         {/* Local Events */}
         <EnhancedLocalEventsSection />
+
+        {/* Newsletter */}
+        <section className="py-16 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <div className="bg-card rounded-2xl shadow-xl p-8 md:p-12 max-w-4xl mx-auto border border-border/50">
+              <TravelNewsletterSignup />
+            </div>
+          </div>
+        </section>
+
+        {/* Mobile Sticky Booking Bar */}
+        <StickyBookingBar property={property} />
       </main>
     </BackgroundWrapper>
   );
