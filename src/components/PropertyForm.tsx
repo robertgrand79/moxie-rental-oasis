@@ -82,8 +82,10 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
       ...data,
       photosCount: photos.length,
       existingImagesCount: existingImages.length,
+      existingImages: existingImages,
       featuredPhotosCount: featuredPhotos.length,
       deletedImagesCount: deletedImages.length,
+      deletedImages: deletedImages,
       stayOnPage: saveAndContinue
     });
     
