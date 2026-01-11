@@ -101,9 +101,11 @@ export const usePropertyOperations = () => {
         }
       }
 
-      // Combine existing reordered images with newly uploaded images
+      // Combine existing reordered images (excluding deleted ones) with newly uploaded images
       const existingImages = propertyData.reorderedExistingImages || [];
-      const allImages = [...existingImages, ...uploadedImages];
+      const deletedImageSet = new Set(propertyData.deletedImages || []);
+      const filteredExistingImages = existingImages.filter(img => !deletedImageSet.has(img));
+      const allImages = [...filteredExistingImages, ...uploadedImages];
       
       // Map form data to database schema for update
       const cleanPropertyData = mapFormToDatabaseUpdate(propertyData, allImages);
