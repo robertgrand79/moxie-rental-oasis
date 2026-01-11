@@ -7,7 +7,7 @@ import { PropertyFormData } from '@/components/PropertyForm/types';
 interface PropertyFormContainerProps {
   editingProperty: Property | null;
   isSubmitting: boolean;
-  onFormSubmit: (data: PropertyFormData & { photos: File[]; reorderedExistingImages?: string[]; featuredPhotos?: string[]; deletedImages?: string[] }) => Promise<void>;
+  onFormSubmit: (data: PropertyFormData & { photos: File[]; reorderedExistingImages?: string[]; featuredPhotos?: string[]; deletedImages?: string[] }, stayOnPage?: boolean) => Promise<void>;
   onFormCancel: () => void;
 }
 
