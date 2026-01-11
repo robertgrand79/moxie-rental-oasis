@@ -74,42 +74,42 @@ const SinglePropertyHome: React.FC = () => {
         {/* Hero Section */}
         <SinglePropertyHero property={property} coverImage={coverImage} />
 
-        {/* Main Content with Sidebar Layout */}
+        {/* Full-Width Sticky Booking Bar */}
+        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
+          <div className="container mx-auto px-4">
+            <CompactBookingCard property={property} />
+          </div>
+        </div>
+
+        {/* Photo Gallery - Full Width */}
+        {photos.length > 1 && (
+          <section className="py-12">
+            <div className="container mx-auto px-4">
+              <PhotoSpotlight 
+                images={photos} 
+                featuredPhotos={property.featured_photos}
+                title={property.title} 
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Property Info Section */}
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 py-12">
+          <div className="max-w-4xl mx-auto space-y-0">
             
-            {/* Main Content Column */}
-            <div className="lg:col-span-2 space-y-0">
-              
-              {/* Property Description */}
-              <section className="py-8 border-b border-border">
-                <h2 className="text-2xl font-bold text-foreground mb-6">
-                  About This Property
-                </h2>
-                <PropertyDescription description={property.description} isMobile={isMobile} />
-              </section>
+            {/* Property Description */}
+            <section className="py-8 border-b border-border">
+              <h2 className="text-2xl font-bold text-foreground mb-6">
+                About This Property
+              </h2>
+              <PropertyDescription description={property.description} isMobile={isMobile} />
+            </section>
 
-              {/* Photo Gallery - Full width within content area */}
-              {photos.length > 1 && (
-                <section className="py-8 border-b border-border -mx-4 lg:mx-0">
-                  <PhotoSpotlight 
-                    images={photos} 
-                    featuredPhotos={property.featured_photos}
-                    title={property.title} 
-                  />
-                </section>
-              )}
-
-              {/* Amenities */}
-              <section className="py-8">
-                <AmenitiesSection amenities={property.amenities} />
-              </section>
-            </div>
-
-            {/* Sticky Booking Sidebar - Desktop Only */}
-            <div className="hidden lg:block">
-              <CompactBookingCard property={property} />
-            </div>
+            {/* Amenities */}
+            <section className="py-8">
+              <AmenitiesSection amenities={property.amenities} />
+            </section>
           </div>
         </div>
 
