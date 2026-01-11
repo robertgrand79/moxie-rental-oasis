@@ -107,6 +107,16 @@ export const usePropertyOperations = () => {
       const filteredExistingImages = existingImages.filter(img => !deletedImageSet.has(img));
       const allImages = [...filteredExistingImages, ...uploadedImages];
       
+      console.log('📸 [EDIT] Image processing:', {
+        existingImagesCount: existingImages.length,
+        deletedImagesCount: deletedImageSet.size,
+        filteredExistingCount: filteredExistingImages.length,
+        newUploadsCount: uploadedImages.length,
+        finalImagesCount: allImages.length,
+        deletedImages: Array.from(deletedImageSet),
+        finalImages: allImages
+      });
+      
       // Map form data to database schema for update
       const cleanPropertyData = mapFormToDatabaseUpdate(propertyData, allImages);
 
