@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import ThumbnailImage from '@/components/ui/thumbnail-image';
 import PhotoActionButtons from './PhotoActionButtons';
-import PhotoIndicators from './PhotoIndicators';
-import PhotoControls from './PhotoControls';
 import PhotoOverlays from './PhotoOverlays';
 import PhotoDeleteConfirmDialog from './PhotoDeleteConfirmDialog';
 import { Button } from '@/components/ui/button';
@@ -87,13 +85,6 @@ const DraggablePhotoItem = ({
           isMarkedForDeletion ? 'opacity-50 grayscale' : ''
         }`}
       >
-        {/* Cover Photo Badge */}
-        {index === 0 && !isMarkedForDeletion && (
-          <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-md font-medium z-20">
-            Cover Photo
-          </div>
-        )}
-
         {/* Marked for Deletion Badge */}
         {isMarkedForDeletion && (
           <div className="absolute top-2 left-2 bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-md font-medium z-20">
@@ -116,16 +107,14 @@ const DraggablePhotoItem = ({
           isFeatured={isFeatured}
         />
 
-        {/* Indicators - middle z-index */}
-        <PhotoIndicators 
-          isSelected={isSelected}
-          isFeatured={isFeatured}
-          index={index}
-        />
+        {/* Photo number indicator - top right */}
+        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-20">
+          {index + 1}
+        </div>
 
-        {/* Move and Delete buttons - touch-friendly on mobile */}
+        {/* Move and Delete buttons - always visible */}
         {!disabled && !isMarkedForDeletion && (
-          <div className="absolute bottom-2 right-2 flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-30">
+          <div className="absolute bottom-2 right-2 flex gap-1 z-50">
             {/* Move Up button */}
             {index > 0 && (
               <Button
@@ -133,10 +122,11 @@ const DraggablePhotoItem = ({
                 variant="secondary"
                 size="icon"
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   onMoveUp(index);
                 }}
-                className="h-8 w-8 min-h-[32px] min-w-[32px]"
+                className="h-8 w-8 min-h-[32px] min-w-[32px] shadow-md"
                 title="Move up"
               >
                 <ChevronUp className="h-4 w-4" />
@@ -149,27 +139,31 @@ const DraggablePhotoItem = ({
                 variant="secondary"
                 size="icon"
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   onMoveDown(index);
                 }}
-                className="h-8 w-8 min-h-[32px] min-w-[32px]"
+                className="h-8 w-8 min-h-[32px] min-w-[32px] shadow-md"
                 title="Move down"
               >
                 <ChevronDown className="h-4 w-4" />
               </Button>
             )}
             {/* Delete button */}
-            <button
+            <Button
               type="button"
+              variant="destructive"
+              size="icon"
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 handleDeleteClick();
               }}
-              className="bg-destructive text-destructive-foreground p-2 rounded hover:bg-destructive/90 transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
+              className="h-8 w-8 min-h-[32px] min-w-[32px] shadow-md"
               title={photo.isExisting ? "Delete photo" : "Remove photo"}
             >
               <Trash2 className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         )}
 
