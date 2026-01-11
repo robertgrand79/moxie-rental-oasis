@@ -21,11 +21,11 @@ const SinglePropertyHero: React.FC<SinglePropertyHeroProps> = ({ property, cover
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
         
         {/* Content overlay */}
-        <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-12 lg:p-16">
-          <div className="max-w-4xl">
+        <div className="absolute inset-0 flex flex-col justify-end items-center p-6 md:p-12 lg:p-16">
+          <div className="max-w-4xl text-center">
             {/* Location */}
             {property.location && (
-              <div className="flex items-center gap-2 text-white/80 mb-3">
+              <div className="flex items-center justify-center gap-2 text-white/80 mb-3">
                 <MapPin className="h-5 w-5" />
                 <span className="text-sm md:text-base">
                   {property.location}
@@ -39,7 +39,7 @@ const SinglePropertyHero: React.FC<SinglePropertyHeroProps> = ({ property, cover
             </h1>
             
             {/* Quick stats */}
-            <div className="flex flex-wrap gap-4 md:gap-8">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-8">
               <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
                 <Bed className="h-5 w-5 text-white" />
                 <span className="text-white font-medium">
