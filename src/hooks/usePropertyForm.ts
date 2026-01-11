@@ -48,13 +48,32 @@ export const usePropertyForm = (properties: Property[] = [], refetch?: () => voi
       if (!stayOnPage) {
         setShowAddForm(false);
         setEditingProperty(null);
+      } else if (editingProperty && result) {
+        // When staying on page, refetch to get updated data then update editingProperty
+        console.log('🔄 Staying on page, will refresh property data');
       }
       
       console.log('🔄 Calling refetch to refresh property list...');
       // Add a small delay to ensure database transaction is committed
-      setTimeout(() => {
-        refetch?.();
-      }, 500);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      refetch?.();
+      
+      // If staying on page and editing, update the editingProperty with fresh data
+      if (stayOnPage && editingProperty) {
+        // Fetch the updated property data
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { data: updatedProperty } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('id', editingProperty.id)
+          .single();
+        
+        if (updatedProperty) {
+          console.log('📝 Updating editingProperty with fresh data');
+          setEditingProperty(updatedProperty as Property);
+        }
+      }
+      
       console.log('🏁 Property form submission complete');
     } catch (error) {
       console.error('❌ Error submitting property form:', error);
