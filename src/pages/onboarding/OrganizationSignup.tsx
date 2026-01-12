@@ -20,9 +20,9 @@ import {
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 
-// Format price from cents to dollars
+// Format price from cents to dollars (floor to avoid rounding up)
 const formatPrice = (cents: number): string => {
-  return `$${(cents / 100).toFixed(0)}`;
+  return `$${Math.floor(cents / 100)}`;
 };
 
 const OrganizationSignup = () => {
@@ -39,6 +39,25 @@ const OrganizationSignup = () => {
   const [previewTemplate, setPreviewTemplate] = useState<OrganizationTemplate | null>(null);
   const [includeDemoData, setIncludeDemoData] = useState(true); // Default to ON
   const [isWhatsIncludedOpen, setIsWhatsIncludedOpen] = useState(false);
+  const [allowedTemplateType, setAllowedTemplateType] = useState<'single_property' | 'multi_property' | null>(null);
+
+  // Read pending organization data to determine allowed template type
+  useEffect(() => {
+    try {
+      const pending = localStorage.getItem('pendingOrganization');
+      if (pending) {
+        const data = JSON.parse(pending);
+        if (data.planSlug === 'single_property') {
+          setAllowedTemplateType('single_property');
+        } else {
+          // multi_property and portfolio both allow multi_property templates
+          setAllowedTemplateType('multi_property');
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse pending organization data', e);
+    }
+  }, []);
 
   // Redirect if already has organization - go to dashboard instead of onboarding
   useEffect(() => {
@@ -202,7 +221,13 @@ const OrganizationSignup = () => {
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {templates?.map((template) => (
+                {templates
+                  ?.filter((template) => {
+                    // Filter templates based on the user's selected plan tier
+                    if (!allowedTemplateType) return true; // Show all if no filter set
+                    return template.template_type === allowedTemplateType;
+                  })
+                  .map((template) => (
                   <TemplateCard
                     key={template.id}
                     template={template}

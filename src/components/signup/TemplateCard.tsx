@@ -19,9 +19,9 @@ interface TemplateCardProps {
   compact?: boolean;
 }
 
-// Format price from cents to dollars
+// Format price from cents to dollars (floor to avoid rounding up)
 const formatPrice = (cents: number): string => {
-  return `$${(cents / 100).toFixed(0)}`;
+  return `$${Math.floor(cents / 100)}`;
 };
 
 export const TemplateCard = ({ template, isSelected, onSelect, onPreview, compact = false }: TemplateCardProps) => {
