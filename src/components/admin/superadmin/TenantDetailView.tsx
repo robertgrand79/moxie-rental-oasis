@@ -45,6 +45,7 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
   const navigate = useNavigate();
   const { switchOrganization } = useCurrentOrganization();
   const [isImpersonating, setIsImpersonating] = useState(false);
+  const [isProvisioning, setIsProvisioning] = useState(false);
 
   // Handle View As Tenant - switch to this organization
   const handleViewAsTenant = async () => {
@@ -87,6 +88,34 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
       window.open(`https://dashboard.stripe.com/customers/${org.stripe_customer_id}`, '_blank');
     } else {
       toast.info('No Stripe customer linked to this organization');
+    }
+  };
+
+  // Handle provision subdomain for legacy tenants
+  const handleProvisionSubdomain = async () => {
+    if (!org?.slug) {
+      toast.error('Organization slug is required for subdomain provisioning');
+      return;
+    }
+    
+    setIsProvisioning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('provision-subdomain', {
+        body: {
+          organization_id: organizationId,
+          slug: org.slug,
+        },
+      });
+
+      if (error) throw error;
+      
+      toast.success('Subdomain provisioning initiated');
+      // Refetch will happen automatically via react-query
+    } catch (error) {
+      console.error('Subdomain provisioning failed:', error);
+      toast.error('Failed to provision subdomain');
+    } finally {
+      setIsProvisioning(false);
     }
   };
   // Fetch organization details
@@ -302,6 +331,25 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                       <span className="ml-2 font-mono text-xs">{org.stripe_customer_id}</span>
                     </div>
                   )}
+                  <div>
+                    <span className="text-muted-foreground">Subdomain Status:</span>
+                    <Badge 
+                      className="ml-2" 
+                      variant={
+                        org?.subdomain_status === 'active' ? 'default' : 
+                        org?.subdomain_status === 'failed' ? 'destructive' : 
+                        'secondary'
+                      }
+                    >
+                      {org?.subdomain_status || 'pending'}
+                    </Badge>
+                  </div>
+                  {org?.subdomain_error && (
+                    <div className="col-span-2">
+                      <span className="text-muted-foreground">Subdomain Error:</span>
+                      <span className="ml-2 text-destructive text-xs">{org.subdomain_error}</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -331,6 +379,19 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                   <Button variant="outline" size="sm" onClick={handleManageSubscription}>
                     <CreditCard className="h-4 w-4 mr-2" />
                     Manage Subscription
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleProvisionSubdomain}
+                    disabled={isProvisioning || org?.subdomain_status === 'active'}
+                  >
+                    {isProvisioning ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Globe className="h-4 w-4 mr-2" />
+                    )}
+                    {org?.subdomain_status === 'active' ? 'Subdomain Active' : 'Provision Subdomain'}
                   </Button>
                 </CardContent>
               </Card>
