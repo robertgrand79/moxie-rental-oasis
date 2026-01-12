@@ -101,10 +101,10 @@ const AuthConfirm: React.FC = () => {
           } catch (orgError) {
             console.error('Organization creation failed:', orgError);
             // Don't fail the whole flow - user can create org later
-            localStorage.removeItem('pendingOrganization');
+            // KEEP pendingOrganization data so /signup page can use it for template filtering
             setStatus('success');
             
-            // Redirect to org signup as fallback
+            // Redirect to org signup as fallback - pending data will be preserved
             setTimeout(() => {
               navigate('/signup', { replace: true });
             }, 1500);

@@ -82,6 +82,21 @@ const OrganizationSignup = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Redirect users without pending data to plan selection
+  useEffect(() => {
+    if (!authLoading && user && !orgLoading && !organization) {
+      // Give localStorage a moment to be read
+      const timer = setTimeout(() => {
+        const pending = localStorage.getItem('pendingOrganization');
+        if (!pending) {
+          console.log('No pending organization data - redirecting to plan selection');
+          navigate('/platform/signup', { replace: true });
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [authLoading, user, orgLoading, organization, navigate]);
+
   // Auto-generate slug from name (only if no pending data)
   useEffect(() => {
     if (hasPendingData) return; // Don't auto-generate if we loaded from pending data
@@ -128,6 +143,8 @@ const OrganizationSignup = () => {
       includeDemoData,
     });
     if (orgId) {
+      // Clear pending data after successful creation
+      localStorage.removeItem('pendingOrganization');
       // Use full page reload to ensure context picks up new org
       // Redirect to dashboard - onboarding is now optional in settings
       window.location.href = `/admin/dashboard?org=${slug}`;
