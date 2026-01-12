@@ -253,7 +253,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await databaseStatus.checkConnection();
       }
 
-      const redirectUrl = `${window.location.origin}/signup`;
+      const redirectUrl = `${window.location.origin}/admin/onboarding`;
       
       const { error } = await supabase.auth.signUp({
         email,

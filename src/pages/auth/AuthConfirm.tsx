@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PendingOrganizationData } from '@/pages/platform/PlatformSignup';
 
 const AuthConfirm: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
+  const [status, setStatus] = useState<'verifying' | 'creating_org' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [orgName, setOrgName] = useState<string>('');
 
   useEffect(() => {
-    const verifyToken = async () => {
+    const verifyAndCreateOrg = async () => {
       const tokenHash = searchParams.get('token_hash');
       const type = searchParams.get('type') as 'signup' | 'recovery' | 'invite' | 'email' | 'magiclink';
-      const next = searchParams.get('next') || '/signup';
+      const next = searchParams.get('next') || '/admin/onboarding';
 
       if (!tokenHash || !type) {
         setStatus('error');
@@ -23,6 +25,7 @@ const AuthConfirm: React.FC = () => {
       }
 
       try {
+        // Step 1: Verify the email token
         const { error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: type,
@@ -35,12 +38,72 @@ const AuthConfirm: React.FC = () => {
           return;
         }
 
-        setStatus('success');
+        // Step 2: Check for pending organization data
+        const pendingDataStr = localStorage.getItem('pendingOrganization');
         
-        // Short delay to show success message before redirect
-        setTimeout(() => {
-          navigate(next, { replace: true });
-        }, 1500);
+        if (pendingDataStr) {
+          setStatus('creating_org');
+          
+          try {
+            const pendingData: PendingOrganizationData = JSON.parse(pendingDataStr);
+            setOrgName(pendingData.name);
+            
+            // Get the current user
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            
+            if (userError || !user) {
+              throw new Error('Failed to get authenticated user');
+            }
+            
+            // Create the organization using the RPC function
+            const { data: orgId, error: createError } = await supabase
+              .rpc('create_organization_with_owner', {
+                _name: pendingData.name,
+                _slug: pendingData.slug,
+                _user_id: user.id,
+                _template_id: null,
+                _visual_template_id: pendingData.templateId,
+                _include_demo_data: pendingData.includeDemoData,
+              });
+
+            if (createError) {
+              console.error('Organization creation error:', createError);
+              throw new Error(createError.message);
+            }
+
+            if (!orgId) {
+              throw new Error('Organization creation failed - no ID returned');
+            }
+
+            // Clear the pending data
+            localStorage.removeItem('pendingOrganization');
+            
+            setStatus('success');
+            
+            // Redirect to dashboard with the new org
+            setTimeout(() => {
+              window.location.href = `/admin/dashboard?org=${pendingData.slug}`;
+            }, 1500);
+            
+          } catch (orgError) {
+            console.error('Organization creation failed:', orgError);
+            // Don't fail the whole flow - user can create org later
+            localStorage.removeItem('pendingOrganization');
+            setStatus('success');
+            
+            // Redirect to org signup as fallback
+            setTimeout(() => {
+              navigate('/signup', { replace: true });
+            }, 1500);
+          }
+        } else {
+          // No pending organization - just redirect to next
+          setStatus('success');
+          
+          setTimeout(() => {
+            navigate(next, { replace: true });
+          }, 1500);
+        }
       } catch (err) {
         console.error('Unexpected error during verification:', err);
         setStatus('error');
@@ -48,7 +111,7 @@ const AuthConfirm: React.FC = () => {
       }
     };
 
-    verifyToken();
+    verifyAndCreateOrg();
   }, [searchParams, navigate]);
 
   return (
@@ -63,11 +126,34 @@ const AuthConfirm: React.FC = () => {
             </>
           )}
 
+          {status === 'creating_org' && (
+            <>
+              <div className="relative mx-auto mb-4 w-16 h-16">
+                <Building2 className="h-16 w-16 text-primary" />
+                <div className="absolute -bottom-1 -right-1">
+                  <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                </div>
+              </div>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Creating Your Organization</h1>
+              <p className="text-muted-foreground">
+                Setting up <strong>{orgName}</strong>...
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">This will only take a moment</p>
+            </>
+          )}
+
           {status === 'success' && (
             <>
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">Email Verified!</h1>
-              <p className="text-muted-foreground">Redirecting you to complete your setup...</p>
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                {orgName ? 'Organization Created!' : 'Email Verified!'}
+              </h1>
+              <p className="text-muted-foreground">
+                {orgName 
+                  ? `${orgName} is ready. Redirecting to your dashboard...`
+                  : 'Redirecting you to complete your setup...'
+                }
+              </p>
             </>
           )}
 
