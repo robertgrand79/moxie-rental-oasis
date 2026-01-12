@@ -4324,6 +4324,7 @@ export type Database = {
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
+          cloudflare_hostname_id: string | null
           created_at: string | null
           created_from_template_id: string | null
           custom_domain: string | null
@@ -4353,6 +4354,8 @@ export type Database = {
           stripe_publishable_key: string | null
           stripe_secret_key: string | null
           stripe_webhook_secret: string | null
+          subdomain_error: string | null
+          subdomain_status: string | null
           subscription_status: string | null
           subscription_tier: string | null
           template_category: string | null
@@ -4368,6 +4371,7 @@ export type Database = {
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          cloudflare_hostname_id?: string | null
           created_at?: string | null
           created_from_template_id?: string | null
           custom_domain?: string | null
@@ -4397,6 +4401,8 @@ export type Database = {
           stripe_publishable_key?: string | null
           stripe_secret_key?: string | null
           stripe_webhook_secret?: string | null
+          subdomain_error?: string | null
+          subdomain_status?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           template_category?: string | null
@@ -4412,6 +4418,7 @@ export type Database = {
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          cloudflare_hostname_id?: string | null
           created_at?: string | null
           created_from_template_id?: string | null
           custom_domain?: string | null
@@ -4441,6 +4448,8 @@ export type Database = {
           stripe_publishable_key?: string | null
           stripe_secret_key?: string | null
           stripe_webhook_secret?: string | null
+          subdomain_error?: string | null
+          subdomain_status?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           template_category?: string | null
