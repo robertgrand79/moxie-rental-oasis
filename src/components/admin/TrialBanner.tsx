@@ -10,11 +10,12 @@ const TrialBanner: React.FC = () => {
   const { organization, isPlatformAdmin } = useCurrentOrganization();
   const [dismissed, setDismissed] = useState(false);
 
-  // Don't show for platform admins or if dismissed
-  if (isPlatformAdmin || dismissed) return null;
+  // Don't show if dismissed
+  if (dismissed) return null;
 
-  // Only show for trialing subscriptions
-  if (organization?.subscription_status !== 'trialing') return null;
+  // Only show for trial subscriptions (check both 'trial' and 'trialing' values)
+  const isTrialing = ['trial', 'trialing'].includes(organization?.subscription_status ?? '');
+  if (!isTrialing) return null;
 
   // Need trial_ends_at to calculate days
   if (!organization.trial_ends_at) return null;
