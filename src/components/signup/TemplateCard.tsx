@@ -16,6 +16,7 @@ interface TemplateCardProps {
   isSelected: boolean;
   onSelect: () => void;
   onPreview: () => void;
+  compact?: boolean;
 }
 
 // Format price from cents to dollars
@@ -23,10 +24,64 @@ const formatPrice = (cents: number): string => {
   return `$${(cents / 100).toFixed(0)}`;
 };
 
-export const TemplateCard = ({ template, isSelected, onSelect, onPreview }: TemplateCardProps) => {
+export const TemplateCard = ({ template, isSelected, onSelect, onPreview, compact = false }: TemplateCardProps) => {
   const Icon = template.template_type === 'single_property' ? Home : Building;
   const pricingTier = template.pricing_tier;
   const featureHighlights = template.feature_highlights || [];
+  
+  // Compact mode for inline signup form
+  if (compact) {
+    return (
+      <div
+        className={cn(
+          "relative flex items-center gap-4 rounded-lg border-2 p-4 cursor-pointer transition-all duration-200",
+          "hover:border-primary/50",
+          isSelected 
+            ? "border-primary bg-primary/5" 
+            : "border-border"
+        )}
+        onClick={onSelect}
+      >
+        <div className="flex-shrink-0">
+          <div className={cn(
+            "w-12 h-12 rounded-lg flex items-center justify-center",
+            isSelected ? "bg-primary/10" : "bg-muted"
+          )}>
+            <Icon className={cn("h-6 w-6", isSelected ? "text-primary" : "text-muted-foreground")} />
+          </div>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="font-medium">{template.name}</h3>
+            {pricingTier && (
+              <Badge variant="secondary" className="text-xs">
+                {formatPrice(pricingTier.monthly_price_cents)}/mo
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground line-clamp-1">
+            {template.description}
+          </p>
+        </div>
+        {isSelected && (
+          <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+        )}
+        {!isSelected && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex-shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPreview();
+            }}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    );
+  }
   
   return (
     <div
