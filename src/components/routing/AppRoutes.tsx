@@ -48,6 +48,7 @@ const AcknowledgePage = lazy(() => import('@/pages/AcknowledgePage'));
 const ContractorPortal = lazy(() => import('@/pages/ContractorPortal'));
 const AcceptInvitation = lazy(() => import('@/pages/AcceptInvitation'));
 const StatusPage = lazy(() => import('@/pages/StatusPage'));
+const AuthConfirm = lazy(() => import('@/pages/auth/AuthConfirm'));
 
 // Core admin (loaded eagerly)
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -159,6 +160,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/acknowledge" element={<AcknowledgePage />} />
           <Route path="/contractor/:token" element={<ContractorPortal />} />
           <Route path="/accept-invite" element={<AcceptInvitation />} />
+          <Route path="/auth/confirm" element={<AuthConfirm />} />
           <Route path="/status" element={<Navigate to="/admin/status" replace />} />
 
           {/* TV Routes */}
@@ -315,6 +317,7 @@ const AppRoutes: React.FC = () => {
         {/* Public standalone routes */}
         <Route path="/acknowledge" element={<AcknowledgePage />} />
         <Route path="/contractor/:token" element={<ContractorPortal />} />
+        <Route path="/auth/confirm" element={<AuthConfirm />} />
         <Route path="/status" element={<Navigate to="/admin/status" replace />} />
 
         {/* TV Routes */}
