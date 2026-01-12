@@ -238,18 +238,54 @@ const PlatformSignup: React.FC = () => {
                 <span className="text-sm">You'll land on your new dashboard ready to go!</span>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-6">
-              Didn't receive the email? Check your spam folder or{' '}
+            <div className="mt-6 space-y-3">
               <button 
-                onClick={() => {
-                  setEmailSent(false);
-                  setCurrentStep(2);
+                onClick={async () => {
+                  try {
+                    const { error } = await supabase.auth.resend({
+                      type: 'signup',
+                      email: submittedEmail,
+                      options: {
+                        emailRedirectTo: `${window.location.origin}/auth/confirm?next=/admin/onboarding`
+                      }
+                    });
+                    if (error) {
+                      toast({
+                        title: 'Failed to resend',
+                        description: error.message,
+                        variant: 'destructive'
+                      });
+                    } else {
+                      toast({
+                        title: 'Email Resent!',
+                        description: 'Check your inbox for a new verification link.',
+                      });
+                    }
+                  } catch (e) {
+                    toast({
+                      title: 'Error',
+                      description: 'Failed to resend email. Please try again.',
+                      variant: 'destructive'
+                    });
+                  }
                 }}
-                className="text-primary hover:underline"
+                className="text-primary hover:underline font-medium text-sm"
               >
-                try again
+                Resend activation email
               </button>
-            </p>
+              <p className="text-xs text-muted-foreground">
+                Didn't receive the email? Check your spam folder or{' '}
+                <button 
+                  onClick={() => {
+                    setEmailSent(false);
+                    setCurrentStep(2);
+                  }}
+                  className="text-primary hover:underline"
+                >
+                  try with a different email
+                </button>
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

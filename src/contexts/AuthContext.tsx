@@ -253,9 +253,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await databaseStatus.checkConnection();
       }
 
-      const redirectUrl = `${window.location.origin}/admin/onboarding`;
+      // Use /auth/confirm to handle email verification properly
+      const redirectUrl = `${window.location.origin}/auth/confirm?next=/admin/onboarding`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -266,6 +267,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       });
+      
+      // Check if user already exists (identities array is empty for existing users)
+      if (data?.user && data.user.identities?.length === 0) {
+        debug.auth('User already exists:', email);
+        return { 
+          error: { 
+            message: 'This email is already registered. Please try logging in or reset your password.' 
+          } 
+        };
+      }
 
       if (error) {
         debug.error('Sign up error:', error);
