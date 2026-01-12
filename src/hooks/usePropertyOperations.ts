@@ -74,15 +74,17 @@ export const usePropertyOperations = () => {
     try {
       // Handle deleted images from property updates
       if (propertyData.deletedImages && propertyData.deletedImages.length > 0) {
-        // Delete each image from storage
-        const deletePromises = propertyData.deletedImages.map(async (imageUrl: string) => {
-          const deleted = await deletePhoto(imageUrl);
-          if (!deleted) {
-            console.warn('Failed to delete image from storage:', imageUrl);
-          }
-          return deleted;
-        });
-        
+        // Delete each image from storage (only if it's a Supabase Storage URL)
+        const deletePromises = propertyData.deletedImages
+          .filter((imageUrl: string) => imageUrl.includes('/property-images/'))
+          .map(async (imageUrl: string) => {
+            const deleted = await deletePhoto(imageUrl);
+            if (!deleted) {
+              console.warn('Failed to delete image from storage:', imageUrl);
+            }
+            return deleted;
+          });
+
         await Promise.all(deletePromises);
       }
 
@@ -110,6 +112,12 @@ export const usePropertyOperations = () => {
       // Map form data to database schema for update
       const cleanPropertyData = mapFormToDatabaseUpdate(propertyData, allImages);
 
+      // Ensure featured photos are always a subset of the saved images
+      const requestedFeatured = propertyData.featuredPhotos || [];
+      cleanPropertyData.featured_photos = requestedFeatured
+        .filter((url) => !url.startsWith('blob:'))
+        .filter((url) => !deletedImageSet.has(url))
+        .filter((url) => allImages.includes(url));
       const { error } = await supabase
         .from('properties')
         .update(cleanPropertyData)

@@ -64,10 +64,15 @@ const SinglePropertyHome: React.FC = () => {
     );
   }
 
-  // Parse photos from images array or featured_photos
-  const photos: string[] = property.featured_photos || property.images || [];
-  const coverImage = property.cover_image_url || photos[0] || '/placeholder.svg';
+  // Photos shown on the public site must come from what is actually saved on the property.
+  // Treat `images` as the source of truth; only allow featured_photos that exist in `images`.
+  const images: string[] = Array.isArray(property.images) ? property.images : [];
+  const featuredFromImages: string[] = Array.isArray(property.featured_photos)
+    ? property.featured_photos.filter((url) => images.includes(url))
+    : [];
 
+  const photos: string[] = featuredFromImages.length > 0 ? featuredFromImages : images;
+  const coverImage = property.cover_image_url || property.image_url || images[0] || '/placeholder.svg';
   return (
     <BackgroundWrapper>
       <main>

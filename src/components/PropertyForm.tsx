@@ -45,8 +45,14 @@ interface PropertyFormProps {
 }
 
 const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSubmitting = false }: PropertyFormProps) => {
+  const getInitialExistingImages = (data?: Partial<Property>) => {
+    const images = data?.images ?? [];
+    const featured = (data?.featured_photos ?? []).filter((url) => !url.startsWith('blob:'));
+    return Array.from(new Set([...images, ...featured]));
+  };
+
   const [photos, setPhotos] = useState<File[]>([]);
-  const [existingImages, setExistingImages] = useState<string[]>(initialData?.images || []);
+  const [existingImages, setExistingImages] = useState<string[]>(getInitialExistingImages(initialData));
   const [featuredPhotos, setFeaturedPhotos] = useState<string[]>(
     (initialData?.featured_photos || []).filter((url) => !url.startsWith('blob:'))
   );
@@ -54,11 +60,11 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
   const { uploading, uploadProgress, optimizationStats } = useOptimizedPhotoUpload();
 
   // Keep photo state in sync when the parent refreshes initialData (e.g. Save & Continue)
-  const initialImagesKey = (initialData?.images || []).join('|');
+  const initialImagesKey = getInitialExistingImages(initialData).join('|');
   const initialFeaturedKey = (initialData?.featured_photos || []).join('|');
 
   useEffect(() => {
-    setExistingImages(initialData?.images || []);
+    setExistingImages(getInitialExistingImages(initialData));
     setFeaturedPhotos(
       (initialData?.featured_photos || []).filter((url) => !url.startsWith('blob:'))
     );
