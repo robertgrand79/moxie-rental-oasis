@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -48,10 +48,23 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
   const [photos, setPhotos] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>(initialData?.images || []);
   const [featuredPhotos, setFeaturedPhotos] = useState<string[]>(
-    (initialData?.featured_photos || []).filter(url => !url.startsWith('blob:'))
+    (initialData?.featured_photos || []).filter((url) => !url.startsWith('blob:'))
   );
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
   const { uploading, uploadProgress, optimizationStats } = useOptimizedPhotoUpload();
+
+  // Keep photo state in sync when the parent refreshes initialData (e.g. Save & Continue)
+  const initialImagesKey = (initialData?.images || []).join('|');
+  const initialFeaturedKey = (initialData?.featured_photos || []).join('|');
+
+  useEffect(() => {
+    setExistingImages(initialData?.images || []);
+    setFeaturedPhotos(
+      (initialData?.featured_photos || []).filter((url) => !url.startsWith('blob:'))
+    );
+    // Once the DB has been refreshed, clear deletion tracking to prevent “popping back” in UI
+    setDeletedImages([]);
+  }, [initialData?.id, initialImagesKey, initialFeaturedKey]);
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -74,29 +87,25 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
 
   const handleSubmit = (data: PropertyFormData) => {
     if (isSubmitting) {
-      console.log('⚠️ [FORM] Form already submitting, ignoring duplicate submission');
       return;
     }
-    
-    console.log('📝 [FORM] Form submission started with data:', {
-      ...data,
-      photosCount: photos.length,
-      existingImagesCount: existingImages.length,
-      existingImages: existingImages,
-      featuredPhotosCount: featuredPhotos.length,
-      deletedImagesCount: deletedImages.length,
-      deletedImages: deletedImages,
-      stayOnPage: saveAndContinue
-    });
-    
-    onSubmit({ 
-      ...data, 
-      photos, 
-      reorderedExistingImages: existingImages,
-      featuredPhotos,
-      deletedImages
-    }, saveAndContinue);
-    
+
+    // Ensure deleted photos cannot be re-saved via reorderedExistingImages/featuredPhotos
+    const deletedSet = new Set(deletedImages);
+    const filteredExistingImages = existingImages.filter((url) => !deletedSet.has(url));
+    const filteredFeaturedPhotos = featuredPhotos.filter((url) => !deletedSet.has(url));
+
+    onSubmit(
+      {
+        ...data,
+        photos,
+        reorderedExistingImages: filteredExistingImages,
+        featuredPhotos: filteredFeaturedPhotos,
+        deletedImages,
+      },
+      saveAndContinue
+    );
+
     // Reset the flag after submission
     setSaveAndContinue(false);
   };
