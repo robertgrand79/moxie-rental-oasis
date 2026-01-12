@@ -53,8 +53,8 @@ const TrialBanner: React.FC = () => {
         <Button
           asChild
           size="sm"
-          variant={isExpired || isUrgent ? 'secondary' : 'outline'}
-          className={isExpired || isUrgent ? '' : 'border-white/30 text-white hover:bg-white/10'}
+          variant="secondary"
+          className="bg-white text-blue-600 hover:bg-white/90"
         >
           <Link to="/admin/settings/billing" className="flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5" />
