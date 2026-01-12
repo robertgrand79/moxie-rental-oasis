@@ -33,7 +33,7 @@ const PlatformSectionCard = ({
       <Card
         className={cn(
           'group cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30',
-          'bg-card/50 backdrop-blur-sm'
+          'bg-card/50 backdrop-blur-sm relative'
         )}
         onClick={() => navigate(item.path)}
       >
@@ -45,7 +45,16 @@ const PlatformSectionCard = ({
             <h3 className="font-medium text-sm truncate">{item.label}</h3>
             <p className="text-xs text-muted-foreground truncate">{item.description}</p>
           </div>
-          <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+          {/* Star Button - appears on hover */}
+          <button
+            className="p-1.5 rounded-full transition-all opacity-0 group-hover:opacity-100 hover:bg-muted/80"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleStar();
+            }}
+          >
+            <Star className="h-4 w-4 text-muted-foreground hover:text-amber-400 transition-colors" />
+          </button>
         </CardContent>
       </Card>
     );
