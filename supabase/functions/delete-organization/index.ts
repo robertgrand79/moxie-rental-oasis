@@ -151,12 +151,68 @@ serve(async (req) => {
       }
     }
 
-    // Delete the organization (members should already be removed by cascade or manually)
-    // First clean up any remaining members (shouldn't be any but just in case)
-    await supabaseAdmin
-      .from('organization_members')
-      .delete()
+    // Delete all dependent data before deleting the organization
+    // Order matters: delete child tables first to avoid FK violations
+    console.log('Cleaning up dependent data...');
+    
+    // Core organization data
+    await supabaseAdmin.from('organization_members').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('organization_onboarding').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('site_settings').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('message_templates').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('assistant_settings').delete().eq('organization_id', organizationId);
+    
+    // Communication and notifications
+    await supabaseAdmin.from('admin_notifications').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('newsletter_subscribers').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('newsletter_campaigns').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('community_updates').delete().eq('organization_id', organizationId);
+    
+    // Properties and related data (get property IDs first)
+    const { data: properties } = await supabaseAdmin
+      .from('properties')
+      .select('id')
       .eq('organization_id', organizationId);
+    
+    const propertyIds = properties?.map(p => p.id) || [];
+    
+    if (propertyIds.length > 0) {
+      // Delete property-dependent data
+      await supabaseAdmin.from('property_reservations').delete().in('property_id', propertyIds);
+      await supabaseAdmin.from('reservations').delete().in('property_id', propertyIds);
+      await supabaseAdmin.from('availability_blocks').delete().in('property_id', propertyIds);
+      await supabaseAdmin.from('dynamic_pricing').delete().in('property_id', propertyIds);
+      await supabaseAdmin.from('external_calendars').delete().in('property_id', propertyIds);
+      await supabaseAdmin.from('points_of_interest').delete().in('property_id', propertyIds);
+      await supabaseAdmin.from('seam_devices').delete().in('property_id', propertyIds);
+      await supabaseAdmin.from('device_configurations').delete().in('property_id', propertyIds);
+    }
+    
+    // Delete properties
+    await supabaseAdmin.from('properties').delete().eq('organization_id', organizationId);
+    
+    // Content data
+    await supabaseAdmin.from('blog_posts').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('testimonials').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('lifestyle_gallery').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('eugene_events').delete().eq('organization_id', organizationId);
+    
+    // Work orders and maintenance
+    await supabaseAdmin.from('work_orders').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('contractors').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('turnover_checklist_templates').delete().eq('organization_id', organizationId);
+    
+    // Chat and conversations
+    await supabaseAdmin.from('assistant_conversations').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('chat_sessions').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('guest_inbox_threads').delete().eq('organization_id', organizationId);
+    
+    // Other org data
+    await supabaseAdmin.from('promotional_codes').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('tax_rates').delete().eq('organization_id', organizationId);
+    await supabaseAdmin.from('user_invitations').delete().eq('organization_id', organizationId);
+    
+    console.log('Dependent data cleaned up, deleting organization...');
 
     const { error: deleteOrgError } = await supabaseAdmin
       .from('organizations')
