@@ -82,28 +82,6 @@ const OrganizationSignup = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Track if we've checked for pending data
-  const [pendingDataChecked, setPendingDataChecked] = useState(false);
-  
-  // Check for pending data on mount and set flag when done
-  useEffect(() => {
-    const pending = localStorage.getItem('pendingOrganization');
-    if (!pending) {
-      // Only redirect if truly no pending data exists
-      // Use a longer delay to ensure AuthConfirm has finished setting localStorage
-      const timer = setTimeout(() => {
-        const pendingRecheck = localStorage.getItem('pendingOrganization');
-        if (!pendingRecheck && !authLoading && user && !orgLoading && !organization) {
-          console.log('No pending organization data after recheck - redirecting to plan selection');
-          navigate('/platform/signup', { replace: true });
-        }
-        setPendingDataChecked(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setPendingDataChecked(true);
-    }
-  }, [authLoading, user, orgLoading, organization, navigate]);
 
   // Auto-generate slug from name (only if no pending data)
   useEffect(() => {
