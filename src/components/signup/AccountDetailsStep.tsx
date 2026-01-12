@@ -51,9 +51,9 @@ interface AccountDetailsStepProps {
   isLoading: boolean;
 }
 
-// Format price from cents to dollars
+// Format price from cents to dollars (floor to avoid rounding up)
 const formatPrice = (cents: number): string => {
-  return `$${(cents / 100).toFixed(0)}`;
+  return `$${Math.floor(cents / 100)}`;
 };
 
 export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({

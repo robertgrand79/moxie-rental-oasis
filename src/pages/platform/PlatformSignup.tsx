@@ -31,6 +31,7 @@ export interface PendingOrganizationData {
   slug: string;
   templateId: string;
   includeDemoData: boolean;
+  planSlug: string; // 'single_property' or 'multi_property' tier
 }
 
 const PlatformSignup: React.FC = () => {
@@ -148,11 +149,14 @@ const PlatformSignup: React.FC = () => {
 
     try {
       // Store pending organization data BEFORE signup
+      // Map pricing tiers: single_property, multi_property (Professional), portfolio (unlimited)
+      const planSlug = selectedTemplate.slug === 'single_property' ? 'single_property' : 'multi_property';
       const pendingData: PendingOrganizationData = {
         name: data.orgName,
         slug: data.slug,
         templateId: selectedTemplate.id,
-        includeDemoData: data.includeDemoData
+        includeDemoData: data.includeDemoData,
+        planSlug,
       };
       localStorage.setItem('pendingOrganization', JSON.stringify(pendingData));
       
