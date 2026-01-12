@@ -36,16 +36,10 @@ const AdminSidebar = () => {
   const filteredMenuItems = useMemo(() => {
     return adminMenuItems
       .map(section => {
+        // Hide entire Platform Administration section for non-platform admins
         if (section.title === 'Platform Administration') {
-          const filteredItems = section.items.filter(item => {
-            if (item.title === 'Super Admin Panel') {
-              return isPlatformAdmin === true;
-            }
-            return true;
-          });
-          
-          if (filteredItems.length === 0) return null;
-          return { ...section, items: filteredItems };
+          if (isPlatformAdmin !== true) return null;
+          return section;
         }
         return section;
       })
