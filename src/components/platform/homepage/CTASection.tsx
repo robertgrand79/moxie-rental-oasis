@@ -2,8 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Calendar, CreditCard, X } from 'lucide-react';
+import { usePlatform } from '@/contexts/PlatformContext';
 
 const CTASection: React.FC = () => {
+  const { isPlatformSite } = usePlatform();
+  const signupPath = isPlatformSite ? '/signup' : '/platform/signup';
+
   return (
     <section className="py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
       {/* Background decoration */}
@@ -33,7 +37,7 @@ const CTASection: React.FC = () => {
             size="lg"
             className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-6 text-lg rounded-xl font-semibold"
           >
-            <Link to="/platform/signup">
+            <Link to={signupPath}>
               Start Your Free Trial
               <ArrowRight className="ml-2 w-5 h-5" />
             </Link>

@@ -277,6 +277,7 @@ const AppRoutes: React.FC = () => {
           <Route path="blog" element={<PlatformBlog />} />
           <Route path="get-started" element={<PlatformGetStarted />} />
           <Route path="auth" element={<PlatformAuth />} />
+          <Route path="signup" element={<PlatformSignup />} />
         </Route>
 
         <Route path="/" element={<PublicLayout />}>

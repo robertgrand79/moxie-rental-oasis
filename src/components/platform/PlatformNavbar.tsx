@@ -32,12 +32,12 @@ const PlatformNavbar: React.FC = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/auth">
+            <Link to={isPlatformSite ? "/auth" : `${basePath}/auth`}>
               <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
                 Log In
               </Button>
             </Link>
-            <Link to="/platform/signup">
+            <Link to={isPlatformSite ? "/signup" : `${basePath}/signup`}>
               <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6">
                 Start Free
               </Button>
@@ -58,10 +58,10 @@ const PlatformNavbar: React.FC = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-white border-b border-gray-100">
           <div className="px-4 py-4 space-y-3">
-            <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+            <Link to={isPlatformSite ? "/auth" : `${basePath}/auth`} onClick={() => setIsMenuOpen(false)}>
               <Button variant="outline" className="w-full">Log In</Button>
             </Link>
-            <Link to="/platform/signup" onClick={() => setIsMenuOpen(false)}>
+            <Link to={isPlatformSite ? "/signup" : `${basePath}/signup`} onClick={() => setIsMenuOpen(false)}>
               <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                 Start Free
               </Button>
