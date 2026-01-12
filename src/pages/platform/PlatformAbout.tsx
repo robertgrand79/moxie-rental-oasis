@@ -50,14 +50,14 @@ const PlatformAbout: React.FC = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/20 dark:via-teal-950/20 dark:to-cyan-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-blue-50 to-indigo-50 dark:from-blue-950/20 dark:via-blue-950/20 dark:to-indigo-950/20" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl sm:text-5xl font-bold mb-6">
               <span className="text-foreground">Our Mission:</span>
               <br />
-              <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
                 Empower Vacation Rental Hosts
               </span>
             </h1>
@@ -91,9 +91,9 @@ const PlatformAbout: React.FC = () => {
             </div>
             
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-3xl flex items-center justify-center">
+              <div className="aspect-square bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-3xl flex items-center justify-center">
                 <div className="text-center p-8">
-                  <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                     <Zap className="w-12 h-12 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold mb-2">StayMoxie</h3>
@@ -119,7 +119,7 @@ const PlatformAbout: React.FC = () => {
             {values.map((value, index) => (
               <Card key={index} className="border-0 shadow-lg text-center">
                 <CardContent className="p-6">
-                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <value.icon className="w-7 h-7 text-white" />
                   </div>
                   <h3 className="font-semibold text-lg mb-2">{value.title}</h3>
@@ -155,8 +155,8 @@ const PlatformAbout: React.FC = () => {
               },
             ].map((belief, index) => (
               <div key={index} className="flex gap-6">
-                <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <belief.icon className="w-6 h-6 text-emerald-600" />
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <belief.icon className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-2">{belief.title}</h3>
@@ -169,7 +169,7 @@ const PlatformAbout: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600">
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Join the Direct Booking Revolution
@@ -179,7 +179,7 @@ const PlatformAbout: React.FC = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth?tab=signup">
+            <Link to="/platform/signup">
               <Button size="lg" className="bg-background text-primary hover:bg-background/90 text-lg px-8">
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />

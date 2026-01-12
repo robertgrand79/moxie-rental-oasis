@@ -86,13 +86,13 @@ const Pricing: React.FC = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/20 dark:via-teal-950/20 dark:to-cyan-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-blue-50 to-indigo-50 dark:from-blue-950/20 dark:via-blue-950/20 dark:to-indigo-950/20" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold mb-6">
             <span className="text-foreground">Simple, Transparent</span>
             <br />
-            <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
               Pricing
             </span>
           </h1>
@@ -110,7 +110,7 @@ const Pricing: React.FC = () => {
               Annual
             </span>
             {isAnnual && (
-              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
                 Save 20%
               </Badge>
             )}
@@ -125,11 +125,11 @@ const Pricing: React.FC = () => {
             {plans.map((plan) => (
               <Card 
                 key={plan.name} 
-                className={`relative ${plan.popular ? 'border-emerald-500 border-2 shadow-xl' : 'border-border shadow-lg'}`}
+                className={`relative ${plan.popular ? 'border-blue-500 border-2 shadow-xl' : 'border-border shadow-lg'}`}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
+                    <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
                       Most Popular
                     </Badge>
                   </div>
@@ -138,7 +138,7 @@ const Pricing: React.FC = () => {
                 <CardHeader className="text-center pb-4">
                   <div className={`w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center ${
                     plan.popular 
-                      ? 'bg-gradient-to-br from-emerald-500 to-teal-600' 
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
                       : 'bg-muted'
                   }`}>
                     <plan.icon className={`w-7 h-7 ${plan.popular ? 'text-white' : 'text-muted-foreground'}`} />
@@ -157,17 +157,17 @@ const Pricing: React.FC = () => {
                       {plan.properties === '1' ? '1 property' : `${plan.properties} properties`}
                     </div>
                     {isAnnual && (
-                      <div className="text-sm text-emerald-600 dark:text-emerald-400 mt-2">
+                      <div className="text-sm text-blue-600 dark:text-blue-400 mt-2">
                         Billed annually (${(plan.annualPrice * 12).toFixed(0)}/year)
                       </div>
                     )}
                   </div>
                   
-                  <Link to="/auth?tab=signup">
+                  <Link to="/platform/signup">
                     <Button 
                       className={`w-full mb-8 h-12 text-base ${
                         plan.popular 
-                          ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white' 
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white' 
                           : ''
                       }`}
                       variant={plan.popular ? 'default' : 'outline'}
@@ -181,7 +181,7 @@ const Pricing: React.FC = () => {
                   <ul className="space-y-3">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-3">
-                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <Check className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                         <span className="text-foreground">{feature}</span>
                       </li>
                     ))}
@@ -212,7 +212,7 @@ const Pricing: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600">
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Start Your Free Trial Today
@@ -221,8 +221,8 @@ const Pricing: React.FC = () => {
             No credit card required. Full access to all features for 14 days.
           </p>
           
-          <Link to="/auth?tab=signup">
-            <Button size="lg" className="bg-white text-emerald-600 hover:bg-white/90 text-lg px-8">
+          <Link to="/platform/signup">
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-white/90 text-lg px-8">
               Get Started Free
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>

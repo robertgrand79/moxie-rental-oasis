@@ -70,7 +70,7 @@ const HeroSection: React.FC = () => {
               size="lg"
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-xl"
             >
-              <Link to="/signup">
+              <Link to="/platform/signup">
                 Start Free Trial
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>

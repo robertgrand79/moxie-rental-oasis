@@ -33,7 +33,7 @@ const CTASection: React.FC = () => {
             size="lg"
             className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-6 text-lg rounded-xl font-semibold"
           >
-            <Link to="/signup">
+            <Link to="/platform/signup">
               Start Your Free Trial
               <ArrowRight className="ml-2 w-5 h-5" />
             </Link>
