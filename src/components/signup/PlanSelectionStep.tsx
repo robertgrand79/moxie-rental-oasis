@@ -74,8 +74,9 @@ const fallbackPlans = [
       'Dedicated account manager',
       'Custom integrations',
     ],
-    cta: 'Start Free Trial',
+    cta: 'Contact Us',
     popular: false,
+    isContactOnly: true,
   },
 ];
 
@@ -105,6 +106,18 @@ export const PlanSelectionStep: React.FC<PlanSelectionStepProps> = ({
   // Transform database templates to display format
   const plans = templates?.length ? templates.map((template) => {
     const isProfessional = template.slug === 'professional' || template.name.toLowerCase() === 'professional';
+    const isPortfolio = template.slug === 'portfolio' || template.name.toLowerCase() === 'portfolio';
+    const isContactOnly = isProfessional || isPortfolio;
+    
+    // Filter out "Unlimited properties" from Professional features
+    let features = template.features && template.features.length > 0 
+      ? template.features 
+      : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []);
+    
+    if (isProfessional) {
+      features = features.filter(f => !f.toLowerCase().includes('unlimited properties'));
+    }
+    
     return {
       name: template.name,
       slug: template.slug,
@@ -120,12 +133,10 @@ export const PlanSelectionStep: React.FC<PlanSelectionStepProps> = ({
             ? 'Unlimited properties'
             : `Up to ${template.max_properties} properties`
         : '',
-      features: template.features && template.features.length > 0 
-        ? template.features 
-        : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []),
-      cta: isProfessional ? 'Contact Us' : 'Start Free Trial',
+      features,
+      cta: isContactOnly ? 'Contact Us' : 'Start Free Trial',
       popular: template.is_popular || false,
-      isContactOnly: isProfessional,
+      isContactOnly,
     };
   }) : fallbackPlans;
 
