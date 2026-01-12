@@ -16,7 +16,21 @@ import {
   Pencil
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { OrganizationTemplate } from '@/hooks/useOrganizationTemplates';
+
+// Interface matching site_templates table
+export interface SiteTemplate {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  monthly_price_cents: number;
+  annual_price_cents: number | null;
+  features: string[] | null;
+  max_properties: number | null;
+  stripe_price_id: string | null;
+  stripe_annual_price_id: string | null;
+  is_popular?: boolean | null;
+}
 
 interface SignupData {
   email: string;
@@ -26,7 +40,7 @@ interface SignupData {
 }
 
 interface AccountDetailsStepProps {
-  selectedTemplate: OrganizationTemplate;
+  selectedTemplate: SiteTemplate;
   onBack: () => void;
   onSubmit: (data: {
     signupData: SignupData;
@@ -98,12 +112,11 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({
     return () => clearTimeout(timer);
   }, [slug, checkSlugAvailability]);
 
-  // Sync demo data default from template
+  // Demo data not available for site_templates flow - always start fresh
+  const includeDemoDataDefault = false;
   useEffect(() => {
-    if (selectedTemplate) {
-      setIncludeDemoData(selectedTemplate.include_demo_data && selectedTemplate.source_organization_id != null);
-    }
-  }, [selectedTemplate]);
+    setIncludeDemoData(includeDemoDataDefault);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,8 +128,8 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({
     });
   };
 
-  const hasDemoDataAvailable = selectedTemplate?.include_demo_data && selectedTemplate?.source_organization_id != null;
-  const pricingTier = selectedTemplate?.pricing_tier;
+  // Site templates don't have demo data - remove this section
+  const hasDemoDataAvailable = false;
 
   return (
     <div className="space-y-6">
@@ -142,11 +155,9 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({
               <CheckCircle2 className="h-5 w-5 text-primary" />
               <div>
                 <span className="font-medium">{selectedTemplate.name}</span>
-                {pricingTier && (
-                  <Badge variant="secondary" className="ml-2">
-                    {formatPrice(pricingTier.monthly_price_cents)}/mo
-                  </Badge>
-                )}
+                <Badge variant="secondary" className="ml-2">
+                  {formatPrice(selectedTemplate.monthly_price_cents)}/mo
+                </Badge>
               </div>
             </div>
             <Button variant="ghost" size="sm" onClick={onBack}>

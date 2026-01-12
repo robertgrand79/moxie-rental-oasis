@@ -3,11 +3,27 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
-import { useOrganizationTemplates, OrganizationTemplate } from '@/hooks/useOrganizationTemplates';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Sparkles, CheckCircle2, Mail } from 'lucide-react';
 import { PlanSelectionStep } from '@/components/signup/PlanSelectionStep';
 import { AccountDetailsStep } from '@/components/signup/AccountDetailsStep';
+
+// Interface for site_templates data
+interface SiteTemplate {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  monthly_price_cents: number;
+  annual_price_cents: number | null;
+  features: string[] | null;
+  max_properties: number | null;
+  stripe_price_id: string | null;
+  stripe_annual_price_id: string | null;
+  is_popular?: boolean | null;
+}
 
 // Interface for pending organization data stored in localStorage
 export interface PendingOrganizationData {
@@ -27,22 +43,35 @@ const PlatformSignup: React.FC = () => {
   
   const [selectedPlanSlug, setSelectedPlanSlug] = useState<string | null>(null);
   const [isYearlyBilling, setIsYearlyBilling] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<OrganizationTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<SiteTemplate | null>(null);
   
   const { signUp, user, loading, roleLoading } = useAuth();
   const { organization, loading: orgLoading } = useCurrentOrganization();
-  const { data: templates } = useOrganizationTemplates();
   const navigate = useNavigate();
+
+  // Fetch templates from site_templates (same source as PlanSelectionStep)
+  const { data: templates } = useQuery({
+    queryKey: ['site-templates-signup'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_templates')
+        .select('*')
+        .order('monthly_price_cents', { ascending: true });
+      
+      if (error) throw error;
+      return data as unknown as SiteTemplate[];
+    },
+  });
 
   // Handle pre-selection from URL param (e.g., /platform/signup?plan=starter)
   useEffect(() => {
     const planParam = searchParams.get('plan');
     if (planParam && templates && !selectedPlanSlug) {
       const matchedTemplate = templates.find(
-        t => t.name.toLowerCase().includes(planParam.toLowerCase())
+        t => t.slug === planParam || t.name.toLowerCase().includes(planParam.toLowerCase())
       );
       if (matchedTemplate) {
-        setSelectedPlanSlug(planParam);
+        setSelectedPlanSlug(matchedTemplate.slug);
         setSelectedTemplate(matchedTemplate);
         setCurrentStep(2);
         // Clean up URL
@@ -55,9 +84,7 @@ const PlatformSignup: React.FC = () => {
   // Set selected template when plan is selected
   useEffect(() => {
     if (selectedPlanSlug && templates) {
-      const template = templates.find(
-        t => t.name.toLowerCase().includes(selectedPlanSlug.toLowerCase())
-      );
+      const template = templates.find(t => t.slug === selectedPlanSlug);
       if (template) {
         setSelectedTemplate(template);
       }
