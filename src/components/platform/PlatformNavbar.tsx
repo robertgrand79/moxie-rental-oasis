@@ -37,7 +37,7 @@ const PlatformNavbar: React.FC = () => {
                 Log In
               </Button>
             </Link>
-            <Link to="/auth?tab=signup">
+            <Link to="/platform/signup">
               <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6">
                 Start Free
               </Button>
@@ -61,7 +61,7 @@ const PlatformNavbar: React.FC = () => {
             <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
               <Button variant="outline" className="w-full">Log In</Button>
             </Link>
-            <Link to="/auth?tab=signup" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/platform/signup" onClick={() => setIsMenuOpen(false)}>
               <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                 Start Free
               </Button>

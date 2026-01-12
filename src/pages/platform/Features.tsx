@@ -109,11 +109,11 @@ const Features: React.FC = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/20 dark:via-teal-950/20 dark:to-cyan-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-blue-50 to-indigo-50 dark:from-blue-950/20 dark:via-blue-950/20 dark:to-indigo-950/20" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
               Powerful Features
             </span>
             <br />
@@ -122,8 +122,8 @@ const Features: React.FC = () => {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
             Everything you need to build your brand, drive direct bookings, and deliver exceptional guest experiences.
           </p>
-          <Link to="/auth?tab=signup">
-            <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white">
+          <Link to="/platform/signup">
+            <Button size="lg" className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white">
               Start Free Trial
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -190,7 +190,7 @@ const Features: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600">
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Ready to Transform Your Business?
@@ -200,8 +200,8 @@ const Features: React.FC = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth?tab=signup">
-              <Button size="lg" className="bg-white text-emerald-600 hover:bg-white/90 text-lg px-8">
+            <Link to="/platform/signup">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-white/90 text-lg px-8">
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>

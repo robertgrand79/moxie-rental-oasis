@@ -193,7 +193,7 @@ const PlatformBlog: React.FC = () => {
             Start your free trial and see how StayMoxie can transform your vacation rental business.
           </p>
           
-          <Link to={`${pathPrefix}/auth?tab=signup`}>
+          <Link to="/platform/signup">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8">
               Start Free Trial
               <ArrowRight className="w-5 h-5 ml-2" />

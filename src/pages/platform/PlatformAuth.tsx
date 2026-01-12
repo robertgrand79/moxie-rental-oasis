@@ -114,7 +114,7 @@ const PlatformAuth: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
@@ -129,10 +129,10 @@ const PlatformAuth: React.FC = () => {
           <CardHeader className="text-center pb-2">
             {/* Logo */}
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                 <Zap className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
                 StayMoxie
               </span>
             </div>
@@ -180,7 +180,7 @@ const PlatformAuth: React.FC = () => {
                   </div>
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" 
+                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white" 
                     disabled={isLoading}
                   >
                     {isLoading ? 'Logging in...' : 'Log In'}
@@ -241,7 +241,7 @@ const PlatformAuth: React.FC = () => {
                   </div>
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" 
+                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white" 
                     disabled={isLoading}
                   >
                     {isLoading ? 'Creating Account...' : 'Create Account'}
@@ -262,7 +262,7 @@ const PlatformAuth: React.FC = () => {
       </div>
 
       {/* Right Side - Benefits (hidden on mobile) */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-12 items-center justify-center">
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-12 items-center justify-center">
         <div className="max-w-md text-white">
           <h2 className="text-3xl font-bold mb-8">
             Start growing your direct bookings today
@@ -277,7 +277,7 @@ const PlatformAuth: React.FC = () => {
               'Multi-channel calendar sync',
             ].map((benefit, index) => (
               <div key={index} className="flex items-center gap-3">
-                <CheckCircle2 className="w-6 h-6 text-emerald-300 flex-shrink-0" />
+                <CheckCircle2 className="w-6 h-6 text-blue-300 flex-shrink-0" />
                 <span className="text-lg">{benefit}</span>
               </div>
             ))}
@@ -285,13 +285,15 @@ const PlatformAuth: React.FC = () => {
           
           <div className="mt-12 p-6 bg-white/10 rounded-xl backdrop-blur">
             <p className="text-white/90 italic mb-4">
-              "StayMoxie helped us increase our direct bookings by 45% in just 3 months. The local content hub is a game-changer."
+              "Built by vacation rental operators for vacation rental operators. We know what it takes to grow direct bookings."
             </p>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full" />
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
               <div>
-                <div className="font-medium">Sarah M.</div>
-                <div className="text-sm text-white/70">Property Manager, 12 units</div>
+                <div className="font-medium">The StayMoxie Team</div>
+                <div className="text-sm text-white/70">Your direct booking partner</div>
               </div>
             </div>
           </div>
