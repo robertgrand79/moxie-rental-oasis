@@ -54,8 +54,9 @@ const fallbackPlans = [
       'Team member access',
       'Priority support',
     ],
-    cta: 'Start Free Trial',
+    cta: 'Contact Us',
     popular: true,
+    isContactOnly: true,
   },
   {
     name: 'Portfolio',
@@ -96,32 +97,39 @@ const PricingSection: React.FC = () => {
   });
 
   // Transform database templates to display format
-  const plans = templates?.length ? templates.map((template) => ({
-    name: template.name,
-    slug: template.slug,
-    description: template.description || '',
-    monthlyPrice: template.monthly_price_cents / 100,
-    yearlyPrice: template.annual_price_cents 
-      ? Math.floor(template.annual_price_cents / 100 / 12) // Show monthly equivalent
-      : Math.floor(template.monthly_price_cents / 100 * 0.83), // 17% discount default
-    properties: template.max_properties 
-      ? template.max_properties === 1 
-        ? '1 property' 
-        : template.max_properties >= 999 
-          ? 'Unlimited properties'
-          : `Up to ${template.max_properties} properties`
-      : '',
-    features: template.features && template.features.length > 0 
-      ? template.features 
-      : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []),
-    cta: 'Start Free Trial',
-    popular: template.is_popular || false,
-    hasStripePrice: !!template.stripe_price_id,
-    hasAnnualPrice: !!template.stripe_annual_price_id,
-  })) : fallbackPlans;
+  const plans = templates?.length ? templates.map((template) => {
+    const isProfessional = template.slug === 'professional' || template.name.toLowerCase() === 'professional';
+    return {
+      name: template.name,
+      slug: template.slug,
+      description: template.description || '',
+      monthlyPrice: template.monthly_price_cents / 100,
+      yearlyPrice: template.annual_price_cents 
+        ? Math.floor(template.annual_price_cents / 100 / 12) // Show monthly equivalent
+        : Math.floor(template.monthly_price_cents / 100 * 0.83), // 17% discount default
+      properties: template.max_properties 
+        ? template.max_properties === 1 
+          ? '1 property' 
+          : template.max_properties >= 999 
+            ? 'Unlimited properties'
+            : `Up to ${template.max_properties} properties`
+        : '',
+      features: template.features && template.features.length > 0 
+        ? template.features 
+        : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []),
+      cta: isProfessional ? 'Contact Us' : 'Start Free Trial',
+      popular: template.is_popular || false,
+      hasStripePrice: !!template.stripe_price_id,
+      hasAnnualPrice: !!template.stripe_annual_price_id,
+      isContactOnly: isProfessional,
+    };
+  }) : fallbackPlans;
 
   const getCtaLink = (plan: typeof plans[0]) => {
-    // All tiers go to consolidated signup
+    // Professional tier goes to contact, others to signup
+    if ('isContactOnly' in plan && plan.isContactOnly) {
+      return `/contact`;
+    }
     return `/platform/signup`;
   };
 
