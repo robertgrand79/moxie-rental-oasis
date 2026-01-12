@@ -79,8 +79,8 @@ const SinglePropertyHome: React.FC = () => {
         {/* Hero Section */}
         <SinglePropertyHero property={property} coverImage={coverImage} />
 
-        {/* Full-Width Sticky Booking Bar */}
-        <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
+        {/* Full-Width Sticky Booking Bar - Desktop Only */}
+        <div className="hidden lg:block sticky top-16 z-40 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
           <div className="container mx-auto px-4">
             <CompactBookingCard property={property} />
           </div>
