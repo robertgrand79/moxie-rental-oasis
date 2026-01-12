@@ -95,7 +95,8 @@ const handler = async (req: Request): Promise<Response> => {
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #667eea; margin: 0;">${siteName}</h1>
+          <h1 style="color: #2563eb; margin: 0; font-size: 32px; font-weight: bold;">${siteName}</h1>
+          <p style="color: #6b7280; margin-top: 8px;">Your Direct Booking Partner</p>
         </div>
         
         <div style="background: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0;">
@@ -111,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${invitationUrl}" 
-               style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+               style="background: linear-gradient(to right, #3b82f6, #2563eb); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
               Accept Invitation
             </a>
           </div>
@@ -119,7 +120,7 @@ const handler = async (req: Request): Promise<Response> => {
           <p style="color: #718096; font-size: 14px; line-height: 1.6;">
             If the button doesn't work, you can copy and paste this link into your browser:
             <br>
-            <a href="${invitationUrl}" style="color: #667eea; word-break: break-all;">${invitationUrl}</a>
+            <a href="${invitationUrl}" style="color: #2563eb; word-break: break-all;">${invitationUrl}</a>
           </p>
           
           <p style="color: #718096; font-size: 14px; line-height: 1.6; margin-top: 20px;">
@@ -129,6 +130,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         <div style="text-align: center; margin-top: 30px; color: #a0aec0; font-size: 12px;">
           <p>© ${new Date().getFullYear()} ${siteName}. All rights reserved.</p>
+          <p style="margin-top: 8px;">Built by vacation rental operators, for vacation rental operators.</p>
         </div>
       </div>
     `;
