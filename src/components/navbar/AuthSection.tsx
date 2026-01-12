@@ -42,7 +42,7 @@ const AuthSection = () => {
   const displayName = user?.user_metadata?.full_name || user?.email || 'User';
 
   return (
-    <div className="flex items-center space-x-3">
+    <div className="hidden lg:flex items-center space-x-3">
       {user ? (
         <>
           <Button
