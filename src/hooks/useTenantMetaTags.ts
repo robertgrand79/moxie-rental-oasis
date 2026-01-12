@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTenant } from '@/contexts/TenantContext';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -32,6 +33,21 @@ const DEFAULT_SETTINGS: TenantMetaSettings = {
   twitterSite: '',
 };
 
+// Hard-coded platform settings for staymoxie.com
+const PLATFORM_SETTINGS: TenantMetaSettings = {
+  siteTitle: 'StayMoxie',
+  siteName: 'StayMoxie',
+  favicon: '/moxie-favicon.svg',
+  metaDescription: 'The local market platform for vacation rentals. Build a direct booking site with blog, newsletter, events, and local guides.',
+  ogTitle: 'StayMoxie - Direct Booking Platform',
+  ogDescription: 'Build a direct booking site with blog, newsletter, events, and local guides that drives SEO traffic and keeps guests coming back.',
+  ogImage: '',
+  keywords: 'vacation rental, direct booking, property management, local marketing',
+  canonicalBase: 'https://staymoxie.com',
+  twitterCardType: 'summary_large_image',
+  twitterSite: '@staymoxie',
+};
+
 /**
  * Fetches and applies tenant-specific meta tags (title, favicon, OG tags, Twitter Cards)
  * Works for unauthenticated visitors using tenantId from TenantContext
@@ -39,10 +55,16 @@ const DEFAULT_SETTINGS: TenantMetaSettings = {
 export const useTenantMetaTags = () => {
   const location = useLocation();
   const { tenantId, loading: tenantLoading } = useTenant();
+  const { isPlatformSite } = usePlatform();
 
   const { data: settings } = useQuery({
-    queryKey: ['tenant-meta-tags', tenantId],
+    queryKey: ['tenant-meta-tags', tenantId, isPlatformSite],
     queryFn: async (): Promise<TenantMetaSettings> => {
+      // Use hard-coded platform settings for staymoxie.com
+      if (isPlatformSite) {
+        return PLATFORM_SETTINGS;
+      }
+      
       if (!tenantId) {
         return DEFAULT_SETTINGS;
       }
