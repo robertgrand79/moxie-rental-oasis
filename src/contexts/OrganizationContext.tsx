@@ -83,7 +83,27 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       debug.org('Fetching organization data for user:', user.email);
 
-      // Fetch organization membership (most recent) and platform admin status in parallel
+      // Detect which organization to select based on current domain
+      const hostname = window.location.hostname.replace(/^www\./, '');
+      const PLATFORM_DOMAIN = 'staymoxie.com';
+      let domainOrgSlug: string | null = null;
+      let domainCustomDomain: string | null = null;
+      
+      // Check for subdomain (e.g., moxie.staymoxie.com)
+      if (hostname.endsWith(`.${PLATFORM_DOMAIN}`)) {
+        domainOrgSlug = hostname.replace(`.${PLATFORM_DOMAIN}`, '');
+        debug.org('Detected subdomain org slug:', domainOrgSlug);
+      } 
+      // Check for custom domain (not staymoxie.com, not localhost, not lovable)
+      else if (!hostname.includes('lovable.app') && 
+               !hostname.includes('localhost') && 
+               !hostname.includes('127.0.0.1') &&
+               hostname !== PLATFORM_DOMAIN) {
+        domainCustomDomain = hostname;
+        debug.org('Detected custom domain:', domainCustomDomain);
+      }
+
+      // Fetch ALL organization memberships and platform admin status in parallel
       const [membershipResult, platformAdminResult] = await Promise.all([
         supabase
           .from('organization_members')
@@ -92,9 +112,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             organization:organizations(*)
           `)
           .eq('user_id', user.id)
-          .order('joined_at', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
+          .order('joined_at', { ascending: true }), // Oldest first (primary)
         supabase
           .from('platform_admins')
           .select('*')
@@ -112,19 +130,47 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         debug.warn('Error fetching platform admin status:', platformAdminResult.error);
       }
 
-      // Set organization and membership data
-      if (membershipResult.data) {
-        const memberData = membershipResult.data as any;
-        debug.org('Organization found:', memberData.organization?.name);
+      // Set organization and membership data - prioritize domain matching
+      const memberships = membershipResult.data as any[];
+      
+      if (memberships && memberships.length > 0) {
+        let selectedMember: any = null;
+        
+        // Priority 1: Match by custom domain
+        if (domainCustomDomain) {
+          selectedMember = memberships.find((m: any) => 
+            m.organization?.custom_domain?.replace(/^www\./, '') === domainCustomDomain
+          );
+          if (selectedMember) {
+            debug.org('Organization matched by custom domain:', selectedMember.organization?.name);
+          }
+        }
+        
+        // Priority 2: Match by subdomain slug
+        if (!selectedMember && domainOrgSlug) {
+          selectedMember = memberships.find((m: any) => 
+            m.organization?.slug === domainOrgSlug
+          );
+          if (selectedMember) {
+            debug.org('Organization matched by subdomain:', selectedMember.organization?.name);
+          }
+        }
+        
+        // Priority 3: Fall back to oldest (primary) organization
+        if (!selectedMember) {
+          selectedMember = memberships[0]; // Already sorted oldest first
+          debug.org('Using primary (oldest) organization:', selectedMember.organization?.name);
+        }
+        
         setMembership({
-          id: memberData.id,
-          organization_id: memberData.organization_id,
-          user_id: memberData.user_id,
-          role: memberData.role,
-          invited_by: memberData.invited_by,
-          joined_at: memberData.joined_at,
+          id: selectedMember.id,
+          organization_id: selectedMember.organization_id,
+          user_id: selectedMember.user_id,
+          role: selectedMember.role,
+          invited_by: selectedMember.invited_by,
+          joined_at: selectedMember.joined_at,
         });
-        setOrganization(memberData.organization as Organization);
+        setOrganization(selectedMember.organization as Organization);
         retryCountRef.current = 0;
       } else {
         // No organization found - retry once if this is first attempt
