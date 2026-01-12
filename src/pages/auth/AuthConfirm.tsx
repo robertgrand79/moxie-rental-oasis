@@ -110,12 +110,13 @@ const AuthConfirm: React.FC = () => {
             }, 1500);
           }
         } else {
-          // No pending organization - just redirect to next
+          // No pending organization - redirect to signup to create one
+          // (Don't use 'next' param since the user needs an org first)
           setStatus('success');
 
           setTimeout(() => {
             // Use a hard navigation so auth/session + org context initialize cleanly.
-            window.location.href = next;
+            window.location.href = '/signup';
           }, 1500);
         }
       } catch (err) {
