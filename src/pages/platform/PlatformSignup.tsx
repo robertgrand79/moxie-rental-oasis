@@ -1,27 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationTemplates, OrganizationTemplate } from '@/hooks/useOrganizationTemplates';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { 
-  Sparkles, 
-  ArrowRight, 
-  CheckCircle2, 
-  Loader2, 
-  XCircle, 
-  Building2,
-  Package,
-  Mail
-} from 'lucide-react';
-import { TemplateCard } from '@/components/signup/TemplateCard';
-import { TemplatePreviewDrawer } from '@/components/signup/TemplatePreviewDrawer';
+import { Sparkles, CheckCircle2, Mail } from 'lucide-react';
+import { PlanSelectionStep } from '@/components/signup/PlanSelectionStep';
+import { AccountDetailsStep } from '@/components/signup/AccountDetailsStep';
 
 // Interface for pending organization data stored in localStorage
 export interface PendingOrganizationData {
@@ -32,29 +18,37 @@ export interface PendingOrganizationData {
 }
 
 const PlatformSignup: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState('');
+  const [submittedOrgName, setSubmittedOrgName] = useState('');
   
-  // Personal info
-  const [signupData, setSignupData] = useState({ 
-    email: '', 
-    password: '', 
-    fullName: '', 
-    phone: '' 
-  });
-  
-  // Organization info
-  const [orgName, setOrgName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [selectedTemplate, setSelectedTemplate] = useState<OrganizationTemplate | null>(null);
-  const [previewTemplate, setPreviewTemplate] = useState<OrganizationTemplate | null>(null);
-  const [includeDemoData, setIncludeDemoData] = useState(true);
   
   const { signUp, user, loading, roleLoading } = useAuth();
   const { organization, loading: orgLoading } = useCurrentOrganization();
   const { data: templates, isLoading: loadingTemplates } = useOrganizationTemplates();
   const navigate = useNavigate();
+
+  // Handle pre-selection from URL param (e.g., /platform/signup?plan=starter)
+  useEffect(() => {
+    const planParam = searchParams.get('plan');
+    if (planParam && templates && !selectedTemplate) {
+      const matchedTemplate = templates.find(
+        t => t.name.toLowerCase().includes(planParam.toLowerCase())
+      );
+      if (matchedTemplate) {
+        setSelectedTemplate(matchedTemplate);
+        // Optionally skip to step 2 if plan is pre-selected
+        setCurrentStep(2);
+        // Clean up URL
+        searchParams.delete('plan');
+        setSearchParams(searchParams, { replace: true });
+      }
+    }
+  }, [templates, searchParams, setSearchParams, selectedTemplate]);
 
   // Redirect authenticated users based on organization status
   useEffect(() => {
@@ -72,54 +66,30 @@ const PlatformSignup: React.FC = () => {
     }
   }, [user, loading, roleLoading, orgLoading, organization, navigate]);
 
-  // Auto-generate slug from org name
-  useEffect(() => {
-    const generatedSlug = orgName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 30);
-    setSlug(generatedSlug);
-  }, [orgName]);
+  const handleSelectTemplate = (template: OrganizationTemplate) => {
+    setSelectedTemplate(template);
+  };
 
-  // Check slug availability with debounce
-  const checkSlugAvailability = useCallback(async (slugToCheck: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.rpc('is_slug_available', { _slug: slugToCheck });
-      if (error) return false;
-      return data as boolean;
-    } catch {
-      return false;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!slug || slug.length < 3) {
-      setSlugStatus('idle');
-      return;
-    }
-
-    setSlugStatus('checking');
-    const timer = setTimeout(async () => {
-      const available = await checkSlugAvailability(slug);
-      setSlugStatus(available ? 'available' : 'taken');
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [slug, checkSlugAvailability]);
-
-  // When template is selected, sync its demo data default
-  useEffect(() => {
+  const handleContinueToDetails = () => {
     if (selectedTemplate) {
-      setIncludeDemoData(selectedTemplate.include_demo_data && selectedTemplate.source_organization_id != null);
+      setCurrentStep(2);
     }
-  }, [selectedTemplate]);
+  };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleBackToPlanSelection = () => {
+    setCurrentStep(1);
+  };
+
+  const handleSignup = async (data: {
+    signupData: { email: string; password: string; fullName: string; phone: string };
+    orgName: string;
+    slug: string;
+    includeDemoData: boolean;
+  }) => {
+    if (!selectedTemplate) return;
     
-    // Validate all fields
-    if (!signupData.fullName || !signupData.email || !signupData.password) {
+    // Validate fields
+    if (!data.signupData.fullName || !data.signupData.email || !data.signupData.password) {
       toast({
         title: 'Missing Information',
         description: 'Please fill in your name, email, and password.',
@@ -128,19 +98,10 @@ const PlatformSignup: React.FC = () => {
       return;
     }
     
-    if (!orgName || !slug || slugStatus !== 'available') {
+    if (!data.orgName || !data.slug) {
       toast({
         title: 'Missing Organization Info',
-        description: 'Please enter your business name and ensure the URL is available.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
-    if (!selectedTemplate) {
-      toast({
-        title: 'Select a Template',
-        description: 'Please choose a template for your site.',
+        description: 'Please enter your business name and site URL.',
         variant: 'destructive'
       });
       return;
@@ -151,19 +112,19 @@ const PlatformSignup: React.FC = () => {
     try {
       // Store pending organization data BEFORE signup
       const pendingData: PendingOrganizationData = {
-        name: orgName,
-        slug,
+        name: data.orgName,
+        slug: data.slug,
         templateId: selectedTemplate.id,
-        includeDemoData
+        includeDemoData: data.includeDemoData
       };
       localStorage.setItem('pendingOrganization', JSON.stringify(pendingData));
       
       // Perform signup
       const { error } = await signUp(
-        signupData.email, 
-        signupData.password, 
-        signupData.fullName, 
-        signupData.phone || undefined
+        data.signupData.email, 
+        data.signupData.password, 
+        data.signupData.fullName, 
+        data.signupData.phone || undefined
       );
       
       if (error) {
@@ -181,6 +142,8 @@ const PlatformSignup: React.FC = () => {
           variant: 'destructive'
         });
       } else {
+        setSubmittedEmail(data.signupData.email);
+        setSubmittedOrgName(data.orgName);
         setEmailSent(true);
         toast({
           title: 'Check Your Email!',
@@ -222,7 +185,7 @@ const PlatformSignup: React.FC = () => {
             </div>
             <h2 className="text-2xl font-bold mb-2">Check Your Email</h2>
             <p className="text-muted-foreground mb-6">
-              We sent a verification link to <strong>{signupData.email}</strong>
+              We sent a verification link to <strong>{submittedEmail}</strong>
             </p>
             <div className="space-y-4 text-left bg-muted/50 rounded-lg p-4">
               <div className="flex items-start gap-3">
@@ -231,7 +194,7 @@ const PlatformSignup: React.FC = () => {
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-sm">Your organization <strong>{orgName}</strong> will be created automatically</span>
+                <span className="text-sm">Your organization <strong>{submittedOrgName}</strong> will be created automatically</span>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
@@ -241,7 +204,10 @@ const PlatformSignup: React.FC = () => {
             <p className="text-xs text-muted-foreground mt-6">
               Didn't receive the email? Check your spam folder or{' '}
               <button 
-                onClick={() => setEmailSent(false)}
+                onClick={() => {
+                  setEmailSent(false);
+                  setCurrentStep(2);
+                }}
                 className="text-primary hover:underline"
               >
                 try again
@@ -253,293 +219,53 @@ const PlatformSignup: React.FC = () => {
     );
   }
 
-  const hasDemoDataAvailable = selectedTemplate?.include_demo_data && selectedTemplate?.source_organization_id != null;
-
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-start justify-center p-6 lg:p-8 overflow-y-auto">
-        <div className="w-full max-w-lg space-y-6 py-4">
-          {/* Header */}
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-                StayMoxie
-              </span>
+    <div className="min-h-screen bg-muted/30 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-2 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold">Start Your Free Trial</h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Set up your account and direct booking site in minutes
-            </p>
-          </div>
-
-          <form onSubmit={handleSignup} className="space-y-6">
-            {/* Section 1: Personal Info */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">1</span>
-                  Your Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      value={signupData.fullName}
-                      onChange={(e) => setSignupData(prev => ({ ...prev, fullName: e.target.value }))}
-                      required
-                      disabled={isLoading}
-                      placeholder="John Smith"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-phone">
-                      Phone <span className="text-muted-foreground text-xs">(optional)</span>
-                    </Label>
-                    <Input
-                      id="signup-phone"
-                      type="tel"
-                      value={signupData.phone}
-                      onChange={(e) => setSignupData(prev => ({ ...prev, phone: e.target.value }))}
-                      disabled={isLoading}
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    value={signupData.email}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                    disabled={isLoading}
-                    placeholder="you@example.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={signupData.password}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
-                    required
-                    disabled={isLoading}
-                    minLength={6}
-                    placeholder="••••••••"
-                  />
-                  <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Section 2: Business Info */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">2</span>
-                  Your Business
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="org-name">Business / Organization Name</Label>
-                  <Input
-                    id="org-name"
-                    type="text"
-                    value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    placeholder="My Vacation Rentals"
-                    minLength={2}
-                    maxLength={100}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Site URL</Label>
-                  <div className="relative">
-                    <Input
-                      id="slug"
-                      type="text"
-                      value={slug}
-                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                      required
-                      disabled={isLoading}
-                      placeholder="my-rentals"
-                      minLength={3}
-                      maxLength={30}
-                      className="pr-10"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      {slugStatus === 'checking' && (
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                      )}
-                      {slugStatus === 'available' && (
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      )}
-                      {slugStatus === 'taken' && (
-                        <XCircle className="h-4 w-4 text-destructive" />
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Your site: <span className="font-mono">{slug || 'your-slug'}.staymoxie.com</span>
-                  </p>
-                  {slugStatus === 'taken' && (
-                    <p className="text-xs text-destructive">This URL is already taken</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Section 3: Template Selection */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">3</span>
-                  Choose Your Template
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Select the template that best fits your needs
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {loadingTemplates ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                  </div>
-                ) : (
-                  <div className="grid gap-4">
-                    {templates?.map((template) => (
-                      <TemplateCard
-                        key={template.id}
-                        template={template}
-                        isSelected={selectedTemplate?.id === template.id}
-                        onSelect={() => setSelectedTemplate(template)}
-                        onPreview={() => setPreviewTemplate(template)}
-                        compact
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* Demo Data Toggle */}
-                {hasDemoDataAvailable && (
-                  <div className="flex items-center justify-between rounded-lg border p-3 bg-green-500/5 border-green-500/20">
-                    <div className="flex items-start gap-3">
-                      <Package className="h-5 w-5 text-green-600 mt-0.5" />
-                      <div>
-                        <Label htmlFor="demo-data" className="text-sm font-medium cursor-pointer">
-                          Include sample content
-                        </Label>
-                        <p className="text-xs text-muted-foreground">
-                          Start with demo properties, blog posts, and more
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      id="demo-data"
-                      checked={includeDemoData}
-                      onCheckedChange={setIncludeDemoData}
-                      className="data-[state=checked]:bg-green-500"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white h-12 text-base" 
-              disabled={isLoading || slugStatus === 'checking' || slugStatus === 'taken' || !selectedTemplate}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                <>
-                  Create Account & Start Free Trial
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-            
-            <p className="text-xs text-muted-foreground text-center">
-              By signing up, you agree to our{' '}
-              <a href="/terms" className="underline">Terms of Service</a>{' '}
-              and{' '}
-              <a href="/privacy" className="underline">Privacy Policy</a>.
-            </p>
-            
-            <div className="text-center text-sm text-muted-foreground">
-              Already have an account?{' '}
-              <Link to="/auth" className="text-primary hover:underline font-medium">
-                Log in
-              </Link>
-            </div>
-          </form>
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+              StayMoxie
+            </span>
+          </Link>
         </div>
-      </div>
 
-      {/* Right Side - Benefits (hidden on mobile) */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-12 items-center justify-center sticky top-0 h-screen">
-        <div className="max-w-md text-white">
-          <h2 className="text-3xl font-bold mb-8">
-            Start growing your direct bookings today
-          </h2>
-          
-          <div className="space-y-6">
-            {[
-              'Direct booking engine with Stripe payments',
-              'Local content hub for SEO domination',
-              'AI-powered guest messaging',
-              'Smart home integration',
-              'Multi-channel calendar sync',
-            ].map((benefit, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <CheckCircle2 className="w-6 h-6 text-blue-300 flex-shrink-0" />
-                <span className="text-lg">{benefit}</span>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-12 p-6 bg-white/10 rounded-xl backdrop-blur">
-            <p className="text-white/90 italic mb-4">
-              "Built by vacation rental operators for vacation rental operators. We know what it takes to grow direct bookings."
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="font-medium">The StayMoxie Team</div>
-                <div className="text-sm text-white/70">Your direct booking partner</div>
-              </div>
-            </div>
-          </div>
+        {/* Step Content */}
+        <div className={currentStep === 1 ? '' : 'max-w-lg mx-auto'}>
+          {currentStep === 1 ? (
+            <PlanSelectionStep
+              templates={templates}
+              loadingTemplates={loadingTemplates}
+              selectedTemplate={selectedTemplate}
+              onSelectTemplate={handleSelectTemplate}
+              onContinue={handleContinueToDetails}
+            />
+          ) : (
+            selectedTemplate && (
+              <AccountDetailsStep
+                selectedTemplate={selectedTemplate}
+                onBack={handleBackToPlanSelection}
+                onSubmit={handleSignup}
+                isLoading={isLoading}
+              />
+            )
+          )}
         </div>
-      </div>
 
-      {/* Preview Drawer */}
-      <TemplatePreviewDrawer
-        template={previewTemplate}
-        isOpen={!!previewTemplate}
-        onClose={() => setPreviewTemplate(null)}
-        onSelect={(template) => setSelectedTemplate(template)}
-      />
+        {/* Login Link for Step 1 */}
+        {currentStep === 1 && (
+          <div className="text-center mt-8 text-sm text-muted-foreground">
+            Already have an account?{' '}
+            <Link to="/auth" className="text-primary hover:underline font-medium">
+              Log in
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
