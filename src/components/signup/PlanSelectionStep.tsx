@@ -1,91 +1,258 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowRight } from 'lucide-react';
-import { TemplateCard } from './TemplateCard';
-import { TemplatePreviewDrawer } from './TemplatePreviewDrawer';
-import { OrganizationTemplate } from '@/hooks/useOrganizationTemplates';
+import { Check, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+interface SiteTemplate {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  monthly_price_cents: number;
+  annual_price_cents: number | null;
+  features: string[] | null;
+  max_properties: number | null;
+  stripe_price_id: string | null;
+  stripe_annual_price_id: string | null;
+  is_popular?: boolean | null;
+}
+
+// Fallback static plans if database fetch fails
+const fallbackPlans = [
+  {
+    name: 'Starter',
+    slug: 'starter',
+    description: 'Perfect for owners with one vacation rental property',
+    monthlyPrice: 79.99,
+    yearlyPrice: 66,
+    properties: '1 property',
+    features: [
+      'Custom branded website',
+      'Direct booking engine',
+      'Stripe payment processing',
+      'Guest communication tools',
+      'Digital guidebook',
+      'Calendar sync with Airbnb/VRBO',
+    ],
+    cta: 'Start Free Trial',
+    popular: false,
+  },
+  {
+    name: 'Professional',
+    slug: 'professional',
+    description: 'For property managers with multiple vacation rentals',
+    monthlyPrice: 179.99,
+    yearlyPrice: 149,
+    properties: 'Up to 5 properties',
+    features: [
+      'Everything in Single Property',
+      'Unlimited properties',
+      'Property search & listings',
+      'Multi-property calendar',
+      'Team member access',
+      'Advanced analytics',
+    ],
+    cta: 'Start Free Trial',
+    popular: true,
+  },
+  {
+    name: 'Portfolio',
+    slug: 'portfolio',
+    description: 'Unlimited properties',
+    monthlyPrice: 299.99,
+    yearlyPrice: 249,
+    properties: 'Unlimited properties',
+    features: [
+      'Everything in Professional',
+      'Moxie AI (unlimited)',
+      'White-label branding',
+      'API access',
+      'Owner reporting portal',
+      'Dedicated account manager',
+      'Custom integrations',
+    ],
+    cta: 'Start Free Trial',
+    popular: false,
+  },
+];
 
 interface PlanSelectionStepProps {
-  templates: OrganizationTemplate[] | undefined;
-  loadingTemplates: boolean;
-  selectedTemplate: OrganizationTemplate | null;
-  onSelectTemplate: (template: OrganizationTemplate) => void;
-  onContinue: () => void;
+  onSelectPlan: (planSlug: string, isYearly: boolean) => void;
 }
 
 export const PlanSelectionStep: React.FC<PlanSelectionStepProps> = ({
-  templates,
-  loadingTemplates,
-  selectedTemplate,
-  onSelectTemplate,
-  onContinue,
+  onSelectPlan,
 }) => {
-  const [previewTemplate, setPreviewTemplate] = React.useState<OrganizationTemplate | null>(null);
+  const [isYearly, setIsYearly] = useState(false);
+
+  // Fetch templates from database
+  const { data: templates, isLoading } = useQuery({
+    queryKey: ['site-templates-signup'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_templates')
+        .select('*')
+        .order('monthly_price_cents', { ascending: true });
+      
+      if (error) throw error;
+      return data as unknown as SiteTemplate[];
+    },
+  });
+
+  // Transform database templates to display format
+  const plans = templates?.length ? templates.map((template) => ({
+    name: template.name,
+    slug: template.slug,
+    description: template.description || '',
+    monthlyPrice: template.monthly_price_cents / 100,
+    yearlyPrice: template.annual_price_cents 
+      ? Math.floor(template.annual_price_cents / 100 / 12)
+      : Math.floor(template.monthly_price_cents / 100 * 0.83),
+    properties: template.max_properties 
+      ? template.max_properties === 1 
+        ? '1 property' 
+        : template.max_properties >= 999 
+          ? 'Unlimited properties'
+          : `Up to ${template.max_properties} properties`
+      : '',
+    features: template.features && template.features.length > 0 
+      ? template.features 
+      : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []),
+    cta: 'Start Free Trial',
+    popular: template.is_popular || false,
+  })) : fallbackPlans;
 
   return (
-    <div className="space-y-8">
-      {/* Step Indicator */}
-      <div className="text-center">
-        <div className="inline-flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-            1
-          </span>
-          <span>Step 1 of 2</span>
-        </div>
-        <h1 className="text-2xl font-bold">Choose Your Plan</h1>
-        <p className="text-muted-foreground mt-2">
-          Select the template that best fits your needs
-        </p>
-      </div>
-
-      {/* Template Cards */}
-      {loadingTemplates ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {templates?.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              isSelected={selectedTemplate?.id === template.id}
-              onSelect={() => onSelectTemplate(template)}
-              onPreview={() => setPreviewTemplate(template)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Continue Button */}
-      <div className="flex flex-col items-center gap-4 pt-4">
-        <Button
-          size="lg"
-          className="w-full max-w-sm bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white h-12"
-          disabled={!selectedTemplate}
-          onClick={onContinue}
-        >
-          Continue
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-        
-        {!selectedTemplate && (
-          <p className="text-sm text-muted-foreground">
-            Select a plan to continue
+    <div className="min-h-screen bg-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Section header */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 font-fraunces">
+            Simple, transparent pricing
+          </h1>
+          <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
+            No hidden fees. No per-booking charges. Just one flat rate.
           </p>
-        )}
-      </div>
 
-      {/* Preview Drawer */}
-      <TemplatePreviewDrawer
-        template={previewTemplate}
-        isOpen={!!previewTemplate}
-        onClose={() => setPreviewTemplate(null)}
-        onSelect={(template) => {
-          onSelectTemplate(template);
-          setPreviewTemplate(null);
-        }}
-      />
+          {/* Billing toggle */}
+          <div className="inline-flex items-center bg-gray-100 rounded-full p-1 mt-8">
+            <button
+              onClick={() => setIsYearly(false)}
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
+                !isYearly
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setIsYearly(true)}
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
+                isYearly
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Yearly
+              <span className="ml-1 text-green-600 text-xs">(Save 17%)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        )}
+
+        {/* Pricing cards */}
+        {!isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {plans.map((plan) => (
+              <div
+                key={plan.name}
+                className={`relative rounded-3xl p-8 ${
+                  plan.popular
+                    ? 'bg-blue-600 text-white ring-4 ring-blue-600 ring-offset-4'
+                    : 'bg-gray-50 border border-gray-200'
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-yellow-400 text-yellow-900 text-sm font-semibold rounded-full">
+                    Most Popular
+                  </div>
+                )}
+
+                <div className="mb-6">
+                  <h3 className={`text-xl font-bold font-fraunces ${plan.popular ? 'text-white' : 'text-gray-900'}`}>
+                    {plan.name}
+                  </h3>
+                  <p className={`text-sm mt-1 ${plan.popular ? 'text-blue-100' : 'text-gray-500'}`}>
+                    {plan.description}
+                  </p>
+                </div>
+
+                <div className="mb-6">
+                  <span className={`text-5xl font-bold font-fraunces ${plan.popular ? 'text-white' : 'text-gray-900'}`}>
+                    ${isYearly ? plan.yearlyPrice : plan.monthlyPrice}
+                  </span>
+                  <span className={`text-sm ${plan.popular ? 'text-blue-100' : 'text-gray-500'}`}>
+                    /month
+                  </span>
+                  {isYearly && (
+                    <span className={`block text-xs mt-1 ${plan.popular ? 'text-blue-200' : 'text-gray-400'}`}>
+                      billed annually
+                    </span>
+                  )}
+                  <p className={`text-sm mt-2 font-medium ${plan.popular ? 'text-blue-100' : 'text-gray-600'}`}>
+                    {plan.properties}
+                  </p>
+                </div>
+
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                        plan.popular ? 'bg-blue-500' : 'bg-blue-100'
+                      }`}>
+                        <Check className={`w-3 h-3 ${plan.popular ? 'text-white' : 'text-blue-600'}`} />
+                      </div>
+                      <span className={`text-sm ${plan.popular ? 'text-blue-50' : 'text-gray-600'}`}>
+                        {feature}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  onClick={() => onSelectPlan(plan.slug, isYearly)}
+                  className={`w-full py-6 text-lg font-semibold rounded-xl ${
+                    plan.popular
+                      ? 'bg-white text-blue-600 hover:bg-blue-50'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {plan.cta}
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Footer links */}
+        <div className="text-center mt-12">
+          <p className="text-gray-600">
+            Already have an account?{' '}
+            <Link to="/auth" className="text-blue-600 font-semibold hover:underline">
+              Log in
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

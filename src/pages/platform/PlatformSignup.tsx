@@ -25,30 +25,44 @@ const PlatformSignup: React.FC = () => {
   const [submittedEmail, setSubmittedEmail] = useState('');
   const [submittedOrgName, setSubmittedOrgName] = useState('');
   
+  const [selectedPlanSlug, setSelectedPlanSlug] = useState<string | null>(null);
+  const [isYearlyBilling, setIsYearlyBilling] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<OrganizationTemplate | null>(null);
   
   const { signUp, user, loading, roleLoading } = useAuth();
   const { organization, loading: orgLoading } = useCurrentOrganization();
-  const { data: templates, isLoading: loadingTemplates } = useOrganizationTemplates();
+  const { data: templates } = useOrganizationTemplates();
   const navigate = useNavigate();
 
   // Handle pre-selection from URL param (e.g., /platform/signup?plan=starter)
   useEffect(() => {
     const planParam = searchParams.get('plan');
-    if (planParam && templates && !selectedTemplate) {
+    if (planParam && templates && !selectedPlanSlug) {
       const matchedTemplate = templates.find(
         t => t.name.toLowerCase().includes(planParam.toLowerCase())
       );
       if (matchedTemplate) {
+        setSelectedPlanSlug(planParam);
         setSelectedTemplate(matchedTemplate);
-        // Optionally skip to step 2 if plan is pre-selected
         setCurrentStep(2);
         // Clean up URL
         searchParams.delete('plan');
         setSearchParams(searchParams, { replace: true });
       }
     }
-  }, [templates, searchParams, setSearchParams, selectedTemplate]);
+  }, [templates, searchParams, setSearchParams, selectedPlanSlug]);
+
+  // Set selected template when plan is selected
+  useEffect(() => {
+    if (selectedPlanSlug && templates) {
+      const template = templates.find(
+        t => t.name.toLowerCase().includes(selectedPlanSlug.toLowerCase())
+      );
+      if (template) {
+        setSelectedTemplate(template);
+      }
+    }
+  }, [selectedPlanSlug, templates]);
 
   // Redirect authenticated users based on organization status
   useEffect(() => {
@@ -66,14 +80,10 @@ const PlatformSignup: React.FC = () => {
     }
   }, [user, loading, roleLoading, orgLoading, organization, navigate]);
 
-  const handleSelectTemplate = (template: OrganizationTemplate) => {
-    setSelectedTemplate(template);
-  };
-
-  const handleContinueToDetails = () => {
-    if (selectedTemplate) {
-      setCurrentStep(2);
-    }
+  const handleSelectPlan = (planSlug: string, isYearly: boolean) => {
+    setSelectedPlanSlug(planSlug);
+    setIsYearlyBilling(isYearly);
+    setCurrentStep(2);
   };
 
   const handleBackToPlanSelection = () => {
@@ -219,9 +229,15 @@ const PlatformSignup: React.FC = () => {
     );
   }
 
+  // Step 1: Full-page pricing view (matches homepage)
+  if (currentStep === 1) {
+    return <PlanSelectionStep onSelectPlan={handleSelectPlan} />;
+  }
+
+  // Step 2: Account details form
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
@@ -234,36 +250,14 @@ const PlatformSignup: React.FC = () => {
           </Link>
         </div>
 
-        {/* Step Content */}
-        <div className={currentStep === 1 ? '' : 'max-w-lg mx-auto'}>
-          {currentStep === 1 ? (
-            <PlanSelectionStep
-              templates={templates}
-              loadingTemplates={loadingTemplates}
-              selectedTemplate={selectedTemplate}
-              onSelectTemplate={handleSelectTemplate}
-              onContinue={handleContinueToDetails}
-            />
-          ) : (
-            selectedTemplate && (
-              <AccountDetailsStep
-                selectedTemplate={selectedTemplate}
-                onBack={handleBackToPlanSelection}
-                onSubmit={handleSignup}
-                isLoading={isLoading}
-              />
-            )
-          )}
-        </div>
-
-        {/* Login Link for Step 1 */}
-        {currentStep === 1 && (
-          <div className="text-center mt-8 text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link to="/auth" className="text-primary hover:underline font-medium">
-              Log in
-            </Link>
-          </div>
+        {/* Account Details Step */}
+        {selectedTemplate && (
+          <AccountDetailsStep
+            selectedTemplate={selectedTemplate}
+            onBack={handleBackToPlanSelection}
+            onSubmit={handleSignup}
+            isLoading={isLoading}
+          />
         )}
       </div>
     </div>
