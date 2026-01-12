@@ -48,6 +48,24 @@ export const useOrganizationOperations = () => {
 
       if (profileError) throw profileError;
 
+      // Automatically provision subdomain via Cloudflare
+      try {
+        const { error: provisionError } = await supabase.functions.invoke('provision-subdomain', {
+          body: {
+            organization_id: org.id,
+            slug: data.slug,
+          },
+        });
+
+        if (provisionError) {
+          console.error('Subdomain provisioning failed:', provisionError);
+          // Don't throw - org creation succeeded, subdomain can be retried
+        }
+      } catch (provisionErr) {
+        console.error('Subdomain provisioning error:', provisionErr);
+        // Non-blocking - org creation still succeeds
+      }
+
       toast({
         title: 'Success',
         description: 'Organization created successfully',
