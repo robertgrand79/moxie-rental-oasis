@@ -25,22 +25,12 @@ interface SiteTemplate {
   is_popular?: boolean | null;
 }
 
-// Interface for pending organization data stored in localStorage
-export interface PendingOrganizationData {
-  name: string;
-  slug: string;
-  templateId: string;
-  includeDemoData: boolean;
-  planSlug: string; // 'single_property' or 'multi_property' tier
-}
-
 const PlatformSignup: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
-  const [submittedOrgName, setSubmittedOrgName] = useState('');
   
   const [selectedPlanSlug, setSelectedPlanSlug] = useState<string | null>(null);
   const [isYearlyBilling, setIsYearlyBilling] = useState(false);
@@ -98,12 +88,8 @@ const PlatformSignup: React.FC = () => {
       if (organization?.slug) {
         window.location.href = `/admin?org=${organization.slug}`;
       } else {
-        // User is logged in but no org - they might have pending data
-        const pending = localStorage.getItem('pendingOrganization');
-        if (pending) {
-          // Redirect to complete org creation
-          navigate('/signup', { replace: true });
-        }
+        // User is logged in but no org - redirect to org creation
+        navigate('/signup', { replace: true });
       }
     }
   }, [user, loading, roleLoading, orgLoading, organization, navigate]);
@@ -120,9 +106,6 @@ const PlatformSignup: React.FC = () => {
 
   const handleSignup = async (data: {
     signupData: { email: string; password: string; fullName: string; phone: string };
-    orgName: string;
-    slug: string;
-    includeDemoData: boolean;
   }) => {
     if (!selectedTemplate) return;
     
@@ -136,42 +119,26 @@ const PlatformSignup: React.FC = () => {
       return;
     }
     
-    if (!data.orgName || !data.slug) {
-      toast({
-        title: 'Missing Organization Info',
-        description: 'Please enter your business name and site URL.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
     setIsLoading(true);
 
     try {
-      // Store pending organization data BEFORE signup
       // Map pricing tiers: single_property, multi_property (Professional), portfolio (unlimited)
       const planSlug = selectedTemplate.slug === 'single_property' ? 'single_property' : 'multi_property';
-      const pendingData: PendingOrganizationData = {
-        name: data.orgName,
-        slug: data.slug,
-        templateId: selectedTemplate.id,
-        includeDemoData: data.includeDemoData,
-        planSlug,
-      };
-      localStorage.setItem('pendingOrganization', JSON.stringify(pendingData));
       
-      // Perform signup
+      // Store plan info in Supabase user_metadata (survives cross-browser email verification)
       const { error } = await signUp(
         data.signupData.email, 
         data.signupData.password, 
         data.signupData.fullName, 
-        data.signupData.phone || undefined
+        data.signupData.phone || undefined,
+        {
+          pending_plan_slug: planSlug,
+          pending_plan_name: selectedTemplate.name,
+          pending_pricing_tier_id: selectedTemplate.id,
+        }
       );
       
       if (error) {
-        // Clear pending data on signup error
-        localStorage.removeItem('pendingOrganization');
-        
         let errorMessage = error.message;
         if (error.message.includes('already registered')) {
           errorMessage = 'This email is already registered. Please try logging in instead.';
@@ -184,7 +151,6 @@ const PlatformSignup: React.FC = () => {
         });
       } else {
         setSubmittedEmail(data.signupData.email);
-        setSubmittedOrgName(data.orgName);
         setEmailSent(true);
         toast({
           title: 'Check Your Email!',
@@ -193,7 +159,6 @@ const PlatformSignup: React.FC = () => {
         });
       }
     } catch (error) {
-      localStorage.removeItem('pendingOrganization');
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
@@ -235,11 +200,11 @@ const PlatformSignup: React.FC = () => {
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-sm">Your organization <strong>{submittedOrgName}</strong> will be created automatically</span>
+                <span className="text-sm">You'll set up your business name and choose a template</span>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-sm">You'll land on your new dashboard ready to go!</span>
+                <span className="text-sm">Your {selectedTemplate?.name} plan will be activated</span>
               </div>
             </div>
             <div className="mt-6 space-y-3">
@@ -250,7 +215,7 @@ const PlatformSignup: React.FC = () => {
                       type: 'signup',
                       email: submittedEmail,
                       options: {
-                        emailRedirectTo: `${window.location.origin}/auth/confirm?next=/admin/onboarding`
+                        emailRedirectTo: `${window.location.origin}/auth/confirm?next=/signup`
                       }
                     });
                     if (error) {
@@ -301,7 +266,7 @@ const PlatformSignup: React.FC = () => {
     return <PlanSelectionStep onSelectPlan={handleSelectPlan} />;
   }
 
-  // Step 2: Account details form
+  // Step 2: Account details form (personal info only)
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-lg mx-auto">

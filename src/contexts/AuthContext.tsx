@@ -23,7 +23,7 @@ interface AuthContextType {
   roleLoading: boolean;
   userRole: string | null;
   isAdmin: boolean;
-  signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<AuthResult>;
+  signUp: (email: string, password: string, fullName: string, phone?: string, extraMetadata?: Record<string, unknown>) => Promise<AuthResult>;
   signIn: (email: string, password: string) => Promise<AuthResult>;
   signOut: () => Promise<AuthResult>;
   resetPassword: (email: string) => Promise<AuthResult>;
@@ -243,7 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone?: string, extraMetadata?: Record<string, unknown>) => {
     debug.auth('Attempting sign up for:', email);
     
     try {
@@ -254,7 +254,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Use /auth/confirm to handle email verification properly
-      const redirectUrl = `${window.location.origin}/auth/confirm?next=/admin/onboarding`;
+      const redirectUrl = `${window.location.origin}/auth/confirm?next=/signup`;
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -263,7 +263,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
-            phone: phone || null
+            phone: phone || null,
+            ...extraMetadata // Spread extra metadata (plan info stored here)
           }
         }
       });

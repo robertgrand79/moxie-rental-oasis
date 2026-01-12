@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Loader2, CheckCircle2, XCircle, Plus, Package, Star, ChevronDown, DollarSign } from 'lucide-react';
 import { TemplateCard } from '@/components/signup/TemplateCard';
@@ -25,21 +25,6 @@ const formatPrice = (cents: number): string => {
   return `$${Math.floor(cents / 100)}`;
 };
 
-// Read pending data synchronously during initialization to avoid race conditions
-const getPendingData = (): { name?: string; slug?: string; planSlug?: string } | null => {
-  try {
-    const pending = localStorage.getItem('pendingOrganization');
-    if (pending) {
-      const data = JSON.parse(pending);
-      console.log('OrganizationSignup: Loaded pending data:', data);
-      return data;
-    }
-  } catch (e) {
-    console.error('Failed to parse pending organization data', e);
-  }
-  return null;
-};
-
 const OrganizationSignup = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -47,28 +32,25 @@ const OrganizationSignup = () => {
   const { createOrganization, checkSlugAvailability, creating } = useCreateOrganization();
   const { data: templates, isLoading: loadingTemplates } = useOrganizationTemplates();
 
-  // Use lazy initialization to read localStorage synchronously
-  const [pendingData] = useState(() => getPendingData());
-  
-  const [name, setName] = useState(() => pendingData?.name || '');
-  const [slug, setSlug] = useState(() => pendingData?.slug || '');
+  // Organization details - collected post-verification
+  const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [selectedTemplate, setSelectedTemplate] = useState<OrganizationTemplate | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<OrganizationTemplate | null>(null);
   const [includeDemoData, setIncludeDemoData] = useState(true); // Default to ON
   const [isWhatsIncludedOpen, setIsWhatsIncludedOpen] = useState(false);
-  const [userHasEditedName, setUserHasEditedName] = useState(false);
   
-  // Derive these from pendingData - computed once during initial render
-  const hasPendingData = !!pendingData?.name && !!pendingData?.slug;
+  // Get plan info from user metadata (set during signup, survives cross-browser)
+  const planSlug = user?.user_metadata?.pending_plan_slug as string | undefined;
+  const planName = user?.user_metadata?.pending_plan_name as string | undefined;
+  
+  // Filter templates based on the user's selected plan tier
   const allowedTemplateType: 'single_property' | 'multi_property' | null = 
-    pendingData?.planSlug === 'single_property' ? 'single_property' : 
-    pendingData?.planSlug ? 'multi_property' : null;
+    planSlug === 'single_property' ? 'single_property' : 
+    planSlug ? 'multi_property' : null;
 
-  // Debug log
-  console.log('OrganizationSignup State:', { hasPendingData, name, slug, allowedTemplateType, pendingData });
-
-  // Redirect if already has organization - go to dashboard instead of onboarding
+  // Redirect if already has organization - go to dashboard
   useEffect(() => {
     if (!authLoading && !orgLoading && organization?.slug) {
       window.location.href = `/admin/dashboard?org=${organization.slug}`;
@@ -82,17 +64,15 @@ const OrganizationSignup = () => {
     }
   }, [user, authLoading, navigate]);
 
-
-  // Auto-generate slug from name (only if no pending data AND user is actively typing)
+  // Auto-generate slug from name
   useEffect(() => {
-    if (hasPendingData || !userHasEditedName) return; // Don't auto-generate if we loaded from pending data
     const generatedSlug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
       .slice(0, 30);
     setSlug(generatedSlug);
-  }, [name, hasPendingData, userHasEditedName]);
+  }, [name]);
 
   // Check slug availability with debounce
   useEffect(() => {
@@ -129,10 +109,7 @@ const OrganizationSignup = () => {
       includeDemoData,
     });
     if (orgId) {
-      // Clear pending data after successful creation
-      localStorage.removeItem('pendingOrganization');
       // Use full page reload to ensure context picks up new org
-      // Redirect to dashboard - onboarding is now optional in settings
       window.location.href = `/admin/dashboard?org=${slug}`;
     }
   };
@@ -158,92 +135,71 @@ const OrganizationSignup = () => {
           <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg shadow-primary/10">
             <Building2 className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight">
-            {hasPendingData ? 'Choose Your Template' : 'Create Your Organization'}
-          </h1>
+          <h1 className="text-4xl font-bold tracking-tight">Set Up Your Organization</h1>
           <p className="text-muted-foreground max-w-lg mx-auto text-lg">
-            {hasPendingData 
-              ? 'Select a design template for your site — you can customize everything later'
-              : 'Choose a template and enter your details to get started'
-            }
+            Enter your business details and choose a template to get started
           </p>
+          {planName && (
+            <Badge variant="secondary" className="text-sm">
+              {planName} Plan
+            </Badge>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Organization Name & Slug - Only show if not pre-filled from signup */}
-          {!hasPendingData && (
-            <Card className="border-2 border-border/50 shadow-lg">
-              <CardContent className="pt-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-base font-medium">Organization Name</Label>
+          {/* Organization Name & Slug - Always shown */}
+          <Card className="border-2 border-border/50 shadow-lg">
+            <CardContent className="pt-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-base font-medium">Business / Organization Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="My Vacation Rentals"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    className="h-12 text-base"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="slug" className="text-base font-medium">Site URL</Label>
+                  <div className="relative">
                     <Input
-                      id="name"
-                      placeholder="My Vacation Rentals"
-                      value={name}
-                      onChange={(e) => { setName(e.target.value); setUserHasEditedName(true); }}
+                      id="slug"
+                      placeholder="my-rentals"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                       required
-                      minLength={2}
-                      maxLength={100}
-                      className="h-12 text-base"
+                      minLength={3}
+                      maxLength={30}
+                      className="pr-10 h-12 text-base"
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="slug" className="text-base font-medium">URL Slug</Label>
-                    <div className="relative">
-                      <Input
-                        id="slug"
-                        placeholder="my-rentals"
-                        value={slug}
-                        onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                        required
-                        minLength={3}
-                        maxLength={30}
-                        className="pr-10 h-12 text-base"
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {slugStatus === 'checking' && (
-                          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                        )}
-                        {slugStatus === 'available' && (
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        )}
-                        {slugStatus === 'taken' && (
-                          <XCircle className="h-5 w-5 text-destructive" />
-                        )}
-                      </div>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {slugStatus === 'checking' && (
+                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                      )}
+                      {slugStatus === 'available' && (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      )}
+                      {slugStatus === 'taken' && (
+                        <XCircle className="h-5 w-5 text-destructive" />
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Your site: <span className="font-mono font-medium text-foreground">{slug || 'your-slug'}.staymoxie.com</span>
-                    </p>
-                    {slugStatus === 'taken' && (
-                      <p className="text-sm text-destructive font-medium">This slug is already taken</p>
-                    )}
                   </div>
+                  <p className="text-sm text-muted-foreground">
+                    Your site: <span className="font-mono font-medium text-foreground">{slug || 'your-slug'}.staymoxie.com</span>
+                  </p>
+                  {slugStatus === 'taken' && (
+                    <p className="text-sm text-destructive font-medium">This slug is already taken</p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Show a summary card when org info is pre-filled */}
-          {hasPendingData && name && slug && (
-            <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-primary/10">
-                    <Building2 className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold">{name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-mono">{slug}.staymoxie.com</span>
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Template Selection */}
           <div className="space-y-5">
@@ -396,20 +352,25 @@ const OrganizationSignup = () => {
 
             {!selectedTemplate && (
               <p className="text-center text-muted-foreground mt-4">
-                Please select a template above to continue
+                Please select a template to continue
               </p>
             )}
           </div>
         </form>
-      </div>
 
-      {/* Preview Drawer */}
-      <TemplatePreviewDrawer
-        template={previewTemplate}
-        isOpen={!!previewTemplate}
-        onClose={() => setPreviewTemplate(null)}
-        onSelect={(template) => setSelectedTemplate(template)}
-      />
+        {/* Template Preview Drawer */}
+        <TemplatePreviewDrawer
+          template={previewTemplate}
+          isOpen={!!previewTemplate}
+          onClose={() => setPreviewTemplate(null)}
+          onSelect={() => {
+            if (previewTemplate) {
+              setSelectedTemplate(previewTemplate);
+              setPreviewTemplate(null);
+            }
+          }}
+        />
+      </div>
     </div>
   );
 };

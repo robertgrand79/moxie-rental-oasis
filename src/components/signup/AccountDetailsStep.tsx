@@ -1,21 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft, 
   ArrowRight, 
   CheckCircle2, 
   Loader2, 
-  XCircle,
-  Package,
   Pencil
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 // Interface matching site_templates table
 export interface SiteTemplate {
@@ -42,12 +38,7 @@ interface SignupData {
 interface AccountDetailsStepProps {
   selectedTemplate: SiteTemplate;
   onBack: () => void;
-  onSubmit: (data: {
-    signupData: SignupData;
-    orgName: string;
-    slug: string;
-    includeDemoData: boolean;
-  }) => void;
+  onSubmit: (data: { signupData: SignupData }) => void;
   isLoading: boolean;
 }
 
@@ -62,74 +53,18 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({
   onSubmit,
   isLoading,
 }) => {
-  // Personal info
+  // Personal info only - org details collected post-verification
   const [signupData, setSignupData] = useState<SignupData>({ 
     email: '', 
     password: '', 
     fullName: '', 
     phone: '' 
   });
-  
-  // Organization info
-  const [orgName, setOrgName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
-  const [includeDemoData, setIncludeDemoData] = useState(true);
-
-  // Auto-generate slug from org name
-  useEffect(() => {
-    const generatedSlug = orgName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 30);
-    setSlug(generatedSlug);
-  }, [orgName]);
-
-  // Check slug availability with debounce
-  const checkSlugAvailability = useCallback(async (slugToCheck: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.rpc('is_slug_available', { _slug: slugToCheck });
-      if (error) return false;
-      return data as boolean;
-    } catch {
-      return false;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!slug || slug.length < 3) {
-      setSlugStatus('idle');
-      return;
-    }
-
-    setSlugStatus('checking');
-    const timer = setTimeout(async () => {
-      const available = await checkSlugAvailability(slug);
-      setSlugStatus(available ? 'available' : 'taken');
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [slug, checkSlugAvailability]);
-
-  // Demo data not available for site_templates flow - always start fresh
-  const includeDemoDataDefault = false;
-  useEffect(() => {
-    setIncludeDemoData(includeDemoDataDefault);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      signupData,
-      orgName,
-      slug,
-      includeDemoData,
-    });
+    onSubmit({ signupData });
   };
-
-  // Site templates don't have demo data - remove this section
-  const hasDemoDataAvailable = false;
 
   return (
     <div className="space-y-6">
@@ -141,9 +76,9 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({
           </span>
           <span>Step 2 of 2</span>
         </div>
-        <h1 className="text-2xl font-bold">Your Details</h1>
+        <h1 className="text-2xl font-bold">Create Your Account</h1>
         <p className="text-muted-foreground mt-2">
-          Set up your account and business
+          You'll set up your business details after verifying your email
         </p>
       </div>
 
@@ -171,11 +106,6 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Personal Info Section */}
         <div className="space-y-4">
-          <h2 className="font-semibold text-lg flex items-center gap-2">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground text-xs font-bold">1</span>
-            Your Information
-          </h2>
-          
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="signup-name">Full Name</Label>
@@ -233,93 +163,12 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({
           </div>
         </div>
 
-        {/* Business Info Section */}
-        <div className="space-y-4">
-          <h2 className="font-semibold text-lg flex items-center gap-2">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground text-xs font-bold">2</span>
-            Your Business
-          </h2>
-          
-          <div className="space-y-2">
-            <Label htmlFor="org-name">Business / Organization Name</Label>
-            <Input
-              id="org-name"
-              type="text"
-              value={orgName}
-              onChange={(e) => setOrgName(e.target.value)}
-              required
-              disabled={isLoading}
-              placeholder="My Vacation Rentals"
-              minLength={2}
-              maxLength={100}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="slug">Site URL</Label>
-            <div className="relative">
-              <Input
-                id="slug"
-                type="text"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                required
-                disabled={isLoading}
-                placeholder="my-rentals"
-                minLength={3}
-                maxLength={30}
-                className="pr-10"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                {slugStatus === 'checking' && (
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                )}
-                {slugStatus === 'available' && (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                )}
-                {slugStatus === 'taken' && (
-                  <XCircle className="h-4 w-4 text-destructive" />
-                )}
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Your site: <span className="font-mono">{slug || 'your-slug'}.staymoxie.com</span>
-            </p>
-            {slugStatus === 'taken' && (
-              <p className="text-xs text-destructive">This URL is already taken</p>
-            )}
-          </div>
-        </div>
-
-        {/* Demo Data Toggle */}
-        {hasDemoDataAvailable && (
-          <div className="flex items-center justify-between rounded-lg border p-4 bg-green-500/5 border-green-500/20">
-            <div className="flex items-start gap-3">
-              <Package className="h-5 w-5 text-green-600 mt-0.5" />
-              <div>
-                <Label htmlFor="demo-data" className="text-sm font-medium cursor-pointer">
-                  Include sample content
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Start with demo properties, blog posts, and more
-                </p>
-              </div>
-            </div>
-            <Switch
-              id="demo-data"
-              checked={includeDemoData}
-              onCheckedChange={setIncludeDemoData}
-              className="data-[state=checked]:bg-green-500"
-            />
-          </div>
-        )}
-
         {/* Action Buttons */}
         <div className="flex flex-col gap-3 pt-2">
           <Button 
             type="submit" 
             className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white h-12 text-base" 
-            disabled={isLoading || slugStatus === 'checking' || slugStatus === 'taken'}
+            disabled={isLoading}
           >
             {isLoading ? (
               <>
