@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -43,6 +43,13 @@ const OnboardingWizard = () => {
   // Use current incomplete step or allow viewing any step
   const displayStep = activeStep || currentStep;
 
+  // Redirect to signup if no organization (after loading completes)
+  useEffect(() => {
+    if (!orgLoading && !loading && !organization) {
+      window.location.href = '/signup';
+    }
+  }, [organization, orgLoading, loading]);
+
   if (orgLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -52,12 +59,11 @@ const OnboardingWizard = () => {
   }
 
   if (!organization) {
-    // Redirect to signup - show loading state while navigating
+    // Show loading while redirect happens via useEffect
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-muted-foreground">Setting up your account...</p>
-        <script dangerouslySetInnerHTML={{ __html: `window.location.href = '/signup';` }} />
       </div>
     );
   }
