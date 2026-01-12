@@ -25,6 +25,21 @@ const formatPrice = (cents: number): string => {
   return `$${Math.floor(cents / 100)}`;
 };
 
+// Read pending data synchronously during initialization to avoid race conditions
+const getPendingData = (): { name?: string; slug?: string; planSlug?: string } | null => {
+  try {
+    const pending = localStorage.getItem('pendingOrganization');
+    if (pending) {
+      const data = JSON.parse(pending);
+      console.log('OrganizationSignup: Loaded pending data:', data);
+      return data;
+    }
+  } catch (e) {
+    console.error('Failed to parse pending organization data', e);
+  }
+  return null;
+};
+
 const OrganizationSignup = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -32,41 +47,26 @@ const OrganizationSignup = () => {
   const { createOrganization, checkSlugAvailability, creating } = useCreateOrganization();
   const { data: templates, isLoading: loadingTemplates } = useOrganizationTemplates();
 
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
+  // Use lazy initialization to read localStorage synchronously
+  const [pendingData] = useState(() => getPendingData());
+  
+  const [name, setName] = useState(() => pendingData?.name || '');
+  const [slug, setSlug] = useState(() => pendingData?.slug || '');
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [selectedTemplate, setSelectedTemplate] = useState<OrganizationTemplate | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<OrganizationTemplate | null>(null);
   const [includeDemoData, setIncludeDemoData] = useState(true); // Default to ON
   const [isWhatsIncludedOpen, setIsWhatsIncludedOpen] = useState(false);
-  const [allowedTemplateType, setAllowedTemplateType] = useState<'single_property' | 'multi_property' | null>(null);
-  const [hasPendingData, setHasPendingData] = useState(false);
+  const [userHasEditedName, setUserHasEditedName] = useState(false);
+  
+  // Derive these from pendingData - computed once during initial render
+  const hasPendingData = !!pendingData?.name && !!pendingData?.slug;
+  const allowedTemplateType: 'single_property' | 'multi_property' | null = 
+    pendingData?.planSlug === 'single_property' ? 'single_property' : 
+    pendingData?.planSlug ? 'multi_property' : null;
 
-  // Read pending organization data to pre-fill fields and filter templates
-  useEffect(() => {
-    try {
-      const pending = localStorage.getItem('pendingOrganization');
-      if (pending) {
-        const data = JSON.parse(pending);
-        console.log('Loaded pending organization data:', data);
-        
-        // Pre-fill org name and slug from signup flow
-        if (data.name) setName(data.name);
-        if (data.slug) setSlug(data.slug);
-        setHasPendingData(true);
-        
-        // Set template filtering based on plan tier
-        if (data.planSlug === 'single_property') {
-          setAllowedTemplateType('single_property');
-        } else {
-          // multi_property and portfolio both allow multi_property templates
-          setAllowedTemplateType('multi_property');
-        }
-      }
-    } catch (e) {
-      console.error('Failed to parse pending organization data', e);
-    }
-  }, []);
+  // Debug log
+  console.log('OrganizationSignup State:', { hasPendingData, name, slug, allowedTemplateType, pendingData });
 
   // Redirect if already has organization - go to dashboard instead of onboarding
   useEffect(() => {
@@ -83,16 +83,16 @@ const OrganizationSignup = () => {
   }, [user, authLoading, navigate]);
 
 
-  // Auto-generate slug from name (only if no pending data)
+  // Auto-generate slug from name (only if no pending data AND user is actively typing)
   useEffect(() => {
-    if (hasPendingData) return; // Don't auto-generate if we loaded from pending data
+    if (hasPendingData || !userHasEditedName) return; // Don't auto-generate if we loaded from pending data
     const generatedSlug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
       .slice(0, 30);
     setSlug(generatedSlug);
-  }, [name, hasPendingData]);
+  }, [name, hasPendingData, userHasEditedName]);
 
   // Check slug availability with debounce
   useEffect(() => {
@@ -181,7 +181,7 @@ const OrganizationSignup = () => {
                       id="name"
                       placeholder="My Vacation Rentals"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => { setName(e.target.value); setUserHasEditedName(true); }}
                       required
                       minLength={2}
                       maxLength={100}
