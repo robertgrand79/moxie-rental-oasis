@@ -82,18 +82,26 @@ const OrganizationSignup = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Redirect users without pending data to plan selection
+  // Track if we've checked for pending data
+  const [pendingDataChecked, setPendingDataChecked] = useState(false);
+  
+  // Check for pending data on mount and set flag when done
   useEffect(() => {
-    if (!authLoading && user && !orgLoading && !organization) {
-      // Give localStorage a moment to be read
+    const pending = localStorage.getItem('pendingOrganization');
+    if (!pending) {
+      // Only redirect if truly no pending data exists
+      // Use a longer delay to ensure AuthConfirm has finished setting localStorage
       const timer = setTimeout(() => {
-        const pending = localStorage.getItem('pendingOrganization');
-        if (!pending) {
-          console.log('No pending organization data - redirecting to plan selection');
+        const pendingRecheck = localStorage.getItem('pendingOrganization');
+        if (!pendingRecheck && !authLoading && user && !orgLoading && !organization) {
+          console.log('No pending organization data after recheck - redirecting to plan selection');
           navigate('/platform/signup', { replace: true });
         }
-      }, 300);
+        setPendingDataChecked(true);
+      }, 1000);
       return () => clearTimeout(timer);
+    } else {
+      setPendingDataChecked(true);
     }
   }, [authLoading, user, orgLoading, organization, navigate]);
 
