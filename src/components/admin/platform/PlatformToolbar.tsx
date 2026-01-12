@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Bell, ArrowLeft, Activity } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Search, Plus, Bell, ArrowLeft, Activity, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -10,12 +10,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 
 const PlatformToolbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Determine if we're on the main dashboard
+  const isDashboard = location.pathname === '/admin/platform';
 
   // Mock notification count - in real implementation, fetch from backend
   const notificationCount = 3;
@@ -28,6 +30,14 @@ const PlatformToolbar = () => {
     }
   };
 
+  const handleBackClick = () => {
+    if (isDashboard) {
+      navigate('/admin');
+    } else {
+      navigate('/admin/platform');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center justify-between px-4 gap-4">
@@ -36,11 +46,20 @@ const PlatformToolbar = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/admin')}
+            onClick={handleBackClick}
             className="gap-2"
           >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to Admin</span>
+            {isDashboard ? (
+              <>
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Back to Admin</span>
+              </>
+            ) : (
+              <>
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </>
+            )}
           </Button>
           <div className="hidden md:block h-6 w-px bg-border" />
           <h1 className="hidden md:block font-semibold text-lg">
