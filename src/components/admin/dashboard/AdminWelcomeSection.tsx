@@ -1,46 +1,53 @@
-
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Zap } from 'lucide-react';
+import { RefreshCw, Activity } from 'lucide-react';
+import { format } from 'date-fns';
 
-const AdminWelcomeSection = () => {
+interface AdminWelcomeSectionProps {
+  lastUpdated?: Date;
+  siteStatus?: 'healthy' | 'warning' | 'error';
+  onRefresh?: () => void;
+}
+
+const AdminWelcomeSection = ({ 
+  lastUpdated = new Date(), 
+  siteStatus = 'healthy',
+  onRefresh 
+}: AdminWelcomeSectionProps) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Admin';
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'healthy': return 'bg-green-500';
+      case 'warning': return 'bg-yellow-500';
+      case 'error': return 'bg-red-500';
+      default: return 'bg-muted-foreground';
+    }
   };
 
   return (
-    <Card className="bg-gradient-to-r from-slate-100 to-gray-100 border border-gray-200">
-      <CardContent className="p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold mb-2 text-gray-800">
-              Welcome back, {displayName}! 👋
-            </h1>
-            <p className="text-gray-600 text-lg">
-              Here's what's happening with your vacation rental business today.
-            </p>
-          </div>
-          
-          <div className="flex flex-wrap gap-3">
-          </div>
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2">
+      <div className="flex items-center gap-3">
+        <h1 className="text-xl md:text-2xl font-bold text-foreground">
+          Welcome back, {displayName}! 👋
+        </h1>
+        <div className="flex items-center gap-1.5" title={`System ${siteStatus}`}>
+          <div className={`h-2 w-2 rounded-full ${getStatusColor(siteStatus)}`} />
+          <Activity className="h-3.5 w-3.5 text-muted-foreground" />
         </div>
-        
-        <div className="mt-6 flex items-center space-x-2 text-gray-500">
-          <Zap className="h-4 w-4" />
-          <span className="text-sm">
-            System is running smoothly • Last updated: {new Date().toLocaleTimeString()}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+      
+      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+        <span>Updated {format(lastUpdated, 'h:mm a')}</span>
+        {onRefresh && (
+          <Button variant="ghost" size="sm" onClick={onRefresh} className="h-8 px-2">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </div>
   );
 };
 
