@@ -7,6 +7,7 @@ import OrganizationBadge from './OrganizationBadge';
 import NotificationBell from './notifications/NotificationBell';
 import SupportWidget from '@/components/support/SupportWidget';
 import TemplateEditingBanner from './TemplateEditingBanner';
+import TrialBanner from './TrialBanner';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -42,6 +43,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         <div className="flex w-full min-h-screen">
           <AdminSidebar />
           <SidebarInset className="flex-1">
+            {/* Trial Banner - sticky at top */}
+            <TrialBanner />
             <header className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background ${isMobile ? 'px-3' : ''}`}>
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex items-center gap-2">
