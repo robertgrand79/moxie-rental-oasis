@@ -25,7 +25,7 @@ const AdminSidebar = () => {
   const isMobile = useIsMobile();
   const { settings, loading: settingsLoading } = useSimplifiedSiteSettings();
   const { organization, loading: orgLoading } = useCurrentOrganization();
-  const { isPlatformAdmin } = usePlatformAdmin();
+  const { isPlatformAdmin, checkingAdmin } = usePlatformAdmin();
   const { state, toggleSidebar } = useSidebar();
   
   const isCollapsed = state === 'collapsed';
@@ -33,18 +33,20 @@ const AdminSidebar = () => {
   const isLoading = settingsLoading || orgLoading;
 
   // Filter menu items based on platform admin status
+  // Only show Platform Administration section if explicitly confirmed as platform admin
   const filteredMenuItems = useMemo(() => {
     return adminMenuItems
       .map(section => {
-        // Hide entire Platform Administration section for non-platform admins
+        // Hide entire Platform Administration section unless confirmed as platform admin
         if (section.title === 'Platform Administration') {
-          if (isPlatformAdmin !== true) return null;
+          // Hide while checking or if not a platform admin
+          if (checkingAdmin || isPlatformAdmin !== true) return null;
           return section;
         }
         return section;
       })
       .filter(Boolean) as typeof adminMenuItems;
-  }, [isPlatformAdmin]);
+  }, [isPlatformAdmin, checkingAdmin]);
 
   return (
     <Sidebar collapsible="icon">
