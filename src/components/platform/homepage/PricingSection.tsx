@@ -74,8 +74,9 @@ const fallbackPlans = [
       'Dedicated account manager',
       'Custom integrations',
     ],
-    cta: 'Contact Sales',
+    cta: 'Contact Us',
     popular: false,
+    isContactOnly: true,
   },
 ];
 
@@ -99,6 +100,18 @@ const PricingSection: React.FC = () => {
   // Transform database templates to display format
   const plans = templates?.length ? templates.map((template) => {
     const isProfessional = template.slug === 'professional' || template.name.toLowerCase() === 'professional';
+    const isPortfolio = template.slug === 'portfolio' || template.name.toLowerCase() === 'portfolio';
+    const isContactOnly = isProfessional || isPortfolio;
+    
+    // Filter out "Unlimited properties" from Professional features
+    let features = template.features && template.features.length > 0 
+      ? template.features 
+      : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []);
+    
+    if (isProfessional) {
+      features = features.filter(f => !f.toLowerCase().includes('unlimited properties'));
+    }
+    
     return {
       name: template.name,
       slug: template.slug,
@@ -114,14 +127,12 @@ const PricingSection: React.FC = () => {
             ? 'Unlimited properties'
             : `Up to ${template.max_properties} properties`
         : '',
-      features: template.features && template.features.length > 0 
-        ? template.features 
-        : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []),
-      cta: isProfessional ? 'Contact Us' : 'Start Free Trial',
+      features,
+      cta: isContactOnly ? 'Contact Us' : 'Start Free Trial',
       popular: template.is_popular || false,
       hasStripePrice: !!template.stripe_price_id,
       hasAnnualPrice: !!template.stripe_annual_price_id,
-      isContactOnly: isProfessional,
+      isContactOnly,
     };
   }) : fallbackPlans;
 
