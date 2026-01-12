@@ -26,7 +26,7 @@ const AuthConfirm: React.FC = () => {
 
       try {
         // Step 1: Verify the email token
-        const { error } = await supabase.auth.verifyOtp({
+        const { data, error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: type,
         });
@@ -36,6 +36,19 @@ const AuthConfirm: React.FC = () => {
           setStatus('error');
           setErrorMessage(error.message || 'Failed to verify your email. The link may have expired.');
           return;
+        }
+
+        // Ensure the session is actually established before hitting ProtectedRoutes.
+        // In some environments verifyOtp may not trigger the auth listener immediately.
+        if (data?.session?.access_token && data?.session?.refresh_token) {
+          const { error: setSessionError } = await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+
+          if (setSessionError) {
+            console.warn('Failed to set session after verifyOtp:', setSessionError);
+          }
         }
 
         // Step 2: Check for pending organization data
@@ -99,9 +112,10 @@ const AuthConfirm: React.FC = () => {
         } else {
           // No pending organization - just redirect to next
           setStatus('success');
-          
+
           setTimeout(() => {
-            navigate(next, { replace: true });
+            // Use a hard navigation so auth/session + org context initialize cleanly.
+            window.location.href = next;
           }, 1500);
         }
       } catch (err) {
