@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -21,12 +21,24 @@ const ImmersiveLightbox = ({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isVisible, setIsVisible] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState<Set<number>>(new Set([initialIndex]));
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileVisibleIndex, setMobileVisibleIndex] = useState(initialIndex);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
   
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
     loop: true, 
     startIndex: initialIndex,
     dragFree: false
   });
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Sync embla with current index
   useEffect(() => {
@@ -114,13 +126,106 @@ const ImmersiveLightbox = ({
     emblaApi?.scrollTo(index);
   }, [emblaApi]);
 
-  // Scroll thumbnail into view
+  // Scroll thumbnail into view (desktop only)
   useEffect(() => {
+    if (isMobile) return;
     const thumbnail = document.getElementById(`lightbox-thumb-${currentIndex}`);
     thumbnail?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }, [currentIndex]);
+  }, [currentIndex, isMobile]);
+
+  // Scroll to initial image on mobile when opening
+  useEffect(() => {
+    if (isMobile && isOpen && scrollContainerRef.current && imageRefs.current[initialIndex]) {
+      // Small delay to ensure DOM is ready
+      requestAnimationFrame(() => {
+        imageRefs.current[initialIndex]?.scrollIntoView({ behavior: 'instant', block: 'start' });
+      });
+    }
+  }, [isMobile, isOpen, initialIndex]);
+
+  // Track visible image on mobile scroll using Intersection Observer
+  useEffect(() => {
+    if (!isMobile || !isOpen) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = parseInt(entry.target.getAttribute('data-index') || '0', 10);
+            setMobileVisibleIndex(index);
+          }
+        });
+      },
+      { 
+        root: scrollContainerRef.current,
+        threshold: 0.6 
+      }
+    );
+
+    imageRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
+  }, [isMobile, isOpen, images.length]);
 
   if (!isOpen || !images || images.length === 0) return null;
+
+  // Mobile: Vertical scrolling gallery
+  if (isMobile) {
+    const mobileContent = (
+      <div 
+        className={`fixed inset-0 z-[100] bg-black transition-opacity duration-300 ${
+          isVisible ? 'opacity-100' : 'opacity-0'
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Photo gallery for ${title}`}
+      >
+        {/* Header with close and counter */}
+        <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/80 to-transparent">
+          <span className="text-white/90 text-sm font-medium">
+            {mobileVisibleIndex + 1} of {images.length}
+          </span>
+          <button
+            onClick={handleClose}
+            className="p-2 -mr-2 rounded-full text-white/80 hover:text-white active:bg-white/10 transition-colors"
+            aria-label="Close gallery"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Vertical scrolling photos */}
+        <div 
+          ref={scrollContainerRef}
+          className="h-[calc(100vh-56px)] overflow-y-auto overscroll-contain"
+        >
+          {images.map((image, index) => (
+            <div
+              key={index}
+              ref={(el) => (imageRefs.current[index] = el)}
+              data-index={index}
+              className="flex items-center justify-center min-h-[60vh] py-2 px-1"
+            >
+              <img
+                src={image}
+                alt={`${title} - Photo ${index + 1}`}
+                className="max-w-full max-h-[85vh] object-contain rounded-lg"
+                loading={Math.abs(index - initialIndex) <= 2 ? 'eager' : 'lazy'}
+              />
+            </div>
+          ))}
+          {/* Bottom spacing */}
+          <div className="h-8" />
+        </div>
+      </div>
+    );
+
+    return createPortal(mobileContent, document.body);
+  }
+
+  // Desktop: Existing carousel experience
 
   const lightboxContent = (
     <div 
