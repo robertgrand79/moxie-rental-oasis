@@ -87,12 +87,12 @@ const SinglePropertyHome: React.FC = () => {
         </div>
 
         {/* Photo Gallery - Full Width */}
-        {photos.length > 1 && (
+        {images.length > 1 && (
           <section className="py-12">
             <div className="container mx-auto px-4">
               <PhotoSpotlight 
-                images={photos} 
-                featuredPhotos={property.featured_photos}
+                images={images} 
+                featuredPhotos={featuredFromImages}
                 title={property.title} 
               />
             </div>
