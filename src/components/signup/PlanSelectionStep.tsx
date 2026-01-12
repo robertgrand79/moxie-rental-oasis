@@ -48,14 +48,15 @@ const fallbackPlans = [
     properties: 'Up to 5 properties',
     features: [
       'Everything in Single Property',
-      'Unlimited properties',
+      'Up to 5 properties',
       'Property search & listings',
       'Multi-property calendar',
       'Team member access',
       'Advanced analytics',
     ],
-    cta: 'Start Free Trial',
+    cta: 'Contact Us',
     popular: true,
+    isContactOnly: true,
   },
   {
     name: 'Portfolio',
@@ -102,27 +103,31 @@ export const PlanSelectionStep: React.FC<PlanSelectionStepProps> = ({
   });
 
   // Transform database templates to display format
-  const plans = templates?.length ? templates.map((template) => ({
-    name: template.name,
-    slug: template.slug,
-    description: template.description || '',
-    monthlyPrice: template.monthly_price_cents / 100,
-    yearlyPrice: template.annual_price_cents 
-      ? Math.floor(template.annual_price_cents / 100 / 12)
-      : Math.floor(template.monthly_price_cents / 100 * 0.83),
-    properties: template.max_properties 
-      ? template.max_properties === 1 
-        ? '1 property' 
-        : template.max_properties >= 999 
-          ? 'Unlimited properties'
-          : `Up to ${template.max_properties} properties`
-      : '',
-    features: template.features && template.features.length > 0 
-      ? template.features 
-      : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []),
-    cta: 'Start Free Trial',
-    popular: template.is_popular || false,
-  })) : fallbackPlans;
+  const plans = templates?.length ? templates.map((template) => {
+    const isProfessional = template.slug === 'professional' || template.name.toLowerCase() === 'professional';
+    return {
+      name: template.name,
+      slug: template.slug,
+      description: template.description || '',
+      monthlyPrice: template.monthly_price_cents / 100,
+      yearlyPrice: template.annual_price_cents 
+        ? Math.floor(template.annual_price_cents / 100 / 12)
+        : Math.floor(template.monthly_price_cents / 100 * 0.83),
+      properties: template.max_properties 
+        ? template.max_properties === 1 
+          ? '1 property' 
+          : template.max_properties >= 999 
+            ? 'Unlimited properties'
+            : `Up to ${template.max_properties} properties`
+        : '',
+      features: template.features && template.features.length > 0 
+        ? template.features 
+        : (fallbackPlans.find(p => p.slug === template.slug)?.features || fallbackPlans.find(p => p.name === template.name)?.features || []),
+      cta: isProfessional ? 'Contact Us' : 'Start Free Trial',
+      popular: template.is_popular || false,
+      isContactOnly: isProfessional,
+    };
+  }) : fallbackPlans;
 
   return (
     <div className="min-h-screen bg-white">
@@ -228,16 +233,30 @@ export const PlanSelectionStep: React.FC<PlanSelectionStepProps> = ({
                   ))}
                 </ul>
 
-                <Button
-                  onClick={() => onSelectPlan(plan.slug, isYearly)}
-                  className={`w-full py-6 text-lg font-semibold rounded-xl ${
-                    plan.popular
-                      ? 'bg-white text-blue-600 hover:bg-blue-50'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  {plan.cta}
-                </Button>
+                {plan.isContactOnly ? (
+                  <Link to="/contact" className="w-full">
+                    <Button
+                      className={`w-full py-6 text-lg font-semibold rounded-xl ${
+                        plan.popular
+                          ? 'bg-white text-blue-600 hover:bg-blue-50'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
+                    >
+                      {plan.cta}
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    onClick={() => onSelectPlan(plan.slug, isYearly)}
+                    className={`w-full py-6 text-lg font-semibold rounded-xl ${
+                      plan.popular
+                        ? 'bg-white text-blue-600 hover:bg-blue-50'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {plan.cta}
+                  </Button>
+                )}
               </div>
             ))}
           </div>
