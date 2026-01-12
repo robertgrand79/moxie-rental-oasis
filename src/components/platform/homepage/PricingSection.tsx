@@ -121,9 +121,8 @@ const PricingSection: React.FC = () => {
   })) : fallbackPlans;
 
   const getCtaLink = (plan: typeof plans[0]) => {
-    // All tiers go to platform get-started with plan info
-    const billing = isYearly ? 'yearly' : 'monthly';
-    return `/platform/get-started?plan=${plan.slug}&billing=${billing}`;
+    // All tiers go to consolidated signup
+    return `/platform/signup`;
   };
 
   return (
