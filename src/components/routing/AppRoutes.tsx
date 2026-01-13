@@ -312,6 +312,7 @@ const AppRoutes: React.FC = () => {
             <Route path="help" element={<HelpCenterPage />} />
             <Route path="my-requests" element={<MyRequestsPage />} />
             <Route path="status" element={<StatusPage />} />
+            <Route path="email" element={<PlatformEmailPage />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
@@ -466,6 +467,7 @@ const AppRoutes: React.FC = () => {
           <Route path="lookup" element={<PlatformLookupPage />} />
           <Route path="template-test" element={<PlatformTemplateTestPage />} />
           <Route path="workflows" element={<TaskWorkflowsPage />} />
+          <Route path="email" element={<PlatformEmailPage />} />
         </Route>
         <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
