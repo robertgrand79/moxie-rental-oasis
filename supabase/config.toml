@@ -202,6 +202,9 @@ verify_jwt = false
 [functions.get-weather]
 verify_jwt = false
 
+[functions.provision-subdomain]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 port = 54323
