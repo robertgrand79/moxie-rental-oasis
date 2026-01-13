@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useRef } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
@@ -13,21 +13,19 @@ const ContentLoader = () => (
 );
 
 const AdminLayoutWrapper = () => {
-  const { organization, isPlatformAdmin, loading: orgLoading, isOrgAdmin } = useCurrentOrganization();
+  const { organization, isPlatformAdmin, loading: orgLoading } = useCurrentOrganization();
   const { user, loading: authLoading } = useAuth();
-  const [minLoadTime, setMinLoadTime] = useState(true);
   const navigate = useNavigate();
+  
+  // Track if we've successfully loaded at least once
+  // This prevents full-page loading on subsequent navigations
+  const hasLoadedRef = useRef(false);
 
-  // Ensure minimum loading time to prevent flash of incorrect content
-  useEffect(() => {
-    const timer = setTimeout(() => setMinLoadTime(false), 300);
-    return () => clearTimeout(timer);
-  }, []);
+  // Only block on initial load when we have no data yet
+  // After first successful load, preserve layout during navigation
+  const needsFullLoad = (authLoading || orgLoading) && !hasLoadedRef.current;
 
-  // Wait for both contexts to fully load
-  const isFullyLoaded = !authLoading && !orgLoading && !minLoadTime;
-
-  if (!isFullyLoaded) {
+  if (needsFullLoad) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -40,8 +38,15 @@ const AdminLayoutWrapper = () => {
 
   // If not logged in, redirect to auth
   if (!user) {
+    // Reset on logout
+    hasLoadedRef.current = false;
     navigate('/auth', { replace: true });
     return null;
+  }
+
+  // Mark as loaded once we have user
+  if (!authLoading && !orgLoading) {
+    hasLoadedRef.current = true;
   }
 
   // Platform admins can access admin area even without organization

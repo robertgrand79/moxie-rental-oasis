@@ -49,8 +49,13 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [error, setError] = useState<string | null>(null);
   const retryCountRef = useRef(0);
   const isFetchingRef = useRef(false);
+  
+  // Track the user ID we've successfully fetched for
+  // This prevents refetching on navigation when user hasn't changed
+  const lastFetchedUserIdRef = useRef<string | null>(null);
+  const hasInitializedRef = useRef(false);
 
-  const fetchOrganizationData = useCallback(async (isRetry = false) => {
+  const fetchOrganizationData = useCallback(async (isRetry = false, forceRefetch = false) => {
     // Require both user AND session for RLS to work properly
     if (!user || !session) {
       debug.org('No user or session, clearing organization state');
@@ -59,6 +64,22 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setIsPlatformAdmin(false);
       setLoading(false);
       retryCountRef.current = 0;
+      lastFetchedUserIdRef.current = null;
+      hasInitializedRef.current = false;
+      return;
+    }
+
+    // Skip fetch if we already have data for this user (navigation cache)
+    // Only refetch if user changed, forced, or this is a retry
+    if (
+      hasInitializedRef.current &&
+      lastFetchedUserIdRef.current === user.id &&
+      organization &&
+      !forceRefetch &&
+      !isRetry
+    ) {
+      debug.org('Using cached organization data for navigation');
+      setLoading(false);
       return;
     }
 
@@ -72,12 +93,12 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     try {
       setError(null);
-      if (!isRetry) {
+      if (!isRetry && !hasInitializedRef.current) {
         setLoading(true);
       }
 
-      // Small delay to let JWT token settle after session change
-      if (!isRetry) {
+      // Small delay to let JWT token settle after session change (only on first load)
+      if (!isRetry && !hasInitializedRef.current) {
         await new Promise(resolve => setTimeout(resolve, 150));
       }
 
@@ -172,6 +193,8 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         });
         setOrganization(selectedMember.organization as Organization);
         retryCountRef.current = 0;
+        lastFetchedUserIdRef.current = user.id;
+        hasInitializedRef.current = true;
       } else {
         // No organization found - retry once if this is first attempt
         if (retryCountRef.current === 0 && !isRetry) {
@@ -185,6 +208,8 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         debug.org('No organization membership found after retry');
         setMembership(null);
         setOrganization(null);
+        lastFetchedUserIdRef.current = user.id;
+        hasInitializedRef.current = true;
       }
 
       // Set platform admin status
@@ -197,7 +222,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       isFetchingRef.current = false;
       setLoading(false);
     }
-  }, [user, session]);
+  }, [user, session, organization]);
 
   useEffect(() => {
     fetchOrganizationData();
@@ -292,6 +317,11 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [user, isPlatformAdmin]);
 
+  // Force refetch function for explicit refresh needs
+  const refetch = useCallback(async () => {
+    await fetchOrganizationData(false, true);
+  }, [fetchOrganizationData]);
+
   const value: OrganizationContextType = {
     organization,
     membership,
@@ -301,7 +331,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     isOrgAdmin,
     isOrgOwner,
     canManageOrganization,
-    refetch: fetchOrganizationData,
+    refetch,
     switchOrganization,
   };
 
