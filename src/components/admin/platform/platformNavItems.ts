@@ -13,7 +13,8 @@ import {
   LayoutDashboard,
   Workflow,
   Mail,
-  CreditCard
+  CreditCard,
+  TrendingUp
 } from 'lucide-react';
 
 export interface PlatformNavItem {

@@ -143,6 +143,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "admin_impersonation_sessions_target_organization_id_fkey"
+            columns: ["target_organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       admin_notifications: {
@@ -211,6 +218,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "admin_notifications_user_id_fkey"
@@ -287,6 +301,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -405,6 +426,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "assistant_conversations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       assistant_escalations: {
@@ -495,6 +523,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "assistant_escalations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "assistant_escalations_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -552,6 +587,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -649,6 +691,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "assistant_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       availability_blocks: {
@@ -711,6 +760,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_blocks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "availability_blocks_property_id_fkey"
@@ -854,6 +910,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "blog_posts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       booking_charges: {
@@ -901,6 +964,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_charges_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "booking_charges_reservation_id_fkey"
@@ -1040,6 +1110,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "calendar_sync_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "calendar_sync_logs_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -1087,6 +1164,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "chat_messages_session_id_fkey"
@@ -1142,6 +1226,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -1203,6 +1294,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "community_updates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       configuration_audit_log: {
@@ -1262,6 +1360,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "configuration_audit_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -1326,6 +1431,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "content_approval_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       contractor_access_tokens: {
@@ -1377,6 +1489,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_access_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -1453,6 +1572,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contractors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       conversion_funnels: {
@@ -1509,6 +1635,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversion_funnels_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -1576,6 +1709,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_automations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "device_automations_property_id_fkey"
@@ -1678,6 +1818,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "device_configurations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "device_configurations_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -1753,6 +1900,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "device_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "device_events_triggered_by_fkey"
             columns: ["triggered_by"]
             isOneToOne: false
@@ -1822,6 +1976,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_maintenance_alerts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "device_maintenance_alerts_resolved_by_fkey"
@@ -1925,6 +2086,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "dynamic_pricing_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "dynamic_pricing_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -1996,6 +2164,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_failures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -2142,6 +2317,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "eugene_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "eugene_events_place_id_fkey"
             columns: ["place_id"]
             isOneToOne: false
@@ -2219,6 +2401,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_calendars_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "external_calendars_property_id_fkey"
@@ -2315,6 +2504,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "guest_communications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "guest_communications_reservation_id_fkey"
             columns: ["reservation_id"]
             isOneToOne: false
@@ -2403,6 +2599,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "guest_inbox_threads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       guest_notifications: {
@@ -2469,6 +2672,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "guest_notifications_reservation_id_fkey"
@@ -2581,6 +2791,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "guest_support_chats_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "guest_support_chats_reservation_id_fkey"
             columns: ["reservation_id"]
             isOneToOne: false
@@ -2645,6 +2862,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "guest_support_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       guests: {
@@ -2698,6 +2922,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "guests_reservation_id_fkey"
@@ -2911,6 +3142,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "home_amenities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       image_optimization_settings: {
@@ -3118,6 +3356,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "length_of_stay_discounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "length_of_stay_discounts_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -3193,6 +3438,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lifestyle_gallery_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       maintenance_checklist_items: {
@@ -3243,6 +3495,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_checklist_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "maintenance_checklist_items_template_id_fkey"
@@ -3301,6 +3560,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_checklist_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -3361,6 +3627,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "message_templates_property_id_fkey"
@@ -3442,6 +3715,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messaging_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "messaging_rules_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -3515,6 +3795,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_analytics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -3597,6 +3884,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "newsletter_campaigns_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       newsletter_click_tracking: {
@@ -3654,6 +3948,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_click_tracking_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -3724,6 +4025,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "newsletter_subscribers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       notification_preferences: {
@@ -3777,6 +4085,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "notification_preferences_user_id_fkey"
@@ -3857,6 +4172,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "office_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -3946,6 +4268,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "office_rentals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       office_spaces: {
@@ -4024,6 +4353,83 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "office_spaces_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+        ]
+      }
+      onboarding_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_stage: Database["public"]["Enums"]["onboarding_stage"]
+          id: string
+          is_stuck: boolean | null
+          last_activity_at: string
+          organization_id: string
+          stage_history: Json | null
+          started_at: string
+          stuck_detected_at: string | null
+          stuck_notified: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_stage?: Database["public"]["Enums"]["onboarding_stage"]
+          id?: string
+          is_stuck?: boolean | null
+          last_activity_at?: string
+          organization_id: string
+          stage_history?: Json | null
+          started_at?: string
+          stuck_detected_at?: string | null
+          stuck_notified?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_stage?: Database["public"]["Enums"]["onboarding_stage"]
+          id?: string
+          is_stuck?: boolean | null
+          last_activity_at?: string
+          organization_id?: string
+          stage_history?: Json | null
+          started_at?: string
+          stuck_detected_at?: string | null
+          stuck_notified?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_progress_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_progress_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_progress_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       orders: {
@@ -4088,6 +4494,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       organization_members: {
@@ -4132,6 +4545,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -4181,6 +4601,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "organization_onboarding_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       organization_secrets: {
@@ -4222,6 +4649,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_secrets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -4316,6 +4750,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_templates_source_organization_id_fkey"
+            columns: ["source_organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -4526,6 +4967,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "page_views_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       pages: {
@@ -4592,6 +5040,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -4679,6 +5134,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "place_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -4787,6 +5249,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "places_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -5183,6 +5652,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "platform_emails_linked_organization_id_fkey"
+            columns: ["linked_organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "platform_emails_parent_email_id_fkey"
             columns: ["parent_email_id"]
             isOneToOne: false
@@ -5269,6 +5745,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_failed_payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "platform_failed_payments_resolved_by_fkey"
@@ -5369,6 +5852,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_inbox_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -5651,6 +6141,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pricelabs_sync_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "pricelabs_sync_logs_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -5716,6 +6213,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "pricing_rules_property_id_fkey"
@@ -5799,6 +6303,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       projects: {
@@ -5856,6 +6367,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       promo_code_usage: {
@@ -5903,6 +6421,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_usage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "promo_code_usage_promo_code_id_fkey"
@@ -6001,6 +6526,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotional_codes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "promotional_codes_property_id_fkey"
@@ -6123,6 +6655,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "properties_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       property_access_details: {
@@ -6182,6 +6721,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_access_details_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "property_access_details_property_id_fkey"
@@ -6250,6 +6796,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "property_analytics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       property_checklist_item_completions: {
@@ -6316,6 +6869,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_checklist_item_completions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "property_checklist_item_completions_run_id_fkey"
@@ -6395,6 +6955,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "property_checklist_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "property_checklist_runs_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -6461,6 +7028,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "property_documents_property_id_fkey"
@@ -6530,6 +7104,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "property_fees_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "property_fees_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -6583,6 +7164,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_guidebooks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -6684,6 +7272,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "property_reservations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "property_reservations_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -6742,6 +7337,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "property_stripe_credentials_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "property_stripe_credentials_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: true
@@ -6792,6 +7394,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_tax_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "property_tax_assignments_property_id_fkey"
@@ -6857,6 +7466,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_notification_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -7000,6 +7616,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reservations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "reservations_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -7114,6 +7737,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "scheduled_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "scheduled_messages_reservation_id_fkey"
             columns: ["reservation_id"]
             isOneToOne: false
@@ -7221,6 +7851,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "seam_access_codes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "seam_access_codes_reservation_id_fkey"
             columns: ["reservation_id"]
             isOneToOne: false
@@ -7312,6 +7949,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "seam_devices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "seam_devices_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -7381,6 +8025,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seam_workspaces_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "seam_workspaces_property_id_fkey"
@@ -7485,6 +8136,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "setup_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       site_settings: {
@@ -7529,6 +8187,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -7638,6 +8303,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "social_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       stripe_webhook_events: {
@@ -7719,6 +8391,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "subscribers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       support_ticket_responses: {
@@ -7766,6 +8445,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_ticket_responses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "support_ticket_responses_ticket_id_fkey"
@@ -7858,6 +8544,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "support_tickets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       sync_logs: {
@@ -7914,6 +8607,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "sync_logs_property_id_fkey"
@@ -7978,6 +8678,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_metadata_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "sync_metadata_property_id_fkey"
@@ -8191,6 +8898,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "tasks_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -8270,6 +8984,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tax_rates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       team_activity_log: {
@@ -8317,6 +9038,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_activity_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -8429,6 +9157,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "testimonials_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       tour_requests: {
@@ -8491,6 +9226,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -8619,6 +9361,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turno_property_mapping_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "turno_property_mapping_property_id_fkey"
@@ -8757,6 +9506,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tv_device_pairings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "tv_device_pairings_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -8820,6 +9576,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tv_pairing_audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "tv_pairing_audit_logs_performed_by_fkey"
@@ -8924,6 +9687,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_feedback_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       user_invitations: {
@@ -9001,6 +9771,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -9093,6 +9870,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "work_order_acknowledgement_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "work_order_acknowledgement_tokens_work_order_id_fkey"
             columns: ["work_order_id"]
             isOneToOne: false
@@ -9151,6 +9935,13 @@ export type Database = {
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "work_order_acknowledgments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       work_order_status_history: {
@@ -9195,6 +9986,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_status_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "work_order_status_history_work_order_id_fkey"
@@ -9350,6 +10148,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "work_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "work_orders_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -9468,6 +10273,17 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_onboarding_funnel: {
+        Row: {
+          cumulative_percentage: number | null
+          org_count: number | null
+          percentage: number | null
+          stage: Database["public"]["Enums"]["onboarding_stage"] | null
+          stuck_count: number | null
+          total_signups: number | null
+        }
+        Relationships: []
+      }
       platform_subscription_metrics: {
         Row: {
           active_subscriptions: number | null
@@ -9477,6 +10293,33 @@ export type Database = {
           past_due_subscriptions: number | null
           trial_subscriptions: number | null
           trials_ending_soon: number | null
+        }
+        Relationships: []
+      }
+      platform_tenant_health: {
+        Row: {
+          bookings_last_30d: number | null
+          conversations_last_7d: number | null
+          created_at: string | null
+          current_stage: Database["public"]["Enums"]["onboarding_stage"] | null
+          days_inactive: number | null
+          has_assistant: number | null
+          has_guidebook: number | null
+          has_properties: number | null
+          has_recent_bookings: number | null
+          health_score: number | null
+          is_stuck: boolean | null
+          last_activity_at: string | null
+          onboarding_completed_at: string | null
+          onboarding_started_at: string | null
+          organization_id: string | null
+          organization_name: string | null
+          slug: string | null
+          stuck_detected_at: string | null
+          subscription_status: string | null
+          subscription_tier: string | null
+          total_bookings: number | null
+          total_conversations: number | null
         }
         Relationships: []
       }
@@ -9609,6 +10452,7 @@ export type Database = {
             }
           }
       current_user_is_admin: { Args: never; Returns: boolean }
+      detect_stuck_onboarding: { Args: never; Returns: undefined }
       generate_work_order_number: { Args: never; Returns: string }
       get_current_user_role: { Args: never; Returns: string }
       get_or_create_contractor_token: {
@@ -9803,6 +10647,13 @@ export type Database = {
         Args: { _dns_records?: Json; _org_id: string; _status: string }
         Returns: undefined
       }
+      update_onboarding_stage: {
+        Args: {
+          p_new_stage: Database["public"]["Enums"]["onboarding_stage"]
+          p_organization_id: string
+        }
+        Returns: undefined
+      }
       update_user_last_login: { Args: { user_id: string }; Returns: undefined }
       user_belongs_to_organization: {
         Args: { _org_id: string; _user_id: string }
@@ -9844,6 +10695,16 @@ export type Database = {
       }
     }
     Enums: {
+      onboarding_stage:
+        | "signup_started"
+        | "email_verified"
+        | "org_created"
+        | "template_selected"
+        | "first_property_added"
+        | "guidebook_created"
+        | "assistant_configured"
+        | "first_booking"
+        | "completed"
       platform_role: "super_admin" | "support" | "billing"
       team_role: "owner" | "manager" | "staff" | "view_only"
     }
@@ -9973,6 +10834,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      onboarding_stage: [
+        "signup_started",
+        "email_verified",
+        "org_created",
+        "template_selected",
+        "first_property_added",
+        "guidebook_created",
+        "assistant_configured",
+        "first_booking",
+        "completed",
+      ],
       platform_role: ["super_admin", "support", "billing"],
       team_role: ["owner", "manager", "staff", "view_only"],
     },
