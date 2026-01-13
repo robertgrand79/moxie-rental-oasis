@@ -1,8 +1,9 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Loader2, ShieldAlert } from 'lucide-react';
 import PlatformToolbar from './PlatformToolbar';
 import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 // Content loader for lazy-loaded platform admin pages
 const ContentLoader = () => (
@@ -13,6 +14,14 @@ const ContentLoader = () => (
 
 const PlatformAdminLayout = () => {
   const { isPlatformAdmin, checkingAdmin } = usePlatformAdmin();
+  const { enterPlatformMode, isPlatformMode } = useCurrentOrganization();
+
+  // Auto-enter platform mode when accessing Platform Command Center
+  useEffect(() => {
+    if (isPlatformAdmin && !isPlatformMode) {
+      enterPlatformMode();
+    }
+  }, [isPlatformAdmin, isPlatformMode, enterPlatformMode]);
 
   // Show loading while checking admin status
   if (checkingAdmin) {
