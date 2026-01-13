@@ -5152,6 +5152,57 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_task_templates: {
+        Row: {
+          assign_to_role: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          description_template: string | null
+          due_days: number | null
+          id: string
+          is_active: boolean
+          name: string
+          priority: string
+          sort_order: number
+          title_template: string
+          trigger_event: string
+          updated_at: string
+        }
+        Insert: {
+          assign_to_role?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          description_template?: string | null
+          due_days?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          priority?: string
+          sort_order?: number
+          title_template: string
+          trigger_event: string
+          updated_at?: string
+        }
+        Update: {
+          assign_to_role?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          description_template?: string | null
+          due_days?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          priority?: string
+          sort_order?: number
+          title_template?: string
+          trigger_event?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_tasks: {
         Row: {
           assigned_to: string | null
@@ -5161,8 +5212,12 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          metadata: Json | null
           priority: string
+          related_org_id: string | null
+          related_user_id: string | null
           status: string
+          template_id: string | null
           title: string
           updated_at: string
         }
@@ -5174,8 +5229,12 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          metadata?: Json | null
           priority?: string
+          related_org_id?: string | null
+          related_user_id?: string | null
           status?: string
+          template_id?: string | null
           title: string
           updated_at?: string
         }
@@ -5187,8 +5246,12 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          metadata?: Json | null
           priority?: string
+          related_org_id?: string | null
+          related_user_id?: string | null
           status?: string
+          template_id?: string | null
           title?: string
           updated_at?: string
         }
@@ -5205,6 +5268,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "platform_task_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -9170,6 +9240,10 @@ export type Database = {
           p_total_amount: number
         }
         Returns: Json
+      }
+      create_tasks_from_templates: {
+        Args: { p_trigger_event: string; p_variables?: Json }
+        Returns: number
       }
       current_user_is_admin: { Args: never; Returns: boolean }
       generate_work_order_number: { Args: never; Returns: string }
