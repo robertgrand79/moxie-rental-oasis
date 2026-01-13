@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { TurnoProperty, TurnoPropertyMapping } from '@/types/turno';
 
 export const useTurnoProperties = () => {
@@ -9,13 +10,26 @@ export const useTurnoProperties = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
 
   const fetchTurnoProperties = async () => {
+    if (!organization?.id) {
+      console.error('🚫 No organization context for Turno sync');
+      toast({
+        title: 'Error',
+        description: 'Organization context not loaded. Please refresh and try again.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
-      console.log('🏠 Fetching Turno properties from API...');
+      console.log('🏠 Fetching Turno properties for organization:', organization.id, organization.name);
       setSyncing(true);
       
-      const { data, error } = await supabase.functions.invoke('turno-sync-properties');
+      const { data, error } = await supabase.functions.invoke('turno-sync-properties', {
+        body: { organizationId: organization.id }
+      });
       
       if (error) {
         throw error;
@@ -25,9 +39,6 @@ export const useTurnoProperties = () => {
         const properties = data.properties || [];
         console.log('📋 Turno properties received:', properties.length, properties);
         setTurnoProperties(properties);
-        
-        // Cache properties in database
-        await cacheTurnoProperties(properties);
         
         toast({
           title: 'Success',
@@ -49,31 +60,12 @@ export const useTurnoProperties = () => {
     }
   };
 
-  const cacheTurnoProperties = async (properties: TurnoProperty[]) => {
-    try {
-      // Update existing mappings with latest property data, preserving is_active status
-      for (const property of properties) {
-        const { error } = await supabase
-          .from('turno_property_mapping')
-          .upsert({
-            turno_property_id: property.id,
-            property_name: property.name || property.alias || property.title || `Property ${property.id}`,
-            is_active: false
-          }, {
-            onConflict: 'turno_property_id',
-            ignoreDuplicates: true // Don't override existing records, only insert new ones
-          });
-
-        if (error) {
-          console.error('Error caching Turno property:', error);
-        }
-      }
-    } catch (error) {
-      console.error('Error caching Turno properties:', error);
-    }
-  };
-
   const fetchMappings = async () => {
+    if (!organization?.id) {
+      console.log('⏳ Waiting for organization context to fetch mappings...');
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('turno_property_mapping')
@@ -81,10 +73,11 @@ export const useTurnoProperties = () => {
           *,
           property:properties(id, title, location)
         `)
+        .eq('organization_id', organization.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      console.log('📊 Fetched mappings:', data?.length || 0, data);
+      console.log('📊 Fetched mappings for org:', organization.id, data?.length || 0);
       setMappings(data || []);
     } catch (error) {
       console.error('Error fetching mappings:', error);
@@ -97,8 +90,17 @@ export const useTurnoProperties = () => {
   };
 
   const createMapping = async (propertyId: string, turnoPropertyId: string) => {
+    if (!organization?.id) {
+      toast({
+        title: 'Error',
+        description: 'Organization context not loaded',
+        variant: 'destructive',
+      });
+      throw new Error('No organization context');
+    }
+
     try {
-      console.log('🔄 Creating mapping:', { propertyId, turnoPropertyId });
+      console.log('🔄 Creating mapping:', { propertyId, turnoPropertyId, organizationId: organization.id });
       
       // Get Turno property details
       const turnoProperty = turnoProperties.find(p => p.id === turnoPropertyId);
@@ -115,6 +117,7 @@ export const useTurnoProperties = () => {
           is_active: true
         })
         .eq('turno_property_id', turnoPropertyId)
+        .eq('organization_id', organization.id)
         .select()
         .single();
 
@@ -203,14 +206,19 @@ export const useTurnoProperties = () => {
   };
 
   useEffect(() => {
+    if (!organization?.id) {
+      setLoading(false);
+      return;
+    }
+
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchMappings(), fetchTurnoProperties()]);
+      await fetchMappings();
       setLoading(false);
     };
 
     loadData();
-  }, []);
+  }, [organization?.id]);
 
   return {
     turnoProperties,

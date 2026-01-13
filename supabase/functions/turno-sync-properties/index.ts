@@ -1,4 +1,4 @@
-// Properties management endpoint for Turno sync
+// Properties management endpoint for Turno sync with multi-tenant isolation
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -99,20 +99,48 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Parse request body for organization ID
+    let organizationId: string | null = null;
+    try {
+      const body = await req.json();
+      organizationId = body.organizationId;
+    } catch {
+      // No body or invalid JSON
+    }
+
+    if (!organizationId) {
+      throw new Error('Organization ID is required for Turno property sync');
+    }
+
+    console.log('🏢 Syncing Turno properties for organization:', organizationId);
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const turnoApiToken = Deno.env.get('TURNO_API_TOKEN');
-    const turnoApiSecret = Deno.env.get('TURNO_API_SECRET');
-    const turnoPartnerId = Deno.env.get('TURNO_PARTNER_ID');
+    // Fetch organization's Turno credentials from database
+    const { data: org, error: orgError } = await supabaseClient
+      .from('organizations')
+      .select('turno_api_token, turno_api_secret, turno_partner_id')
+      .eq('id', organizationId)
+      .single();
 
-    if (!turnoApiToken || !turnoApiSecret) {
-      throw new Error('Turno API credentials not configured');
+    if (orgError) {
+      console.error('❌ Failed to fetch organization:', orgError);
+      throw new Error('Failed to fetch organization settings');
     }
 
-    console.log('🔧 Using configured Turno credentials');
+    // Use organization-level credentials, fall back to global env vars
+    const turnoApiToken = org?.turno_api_token || Deno.env.get('TURNO_API_TOKEN');
+    const turnoApiSecret = org?.turno_api_secret || Deno.env.get('TURNO_API_SECRET');
+    const turnoPartnerId = org?.turno_partner_id || Deno.env.get('TURNO_PARTNER_ID');
+
+    if (!turnoApiToken || !turnoApiSecret) {
+      throw new Error('Turno API credentials not configured for this organization');
+    }
+
+    console.log('🔧 Using Turno credentials:', org?.turno_api_token ? 'organization-level' : 'global fallback');
 
     // Fetch properties from Turno
     const propertiesResult = await fetchTurnoProperties(turnoApiToken, turnoApiSecret, turnoPartnerId);
@@ -128,31 +156,38 @@ const handler = async (req: Request): Promise<Response> => {
         ? propertiesResult.data.data 
         : [];
     
-    console.log(`📊 Caching ${properties.length} properties to database...`);
+    console.log(`📊 Caching ${properties.length} properties to database for org ${organizationId}...`);
     
     for (const property of properties) {
       try {
-        await supabaseClient
+        // Use upsert with composite key (turno_property_id + organization_id)
+        const { error: upsertError } = await supabaseClient
           .from('turno_property_mapping')
           .upsert({
             turno_property_id: property.id,
             property_name: property.name || property.alias || property.title || `Property ${property.id}`,
+            organization_id: organizationId,
             is_active: false // Will be activated when user maps to internal property
           }, {
-            onConflict: 'turno_property_id',
+            onConflict: 'turno_property_id,organization_id',
             ignoreDuplicates: false
           });
+
+        if (upsertError) {
+          console.error(`Failed to cache property ${property.id}:`, upsertError);
+        }
       } catch (error) {
         console.error(`Failed to cache property ${property.id}:`, error);
       }
     }
 
-    console.log('✅ Properties sync completed successfully');
+    console.log('✅ Properties sync completed successfully for organization:', organizationId);
 
     return new Response(JSON.stringify({
       success: true,
       properties: properties,
       cached: properties.length,
+      organizationId: organizationId,
       message: `Successfully fetched and cached ${properties.length} properties`
     }), {
       status: 200,
