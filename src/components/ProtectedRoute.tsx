@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
@@ -29,9 +29,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     error: orgError
   } = useCurrentOrganization();
 
+  // Track if we've successfully verified auth at least once
+  // This prevents full-page loading on subsequent navigations
+  const hasVerifiedRef = useRef(false);
+
   const loading = authLoading || orgLoading;
 
-  if (loading) {
+  // Only show full-page loader on initial verification, not on navigation
+  if (loading && !hasVerifiedRef.current) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -43,7 +48,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!user) {
+    // Reset verification on logout
+    hasVerifiedRef.current = false;
     return <Navigate to="/auth" replace />;
+  }
+
+  // Mark as verified once we have user and contexts are loaded
+  if (!loading) {
+    hasVerifiedRef.current = true;
   }
 
   // Platform admins bypass all organization checks
