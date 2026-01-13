@@ -86,6 +86,13 @@ export const useTenantDetection = (): TenantDetectionResult => {
 
     const hostname = window.location.hostname;
     const PLATFORM_DOMAIN = 'staymoxie.com';
+    const PLATFORM_ADMIN_SUBDOMAIN = 'admin';
+    
+    // Skip tenant detection on admin.staymoxie.com (Platform Command Center)
+    if (hostname === `${PLATFORM_ADMIN_SUBDOMAIN}.${PLATFORM_DOMAIN}`) {
+      logTenant('Admin subdomain - no tenant detection');
+      return null;
+    }
     
     // Check for subdomain of staymoxie.com (e.g., moxie.staymoxie.com)
     if (hostname.endsWith(`.${PLATFORM_DOMAIN}`)) {

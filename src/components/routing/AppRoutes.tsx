@@ -55,6 +55,7 @@ const AuthConfirm = lazy(() => import('@/pages/auth/AuthConfirm'));
 // Core admin (loaded eagerly)
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminLayoutWrapper from '@/components/layouts/AdminLayoutWrapper';
+import AdminDomainGuard from '@/components/admin/platform/AdminDomainGuard';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 
 // Lazy-loaded admin pages (heavy pages)
@@ -178,7 +179,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/admin/onboarding" element={<ProtectedRoute><OnboardingWizard /></ProtectedRoute>} />
 
           {/* Shared Admin Routes */}
-          <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
+          <Route path="/admin" element={<ProtectedRoute><AdminDomainGuard><AdminLayoutWrapper /></AdminDomainGuard></ProtectedRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="notifications" element={<NotificationsPage />} />
@@ -246,7 +247,7 @@ const AppRoutes: React.FC = () => {
             <Route path="profile" element={<AdminProfile />} />
             {/* Platform Admin Command Center - nested routes */}
           </Route>
-          <Route path="/admin/platform" element={<ProtectedRoute><PlatformAdminLayout /></ProtectedRoute>}>
+          <Route path="/admin/platform" element={<ProtectedRoute><AdminDomainGuard><PlatformAdminLayout /></AdminDomainGuard></ProtectedRoute>}>
             <Route index element={<PlatformDashboard />} />
             <Route path="organizations" element={<PlatformOrganizationsPage />} />
             <Route path="users" element={<PlatformUsersPage />} />
@@ -334,7 +335,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/signup" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
         <Route path="/admin/onboarding" element={<ProtectedRoute><OnboardingWizard /></ProtectedRoute>} />
 
-        <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
+        <Route path="/admin" element={<ProtectedRoute><AdminDomainGuard><AdminLayoutWrapper /></AdminDomainGuard></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="notifications" element={<NotificationsPage />} />
@@ -403,7 +404,7 @@ const AppRoutes: React.FC = () => {
           <Route path="profile" element={<AdminProfile />} />
           {/* Platform Admin Command Center - nested routes */}
         </Route>
-        <Route path="/admin/platform" element={<ProtectedRoute><PlatformAdminLayout /></ProtectedRoute>}>
+        <Route path="/admin/platform" element={<ProtectedRoute><AdminDomainGuard><PlatformAdminLayout /></AdminDomainGuard></ProtectedRoute>}>
           <Route index element={<PlatformDashboard />} />
           <Route path="organizations" element={<PlatformOrganizationsPage />} />
           <Route path="users" element={<PlatformUsersPage />} />
