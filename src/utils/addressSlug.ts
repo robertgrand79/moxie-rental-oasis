@@ -1,5 +1,10 @@
 
-export const generateAddressSlug = (location: string, includePropertyId?: string): string => {
+export const generateAddressSlug = (location: string | undefined | null, includePropertyId?: string): string => {
+  // Guard against undefined/null location
+  if (!location) {
+    return includePropertyId ? `property-${includePropertyId.slice(0, 8)}` : 'property';
+  }
+  
   // Convert location to URL-friendly slug
   const baseSlug = location
     .toLowerCase()
