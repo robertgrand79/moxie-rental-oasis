@@ -271,6 +271,53 @@ serve(async (req) => {
             .update({ subscription_status: "past_due" })
             .eq("id", org.id);
 
+          // Record in failed payments queue
+          const failureReason = invoice.last_finalization_error?.message || 
+            (invoice as any).charge?.failure_message || 
+            'Payment declined';
+          
+          await supabaseClient.from('platform_failed_payments').upsert({
+            organization_id: org.id,
+            stripe_invoice_id: invoice.id,
+            stripe_customer_id: customerId,
+            amount_cents: invoice.amount_due,
+            currency: invoice.currency,
+            failure_reason: failureReason,
+            failure_code: (invoice as any).charge?.failure_code || null,
+            attempt_count: invoice.attempt_count || 1,
+            last_attempt_at: new Date().toISOString(),
+            status: 'pending',
+            invoice_metadata: { 
+              subscription_id: invoice.subscription,
+              org_name: org.name 
+            },
+          }, { onConflict: 'stripe_invoice_id' });
+
+          // Send email alert to platform admins
+          try {
+            await supabaseClient.functions.invoke('send-platform-email', {
+              body: {
+                to: 'billing@staymoxie.com',
+                subject: `⚠️ Payment Failed: ${org.name}`,
+                html: `
+                  <h2>Payment Failed Alert</h2>
+                  <p><strong>Organization:</strong> ${org.name}</p>
+                  <p><strong>Amount:</strong> $${(invoice.amount_due / 100).toFixed(2)}</p>
+                  <p><strong>Reason:</strong> ${failureReason}</p>
+                  <p><a href="https://admin.staymoxie.com/admin/platform/billing">View in Billing Dashboard</a></p>
+                `,
+              }
+            });
+
+            // Mark email as sent
+            await supabaseClient
+              .from('platform_failed_payments')
+              .update({ email_alert_sent_at: new Date().toISOString() })
+              .eq('stripe_invoice_id', invoice.id);
+          } catch (emailError) {
+            logStep("Failed to send email alert", { error: emailError.message });
+          }
+
           // Create urgent notification for payment failure
           await supabaseClient.from('admin_notifications').insert({
             organization_id: org.id,

@@ -5191,6 +5191,94 @@ export type Database = {
           },
         ]
       }
+      platform_failed_payments: {
+        Row: {
+          amount_cents: number
+          attempt_count: number | null
+          created_at: string
+          currency: string | null
+          email_alert_sent_at: string | null
+          failure_code: string | null
+          failure_reason: string | null
+          id: string
+          invoice_metadata: Json | null
+          last_attempt_at: string | null
+          next_retry_at: string | null
+          organization_id: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_invoice_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          attempt_count?: number | null
+          created_at?: string
+          currency?: string | null
+          email_alert_sent_at?: string | null
+          failure_code?: string | null
+          failure_reason?: string | null
+          id?: string
+          invoice_metadata?: Json | null
+          last_attempt_at?: string | null
+          next_retry_at?: string | null
+          organization_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_invoice_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          attempt_count?: number | null
+          created_at?: string
+          currency?: string | null
+          email_alert_sent_at?: string | null
+          failure_code?: string | null
+          failure_reason?: string | null
+          id?: string
+          invoice_metadata?: Json | null
+          last_attempt_at?: string | null
+          next_retry_at?: string | null
+          organization_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_invoice_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_failed_payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_failed_payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_failed_payments_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_inbox: {
         Row: {
           admin_notes: string | null
@@ -9377,6 +9465,18 @@ export type Database = {
           turno_partner_id?: string | null
           updated_at?: string | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      platform_subscription_metrics: {
+        Row: {
+          active_subscriptions: number | null
+          canceled_subscriptions: number | null
+          comped_subscriptions: number | null
+          monthly_recurring_revenue_cents: number | null
+          past_due_subscriptions: number | null
+          trial_subscriptions: number | null
+          trials_ending_soon: number | null
         }
         Relationships: []
       }
