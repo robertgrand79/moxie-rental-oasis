@@ -138,7 +138,50 @@ const TVSignage = lazy(() => import('@/pages/tv/TVSignage'));
 const PairTV = lazy(() => import('@/pages/tv/PairTV'));
 
 const AppRoutes: React.FC = () => {
-  const { isPlatformSite } = usePlatform();
+  const { isPlatformSite, isPlatformAdminDomain } = usePlatform();
+
+  // Admin subdomain (admin.staymoxie.com) - always redirect to Platform Command Center
+  if (isPlatformAdminDomain) {
+    return (
+      <Routes>
+        {/* Redirect root to Platform Command Center */}
+        <Route path="/" element={<Navigate to="/admin/platform" replace />} />
+        
+        {/* Auth routes for login */}
+        <Route path="/auth" element={<PlatformAuth />} />
+        <Route path="/login" element={<PlatformAuth />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/auth/confirm" element={<AuthConfirm />} />
+        
+        {/* Platform Admin Command Center */}
+        <Route path="/admin/platform" element={<ProtectedRoute><AdminDomainGuard><PlatformAdminLayout /></AdminDomainGuard></ProtectedRoute>}>
+          <Route index element={<PlatformDashboard />} />
+          <Route path="organizations" element={<PlatformOrganizationsPage />} />
+          <Route path="users" element={<PlatformUsersPage />} />
+          <Route path="templates" element={<PlatformTemplatesPage />} />
+          <Route path="settings" element={<PlatformSettingsPage />} />
+          <Route path="monitoring" element={<PlatformMonitoringPage />} />
+          <Route path="help-center" element={<PlatformHelpCenterPage />} />
+          <Route path="inbox" element={<PlatformInboxPage />} />
+          <Route path="launch" element={<PlatformLaunchPage />} />
+          <Route path="audit" element={<PlatformAuditPage />} />
+          <Route path="lookup" element={<PlatformLookupPage />} />
+          <Route path="template-test" element={<PlatformTemplateTestPage />} />
+          <Route path="ai-assistant" element={<AdminAIAssistant />} />
+          <Route path="help" element={<HelpCenterPage />} />
+          <Route path="my-requests" element={<MyRequestsPage />} />
+          <Route path="status" element={<StatusPage />} />
+        </Route>
+        
+        {/* Redirect /admin to /admin/platform */}
+        <Route path="/admin" element={<Navigate to="/admin/platform" replace />} />
+        <Route path="/admin/*" element={<Navigate to="/admin/platform" replace />} />
+        
+        {/* Catch all - redirect to platform command center */}
+        <Route path="*" element={<Navigate to="/admin/platform" replace />} />
+      </Routes>
+    );
+  }
 
   if (isPlatformSite) {
     return (
