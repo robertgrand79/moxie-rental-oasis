@@ -1,6 +1,7 @@
 
 import { Property } from '@/types/property';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useOptimizedPhotoUpload } from '@/hooks/useOptimizedPhotoUpload';
@@ -9,6 +10,7 @@ import { mapFormToDatabase, mapFormToDatabaseUpdate } from '@/types/property-for
 
 export const usePropertyOperations = () => {
   const { user } = useAuth();
+  const { organization } = useCurrentOrganization();
   const { deletePhoto, uploadOptimizedPhotos } = useOptimizedPhotoUpload();
 
   const addProperty = async (propertyData: PropertyFormData): Promise<Property | null> => {
@@ -37,7 +39,7 @@ export const usePropertyOperations = () => {
       }
 
       // Map form data to database schema
-      const cleanPropertyData = mapFormToDatabase(propertyData, uploadedImages, user.id);
+      const cleanPropertyData = mapFormToDatabase(propertyData, uploadedImages, user.id, organization?.id);
 
       const { data, error } = await supabase
         .from('properties')
