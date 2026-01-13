@@ -4,6 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Menu } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
+import OrganizationSwitcher from './OrganizationSwitcher';
+import ContextBanner from './ContextBanner';
 import NotificationBell from './notifications/NotificationBell';
 import SupportWidget from '@/components/support/SupportWidget';
 import TemplateEditingBanner from './TemplateEditingBanner';
@@ -43,6 +45,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         <div className="flex w-full min-h-screen">
           <AdminSidebar />
           <SidebarInset className="flex-1">
+            {/* Context Banner for Platform Admins viewing a tenant */}
+            <ContextBanner />
             {/* Trial Banner - sticky at top */}
             <TrialBanner />
             <header className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background ${isMobile ? 'px-3' : ''}`}>
@@ -75,11 +79,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {/* Organization Switcher for Platform Admins */}
+                  {isPlatformAdmin && !isMobile && <OrganizationSwitcher />}
+                  
                   {/* Notification Bell */}
                   <NotificationBell />
                   
                   {/* Organization context badge */}
-                  {!isMobile && <OrganizationBadge />}
+                  {!isMobile && !isPlatformAdmin && <OrganizationBadge />}
                 </div>
               </div>
             </header>

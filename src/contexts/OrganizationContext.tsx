@@ -8,6 +8,7 @@ interface OrganizationContextType {
   organization: Organization | null;
   membership: OrganizationMember | null;
   isPlatformAdmin: boolean;
+  isPlatformMode: boolean;
   loading: boolean;
   error: string | null;
   isOrgAdmin: () => boolean;
@@ -15,6 +16,8 @@ interface OrganizationContextType {
   canManageOrganization: () => boolean;
   refetch: () => Promise<void>;
   switchOrganization: (orgId: string) => Promise<boolean>;
+  enterPlatformMode: () => void;
+  enterTenantMode: (orgId: string) => Promise<boolean>;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
@@ -28,6 +31,7 @@ export const useCurrentOrganization = () => {
       organization: null,
       membership: null,
       isPlatformAdmin: false,
+      isPlatformMode: false,
       loading: true,
       error: null,
       isOrgAdmin: () => false,
@@ -35,6 +39,8 @@ export const useCurrentOrganization = () => {
       canManageOrganization: () => false,
       refetch: async () => {},
       switchOrganization: async () => false,
+      enterPlatformMode: () => {},
+      enterTenantMode: async () => false,
     };
   }
   return context;
@@ -45,6 +51,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [membership, setMembership] = useState<OrganizationMember | null>(null);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [isPlatformMode, setIsPlatformMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const retryCountRef = useRef(0);
@@ -54,6 +61,14 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   // This prevents refetching on navigation when user hasn't changed
   const lastFetchedUserIdRef = useRef<string | null>(null);
   const hasInitializedRef = useRef(false);
+  
+  // Check if we're on a neutral domain (Lovable, localhost)
+  const isNeutralDomain = useCallback(() => {
+    const hostname = window.location.hostname;
+    return hostname.includes('lovable.app') || 
+           hostname.includes('localhost') || 
+           hostname.includes('127.0.0.1');
+  }, []);
 
   const fetchOrganizationData = useCallback(async (isRetry = false, forceRefetch = false) => {
     // Require both user AND session for RLS to work properly
@@ -213,7 +228,14 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
 
       // Set platform admin status
-      setIsPlatformAdmin(!!platformAdminResult.data);
+      const isPlatAdmin = !!platformAdminResult.data;
+      setIsPlatformAdmin(isPlatAdmin);
+      
+      // Auto-enter platform mode for platform admins on neutral domains with no org context
+      if (isPlatAdmin && isNeutralDomain() && !organization) {
+        debug.org('Platform admin on neutral domain - entering platform mode');
+        setIsPlatformMode(true);
+      }
 
     } catch (err) {
       debug.error('Error in fetchOrganizationData:', err);
@@ -317,6 +339,20 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [user, isPlatformAdmin]);
 
+  // Enter platform mode (no tenant context)
+  const enterPlatformMode = useCallback(() => {
+    debug.org('Entering platform mode');
+    setIsPlatformMode(true);
+    setOrganization(null);
+    setMembership(null);
+  }, []);
+
+  // Enter tenant mode (switch to a specific org)
+  const enterTenantMode = useCallback(async (orgId: string): Promise<boolean> => {
+    setIsPlatformMode(false);
+    return switchOrganization(orgId);
+  }, [switchOrganization]);
+
   // Force refetch function for explicit refresh needs
   const refetch = useCallback(async () => {
     await fetchOrganizationData(false, true);
@@ -326,6 +362,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     organization,
     membership,
     isPlatformAdmin,
+    isPlatformMode,
     loading,
     error,
     isOrgAdmin,
@@ -333,6 +370,8 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     canManageOrganization,
     refetch,
     switchOrganization,
+    enterPlatformMode,
+    enterTenantMode,
   };
 
   return (
