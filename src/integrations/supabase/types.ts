@@ -5083,6 +5083,48 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_notifications: {
+        Row: {
+          action_url: string | null
+          category: string
+          created_at: string
+          id: string
+          is_archived: boolean
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          notification_type: string
+          priority: string
+          title: string
+        }
+        Insert: {
+          action_url?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          priority?: string
+          title: string
+        }
+        Update: {
+          action_url?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          priority?: string
+          title?: string
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           id: string
@@ -5109,6 +5151,63 @@ export type Database = {
           value?: string | null
         }
         Relationships: []
+      }
+      platform_tasks: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricelabs_sync_logs: {
         Row: {
@@ -9042,6 +9141,18 @@ export type Database = {
           _template_id?: string
           _user_id: string
           _visual_template_id?: string
+        }
+        Returns: string
+      }
+      create_platform_notification: {
+        Args: {
+          p_action_url?: string
+          p_category: string
+          p_message: string
+          p_metadata?: Json
+          p_priority?: string
+          p_title: string
+          p_type: string
         }
         Returns: string
       }

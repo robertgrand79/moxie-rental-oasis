@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Plus, Bell, ArrowLeft, Activity, LayoutDashboard } from 'lucide-react';
+import { Search, Plus, ArrowLeft, Activity, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
+import PlatformNotificationBell from './PlatformNotificationBell';
 
 const PlatformToolbar = () => {
   const navigate = useNavigate();
@@ -18,9 +18,6 @@ const PlatformToolbar = () => {
 
   // Determine if we're on the main dashboard
   const isDashboard = location.pathname === '/admin/platform';
-
-  // Mock notification count - in real implementation, fetch from backend
-  const notificationCount = 3;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,18 +107,8 @@ const PlatformToolbar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-4 w-4" />
-            {notificationCount > 0 && (
-              <Badge 
-                className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 flex items-center justify-center text-xs"
-                variant="destructive"
-              >
-                {notificationCount}
-              </Badge>
-            )}
-          </Button>
+          {/* Platform Notifications */}
+          <PlatformNotificationBell />
         </div>
       </div>
     </header>
