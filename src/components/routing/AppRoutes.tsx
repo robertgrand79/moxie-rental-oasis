@@ -106,6 +106,7 @@ const PlatformLookupPage = lazy(() => import('@/pages/admin/platform/PlatformLoo
 const PlatformTemplateTestPage = lazy(() => import('@/pages/admin/platform/PlatformTemplateTestPage'));
 const TaskWorkflowsPage = lazy(() => import('@/pages/admin/platform/TaskWorkflowsPage'));
 const PlatformEmailPage = lazy(() => import('@/pages/admin/platform/PlatformEmailPage'));
+const PlatformBillingPage = lazy(() => import('@/pages/admin/platform/PlatformBillingPage'));
 
 // Lazy-loaded settings pages
 const GeneralSettingsPage = lazy(() => import('@/pages/admin/settings/GeneralSettingsPage'));
@@ -171,6 +172,7 @@ const AppRoutes: React.FC = () => {
           <Route path="template-test" element={<PlatformTemplateTestPage />} />
           <Route path="workflows" element={<TaskWorkflowsPage />} />
           <Route path="email" element={<PlatformEmailPage />} />
+          <Route path="billing" element={<PlatformBillingPage />} />
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
           <Route path="help" element={<HelpCenterPage />} />
           <Route path="my-requests" element={<MyRequestsPage />} />
@@ -313,6 +315,7 @@ const AppRoutes: React.FC = () => {
             <Route path="my-requests" element={<MyRequestsPage />} />
             <Route path="status" element={<StatusPage />} />
             <Route path="email" element={<PlatformEmailPage />} />
+            <Route path="billing" element={<PlatformBillingPage />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
@@ -468,6 +471,7 @@ const AppRoutes: React.FC = () => {
           <Route path="template-test" element={<PlatformTemplateTestPage />} />
           <Route path="workflows" element={<TaskWorkflowsPage />} />
           <Route path="email" element={<PlatformEmailPage />} />
+          <Route path="billing" element={<PlatformBillingPage />} />
         </Route>
         <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
           <Route path="ai-assistant" element={<AdminAIAssistant />} />

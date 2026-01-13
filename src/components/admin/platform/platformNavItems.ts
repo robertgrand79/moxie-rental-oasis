@@ -12,7 +12,8 @@ import {
   TestTube,
   LayoutDashboard,
   Workflow,
-  Mail
+  Mail,
+  CreditCard
 } from 'lucide-react';
 
 export interface PlatformNavItem {
@@ -48,6 +49,14 @@ export const platformNavItems: PlatformNavItem[] = [
     icon: Layout,
     path: '/admin/platform/templates',
     description: 'Manage site templates',
+    section: 'core',
+  },
+  {
+    key: 'billing',
+    label: 'Billing',
+    icon: CreditCard,
+    path: '/admin/platform/billing',
+    description: 'Subscriptions, revenue, and failed payments',
     section: 'core',
   },
 
