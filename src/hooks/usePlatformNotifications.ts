@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export interface PlatformNotification {
   id: string;
@@ -20,43 +20,65 @@ export const usePlatformNotifications = (options?: { limit?: number; includeRead
   const queryClient = useQueryClient();
   const limit = options?.limit || 50;
   const includeRead = options?.includeRead ?? true;
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const { data: notifications = [], isLoading, error } = useQuery({
     queryKey: ['platform-notifications', limit, includeRead],
     queryFn: async () => {
-      let query = supabase
-        .from('platform_notifications')
-        .select('*')
-        .eq('is_archived', false)
-        .order('created_at', { ascending: false })
-        .limit(limit);
+      try {
+        let query = supabase
+          .from('platform_notifications')
+          .select('*')
+          .eq('is_archived', false)
+          .order('created_at', { ascending: false })
+          .limit(limit);
 
-      if (!includeRead) {
-        query = query.eq('is_read', false);
+        if (!includeRead) {
+          query = query.eq('is_read', false);
+        }
+
+        const { data, error } = await query;
+        if (error) {
+          console.warn('Platform notifications query error:', error.message);
+          return [];
+        }
+        return data as PlatformNotification[];
+      } catch (err) {
+        console.warn('Platform notifications error:', err);
+        return [];
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as PlatformNotification[];
     },
   });
 
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['platform-notifications-unread-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('platform_notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_read', false)
-        .eq('is_archived', false);
+      try {
+        const { count, error } = await supabase
+          .from('platform_notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_read', false)
+          .eq('is_archived', false);
 
-      if (error) throw error;
-      return count || 0;
+        if (error) {
+          console.warn('Platform notifications count error:', error.message);
+          return 0;
+        }
+        return count || 0;
+      } catch (err) {
+        console.warn('Platform notifications count error:', err);
+        return 0;
+      }
     },
   });
 
-  // Real-time subscription
+  // Real-time subscription with race condition guard
   useEffect(() => {
+    // Prevent duplicate subscriptions
+    if (channelRef.current) {
+      return;
+    }
+
     const channel = supabase
       .channel('platform-notifications-changes')
       .on(
@@ -73,8 +95,13 @@ export const usePlatformNotifications = (options?: { limit?: number; includeRead
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [queryClient]);
 

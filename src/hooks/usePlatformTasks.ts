@@ -42,21 +42,29 @@ export const usePlatformTasks = (options?: { status?: string; limit?: number }) 
   const { data: tasks = [], isLoading, error } = useQuery({
     queryKey: ['platform-tasks', options?.status, limit],
     queryFn: async () => {
-      let query = supabase
-        .from('platform_tasks')
-        .select('*')
-        .order('priority', { ascending: false })
-        .order('due_date', { ascending: true, nullsFirst: false })
-        .order('created_at', { ascending: false })
-        .limit(limit);
+      try {
+        let query = supabase
+          .from('platform_tasks')
+          .select('*')
+          .order('priority', { ascending: false })
+          .order('due_date', { ascending: true, nullsFirst: false })
+          .order('created_at', { ascending: false })
+          .limit(limit);
 
-      if (options?.status) {
-        query = query.eq('status', options.status);
+        if (options?.status) {
+          query = query.eq('status', options.status);
+        }
+
+        const { data, error } = await query;
+        if (error) {
+          console.warn('Platform tasks query error:', error.message);
+          return [];
+        }
+        return data as PlatformTask[];
+      } catch (err) {
+        console.warn('Platform tasks error:', err);
+        return [];
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as PlatformTask[];
     },
   });
 
