@@ -119,7 +119,7 @@ const PlatformNotificationBell: React.FC = () => {
     markAsRead,
     markAllAsRead,
     archiveNotification,
-  } = usePlatformNotifications({ limit: 20 });
+  } = usePlatformNotifications({ limit: 20, enableRealtime: true });
 
   const handleNavigate = (url: string) => {
     navigate(url);
