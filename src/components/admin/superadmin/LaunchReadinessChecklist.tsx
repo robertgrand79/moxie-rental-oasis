@@ -46,10 +46,20 @@ interface ChecklistCategory {
   items: ChecklistItem[];
 }
 
+const MANUAL_CHECKS_STORAGE_KEY = 'launch-checklist-manual-checks';
+
 const LaunchReadinessChecklist: React.FC = () => {
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [manualChecks, setManualChecks] = useState<Record<string, boolean>>({});
+  const [manualChecks, setManualChecks] = useState<Record<string, boolean>>(() => {
+    // Initialize from localStorage
+    try {
+      const stored = localStorage.getItem(MANUAL_CHECKS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
   const runAutomatedChecks = async () => {
@@ -345,10 +355,19 @@ const LaunchReadinessChecklist: React.FC = () => {
   }, []);
 
   const toggleManualCheck = (itemId: string) => {
-    setManualChecks(prev => ({
-      ...prev,
-      [itemId]: !prev[itemId]
-    }));
+    setManualChecks(prev => {
+      const updated = {
+        ...prev,
+        [itemId]: !prev[itemId]
+      };
+      // Persist to localStorage
+      try {
+        localStorage.setItem(MANUAL_CHECKS_STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to save manual checks:', e);
+      }
+      return updated;
+    });
   };
 
   const getStatusIcon = (status: string, itemId: string) => {
