@@ -10,7 +10,8 @@ import {
   FileText,
   Search,
   TestTube,
-  LayoutDashboard
+  LayoutDashboard,
+  Workflow
 } from 'lucide-react';
 
 export interface PlatformNavItem {
@@ -64,6 +65,14 @@ export const platformNavItems: PlatformNavItem[] = [
     icon: Inbox,
     path: '/admin/platform/inbox',
     description: 'Support tickets and user feedback',
+    section: 'content',
+  },
+  {
+    key: 'workflows',
+    label: 'Task Workflows',
+    icon: Workflow,
+    path: '/admin/platform/workflows',
+    description: 'Automated task templates and triggers',
     section: 'content',
   },
 

@@ -11,7 +11,8 @@ import {
   Circle, 
   Clock,
   AlertTriangle,
-  X
+  X,
+  Workflow
 } from 'lucide-react';
 import { usePlatformTasks, PlatformTask } from '@/hooks/usePlatformTasks';
 import { useNavigate } from 'react-router-dom';
@@ -101,6 +102,15 @@ const PlatformTasksWidget: React.FC = () => {
             Platform Tasks
           </CardTitle>
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => navigate('/admin/platform/workflows')}
+              title="Manage Workflows"
+            >
+              <Workflow className="h-4 w-4" />
+            </Button>
             {todoCount > 0 && (
               <Badge variant="secondary" className="text-xs">
                 {todoCount} todo

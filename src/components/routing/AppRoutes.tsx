@@ -104,6 +104,7 @@ const PlatformLaunchPage = lazy(() => import('@/pages/admin/platform/PlatformLau
 const PlatformAuditPage = lazy(() => import('@/pages/admin/platform/PlatformAuditPage'));
 const PlatformLookupPage = lazy(() => import('@/pages/admin/platform/PlatformLookupPage'));
 const PlatformTemplateTestPage = lazy(() => import('@/pages/admin/platform/PlatformTemplateTestPage'));
+const TaskWorkflowsPage = lazy(() => import('@/pages/admin/platform/TaskWorkflowsPage'));
 
 // Lazy-loaded settings pages
 const GeneralSettingsPage = lazy(() => import('@/pages/admin/settings/GeneralSettingsPage'));
@@ -167,6 +168,7 @@ const AppRoutes: React.FC = () => {
           <Route path="audit" element={<PlatformAuditPage />} />
           <Route path="lookup" element={<PlatformLookupPage />} />
           <Route path="template-test" element={<PlatformTemplateTestPage />} />
+          <Route path="workflows" element={<TaskWorkflowsPage />} />
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
           <Route path="help" element={<HelpCenterPage />} />
           <Route path="my-requests" element={<MyRequestsPage />} />
@@ -303,6 +305,7 @@ const AppRoutes: React.FC = () => {
             <Route path="audit" element={<PlatformAuditPage />} />
             <Route path="lookup" element={<PlatformLookupPage />} />
             <Route path="template-test" element={<PlatformTemplateTestPage />} />
+            <Route path="workflows" element={<TaskWorkflowsPage />} />
             <Route path="ai-assistant" element={<AdminAIAssistant />} />
             <Route path="help" element={<HelpCenterPage />} />
             <Route path="my-requests" element={<MyRequestsPage />} />
@@ -460,6 +463,7 @@ const AppRoutes: React.FC = () => {
           <Route path="audit" element={<PlatformAuditPage />} />
           <Route path="lookup" element={<PlatformLookupPage />} />
           <Route path="template-test" element={<PlatformTemplateTestPage />} />
+          <Route path="workflows" element={<TaskWorkflowsPage />} />
         </Route>
         <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
