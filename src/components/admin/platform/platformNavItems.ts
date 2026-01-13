@@ -11,7 +11,8 @@ import {
   Search,
   TestTube,
   LayoutDashboard,
-  Workflow
+  Workflow,
+  Mail
 } from 'lucide-react';
 
 export interface PlatformNavItem {
@@ -65,6 +66,14 @@ export const platformNavItems: PlatformNavItem[] = [
     icon: Inbox,
     path: '/admin/platform/inbox',
     description: 'Support tickets and user feedback',
+    section: 'content',
+  },
+  {
+    key: 'email',
+    label: 'Email Inbox',
+    icon: Mail,
+    path: '/admin/platform/email',
+    description: 'Unified email inbox for all platform addresses',
     section: 'content',
   },
   {

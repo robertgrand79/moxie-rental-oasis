@@ -4963,6 +4963,234 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_email_addresses: {
+        Row: {
+          auto_assign_to: string | null
+          auto_create_ticket: boolean | null
+          category: string
+          created_at: string | null
+          display_name: string
+          email_address: string
+          id: string
+          is_active: boolean | null
+          resend_domain_verified: boolean | null
+          updated_at: string | null
+          webhook_configured: boolean | null
+        }
+        Insert: {
+          auto_assign_to?: string | null
+          auto_create_ticket?: boolean | null
+          category?: string
+          created_at?: string | null
+          display_name: string
+          email_address: string
+          id?: string
+          is_active?: boolean | null
+          resend_domain_verified?: boolean | null
+          updated_at?: string | null
+          webhook_configured?: boolean | null
+        }
+        Update: {
+          auto_assign_to?: string | null
+          auto_create_ticket?: boolean | null
+          category?: string
+          created_at?: string | null
+          display_name?: string
+          email_address?: string
+          id?: string
+          is_active?: boolean | null
+          resend_domain_verified?: boolean | null
+          updated_at?: string | null
+          webhook_configured?: boolean | null
+        }
+        Relationships: []
+      }
+      platform_email_templates: {
+        Row: {
+          body_html: string
+          body_text: string | null
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          subject: string
+          updated_at: string | null
+          usage_count: number | null
+          variables: string[] | null
+        }
+        Insert: {
+          body_html: string
+          body_text?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject: string
+          updated_at?: string | null
+          usage_count?: number | null
+          variables?: string[] | null
+        }
+        Update: {
+          body_html?: string
+          body_text?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          variables?: string[] | null
+        }
+        Relationships: []
+      }
+      platform_emails: {
+        Row: {
+          assigned_to: string | null
+          attachments: Json | null
+          bcc_addresses: string[] | null
+          body_html: string | null
+          body_text: string | null
+          cc_addresses: string[] | null
+          created_at: string | null
+          direction: string
+          email_address_id: string | null
+          error_message: string | null
+          external_email_id: string | null
+          from_address: string
+          from_name: string | null
+          headers: Json | null
+          id: string
+          in_reply_to: string | null
+          is_archived: boolean | null
+          is_read: boolean | null
+          is_spam: boolean | null
+          is_starred: boolean | null
+          labels: string[] | null
+          linked_inbox_item_id: string | null
+          linked_organization_id: string | null
+          parent_email_id: string | null
+          received_at: string | null
+          references_header: string[] | null
+          reply_to: string | null
+          sent_at: string | null
+          subject: string | null
+          thread_id: string | null
+          to_addresses: string[]
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          attachments?: Json | null
+          bcc_addresses?: string[] | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_addresses?: string[] | null
+          created_at?: string | null
+          direction: string
+          email_address_id?: string | null
+          error_message?: string | null
+          external_email_id?: string | null
+          from_address: string
+          from_name?: string | null
+          headers?: Json | null
+          id?: string
+          in_reply_to?: string | null
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          is_spam?: boolean | null
+          is_starred?: boolean | null
+          labels?: string[] | null
+          linked_inbox_item_id?: string | null
+          linked_organization_id?: string | null
+          parent_email_id?: string | null
+          received_at?: string | null
+          references_header?: string[] | null
+          reply_to?: string | null
+          sent_at?: string | null
+          subject?: string | null
+          thread_id?: string | null
+          to_addresses: string[]
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          attachments?: Json | null
+          bcc_addresses?: string[] | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_addresses?: string[] | null
+          created_at?: string | null
+          direction?: string
+          email_address_id?: string | null
+          error_message?: string | null
+          external_email_id?: string | null
+          from_address?: string
+          from_name?: string | null
+          headers?: Json | null
+          id?: string
+          in_reply_to?: string | null
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          is_spam?: boolean | null
+          is_starred?: boolean | null
+          labels?: string[] | null
+          linked_inbox_item_id?: string | null
+          linked_organization_id?: string | null
+          parent_email_id?: string | null
+          received_at?: string | null
+          references_header?: string[] | null
+          reply_to?: string | null
+          sent_at?: string | null
+          subject?: string | null
+          thread_id?: string | null
+          to_addresses?: string[]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_emails_email_address_id_fkey"
+            columns: ["email_address_id"]
+            isOneToOne: false
+            referencedRelation: "platform_email_addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_emails_linked_inbox_item_id_fkey"
+            columns: ["linked_inbox_item_id"]
+            isOneToOne: false
+            referencedRelation: "platform_inbox"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_emails_linked_organization_id_fkey"
+            columns: ["linked_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_emails_linked_organization_id_fkey"
+            columns: ["linked_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_emails_parent_email_id_fkey"
+            columns: ["parent_email_id"]
+            isOneToOne: false
+            referencedRelation: "platform_emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_inbox: {
         Row: {
           admin_notes: string | null
