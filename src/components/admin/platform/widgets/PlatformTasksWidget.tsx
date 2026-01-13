@@ -4,20 +4,23 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   CheckSquare, 
   Plus, 
   ArrowRight, 
-  Circle, 
   Clock,
   AlertTriangle,
   X,
-  Workflow
+  Workflow,
+  User
 } from 'lucide-react';
 import { usePlatformTasks, PlatformTask } from '@/hooks/usePlatformTasks';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { format, isPast, isToday } from 'date-fns';
+import { PlatformAdminSelect } from '@/components/admin/platform/PlatformAdminSelect';
 
 const getPriorityIcon = (priority: string) => {
   switch (priority) {
@@ -28,11 +31,23 @@ const getPriorityIcon = (priority: string) => {
   }
 };
 
+const getInitials = (name: string | null, email: string | null) => {
+  if (name) {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+  if (email) {
+    return email[0].toUpperCase();
+  }
+  return 'U';
+};
+
 const TaskItem: React.FC<{
   task: PlatformTask;
   onToggle: (task: PlatformTask) => void;
-}> = ({ task, onToggle }) => {
+  onAssign: (taskId: string, userId: string | null) => void;
+}> = ({ task, onToggle, onAssign }) => {
   const isDue = task.due_date && (isPast(new Date(task.due_date)) || isToday(new Date(task.due_date)));
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
 
   return (
     <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors group">
@@ -51,21 +66,56 @@ const TaskItem: React.FC<{
           </p>
           {getPriorityIcon(task.priority)}
         </div>
-        {task.due_date && (
-          <p className={cn(
-            'text-xs mt-0.5 flex items-center gap-1',
-            isDue && task.status !== 'done' ? 'text-destructive' : 'text-muted-foreground'
-          )}>
-            <Clock className="h-3 w-3" />
-            {format(new Date(task.due_date), 'MMM d')}
-          </p>
-        )}
+        <div className="flex items-center gap-2 mt-0.5">
+          {task.due_date && (
+            <p className={cn(
+              'text-xs flex items-center gap-1',
+              isDue && task.status !== 'done' ? 'text-destructive' : 'text-muted-foreground'
+            )}>
+              <Clock className="h-3 w-3" />
+              {format(new Date(task.due_date), 'MMM d')}
+            </p>
+          )}
+        </div>
       </div>
-      {task.status === 'in_progress' && (
-        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
-          In Progress
-        </Badge>
-      )}
+      <div className="flex items-center gap-2">
+        {task.status === 'in_progress' && (
+          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
+            In Progress
+          </Badge>
+        )}
+        <Popover open={isAssignOpen} onOpenChange={setIsAssignOpen}>
+          <PopoverTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+              title={task.assignee ? `Assigned to ${task.assignee.full_name || task.assignee.email}` : 'Assign task'}
+            >
+              {task.assignee ? (
+                <Avatar className="h-5 w-5">
+                  <AvatarImage src={task.assignee.avatar_url || undefined} />
+                  <AvatarFallback className="text-[8px]">
+                    {getInitials(task.assignee.full_name, task.assignee.email)}
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <User className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-2" align="end">
+            <PlatformAdminSelect
+              value={task.assigned_to}
+              onChange={(userId) => {
+                onAssign(task.id, userId);
+                setIsAssignOpen(false);
+              }}
+              placeholder="Assign to..."
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
   );
 };
@@ -82,6 +132,13 @@ const PlatformTasksWidget: React.FC = () => {
       setNewTaskTitle('');
       setShowAddTask(false);
     }
+  };
+
+  const handleAssignTask = (taskId: string, userId: string | null) => {
+    updateTask({
+      id: taskId,
+      assigned_to: userId,
+    });
   };
 
   const handleToggleTask = (task: PlatformTask) => {
@@ -143,6 +200,7 @@ const PlatformTasksWidget: React.FC = () => {
                     key={task.id}
                     task={task}
                     onToggle={handleToggleTask}
+                    onAssign={handleAssignTask}
                   />
                 ))}
               </div>

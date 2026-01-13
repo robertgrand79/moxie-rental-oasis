@@ -14,6 +14,12 @@ export interface PlatformTask {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+  // Joined data
+  assignee?: {
+    full_name: string | null;
+    email: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 export interface CreateTaskInput {
@@ -45,7 +51,14 @@ export const usePlatformTasks = (options?: { status?: string; limit?: number }) 
       try {
         let query = supabase
           .from('platform_tasks')
-          .select('*')
+          .select(`
+            *,
+            profiles:assigned_to (
+              full_name,
+              email,
+              avatar_url
+            )
+          `)
           .order('priority', { ascending: false })
           .order('due_date', { ascending: true, nullsFirst: false })
           .order('created_at', { ascending: false })
@@ -60,7 +73,10 @@ export const usePlatformTasks = (options?: { status?: string; limit?: number }) 
           console.warn('Platform tasks query error:', error.message);
           return [];
         }
-        return data as PlatformTask[];
+        return (data || []).map((task: any) => ({
+          ...task,
+          assignee: task.profiles || null,
+        })) as PlatformTask[];
       } catch (err) {
         console.warn('Platform tasks error:', err);
         return [];

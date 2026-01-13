@@ -30,6 +30,12 @@ export interface PlatformInboxItem {
   archived_at: string | null;
   created_at: string;
   updated_at: string;
+  // Joined assignee data
+  assignee?: {
+    full_name: string | null;
+    email: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 export interface CreateInboxItemInput {
@@ -70,11 +76,21 @@ export const usePlatformInbox = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('platform_inbox')
-        .select('*')
+        .select(`
+          *,
+          profiles:assigned_to (
+            full_name,
+            email,
+            avatar_url
+          )
+        `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as PlatformInboxItem[];
+      return (data || []).map((item: any) => ({
+        ...item,
+        assignee: item.profiles || null,
+      })) as PlatformInboxItem[];
     },
   });
 
