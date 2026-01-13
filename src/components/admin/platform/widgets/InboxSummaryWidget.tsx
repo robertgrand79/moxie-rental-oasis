@@ -19,50 +19,60 @@ interface InboxItem {
   created_at: string;
 }
 
+interface InboxStats {
+  openTickets: number;
+  unreadFeedback: number;
+  recentItems: InboxItem[];
+}
+
+async function fetchInboxStats(): Promise<InboxStats> {
+  const client = supabase as any;
+  
+  // Get open tickets count
+  const { count: openTickets } = await client
+    .from('platform_inbox')
+    .select('id', { count: 'exact', head: true })
+    .eq('type', 'support')
+    .eq('status', 'open');
+  
+  // Get unread feedback count
+  const { count: unreadFeedback } = await client
+    .from('platform_inbox')
+    .select('id', { count: 'exact', head: true })
+    .eq('type', 'feedback')
+    .eq('is_read', false);
+  
+  // Get recent items
+  const { data } = await client
+    .from('platform_inbox')
+    .select('*')
+    .or('status.eq.open,is_read.eq.false')
+    .order('created_at', { ascending: false })
+    .limit(3);
+
+  const recentItems: InboxItem[] = (data || []).map((item: any) => ({
+    id: item.id,
+    type: item.type,
+    subject: item.subject || '',
+    ticket_number: item.ticket_number,
+    status: item.status,
+    priority: item.priority,
+    created_at: item.created_at,
+  }));
+
+  return {
+    openTickets: openTickets || 0,
+    unreadFeedback: unreadFeedback || 0,
+    recentItems,
+  };
+}
+
 const InboxSummaryWidget: React.FC = () => {
   const navigate = useNavigate();
 
   const { data: inboxStats, isLoading } = useQuery({
     queryKey: ['platform-inbox-summary'],
-    queryFn: async () => {
-      // Get open tickets count
-      const { count: openTickets } = await supabase
-        .from('platform_inbox')
-        .select('id', { count: 'exact', head: true })
-        .eq('type', 'support')
-        .eq('status', 'open');
-      
-      // Get unread feedback count
-      const { count: unreadFeedback } = await supabase
-        .from('platform_inbox')
-        .select('id', { count: 'exact', head: true })
-        .eq('type', 'feedback')
-        .eq('is_read', false);
-      
-      // Get recent items
-      const { data } = await supabase
-        .from('platform_inbox')
-        .select('*')
-        .or('status.eq.open,is_read.eq.false')
-        .order('created_at', { ascending: false })
-        .limit(3);
-
-      const recentItems: InboxItem[] = (data || []).map((item) => ({
-        id: item.id,
-        type: item.type,
-        subject: item.subject || '',
-        ticket_number: item.ticket_number,
-        status: item.status,
-        priority: item.priority,
-        created_at: item.created_at,
-      }));
-
-      return {
-        openTickets: openTickets || 0,
-        unreadFeedback: unreadFeedback || 0,
-        recentItems,
-      };
-    },
+    queryFn: fetchInboxStats,
   });
 
   const getPriorityColor = (priority: string | null) => {
