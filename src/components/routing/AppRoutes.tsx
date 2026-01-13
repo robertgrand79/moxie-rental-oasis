@@ -13,6 +13,8 @@ import PlatformContact from '@/pages/platform/PlatformContact';
 import PlatformAuth from '@/pages/platform/PlatformAuth';
 import PlatformSignup from '@/pages/platform/PlatformSignup';
 import PlatformGetStarted from '@/pages/platform/PlatformGetStarted';
+import PlatformPrivacy from '@/pages/platform/PlatformPrivacy';
+import PlatformTerms from '@/pages/platform/PlatformTerms';
 
 // Core public pages (loaded eagerly - critical path)
 import PublicLayout from '@/components/layouts/PublicLayout';
@@ -149,6 +151,8 @@ const AppRoutes: React.FC = () => {
             <Route path="about" element={<PlatformAbout />} />
             <Route path="contact" element={<PlatformContact />} />
             <Route path="blog" element={<PlatformBlog />} />
+            <Route path="privacy" element={<PlatformPrivacy />} />
+            <Route path="terms" element={<PlatformTerms />} />
             <Route path="auth" element={<PlatformAuth />} />
             <Route path="login" element={<PlatformAuth />} />
             <Route path="signup" element={<PlatformSignup />} />
