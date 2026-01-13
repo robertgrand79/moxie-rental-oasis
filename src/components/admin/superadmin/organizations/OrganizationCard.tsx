@@ -36,6 +36,7 @@ import {
 import { format, addDays } from 'date-fns';
 import { toast } from 'sonner';
 import OrganizationActionsMenu from '../OrganizationActionsMenu';
+import SubdomainSetupHelper from './SubdomainSetupHelper';
 
 interface OrganizationCardProps {
   org: PlatformOrganization;
@@ -415,6 +416,13 @@ const OrganizationCard: React.FC<OrganizationCardProps> = ({
                 {org.subdomain_error && (
                   <p className="text-xs text-destructive mt-1">{org.subdomain_error}</p>
                 )}
+                
+                {/* Domain Registration Helper */}
+                <SubdomainSetupHelper 
+                  slug={org.slug}
+                  subdomainStatus={org.subdomain_status}
+                  customDomain={org.custom_domain}
+                />
                 
                 {/* Trial Extension */}
                 {org.subscription_status === 'trialing' && !isArchived && (

@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import SubdomainSetupHelper from './organizations/SubdomainSetupHelper';
 
 interface TenantDetailViewProps {
   organizationId: string;
@@ -352,6 +353,25 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                   )}
                 </CardContent>
               </Card>
+
+              {/* Domain Setup */}
+              {org?.slug && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Domain Setup</CardTitle>
+                    <CardDescription>
+                      Subdomain registration status and Lovable configuration
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <SubdomainSetupHelper 
+                      slug={org.slug}
+                      subdomainStatus={org.subdomain_status}
+                      customDomain={org.custom_domain}
+                    />
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Actions */}
               <Card>
