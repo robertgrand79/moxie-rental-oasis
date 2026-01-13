@@ -24,7 +24,7 @@ interface AdminLayoutProps {
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
-  const { organization } = useCurrentOrganization();
+  const { organization, isPlatformMode } = useCurrentOrganization();
   const { isPlatformAdmin } = usePlatformAdmin();
   
   const isTemplateEditing = isPlatformAdmin && organization?.is_template_source;
@@ -36,8 +36,35 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     queryClient.invalidateQueries({ queryKey: ['site-settings'] });
   }, [queryClient]);
 
-  // Navigate to root of current domain - works for both Lovable preview and production
-  const backUrl = '/';
+  // Calculate back URL based on organization context
+  const getBackToSiteUrl = (): { url: string; isExternal: boolean } => {
+    // If in platform mode or no organization, go to platform home
+    if (isPlatformMode || !organization) {
+      return { url: '/', isExternal: false };
+    }
+    
+    const hostname = window.location.hostname;
+    const orgCustomDomain = organization.custom_domain;
+    const orgSubdomain = `${organization.slug}.staymoxie.com`;
+    
+    // Check if we're already on the org's actual domain
+    if (orgCustomDomain && (hostname === orgCustomDomain || hostname === `www.${orgCustomDomain}`)) {
+      return { url: '/', isExternal: false };
+    }
+    
+    if (hostname === orgSubdomain) {
+      return { url: '/', isExternal: false };
+    }
+    
+    // Otherwise, redirect to the org's actual website
+    if (orgCustomDomain) {
+      return { url: `https://${orgCustomDomain}`, isExternal: true };
+    }
+    
+    return { url: `https://${orgSubdomain}`, isExternal: true };
+  };
+
+  const { url: backUrl, isExternal: isExternalBack } = getBackToSiteUrl();
   
   return (
     <div className="min-h-screen bg-muted/30 w-full">
@@ -63,18 +90,33 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                   {isTemplateEditing ? (
                     <TemplateEditingBanner variant="header" />
                   ) : (
-                    <EnhancedButton 
-                      variant="outline" 
-                      size={isMobile ? "sm" : "default"} 
-                      asChild 
-                      className={isMobile ? 'min-h-[44px]' : ''}
-                    >
-                      <Link to={backUrl} className="flex items-center gap-2">
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
-                        <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                      </Link>
-                    </EnhancedButton>
+                    isExternalBack ? (
+                      <EnhancedButton 
+                        variant="outline" 
+                        size={isMobile ? "sm" : "default"} 
+                        asChild 
+                        className={isMobile ? 'min-h-[44px]' : ''}
+                      >
+                        <a href={backUrl} className="flex items-center gap-2">
+                          <ArrowLeft className="h-4 w-4" />
+                          <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
+                          <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
+                        </a>
+                      </EnhancedButton>
+                    ) : (
+                      <EnhancedButton 
+                        variant="outline" 
+                        size={isMobile ? "sm" : "default"} 
+                        asChild 
+                        className={isMobile ? 'min-h-[44px]' : ''}
+                      >
+                        <Link to={backUrl} className="flex items-center gap-2">
+                          <ArrowLeft className="h-4 w-4" />
+                          <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
+                          <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
+                        </Link>
+                      </EnhancedButton>
+                    )
                   )}
                 </div>
                 
