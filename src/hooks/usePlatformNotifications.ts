@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useId } from 'react';
 
 export interface PlatformNotification {
   id: string;
@@ -16,11 +16,14 @@ export interface PlatformNotification {
   created_at: string;
 }
 
-export const usePlatformNotifications = (options?: { limit?: number; includeRead?: boolean }) => {
+export const usePlatformNotifications = (options?: { limit?: number; includeRead?: boolean; enableRealtime?: boolean }) => {
   const queryClient = useQueryClient();
   const limit = options?.limit || 50;
   const includeRead = options?.includeRead ?? true;
+  const enableRealtime = options?.enableRealtime ?? false;
+  const instanceId = useId();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const subscribedRef = useRef(false);
 
   const { data: notifications = [], isLoading, error } = useQuery({
     queryKey: ['platform-notifications', limit, includeRead],
@@ -72,15 +75,17 @@ export const usePlatformNotifications = (options?: { limit?: number; includeRead
     },
   });
 
-  // Real-time subscription with race condition guard
+  // Real-time subscription with race condition guard - only enabled for specific instances
   useEffect(() => {
-    // Prevent duplicate subscriptions
-    if (channelRef.current) {
+    if (!enableRealtime || subscribedRef.current) {
       return;
     }
 
+    // Use unique channel name per instance
+    const channelName = `platform-notifications-${instanceId.replace(/:/g, '-')}`;
+    
     const channel = supabase
-      .channel('platform-notifications-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -96,14 +101,16 @@ export const usePlatformNotifications = (options?: { limit?: number; includeRead
       .subscribe();
 
     channelRef.current = channel;
+    subscribedRef.current = true;
 
     return () => {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
+        subscribedRef.current = false;
       }
     };
-  }, [queryClient]);
+  }, [enableRealtime, instanceId, queryClient]);
 
   const markAsRead = useMutation({
     mutationFn: async (notificationId: string) => {
