@@ -49,6 +49,7 @@ export interface PropertyDatabaseData {
   image_url: string | null;
   display_order?: number;
   created_by?: string;
+  organization_id?: string;
 }
 
 /**
@@ -57,7 +58,8 @@ export interface PropertyDatabaseData {
 export function mapFormToDatabase(
   formData: PropertyFormData,
   uploadedImages: string[],
-  userId?: string
+  userId?: string,
+  organizationId?: string
 ): PropertyDatabaseData {
   return {
     title: formData.title,
@@ -79,6 +81,7 @@ export function mapFormToDatabase(
     image_url: uploadedImages[0] || null,
     display_order: 0,
     created_by: userId,
+    organization_id: organizationId,
   };
 }
 
