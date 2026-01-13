@@ -206,8 +206,15 @@ const IntegrationsSettingsPanel = () => {
 
     let success = true;
     
+    // Save Turno credentials with correct column names
     if (formData.turno_api_token) {
-      success = await setApiKey(organization.id, 'turno_api_key', formData.turno_api_token) && success;
+      success = await setApiKey(organization.id, 'turno_api_token', formData.turno_api_token) && success;
+    }
+    if (formData.turno_api_secret) {
+      success = await setApiKey(organization.id, 'turno_api_secret', formData.turno_api_secret) && success;
+    }
+    if (formData.turno_partner_id) {
+      success = await setApiKey(organization.id, 'turno_partner_id', formData.turno_partner_id) && success;
     }
     if (formData.apify_api_key) {
       success = await setApiKey(organization.id, 'apify_api_key', formData.apify_api_key) && success;
@@ -226,6 +233,10 @@ const IntegrationsSettingsPanel = () => {
         openweather_api_key: '',
       }));
       refetch();
+      toast({
+        title: "Settings saved",
+        description: "Integration settings updated successfully",
+      });
     }
   };
 

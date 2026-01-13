@@ -1,6 +1,7 @@
 // Properties management endpoint for Turno sync with multi-tenant isolation
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -91,6 +92,15 @@ const fetchTurnoProperties = async (token: string, secret: string, partnerId?: s
   }
 };
 
+// Helper to decrypt a value if it's encrypted
+async function decryptIfNeeded(value: string | null): Promise<string | null> {
+  if (!value) return null;
+  if (isEncrypted(value)) {
+    return await decryptApiKey(value);
+  }
+  return value;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   console.log('🚀 Turno Properties function called:', req.method, req.url);
   
@@ -131,16 +141,21 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Failed to fetch organization settings');
     }
 
+    // Decrypt organization-level credentials if they exist
+    const orgApiToken = await decryptIfNeeded(org?.turno_api_token);
+    const orgApiSecret = await decryptIfNeeded(org?.turno_api_secret);
+    const orgPartnerId = await decryptIfNeeded(org?.turno_partner_id);
+
     // Use organization-level credentials, fall back to global env vars
-    const turnoApiToken = org?.turno_api_token || Deno.env.get('TURNO_API_TOKEN');
-    const turnoApiSecret = org?.turno_api_secret || Deno.env.get('TURNO_API_SECRET');
-    const turnoPartnerId = org?.turno_partner_id || Deno.env.get('TURNO_PARTNER_ID');
+    const turnoApiToken = orgApiToken || Deno.env.get('TURNO_API_TOKEN');
+    const turnoApiSecret = orgApiSecret || Deno.env.get('TURNO_API_SECRET');
+    const turnoPartnerId = orgPartnerId || Deno.env.get('TURNO_PARTNER_ID');
 
     if (!turnoApiToken || !turnoApiSecret) {
       throw new Error('Turno API credentials not configured for this organization');
     }
 
-    console.log('🔧 Using Turno credentials:', org?.turno_api_token ? 'organization-level' : 'global fallback');
+    console.log('🔧 Using Turno credentials:', orgApiToken ? 'organization-level (encrypted)' : 'global fallback');
 
     // Fetch properties from Turno
     const propertiesResult = await fetchTurnoProperties(turnoApiToken, turnoApiSecret, turnoPartnerId);
