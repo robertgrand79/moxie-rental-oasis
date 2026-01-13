@@ -23,6 +23,19 @@ export const usePropertyOperations = () => {
       return null;
     }
 
+    // Validate organization context is loaded
+    if (!organization?.id) {
+      console.error('Property creation blocked: organization context is null', { user: user.id });
+      toast({
+        title: 'Error',
+        description: 'Organization context not loaded. Please refresh the page and try again.',
+        variant: 'destructive'
+      });
+      return null;
+    }
+
+    console.log('Adding property with organization:', organization.id, organization.name);
+
     try {
       // Handle photo uploads first if any
       let uploadedImages: string[] = [];

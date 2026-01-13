@@ -179,6 +179,11 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
                     <span className="hidden xs:inline sm:inline">Turno</span>
                   </TabsTrigger>
                 </TabsList>
+                {!isEditing && (
+                  <p className="text-sm text-muted-foreground mt-3 text-center">
+                    💡 Save the property first to access Booking, Fees, Taxes, and other settings.
+                  </p>
+                )}
               </div>
 
               <TabsContent value="details" className="space-y-6 mt-6">
