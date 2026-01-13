@@ -65,6 +65,7 @@ const OrganizationCard: React.FC<OrganizationCardProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [isExtendingTrial, setIsExtendingTrial] = useState(false);
+  const [isProvisioning, setIsProvisioning] = useState(false);
   
   const isArchived = !!org.archived_at;
 
@@ -172,6 +173,32 @@ const OrganizationCard: React.FC<OrganizationCardProps> = ({
     }
   };
 
+  const handleProvisionSubdomain = async () => {
+    if (!org?.slug) {
+      toast.error('Organization slug is required for subdomain provisioning');
+      return;
+    }
+    
+    setIsProvisioning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('provision-subdomain', {
+        body: {
+          organization_id: org.id,
+          slug: org.slug
+        }
+      });
+      
+      if (error) throw error;
+      toast.success('Subdomain provisioned successfully');
+      refetchOrgs?.();
+    } catch (error) {
+      console.error('Subdomain provisioning failed:', error);
+      toast.error('Failed to provision subdomain');
+    } finally {
+      setIsProvisioning(false);
+    }
+  };
+
   const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'active':
@@ -227,6 +254,16 @@ const OrganizationCard: React.FC<OrganizationCardProps> = ({
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                   <span className="truncate">{primaryDomain}</span>
+                  {org.subdomain_status && (
+                    <Badge variant={org.subdomain_status === 'active' ? 'default' : 'secondary'} className="shrink-0">
+                      {org.subdomain_status === 'active' ? (
+                        <Globe className="h-3 w-3 mr-1" />
+                      ) : (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      )}
+                      {org.subdomain_status}
+                    </Badge>
+                  )}
                   <span className="flex items-center gap-1 shrink-0">
                     <Users className="h-3 w-3" />
                     {org.member_count}
@@ -361,7 +398,23 @@ const OrganizationCard: React.FC<OrganizationCardProps> = ({
                       Visit Site
                     </Button>
                   </a>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleProvisionSubdomain}
+                    disabled={isProvisioning || org.subdomain_status === 'active' || isArchived}
+                  >
+                    {isProvisioning ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Globe className="h-4 w-4 mr-2" />
+                    )}
+                    {org.subdomain_status === 'active' ? 'Subdomain Active' : 'Provision Subdomain'}
+                  </Button>
                 </div>
+                {org.subdomain_error && (
+                  <p className="text-xs text-destructive mt-1">{org.subdomain_error}</p>
+                )}
                 
                 {/* Trial Extension */}
                 {org.subscription_status === 'trialing' && !isArchived && (

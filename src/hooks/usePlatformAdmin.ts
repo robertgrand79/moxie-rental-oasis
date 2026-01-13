@@ -29,6 +29,8 @@ export interface PlatformOrganization {
   archived_at: string | null;
   archived_by: string | null;
   archive_reason: string | null;
+  subdomain_status: string | null;
+  subdomain_error: string | null;
   member_count?: number;
   property_count?: number;
 }
