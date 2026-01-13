@@ -14,7 +14,8 @@ import {
   Workflow,
   Mail,
   CreditCard,
-  TrendingUp
+  TrendingUp,
+  MessageSquare
 } from 'lucide-react';
 
 export interface PlatformNavItem {
@@ -60,6 +61,14 @@ export const platformNavItems: PlatformNavItem[] = [
     description: 'Subscriptions, revenue, and failed payments',
     section: 'core',
   },
+  {
+    key: 'onboarding',
+    label: 'Onboarding',
+    icon: TrendingUp,
+    path: '/admin/platform/onboarding',
+    description: 'Funnel analytics, health scores, stuck detection',
+    section: 'core',
+  },
 
   // Content & Support
   {
@@ -92,6 +101,14 @@ export const platformNavItems: PlatformNavItem[] = [
     icon: Workflow,
     path: '/admin/platform/workflows',
     description: 'Automated task templates and triggers',
+    section: 'content',
+  },
+  {
+    key: 'communications',
+    label: 'Communications',
+    icon: MessageSquare,
+    path: '/admin/platform/communications',
+    description: 'Announcements, campaigns, and in-app banners',
     section: 'content',
   },
 

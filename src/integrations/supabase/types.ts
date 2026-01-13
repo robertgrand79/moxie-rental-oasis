@@ -5375,6 +5375,133 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_announcement_views: {
+        Row: {
+          announcement_id: string
+          clicked_cta: boolean | null
+          dismissed_at: string | null
+          id: string
+          organization_id: string
+          viewed_at: string | null
+        }
+        Insert: {
+          announcement_id: string
+          clicked_cta?: boolean | null
+          dismissed_at?: string | null
+          id?: string
+          organization_id: string
+          viewed_at?: string | null
+        }
+        Update: {
+          announcement_id?: string
+          clicked_cta?: boolean | null
+          dismissed_at?: string | null
+          id?: string
+          organization_id?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_announcement_views_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "platform_announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_announcement_views_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_announcement_views_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_announcement_views_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+        ]
+      }
+      platform_announcements: {
+        Row: {
+          announcement_type: string
+          banner_style: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          cta_text: string | null
+          cta_url: string | null
+          email_sent_at: string | null
+          email_sent_count: number | null
+          email_subject: string | null
+          ends_at: string | null
+          id: string
+          is_active: boolean | null
+          priority: string | null
+          starts_at: string | null
+          target_tiers: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          announcement_type: string
+          banner_style?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          cta_text?: string | null
+          cta_url?: string | null
+          email_sent_at?: string | null
+          email_sent_count?: number | null
+          email_subject?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority?: string | null
+          starts_at?: string | null
+          target_tiers?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          announcement_type?: string
+          banner_style?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          cta_text?: string | null
+          cta_url?: string | null
+          email_sent_at?: string | null
+          email_sent_count?: number | null
+          email_subject?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority?: string | null
+          starts_at?: string | null
+          target_tiers?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_announcements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_blog_posts: {
         Row: {
           author: string

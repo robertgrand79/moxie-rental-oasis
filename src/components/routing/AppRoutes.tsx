@@ -107,6 +107,8 @@ const PlatformTemplateTestPage = lazy(() => import('@/pages/admin/platform/Platf
 const TaskWorkflowsPage = lazy(() => import('@/pages/admin/platform/TaskWorkflowsPage'));
 const PlatformEmailPage = lazy(() => import('@/pages/admin/platform/PlatformEmailPage'));
 const PlatformBillingPage = lazy(() => import('@/pages/admin/platform/PlatformBillingPage'));
+const PlatformOnboardingPage = lazy(() => import('@/pages/admin/platform/PlatformOnboardingPage'));
+const PlatformCommunicationsPage = lazy(() => import('@/pages/admin/platform/PlatformCommunicationsPage'));
 
 // Lazy-loaded settings pages
 const GeneralSettingsPage = lazy(() => import('@/pages/admin/settings/GeneralSettingsPage'));
@@ -173,6 +175,8 @@ const AppRoutes: React.FC = () => {
           <Route path="workflows" element={<TaskWorkflowsPage />} />
           <Route path="email" element={<PlatformEmailPage />} />
           <Route path="billing" element={<PlatformBillingPage />} />
+          <Route path="onboarding" element={<PlatformOnboardingPage />} />
+          <Route path="communications" element={<PlatformCommunicationsPage />} />
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
           <Route path="help" element={<HelpCenterPage />} />
           <Route path="my-requests" element={<MyRequestsPage />} />
