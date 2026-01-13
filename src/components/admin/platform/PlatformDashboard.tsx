@@ -2,11 +2,14 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Building2, Users, Home, CalendarCheck, Star } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import PlatformSectionCard from './PlatformSectionCard';
-import { platformNavItems, getNavItemByKey } from './platformNavItems';
+import { platformNavItems } from './platformNavItems';
 import { usePlatformPreferences } from '@/hooks/usePlatformPreferences';
+import RecentActivityWidget from './widgets/RecentActivityWidget';
+import PlatformTasksWidget from './widgets/PlatformTasksWidget';
+import InboxSummaryWidget from './widgets/InboxSummaryWidget';
 
 const PlatformDashboard = () => {
   const { starredSections, isStarred, toggleStarSection } = usePlatformPreferences();
@@ -82,6 +85,16 @@ const PlatformDashboard = () => {
           </Card>
         ))}
       </div>
+
+      {/* Activity Overview Section */}
+      <section>
+        <h2 className="text-lg font-semibold mb-4">Activity Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <RecentActivityWidget />
+          <PlatformTasksWidget />
+          <InboxSummaryWidget />
+        </div>
+      </section>
 
       {/* Starred Sections */}
       {starredItems.length > 0 && (
