@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { usePlatform } from './PlatformContext';
 import { Organization, OrganizationMember } from '@/types/organizations';
 import { debug } from '@/utils/debug';
 
@@ -48,6 +49,7 @@ export const useCurrentOrganization = () => {
 
 export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, session } = useAuth();
+  const { isPlatformAdminDomain } = usePlatform();
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [membership, setMembership] = useState<OrganizationMember | null>(null);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
@@ -231,9 +233,11 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const isPlatAdmin = !!platformAdminResult.data;
       setIsPlatformAdmin(isPlatAdmin);
       
-      // Auto-enter platform mode for platform admins on neutral domains with no org context
-      if (isPlatAdmin && isNeutralDomain() && !organization) {
-        debug.org('Platform admin on neutral domain - entering platform mode');
+      // Auto-enter platform mode for platform admins on:
+      // 1. admin.staymoxie.com (dedicated platform admin domain)
+      // 2. Neutral domains (localhost, lovable.app) with no org context
+      if (isPlatAdmin && (isPlatformAdminDomain || (isNeutralDomain() && !organization))) {
+        debug.org('Platform admin on platform/neutral domain - entering platform mode');
         setIsPlatformMode(true);
       }
 
@@ -244,7 +248,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       isFetchingRef.current = false;
       setLoading(false);
     }
-  }, [user, session, organization]);
+  }, [user, session, organization, isPlatformAdminDomain]);
 
   useEffect(() => {
     fetchOrganizationData();
