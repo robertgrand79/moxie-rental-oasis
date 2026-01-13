@@ -12,11 +12,17 @@ export interface TaskTemplate {
   priority: 'low' | 'normal' | 'high';
   due_days: number | null;
   assign_to_role: string | null;
+  assign_to_user_id: string | null;
   is_active: boolean;
   sort_order: number;
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  // Joined data
+  assigned_user?: {
+    full_name: string | null;
+    email: string | null;
+  } | null;
 }
 
 export interface CreateTemplateInput {
@@ -27,7 +33,8 @@ export interface CreateTemplateInput {
   description_template?: string;
   priority?: 'low' | 'normal' | 'high';
   due_days?: number;
-  assign_to_role?: string;
+  assign_to_role?: string | null;
+  assign_to_user_id?: string | null;
   is_active?: boolean;
   sort_order?: number;
 }
@@ -42,6 +49,7 @@ export interface UpdateTemplateInput {
   priority?: 'low' | 'normal' | 'high';
   due_days?: number | null;
   assign_to_role?: string | null;
+  assign_to_user_id?: string | null;
   is_active?: boolean;
   sort_order?: number;
 }
@@ -70,7 +78,13 @@ export const usePlatformTaskTemplates = (options?: { triggerEvent?: string; incl
       try {
         let query = supabase
           .from('platform_task_templates')
-          .select('*')
+          .select(`
+            *,
+            profiles:assign_to_user_id (
+              full_name,
+              email
+            )
+          `)
           .order('sort_order', { ascending: true })
           .order('created_at', { ascending: false });
 
@@ -87,7 +101,10 @@ export const usePlatformTaskTemplates = (options?: { triggerEvent?: string; incl
           console.warn('Task templates query error:', error.message);
           return [];
         }
-        return data as TaskTemplate[];
+        return (data || []).map((template: any) => ({
+          ...template,
+          assigned_user: template.profiles || null,
+        })) as TaskTemplate[];
       } catch (err) {
         console.warn('Task templates error:', err);
         return [];

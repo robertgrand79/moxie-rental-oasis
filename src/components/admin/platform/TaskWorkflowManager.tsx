@@ -34,12 +34,11 @@ import {
   Building,
   TicketIcon,
   Hand,
-  AlertTriangle,
   ArrowRight,
   Clock,
-  CheckCircle,
-  XCircle,
   Code,
+  User,
+  Users,
 } from 'lucide-react';
 import {
   usePlatformTaskTemplates,
@@ -48,6 +47,7 @@ import {
   TRIGGER_EVENTS,
   TEMPLATE_VARIABLES,
 } from '@/hooks/usePlatformTaskTemplates';
+import { PlatformAdminSelect } from '@/components/admin/platform/PlatformAdminSelect';
 import { cn } from '@/lib/utils';
 
 const getTriggerIcon = (trigger: string) => {
@@ -86,6 +86,8 @@ interface TemplateFormData {
   description_template: string;
   priority: 'low' | 'normal' | 'high';
   due_days: string;
+  assign_to_user_id: string | null;
+  assign_to_role: string | null;
 }
 
 const initialFormData: TemplateFormData = {
@@ -96,6 +98,8 @@ const initialFormData: TemplateFormData = {
   description_template: '',
   priority: 'normal',
   due_days: '',
+  assign_to_user_id: null,
+  assign_to_role: null,
 };
 
 const TaskWorkflowManager: React.FC = () => {
@@ -132,6 +136,8 @@ const TaskWorkflowManager: React.FC = () => {
       description_template: template.description_template || '',
       priority: template.priority,
       due_days: template.due_days?.toString() || '',
+      assign_to_user_id: template.assign_to_user_id || null,
+      assign_to_role: template.assign_to_role || null,
     });
     setShowDialog(true);
   };
@@ -145,6 +151,8 @@ const TaskWorkflowManager: React.FC = () => {
       description_template: formData.description_template || undefined,
       priority: formData.priority,
       due_days: formData.due_days ? parseInt(formData.due_days) : undefined,
+      assign_to_user_id: formData.assign_to_user_id,
+      assign_to_role: formData.assign_to_role,
     };
 
     if (editingTemplate) {
@@ -256,6 +264,21 @@ const TaskWorkflowManager: React.FC = () => {
                           <ArrowRight className="h-3 w-3 inline mr-1" />
                           {template.title_template}
                         </p>
+                        {(template.assigned_user || template.assign_to_role) && (
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                            {template.assigned_user ? (
+                              <>
+                                <User className="h-3 w-3" />
+                                {template.assigned_user.full_name || template.assigned_user.email}
+                              </>
+                            ) : (
+                              <>
+                                <Users className="h-3 w-3" />
+                                By Role: {template.assign_to_role === 'super_admin' ? 'Super Admin' : 'Platform Admin'}
+                              </>
+                            )}
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 ml-4">
                         <Switch
@@ -384,6 +407,21 @@ const TaskWorkflowManager: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, due_days: e.target.value })}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Auto-Assign To</Label>
+              <PlatformAdminSelect
+                value={formData.assign_to_user_id}
+                onChange={(userId) => setFormData({ ...formData, assign_to_user_id: userId })}
+                roleValue={formData.assign_to_role}
+                onRoleChange={(role) => setFormData({ ...formData, assign_to_role: role })}
+                showRoleOption={true}
+                placeholder="Unassigned (manual assignment)"
+              />
+              <p className="text-xs text-muted-foreground">
+                Tasks will be automatically assigned when created from this template
+              </p>
             </div>
 
             <div className="space-y-2">

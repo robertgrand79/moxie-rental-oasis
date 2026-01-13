@@ -16,7 +16,12 @@ interface InboxItem {
   ticket_number: string | null;
   status: string;
   priority: string | null;
+  assigned_to: string | null;
   created_at: string;
+  assignee?: {
+    full_name: string | null;
+    email: string | null;
+  } | null;
 }
 
 interface InboxStats {
@@ -42,10 +47,16 @@ async function fetchInboxStats(): Promise<InboxStats> {
     .eq('type', 'feedback')
     .eq('is_read', false);
   
-  // Get recent items
+  // Get recent items with assignee data
   const { data } = await client
     .from('platform_inbox')
-    .select('*')
+    .select(`
+      *,
+      profiles:assigned_to (
+        full_name,
+        email
+      )
+    `)
     .or('status.eq.open,is_read.eq.false')
     .order('created_at', { ascending: false })
     .limit(3);
@@ -57,7 +68,9 @@ async function fetchInboxStats(): Promise<InboxStats> {
     ticket_number: item.ticket_number,
     status: item.status,
     priority: item.priority,
+    assigned_to: item.assigned_to,
     created_at: item.created_at,
+    assignee: item.profiles || null,
   }));
 
   return {

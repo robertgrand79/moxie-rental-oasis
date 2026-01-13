@@ -5155,6 +5155,7 @@ export type Database = {
       platform_task_templates: {
         Row: {
           assign_to_role: string | null
+          assign_to_user_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -5171,6 +5172,7 @@ export type Database = {
         }
         Insert: {
           assign_to_role?: string | null
+          assign_to_user_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -5187,6 +5189,7 @@ export type Database = {
         }
         Update: {
           assign_to_role?: string | null
+          assign_to_user_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -9241,10 +9244,42 @@ export type Database = {
         }
         Returns: Json
       }
-      create_tasks_from_templates: {
-        Args: { p_trigger_event: string; p_variables?: Json }
-        Returns: number
-      }
+      create_tasks_from_templates:
+        | {
+            Args: { p_trigger_event: string; p_variables?: Json }
+            Returns: number
+          }
+        | {
+            Args: {
+              p_related_org_id?: string
+              p_related_user_id?: string
+              p_trigger_event: string
+              p_variables?: Json
+            }
+            Returns: {
+              assigned_to: string | null
+              completed_at: string | null
+              created_at: string
+              created_by: string | null
+              description: string | null
+              due_date: string | null
+              id: string
+              metadata: Json | null
+              priority: string
+              related_org_id: string | null
+              related_user_id: string | null
+              status: string
+              template_id: string | null
+              title: string
+              updated_at: string
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "platform_tasks"
+              isOneToOne: false
+              isSetofReturn: true
+            }
+          }
       current_user_is_admin: { Args: never; Returns: boolean }
       generate_work_order_number: { Args: never; Returns: string }
       get_current_user_role: { Args: never; Returns: string }
