@@ -8,7 +8,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Send, Save, Loader2, Plus, Mail } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Send, Save, Loader2, Plus, Mail, MessageSquare } from 'lucide-react';
 import NewsletterEditorTabs from './NewsletterEditorTabs';
 import ContentPicker, { SelectedContent } from './ContentPicker';
 import { generateContentTemplate } from './ContentTemplateGenerator';
@@ -19,6 +21,7 @@ import { LocalEvent } from '@/hooks/useLocalEvents';
 import { Place } from '@/hooks/usePlaces';
 import { HeaderConfig, FooterConfig, NewsletterFormData } from './types';
 import { useGlobalNewsletterSettings } from '@/hooks/useGlobalNewsletterSettings';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface Newsletter {
   id: string;
@@ -50,7 +53,9 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   const [showContentPicker, setShowContentPicker] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState(newsletter?.cover_image_url || '');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [sendSMS, setSendSMS] = useState(false);
   
+  const { organization } = useCurrentOrganization();
   
   const [selectedContent, setSelectedContent] = useState<SelectedContent>(() => {
     if (newsletter?.linked_content) {
@@ -64,7 +69,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     return { blog_posts: [], events: [], places: [] };
   });
   const { toast: showToast } = useToast();
-  const { subscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
+  const { subscriberCount, smsSubscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
   const { settings: globalSettings } = useGlobalNewsletterSettings();
   
   const form = useForm<NewsletterFormData>({
@@ -196,15 +201,21 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
           coverImageUrl: coverImageUrl,
           linkedContent: selectedContent,
           campaignId: isEdit ? newsletter.id : undefined,
+          sendSMS: sendSMS,
         }
       });
 
       if (error) throw error;
 
       if (result?.success) {
+        let description = `Successfully sent to ${result.recipientCount} subscribers.`;
+        if (result.smsSentCount && result.smsSentCount > 0) {
+          description += ` SMS sent to ${result.smsSentCount} subscribers.`;
+        }
+        
         showToast({
           title: "Newsletter Sent! 🎉",
-          description: `Successfully sent to ${result.recipientCount} subscribers.`,
+          description,
         });
         
         refetchSubscriberCount();
@@ -397,6 +408,30 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                 />
               </div>
 
+              {/* SMS Option */}
+              {smsSubscriberCount && smsSubscriberCount > 0 && isFormValid && (
+                <div className="flex items-start space-x-3 p-4 rounded-lg border border-border bg-muted/30">
+                  <Checkbox 
+                    id="send-sms" 
+                    checked={sendSMS}
+                    onCheckedChange={(checked) => setSendSMS(checked === true)}
+                    disabled={isLoading || isSaving}
+                  />
+                  <div className="space-y-1">
+                    <Label 
+                      htmlFor="send-sms" 
+                      className="text-sm font-medium cursor-pointer flex items-center gap-2"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Also send SMS notification
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Send a text message with a link to view this newsletter online to {smsSubscriberCount} SMS subscriber{smsSubscriberCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Status alerts */}
               {!subscriberCount || subscriberCount === 0 ? (
                 <Alert className="border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive">
@@ -413,7 +448,10 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
               ) : (
                 <Alert className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
                   <AlertDescription>
-                    <strong>Ready to Send!</strong> - Your newsletter will be sent to {subscriberCount} subscribers.
+                    <strong>Ready to Send!</strong> - Your newsletter will be sent to {subscriberCount} email subscriber{subscriberCount !== 1 ? 's' : ''}.
+                    {sendSMS && smsSubscriberCount && smsSubscriberCount > 0 && (
+                      <> SMS will also be sent to {smsSubscriberCount} subscriber{smsSubscriberCount !== 1 ? 's' : ''}.</>
+                    )}
                   </AlertDescription>
                 </Alert>
               )}
