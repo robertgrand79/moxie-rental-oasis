@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Info } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface FooterConfig {
   company_name: string;
@@ -33,7 +34,44 @@ interface NewsletterFooterEditorProps {
   disabled?: boolean;
 }
 
+// Auto-generated legal link URLs
+const getUnsubscribeUrl = () => {
+  const baseUrl = window.location.origin;
+  // Edge function URL pattern
+  return `{{unsubscribe_url}}`;
+};
+
+const getPreferencesUrl = () => {
+  return `{{preferences_url}}`;
+};
+
 const NewsletterFooterEditor = ({ footerConfig, onFooterConfigChange, disabled = false }: NewsletterFooterEditorProps) => {
+  
+  // Ensure legal links include unsubscribe and preferences
+  useEffect(() => {
+    const hasUnsubscribe = footerConfig.legal_links.some(link => 
+      link.text.toLowerCase().includes('unsubscribe')
+    );
+    const hasPreferences = footerConfig.legal_links.some(link => 
+      link.text.toLowerCase().includes('preference')
+    );
+
+    if (!hasUnsubscribe || !hasPreferences) {
+      const updatedLegalLinks = [...footerConfig.legal_links];
+      
+      if (!hasUnsubscribe) {
+        updatedLegalLinks.push({ text: 'Unsubscribe', url: getUnsubscribeUrl() });
+      }
+      if (!hasPreferences) {
+        updatedLegalLinks.push({ text: 'Update Preferences', url: getPreferencesUrl() });
+      }
+
+      onFooterConfigChange({
+        ...footerConfig,
+        legal_links: updatedLegalLinks
+      });
+    }
+  }, []);
   
   const handleInputChange = (field: 'company_name' | 'tagline', value: string) => {
     onFooterConfigChange({
@@ -194,28 +232,47 @@ const NewsletterFooterEditor = ({ footerConfig, onFooterConfigChange, disabled =
               Add Link
             </Button>
           </div>
+          
+          <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <AlertDescription className="text-sm text-blue-800 dark:text-blue-200">
+              <strong>Unsubscribe</strong> and <strong>Update Preferences</strong> links are automatically generated. 
+              The placeholders <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">{"{{unsubscribe_url}}"}</code> and <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">{"{{preferences_url}}"}</code> 
+              will be replaced with personalized links for each subscriber when emails are sent.
+            </AlertDescription>
+          </Alert>
+          
           <div className="space-y-3">
-            {footerConfig.legal_links.map((link, index) => (
-              <div key={index} className="flex gap-3 items-center">
-                <Input
-                  placeholder="Link text"
-                  value={link.text}
-                  onChange={(e) => updateLink('legal_links', index, 'text', e.target.value)}
-                />
-                <Input
-                  placeholder="URL"
-                  value={link.url}
-                  onChange={(e) => updateLink('legal_links', index, 'url', e.target.value)}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => removeLink('legal_links', index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+            {footerConfig.legal_links.map((link, index) => {
+              const isSystemLink = link.url === '{{unsubscribe_url}}' || link.url === '{{preferences_url}}';
+              return (
+                <div key={index} className="flex gap-3 items-center">
+                  <Input
+                    placeholder="Link text"
+                    value={link.text}
+                    onChange={(e) => updateLink('legal_links', index, 'text', e.target.value)}
+                    disabled={isSystemLink}
+                    className={isSystemLink ? 'bg-muted' : ''}
+                  />
+                  <Input
+                    placeholder="URL"
+                    value={link.url}
+                    onChange={(e) => updateLink('legal_links', index, 'url', e.target.value)}
+                    disabled={isSystemLink}
+                    className={isSystemLink ? 'bg-muted font-mono text-xs' : ''}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeLink('legal_links', index)}
+                    disabled={isSystemLink}
+                    title={isSystemLink ? 'System links cannot be removed' : 'Remove link'}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              );
+            })}
           </div>
         </div>
 

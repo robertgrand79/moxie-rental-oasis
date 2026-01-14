@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Loader2, Send } from 'lucide-react';
 
@@ -12,14 +11,31 @@ interface TestEmailPanelProps {
   disabled?: boolean;
 }
 
-const TestEmailPanel = ({
+const TestEmailPanel = memo(({
   testEmail,
   setTestEmail,
   onSendTest,
   isSending,
   disabled = false
 }: TestEmailPanelProps) => {
-  const isValidEmail = testEmail && testEmail.includes('@') && testEmail.includes('.');
+  const [localEmail, setLocalEmail] = useState(testEmail);
+  const isValidEmail = localEmail && localEmail.includes('@') && localEmail.includes('.');
+
+  // Debounced update to parent - only on blur
+  const handleBlur = useCallback(() => {
+    setTestEmail(localEmail);
+  }, [localEmail, setTestEmail]);
+
+  // Handle local changes immediately for responsive UI
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalEmail(e.target.value);
+  }, []);
+
+  // Sync with parent when sending
+  const handleSendClick = useCallback(() => {
+    setTestEmail(localEmail);
+    onSendTest();
+  }, [localEmail, setTestEmail, onSendTest]);
 
   return (
     <Card className="border-primary/20 bg-primary/5">
@@ -34,16 +50,17 @@ const TestEmailPanel = ({
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex gap-2">
-          <Input
+          <input
             type="email"
             placeholder="Enter test email address..."
-            value={testEmail}
-            onChange={(e) => setTestEmail(e.target.value)}
+            value={localEmail}
+            onChange={handleChange}
+            onBlur={handleBlur}
             disabled={isSending || disabled}
-            className="flex-1"
+            className="flex-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <Button
-            onClick={onSendTest}
+            onClick={handleSendClick}
             disabled={!isValidEmail || isSending || disabled}
             size="sm"
             variant="default"
@@ -67,6 +84,8 @@ const TestEmailPanel = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+TestEmailPanel.displayName = 'TestEmailPanel';
 
 export default TestEmailPanel;
