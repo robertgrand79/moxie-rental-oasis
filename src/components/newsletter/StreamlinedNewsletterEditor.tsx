@@ -15,6 +15,7 @@ import ReactQuillEditor from '../ReactQuillEditor';
 import NewsletterPreviewPanel from './NewsletterPreviewPanel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import NewsletterAIGenerator from './ai-generator/NewsletterAIGenerator';
+import TestEmailPanel from '@/components/admin/newsletter/TestEmailPanel';
 import { toast } from 'sonner';
 
 interface NewsletterFormData {
@@ -29,6 +30,8 @@ const StreamlinedNewsletterEditor = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [showFullPagePreview, setShowFullPagePreview] = useState(false);
   const [showAIDialog, setShowAIDialog] = useState(false);
+  const [testEmail, setTestEmail] = useState('');
+  const [isSendingTest, setIsSendingTest] = useState(false);
   const { toast: showToast } = useToast();
   const { blogPosts, loading: blogPostsLoading } = useBlogPosts();
   const { subscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
@@ -125,6 +128,60 @@ const StreamlinedNewsletterEditor = () => {
       form.setValue('subject', generatedContent);
     }
     setShowAIDialog(false);
+  };
+
+  const handleSendTestEmail = async () => {
+    if (!testEmail || !testEmail.includes('@')) {
+      showToast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!currentSubject || !content) {
+      showToast({
+        title: "Missing Content",
+        description: "Please provide both a subject and content before sending a test.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingTest(true);
+
+    try {
+      const { data: result, error } = await supabase.functions.invoke('send-newsletter-preview', {
+        body: {
+          testEmail: testEmail,
+          subject: currentSubject,
+          content: content,
+        }
+      });
+
+      if (error) throw error;
+
+      if (result?.success) {
+        showToast({
+          title: "Test Email Sent! ✉️",
+          description: `Preview sent successfully to ${testEmail}`,
+        });
+        setTestEmail('');
+      } else {
+        throw new Error(result?.error || "Failed to send test email");
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      console.error('Error sending test email:', err);
+      showToast({
+        title: "Send Failed",
+        description: err.message || "Failed to send test email.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingTest(false);
+    }
   };
 
   return (
@@ -286,6 +343,17 @@ const StreamlinedNewsletterEditor = () => {
                       <strong>Ready to Send!</strong> - Your newsletter will be sent to {subscriberCount} subscribers.
                     </AlertDescription>
                   </Alert>
+                )}
+
+                {/* Test Email Section */}
+                {currentSubject?.trim() && content?.trim() && (
+                  <TestEmailPanel
+                    testEmail={testEmail}
+                    setTestEmail={setTestEmail}
+                    onSendTest={handleSendTestEmail}
+                    isSending={isSendingTest}
+                    disabled={isLoading}
+                  />
                 )}
 
                 <Button 
