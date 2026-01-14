@@ -109,8 +109,8 @@ export const blogPostService = {
     }
   },
 
-  async fetchBlogPostBySlug(slug: string): Promise<BlogPost | null> {
-    debug.blog('Fetching blog post by slug:', slug);
+  async fetchBlogPostBySlug(slug: string, publishedOnly: boolean = true): Promise<BlogPost | null> {
+    debug.blog('Fetching blog post by slug:', slug, 'publishedOnly:', publishedOnly);
     
     if (!navigator.onLine) {
       debug.warn('No network connection detected');
@@ -118,12 +118,17 @@ export const blogPostService = {
     }
     
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('blog_posts')
         .select('*')
-        .eq('slug', slug)
-        .eq('status', 'published') // Only fetch published posts for public access
-        .maybeSingle();
+        .eq('slug', slug);
+      
+      // Only filter by published status for public access
+      if (publishedOnly) {
+        query = query.eq('status', 'published');
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) {
         handleServiceError('Blog post by slug fetch', error);
