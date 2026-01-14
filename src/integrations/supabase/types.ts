@@ -5889,6 +5889,51 @@ export type Database = {
           },
         ]
       }
+      platform_feature_flags: {
+        Row: {
+          created_at: string
+          description: string | null
+          flag_key: string
+          flag_name: string
+          id: string
+          is_enabled: boolean
+          metadata: Json | null
+          target_organization_ids: string[] | null
+          target_percentage: number | null
+          target_tiers: string[] | null
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          flag_key: string
+          flag_name: string
+          id?: string
+          is_enabled?: boolean
+          metadata?: Json | null
+          target_organization_ids?: string[] | null
+          target_percentage?: number | null
+          target_tiers?: string[] | null
+          target_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          flag_key?: string
+          flag_name?: string
+          id?: string
+          is_enabled?: boolean
+          metadata?: Json | null
+          target_organization_ids?: string[] | null
+          target_percentage?: number | null
+          target_tiers?: string[] | null
+          target_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_inbox: {
         Row: {
           admin_notes: string | null
@@ -6058,6 +6103,61 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_performance_metrics: {
+        Row: {
+          endpoint: string | null
+          id: string
+          metadata: Json | null
+          metric_type: string
+          metric_unit: string
+          metric_value: number
+          organization_id: string | null
+          recorded_at: string
+        }
+        Insert: {
+          endpoint?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          metric_unit: string
+          metric_value: number
+          organization_id?: string | null
+          recorded_at?: string
+        }
+        Update: {
+          endpoint?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_unit?: string
+          metric_value?: number
+          organization_id?: string | null
+          recorded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_performance_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_performance_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_performance_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+        ]
+      }
       platform_settings: {
         Row: {
           id: string
@@ -6084,6 +6184,187 @@ export type Database = {
           value?: string | null
         }
         Relationships: []
+      }
+      platform_sla_breaches: {
+        Row: {
+          actual_value: number
+          breach_end: string | null
+          breach_start: string
+          created_at: string
+          id: string
+          notified_at: string | null
+          organization_id: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          severity: string
+          sla_definition_id: string | null
+          target_value: number
+        }
+        Insert: {
+          actual_value: number
+          breach_end?: string | null
+          breach_start?: string
+          created_at?: string
+          id?: string
+          notified_at?: string | null
+          organization_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
+          sla_definition_id?: string | null
+          target_value: number
+        }
+        Update: {
+          actual_value?: number
+          breach_end?: string | null
+          breach_start?: string
+          created_at?: string
+          id?: string
+          notified_at?: string | null
+          organization_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
+          sla_definition_id?: string | null
+          target_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_sla_breaches_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_sla_breaches_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_sla_breaches_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "platform_sla_breaches_sla_definition_id_fkey"
+            columns: ["sla_definition_id"]
+            isOneToOne: false
+            referencedRelation: "platform_sla_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_sla_definitions: {
+        Row: {
+          applies_to_tiers: string[]
+          created_at: string
+          id: string
+          is_active: boolean
+          sla_name: string
+          sla_type: string
+          target_unit: string
+          target_value: number
+          updated_at: string
+        }
+        Insert: {
+          applies_to_tiers?: string[]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sla_name: string
+          sla_type: string
+          target_unit: string
+          target_value: number
+          updated_at?: string
+        }
+        Update: {
+          applies_to_tiers?: string[]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sla_name?: string
+          sla_type?: string
+          target_unit?: string
+          target_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_sla_metrics: {
+        Row: {
+          actual_value: number
+          breach_count: number | null
+          created_at: string
+          id: string
+          is_breached: boolean
+          metadata: Json | null
+          organization_id: string | null
+          period_end: string
+          period_start: string
+          sla_definition_id: string | null
+          target_value: number
+        }
+        Insert: {
+          actual_value: number
+          breach_count?: number | null
+          created_at?: string
+          id?: string
+          is_breached?: boolean
+          metadata?: Json | null
+          organization_id?: string | null
+          period_end: string
+          period_start: string
+          sla_definition_id?: string | null
+          target_value: number
+        }
+        Update: {
+          actual_value?: number
+          breach_count?: number | null
+          created_at?: string
+          id?: string
+          is_breached?: boolean
+          metadata?: Json | null
+          organization_id?: string | null
+          period_end?: string
+          period_start?: string
+          sla_definition_id?: string | null
+          target_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_sla_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_sla_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_sla_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "platform_sla_metrics_sla_definition_id_fkey"
+            columns: ["sla_definition_id"]
+            isOneToOne: false
+            referencedRelation: "platform_sla_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_task_templates: {
         Row: {
@@ -10729,6 +11010,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_feature_enabled: {
+        Args: { p_flag_key: string; p_organization_id: string }
+        Returns: boolean
+      }
       is_platform_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_slug_available: { Args: { _slug: string }; Returns: boolean }
       log_invitation_attempt: {
