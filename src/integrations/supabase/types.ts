@@ -609,10 +609,12 @@ export type Database = {
           custom_avatar_url: string | null
           custom_faqs: Json | null
           display_name: string
+          header_text_color: string | null
           id: string
           is_enabled: boolean
           organization_id: string
           personality: string | null
+          quick_action_text_color: string | null
           submit_button_color: string | null
           text_color: string | null
           tv_chat_enabled: boolean | null
@@ -623,6 +625,8 @@ export type Database = {
           use_custom_avatar: boolean | null
           user_message_text_color: string | null
           welcome_message: string
+          welcome_subtitle_color: string | null
+          welcome_title_color: string | null
         }
         Insert: {
           assistant_message_bg_color?: string | null
@@ -635,10 +639,12 @@ export type Database = {
           custom_avatar_url?: string | null
           custom_faqs?: Json | null
           display_name?: string
+          header_text_color?: string | null
           id?: string
           is_enabled?: boolean
           organization_id: string
           personality?: string | null
+          quick_action_text_color?: string | null
           submit_button_color?: string | null
           text_color?: string | null
           tv_chat_enabled?: boolean | null
@@ -649,6 +655,8 @@ export type Database = {
           use_custom_avatar?: boolean | null
           user_message_text_color?: string | null
           welcome_message?: string
+          welcome_subtitle_color?: string | null
+          welcome_title_color?: string | null
         }
         Update: {
           assistant_message_bg_color?: string | null
@@ -661,10 +669,12 @@ export type Database = {
           custom_avatar_url?: string | null
           custom_faqs?: Json | null
           display_name?: string
+          header_text_color?: string | null
           id?: string
           is_enabled?: boolean
           organization_id?: string
           personality?: string | null
+          quick_action_text_color?: string | null
           submit_button_color?: string | null
           text_color?: string | null
           tv_chat_enabled?: boolean | null
@@ -675,6 +685,8 @@ export type Database = {
           use_custom_avatar?: boolean | null
           user_message_text_color?: string | null
           welcome_message?: string
+          welcome_subtitle_color?: string | null
+          welcome_title_color?: string | null
         }
         Relationships: [
           {
