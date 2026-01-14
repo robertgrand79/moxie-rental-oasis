@@ -168,7 +168,6 @@ const StreamlinedNewsletterEditor = () => {
           organization_id: organization.id,
           subject: subject || 'Untitled Draft',
           content: content || '',
-          status: 'draft',
           blog_post_id: blogPostId && blogPostId !== 'none' ? blogPostId : null,
         });
 
