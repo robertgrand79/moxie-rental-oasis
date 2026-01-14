@@ -20,11 +20,12 @@ import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
 import TemplateEditingBanner from './TemplateEditingBanner';
+import OrganizationSwitcher from './OrganizationSwitcher';
 
 const AdminSidebar = () => {
   const isMobile = useIsMobile();
   const { settings, loading: settingsLoading } = useSimplifiedSiteSettings();
-  const { organization, loading: orgLoading } = useCurrentOrganization();
+  const { organization, loading: orgLoading, isPlatformMode } = useCurrentOrganization();
   const { isPlatformAdmin, checkingAdmin } = usePlatformAdmin();
   const { state, toggleSidebar } = useSidebar();
   
@@ -47,6 +48,9 @@ const AdminSidebar = () => {
       })
       .filter(Boolean) as typeof adminMenuItems;
   }, [isPlatformAdmin, checkingAdmin]);
+
+  // Show org switcher if platform admin
+  const showOrgSwitcher = isPlatformAdmin && !isCollapsed;
 
   return (
     <Sidebar collapsible="icon">
@@ -106,6 +110,13 @@ const AdminSidebar = () => {
       </SidebarHeader>
       <TemplateEditingBanner />
       <SidebarContent>
+        {/* Platform Mode Switcher - above menu sections */}
+        {showOrgSwitcher && (
+          <div className="px-3 pb-2">
+            <OrganizationSwitcher />
+          </div>
+        )}
+        
         {filteredMenuItems.map((section) => (
           <AdminSidebarSection 
             key={section.title}
