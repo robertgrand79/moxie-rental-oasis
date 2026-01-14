@@ -68,9 +68,10 @@ const NewsletterSubscribersList = () => {
   const stats = getSubscriberStats();
 
   const filteredSubscribers = subscribers?.filter(subscriber => {
+    const query = searchTerm.toLowerCase();
     const matchesSearch = 
-      subscriber.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (subscriber.name && subscriber.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (subscriber.email?.toLowerCase() || '').includes(query) ||
+      (subscriber.name?.toLowerCase() || '').includes(query) ||
       (subscriber.phone && subscriber.phone.includes(searchTerm));
     
     const matchesActiveFilter = 

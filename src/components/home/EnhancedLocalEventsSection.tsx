@@ -78,10 +78,11 @@ const EnhancedLocalEventsSection = () => {
 
     // Apply search filter
     if (searchTerm) {
+      const query = searchTerm.toLowerCase();
       filtered = filtered.filter(event =>
-        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.location?.toLowerCase().includes(searchTerm.toLowerCase())
+        (event.title?.toLowerCase() || '').includes(query) ||
+        (event.description?.toLowerCase() || '').includes(query) ||
+        (event.location?.toLowerCase() || '').includes(query)
       );
     }
 

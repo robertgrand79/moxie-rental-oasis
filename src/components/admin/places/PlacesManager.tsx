@@ -68,10 +68,10 @@ const PlacesManager = () => {
     if (searchQuery) {
       const search = searchQuery.toLowerCase();
       const matchesSearch = 
-        place.name.toLowerCase().includes(search) ||
-        place.description?.toLowerCase().includes(search) ||
-        place.location_text?.toLowerCase().includes(search) ||
-        place.address?.toLowerCase().includes(search);
+        (place.name?.toLowerCase() || '').includes(search) ||
+        (place.description?.toLowerCase() || '').includes(search) ||
+        (place.location_text?.toLowerCase() || '').includes(search) ||
+        (place.address?.toLowerCase() || '').includes(search);
       if (!matchesSearch) return false;
     }
     

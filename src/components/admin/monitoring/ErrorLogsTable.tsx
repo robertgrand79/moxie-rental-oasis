@@ -98,10 +98,11 @@ const ErrorLogsTable: React.FC<ErrorLogsTableProps> = ({ showAllTenants = false 
     },
   });
 
-  const filteredErrors = errors?.filter(error =>
-    error.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    error.type.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredErrors = errors?.filter(error => {
+    const query = searchTerm.toLowerCase();
+    return (error.message?.toLowerCase() || '').includes(query) ||
+      (error.type?.toLowerCase() || '').includes(query);
+  }) || [];
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {

@@ -43,8 +43,8 @@ const NotificationsPage: React.FC = () => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(n => 
-        n.title.toLowerCase().includes(query) ||
-        n.message.toLowerCase().includes(query)
+        (n.title?.toLowerCase() || '').includes(query) ||
+        (n.message?.toLowerCase() || '').includes(query)
       );
     }
     

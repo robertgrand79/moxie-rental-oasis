@@ -55,8 +55,8 @@ const TurnoMappingModal = ({
   const suggestedMappings = useMemo(() => {
     if (!property) return [];
     
-    const propertyName = property.title.toLowerCase();
-    const propertyLocation = property.location.toLowerCase();
+    const propertyName = (property.title?.toLowerCase() || '');
+    const propertyLocation = (property.location?.toLowerCase() || '');
     
     return turnoProperties
       .map(tp => {

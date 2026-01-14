@@ -217,8 +217,9 @@ const PlatformUsersTab = () => {
 
   // Filter users based on search and organization filter
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const query = searchTerm.toLowerCase();
+    const matchesSearch = (user.email?.toLowerCase() || '').includes(query) ||
+      (user.full_name?.toLowerCase() || '').includes(query);
     
     if (filterOrgId === 'all') return matchesSearch;
     if (filterOrgId === 'no-org') return matchesSearch && user.organizations.length === 0;
