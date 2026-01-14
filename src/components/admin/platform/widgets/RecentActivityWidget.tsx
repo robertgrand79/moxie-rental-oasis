@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Activity, User, Building2, Ticket, AlertCircle, ArrowRight } from 'lucide-react';
+import { Activity, User, Building2, Ticket, AlertCircle, ArrowRight, MessageSquare, Mail } from 'lucide-react';
 import { usePlatformNotifications, PlatformNotification } from '@/hooks/usePlatformNotifications';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -16,6 +16,10 @@ const getActivityIcon = (type: string) => {
       return <Building2 className="h-4 w-4 text-green-500" />;
     case 'new_ticket':
       return <Ticket className="h-4 w-4 text-orange-500" />;
+    case 'new_feedback':
+      return <MessageSquare className="h-4 w-4 text-purple-500" />;
+    case 'new_email':
+      return <Mail className="h-4 w-4 text-cyan-500" />;
     case 'system_alert':
       return <AlertCircle className="h-4 w-4 text-red-500" />;
     default:
