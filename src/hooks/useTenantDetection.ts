@@ -180,7 +180,28 @@ export const useTenantDetection = (): TenantDetectionResult => {
           }
         }
 
-        // Strategy 2: Check logged-in user's organization (with timeout)
+        // Strategy 2: Check for admin-set context (persisted from OrganizationSwitcher)
+        const adminCurrentOrgSlug = sessionStorage.getItem('admin_current_org_slug');
+        if (adminCurrentOrgSlug && !isAdminRoute) {
+          logTenant('Trying admin-set org context:', adminCurrentOrgSlug);
+          
+          const { data, error: fetchError } = await supabase
+            .rpc('get_organization_by_identifier', { _identifier: adminCurrentOrgSlug });
+
+          if (!fetchError) {
+            const orgData = Array.isArray(data) ? data[0] : data;
+            if (orgData && isMounted) {
+              logTenant('✅ Tenant resolved from admin context:', { id: orgData.id, name: orgData.name, slug: orgData.slug });
+              sessionStorage.setItem('current_tenant_slug', orgData.slug);
+              setTenant(orgData as TenantInfo);
+              setIsDefaultTenant(false);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+
+        // Strategy 3: Check logged-in user's organization (with timeout)
         if (!isAdminRoute) {
           logTenant('Trying user organization membership...');
           
@@ -194,7 +215,7 @@ export const useTenantDetection = (): TenantDetectionResult => {
                   .from('organization_members')
                   .select('organization:organizations(id, name, slug, logo_url, website, custom_domain, is_active, template_type)')
                   .eq('user_id', user.id)
-                  .order('joined_at', { ascending: false })
+                  .order('joined_at', { ascending: true })
                   .limit(1)
                   .maybeSingle();
 

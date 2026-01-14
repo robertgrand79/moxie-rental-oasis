@@ -46,6 +46,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     const hostname = window.location.hostname;
     const orgCustomDomain = organization.custom_domain;
     const orgSubdomain = `${organization.slug}.staymoxie.com`;
+    const isNeutralDomain = hostname.includes('lovable.app') || 
+                            hostname.includes('localhost') || 
+                            hostname.includes('127.0.0.1');
     
     // Check if we're already on the org's actual domain
     if (orgCustomDomain && (hostname === orgCustomDomain || hostname === `www.${orgCustomDomain}`)) {
@@ -54,6 +57,13 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     
     if (hostname === orgSubdomain) {
       return { url: '/', isExternal: false };
+    }
+    
+    // On neutral domains (Lovable, localhost), use ?org= param for context sync
+    if (isNeutralDomain) {
+      // Persist org context for public pages
+      sessionStorage.setItem('admin_current_org_slug', organization.slug);
+      return { url: `/?org=${organization.slug}`, isExternal: false };
     }
     
     // Otherwise, redirect to the org's actual website
