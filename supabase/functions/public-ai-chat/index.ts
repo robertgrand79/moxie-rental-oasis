@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkAIRateLimit, buildRateLimitResponse } from "../_shared/aiRateLimiting.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -798,6 +799,18 @@ serve(async (req) => {
     if (supabaseUrl && supabaseServiceKey && organizationId) {
       supabase = createClient(supabaseUrl, supabaseServiceKey);
       
+      // Check rate limit before processing
+      try {
+        const rateLimitResult = await checkAIRateLimit(supabase, organizationId, 'public_chat');
+        if (!rateLimitResult.allowed) {
+          console.log('Rate limit exceeded for org:', organizationId, rateLimitResult);
+          return buildRateLimitResponse(rateLimitResult, corsHeaders);
+        }
+        console.log('Rate limit check passed:', rateLimitResult);
+      } catch (rateLimitError) {
+        console.error('Rate limit check failed:', rateLimitError);
+        // Continue without rate limiting if check fails
+      }
       // Fetch all context in parallel for efficiency
       const [
         propertiesResult,

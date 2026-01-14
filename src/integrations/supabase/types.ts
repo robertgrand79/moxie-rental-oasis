@@ -259,6 +259,58 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          request_count: number
+          tokens_used: number | null
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          request_count?: number
+          tokens_used?: number | null
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          request_count?: number
+          tokens_used?: number | null
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_usage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_usage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "platform_tenant_health"
+            referencedColumns: ["organization_id"]
+          },
+        ]
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -10816,6 +10868,10 @@ export type Database = {
         Returns: boolean
       }
       check_account_lockout: { Args: { p_email: string }; Returns: Json }
+      check_ai_rate_limit: {
+        Args: { p_operation_type?: string; p_organization_id: string }
+        Returns: Json
+      }
       check_invitation_rate_limit: {
         Args: {
           p_ip_identifier: string
@@ -10833,6 +10889,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_old_ai_usage: { Args: never; Returns: undefined }
       cleanup_old_logs: { Args: never; Returns: undefined }
       cleanup_old_webhook_events: { Args: never; Returns: undefined }
       clear_failed_logins: { Args: { p_email: string }; Returns: undefined }
@@ -10922,6 +10979,7 @@ export type Database = {
       current_user_is_admin: { Args: never; Returns: boolean }
       detect_stuck_onboarding: { Args: never; Returns: undefined }
       generate_work_order_number: { Args: never; Returns: string }
+      get_ai_usage_stats: { Args: { p_organization_id: string }; Returns: Json }
       get_current_user_role: { Args: never; Returns: string }
       get_or_create_contractor_token: {
         Args: { p_contractor_id: string }
@@ -10966,6 +11024,10 @@ export type Database = {
       }
       get_organization_secret: {
         Args: { _org_id: string; _secret_name: string }
+        Returns: string
+      }
+      get_organization_tier: {
+        Args: { p_organization_id: string }
         Returns: string
       }
       get_organizations_for_user: {
