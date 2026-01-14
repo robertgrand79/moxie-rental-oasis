@@ -74,22 +74,44 @@ export const usePlatformInbox = () => {
   } = useQuery({
     queryKey: ['platform-inbox'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First fetch inbox items
+      const { data: inboxData, error: inboxError } = await supabase
         .from('platform_inbox')
-        .select(`
-          *,
-          profiles:assigned_to (
-            full_name,
-            email,
-            avatar_url
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return (data || []).map((item: any) => ({
+      if (inboxError) throw inboxError;
+      if (!inboxData || inboxData.length === 0) return [] as PlatformInboxItem[];
+      
+      // Get unique assigned_to IDs that are not null
+      const assignedIds = [...new Set(inboxData
+        .map(item => item.assigned_to)
+        .filter((id): id is string => id !== null)
+      )];
+      
+      // Fetch assignee profiles if there are any
+      let assigneeMap: Record<string, { full_name: string | null; email: string | null; avatar_url: string | null }> = {};
+      if (assignedIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, avatar_url')
+          .in('id', assignedIds);
+        
+        if (profilesData) {
+          assigneeMap = profilesData.reduce((acc, profile) => {
+            acc[profile.id] = {
+              full_name: profile.full_name,
+              email: profile.email,
+              avatar_url: profile.avatar_url,
+            };
+            return acc;
+          }, {} as typeof assigneeMap);
+        }
+      }
+      
+      return inboxData.map((item: any) => ({
         ...item,
-        assignee: item.profiles || null,
+        assignee: item.assigned_to ? assigneeMap[item.assigned_to] || null : null,
       })) as PlatformInboxItem[];
     },
   });
