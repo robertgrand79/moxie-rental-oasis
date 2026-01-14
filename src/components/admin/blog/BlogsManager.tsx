@@ -8,6 +8,8 @@ import BlogsListView from './BlogsListView';
 import BlogDetailPanel from './BlogDetailPanel';
 import BlogForm from '@/components/BlogForm';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { BlogFormSubmitData } from '@/hooks/useBlogForm';
 
 interface BlogsManagerProps {
   onEdit?: (post: BlogPost) => void;
@@ -24,6 +26,8 @@ const BlogsManager = ({
   editingPost = null, 
   onCloseForm 
 }: BlogsManagerProps) => {
+  const { user } = useAuth();
+  
   // Use optimized hook that excludes content field for fast loading
   const { 
     posts: blogPosts, 
@@ -45,6 +49,27 @@ const BlogsManager = ({
   const [contentTypeFilter, setContentTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewingPost, setViewingPost] = useState<BlogPost | null>(null);
+
+  // Handle form submission with actual save
+  const handleFormSubmit = async (data: BlogFormSubmitData) => {
+    try {
+      if (editingPost || data.id) {
+        const postId = editingPost?.id || data.id!;
+        await blogPostService.updateBlogPost(postId, data);
+      } else if (user) {
+        await blogPostService.createBlogPost(data as Omit<BlogPost, 'id' | 'created_at' | 'updated_at' | 'created_by'>, user.id);
+      }
+      
+      toast.success(data.status === 'published' 
+        ? 'Blog post published successfully!' 
+        : 'Blog post saved as draft!');
+      refetch();
+      if (onCloseForm) onCloseForm();
+    } catch (error) {
+      console.error('Failed to save blog post:', error);
+      toast.error('Failed to save blog post');
+    }
+  };
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -328,7 +353,7 @@ const BlogsManager = ({
       {showForm && onCloseForm && (
         <BlogForm
           post={editingPost}
-          onSubmit={onCloseForm}
+          onSubmit={handleFormSubmit}
           onCancel={onCloseForm}
         />
       )}
