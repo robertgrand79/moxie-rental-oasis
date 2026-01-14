@@ -24,10 +24,11 @@ const BlogSearch = ({ posts, onFilteredPosts }: BlogSearchProps) => {
 
     // Filter by search term
     if (searchTerm.trim()) {
+      const lowerSearch = searchTerm.toLowerCase();
       filtered = filtered.filter(post =>
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchTerm.toLowerCase())
+        (post.title?.toLowerCase() || '').includes(lowerSearch) ||
+        (post.excerpt?.toLowerCase() || '').includes(lowerSearch) ||
+        ((post as any).content?.toLowerCase() || '').includes(lowerSearch)
       );
     }
 
