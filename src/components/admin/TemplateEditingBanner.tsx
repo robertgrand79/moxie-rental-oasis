@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TemplateEditingBannerProps {
   variant?: 'header' | 'sidebar';
@@ -13,6 +15,7 @@ interface TemplateEditingBannerProps {
 const TemplateEditingBanner = ({ variant = 'sidebar' }: TemplateEditingBannerProps) => {
   const { organization, switchOrganization } = useCurrentOrganization();
   const { isPlatformAdmin } = usePlatformAdmin();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   // Only show for platform admins editing template organizations
@@ -21,6 +24,41 @@ const TemplateEditingBanner = ({ variant = 'sidebar' }: TemplateEditingBannerPro
   }
 
   const handleReturnToPlatform = async () => {
+    // Log impersonation end
+    if (user && organization) {
+      // End active impersonation session
+      await supabase
+        .from('admin_impersonation_sessions')
+        .update({ 
+          is_active: false, 
+          ended_at: new Date().toISOString() 
+        })
+        .eq('admin_user_id', user.id)
+        .eq('target_organization_id', organization.id)
+        .eq('is_active', true);
+
+      // Log to audit
+      const { data: adminRecord } = await supabase
+        .from('platform_admins')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      await supabase
+        .from('platform_admin_audit_logs')
+        .insert([{
+          admin_user_id: user.id,
+          admin_id: adminRecord?.id || user.id,
+          action_type: 'impersonation_end',
+          target_type: 'organization',
+          target_id: organization.id,
+          target_name: organization.name,
+          details: { ended_at: new Date().toISOString() },
+          user_agent: navigator?.userAgent || null,
+        }]);
+    }
+
     const originalOrgId = localStorage.getItem('platform_admin_original_org');
     if (originalOrgId) {
       await switchOrganization(originalOrgId);
