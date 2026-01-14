@@ -324,6 +324,39 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
       }
 
+      // Log impersonation session to admin_impersonation_sessions
+      await supabase
+        .from('admin_impersonation_sessions')
+        .insert([{
+          admin_user_id: user.id,
+          target_organization_id: orgId,
+          target_user_id: null,
+          started_at: new Date().toISOString(),
+          is_active: true,
+          user_agent: navigator?.userAgent || null,
+        }]);
+
+      // Log to platform admin audit logs
+      const { data: adminRecord } = await supabase
+        .from('platform_admins')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      await supabase
+        .from('platform_admin_audit_logs')
+        .insert([{
+          admin_user_id: user.id,
+          admin_id: adminRecord?.id || user.id,
+          action_type: 'impersonation_start',
+          target_type: 'organization',
+          target_id: orgId,
+          target_name: targetOrg.name,
+          details: { started_at: new Date().toISOString() },
+          user_agent: navigator?.userAgent || null,
+        }]);
+
       // Update local state immediately
       setOrganization(targetOrg as unknown as Organization);
       setMembership({
