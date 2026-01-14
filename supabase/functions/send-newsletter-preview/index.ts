@@ -244,18 +244,27 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("📧 Checking email service configuration...");
     console.log("📧 Resend API key present:", !!resendApiKey);
 
-    console.log("⚙️ Fetching email settings from database for organization:", userProfile?.organization_id);
-    const { data: siteSettings, error: settingsError } = await supabaseAdmin
-      .from("site_settings")
-      .select("key, value")
-      .eq("organization_id", userProfile?.organization_id)
-      .in("key", [
-        "emailFromAddress", "emailFromName", "emailReplyTo", 
-        "siteName", "contactEmail", "phone", "address", "socialMedia"
-      ]);
+    const organizationId = userProfile?.organization_id;
+    console.log("⚙️ Fetching email settings from database for organization:", organizationId);
+    
+    let siteSettings: { key: string; value: any }[] = [];
+    if (organizationId) {
+      const { data, error: settingsError } = await supabaseAdmin
+        .from("site_settings")
+        .select("key, value")
+        .eq("organization_id", organizationId)
+        .in("key", [
+          "emailFromAddress", "emailFromName", "emailReplyTo", 
+          "siteName", "contactEmail", "phone", "address", "socialMedia"
+        ]);
 
-    if (settingsError) {
-      console.error("⚠️ Error fetching site settings:", settingsError);
+      if (settingsError) {
+        console.error("⚠️ Error fetching site settings:", settingsError);
+      } else {
+        siteSettings = data || [];
+      }
+    } else {
+      console.warn("⚠️ No organization_id found for user, using defaults");
     }
 
     const settings = siteSettings?.reduce((acc, setting) => {
@@ -285,6 +294,22 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`- From: ${fromName} <${fromEmail}>`);
     console.log(`- Reply-to: ${replyTo}`);
     console.log(`- Site: ${siteName}`);
+
+    // Validate from email before attempting to send
+    if (!fromEmail) {
+      console.error("❌ No from email address configured");
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Email configuration incomplete: No 'From' email address configured. Please configure your email settings in Admin → Settings → Email Services.",
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     const textContent = content.replace(/<[^>]*>/g, '').trim();
     const preheader = textContent.split('\n')[0]?.trim()?.substring(0, 100) + '...' || `${subject} - Your Eugene adventure awaits!`;
