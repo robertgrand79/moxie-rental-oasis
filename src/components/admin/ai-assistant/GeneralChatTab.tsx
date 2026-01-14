@@ -186,6 +186,10 @@ const GeneralChatTab = () => {
   const [bubbleColor, setBubbleColor] = useState('#3B82F6');
   const [submitButtonColor, setSubmitButtonColor] = useState<string | null>(null);
   const [chatStyle, setChatStyle] = useState<ChatStyle>('modern');
+  const [headerTextColor, setHeaderTextColor] = useState<string | null>(null);
+  const [welcomeTitleColor, setWelcomeTitleColor] = useState<string | null>(null);
+  const [welcomeSubtitleColor, setWelcomeSubtitleColor] = useState<string | null>(null);
+  const [quickActionTextColor, setQuickActionTextColor] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -196,7 +200,7 @@ const GeneralChatTab = () => {
     const fetchSettings = async () => {
       const { data } = await supabase
         .from('assistant_settings')
-        .select('avatar_type, display_name, bubble_color, submit_button_color, chat_style')
+        .select('avatar_type, display_name, bubble_color, submit_button_color, chat_style, header_text_color, welcome_title_color, welcome_subtitle_color, quick_action_text_color')
         .eq('organization_id', organization.id)
         .maybeSingle();
 
@@ -206,6 +210,10 @@ const GeneralChatTab = () => {
         setBubbleColor(data.bubble_color || '#3B82F6');
         setSubmitButtonColor(data.submit_button_color || null);
         setChatStyle((data.chat_style as ChatStyle) || 'modern');
+        setHeaderTextColor(data.header_text_color || null);
+        setWelcomeTitleColor(data.welcome_title_color || null);
+        setWelcomeSubtitleColor(data.welcome_subtitle_color || null);
+        setQuickActionTextColor(data.quick_action_text_color || null);
       }
     };
     fetchSettings();
@@ -230,6 +238,10 @@ const GeneralChatTab = () => {
             setBubbleColor((newData.bubble_color as string) || '#3B82F6');
             setSubmitButtonColor((newData.submit_button_color as string) || null);
             setChatStyle((newData.chat_style as ChatStyle) || 'modern');
+            setHeaderTextColor((newData.header_text_color as string) || null);
+            setWelcomeTitleColor((newData.welcome_title_color as string) || null);
+            setWelcomeSubtitleColor((newData.welcome_subtitle_color as string) || null);
+            setQuickActionTextColor((newData.quick_action_text_color as string) || null);
           }
         }
       )
@@ -337,9 +349,9 @@ const GeneralChatTab = () => {
           )}>
             <ChatAvatar type={avatarType} size={44} />
           </div>
-          <div className="text-white">
+          <div style={{ color: headerTextColor || '#FFFFFF' }}>
             <span className="font-semibold text-lg">{avatarName}</span>
-            <div className="flex items-center gap-1.5 text-xs text-white/80">
+            <div className="flex items-center gap-1.5 text-xs" style={{ opacity: 0.8 }}>
               <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
               Online now
             </div>
@@ -376,10 +388,10 @@ const GeneralChatTab = () => {
             )}>
               <ChatAvatar type={avatarType} size={80} />
             </div>
-            <p className="text-xl font-semibold mb-2" style={{ color: bubbleColor }}>
+            <p className="text-xl font-semibold mb-2" style={{ color: welcomeTitleColor || bubbleColor }}>
               {avatarName}
             </p>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            <p className={cn("mb-6 max-w-md mx-auto", !welcomeSubtitleColor && "text-muted-foreground")} style={welcomeSubtitleColor ? { color: welcomeSubtitleColor } : undefined}>
               {personalizedWelcome}
             </p>
             
@@ -396,8 +408,8 @@ const GeneralChatTab = () => {
                   )}
                   style={{ 
                     backgroundColor: `${bubbleColor}15`, 
-                    borderColor: `${bubbleColor}40`, 
-                    color: bubbleColor 
+                    borderColor: quickActionTextColor ? `${quickActionTextColor}40` : `${bubbleColor}40`, 
+                    color: quickActionTextColor || bubbleColor 
                   }}
                 >
                   <Sparkles className="h-3 w-3 inline mr-1.5 opacity-70" />
