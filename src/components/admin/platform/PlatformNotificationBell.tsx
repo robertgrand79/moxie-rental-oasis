@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, User, Building2, Ticket, AlertCircle, Check, ExternalLink, Archive } from 'lucide-react';
+import { Bell, User, Building2, Ticket, AlertCircle, Check, ExternalLink, Archive, MessageSquare, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -21,6 +21,10 @@ const getNotificationIcon = (type: string) => {
       return <Building2 className="h-4 w-4 text-green-500" />;
     case 'new_ticket':
       return <Ticket className="h-4 w-4 text-orange-500" />;
+    case 'new_feedback':
+      return <MessageSquare className="h-4 w-4 text-purple-500" />;
+    case 'new_email':
+      return <Mail className="h-4 w-4 text-cyan-500" />;
     case 'system_alert':
       return <AlertCircle className="h-4 w-4 text-red-500" />;
     default:
