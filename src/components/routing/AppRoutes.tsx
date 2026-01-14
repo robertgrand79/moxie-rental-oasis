@@ -304,6 +304,7 @@ const AppRoutes: React.FC = () => {
             <Route path="guest-experience" element={<GuestExperiencePage />} />
             <Route path="guidebooks/:propertyId/edit" element={<GuidebookEditorPage />} />
             <Route path="profile" element={<AdminProfile />} />
+            <Route path="ai-assistant" element={<AdminAIAssistant />} />
             {/* Platform Admin Command Center - nested routes */}
           </Route>
           <Route path="/admin/platform" element={<ProtectedRoute><AdminDomainGuard><PlatformAdminLayout /></AdminDomainGuard></ProtectedRoute>}>
@@ -468,6 +469,7 @@ const AppRoutes: React.FC = () => {
           <Route path="guest-experience" element={<GuestExperiencePage />} />
           <Route path="guidebooks/:propertyId/edit" element={<GuidebookEditorPage />} />
           <Route path="profile" element={<AdminProfile />} />
+          <Route path="ai-assistant" element={<AdminAIAssistant />} />
           {/* Platform Admin Command Center - nested routes */}
         </Route>
         <Route path="/admin/platform" element={<ProtectedRoute><AdminDomainGuard><PlatformAdminLayout /></AdminDomainGuard></ProtectedRoute>}>
