@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useForm } from 'react-hook-form';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
 import { useNewsletterStats } from '@/hooks/useNewsletterStats';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Send, Eye, EyeOff, Wand2, Users, Loader2, Maximize2, RotateCcw } from 'lucide-react';
+import { Send, Eye, EyeOff, Wand2, Users, Loader2, Maximize2, RotateCcw, Save } from 'lucide-react';
 import ReactQuillEditor from '../ReactQuillEditor';
 import NewsletterPreviewPanel from './NewsletterPreviewPanel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -26,6 +27,7 @@ interface NewsletterFormData {
 
 const StreamlinedNewsletterEditor = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [content, setContent] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [showFullPagePreview, setShowFullPagePreview] = useState(false);
@@ -35,6 +37,7 @@ const StreamlinedNewsletterEditor = () => {
   const { toast: showToast } = useToast();
   const { blogPosts, loading: blogPostsLoading } = useBlogPosts();
   const { subscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
+  const { organization } = useCurrentOrganization();
   
   const form = useForm<NewsletterFormData>({
     defaultValues: {
@@ -46,24 +49,26 @@ const StreamlinedNewsletterEditor = () => {
 
   const currentSubject = form.watch('subject');
   const isFormValid = currentSubject?.trim() && content?.trim() && subscriberCount && subscriberCount > 0;
+  const canSaveDraft = currentSubject?.trim() || content?.trim();
   const publishedBlogPosts = blogPosts.filter(post => post.status === 'published');
 
   // Reset function for navigation
-  const resetToDefaultState = () => {
+  const resetToDefaultState = useCallback(() => {
     form.reset();
     setContent('');
     setShowPreview(false);
     setShowFullPagePreview(false);
     setShowAIDialog(false);
     setIsLoading(false);
+    setIsSaving(false);
     toast('Newsletter editor reset to clean state');
-  };
+  }, [form]);
 
   // Listen for reset events from navigation
   useEffect(() => {
     window.addEventListener('resetNewsletterTabs', resetToDefaultState);
     return () => window.removeEventListener('resetNewsletterTabs', resetToDefaultState);
-  }, [form]);
+  }, [resetToDefaultState]);
 
   const onSubmit = async (data: NewsletterFormData) => {
     if (!data.subject || !content) {
@@ -118,6 +123,60 @@ const StreamlinedNewsletterEditor = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Save draft function
+  const handleSaveDraft = async () => {
+    const subject = form.getValues('subject');
+    const blogPostId = form.getValues('blogPostId');
+
+    if (!subject?.trim() && !content?.trim()) {
+      showToast({
+        title: "Nothing to Save",
+        description: "Please add a subject or content before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!organization?.id) {
+      showToast({
+        title: "Organization Required",
+        description: "Please ensure you are logged in to an organization.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { error } = await supabase
+        .from('newsletter_campaigns')
+        .insert({
+          organization_id: organization.id,
+          subject: subject || 'Untitled Draft',
+          content: content || '',
+          status: 'draft',
+          blog_post_id: blogPostId && blogPostId !== 'none' ? blogPostId : null,
+        });
+
+      if (error) throw error;
+
+      showToast({
+        title: "Draft Saved! 📝",
+        description: "Your newsletter draft has been saved.",
+      });
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      showToast({
+        title: "Save Failed",
+        description: err.message || "Failed to save draft.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -257,19 +316,18 @@ const StreamlinedNewsletterEditor = () => {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
+              <FormField
                   control={form.control}
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Subject Line</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="Enter your newsletter subject..." 
                           value={field.value}
                           onChange={field.onChange}
                           onValueChange={field.onChange}
-                          disabled={isLoading}
+                          disabled={isLoading || isSaving}
                           className="text-base"
                           enableAI={true}
                           aiLabel="Subject Line"
@@ -288,7 +346,7 @@ const StreamlinedNewsletterEditor = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Link to Blog Post (Optional)</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || isSaving}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder={
@@ -345,34 +403,55 @@ const StreamlinedNewsletterEditor = () => {
                   </Alert>
                 )}
 
-                {/* Test Email Section */}
-                {currentSubject?.trim() && content?.trim() && (
-                  <TestEmailPanel
-                    testEmail={testEmail}
-                    setTestEmail={setTestEmail}
-                    onSendTest={handleSendTestEmail}
-                    isSending={isSendingTest}
-                    disabled={isLoading}
-                  />
-                )}
+                {/* Test Email Section - Always visible */}
+                <TestEmailPanel
+                  testEmail={testEmail}
+                  setTestEmail={setTestEmail}
+                  onSendTest={handleSendTestEmail}
+                  isSending={isSendingTest}
+                  disabled={isLoading || isSaving || !currentSubject?.trim() || !content?.trim()}
+                />
 
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-base"
-                  disabled={!isFormValid || isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Sending Newsletter...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Send Newsletter to {subscriberCount || 0} Subscribers
-                    </>
-                  )}
-                </Button>
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="flex-1 h-12 text-base"
+                    disabled={!canSaveDraft || isSaving || isLoading}
+                    onClick={handleSaveDraft}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Draft
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button 
+                    type="submit" 
+                    className="flex-1 h-12 text-base"
+                    disabled={!isFormValid || isLoading || isSaving}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send to {subscriberCount || 0} Subscribers
+                      </>
+                    )}
+                  </Button>
+                </div>
               </form>
             </Form>
           </CardContent>
