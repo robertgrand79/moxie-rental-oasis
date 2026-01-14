@@ -124,7 +124,7 @@ const OrganizationSwitcher = () => {
         <Button 
           variant="outline" 
           className={cn(
-            "gap-2 max-w-[200px]",
+            "gap-2 w-full justify-start",
             isPlatformMode && "border-primary bg-primary/5"
           )}
         >
