@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Send, Eye, EyeOff, Wand2, Users, Loader2, Maximize2, RotateCcw, Save } from 'lucide-react';
+import { Send, Eye, EyeOff, Wand2, Users, Loader2, Maximize2, RotateCcw, Save, MessageSquare } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import ReactQuillEditor from '../ReactQuillEditor';
 import NewsletterPreviewPanel from './NewsletterPreviewPanel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -36,7 +38,8 @@ const StreamlinedNewsletterEditor = () => {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const { toast: showToast } = useToast();
   const { blogPosts, loading: blogPostsLoading } = useBlogPosts();
-  const { subscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
+  const { subscriberCount, smsSubscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
+  const [sendSMS, setSendSMS] = useState(false);
   const { organization } = useCurrentOrganization();
   
   const form = useForm<NewsletterFormData>({
@@ -97,19 +100,26 @@ const StreamlinedNewsletterEditor = () => {
           subject: data.subject,
           content: content,
           blogPostId: data.blogPostId || undefined,
+          sendSMS: sendSMS,
         }
       });
 
       if (error) throw error;
 
       if (result?.success) {
+        let description = `Successfully sent to ${result.recipientCount} email subscribers.`;
+        if (sendSMS && result.smsSentCount > 0) {
+          description += ` SMS sent to ${result.smsSentCount} subscribers.`;
+        }
+        
         showToast({
           title: "Newsletter Sent! 🎉",
-          description: `Successfully sent to ${result.recipientCount} subscribers.`,
+          description,
         });
         
         form.reset();
         setContent('');
+        setSendSMS(false);
         refetchSubscriberCount();
       } else {
         throw new Error(result?.error || "Failed to send newsletter");
@@ -382,6 +392,30 @@ const StreamlinedNewsletterEditor = () => {
                   />
                 </div>
 
+                {/* SMS Option */}
+                {smsSubscriberCount && smsSubscriberCount > 0 && (
+                  <div className="flex items-start space-x-3 p-4 rounded-lg border border-border bg-muted/30">
+                    <Checkbox 
+                      id="send-sms" 
+                      checked={sendSMS}
+                      onCheckedChange={(checked) => setSendSMS(checked === true)}
+                      disabled={isLoading || isSaving}
+                    />
+                    <div className="space-y-1">
+                      <Label 
+                        htmlFor="send-sms" 
+                        className="text-sm font-medium cursor-pointer flex items-center gap-2"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        Also send SMS notification
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send a text message with a link to view this newsletter online to {smsSubscriberCount} SMS subscriber{smsSubscriberCount !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Status alert */}
                 {!subscriberCount || subscriberCount === 0 ? (
                   <Alert className="border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive">
@@ -398,7 +432,10 @@ const StreamlinedNewsletterEditor = () => {
                 ) : (
                   <Alert className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
                     <AlertDescription>
-                      <strong>Ready to Send!</strong> - Your newsletter will be sent to {subscriberCount} subscribers.
+                      <strong>Ready to Send!</strong> - Your newsletter will be sent to {subscriberCount} email subscriber{subscriberCount !== 1 ? 's' : ''}.
+                      {sendSMS && smsSubscriberCount && smsSubscriberCount > 0 && (
+                        <> SMS will also be sent to {smsSubscriberCount} subscriber{smsSubscriberCount !== 1 ? 's' : ''}.</>
+                      )}
                     </AlertDescription>
                   </Alert>
                 )}
