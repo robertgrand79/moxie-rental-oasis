@@ -77,9 +77,23 @@ export interface SendEmailInput {
 export const usePlatformEmails = (filters: EmailFilters = {}) => {
   const queryClient = useQueryClient();
 
+  // Fetch active platform email addresses to filter by domain
+  const { data: activeAddresses = [] } = useQuery({
+    queryKey: ['platform-email-addresses-for-filter'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('platform_email_addresses')
+        .select('email_address')
+        .eq('is_active', true);
+      if (error) throw error;
+      return data.map(a => a.email_address.toLowerCase());
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
   // Fetch emails with filters
   const { data: emails = [], isLoading, refetch } = useQuery({
-    queryKey: ['platform-emails', filters],
+    queryKey: ['platform-emails', filters, activeAddresses],
     queryFn: async () => {
       let query = supabase
         .from('platform_emails')
@@ -130,8 +144,24 @@ export const usePlatformEmails = (filters: EmailFilters = {}) => {
 
       const { data, error } = await query.limit(100);
       if (error) throw error;
+      
+      // Filter emails to only include those sent to configured platform addresses
+      if (activeAddresses.length > 0) {
+        return (data as PlatformEmail[]).filter(email => {
+          // For inbound emails, check if any to_address matches our configured addresses
+          if (email.direction === 'inbound') {
+            return email.to_addresses?.some(addr => 
+              activeAddresses.includes(addr.toLowerCase())
+            );
+          }
+          // For outbound emails, check from_address
+          return activeAddresses.includes(email.from_address?.toLowerCase());
+        });
+      }
+      
       return data as PlatformEmail[];
     },
+    enabled: activeAddresses.length > 0,
   });
 
   // Get single email
@@ -298,21 +328,32 @@ export const usePlatformEmails = (filters: EmailFilters = {}) => {
     },
   });
 
-  // Get unread count
+  // Get unread count (filtered by configured addresses)
   const { data: unreadCount = 0 } = useQuery({
-    queryKey: ['platform-emails-unread-count'],
+    queryKey: ['platform-emails-unread-count', activeAddresses],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from('platform_emails')
-        .select('*', { count: 'exact', head: true })
+        .select('id, to_addresses')
         .eq('direction', 'inbound')
         .eq('is_read', false)
         .eq('is_archived', false)
         .eq('is_spam', false);
       
       if (error) throw error;
-      return count || 0;
+      
+      // Filter by configured addresses
+      if (activeAddresses.length > 0 && data) {
+        return data.filter(email => 
+          email.to_addresses?.some((addr: string) => 
+            activeAddresses.includes(addr.toLowerCase())
+          )
+        ).length;
+      }
+      
+      return data?.length || 0;
     },
+    enabled: activeAddresses.length > 0,
   });
 
   return {
