@@ -4,6 +4,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { PlatformAnnouncementBanner } from '@/components/admin/PlatformAnnouncementBanner';
 
 // Content loader for lazy-loaded admin pages
 const ContentLoader = () => (
@@ -71,6 +72,7 @@ const AdminLayoutWrapper = () => {
 
   return (
     <AdminLayout>
+      <PlatformAnnouncementBanner />
       <Suspense fallback={<ContentLoader />}>
         <Outlet />
       </Suspense>
