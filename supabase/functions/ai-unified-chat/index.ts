@@ -1,5 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkAIRateLimit, buildRateLimitResponse } from "../_shared/aiRateLimiting.ts";
 
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
@@ -14,9 +16,30 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversationHistory = [] } = await req.json();
+    const { message, conversationHistory = [], organizationId } = await req.json();
 
-    console.log('Received unified AI chat request:', { message, historyLength: conversationHistory.length });
+    console.log('Received unified AI chat request:', { message, historyLength: conversationHistory.length, organizationId });
+
+    // Check rate limit if organization ID is provided
+    if (organizationId) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      
+      if (supabaseUrl && supabaseServiceKey) {
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        try {
+          const rateLimitResult = await checkAIRateLimit(supabase, organizationId, 'content_generation');
+          if (!rateLimitResult.allowed) {
+            console.log('Rate limit exceeded for org:', organizationId, rateLimitResult);
+            return buildRateLimitResponse(rateLimitResult, corsHeaders);
+          }
+          console.log('Rate limit check passed:', rateLimitResult);
+        } catch (rateLimitError) {
+          console.error('Rate limit check failed:', rateLimitError);
+          // Continue without rate limiting if check fails
+        }
+      }
+    }
 
     const systemPrompt = `You are an AI content assistant for a vacation rental website. You help with:
 
