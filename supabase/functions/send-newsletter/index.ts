@@ -14,6 +14,7 @@ interface NewsletterRequest {
   coverImageUrl?: string;
   linkedContent?: any;
   campaignId?: string;
+  sendSMS?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -93,7 +94,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Invalid JSON in request body");
     }
 
-    const { subject, content, coverImageUrl, linkedContent, campaignId }: NewsletterRequest = requestBody;
+    const { subject, content, coverImageUrl, linkedContent, campaignId, sendSMS }: NewsletterRequest = requestBody;
 
     console.log("📊 Newsletter data validation:");
     console.log("- Subject:", subject ? `"${subject}" (${subject.length} chars)` : "MISSING");
@@ -101,6 +102,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("- Cover Image:", coverImageUrl || "None");
     console.log("- Linked Content:", linkedContent ? JSON.stringify(linkedContent) : "None");
     console.log("- Campaign ID:", campaignId || "None");
+    console.log("- Send SMS:", sendSMS ? "Yes" : "No");
 
     if (!subject || !content) {
       console.error("❌ Missing required fields - Subject:", !!subject, "Content:", !!content);
@@ -233,6 +235,7 @@ const handler = async (req: Request): Promise<Response> => {
         linked_content: linkedContent,
         sent_at: new Date().toISOString(),
         recipient_count: subscribers.length,
+        organization_id: userProfile.organization_id,
       })
       .select()
       .single();
@@ -242,8 +245,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw campaignError;
     }
 
-    const campaignId = campaign.id;
-    console.log("✅ Campaign saved with ID:", campaignId);
+    const savedCampaignId = campaign.id;
+    console.log("✅ Campaign saved with ID:", savedCampaignId);
 
     // Generate preheader from content
     const textContent = content.replace(/<[^>]*>/g, '').trim();
@@ -499,7 +502,7 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         console.log(`📧 Sending email ${index + 1}/${subscribers.length} to ${subscriber.email}`);
         
-        const personalizedHtml = await createEmailTemplate(campaignId, subscriber.email);
+        const personalizedHtml = await createEmailTemplate(savedCampaignId, subscriber.email);
       const finalHtml = personalizedHtml.replace(
         "{{unsubscribe_url}}",
         `${Deno.env.get("SUPABASE_URL")}/functions/v1/unsubscribe-newsletter?email=${encodeURIComponent(subscriber.email)}`
@@ -507,7 +510,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Record sent event
       await supabaseAdmin.from("newsletter_analytics").insert({
-        campaign_id: campaignId,
+        campaign_id: savedCampaignId,
         subscriber_email: subscriber.email,
         event_type: "sent",
         event_data: {
@@ -545,6 +548,87 @@ const handler = async (req: Request): Promise<Response> => {
 
   console.log(`✅ Newsletter sending complete: ${successfulSends} successful, ${failedSends} failed`);
 
+  // Handle SMS sending if requested
+  let smsSentCount = 0;
+  let smsFailedCount = 0;
+  
+  if (sendSMS) {
+    console.log("📱 Starting SMS notifications...");
+    
+    // Get SMS subscribers for this organization
+    const { data: smsSubscribers, error: smsSubError } = await supabaseAdmin
+      .from("newsletter_subscribers")
+      .select("id, phone, name")
+      .eq("organization_id", userProfile.organization_id)
+      .eq("is_active", true)
+      .eq("sms_opt_in", true)
+      .not("phone", "is", null);
+
+    if (smsSubError) {
+      console.error("❌ Error fetching SMS subscribers:", smsSubError);
+    } else if (smsSubscribers && smsSubscribers.length > 0) {
+      console.log(`📱 Found ${smsSubscribers.length} SMS subscribers`);
+      
+      // Get organization's OpenPhone API key
+      const { data: orgSmsData } = await supabaseAdmin
+        .from("organizations")
+        .select("openphone_api_key, openphone_phone_number, name")
+        .eq("id", userProfile.organization_id)
+        .single();
+
+      const openPhoneApiKey = orgSmsData?.openphone_api_key || Deno.env.get("OPENPHONE_API_KEY");
+      
+      if (openPhoneApiKey) {
+        // Build the web view URL
+        const baseUrl = Deno.env.get("SITE_URL") || "https://stay-moxie.lovable.app";
+        const webViewUrl = `${baseUrl}/newsletter/${savedCampaignId}`;
+        const orgName = orgSmsData?.name || siteName;
+        
+        // Send SMS to each subscriber
+        for (const subscriber of smsSubscribers) {
+          try {
+            const smsMessage = subscriber.name 
+              ? `Hi ${subscriber.name}! Check out our latest newsletter from ${orgName}: ${webViewUrl}`
+              : `Check out our latest newsletter from ${orgName}: ${webViewUrl}`;
+
+            const smsResponse = await fetch("https://api.openphone.com/v1/messages", {
+              method: "POST",
+              headers: {
+                "Authorization": openPhoneApiKey,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                to: [subscriber.phone],
+                content: smsMessage,
+              }),
+            });
+
+            if (smsResponse.ok) {
+              smsSentCount++;
+              console.log(`✅ SMS sent to ${subscriber.phone}`);
+            } else {
+              smsFailedCount++;
+              const errorText = await smsResponse.text();
+              console.error(`❌ Failed to send SMS to ${subscriber.phone}:`, errorText);
+            }
+
+            // Small delay to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 100));
+          } catch (smsError: any) {
+            smsFailedCount++;
+            console.error(`❌ Error sending SMS to ${subscriber.phone}:`, smsError);
+          }
+        }
+        
+        console.log(`📱 SMS sending complete: ${smsSentCount} successful, ${smsFailedCount} failed`);
+      } else {
+        console.log("⚠️ No OpenPhone API key configured, skipping SMS");
+      }
+    } else {
+      console.log("ℹ️ No SMS subscribers found");
+    }
+  }
+
   // Update campaign with final statistics
   await supabaseAdmin
     .from("newsletter_campaigns")
@@ -553,17 +637,22 @@ const handler = async (req: Request): Promise<Response> => {
       failed_count: failedSends,
       completed_at: new Date().toISOString()
     })
-    .eq("id", campaignId);
+    .eq("id", savedCampaignId);
 
   return new Response(
     JSON.stringify({
       success: true,
       message: `Newsletter sent successfully to ${successfulSends} subscribers`,
-      campaignId,
+      campaignId: savedCampaignId,
+      recipientCount: successfulSends,
+      smsSentCount,
+      smsFailedCount,
       stats: {
         total: subscribers.length,
         successful: successfulSends,
-        failed: failedSends
+        failed: failedSends,
+        smsSent: smsSentCount,
+        smsFailed: smsFailedCount
       }
     }),
     {

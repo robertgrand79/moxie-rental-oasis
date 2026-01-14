@@ -28,6 +28,7 @@ import NotFound from '@/pages/NotFound';
 // Lazy-loaded public pages
 const About = lazy(() => import('@/pages/About'));
 const Contact = lazy(() => import('@/pages/Contact'));
+const NewsletterWebView = lazy(() => import('@/pages/NewsletterWebView'));
 const Experiences = lazy(() => import('@/pages/Experiences'));
 const Events = lazy(() => import('@/pages/Events'));
 const Blog = lazy(() => import('@/pages/Blog'));
@@ -220,6 +221,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/accept-invite" element={<AcceptInvitation />} />
           <Route path="/auth/confirm" element={<AuthConfirm />} />
           <Route path="/status" element={<Navigate to="/admin/status" replace />} />
+          <Route path="/newsletter/:id" element={<NewsletterWebView />} />
 
           {/* TV Routes */}
           <Route path="/tv/:propertyId" element={<TVWelcome />} />
