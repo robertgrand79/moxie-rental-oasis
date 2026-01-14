@@ -483,8 +483,9 @@ const AppRoutes: React.FC = () => {
           <Route path="workflows" element={<TaskWorkflowsPage />} />
           <Route path="email" element={<PlatformEmailPage />} />
           <Route path="billing" element={<PlatformBillingPage />} />
-        </Route>
-        <Route path="/admin" element={<ProtectedRoute><AdminLayoutWrapper /></ProtectedRoute>}>
+          <Route path="onboarding" element={<PlatformOnboardingPage />} />
+          <Route path="communications" element={<PlatformCommunicationsPage />} />
+          <Route path="notifications" element={<PlatformNotificationsPage />} />
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
           <Route path="help" element={<HelpCenterPage />} />
           <Route path="my-requests" element={<MyRequestsPage />} />
