@@ -141,11 +141,12 @@ const PlatformNotificationBell: React.FC = () => {
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-96 p-0 bg-popover shadow-lg z-50" 
+        className="p-0 bg-popover shadow-lg z-50 w-[min(24rem,calc(100vw-2rem))]"
         align="end" 
         side="bottom"
         sideOffset={8}
         collisionPadding={16}
+        sticky="partial"
       >
         <div className="flex items-center justify-between p-3 border-b">
           <h4 className="font-semibold text-sm">Platform Notifications</h4>
