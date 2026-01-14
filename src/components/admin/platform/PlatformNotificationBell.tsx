@@ -140,7 +140,13 @@ const PlatformNotificationBell: React.FC = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-0" align="end">
+      <PopoverContent 
+        className="w-96 p-0 bg-popover shadow-lg z-50" 
+        align="end" 
+        side="bottom"
+        sideOffset={8}
+        collisionPadding={16}
+      >
         <div className="flex items-center justify-between p-3 border-b">
           <h4 className="font-semibold text-sm">Platform Notifications</h4>
           {unreadCount > 0 && (
