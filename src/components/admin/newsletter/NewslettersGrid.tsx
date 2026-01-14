@@ -82,7 +82,7 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, onView, d
 
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {newsletters.map((newsletter) => {
           const isSent = !!newsletter.sent_at;
           
@@ -157,17 +157,17 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, onView, d
               {/* Footer Actions */}
               <div className="border-t px-4 py-3 bg-muted/30">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 flex-wrap">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleView(newsletter)}
-                          className="h-8"
+                          className="h-8 px-2"
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          Preview
+                          <span className="hidden sm:inline">Preview</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Preview newsletter content</TooltipContent>
@@ -179,10 +179,10 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, onView, d
                           variant="outline"
                           size="sm"
                           onClick={() => handleCopyId(newsletter)}
-                          className="h-8"
+                          className="h-8 px-2"
                         >
                           <Copy className="h-4 w-4 mr-1" />
-                          Copy ID
+                          <span className="hidden sm:inline">Copy ID</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Copy newsletter ID to clipboard</TooltipContent>
