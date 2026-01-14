@@ -9,6 +9,7 @@ import { Mail, Send, CheckCircle, AlertCircle, Info, Settings, ExternalLink, Bug
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { debug } from '@/utils/debug';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface NewsletterEmailPreviewProps {
   subject: string;
@@ -23,6 +24,7 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
   const [setupError, setSetupError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
 
   const handleSendPreview = async () => {
     debug.log('[Newsletter]', '🚀 Preview send initiated');
@@ -59,13 +61,14 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
       debug.log('[Newsletter]', '📧 Calling send-newsletter-preview function...');
       
       const payload = {
-        email: email,
+        testEmail: email,
         subject: subject,
         content: content,
+        organizationId: organization?.id,
       };
       
       debug.log('[Newsletter]', '📤 Payload being sent:', {
-        email: payload.email,
+        email: payload.testEmail,
         subject: payload.subject?.substring(0, 50) + '...',
         contentLength: payload.content?.length
       });
@@ -84,7 +87,7 @@ const NewsletterEmailPreview = ({ subject, content, disabled = false }: Newslett
       setDebugInfo({
         requestTime: endTime - startTime,
         payload: {
-          email: payload.email,
+          email: payload.testEmail,
           subjectLength: payload.subject?.length,
           contentLength: payload.content?.length
         },

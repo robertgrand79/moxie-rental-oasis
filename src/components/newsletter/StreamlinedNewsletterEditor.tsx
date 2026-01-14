@@ -226,6 +226,7 @@ const StreamlinedNewsletterEditor = () => {
           testEmail: testEmail,
           subject: currentSubject,
           content: content,
+          organizationId: organization?.id,
         }
       });
 

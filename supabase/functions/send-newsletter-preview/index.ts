@@ -14,6 +14,7 @@ interface PreviewRequest {
   subject: string;
   content: string;
   coverImageUrl?: string;
+  organizationId?: string; // Explicit org context from frontend (highest priority)
   linkedContent?: {
     blog_posts: string[];
     events: string[];
@@ -207,21 +208,53 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Get user's organization to fetch their Resend API key
-    console.log("🔑 Fetching organization Resend API key...");
-    const { data: userProfile, error: profileOrgError } = await supabaseAdmin
-      .from("profiles")
-      .select("organization_id")
-      .eq("id", user.id)
-      .single();
+    // Get user's organization - priority: request body > profile > organization_members
+    console.log("🔑 Resolving organization context...");
+    
+    // Priority 1: Use organizationId from request body (current admin context)
+    let organizationId = requestBody.organizationId;
+    console.log("📍 organizationId from request:", organizationId || "not provided");
+    
+    // Priority 2: Fall back to profile's organization_id
+    if (!organizationId) {
+      const { data: userProfile, error: profileOrgError } = await supabaseAdmin
+        .from("profiles")
+        .select("organization_id")
+        .eq("id", user.id)
+        .single();
+      
+      if (!profileOrgError && userProfile?.organization_id) {
+        organizationId = userProfile.organization_id;
+        console.log("📍 organizationId from profile:", organizationId);
+      }
+    }
+    
+    // Priority 3: Fall back to organization_members (oldest joined)
+    if (!organizationId) {
+      console.log("📍 Checking organization_members for user:", user.id);
+      const { data: membership, error: membershipError } = await supabaseAdmin
+        .from("organization_members")
+        .select("organization_id")
+        .eq("user_id", user.id)
+        .order("joined_at", { ascending: true })
+        .limit(1)
+        .single();
+      
+      if (!membershipError && membership?.organization_id) {
+        organizationId = membership.organization_id;
+        console.log("📍 organizationId from organization_members:", organizationId);
+      }
+    }
+    
+    console.log("✅ Final organizationId resolved:", organizationId || "NONE");
 
     let resendApiKey = "";
     
-    if (userProfile?.organization_id) {
+    if (organizationId) {
       const { data: orgData, error: orgError } = await supabaseAdmin
         .from("organizations")
         .select("resend_api_key")
-        .eq("id", userProfile.organization_id)
+        .eq("id", organizationId)
         .single();
 
       if (!orgError && orgData?.resend_api_key) {
@@ -243,8 +276,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("📧 Checking email service configuration...");
     console.log("📧 Resend API key present:", !!resendApiKey);
-
-    const organizationId = userProfile?.organization_id;
     console.log("⚙️ Fetching email settings from database for organization:", organizationId);
     
     let siteSettings: { key: string; value: any }[] = [];

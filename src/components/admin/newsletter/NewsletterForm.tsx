@@ -297,6 +297,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
           content: content,
           coverImageUrl: coverImageUrl,
           linkedContent: selectedContent,
+          organizationId: organization?.id,
         }
       });
 

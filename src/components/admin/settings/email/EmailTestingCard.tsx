@@ -8,12 +8,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 const EmailTestingCard = () => {
   const [testEmail, setTestEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [lastTestResult, setLastTestResult] = useState<any>(null);
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
 
   const handleSendTestEmail = async () => {
     if (!testEmail) {
@@ -35,6 +37,7 @@ const EmailTestingCard = () => {
         body: {
           testEmail: testEmail,
           subject: '🧪 Email System Test - Configuration Verified',
+          organizationId: organization?.id,
           content: `
             <div style="padding: 20px; font-family: Arial, sans-serif;">
               <h2 style="color: #667eea;">🎉 Email System Test Successful!</h2>
