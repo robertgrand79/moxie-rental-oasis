@@ -63,15 +63,15 @@ const HelpCenterPage: React.FC = () => {
   const filteredOwnerFAQs = ownerFAQs?.filter(
     (faq) =>
       searchQuery === '' ||
-      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+      (faq.question?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (faq.answer?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   ) || [];
 
   const filteredGuestFAQs = guestFAQs?.filter(
     (faq) =>
       searchQuery === '' ||
-      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+      (faq.question?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (faq.answer?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   ) || [];
 
   const isLoading = loadingCategories || loadingArticles || loadingOwnerFAQs || loadingGuestFAQs;

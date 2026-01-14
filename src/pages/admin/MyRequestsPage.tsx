@@ -104,7 +104,7 @@ const MyRequestsPage: React.FC = () => {
     const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
     const matchesSearch =
       searchQuery === '' ||
-      item.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.subject?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
       (item.ticket_number?.toLowerCase() || '').includes(searchQuery.toLowerCase());
     return matchesType && matchesStatus && matchesSearch;
   });
