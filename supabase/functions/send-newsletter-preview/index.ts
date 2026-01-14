@@ -91,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("🔍 Checking admin permissions...");
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .select("role")
+      .select("role, organization_id")
       .eq("id", user.id)
       .single();
 
