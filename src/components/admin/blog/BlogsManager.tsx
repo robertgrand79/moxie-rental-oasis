@@ -134,20 +134,13 @@ const BlogsManager = ({
 
   const handleEdit = async (post: BlogPost) => {
     if (onEdit) {
-      // Fetch full content when editing
+      // Fetch full content when editing - pass false to include drafts
       try {
-        const fullPost = await blogPostService.fetchBlogPostBySlug(post.slug);
+        const fullPost = await blogPostService.fetchBlogPostBySlug(post.slug, false);
         if (fullPost) {
           onEdit(fullPost);
         } else {
-          // Fallback: fetch directly by ID if slug doesn't work (draft posts)
-          const allPosts = await blogPostService.fetchBlogPosts(false);
-          const found = allPosts.find(p => p.id === post.id);
-          if (found) {
-            onEdit(found);
-          } else {
-            toast.error('Failed to load post content');
-          }
+          toast.error('Failed to load post content');
         }
       } catch (error) {
         console.error('Error loading full post:', error);
@@ -199,21 +192,14 @@ const BlogsManager = ({
   };
 
   const handleViewDetails = async (post: BlogPost) => {
-    // Fetch full content for detail view
+    // Fetch full content for detail view - pass false to include drafts
     try {
-      const fullPost = await blogPostService.fetchBlogPostBySlug(post.slug);
+      const fullPost = await blogPostService.fetchBlogPostBySlug(post.slug, false);
       if (fullPost) {
         setViewingPost(fullPost);
       } else {
-        // Fallback for draft posts
-        const allPosts = await blogPostService.fetchBlogPosts(false);
-        const found = allPosts.find(p => p.id === post.id);
-        if (found) {
-          setViewingPost(found);
-        } else {
-          // Use the summary data if we can't fetch full content
-          setViewingPost(post);
-        }
+        // Use the summary data if we can't fetch full content
+        setViewingPost(post);
       }
     } catch (error) {
       console.error('Error loading full post:', error);
