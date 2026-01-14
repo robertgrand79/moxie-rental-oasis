@@ -49,14 +49,15 @@ const ContractorsTable = ({
 }: ContractorsTableProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredContractors = contractors.filter(contractor =>
-    contractor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contractor.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contractor.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contractor.specialties?.some(specialty => 
-      specialty.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
+  const filteredContractors = contractors.filter(contractor => {
+    const query = searchQuery.toLowerCase();
+    return (contractor.name?.toLowerCase() || '').includes(query) ||
+      (contractor.company_name?.toLowerCase() || '').includes(query) ||
+      (contractor.email?.toLowerCase() || '').includes(query) ||
+      contractor.specialties?.some(specialty => 
+        (specialty?.toLowerCase() || '').includes(query)
+      );
+  });
 
   return (
     <div className="space-y-4">

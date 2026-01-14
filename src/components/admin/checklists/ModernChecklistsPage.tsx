@@ -84,8 +84,8 @@ const ModernChecklistsPage = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(t => 
-        t.name.toLowerCase().includes(query) ||
-        t.description?.toLowerCase().includes(query)
+        (t.name?.toLowerCase() || '').includes(query) ||
+        (t.description?.toLowerCase() || '').includes(query)
       );
     }
 

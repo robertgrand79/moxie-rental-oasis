@@ -85,8 +85,8 @@ const ModernNewsletterPage = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(n => 
-        n.subject.toLowerCase().includes(query) ||
-        n.content.toLowerCase().includes(query)
+        (n.subject?.toLowerCase() || '').includes(query) ||
+        (n.content?.toLowerCase() || '').includes(query)
       );
     }
 

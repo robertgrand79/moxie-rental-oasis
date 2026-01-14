@@ -36,7 +36,7 @@ const SubscriptionsList = () => {
     if (!subscriptions) return [];
 
     return subscriptions.filter(sub => {
-      const matchesSearch = sub.name.toLowerCase().includes(search.toLowerCase());
+      const matchesSearch = (sub.name?.toLowerCase() || '').includes(search.toLowerCase());
       const matchesStatus = statusFilter === 'all' || sub.subscription_status === statusFilter;
       const matchesTier = tierFilter === 'all' || sub.subscription_tier === tierFilter;
       return matchesSearch && matchesStatus && matchesTier;

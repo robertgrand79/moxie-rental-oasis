@@ -93,10 +93,11 @@ const PlatformBlogManager: React.FC = () => {
   });
 
   const filteredPosts = useMemo(() => {
+    const query = searchQuery.toLowerCase();
     return posts.filter((post) => {
       const matchesSearch =
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+        (post.title?.toLowerCase() || '').includes(query) ||
+        (post.excerpt?.toLowerCase() || '').includes(query);
       const matchesStatus = statusFilter === 'all' || post.status === statusFilter;
       return matchesSearch && matchesStatus;
     });

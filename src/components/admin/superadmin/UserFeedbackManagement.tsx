@@ -238,9 +238,10 @@ const UserFeedbackManagement = () => {
 
   // Filter feedback
   const filteredFeedback = feedback?.filter(item => {
+    const query = searchTerm.toLowerCase();
     const matchesSearch = 
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (item.title?.toLowerCase() || '').includes(query) ||
+      (item.description?.toLowerCase() || '').includes(query);
     const matchesType = typeFilter === 'all' || item.feedback_type === typeFilter;
     const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
     const matchesArchived = showArchived ? item.is_archived : !item.is_archived;
