@@ -537,7 +537,10 @@ const PublicChatWidget = () => {
               </div>
               <div style={{ color: headerTextColor }}>
                 <span className="font-semibold">{settings.display_name || avatarInfo[avatarType]?.name || 'Assistant'}</span>
-                <p className="text-xs opacity-80">Online now</p>
+                <div className="flex items-center gap-1.5 text-xs opacity-80">
+                  <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+                  Online now
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-1">
