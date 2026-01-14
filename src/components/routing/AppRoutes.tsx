@@ -110,6 +110,7 @@ const PlatformEmailPage = lazy(() => import('@/pages/admin/platform/PlatformEmai
 const PlatformBillingPage = lazy(() => import('@/pages/admin/platform/PlatformBillingPage'));
 const PlatformOnboardingPage = lazy(() => import('@/pages/admin/platform/PlatformOnboardingPage'));
 const PlatformCommunicationsPage = lazy(() => import('@/pages/admin/platform/PlatformCommunicationsPage'));
+const PlatformNotificationsPage = lazy(() => import('@/pages/admin/platform/PlatformNotificationsPage'));
 
 // Lazy-loaded settings pages
 const GeneralSettingsPage = lazy(() => import('@/pages/admin/settings/GeneralSettingsPage'));
@@ -178,6 +179,7 @@ const AppRoutes: React.FC = () => {
           <Route path="billing" element={<PlatformBillingPage />} />
           <Route path="onboarding" element={<PlatformOnboardingPage />} />
           <Route path="communications" element={<PlatformCommunicationsPage />} />
+          <Route path="notifications" element={<PlatformNotificationsPage />} />
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
           <Route path="help" element={<HelpCenterPage />} />
           <Route path="my-requests" element={<MyRequestsPage />} />
@@ -322,6 +324,9 @@ const AppRoutes: React.FC = () => {
             <Route path="status" element={<StatusPage />} />
             <Route path="email" element={<PlatformEmailPage />} />
             <Route path="billing" element={<PlatformBillingPage />} />
+            <Route path="onboarding" element={<PlatformOnboardingPage />} />
+            <Route path="communications" element={<PlatformCommunicationsPage />} />
+            <Route path="notifications" element={<PlatformNotificationsPage />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
