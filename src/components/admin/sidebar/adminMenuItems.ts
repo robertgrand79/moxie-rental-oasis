@@ -42,6 +42,35 @@ export const adminMenuItems = [
     ]
   },
   {
+    title: 'Property & Booking',
+    items: [
+      {
+        title: 'Properties',
+        href: '/admin/properties',
+        icon: Home,
+        description: 'Manage rental properties'
+      },
+      {
+        title: 'Work Orders',
+        href: '/admin/work-orders',
+        icon: Wrench,
+        description: 'Property maintenance and work orders'
+      },
+      {
+        title: 'Contractors',
+        href: '/admin/contractors',
+        icon: HardHat,
+        description: 'Manage contractors and service providers'
+      },
+      {
+        title: 'Checklists',
+        href: '/admin/checklists',
+        icon: ClipboardList,
+        description: 'Seasonal and periodic maintenance checklists'
+      }
+    ]
+  },
+  {
     title: 'Content Management',
     items: [
       {
@@ -131,35 +160,6 @@ export const adminMenuItems = [
         href: '/admin/guest-experience',
         icon: MessageSquare,
         description: 'Automated messaging rules and templates'
-      }
-    ]
-  },
-  {
-    title: 'Property & Booking',
-    items: [
-      {
-        title: 'Properties',
-        href: '/admin/properties',
-        icon: Home,
-        description: 'Manage rental properties'
-      },
-      {
-        title: 'Work Orders',
-        href: '/admin/work-orders',
-        icon: Wrench,
-        description: 'Property maintenance and work orders'
-      },
-      {
-        title: 'Contractors',
-        href: '/admin/contractors',
-        icon: HardHat,
-        description: 'Manage contractors and service providers'
-      },
-      {
-        title: 'Checklists',
-        href: '/admin/checklists',
-        icon: ClipboardList,
-        description: 'Seasonal and periodic maintenance checklists'
       }
     ]
   },
