@@ -244,10 +244,11 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("📧 Checking email service configuration...");
     console.log("📧 Resend API key present:", !!resendApiKey);
 
-    console.log("⚙️ Fetching email settings from database...");
+    console.log("⚙️ Fetching email settings from database for organization:", userProfile?.organization_id);
     const { data: siteSettings, error: settingsError } = await supabaseAdmin
       .from("site_settings")
       .select("key, value")
+      .eq("organization_id", userProfile?.organization_id)
       .in("key", [
         "emailFromAddress", "emailFromName", "emailReplyTo", 
         "siteName", "contactEmail", "phone", "address", "socialMedia"
