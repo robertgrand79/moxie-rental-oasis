@@ -49,7 +49,8 @@ const NotificationBell: React.FC = () => {
         side="bottom"
         sideOffset={8}
         collisionPadding={16}
-        className="p-0 shadow-lg bg-popover w-80 sm:w-96 overflow-hidden z-50"
+        sticky="partial"
+        className="p-0 shadow-lg bg-popover overflow-hidden z-50 w-[min(24rem,calc(100vw-2rem))]"
       >
         <NotificationPanel
           notifications={notifications}
