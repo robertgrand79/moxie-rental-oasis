@@ -388,7 +388,7 @@ const GeneralChatTab = () => {
             )}>
               <ChatAvatar type={avatarType} size={80} />
             </div>
-            <p className="text-xl font-semibold mb-2" style={{ color: welcomeTitleColor || bubbleColor }}>
+            <p className="text-xl font-semibold mb-2" style={{ color: welcomeTitleColor || submitButtonColor || bubbleColor }}>
               {avatarName}
             </p>
             <p className={cn("mb-6 max-w-md mx-auto", !welcomeSubtitleColor && "text-muted-foreground")} style={welcomeSubtitleColor ? { color: welcomeSubtitleColor } : undefined}>
@@ -407,8 +407,8 @@ const GeneralChatTab = () => {
                     chatStyle === 'playful' ? 'rounded-full' : 'rounded-lg'
                   )}
                   style={{ 
-                    backgroundColor: quickActionTextColor || bubbleColor, 
-                    borderColor: quickActionTextColor || bubbleColor, 
+                    backgroundColor: quickActionTextColor || submitButtonColor || bubbleColor, 
+                    borderColor: quickActionTextColor || submitButtonColor || bubbleColor, 
                     color: '#FFFFFF' 
                   }}
                 >
