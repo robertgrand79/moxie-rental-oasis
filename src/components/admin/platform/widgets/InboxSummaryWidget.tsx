@@ -45,7 +45,7 @@ async function fetchInboxStats(): Promise<InboxStats> {
     .from('platform_inbox')
     .select('id', { count: 'exact', head: true })
     .eq('type', 'feedback')
-    .eq('is_read', false);
+    .eq('status', 'open');
   
   // Get recent items with assignee data
   const { data } = await client
@@ -57,7 +57,7 @@ async function fetchInboxStats(): Promise<InboxStats> {
         email
       )
     `)
-    .or('status.eq.open,is_read.eq.false')
+    .in('status', ['open', 'in_progress'])
     .order('created_at', { ascending: false })
     .limit(3);
 
