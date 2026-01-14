@@ -16,7 +16,8 @@ import {
   CreditCard,
   TrendingUp,
   MessageSquare,
-  Bell
+  Bell,
+  Milestone,
 } from 'lucide-react';
 
 export interface PlatformNavItem {
@@ -170,6 +171,14 @@ export const platformNavItems: PlatformNavItem[] = [
     icon: Rocket,
     path: '/admin/platform/launch',
     description: 'Pre-launch readiness verification',
+    section: 'development',
+  },
+  {
+    key: 'roadmap',
+    label: 'Roadmap',
+    icon: Milestone,
+    path: '/admin/platform/roadmap',
+    description: 'Plan and track platform improvements',
     section: 'development',
   },
 ];

@@ -111,6 +111,7 @@ const PlatformBillingPage = lazy(() => import('@/pages/admin/platform/PlatformBi
 const PlatformOnboardingPage = lazy(() => import('@/pages/admin/platform/PlatformOnboardingPage'));
 const PlatformCommunicationsPage = lazy(() => import('@/pages/admin/platform/PlatformCommunicationsPage'));
 const PlatformNotificationsPage = lazy(() => import('@/pages/admin/platform/PlatformNotificationsPage'));
+const PlatformRoadmapPage = lazy(() => import('@/pages/admin/platform/PlatformRoadmapPage'));
 
 // Lazy-loaded settings pages
 const GeneralSettingsPage = lazy(() => import('@/pages/admin/settings/GeneralSettingsPage'));
@@ -180,6 +181,7 @@ const AppRoutes: React.FC = () => {
           <Route path="onboarding" element={<PlatformOnboardingPage />} />
           <Route path="communications" element={<PlatformCommunicationsPage />} />
           <Route path="notifications" element={<PlatformNotificationsPage />} />
+          <Route path="roadmap" element={<PlatformRoadmapPage />} />
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
           <Route path="help" element={<HelpCenterPage />} />
           <Route path="my-requests" element={<MyRequestsPage />} />
@@ -326,6 +328,7 @@ const AppRoutes: React.FC = () => {
             <Route path="billing" element={<PlatformBillingPage />} />
             <Route path="onboarding" element={<PlatformOnboardingPage />} />
             <Route path="communications" element={<PlatformCommunicationsPage />} />
+            <Route path="roadmap" element={<PlatformRoadmapPage />} />
             <Route path="notifications" element={<PlatformNotificationsPage />} />
           </Route>
 
@@ -486,6 +489,7 @@ const AppRoutes: React.FC = () => {
           <Route path="onboarding" element={<PlatformOnboardingPage />} />
           <Route path="communications" element={<PlatformCommunicationsPage />} />
           <Route path="notifications" element={<PlatformNotificationsPage />} />
+          <Route path="roadmap" element={<PlatformRoadmapPage />} />
           <Route path="ai-assistant" element={<AdminAIAssistant />} />
           <Route path="help" element={<HelpCenterPage />} />
           <Route path="my-requests" element={<MyRequestsPage />} />
