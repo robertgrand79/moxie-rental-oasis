@@ -131,9 +131,6 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  {/* Organization Switcher for Platform Admins */}
-                  {isPlatformAdmin && !isMobile && <OrganizationSwitcher />}
-                  
                   {/* Notification Bell */}
                   <NotificationBell />
                   
