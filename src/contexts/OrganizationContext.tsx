@@ -334,8 +334,13 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         invited_by: user.id,
         joined_at: new Date().toISOString(),
       });
+      
+      // Persist the switched org slug for "Back to Site" synchronization
+      sessionStorage.setItem('admin_current_org_slug', targetOrg.slug);
+      debug.org('Persisted admin org context:', targetOrg.slug);
 
       debug.org('Successfully switched to organization:', targetOrg.name);
+      setIsPlatformMode(false); // Exit platform mode when viewing a tenant
       return true;
     } catch (err) {
       debug.error('Error switching organization:', err);
@@ -349,6 +354,8 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setIsPlatformMode(true);
     setOrganization(null);
     setMembership(null);
+    // Clear persisted org context when entering platform mode
+    sessionStorage.removeItem('admin_current_org_slug');
   }, []);
 
   // Enter tenant mode (switch to a specific org)
