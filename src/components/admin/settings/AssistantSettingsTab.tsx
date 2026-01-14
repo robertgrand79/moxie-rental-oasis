@@ -43,6 +43,11 @@ interface AssistantSettings {
   submit_button_color: string;
   user_message_text_color: string;
   assistant_message_bg_color: string;
+  // Widget Font Colors
+  header_text_color: string;
+  welcome_title_color: string;
+  welcome_subtitle_color: string;
+  quick_action_text_color: string;
   // TV Display Settings
   tv_chat_enabled: boolean;
   tv_show_avatar: boolean;
@@ -114,6 +119,10 @@ const AssistantSettingsTab = () => {
     submit_button_color: '',
     user_message_text_color: '',
     assistant_message_bg_color: '',
+    header_text_color: '',
+    welcome_title_color: '',
+    welcome_subtitle_color: '',
+    quick_action_text_color: '',
   }));
 
   const normalizeHexDraft = useCallback((raw: string) => {
@@ -137,6 +146,10 @@ const AssistantSettingsTab = () => {
       submit_button_color: settings.submit_button_color || '',
       user_message_text_color: settings.user_message_text_color || '',
       assistant_message_bg_color: settings.assistant_message_bg_color || '',
+      header_text_color: settings.header_text_color || '',
+      welcome_title_color: settings.welcome_title_color || '',
+      welcome_subtitle_color: settings.welcome_subtitle_color || '',
+      quick_action_text_color: settings.quick_action_text_color || '',
     });
   }, [
     settings?.avatar_background_color,
@@ -146,6 +159,10 @@ const AssistantSettingsTab = () => {
     settings?.submit_button_color,
     settings?.user_message_text_color,
     settings?.assistant_message_bg_color,
+    settings?.header_text_color,
+    settings?.welcome_title_color,
+    settings?.welcome_subtitle_color,
+    settings?.quick_action_text_color,
   ]);
 
   useEffect(() => {
@@ -182,6 +199,10 @@ const AssistantSettingsTab = () => {
         submit_button_color: data.submit_button_color || data.bubble_color || '#3B82F6',
         user_message_text_color: data.user_message_text_color || '#FFFFFF',
         assistant_message_bg_color: data.assistant_message_bg_color || '',
+        header_text_color: data.header_text_color || '',
+        welcome_title_color: data.welcome_title_color || '',
+        welcome_subtitle_color: data.welcome_subtitle_color || '',
+        quick_action_text_color: data.quick_action_text_color || '',
         tv_chat_enabled: data.tv_chat_enabled ?? true,
         tv_show_avatar: data.tv_show_avatar ?? true,
         tv_welcome_message: data.tv_welcome_message || '',
@@ -206,6 +227,10 @@ const AssistantSettingsTab = () => {
         submit_button_color: '#3B82F6',
         user_message_text_color: '#FFFFFF',
         assistant_message_bg_color: '',
+        header_text_color: '',
+        welcome_title_color: '',
+        welcome_subtitle_color: '',
+        quick_action_text_color: '',
         tv_chat_enabled: true,
         tv_show_avatar: true,
         tv_welcome_message: '',
@@ -243,7 +268,11 @@ const AssistantSettingsTab = () => {
           tv_show_avatar: settings.tv_show_avatar,
           tv_welcome_message: settings.tv_welcome_message,
           tv_signage_rotation_seconds: settings.tv_signage_rotation_seconds,
-          assistant_message_bg_color: settings.assistant_message_bg_color
+          assistant_message_bg_color: settings.assistant_message_bg_color,
+          header_text_color: settings.header_text_color || null,
+          welcome_title_color: settings.welcome_title_color || null,
+          welcome_subtitle_color: settings.welcome_subtitle_color || null,
+          quick_action_text_color: settings.quick_action_text_color || null
         }], { onConflict: 'organization_id' });
 
       if (error) throw error;

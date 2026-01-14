@@ -84,6 +84,10 @@ interface AssistantSettings {
   submit_button_color?: string;
   user_message_text_color?: string;
   assistant_message_bg_color?: string;
+  header_text_color?: string;
+  welcome_title_color?: string;
+  welcome_subtitle_color?: string;
+  quick_action_text_color?: string;
 }
 
 // Generate unique session ID
@@ -370,6 +374,10 @@ const PublicChatWidget = () => {
   const submitButtonColor = settings.submit_button_color || bubbleColor;
   const textColor = settings.text_color || '#1F2937';
   const userMessageTextColor = settings.user_message_text_color || '#FFFFFF';
+  const headerTextColor = settings.header_text_color || '#FFFFFF';
+  const welcomeTitleColor = settings.welcome_title_color || bubbleColor;
+  const welcomeSubtitleColor = settings.welcome_subtitle_color || undefined;
+  const quickActionTextColor = settings.quick_action_text_color || bubbleColor;
 
   // Style configurations based on chat_style
   const getStyleClasses = () => {
@@ -526,7 +534,7 @@ const PublicChatWidget = () => {
                   backgroundColorEnd={settings.avatar_background_color_end}
                 />
               </div>
-              <div>
+              <div style={{ color: headerTextColor }}>
                 <span className="font-semibold">{settings.display_name || avatarInfo[avatarType]?.name || 'Assistant'}</span>
                 <p className="text-xs opacity-80">Online now</p>
               </div>
@@ -578,8 +586,8 @@ const PublicChatWidget = () => {
                         backgroundColorEnd={settings.avatar_background_color_end}
                       />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">{settings.display_name || avatarInfo[avatarType]?.name || 'Assistant'}</h3>
-                    <p className="text-sm text-muted-foreground">{getPersonalizedWelcome(avatarType, settings.welcome_message)}</p>
+                    <h3 className="font-semibold text-lg mb-2" style={{ color: welcomeTitleColor }}>{settings.display_name || avatarInfo[avatarType]?.name || 'Assistant'}</h3>
+                    <p className="text-sm" style={{ color: welcomeSubtitleColor }} className={!welcomeSubtitleColor ? 'text-muted-foreground' : undefined}>{getPersonalizedWelcome(avatarType, settings.welcome_message)}</p>
                     
                     {/* Quick action suggestions */}
                     <div className="mt-6 flex flex-wrap gap-2 justify-center">
@@ -596,6 +604,10 @@ const PublicChatWidget = () => {
                             chatStyle === 'playful' && "rounded-full",
                             chatStyle === 'elegant' && "border-muted-foreground/30"
                           )}
+                          style={{ 
+                            color: quickActionTextColor,
+                            borderColor: `${quickActionTextColor}40`
+                          }}
                         >
                           {suggestion}
                         </button>
