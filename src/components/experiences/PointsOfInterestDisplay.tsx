@@ -37,9 +37,9 @@ const PointsOfInterestDisplay = () => {
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(poi =>
-        poi.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        poi.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        poi.category.toLowerCase().includes(searchTerm.toLowerCase())
+        (poi.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (poi.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (poi.category?.toLowerCase() || '').includes(searchTerm.toLowerCase())
       );
     }
 

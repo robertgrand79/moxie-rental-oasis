@@ -25,8 +25,8 @@ const EnhancedPageList = ({ pages, onEdit, onDelete }: EnhancedPageListProps) =>
   const [statusFilter, setStatusFilter] = useState('all');
 
   const filteredPages = pages.filter(page => {
-    const matchesSearch = page.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         page.slug.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (page.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (page.slug?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || 
                          (statusFilter === 'published' && page.is_published) ||
                          (statusFilter === 'draft' && !page.is_published);

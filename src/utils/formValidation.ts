@@ -205,3 +205,36 @@ export const containsDangerousContent = (input: string): boolean => {
 
   return dangerousPatterns.some((pattern) => pattern.test(input));
 };
+
+/**
+ * Safe string search - handles null/undefined values
+ * @param value - The string value to search in (may be null/undefined)
+ * @param searchTerm - The term to search for
+ * @returns boolean - Whether the search term was found
+ */
+export const safeSearchIncludes = (
+  value: string | null | undefined,
+  searchTerm: string
+): boolean => {
+  if (!value || !searchTerm) return false;
+  return value.toLowerCase().includes(searchTerm.toLowerCase());
+};
+
+/**
+ * Safe string for toLowerCase - returns empty string for null/undefined
+ */
+export const safeToLower = (value: string | null | undefined): string => {
+  return value?.toLowerCase() || '';
+};
+
+/**
+ * Multi-field safe search - check if any field contains the search term
+ */
+export const safeSearchAny = (
+  searchTerm: string,
+  ...values: (string | null | undefined)[]
+): boolean => {
+  if (!searchTerm?.trim()) return true;
+  const lowerSearch = searchTerm.toLowerCase();
+  return values.some(value => (value?.toLowerCase() || '').includes(lowerSearch));
+};

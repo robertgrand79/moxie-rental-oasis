@@ -181,7 +181,7 @@ const PlatformInboxManagement = () => {
   const filteredItems = items?.filter(item => {
     const matchesSearch = 
       (item.ticket_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      item.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.subject?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (item.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === 'all' || item.type === typeFilter;
     const matchesStatus = statusFilter === 'all' || item.status === statusFilter;

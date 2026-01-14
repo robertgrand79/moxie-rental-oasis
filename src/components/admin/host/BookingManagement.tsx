@@ -169,8 +169,8 @@ const BookingManagement = () => {
 
   const filteredReservations = reservations.filter(reservation => {
     const matchesSearch = !searchTerm || 
-      reservation.guest_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.guest_email.toLowerCase().includes(searchTerm.toLowerCase());
+      (reservation.guest_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (reservation.guest_email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || reservation.booking_status === statusFilter;
     

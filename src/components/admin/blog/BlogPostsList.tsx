@@ -34,9 +34,9 @@ const BlogPostsList = ({ posts, onEdit, onDelete, onAddPost, onPublish }: BlogPo
 
   // Filter posts based on search and filters
   const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.author.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (post.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (post.excerpt?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (post.author?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || post.status === statusFilter;
     const matchesContentType = contentTypeFilter === 'all' || post.content_type === contentTypeFilter;

@@ -53,9 +53,9 @@ const EnhancedLifestyleGallerySection = () => {
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(item =>
-        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.location?.toLowerCase().includes(searchTerm.toLowerCase())
+        (item.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (item.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (item.location?.toLowerCase() || '').includes(searchTerm.toLowerCase())
       );
     }
 

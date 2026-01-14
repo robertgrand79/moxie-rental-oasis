@@ -53,7 +53,7 @@ const BlogSearch = ({ posts, onFilteredPosts }: BlogSearchProps) => {
   }, [searchTerm, selectedTag, posts]);
 
   const getTagColor = (tag: string) => {
-    switch (tag.toLowerCase()) {
+    switch ((tag || '').toLowerCase()) {
       case 'travel':
         return 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 border-blue-200 hover:from-blue-200 hover:to-blue-100';
       case 'destinations':
