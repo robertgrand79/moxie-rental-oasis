@@ -600,13 +600,14 @@ const PublicChatWidget = () => {
                           }}
                           className={cn(
                             "text-xs px-3 py-1.5 rounded-full border transition-colors",
-                            "hover:bg-muted hover:border-primary/50",
+                            "hover:opacity-80",
                             chatStyle === 'playful' && "rounded-full",
-                            chatStyle === 'elegant' && "border-muted-foreground/30"
+                            chatStyle === 'elegant' && "border-transparent"
                           )}
                           style={{ 
-                            color: quickActionTextColor,
-                            borderColor: `${quickActionTextColor}40`
+                            backgroundColor: quickActionTextColor,
+                            color: '#FFFFFF',
+                            borderColor: quickActionTextColor
                           }}
                         >
                           {suggestion}

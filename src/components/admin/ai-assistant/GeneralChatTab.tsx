@@ -403,13 +403,13 @@ const GeneralChatTab = () => {
                   onClick={() => setInput(`Help me with ${item.toLowerCase()}`)}
                   className={cn(
                     "text-sm px-4 py-2 border transition-all duration-200",
-                    "hover:scale-105 hover:shadow-md cursor-pointer",
+                    "hover:opacity-80 hover:scale-105 hover:shadow-md cursor-pointer",
                     chatStyle === 'playful' ? 'rounded-full' : 'rounded-lg'
                   )}
                   style={{ 
-                    backgroundColor: `${bubbleColor}15`, 
-                    borderColor: quickActionTextColor ? `${quickActionTextColor}40` : `${bubbleColor}40`, 
-                    color: quickActionTextColor || bubbleColor 
+                    backgroundColor: quickActionTextColor || bubbleColor, 
+                    borderColor: quickActionTextColor || bubbleColor, 
+                    color: '#FFFFFF' 
                   }}
                 >
                   <Sparkles className="h-3 w-3 inline mr-1.5 opacity-70" />
