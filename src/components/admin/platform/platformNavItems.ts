@@ -15,7 +15,8 @@ import {
   Mail,
   CreditCard,
   TrendingUp,
-  MessageSquare
+  MessageSquare,
+  Bell
 } from 'lucide-react';
 
 export interface PlatformNavItem {
@@ -109,6 +110,14 @@ export const platformNavItems: PlatformNavItem[] = [
     icon: MessageSquare,
     path: '/admin/platform/communications',
     description: 'Announcements, campaigns, and in-app banners',
+    section: 'content',
+  },
+  {
+    key: 'notifications',
+    label: 'Activity Log',
+    icon: Bell,
+    path: '/admin/platform/notifications',
+    description: 'View all platform activity and notifications',
     section: 'content',
   },
 
