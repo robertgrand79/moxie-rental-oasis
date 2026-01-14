@@ -33,7 +33,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     // If AI is enabled, wrap with label and AI button
     if (enableAI && aiLabel) {
-      const inputId = props.id || aiLabel.toLowerCase().replace(/\s+/g, '-');
+      const inputId = props.id || (aiLabel?.toLowerCase() || 'input').replace(/\s+/g, '-');
       
       return (
         <div className="space-y-2">

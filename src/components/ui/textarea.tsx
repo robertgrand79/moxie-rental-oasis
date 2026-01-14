@@ -33,7 +33,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 
     // If AI is enabled, wrap with label and AI button
     if (enableAI && aiLabel) {
-      const textareaId = props.id || aiLabel.toLowerCase().replace(/\s+/g, '-');
+      const textareaId = props.id || (aiLabel?.toLowerCase() || 'textarea').replace(/\s+/g, '-');
       
       return (
         <div className="space-y-2">

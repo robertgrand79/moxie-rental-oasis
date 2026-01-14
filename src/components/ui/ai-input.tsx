@@ -22,7 +22,7 @@ interface AIInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
   ({ label, aiPrompt = '', aiTooltip = 'Generate with AI', onValueChange, enableAI = true, className, id, ...props }, ref) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const inputId = id || label.toLowerCase().replace(/\s+/g, '-');
+    const inputId = id || (label?.toLowerCase() || 'input').replace(/\s+/g, '-');
 
     const handleAIApply = (content: string) => {
       if (onValueChange) {
