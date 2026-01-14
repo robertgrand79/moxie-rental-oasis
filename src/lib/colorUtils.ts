@@ -342,3 +342,80 @@ export const resetColorsInDOM = (): void => {
     console.error('[colorUtils] Error resetting colors:', error);
   }
 };
+
+// ----------
+// Accessible UI helpers (hex-based; used by the AI Assistant widget)
+// ----------
+
+export type AdaptivePillStyle = {
+  backgroundColor: string;
+  borderColor: string;
+  color: string;
+};
+
+const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+
+const normalizeHex6 = (hex: string): string | null => {
+  if (!hex || typeof hex !== 'string') return null;
+  const trimmed = hex.trim();
+  if (!trimmed) return null;
+  const withHash = trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+  const expanded = expandShortHex(withHash);
+  return isValidHexColor(expanded) ? expanded.toUpperCase() : null;
+};
+
+const hexToRgb = (hex: string) => {
+  const n = normalizeHex6(hex);
+  if (!n) return null;
+  return {
+    r: parseInt(n.slice(1, 3), 16),
+    g: parseInt(n.slice(3, 5), 16),
+    b: parseInt(n.slice(5, 7), 16),
+  };
+};
+
+const rgbToHex = (r: number, g: number, b: number) => {
+  const to = (v: number) => Math.round(v).toString(16).padStart(2, '0').toUpperCase();
+  return `#${to(r)}${to(g)}${to(b)}`;
+};
+
+const mixHex = (hexA: string, hexB: string, amountB: number) => {
+  const a = hexToRgb(hexA);
+  const b = hexToRgb(hexB);
+  if (!a || !b) return normalizeHex6(hexA) || '#3B82F6';
+  const t = clamp01(amountB);
+  return rgbToHex(
+    a.r + (b.r - a.r) * t,
+    a.g + (b.g - a.g) * t,
+    a.b + (b.b - a.b) * t
+  );
+};
+
+// WCAG relative luminance
+const relativeLuminance = (hex: string) => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return 0.5;
+  const srgb = [rgb.r, rgb.g, rgb.b].map((v) => v / 255);
+  const lin = srgb.map((c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+  return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+};
+
+/**
+ * Adaptive pill styling:
+ * - If base color is light → use a darker solid fill + white text.
+ * - If base color is dark → use a light fill + base-colored text/border.
+ */
+export const getAdaptivePillStyle = (baseColor: string): AdaptivePillStyle => {
+  const base = normalizeHex6(baseColor) || '#3B82F6';
+  const lum = relativeLuminance(base);
+  const isLight = lum >= 0.62;
+
+  if (isLight) {
+    const darkerFill = mixHex(base, '#000000', 0.38);
+    return { backgroundColor: darkerFill, borderColor: darkerFill, color: '#FFFFFF' };
+  }
+
+  const lightFill = mixHex(base, '#FFFFFF', 0.88);
+  return { backgroundColor: lightFill, borderColor: base, color: base };
+};
+

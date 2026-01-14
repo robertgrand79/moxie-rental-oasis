@@ -9,6 +9,7 @@ import ChatAvatar from '@/components/chat/ChatAvatar';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { AvatarType, avatarInfo } from '@/components/chat/avatars';
 import { cn } from '@/lib/utils';
+import { getAdaptivePillStyle } from '@/lib/colorUtils';
 
 // Fun, personality-driven welcome messages for each avatar
 const getPersonalizedWelcome = (avatarType: AvatarType): string => {
@@ -185,6 +186,7 @@ const GeneralChatTab = () => {
   const [displayName, setDisplayName] = useState('Stay Moxie Assistant');
   const [bubbleColor, setBubbleColor] = useState('#3B82F6');
   const [submitButtonColor, setSubmitButtonColor] = useState<string | null>(null);
+  const [assistantTextColor, setAssistantTextColor] = useState<string>('#1F2937');
   const [chatStyle, setChatStyle] = useState<ChatStyle>('modern');
   const [headerTextColor, setHeaderTextColor] = useState<string | null>(null);
   const [welcomeTitleColor, setWelcomeTitleColor] = useState<string | null>(null);
@@ -200,7 +202,7 @@ const GeneralChatTab = () => {
     const fetchSettings = async () => {
       const { data } = await supabase
         .from('assistant_settings')
-        .select('avatar_type, display_name, bubble_color, submit_button_color, chat_style, header_text_color, welcome_title_color, welcome_subtitle_color, quick_action_text_color')
+        .select('avatar_type, display_name, bubble_color, submit_button_color, text_color, chat_style, header_text_color, welcome_title_color, welcome_subtitle_color, quick_action_text_color')
         .eq('organization_id', organization.id)
         .maybeSingle();
 
@@ -209,6 +211,7 @@ const GeneralChatTab = () => {
         setDisplayName(data.display_name || 'AI Assistant');
         setBubbleColor(data.bubble_color || '#3B82F6');
         setSubmitButtonColor(data.submit_button_color || null);
+        setAssistantTextColor((data.text_color as string) || '#1F2937');
         setChatStyle((data.chat_style as ChatStyle) || 'modern');
         setHeaderTextColor(data.header_text_color || null);
         setWelcomeTitleColor(data.welcome_title_color || null);
@@ -237,6 +240,7 @@ const GeneralChatTab = () => {
             setDisplayName((newData.display_name as string) || 'AI Assistant');
             setBubbleColor((newData.bubble_color as string) || '#3B82F6');
             setSubmitButtonColor((newData.submit_button_color as string) || null);
+            setAssistantTextColor((newData.text_color as string) || '#1F2937');
             setChatStyle((newData.chat_style as ChatStyle) || 'modern');
             setHeaderTextColor((newData.header_text_color as string) || null);
             setWelcomeTitleColor((newData.welcome_title_color as string) || null);
@@ -388,34 +392,35 @@ const GeneralChatTab = () => {
             )}>
               <ChatAvatar type={avatarType} size={80} />
             </div>
-            <p className="text-xl font-semibold mb-2" style={{ color: welcomeTitleColor || submitButtonColor || bubbleColor }}>
+            <p className="text-xl font-semibold mb-2" style={{ color: welcomeTitleColor || assistantTextColor }}>
               {avatarName}
             </p>
-            <p className={cn("mb-6 max-w-md mx-auto", !welcomeSubtitleColor && "text-muted-foreground")} style={welcomeSubtitleColor ? { color: welcomeSubtitleColor } : undefined}>
+            <p className="mb-6 max-w-md mx-auto" style={{ color: welcomeSubtitleColor || assistantTextColor }}>
               {personalizedWelcome}
             </p>
             
             {/* Quick suggestion pills */}
             <div className="flex flex-wrap gap-2 justify-center mb-4">
-              {quickSuggestions.map((item) => (
-                <button 
-                  key={item} 
-                  onClick={() => setInput(`Help me with ${item.toLowerCase()}`)}
-                  className={cn(
-                    "text-sm px-4 py-2 border transition-all duration-200",
-                    "hover:opacity-80 hover:scale-105 hover:shadow-md cursor-pointer",
-                    chatStyle === 'playful' ? 'rounded-full' : 'rounded-lg'
-                  )}
-                  style={{ 
-                    backgroundColor: quickActionTextColor || submitButtonColor || bubbleColor, 
-                    borderColor: quickActionTextColor || submitButtonColor || bubbleColor, 
-                    color: '#FFFFFF' 
-                  }}
-                >
-                  <Sparkles className="h-3 w-3 inline mr-1.5 opacity-70" />
-                  {item}
-                </button>
-              ))}
+              {quickSuggestions.map((item) => {
+                const base = quickActionTextColor || submitButtonColor || bubbleColor;
+                const pillStyle = getAdaptivePillStyle(base);
+
+                return (
+                  <button 
+                    key={item} 
+                    onClick={() => setInput(`Help me with ${item.toLowerCase()}`)}
+                    className={cn(
+                      "text-sm px-4 py-2 border transition-all duration-200",
+                      "hover:opacity-90 hover:scale-105 hover:shadow-md cursor-pointer",
+                      chatStyle === 'playful' ? 'rounded-full' : 'rounded-lg'
+                    )}
+                    style={pillStyle}
+                  >
+                    <Sparkles className="h-3 w-3 inline mr-1.5 opacity-70" />
+                    {item}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ) : (

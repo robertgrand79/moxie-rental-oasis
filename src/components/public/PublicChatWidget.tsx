@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { useTenant } from '@/contexts/TenantContext';
 import { cn } from '@/lib/utils';
+import { getAdaptivePillStyle } from '@/lib/colorUtils';
 import { useLocation } from 'react-router-dom';
 import ChatAvatar from '@/components/chat/ChatAvatar';
 import { AvatarType, avatarInfo } from '@/components/chat/avatars';
@@ -375,9 +376,9 @@ const PublicChatWidget = () => {
   const textColor = settings.text_color || '#1F2937';
   const userMessageTextColor = settings.user_message_text_color || '#FFFFFF';
   const headerTextColor = settings.header_text_color || '#FFFFFF';
-  const welcomeTitleColor = settings.welcome_title_color || settings.submit_button_color || bubbleColor || '#1F2937';
-  const welcomeSubtitleColor = settings.welcome_subtitle_color || settings.submit_button_color || bubbleColor;
-  const quickActionTextColor = settings.quick_action_text_color || settings.submit_button_color || bubbleColor;
+  const welcomeTitleColor = settings.welcome_title_color || textColor;
+  const welcomeSubtitleColor = settings.welcome_subtitle_color || textColor;
+  const quickActionBaseColor = settings.quick_action_text_color || submitButtonColor || bubbleColor;
 
   // Style configurations based on chat_style
   const getStyleClasses = () => {
@@ -591,28 +592,28 @@ const PublicChatWidget = () => {
                     
                     {/* Quick action suggestions */}
                     <div className="mt-6 flex flex-wrap gap-2 justify-center">
-                      {['Check-in info', 'Amenities', 'Location'].map((suggestion) => (
-                        <button
-                          key={suggestion}
-                          onClick={() => {
-                            setInput(suggestion);
-                            inputRef.current?.focus();
-                          }}
-                          className={cn(
-                            "text-xs px-3 py-1.5 rounded-full border transition-colors",
-                            "hover:opacity-80",
-                            chatStyle === 'playful' && "rounded-full",
-                            chatStyle === 'elegant' && "border-transparent"
-                          )}
-                          style={{ 
-                            backgroundColor: quickActionTextColor,
-                            color: '#FFFFFF',
-                            borderColor: quickActionTextColor
-                          }}
-                        >
-                          {suggestion}
-                        </button>
-                      ))}
+                      {['Check-in info', 'Amenities', 'Location'].map((suggestion) => {
+                        const pillStyle = getAdaptivePillStyle(quickActionBaseColor);
+
+                        return (
+                          <button
+                            key={suggestion}
+                            onClick={() => {
+                              setInput(suggestion);
+                              inputRef.current?.focus();
+                            }}
+                            className={cn(
+                              "text-xs px-3 py-1.5 rounded-full border transition-colors",
+                              "hover:opacity-90",
+                              chatStyle === 'playful' && "rounded-full",
+                              chatStyle === 'elegant' && "border-transparent"
+                            )}
+                            style={pillStyle}
+                          >
+                            {suggestion}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 ) : (
