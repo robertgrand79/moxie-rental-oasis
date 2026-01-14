@@ -40,7 +40,7 @@ const NewsletterWebView = () => {
     enabled: !!id,
   });
 
-  // Fetch site settings for the organization
+  // Fetch site settings for the organization (including newsletter header config)
   const { data: siteSettings } = useQuery({
     queryKey: ['newsletter-org-settings', newsletter?.organization_id],
     queryFn: async () => {
@@ -50,7 +50,7 @@ const NewsletterWebView = () => {
         .from('site_settings')
         .select('key, value')
         .eq('organization_id', newsletter.organization_id)
-        .in('key', ['siteName', 'contactEmail', 'phone', 'address']);
+        .in('key', ['siteName', 'contactEmail', 'phone', 'address', 'newsletter_header_config']);
       
       return data?.reduce((acc, setting) => {
         acc[setting.key] = setting.value;
@@ -82,8 +82,24 @@ const NewsletterWebView = () => {
     );
   }
 
-  const orgName = (newsletter as any).organizations?.name || siteSettings?.siteName || 'Newsletter';
-  const logoUrl = (newsletter as any).organizations?.logo_url;
+  // Get newsletter header config if available
+  const headerConfig = siteSettings?.newsletter_header_config as {
+    title?: string;
+    subtitle?: string;
+    logo_url?: string;
+    background_gradient?: { from: string; to: string };
+    text_color?: string;
+  } | undefined;
+
+  // Prefer newsletter-specific logo, then org logo
+  const logoUrl = headerConfig?.logo_url || (newsletter as any).organizations?.logo_url;
+  const orgName = headerConfig?.title || (newsletter as any).organizations?.name || siteSettings?.siteName || 'Newsletter';
+  const tagline = headerConfig?.subtitle || 'Newsletter';
+  
+  // Use header config colors or defaults
+  const gradientFrom = headerConfig?.background_gradient?.from || 'hsl(220, 8%, 85%)';
+  const gradientTo = headerConfig?.background_gradient?.to || 'hsl(220, 3%, 97%)';
+  const textColor = headerConfig?.text_color || 'hsl(222.2, 47.4%, 11.2%)';
 
   return (
     <>
@@ -94,17 +110,26 @@ const NewsletterWebView = () => {
       
       <div className="min-h-screen bg-slate-50">
         {/* Header */}
-        <header className="bg-gradient-to-br from-slate-200 to-slate-100 border-b border-slate-200">
+        <header 
+          className="border-b border-slate-200"
+          style={{
+            background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`
+          }}
+        >
           <div className="max-w-3xl mx-auto px-4 py-8 text-center">
-            {logoUrl && (
-              <img 
-                src={logoUrl} 
-                alt={orgName}
-                className="h-12 w-auto mx-auto mb-4"
-              />
+            {logoUrl ? (
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <img 
+                  src={logoUrl} 
+                  alt={orgName}
+                  className="h-12 w-auto"
+                />
+                <h1 className="text-2xl font-bold" style={{ color: textColor }}>{orgName}</h1>
+              </div>
+            ) : (
+              <h1 className="text-2xl font-bold" style={{ color: textColor }}>{orgName}</h1>
             )}
-            <h1 className="text-2xl font-bold text-slate-900">{orgName}</h1>
-            <p className="text-slate-600 mt-1">Newsletter</p>
+            <p className="mt-1 opacity-80" style={{ color: textColor }}>{tagline}</p>
           </div>
         </header>
 

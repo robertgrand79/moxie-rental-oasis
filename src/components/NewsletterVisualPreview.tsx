@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye } from 'lucide-react';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import { useGlobalNewsletterSettings } from '@/hooks/useGlobalNewsletterSettings';
 
 interface NewsletterVisualPreviewProps {
   subject: string;
@@ -10,8 +11,13 @@ interface NewsletterVisualPreviewProps {
 
 const NewsletterVisualPreview = ({ subject, content }: NewsletterVisualPreviewProps) => {
   const { settings } = useTenantSettings();
-  const siteName = settings?.site_name || 'Your Business';
-  const tagline = settings?.heroSubtitle || 'Your trusted destination';
+  const { settings: newsletterSettings } = useGlobalNewsletterSettings();
+  
+  // Use newsletter-specific settings if configured, otherwise fall back to site settings
+  const headerConfig = newsletterSettings.headerConfig;
+  const logoUrl = headerConfig.logo_url || settings?.logo_url;
+  const siteName = headerConfig.title || settings?.site_name || 'Your Business';
+  const tagline = headerConfig.subtitle || settings?.heroSubtitle || 'Your trusted destination';
 
   return (
     <Card className="h-full">
@@ -43,13 +49,24 @@ const NewsletterVisualPreview = ({ subject, content }: NewsletterVisualPreviewPr
             <div 
               className="text-white p-8 text-center relative overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, hsl(220, 8%, 85%) 0%, hsl(220, 3%, 97%) 100%)',
-                color: 'hsl(222.2, 47.4%, 11.2%)'
+                background: `linear-gradient(135deg, ${headerConfig.background_gradient.from} 0%, ${headerConfig.background_gradient.to} 100%)`,
+                color: headerConfig.text_color
               }}
             >
               <div className="relative z-10">
-                <h1 className="text-3xl font-bold m-0 text-slate-800">{siteName}</h1>
-                <p className="mt-3 mb-0 text-slate-600 font-medium">{tagline}</p>
+                {logoUrl ? (
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <img 
+                      src={logoUrl} 
+                      alt={siteName}
+                      className="h-10 w-auto"
+                    />
+                    <h1 className="text-2xl font-bold m-0" style={{ color: headerConfig.text_color }}>{siteName}</h1>
+                  </div>
+                ) : (
+                  <h1 className="text-3xl font-bold m-0" style={{ color: headerConfig.text_color }}>{siteName}</h1>
+                )}
+                <p className="mt-3 mb-0 font-medium opacity-80" style={{ color: headerConfig.text_color }}>{tagline}</p>
               </div>
               {/* Subtle accent overlay */}
               <div 
