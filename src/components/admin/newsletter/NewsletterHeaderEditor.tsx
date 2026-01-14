@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface HeaderConfig {
   title: string;
@@ -25,12 +27,64 @@ interface NewsletterHeaderEditorProps {
 }
 
 const NewsletterHeaderEditor = ({ headerConfig, onHeaderConfigChange, disabled = false }: NewsletterHeaderEditorProps) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleInputChange = (field: keyof HeaderConfig, value: any) => {
     onHeaderConfigChange({
       ...headerConfig,
       [field]: value
     });
+  };
+
+  const handleLogoUpload = async (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `newsletter-logo-${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('hero-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('hero-images')
+        .getPublicUrl(data.path);
+
+      handleInputChange('logo_url', publicUrl);
+      toast.success('Logo uploaded successfully');
+    } catch (error: any) {
+      console.error('Logo upload error:', error);
+      toast.error(error.message || 'Failed to upload logo');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleLogoUpload(file);
+    }
+    // Reset input so same file can be selected again
+    e.target.value = '';
   };
 
   const handleGradientChange = (position: 'from' | 'to', value: string) => {
@@ -78,6 +132,14 @@ const NewsletterHeaderEditor = ({ headerConfig, onHeaderConfigChange, disabled =
         <div className="space-y-2">
           <Label>Logo</Label>
           <div className="flex items-center gap-4">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={disabled || isUploading}
+            />
             {headerConfig.logo_url ? (
               <div className="relative">
                 <img 
@@ -90,13 +152,21 @@ const NewsletterHeaderEditor = ({ headerConfig, onHeaderConfigChange, disabled =
                   size="sm"
                   className="absolute -top-2 -right-2 h-6 w-6 p-0"
                   onClick={() => handleInputChange('logo_url', '')}
+                  disabled={disabled}
                 >
                   <X className="h-3 w-3" />
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-16 w-16 border-2 border-dashed border-muted-foreground/25 rounded">
-                <Upload className="h-6 w-6 text-muted-foreground" />
+              <div 
+                onClick={() => !disabled && !isUploading && fileInputRef.current?.click()}
+                className="flex items-center justify-center h-16 w-16 border-2 border-dashed border-muted-foreground/25 rounded cursor-pointer hover:border-muted-foreground/50 transition-colors"
+              >
+                {isUploading ? (
+                  <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                ) : (
+                  <Upload className="h-6 w-6 text-muted-foreground" />
+                )}
               </div>
             )}
             <div className="flex-1">
