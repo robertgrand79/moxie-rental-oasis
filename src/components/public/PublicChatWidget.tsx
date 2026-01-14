@@ -587,7 +587,7 @@ const PublicChatWidget = () => {
                       />
                     </div>
                     <h3 className="font-semibold text-lg mb-2" style={{ color: welcomeTitleColor }}>{settings.display_name || avatarInfo[avatarType]?.name || 'Assistant'}</h3>
-                    <p className="text-sm" style={{ color: welcomeSubtitleColor }} className={!welcomeSubtitleColor ? 'text-muted-foreground' : undefined}>{getPersonalizedWelcome(avatarType, settings.welcome_message)}</p>
+                    <p className={cn("text-sm", !welcomeSubtitleColor && "text-muted-foreground")} style={welcomeSubtitleColor ? { color: welcomeSubtitleColor } : undefined}>{getPersonalizedWelcome(avatarType, settings.welcome_message)}</p>
                     
                     {/* Quick action suggestions */}
                     <div className="mt-6 flex flex-wrap gap-2 justify-center">
