@@ -923,6 +923,237 @@ const AssistantSettingsTab = () => {
             </CardContent>
           </Card>
 
+          {/* Widget Font Colors */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Widget Font Colors</CardTitle>
+              <CardDescription>
+                Customize text colors for different parts of the chat widget.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Header Text Color */}
+              <div className="space-y-2">
+                <Label>Header Text Color</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Color of text in the chat header (defaults to white if not set)
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    value={settings.header_text_color || '#FFFFFF'}
+                    onChange={(e) => {
+                      const next = e.target.value.toUpperCase();
+                      setSettings({ ...settings, header_text_color: next });
+                      setHexDrafts((prev) => ({ ...prev, header_text_color: next }));
+                    }}
+                    className="h-10 w-16 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={hexDrafts.header_text_color}
+                    inputMode="text"
+                    placeholder="#FFFFFF"
+                    maxLength={7}
+                    className="h-10 font-mono flex-1"
+                    onChange={(e) => {
+                      const next = normalizeHexDraft(e.target.value);
+                      setHexDrafts((prev) => ({ ...prev, header_text_color: next }));
+                      if (isValidHex6(next)) {
+                        setSettings({ ...settings, header_text_color: next });
+                      }
+                    }}
+                    onBlur={() => {
+                      const normalized = normalizeHexDraft(hexDrafts.header_text_color);
+                      if (!isValidHex6(normalized)) {
+                        setHexDrafts((prev) => ({ ...prev, header_text_color: settings.header_text_color || '#FFFFFF' }));
+                        return;
+                      }
+                      setHexDrafts((prev) => ({ ...prev, header_text_color: normalized }));
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Welcome Title Color */}
+              <div className="space-y-2">
+                <Label>Welcome Title Color</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Color of the assistant name in the welcome section
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    value={settings.welcome_title_color || settings.submit_button_color || settings.bubble_color}
+                    onChange={(e) => {
+                      const next = e.target.value.toUpperCase();
+                      setSettings({ ...settings, welcome_title_color: next });
+                      setHexDrafts((prev) => ({ ...prev, welcome_title_color: next }));
+                    }}
+                    className="h-10 w-16 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={hexDrafts.welcome_title_color}
+                    inputMode="text"
+                    placeholder="#1F2937"
+                    maxLength={7}
+                    className="h-10 font-mono flex-1"
+                    onChange={(e) => {
+                      const next = normalizeHexDraft(e.target.value);
+                      setHexDrafts((prev) => ({ ...prev, welcome_title_color: next }));
+                      if (isValidHex6(next)) {
+                        setSettings({ ...settings, welcome_title_color: next });
+                      }
+                    }}
+                    onBlur={() => {
+                      const normalized = normalizeHexDraft(hexDrafts.welcome_title_color);
+                      if (!isValidHex6(normalized)) {
+                        setHexDrafts((prev) => ({ ...prev, welcome_title_color: settings.welcome_title_color || '' }));
+                        return;
+                      }
+                      setHexDrafts((prev) => ({ ...prev, welcome_title_color: normalized }));
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Welcome Subtitle Color */}
+              <div className="space-y-2">
+                <Label>Welcome Subtitle Color</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Color of the welcome message text
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    value={settings.welcome_subtitle_color || settings.submit_button_color || settings.bubble_color}
+                    onChange={(e) => {
+                      const next = e.target.value.toUpperCase();
+                      setSettings({ ...settings, welcome_subtitle_color: next });
+                      setHexDrafts((prev) => ({ ...prev, welcome_subtitle_color: next }));
+                    }}
+                    className="h-10 w-16 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={hexDrafts.welcome_subtitle_color}
+                    inputMode="text"
+                    placeholder="#6B7280"
+                    maxLength={7}
+                    className="h-10 font-mono flex-1"
+                    onChange={(e) => {
+                      const next = normalizeHexDraft(e.target.value);
+                      setHexDrafts((prev) => ({ ...prev, welcome_subtitle_color: next }));
+                      if (isValidHex6(next)) {
+                        setSettings({ ...settings, welcome_subtitle_color: next });
+                      }
+                    }}
+                    onBlur={() => {
+                      const normalized = normalizeHexDraft(hexDrafts.welcome_subtitle_color);
+                      if (!isValidHex6(normalized)) {
+                        setHexDrafts((prev) => ({ ...prev, welcome_subtitle_color: settings.welcome_subtitle_color || '' }));
+                        return;
+                      }
+                      setHexDrafts((prev) => ({ ...prev, welcome_subtitle_color: normalized }));
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Quick Action Button Color */}
+              <div className="space-y-2">
+                <Label>Quick Action Button Color</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Base color for the quick action suggestion buttons
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    value={settings.quick_action_text_color || settings.submit_button_color || settings.bubble_color}
+                    onChange={(e) => {
+                      const next = e.target.value.toUpperCase();
+                      setSettings({ ...settings, quick_action_text_color: next });
+                      setHexDrafts((prev) => ({ ...prev, quick_action_text_color: next }));
+                    }}
+                    className="h-10 w-16 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={hexDrafts.quick_action_text_color}
+                    inputMode="text"
+                    placeholder="#3B82F6"
+                    maxLength={7}
+                    className="h-10 font-mono flex-1"
+                    onChange={(e) => {
+                      const next = normalizeHexDraft(e.target.value);
+                      setHexDrafts((prev) => ({ ...prev, quick_action_text_color: next }));
+                      if (isValidHex6(next)) {
+                        setSettings({ ...settings, quick_action_text_color: next });
+                      }
+                    }}
+                    onBlur={() => {
+                      const normalized = normalizeHexDraft(hexDrafts.quick_action_text_color);
+                      if (!isValidHex6(normalized)) {
+                        setHexDrafts((prev) => ({ ...prev, quick_action_text_color: settings.quick_action_text_color || '' }));
+                        return;
+                      }
+                      setHexDrafts((prev) => ({ ...prev, quick_action_text_color: normalized }));
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Assistant Message Background Color */}
+              <div className="space-y-2">
+                <Label>Assistant Message Background</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Background color for assistant message bubbles (leave empty for default)
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    value={settings.assistant_message_bg_color || '#F3F4F6'}
+                    onChange={(e) => {
+                      const next = e.target.value.toUpperCase();
+                      setSettings({ ...settings, assistant_message_bg_color: next });
+                      setHexDrafts((prev) => ({ ...prev, assistant_message_bg_color: next }));
+                    }}
+                    className="h-10 w-16 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={hexDrafts.assistant_message_bg_color}
+                    inputMode="text"
+                    placeholder="#F3F4F6"
+                    maxLength={7}
+                    className="h-10 font-mono flex-1"
+                    onChange={(e) => {
+                      const next = normalizeHexDraft(e.target.value);
+                      setHexDrafts((prev) => ({ ...prev, assistant_message_bg_color: next }));
+                      if (isValidHex6(next)) {
+                        setSettings({ ...settings, assistant_message_bg_color: next });
+                      }
+                    }}
+                    onBlur={() => {
+                      const normalized = normalizeHexDraft(hexDrafts.assistant_message_bg_color);
+                      if (!isValidHex6(normalized)) {
+                        setHexDrafts((prev) => ({ ...prev, assistant_message_bg_color: settings.assistant_message_bg_color || '' }));
+                        return;
+                      }
+                      setHexDrafts((prev) => ({ ...prev, assistant_message_bg_color: normalized }));
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSettings({ ...settings, assistant_message_bg_color: '' });
+                      setHexDrafts((prev) => ({ ...prev, assistant_message_bg_color: '' }));
+                    }}
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Live Preview */}
           <Card>
             <CardHeader>
