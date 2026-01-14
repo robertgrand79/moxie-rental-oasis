@@ -33,6 +33,7 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, onVie
   const [deleteNewsletter, setDeleteNewsletter] = useState<NewsletterCampaign | null>(null);
 
   const handleView = (newsletter: NewsletterCampaign) => {
+    console.log('handleView called with:', newsletter);
     if (onView) {
       onView(newsletter);
     } else {
@@ -198,19 +199,19 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, onVie
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 bg-popover">
-                          <DropdownMenuItem onClick={() => handleView(newsletter)}>
+                          <DropdownMenuItem onSelect={() => handleView(newsletter)}>
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
                           {!isSent && (
-                            <DropdownMenuItem onClick={() => onEdit(newsletter)}>
+                            <DropdownMenuItem onSelect={() => onEdit(newsletter)}>
                               <Edit className="h-4 w-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
-                            onClick={() => handleDeleteClick(newsletter)}
+                            onSelect={() => handleDeleteClick(newsletter)}
                             className="text-destructive focus:text-destructive"
                             disabled={deleting === newsletter.id}
                           >

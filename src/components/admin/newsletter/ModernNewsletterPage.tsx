@@ -105,6 +105,7 @@ const ModernNewsletterPage = () => {
   }, []);
 
   const handleEdit = useCallback((newsletter: NewsletterCampaign) => {
+    console.log('handleEdit called with:', newsletter);
     setEditingNewsletter(newsletter);
     setEditorOpen(true);
   }, []);
