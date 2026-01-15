@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
           // Data fetching
           'query-vendor': ['@tanstack/react-query', '@supabase/supabase-js'],
           // Rich text editor (heavy, rarely needed on initial load)
-          'editor-vendor': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/pm'],
+          'editor-vendor': ['@tiptap/react', '@tiptap/starter-kit'],
           // Charts (only needed for admin)
           'charts-vendor': ['recharts'],
           // Date handling
