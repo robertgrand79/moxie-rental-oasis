@@ -10,6 +10,8 @@ import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { AvatarType, avatarInfo } from '@/components/chat/avatars';
 import { cn } from '@/lib/utils';
 import { getAdaptivePillStyle } from '@/lib/colorUtils';
+import { parseAIRateLimitError, AIRateLimitError } from '@/hooks/useAIRateLimits';
+import { RateLimitChatMessage } from '@/components/ai/RateLimitErrorDisplay';
 
 // Fun, personality-driven welcome messages for each avatar
 const getPersonalizedWelcome = (avatarType: AvatarType): string => {
@@ -182,6 +184,7 @@ const GeneralChatTab = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [rateLimitError, setRateLimitError] = useState<AIRateLimitError | null>(null);
   const [avatarType, setAvatarType] = useState<AvatarType>('captain-moxie');
   const [displayName, setDisplayName] = useState('Stay Moxie Assistant');
   const [bubbleColor, setBubbleColor] = useState('#3B82F6');
@@ -265,6 +268,9 @@ const GeneralChatTab = () => {
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
+    // Clear any previous rate limit error
+    setRateLimitError(null);
+
     const trimmedMessage = input.trim();
     if (trimmedMessage.length > MAX_MESSAGE_LENGTH) {
       toast({
@@ -289,7 +295,34 @@ const GeneralChatTab = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's a rate limit error (429)
+        if (error.message?.includes('429') || error.status === 429) {
+          try {
+            // Try to parse the response body for rate limit details
+            const errorData = typeof error.context?.body === 'string' 
+              ? JSON.parse(error.context.body) 
+              : error.context?.body;
+            const rateLimitErr = parseAIRateLimitError(errorData);
+            if (rateLimitErr) {
+              setRateLimitError(rateLimitErr);
+              return;
+            }
+          } catch {
+            // If parsing fails, show generic rate limit message
+            setRateLimitError({
+              error: 'Too many requests. Please wait a moment before trying again.',
+              type: 'per_minute_limit',
+              tier: 'unknown',
+              daily_used: 0,
+              daily_limit: 0,
+              upgrade_available: false
+            });
+            return;
+          }
+        }
+        throw error;
+      }
 
       const assistantMessage: Message = {
         role: 'assistant',
@@ -307,6 +340,10 @@ const GeneralChatTab = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRetryAfterRateLimit = () => {
+    setRateLimitError(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -472,6 +509,17 @@ const GeneralChatTab = () => {
                     />
                   </div>
                 </div>
+              </div>
+            )}
+            {/* Rate Limit Error Display */}
+            {rateLimitError && (
+              <div className="flex gap-3 animate-fade-in">
+                <ChatAvatar type={avatarType} size={32} />
+                <RateLimitChatMessage 
+                  error={rateLimitError} 
+                  onRetry={handleRetryAfterRateLimit}
+                  bubbleColor={bubbleColor}
+                />
               </div>
             )}
           </div>
