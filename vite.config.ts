@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     target: 'esnext',
+    sourcemap: true,
   },
   plugins: [
     react(),
