@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertCircle, TrendingUp, Zap, ArrowUpRight } from 'lucide-react';
+import { AlertCircle, TrendingUp, Zap, ArrowUpRight, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -7,12 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAIRateLimits } from '@/hooks/useAIRateLimits';
 import { cn } from '@/lib/utils';
+import AIUsageCharts from './AIUsageCharts';
 
 interface AIUsageDisplayProps {
   compact?: boolean;
+  showCharts?: boolean;
 }
 
-export function AIUsageDisplay({ compact = false }: AIUsageDisplayProps) {
+export function AIUsageDisplay({ compact = false, showCharts = true }: AIUsageDisplayProps) {
   const {
     usageStats,
     isLoading,
@@ -21,6 +23,7 @@ export function AIUsageDisplay({ compact = false }: AIUsageDisplayProps) {
     canUpgrade,
     tierDisplayName,
     nextTier,
+    refetch,
   } = useAIRateLimits();
 
   if (isLoading) {
@@ -74,93 +77,109 @@ export function AIUsageDisplay({ compact = false }: AIUsageDisplayProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
-              AI Usage
-            </CardTitle>
-            <CardDescription>
-              Monitor your AI assistant usage and limits
-            </CardDescription>
-          </div>
-          <Badge 
-            variant={isAtLimit ? "destructive" : isNearLimit ? "outline" : "secondary"}
-            className="text-sm"
-          >
-            {tierDisplayName} Plan
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Daily Usage */}
-        <div className="space-y-3">
+    <div className="space-y-6">
+      {/* Main Usage Card */}
+      <Card>
+        <CardHeader>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Daily Requests</span>
-            <span className="text-sm text-muted-foreground">
-              {usageStats.daily_used} of {usageStats.daily_limit} used
-            </span>
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                AI Usage
+              </CardTitle>
+              <CardDescription>
+                Monitor your AI assistant usage and limits
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refetch()}
+                className="h-8 w-8 p-0"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Badge 
+                variant={isAtLimit ? "destructive" : isNearLimit ? "outline" : "secondary"}
+                className="text-sm"
+              >
+                {tierDisplayName} Plan
+              </Badge>
+            </div>
           </div>
-          <Progress 
-            value={usageStats.usage_percentage} 
-            className={cn("h-3", `[&>div]:${progressColor}`)}
-          />
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{usageStats.daily_remaining} remaining</span>
-            <span>Resets daily</span>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Daily Usage */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Daily Requests</span>
+              <span className="text-sm text-muted-foreground">
+                {usageStats.daily_used} of {usageStats.daily_limit} used
+              </span>
+            </div>
+            <Progress 
+              value={usageStats.usage_percentage} 
+              className={cn("h-3", `[&>div]:${progressColor}`)}
+            />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{usageStats.daily_remaining} remaining</span>
+              <span>Resets daily</span>
+            </div>
           </div>
-        </div>
 
-        {/* Rate Limit Info */}
-        <div className="grid grid-cols-2 gap-4 pt-2">
-          <div className="p-3 rounded-lg bg-muted/50">
-            <div className="text-2xl font-bold">{usageStats.daily_limit}</div>
-            <div className="text-xs text-muted-foreground">Daily limit</div>
+          {/* Rate Limit Info */}
+          <div className="grid grid-cols-2 gap-4 pt-2">
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="text-2xl font-bold">{usageStats.daily_limit}</div>
+              <div className="text-xs text-muted-foreground">Daily limit</div>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="text-2xl font-bold">{usageStats.per_minute_limit}</div>
+              <div className="text-xs text-muted-foreground">Per minute</div>
+            </div>
           </div>
-          <div className="p-3 rounded-lg bg-muted/50">
-            <div className="text-2xl font-bold">{usageStats.per_minute_limit}</div>
-            <div className="text-xs text-muted-foreground">Per minute</div>
-          </div>
-        </div>
 
-        {/* Warnings */}
-        {isAtLimit && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Daily Limit Reached</AlertTitle>
-            <AlertDescription>
-              You've reached your daily AI request limit. The limit will reset in 24 hours.
-              {canUpgrade && " Upgrade your plan for more requests."}
-            </AlertDescription>
-          </Alert>
-        )}
+          {/* Warnings */}
+          {isAtLimit && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Daily Limit Reached</AlertTitle>
+              <AlertDescription>
+                You've reached your daily AI request limit. The limit will reset in 24 hours.
+                {canUpgrade && " Upgrade your plan for more requests."}
+              </AlertDescription>
+            </Alert>
+          )}
 
-        {isNearLimit && !isAtLimit && (
-          <Alert>
-            <TrendingUp className="h-4 w-4" />
-            <AlertTitle>Approaching Limit</AlertTitle>
-            <AlertDescription>
-              You've used {usageStats.usage_percentage.toFixed(0)}% of your daily AI requests.
-              {canUpgrade && ` Consider upgrading to ${nextTier} for more.`}
-            </AlertDescription>
-          </Alert>
-        )}
+          {isNearLimit && !isAtLimit && (
+            <Alert>
+              <TrendingUp className="h-4 w-4" />
+              <AlertTitle>Approaching Limit</AlertTitle>
+              <AlertDescription>
+                You've used {usageStats.usage_percentage.toFixed(0)}% of your daily AI requests.
+                {canUpgrade && ` Consider upgrading to ${nextTier} for more.`}
+              </AlertDescription>
+            </Alert>
+          )}
 
-        {/* Upgrade CTA */}
-        {canUpgrade && (
-          <div className="pt-2">
-            <Button variant="outline" className="w-full group" asChild>
-              <a href="/admin/subscription">
-                <span>Upgrade to {nextTier}</span>
-                <ArrowUpRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </a>
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          {/* Upgrade CTA */}
+          {canUpgrade && (
+            <div className="pt-2">
+              <Button variant="outline" className="w-full group" asChild>
+                <a href="/admin/subscription">
+                  <span>Upgrade to {nextTier}</span>
+                  <ArrowUpRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </a>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Usage Charts */}
+      {showCharts && <AIUsageCharts />}
+    </div>
   );
 }
 
