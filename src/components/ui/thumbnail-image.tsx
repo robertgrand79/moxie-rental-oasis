@@ -21,10 +21,11 @@ const ThumbnailImage = ({
       alt={alt}
       className={className}
       fallbackIcon={fallbackIcon}
-      width={400}
-      height={300}
-      quality={85}
+      width={600}
+      height={400}
+      quality={70}
       priority={false}
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
     />
   );
 };
