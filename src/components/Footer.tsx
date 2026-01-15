@@ -100,17 +100,17 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4">
               {currentSettings.socialMedia?.facebook && (
-                <a href={currentSettings.socialMedia.facebook} className="text-footer-muted hover:text-footer-foreground transition-colors">
+                <a href={currentSettings.socialMedia.facebook} className="text-footer-muted hover:text-footer-foreground transition-colors" aria-label="Facebook">
                   <Facebook className="h-5 w-5" />
                 </a>
               )}
               {currentSettings.socialMedia?.instagram && (
-                <a href={currentSettings.socialMedia.instagram} className="text-footer-muted hover:text-footer-foreground transition-colors">
+                <a href={currentSettings.socialMedia.instagram} className="text-footer-muted hover:text-footer-foreground transition-colors" aria-label="Instagram">
                   <Instagram className="h-5 w-5" />
                 </a>
               )}
               {currentSettings.socialMedia?.twitter && (
-                <a href={currentSettings.socialMedia.twitter} className="text-footer-muted hover:text-footer-foreground transition-colors">
+                <a href={currentSettings.socialMedia.twitter} className="text-footer-muted hover:text-footer-foreground transition-colors" aria-label="Twitter">
                   <Twitter className="h-5 w-5" />
                 </a>
               )}
