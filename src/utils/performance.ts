@@ -195,15 +195,27 @@ export const applyAccessibilitySettings = () => {
   }
 };
 
-// Touch target optimization
+// Touch target optimization - uses batched reads/writes to avoid forced reflow
 export const ensureTouchTargets = () => {
   const interactiveElements = document.querySelectorAll('button, a, [role="button"], input, select, textarea');
+  
+  // Batch all reads first to avoid forced reflow
+  const elementsToFix: HTMLElement[] = [];
   
   interactiveElements.forEach((element) => {
     const rect = element.getBoundingClientRect();
     if (rect.width < 44 || rect.height < 44) {
-      (element as HTMLElement).style.minHeight = '44px';
-      (element as HTMLElement).style.minWidth = '44px';
+      elementsToFix.push(element as HTMLElement);
     }
   });
+  
+  // Batch all writes in a single requestAnimationFrame to avoid forced reflow
+  if (elementsToFix.length > 0) {
+    requestAnimationFrame(() => {
+      elementsToFix.forEach((element) => {
+        element.style.minHeight = '44px';
+        element.style.minWidth = '44px';
+      });
+    });
+  }
 };
