@@ -391,10 +391,12 @@ const LaunchReadinessChecklist: React.FC = () => {
   };
 
   const getStatusBadge = (status: string, itemId: string) => {
+    // If manually verified, show verified badge regardless of auto-check status
+    if (manualChecks[itemId]) {
+      return <Badge className="bg-green-500">Verified</Badge>;
+    }
     if (status === 'manual') {
-      return manualChecks[itemId]
-        ? <Badge className="bg-green-500">Verified</Badge>
-        : <Badge variant="outline">Manual Check</Badge>;
+      return <Badge variant="outline">Manual Check</Badge>;
     }
     switch (status) {
       case 'passed':
@@ -414,7 +416,7 @@ const LaunchReadinessChecklist: React.FC = () => {
   const totalItems = checklist.reduce((acc, cat) => acc + cat.items.length, 0);
   const passedItems = checklist.reduce((acc, cat) => {
     return acc + cat.items.filter(item => 
-      item.status === 'passed' || (item.status === 'manual' && manualChecks[item.id])
+      item.status === 'passed' || manualChecks[item.id]
     ).length;
   }, 0);
   const progress = totalItems > 0 ? Math.round((passedItems / totalItems) * 100) : 0;
@@ -507,7 +509,7 @@ const LaunchReadinessChecklist: React.FC = () => {
           <Accordion type="multiple" defaultValue={['functionality', 'security', 'legal']}>
             {checklist.map((category) => {
               const categoryPassed = category.items.filter(i => 
-                i.status === 'passed' || (i.status === 'manual' && manualChecks[i.id])
+                i.status === 'passed' || manualChecks[i.id]
               ).length;
               const categoryTotal = category.items.length;
               
@@ -534,7 +536,7 @@ const LaunchReadinessChecklist: React.FC = () => {
                           key={item.id} 
                           className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                         >
-                          {item.status === 'manual' ? (
+                          {item.status === 'manual' || item.status === 'warning' || item.status === 'failed' ? (
                             <Checkbox 
                               checked={manualChecks[item.id] || false}
                               onCheckedChange={() => toggleManualCheck(item.id)}
