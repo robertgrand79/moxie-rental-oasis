@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bot, Save, Loader2, Plus, Trash2, MessageSquare, Sparkles, Palette, FileText, Upload, X, Image as ImageIcon, Send, Tv } from 'lucide-react';
+import { Bot, Save, Loader2, Plus, Trash2, MessageSquare, Sparkles, Palette, FileText, Upload, X, Image as ImageIcon, Send, Tv, BarChart3 } from 'lucide-react';
 import { PropertyDocumentsTab } from './PropertyDocumentsTab';
+import { AIUsageDisplay } from './AIUsageDisplay';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -329,7 +330,7 @@ const AssistantSettingsTab = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />
             <span className="hidden sm:inline">General</span>
@@ -353,6 +354,10 @@ const AssistantSettingsTab = () => {
           <TabsTrigger value="tv-display" className="flex items-center gap-2">
             <Tv className="h-4 w-4" />
             <span className="hidden sm:inline">TV Display</span>
+          </TabsTrigger>
+          <TabsTrigger value="usage" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Usage</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1481,6 +1486,10 @@ const AssistantSettingsTab = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="usage" className="mt-6">
+          <AIUsageDisplay />
         </TabsContent>
       </Tabs>
 
