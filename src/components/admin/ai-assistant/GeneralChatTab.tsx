@@ -326,7 +326,7 @@ const GeneralChatTab = () => {
 
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.aiResponse || 'Sorry, I could not generate a response.'
+        content: data.response || data.aiResponse || 'Sorry, I could not generate a response.'
       };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error: unknown) {
