@@ -45,7 +45,7 @@ export const useGlobalFonts = () => {
     const pairing = fontPairings.find(p => p.id === fontPairingId) || fontPairings[0];
     const scale = sizeScales.find(s => s.id === fontScaleId) || sizeScales[1];
 
-    // Load Google Fonts
+    // Load Google Fonts asynchronously (non-render-blocking)
     const loadFont = (fontName: string) => {
       const linkId = `font-${fontName.replace(/ /g, '-')}`;
       if (!document.getElementById(linkId)) {
@@ -53,6 +53,9 @@ export const useGlobalFonts = () => {
         link.id = linkId;
         link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@300;400;500;600;700&display=swap`;
         link.rel = 'stylesheet';
+        // Use media="print" + onload to load fonts asynchronously (non-render-blocking)
+        link.media = 'print';
+        link.onload = () => { link.media = 'all'; };
         document.head.appendChild(link);
       }
     };
