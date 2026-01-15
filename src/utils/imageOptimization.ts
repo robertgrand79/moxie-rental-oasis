@@ -130,7 +130,8 @@ export const getOptimizedImageUrl = (
       return baseUrl;
     }
     
-    const { width, height, quality = 80, format = 'webp' } = options;
+    // Lower quality to 70 for better compression while maintaining visual quality
+    const { width, height, quality = 70, format = 'webp' } = options;
     
     // Add transformation parameters for Supabase storage
     if (width) url.searchParams.set('width', width.toString());
