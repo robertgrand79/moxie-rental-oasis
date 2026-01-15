@@ -167,6 +167,7 @@ const EnhancedLocalEventsSection = () => {
               value={timeFilter}
               onChange={(e) => setTimeFilter(e.target.value)}
               className="px-3 py-2 border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              aria-label="Time filter"
             >
               <option value="all">All Time</option>
               <option value="today">Today</option>
@@ -178,6 +179,7 @@ const EnhancedLocalEventsSection = () => {
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-3 py-2 border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              aria-label="Event category filter"
             >
               <option value="all">All Categories</option>
               {Object.entries(categoryLabels).map(([key, label]) => (

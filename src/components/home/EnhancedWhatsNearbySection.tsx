@@ -142,6 +142,7 @@ const EnhancedWhatsNearbySection = () => {
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-3 py-2 border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              aria-label="Category filter"
             >
               <option value="all">All Categories</option>
               {Object.entries(categoryLabels).map(([key, label]) => (
@@ -153,6 +154,7 @@ const EnhancedWhatsNearbySection = () => {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="px-3 py-2 border border-border bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              aria-label="Sort options"
             >
               <option value="distance">Sort by Distance</option>
               <option value="rating">Sort by Rating</option>
