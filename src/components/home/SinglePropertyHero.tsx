@@ -16,6 +16,7 @@ const SinglePropertyHero: React.FC<SinglePropertyHeroProps> = ({ property, cover
           src={coverImage}
           alt={property.title}
           className="object-cover w-full h-full"
+          fetchPriority="high"
         />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
