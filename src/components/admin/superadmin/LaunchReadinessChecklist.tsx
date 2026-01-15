@@ -25,9 +25,24 @@ import {
   RotateCcw,
   Gauge,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  FileText
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import ChecklistDocumentationModal, { hasDocumentation } from './ChecklistDocumentationModal';
+
+// Items that require documentation
+const DOCUMENTABLE_ITEMS = [
+  'disaster_recovery',
+  'rollback_procedure', 
+  'backup_tested',
+  'db_restore',
+  'emergency_contacts',
+  'metrics_documented',
+  'scaling_plan',
+  'known_issues',
+  'escalation_path'
+];
 
 interface ChecklistItem {
   id: string;
@@ -86,10 +101,17 @@ const LaunchReadinessChecklist: React.FC = () => {
     readManualChecksFromStorage()
   );
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
+  const [docModalOpen, setDocModalOpen] = useState(false);
+  const [docModalItem, setDocModalItem] = useState<{ id: string; label: string } | null>(null);
 
   useEffect(() => {
     persistManualChecksToStorage(manualChecks);
   }, [manualChecks]);
+
+  const openDocumentation = (itemId: string, itemLabel: string) => {
+    setDocModalItem({ id: itemId, label: itemLabel });
+    setDocModalOpen(true);
+  };
 
   const runAutomatedChecks = async () => {
     setLoading(true);
@@ -565,10 +587,28 @@ const LaunchReadinessChecklist: React.FC = () => {
                             getStatusIcon(item.status, item.id)
                           )}
                           <div className="flex-1">
-                            <div className="font-medium">{item.label}</div>
+                            <div className="font-medium flex items-center gap-2">
+                              {item.label}
+                              {DOCUMENTABLE_ITEMS.includes(item.id) && hasDocumentation(item.id) && (
+                                <Badge variant="outline" className="text-xs">
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  Documented
+                                </Badge>
+                              )}
+                            </div>
                             <div className="text-sm text-muted-foreground">{item.description}</div>
                           </div>
                           {getStatusBadge(item.status, item.id)}
+                          {DOCUMENTABLE_ITEMS.includes(item.id) && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => openDocumentation(item.id, item.label)}
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              {hasDocumentation(item.id) ? 'Edit' : 'Document'}
+                            </Button>
+                          )}
                           {item.actionUrl && (
                             <Button variant="ghost" size="sm" asChild>
                               <a href={item.actionUrl} target="_blank" rel="noopener noreferrer">
@@ -636,6 +676,16 @@ const LaunchReadinessChecklist: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Documentation Modal */}
+      {docModalItem && (
+        <ChecklistDocumentationModal
+          open={docModalOpen}
+          onOpenChange={setDocModalOpen}
+          itemId={docModalItem.id}
+          itemLabel={docModalItem.label}
+        />
+      )}
     </div>
   );
 };
