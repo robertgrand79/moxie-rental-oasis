@@ -1,29 +1,37 @@
-import React, { lazy } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { usePlatform } from '@/contexts/PlatformContext';
+import { Loader2 } from 'lucide-react';
 
-// Platform pages (loaded eagerly - smaller)
-import PlatformLayout from '@/components/layouts/PlatformLayout';
-import PlatformHome from '@/pages/platform/PlatformHome';
-import Features from '@/pages/platform/Features';
-import Pricing from '@/pages/platform/Pricing';
-import PlatformAbout from '@/pages/platform/PlatformAbout';
-import PlatformBlog from '@/pages/platform/PlatformBlog';
-import PlatformContact from '@/pages/platform/PlatformContact';
-import PlatformAuth from '@/pages/platform/PlatformAuth';
-import PlatformSignup from '@/pages/platform/PlatformSignup';
-import PlatformGetStarted from '@/pages/platform/PlatformGetStarted';
-import PlatformPrivacy from '@/pages/platform/PlatformPrivacy';
-import PlatformTerms from '@/pages/platform/PlatformTerms';
+// Minimal loading fallback for lazy-loaded routes
+const RouteLoader = () => (
+  <div className="flex items-center justify-center min-h-[200px]">
+    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+  </div>
+);
 
-// Core public pages (loaded eagerly - critical path)
+// Core public pages (loaded eagerly - critical path for homepage)
 import PublicLayout from '@/components/layouts/PublicLayout';
 import Index from '@/pages/Index';
-import Properties from '@/pages/Properties';
-import PropertyPage from '@/components/PropertyPage';
-import Auth from '@/pages/Auth';
-import ResetPassword from '@/pages/ResetPassword';
 import NotFound from '@/pages/NotFound';
+
+// Lazy-loaded platform pages (only used on platform site)
+const PlatformLayout = lazy(() => import('@/components/layouts/PlatformLayout'));
+const PlatformHome = lazy(() => import('@/pages/platform/PlatformHome'));
+const PlatformAbout = lazy(() => import('@/pages/platform/PlatformAbout'));
+const PlatformBlog = lazy(() => import('@/pages/platform/PlatformBlog'));
+const PlatformContact = lazy(() => import('@/pages/platform/PlatformContact'));
+const PlatformAuth = lazy(() => import('@/pages/platform/PlatformAuth'));
+const PlatformSignup = lazy(() => import('@/pages/platform/PlatformSignup'));
+const PlatformGetStarted = lazy(() => import('@/pages/platform/PlatformGetStarted'));
+const PlatformPrivacy = lazy(() => import('@/pages/platform/PlatformPrivacy'));
+const PlatformTerms = lazy(() => import('@/pages/platform/PlatformTerms'));
+
+// Lazy-loaded core pages (not on critical homepage path)
+const Properties = lazy(() => import('@/pages/Properties'));
+const PropertyPage = lazy(() => import('@/components/PropertyPage'));
+const Auth = lazy(() => import('@/pages/Auth'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 
 // Lazy-loaded public pages
 const About = lazy(() => import('@/pages/About'));
@@ -53,11 +61,11 @@ const AcceptInvitation = lazy(() => import('@/pages/AcceptInvitation'));
 const StatusPage = lazy(() => import('@/pages/StatusPage'));
 const AuthConfirm = lazy(() => import('@/pages/auth/AuthConfirm'));
 
-// Core admin (loaded eagerly)
+// Lazy-loaded admin core
 import ProtectedRoute from '@/components/ProtectedRoute';
-import AdminLayoutWrapper from '@/components/layouts/AdminLayoutWrapper';
-import AdminDomainGuard from '@/components/admin/platform/AdminDomainGuard';
-import AdminDashboard from '@/pages/admin/AdminDashboard';
+const AdminLayoutWrapper = lazy(() => import('@/components/layouts/AdminLayoutWrapper'));
+const AdminDomainGuard = lazy(() => import('@/components/admin/platform/AdminDomainGuard'));
+const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
 
 // Lazy-loaded admin pages (heavy pages)
 const BlogManagement = lazy(() => import('@/pages/BlogManagement'));
@@ -91,9 +99,9 @@ const NotificationsPage = lazy(() => import('@/pages/admin/NotificationsPage'));
 const OrganizationSignup = lazy(() => import('@/pages/onboarding/OrganizationSignup'));
 const OnboardingWizard = lazy(() => import('@/pages/onboarding/OnboardingWizard'));
 
-// Platform Admin pages (new command center)
-import PlatformAdminLayout from '@/components/admin/platform/PlatformAdminLayout';
-import PlatformDashboard from '@/components/admin/platform/PlatformDashboard';
+// Platform Admin pages (new command center) - lazy loaded
+const PlatformAdminLayout = lazy(() => import('@/components/admin/platform/PlatformAdminLayout'));
+const PlatformDashboard = lazy(() => import('@/components/admin/platform/PlatformDashboard'));
 const PlatformOrganizationsPage = lazy(() => import('@/pages/admin/platform/PlatformOrganizationsPage'));
 const PlatformUsersPage = lazy(() => import('@/pages/admin/platform/PlatformUsersPage'));
 const PlatformTemplatesPage = lazy(() => import('@/pages/admin/platform/PlatformTemplatesPage'));
@@ -152,6 +160,7 @@ const AppRoutes: React.FC = () => {
   // Admin subdomain (admin.staymoxie.com) - always redirect to Platform Command Center
   if (isPlatformAdminDomain) {
     return (
+      <Suspense fallback={<RouteLoader />}>
       <Routes>
         {/* Redirect root to Platform Command Center */}
         <Route path="/" element={<Navigate to="/admin/platform" replace />} />
@@ -197,11 +206,13 @@ const AppRoutes: React.FC = () => {
         {/* Catch all - redirect to platform command center */}
         <Route path="*" element={<Navigate to="/admin/platform" replace />} />
       </Routes>
+      </Suspense>
     );
   }
 
   if (isPlatformSite) {
     return (
+      <Suspense fallback={<RouteLoader />}>
       <Routes>
         {/* Platform Marketing Routes (staymoxie.com) */}
         <Route path="/" element={<PlatformLayout />}>
@@ -341,11 +352,13 @@ const AppRoutes: React.FC = () => {
 
           <Route path="*" element={<NotFound />} />
         </Routes>
+      </Suspense>
     );
   }
 
   // Tenant Routes (tenant.lovable.app or custom domains)
   return (
+      <Suspense fallback={<RouteLoader />}>
       <Routes>
         {/* Platform Marketing Routes (accessible via /platform on any domain) */}
         <Route path="/platform" element={<PlatformLayout />}>
@@ -510,6 +523,7 @@ const AppRoutes: React.FC = () => {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
   );
 };
 
