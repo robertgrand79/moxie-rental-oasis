@@ -48,19 +48,48 @@ interface ChecklistCategory {
 
 const MANUAL_CHECKS_STORAGE_KEY = 'launch-checklist-manual-checks';
 
+const readManualChecksFromStorage = (): Record<string, boolean> => {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const stored =
+      window.localStorage.getItem(MANUAL_CHECKS_STORAGE_KEY) ??
+      window.sessionStorage.getItem(MANUAL_CHECKS_STORAGE_KEY);
+
+    return stored ? (JSON.parse(stored) as Record<string, boolean>) : {};
+  } catch {
+    return {};
+  }
+};
+
+const persistManualChecksToStorage = (checks: Record<string, boolean>) => {
+  if (typeof window === 'undefined') return;
+  const value = JSON.stringify(checks);
+
+  try {
+    window.localStorage.setItem(MANUAL_CHECKS_STORAGE_KEY, value);
+    // If we fell back previously, keep things consistent
+    window.sessionStorage.removeItem(MANUAL_CHECKS_STORAGE_KEY);
+  } catch {
+    try {
+      window.sessionStorage.setItem(MANUAL_CHECKS_STORAGE_KEY, value);
+    } catch {
+      // ignore - storage might be blocked
+    }
+  }
+};
+
 const LaunchReadinessChecklist: React.FC = () => {
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [manualChecks, setManualChecks] = useState<Record<string, boolean>>(() => {
-    // Initialize from localStorage
-    try {
-      const stored = localStorage.getItem(MANUAL_CHECKS_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
-    }
-  });
+  const [manualChecks, setManualChecks] = useState<Record<string, boolean>>(() =>
+    readManualChecksFromStorage()
+  );
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
+
+  useEffect(() => {
+    persistManualChecksToStorage(manualChecks);
+  }, [manualChecks]);
 
   const runAutomatedChecks = async () => {
     setLoading(true);
@@ -355,19 +384,10 @@ const LaunchReadinessChecklist: React.FC = () => {
   }, []);
 
   const toggleManualCheck = (itemId: string) => {
-    setManualChecks(prev => {
-      const updated = {
-        ...prev,
-        [itemId]: !prev[itemId]
-      };
-      // Persist to localStorage
-      try {
-        localStorage.setItem(MANUAL_CHECKS_STORAGE_KEY, JSON.stringify(updated));
-      } catch (e) {
-        console.error('Failed to save manual checks:', e);
-      }
-      return updated;
-    });
+    setManualChecks(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId],
+    }));
   };
 
   const getStatusIcon = (status: string, itemId: string) => {
