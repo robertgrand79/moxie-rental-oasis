@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
@@ -16,6 +16,30 @@ import EnhancedLocalEventsSection from './EnhancedLocalEventsSection';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import BackgroundWrapper from './BackgroundWrapper';
 import { useIsMobile } from '@/hooks/use-mobile';
+
+// Preload LCP hero image via link tag for better Lighthouse score
+const usePreloadHeroImage = (imageUrl: string | null) => {
+  useEffect(() => {
+    if (!imageUrl || imageUrl === '/placeholder.svg') return;
+    
+    // Check if preload already exists
+    const existingPreload = document.querySelector(`link[rel="preload"][href="${imageUrl}"]`);
+    if (existingPreload) return;
+    
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = imageUrl;
+    link.setAttribute('fetchpriority', 'high');
+    document.head.appendChild(link);
+    
+    return () => {
+      if (link.parentNode) {
+        link.parentNode.removeChild(link);
+      }
+    };
+  }, [imageUrl]);
+};
 
 const SinglePropertyHome: React.FC = () => {
   const { tenantId } = useTenant();
@@ -39,6 +63,13 @@ const SinglePropertyHome: React.FC = () => {
     },
     enabled: !!tenantId,
   });
+
+  // Determine cover image early for preloading
+  const preloadImages: string[] = property && Array.isArray(property.images) ? property.images : [];
+  const preloadCoverImage = property ? (property.cover_image_url || property.image_url || preloadImages[0] || null) : null;
+  
+  // Preload hero image for better LCP
+  usePreloadHeroImage(preloadCoverImage);
 
   if (isLoading) {
     return (
