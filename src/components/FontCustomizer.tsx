@@ -161,6 +161,9 @@ const FontCustomizer = () => {
     link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@300;400;500;600;700&display=swap`;
     link.rel = 'stylesheet';
     link.id = `font-${fontName.replace(/ /g, '-')}`;
+    // Load fonts asynchronously (non-render-blocking)
+    link.media = 'print';
+    link.onload = () => { link.media = 'all'; };
     
     const existing = document.getElementById(link.id);
     if (!existing) {
