@@ -18,6 +18,7 @@ import {
   MessageSquare,
   Bell,
   Milestone,
+  Brain,
 } from 'lucide-react';
 
 export interface PlatformNavItem {
@@ -61,6 +62,14 @@ export const platformNavItems: PlatformNavItem[] = [
     icon: CreditCard,
     path: '/admin/platform/billing',
     description: 'Subscriptions, revenue, and failed payments',
+    section: 'core',
+  },
+  {
+    key: 'ai',
+    label: 'AI Management',
+    icon: Brain,
+    path: '/admin/platform/ai',
+    description: 'Monitor AI usage, limits, and abuse detection',
     section: 'core',
   },
   {
