@@ -358,13 +358,18 @@ const PublicChatWidget = () => {
     }
   };
 
-  // Auto-resize textarea
+  // Auto-resize textarea - uses requestAnimationFrame to batch DOM operations
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     // Limit input length client-side
     const value = e.target.value.slice(0, MAX_MESSAGE_LENGTH + 100);
     setInput(value);
-    e.target.style.height = 'auto';
-    e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
+    const target = e.target;
+    // Batch DOM read/write in requestAnimationFrame to avoid forced reflow
+    requestAnimationFrame(() => {
+      target.style.height = 'auto';
+      const newHeight = Math.min(target.scrollHeight, 100);
+      target.style.height = newHeight + 'px';
+    });
   };
 
   if (!settings?.is_enabled) return null;
