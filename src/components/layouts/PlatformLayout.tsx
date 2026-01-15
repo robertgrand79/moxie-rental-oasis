@@ -4,6 +4,7 @@ import PlatformNavbar from '@/components/platform/PlatformNavbar';
 import PlatformFooter from '@/components/platform/PlatformFooter';
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
+import { usePlatformFonts } from '@/hooks/usePlatformFonts';
 
 // Content loader for lazy-loaded pages
 const ContentLoader = () => (
@@ -13,6 +14,9 @@ const ContentLoader = () => (
 );
 
 const PlatformLayout: React.FC = () => {
+  // Load platform-specific fonts asynchronously
+  usePlatformFonts();
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <PlatformNavbar />

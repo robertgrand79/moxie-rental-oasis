@@ -187,8 +187,8 @@ export default {
     			'2xl': 'var(--shadow-2xl)'
     		},
     		fontFamily: {
+    			// Use system fonts first for fast FCP, custom fonts loaded async will swap in
     			sans: [
-    				'Inter',
     				'ui-sans-serif',
     				'system-ui',
     				'-apple-system',
@@ -201,7 +201,6 @@ export default {
     				'sans-serif'
     			],
     			serif: [
-    				'Lora',
     				'ui-serif',
     				'Georgia',
     				'Cambria',
@@ -210,7 +209,6 @@ export default {
     				'serif'
     			],
     			mono: [
-    				'Space Mono',
     				'ui-monospace',
     				'SFMono-Regular',
     				'Menlo',
@@ -219,6 +217,13 @@ export default {
     				'Liberation Mono',
     				'Courier New',
     				'monospace'
+    			],
+    			// Platform marketing font - loaded async
+    			fraunces: [
+    				'Fraunces',
+    				'ui-serif',
+    				'Georgia',
+    				'serif'
     			]
     		}
     	}
