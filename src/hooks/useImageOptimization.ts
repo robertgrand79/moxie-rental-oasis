@@ -105,11 +105,11 @@ const loadImage = (file: File): Promise<HTMLImageElement> => {
     const img = new Image();
     const objectUrl = URL.createObjectURL(file);
     
-    // Add timeout to prevent hanging
+    // Add timeout to prevent hanging on slow connections
     const timeout = setTimeout(() => {
       URL.revokeObjectURL(objectUrl);
       reject(new Error('Image load timeout'));
-    }, 10000); // 10 second timeout
+    }, 15000); // 15 second timeout for larger images on slower connections
     
     img.onload = () => {
       clearTimeout(timeout);

@@ -1,9 +1,10 @@
 
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Upload, X, Loader2, Image as ImageIcon, Zap, TrendingDown } from 'lucide-react';
 import { useBlogImageUpload } from '@/hooks/useBlogImageUpload';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface ImageUploaderProps {
   uploadedImage: string | null;
@@ -32,6 +33,22 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
 
   const processFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file',
+        description: 'Please select an image file.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Check authentication before attempting upload
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      toast({
+        title: 'Please log in',
+        description: 'You need to be logged in to upload images. Please refresh the page and log in again.',
+        variant: 'destructive'
+      });
       return;
     }
 
@@ -57,6 +74,9 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
         optimizedSize: file.size * (1 - estimatedCompression / 100),
         compressionRatio: estimatedCompression
       });
+    } else {
+      // Upload failed - clear the selected file
+      setSelectedFile(null);
     }
   };
 
