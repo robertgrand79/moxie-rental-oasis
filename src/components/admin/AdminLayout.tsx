@@ -36,6 +36,25 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     queryClient.invalidateQueries({ queryKey: ['site-settings'] });
   }, [queryClient]);
 
+  // Prevent any page-level horizontal scrolling in admin.
+  // This ensures wide inner content (like the calendar grid) cannot move under the fixed sidebar;
+  // only the intended inner scrollers should scroll horizontally.
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+
+    const prevHtmlOverflowX = html.style.overflowX;
+    const prevBodyOverflowX = body.style.overflowX;
+
+    html.style.overflowX = 'hidden';
+    body.style.overflowX = 'hidden';
+
+    return () => {
+      html.style.overflowX = prevHtmlOverflowX;
+      body.style.overflowX = prevBodyOverflowX;
+    };
+  }, []);
+
   // Calculate back URL based on organization context
   const getBackToSiteUrl = (): { url: string; isExternal: boolean } => {
     // If in platform mode or no organization, go to platform home
@@ -77,11 +96,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { url: backUrl, isExternal: isExternalBack } = getBackToSiteUrl();
   
   return (
-    <div className="min-h-screen bg-muted/30 w-full">
+    <div className="min-h-screen bg-muted/30 w-full overflow-x-hidden">
       <SidebarProvider defaultOpen={!isMobile}>
-        <div className="flex w-full min-h-screen">
+        <div className="flex w-full min-h-screen min-w-0 overflow-x-hidden">
           <AdminSidebar />
-          <SidebarInset className="flex-1">
+          <SidebarInset className="flex-1 min-w-0">
             {/* Context Banner for Platform Admins viewing a tenant */}
             <ContextBanner />
             {/* Trial Banner - sticky at top */}
@@ -139,7 +158,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 </div>
               </div>
             </header>
-            <main className={`flex-1 overflow-auto ${isMobile ? 'p-4' : 'p-8'}`}>
+            <main className={`flex-1 overflow-y-auto overflow-x-hidden min-w-0 ${isMobile ? 'p-4' : 'p-8'}`}>
               {children}
             </main>
           </SidebarInset>
