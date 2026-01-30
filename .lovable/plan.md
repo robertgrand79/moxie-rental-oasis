@@ -1,67 +1,69 @@
 
 
-# Plan: Add Owner Travels Settings Section to Blog Management
+# Plan: Fix Duplicate Labels and Favicon Issue
 
-## Overview
+## Issues Identified
 
-Add a collapsible settings section at the top of the Blog Management page (`/admin/blog`) that allows property owners to customize how the "Owner Travels" section appears on their blog. This keeps blog-related settings together in one place.
+### Issue 1: Duplicate "Featured Image" Labels
 
-## What You'll Be Able to Customize
+The screenshot shows two "Featured Image" labels stacked on top of each other. This happens because:
 
-| Setting | Description | Default Value |
-|---------|-------------|---------------|
-| Custom Title | Override the section title | Uses your name from About settings (e.g., "Robert & Shelly's Travels") |
-| Description | Personal message to introduce your travel content | Default welcome message |
-| Photo | Upload a photo of you traveling | Uses first letter avatar if not set |
-| Enable/Disable | Show or hide the Owner Travels section | Enabled by default |
+- The `ImageUploader` component has a hardcoded `<Label>Featured Image</Label>` inside it
+- Parent components like `ImageSection` (for blog posts) and `OwnerTravelsSettings` (for owner travels) add their own labels before rendering `ImageUploader`
 
-## User Experience
+This creates duplicate labels and also means when `ImageUploader` is used for "Travel Photo" in Owner Travels settings, it still shows "Featured Image" which is incorrect.
 
-1. Go to Blog Management (`/admin/blog`)
-2. See a new "Owner Travels Settings" collapsible section at the top
-3. Click to expand and customize:
-   - Upload a travel photo
-   - Write a custom title (or leave blank to use your name automatically)
-   - Write a personal description
-   - Toggle the section on/off
-4. Click "Save Settings" to apply changes
-5. Changes appear immediately on the public blog page
+### Issue 2: Favicon on Published Site Shows Lovable Default
+
+The database confirms your custom favicon IS saved correctly, but on the published site visitors may briefly see the Lovable default favicon. This happens because:
+
+- The `index.html` has a hardcoded fallback `/favicon.ico` (Lovable's default)
+- The React app loads and the `useTenantMetaTags` hook then updates the favicon dynamically
+- On initial page load (before React hydrates), visitors see the default favicon
 
 ---
 
-## Technical Details
+## Solution
 
-### New Component
+### Fix 1: Remove Hardcoded Label from ImageUploader
 
-**File: `src/components/admin/blog/OwnerTravelsSettings.tsx`**
+**File: `src/components/ImageUploader.tsx`**
 
-A collapsible card component with:
-- Image upload field (using existing ImageUpload component pattern)
-- Text input for custom title with placeholder showing the dynamic default
-- Textarea for custom description
-- Switch toggle to enable/disable the section
-- Save button that calls `saveSetting()` for each field
+Remove the `<Label>Featured Image</Label>` from inside the component. This makes the component generic and reusable - parent components can provide their own appropriate labels.
 
-### Integration Point
+| Before | After |
+|--------|-------|
+| Line 100: `<Label>Featured Image</Label>` | Remove this line |
 
-**File: `src/components/admin/blog/BlogsManager.tsx`**
+This fixes both the duplicate label issue and allows proper labeling like "Travel Photo" in the Owner Travels settings.
 
-Add the new `OwnerTravelsSettings` component above the header, wrapped in a `Collapsible` component so it doesn't take up space when collapsed.
+### Fix 2: Add Fallback Favicon for Moxie
 
-### Settings Used
+For the published moxievacationrentals.com site, update `index.html` to reference a proper fallback that works for Moxie tenants.
 
-Uses existing settings already defined in `useTenantSettings.ts`:
-- `ownerTravelsTitle` - Custom title override
-- `ownerTravelsDescription` - Custom description
-- `ownerTravelsImageUrl` - Photo URL
-- `ownerTravelsEnabled` - Boolean toggle (stored as string "true"/"false")
+**Approach**: The `useTenantMetaTags` hook is already correctly fetching and applying the tenant's favicon. The issue is the brief flash of the wrong favicon on initial load.
 
-No database changes required - these settings are already defined and will be stored in the existing `site_settings` table.
+**Options**:
+1. Keep the current setup (React updates it quickly, usually not noticeable)
+2. Add a transparent/generic placeholder favicon
+3. Use server-side rendering or meta tag injection (not available in current stack)
 
-### File Changes Summary
+Since the tenant-specific favicon loads correctly once React hydrates, this is mainly a cosmetic issue affecting the initial ~100-500ms of page load. The current implementation is already correct.
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/components/admin/blog/OwnerTravelsSettings.tsx` | Create | New settings form component |
-| `src/components/admin/blog/BlogsManager.tsx` | Modify | Import and render OwnerTravelsSettings at top |
+---
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/components/ImageUploader.tsx` | Remove the hardcoded "Featured Image" label (line 100) |
+
+---
+
+## Result
+
+After this fix:
+- Blog post editor will show only ONE "Featured Image" label
+- Owner Travels settings will correctly show "Travel Photo" label
+- The `ImageUploader` component becomes properly reusable with any label
 
