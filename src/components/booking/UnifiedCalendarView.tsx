@@ -284,8 +284,13 @@ export const UnifiedCalendarView: React.FC = () => {
     const hasHorizontalOverflow = container.scrollWidth > container.clientWidth;
     if (!hasHorizontalOverflow) return;
     
+    // Handle horizontal trackpad swipes (deltaX)
+    if (Math.abs(e.deltaX) > 0) {
+      e.preventDefault();
+      container.scrollLeft += e.deltaX;
+    }
     // Convert vertical scroll to horizontal
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+    else if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
       e.preventDefault();
       container.scrollLeft += e.deltaY;
     }
@@ -303,7 +308,7 @@ export const UnifiedCalendarView: React.FC = () => {
   }, [handleWheelScroll]);
 
   return (
-    <Card>
+    <Card className="w-full max-w-full overflow-x-hidden">
       {/* Header Controls */}
       <div className="border-b p-4 flex flex-wrap items-center justify-between gap-4 bg-background">
         <div className="flex items-center gap-3">
@@ -388,7 +393,7 @@ export const UnifiedCalendarView: React.FC = () => {
       </div>
 
       {/* Calendar Grid - Property column fixed, only dates scroll */}
-      <div className="flex border-t">
+      <div className="flex border-t w-full overflow-x-hidden">
         {/* Property Column - Fixed, outside scroll container */}
         <div 
           ref={stickyColumnRef}
@@ -411,7 +416,7 @@ export const UnifiedCalendarView: React.FC = () => {
         {/* Date Grid - Scrollable horizontally */}
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-x-auto relative"
+          className="flex-1 min-w-0 overflow-x-auto overscroll-x-contain relative"
         >
           {/* Loading indicator */}
           {isLoadingMore && (
