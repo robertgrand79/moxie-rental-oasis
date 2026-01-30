@@ -116,4 +116,10 @@ export interface SettingsState {
   
   // Color mode settings
   colorUseGradients: boolean;
+  
+  // Owner Travels section
+  ownerTravelsTitle: string;
+  ownerTravelsDescription: string;
+  ownerTravelsImageUrl: string;
+  ownerTravelsEnabled: string;
 }

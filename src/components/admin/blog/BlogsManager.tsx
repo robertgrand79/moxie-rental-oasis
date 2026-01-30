@@ -7,6 +7,7 @@ import BlogsGrid from './BlogsGrid';
 import BlogsListView from './BlogsListView';
 import BlogDetailPanel from './BlogDetailPanel';
 import BlogForm from '@/components/BlogForm';
+import OwnerTravelsSettings from './OwnerTravelsSettings';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { BlogFormSubmitData } from '@/hooks/useBlogForm';
@@ -261,6 +262,8 @@ const BlogsManager = ({
 
   return (
     <div className="p-6 space-y-6">
+      <OwnerTravelsSettings />
+      
       <ModernBlogsHeader
         totalPosts={stats.total}
         publishedPosts={stats.published}
