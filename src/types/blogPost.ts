@@ -180,7 +180,7 @@ export const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
 
 // Content type categories for each type
 export const CONTENT_TYPE_CATEGORIES: Record<ContentType, string[]> = {
-  article: ['Travel', 'Tips', 'Destinations', 'Luxury', 'Sustainability'],
+  article: ['Travel', 'Tips', 'Destinations', 'Luxury', 'Sustainability', 'Owner Travels'],
   event: ['Music', 'Arts', 'Food', 'Sports', 'Festivals', 'Community'],
   poi: ['Restaurants', 'Attractions', 'Shopping', 'Entertainment', 'Services', 'Outdoors'],
   lifestyle: ['Outdoor Activities', 'Cultural Experiences', 'Food & Drink', 'Wellness', 'Arts & Crafts', 'Adventure']
