@@ -96,8 +96,7 @@ const ImageUploader = ({ uploadedImage, onImageChange }: ImageUploaderProps) => 
   };
 
   return (
-    <div className="space-y-4">
-      <Label>Featured Image</Label>
+    <div className="space-y-2">
       <div
         className={cn(
           "border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200",
