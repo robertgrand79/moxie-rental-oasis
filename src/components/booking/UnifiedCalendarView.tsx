@@ -387,42 +387,42 @@ export const UnifiedCalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* Calendar Grid - scroll container is the Card (fixes sticky) */}
-      <Card
-        ref={scrollContainerRef}
-        className="relative overflow-x-auto rounded-none border-0 shadow-none bg-transparent"
-      >
-        {/* Loading indicator */}
-        {isLoadingMore && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs flex items-center gap-2 shadow-lg">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            Loading dates...
+      {/* Calendar Grid - Property column fixed, only dates scroll */}
+      <div className="flex border-t">
+        {/* Property Column - Fixed, outside scroll container */}
+        <div 
+          ref={stickyColumnRef}
+          className="w-64 flex-shrink-0 bg-background border-r shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]"
+        >
+          {/* Property Header */}
+          <div className="h-16 border-b flex items-center px-3 bg-muted/30">
+            <span className="text-sm text-muted-foreground flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              Property name
+            </span>
           </div>
-        )}
 
-        {/* Inner container with min-width to enable scrolling */}
-        <div className="flex" style={{ minWidth: `${256 + columns.length * 64}px` }}>
-          {/* Property Column - Sticky within scroll container */}
-          <div 
-            ref={stickyColumnRef}
-            className="sticky left-0 z-20 w-64 flex-shrink-0 bg-background shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)] cursor-ew-resize"
-          >
-            {/* Property Header */}
-            <div className="h-16 border-b border-r flex items-center px-3 bg-muted/30">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Home className="h-4 w-4" />
-                Property name
-              </span>
+          {/* Property Rows */}
+          {filteredProperties.map(property => (
+            <PropertyRowLabel key={property.id} property={property} />
+          ))}
+        </div>
+
+        {/* Date Grid - Scrollable horizontally */}
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-x-auto relative"
+        >
+          {/* Loading indicator */}
+          {isLoadingMore && (
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs flex items-center gap-2 shadow-lg">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Loading dates...
             </div>
+          )}
 
-            {/* Property Rows */}
-            {filteredProperties.map(property => (
-              <PropertyRowLabel key={property.id} property={property} />
-            ))}
-          </div>
-
-          {/* Calendar Area - Dates and booking rows */}
-          <div className="flex-1">
+          {/* Inner container with min-width to enable scrolling */}
+          <div style={{ minWidth: `${columns.length * 64}px` }}>
             {/* Date Headers */}
             <div className="border-b bg-muted/30">
               <div className="flex">
@@ -466,7 +466,7 @@ export const UnifiedCalendarView: React.FC = () => {
             </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Property Legend - Dynamic based on organization properties */}
       <div className="border-t p-3 flex flex-wrap items-center gap-4 text-sm bg-muted/20">
