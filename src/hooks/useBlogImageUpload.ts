@@ -11,6 +11,25 @@ interface UploadedImageSizes {
   original: string;
 }
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second initial delay
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const isRetryableError = (error: unknown): boolean => {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    return (
+      message.includes('network') ||
+      message.includes('fetch') ||
+      message.includes('timeout') ||
+      message.includes('failed to fetch') ||
+      message.includes('connection')
+    );
+  }
+  return false;
+};
+
 export const useBlogImageUpload = () => {
   const [uploading, setUploading] = useState(false);
   const { optimizeImage, optimizing } = useImageOptimization();
@@ -20,6 +39,18 @@ export const useBlogImageUpload = () => {
 
     setUploading(true);
     try {
+      // Check if user is authenticated before attempting upload
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        console.error('❌ Authentication check failed:', sessionError);
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in again to upload images.',
+          variant: 'destructive'
+        });
+        return null;
+      }
+
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
       if (!allowedTypes.includes(file.type)) {
@@ -52,7 +83,7 @@ export const useBlogImageUpload = () => {
 
       if (!optimizationResult) {
         console.log('⚠️ Using original file due to optimization failure');
-        const originalUrl = await uploadSingleImage(file, 'original');
+        const originalUrl = await uploadSingleImageWithRetry(file, 'original');
         return originalUrl ? { original: originalUrl } : null;
       }
 
@@ -63,19 +94,19 @@ export const useBlogImageUpload = () => {
       
       // Upload main optimized image
       uploadPromises.push(
-        uploadSingleImage(optimizedFile, 'large').then(url => ({ size: 'large', url }))
+        uploadSingleImageWithRetry(optimizedFile, 'large').then(url => ({ size: 'large', url }))
       );
 
       // Upload other sizes if available
       if (sizes) {
         if (sizes.thumbnail) {
           uploadPromises.push(
-            uploadSingleImage(sizes.thumbnail, 'thumbnail').then(url => ({ size: 'thumbnail', url }))
+            uploadSingleImageWithRetry(sizes.thumbnail, 'thumbnail').then(url => ({ size: 'thumbnail', url }))
           );
         }
         if (sizes.medium) {
           uploadPromises.push(
-            uploadSingleImage(sizes.medium, 'medium').then(url => ({ size: 'medium', url }))
+            uploadSingleImageWithRetry(sizes.medium, 'medium').then(url => ({ size: 'medium', url }))
           );
         }
       }
@@ -111,52 +142,85 @@ export const useBlogImageUpload = () => {
 
     } catch (error) {
       console.error('❌ Error uploading blog images:', error);
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to upload blog images. Please try again.',
-        variant: 'destructive'
-      });
+      
+      // Provide specific error messages based on error type
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      if (errorMessage.includes('permission') || errorMessage.includes('policy') || errorMessage.includes('unauthorized')) {
+        toast({
+          title: 'Permission denied',
+          description: 'Your session may have expired. Please refresh the page and log in again.',
+          variant: 'destructive'
+        });
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('Failed to fetch')) {
+        toast({
+          title: 'Network error',
+          description: 'Upload failed after multiple retries. Please check your internet connection and try again.',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Upload failed',
+          description: 'Failed to upload blog images. Please try again.',
+          variant: 'destructive'
+        });
+      }
       return null;
     } finally {
       setUploading(false);
     }
   };
 
-  const uploadSingleImage = async (file: File, sizeLabel: string): Promise<string | null> => {
+  const uploadSingleImageWithRetry = async (
+    file: File, 
+    sizeLabel: string, 
+    attempt: number = 1
+  ): Promise<string | null> => {
     try {
-      // Create a unique filename with size label
-      const fileExt = file.name.split('.').pop();
-      const fileName = `blog-${sizeLabel}-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      return await uploadSingleImage(file, sizeLabel);
+    } catch (error) {
+      console.error(`❌ Upload attempt ${attempt} failed for ${sizeLabel}:`, error);
+      
+      if (attempt < MAX_RETRIES && isRetryableError(error)) {
+        const waitTime = RETRY_DELAY * Math.pow(2, attempt - 1); // Exponential backoff
+        console.log(`⏳ Retrying ${sizeLabel} upload in ${waitTime}ms (attempt ${attempt + 1}/${MAX_RETRIES})`);
+        await delay(waitTime);
+        return uploadSingleImageWithRetry(file, sizeLabel, attempt + 1);
+      }
+      
+      throw error;
+    }
+  };
 
-      console.log(`📤 Uploading ${sizeLabel} image:`, {
-        fileName,
-        size: `${(file.size / 1024 / 1024).toFixed(2)}MB`
+  const uploadSingleImage = async (file: File, sizeLabel: string): Promise<string | null> => {
+    // Create a unique filename with size label
+    const fileExt = file.name.split('.').pop();
+    const fileName = `blog-${sizeLabel}-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+    console.log(`📤 Uploading ${sizeLabel} image:`, {
+      fileName,
+      size: `${(file.size / 1024 / 1024).toFixed(2)}MB`
+    });
+
+    // Upload to the hero-images bucket
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('hero-images')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
       });
 
-      // Upload to the hero-images bucket
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('hero-images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        console.error(`❌ Upload error for ${sizeLabel}:`, uploadError);
-        throw uploadError;
-      }
-
-      // Get the public URL
-      const { data: urlData } = supabase.storage
-        .from('hero-images')
-        .getPublicUrl(fileName);
-
-      return urlData.publicUrl;
-
-    } catch (error) {
-      console.error(`❌ Error uploading ${sizeLabel} image:`, error);
-      return null;
+    if (uploadError) {
+      console.error(`❌ Upload error for ${sizeLabel}:`, uploadError);
+      throw uploadError;
     }
+
+    // Get the public URL
+    const { data: urlData } = supabase.storage
+      .from('hero-images')
+      .getPublicUrl(fileName);
+
+    return urlData.publicUrl;
   };
 
   const deleteBlogImage = async (imageUrl: string): Promise<boolean> => {
