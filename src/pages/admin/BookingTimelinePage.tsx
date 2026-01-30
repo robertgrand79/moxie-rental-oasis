@@ -323,7 +323,7 @@ const BookingTimelinePage = () => {
         </Card>
       </div>
       
-      <Tabs defaultValue="calendar" className="w-full">
+        <Tabs defaultValue="calendar" className="w-full min-w-0">
         <TabsList className="grid w-full max-w-3xl grid-cols-5">
           <TabsTrigger value="calendar" className="gap-2">
             <CalendarDays className="h-4 w-4" />
@@ -347,7 +347,7 @@ const BookingTimelinePage = () => {
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="calendar" className="mt-6">
+        <TabsContent value="calendar" className="mt-6 w-full min-w-0 overflow-x-hidden">
           <UnifiedCalendarView />
         </TabsContent>
         
