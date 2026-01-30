@@ -103,9 +103,25 @@ export const useImageOptimization = () => {
 const loadImage = (file: File): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(file);
+    
+    // Add timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Image load timeout'));
+    }, 10000); // 10 second timeout
+    
+    img.onload = () => {
+      clearTimeout(timeout);
+      URL.revokeObjectURL(objectUrl);
+      resolve(img);
+    };
+    img.onerror = (e) => {
+      clearTimeout(timeout);
+      URL.revokeObjectURL(objectUrl);
+      reject(e);
+    };
+    img.src = objectUrl;
   });
 };
 
