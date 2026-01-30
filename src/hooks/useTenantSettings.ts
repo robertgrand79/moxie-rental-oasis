@@ -49,6 +49,11 @@ interface TenantSettings {
   finalFeature3Description?: string;
   newsletterTitle?: string;
   newsletterDescription?: string;
+  // Owner Travels settings
+  ownerTravelsTitle?: string;
+  ownerTravelsDescription?: string;
+  ownerTravelsImageUrl?: string;
+  ownerTravelsEnabled?: string;
   // Color settings (for public pages)
   colorPrimary?: string;
   colorSecondary?: string;

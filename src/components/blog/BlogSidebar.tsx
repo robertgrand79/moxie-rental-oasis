@@ -4,15 +4,17 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BlogPostSummary } from '@/services/optimizedBlogService';
+import OwnerTravelsCard from './OwnerTravelsCard';
 
 interface BlogSidebarProps {
   featuredPost: BlogPostSummary | null;
   showFeatured: boolean;
+  hasOwnerTravelsPosts?: boolean;
 }
 
-const BlogSidebar = ({ featuredPost, showFeatured }: BlogSidebarProps) => {
+const BlogSidebar = ({ featuredPost, showFeatured, hasOwnerTravelsPosts = false }: BlogSidebarProps) => {
   return (
-    <div className="lg:col-span-1 space-y-8">
+    <div className="lg:col-span-1 space-y-6">
       {/* Featured Post */}
       {featuredPost && showFeatured && (
         <Card className="bg-muted border-border">
@@ -44,6 +46,9 @@ const BlogSidebar = ({ featuredPost, showFeatured }: BlogSidebarProps) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Owner Travels Card */}
+      <OwnerTravelsCard hasOwnerTravelsPosts={hasOwnerTravelsPosts} />
 
       {/* Quick Links */}
       <Card className="bg-card border-border">

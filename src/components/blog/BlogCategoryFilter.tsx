@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { BookOpen, MapPin, Compass } from 'lucide-react';
+import { BookOpen, MapPin, Compass, Plane } from 'lucide-react';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
 
 interface BlogCategoryFilterProps {
   selectedCategory: string;
@@ -10,11 +11,15 @@ interface BlogCategoryFilterProps {
 }
 
 const BlogCategoryFilter = ({ selectedCategory, onCategoryChange, loading }: BlogCategoryFilterProps) => {
+  const { settings } = useTenantSettings();
+  const founderNames = settings?.founderNames || 'Our Hosts';
+  
   const categories = [
     { id: 'all', name: 'All Posts', icon: BookOpen },
     { id: 'local', name: 'Local Guides', icon: MapPin },
     { id: 'travel', name: 'Travel Tips', icon: Compass },
-    { id: 'destinations', name: 'Destinations', icon: MapPin }
+    { id: 'destinations', name: 'Destinations', icon: MapPin },
+    { id: 'owner-travels', name: `${founderNames}'s Travels`, icon: Plane }
   ];
 
   return (
