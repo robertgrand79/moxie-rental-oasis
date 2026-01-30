@@ -100,5 +100,11 @@ export const defaultSettings: SettingsState = {
   colorDestructive: '#ef4444',
   
   // Color mode settings
-  colorUseGradients: true
+  colorUseGradients: true,
+  
+  // Owner Travels section
+  ownerTravelsTitle: '',
+  ownerTravelsDescription: '',
+  ownerTravelsImageUrl: '',
+  ownerTravelsEnabled: 'true'
 };
