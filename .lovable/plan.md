@@ -1,65 +1,147 @@
 
-Goal
-- Ensure Calendar Management (/admin/calendar) only scrolls horizontally inside the date grid area, and the overall admin page never horizontally scrolls (which is what makes the calendar slide “behind” the fixed left menu).
+# Database Query Optimization Plan for 200+ Tenant Scale
 
-What’s most likely happening (based on current code + how CSS flex works)
-- Even though the property column is now outside the date scroll container, the page can still get a horizontal overflow if the date-grid flex child refuses to shrink.
-- In CSS flexbox, children have `min-width: auto` by default, which can cause the flex item to expand to the width of its contents (your “minWidth: columns * 64px” grid), creating page-level horizontal scroll.
-- When the page (or main content area) scrolls horizontally, the fixed admin sidebar stays in place, and the calendar appears to move behind it.
+## Problem
+With 200+ tenants sharing a single Supabase database, the current approach of making 12+ individual client-side queries per admin dashboard load (and similar patterns elsewhere) creates compounding pressure on the connection pool and increases latency. Several legacy hooks bypass React Query entirely, missing caching and deduplication. Key tables also lack indexes on `organization_id`.
 
-Plan of attack (small, targeted changes)
-1) Make the date scroll area “shrinkable” inside the flex row
-   - Update the date scroll container class from:
-     - `className="flex-1 overflow-x-auto relative"`
-     - to:
-       - `className="flex-1 min-w-0 overflow-x-auto relative"`
-   - Why: `min-w-0` is the standard fix that allows a flex child to be narrower than its content and put the overflow into its own scrollbar (instead of the page).
+---
 
-2) Prevent the outer calendar wrapper from contributing to page horizontal overflow
-   - Add `w-full` and `overflow-x-hidden` on the immediate calendar flex wrapper (the one containing property column + date grid).
-   - Example target in `UnifiedCalendarView.tsx`:
-     - change `className="flex border-t"`
-     - to something like `className="flex border-t w-full overflow-x-hidden"`
-   - Why: This ensures any accidental oversize content doesn’t create body-level horizontal scroll.
+## Phase 1: Add Missing Database Indexes
 
-3) Ensure the outer Card can’t expand beyond its container
-   - Add `w-full` and optionally `max-w-full overflow-x-hidden` to the outer `<Card>` in `UnifiedCalendarView`.
-   - Why: The Card currently has no width constraints; in some layouts it can size to content. Forcing `w-full` keeps it bounded.
+Several high-traffic tables queried on every dashboard load are missing `organization_id` indexes:
 
-4) Fix trackpad horizontal swipes when hovering the property column (important on Mac)
-   - Right now, the wheel handler only converts vertical wheel (deltaY) → horizontal scroll. Many trackpads use deltaX for horizontal swipes.
-   - Update the `handleWheelScroll` logic so that:
-     - If `Math.abs(deltaX) > 0`, prevent default and apply it to `scrollContainer.scrollLeft += deltaX`
-     - Keep the existing deltaY conversion (vertical-to-horizontal) as well.
-   - Why: If deltaX isn’t handled, the browser can apply that horizontal motion to the page instead of your date grid, recreating the “slides behind sidebar” behavior.
+| Table | Currently Indexed? |
+|---|---|
+| `properties` | Yes |
+| `blog_posts` | **No** |
+| `places` | **No** |
+| `lifestyle_gallery` | **No** |
+| `newsletter_subscribers` | **No** |
+| `property_reservations` | **No** |
+| `reservations` | **No** |
+| `testimonials` | Yes |
+| `work_orders` | Yes |
 
-5) Add “containment” to stop scroll chaining to the page
-   - Add Tailwind `overscroll-x-contain` to the date scroll container.
-   - Optionally also add `overscroll-contain` if you notice combined axis issues.
-   - Why: Prevents the browser from passing the scroll gesture up to parent containers when the inner scroller hits its edges.
+**Action**: Create a single migration adding `btree` indexes on `organization_id` for each missing table. This is the highest-impact, lowest-risk change and will immediately improve query performance for every tenant.
 
-Files to change
-- `src/components/booking/UnifiedCalendarView.tsx`
-  - Add `min-w-0` to the date scroll flex child
-  - Add `overflow-x-hidden`/`w-full` to the wrapper and/or Card
-  - Improve wheel handler to handle deltaX as well as deltaY
-  - Add `overscroll-x-contain` to the date scroll container
+---
 
-Verification checklist (what you should see after)
-- On /admin/calendar:
-  - Swiping/scrolling horizontally only moves the date columns (not the whole page).
-  - The property column never shifts left/right and never disappears under the left sidebar.
-  - Infinite load still triggers when you scroll near the right/left edge of the date grid.
+## Phase 2: Consolidate Dashboard Queries into an Edge Function
 
-About the uploaded .mov recording
-- I can’t reliably “play” a .mov directly with the current tooling in this mode.
-- If you can reproduce the issue once more in the preview, I can use the built-in session replay tool (it records UI interactions) to verify exactly which container is scrolling—page vs. date grid—which will confirm the fix.
+Currently, `useDashboardStats` fires **12 parallel queries** and `useSimplifiedAnalytics` fires **8 more** -- all from the browser. At 200 tenants, that is up to 4,000 simultaneous connections just for dashboard loads.
 
-Risks / edge cases
-- If the horizontal overflow is also coming from a parent container (AdminLayout main wrapper), we may additionally add `overflow-x-hidden` at the admin content container level—but I want to try the localized fix first to avoid side effects elsewhere.
+**Action**: Create a new Edge Function `get-dashboard-stats` that:
+- Accepts `organization_id` as input
+- Runs all 12+ count/aggregate queries server-side in a single database round-trip using a single SQL query with CTEs (Common Table Expressions)
+- Returns a single JSON payload with all dashboard stats
+- Reduces 20 client-side queries to 1 Edge Function call
 
-Implementation sequence (fastest path)
-1) Apply `min-w-0` + `overscroll-x-contain` to the date grid scroll container
-2) Add `w-full overflow-x-hidden` to the calendar wrapper / Card
-3) Update wheel handler to support deltaX
-4) Re-test on desktop + trackpad, and confirm infinite load still works
+**Frontend changes**:
+- Replace `useDashboardStats` internals to call the Edge Function via `supabase.functions.invoke('get-dashboard-stats')`
+- Replace `useSimplifiedAnalytics` similarly, or merge both into a single hook that calls the Edge Function once
+- Keep the same React Query caching (30s stale time) on the frontend
+
+```text
+Before:                          After:
+Browser --[12 queries]--> DB     Browser --[1 call]--> Edge Fn --[1 SQL]--> DB
+Browser --[8 queries]---> DB     
+= 20 connections per load        = 1 connection per load
+```
+
+---
+
+## Phase 3: Migrate Legacy Hooks to React Query
+
+Three hooks still use raw `useState`/`useEffect` patterns, which means:
+- No automatic cache deduplication (multiple components = multiple fetches)
+- No stale-while-revalidate
+- No background refetching
+
+**Hooks to migrate**:
+
+| Hook | Current Pattern | Impact |
+|---|---|---|
+| `usePropertyFetch` | `useState` + `useCallback` + `useEffect` | Used across admin; duplicated fetches |
+| `usePaginatedProperties` | `useState` + `useEffect` | No cache sharing with `usePropertyFetch` |
+| `useWorkOrderManagement` | `useState` + `Promise.all` | Complex state, no cache |
+| `useChecklistManagement` | `useState` + `Promise.all` | Waterfall sub-queries |
+| `useTaskManagement` | `useState` + `Promise.all` | No cache |
+
+**Action**: Rewrite each hook to use `useQuery` / `useInfiniteQuery` with:
+- Organization-scoped query keys (e.g., `['properties', organizationId]`)
+- 2-5 minute `staleTime` depending on data volatility
+- `enabled` flag gated on `organizationId` availability
+
+This ensures that if 3 components use `usePropertyFetch`, only 1 actual network request fires.
+
+---
+
+## Phase 4: Public Data Caching Layer
+
+Guest-facing (tenant website) data like blog posts, testimonials, gallery items, and settings rarely change but are fetched on every page load by every visitor. At scale, this is the highest-volume query source.
+
+**Action**:
+- Increase `staleTime` for public tenant hooks to **10 minutes** (from current 2 minutes):
+  - `useTenantProperties` (currently 2 min)
+  - `useTenantSettings` (currently 5 min)
+  - `useTenantPointsOfInterest` (currently 2 min)
+  - `useTenantLifestyleGallery` (currently 2 min)
+- Add a `gcTime` of **30 minutes** so cached data persists across navigation
+- For the most static data (settings, meta tags, navigation config), increase to **30 minute** stale time since these change only when an admin saves
+- Optionally add a cache-busting mechanism: when an admin saves settings, invalidate the relevant query key so the next visitor gets fresh data
+
+---
+
+## Phase 5 (Future): Materialized Views for Dashboard Statistics
+
+This is a longer-term optimization that becomes valuable when dashboard queries start taking noticeable time even with indexes.
+
+**Concept**: Create a PostgreSQL materialized view `dashboard_stats_mv` that pre-computes all counts per organization. Refresh it on a schedule (every 5 minutes via `pg_cron`).
+
+**Why defer**: The Edge Function from Phase 2 with proper indexes from Phase 1 should handle 200-500 tenants comfortably. Materialized views add operational complexity (refresh scheduling, staleness tradeoffs) and should only be introduced when actual query latency warrants it.
+
+---
+
+## Implementation Order
+
+| Step | Phase | Risk | Effort | Impact |
+|---|---|---|---|---|
+| 1 | Indexes | Very low | Small | High -- immediate query speedup |
+| 2 | Edge Function | Low | Medium | High -- 20x fewer connections per dashboard |
+| 3 | React Query migration | Low | Medium | Medium -- deduplication + caching |
+| 4 | Public caching | Very low | Small | Medium -- reduces guest-facing load |
+| 5 | Materialized views | Medium | Large | Deferred until needed |
+
+## Technical Details
+
+**Edge Function SQL (Phase 2 example)**:
+```text
+WITH props AS (
+  SELECT id FROM properties WHERE organization_id = $1
+),
+prop_count AS (SELECT count(*) FROM props),
+blog_total AS (SELECT count(*) FROM blog_posts WHERE organization_id = $1),
+blog_published AS (SELECT count(*) FROM blog_posts WHERE organization_id = $1 AND status = 'published'),
+...
+SELECT json_build_object(
+  'properties_total', (SELECT * FROM prop_count),
+  'blog_total', (SELECT * FROM blog_total),
+  ...
+)
+```
+
+This runs as a single query plan on the database, using only 1 connection instead of 12+.
+
+**React Query migration pattern (Phase 3)**:
+```text
+// Before (usePropertyFetch):
+useState + useCallback + useEffect -> direct supabase call
+
+// After:
+useQuery({
+  queryKey: ['properties', organizationId],
+  queryFn: () => supabase.from('properties')...
+  enabled: !!organizationId,
+  staleTime: 2 * 60 * 1000,
+})
+```
