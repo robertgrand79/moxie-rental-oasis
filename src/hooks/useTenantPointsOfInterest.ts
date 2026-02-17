@@ -59,7 +59,8 @@ export const useTenantPointsOfInterest = () => {
       return data as PointOfInterest[];
     },
     enabled: !!tenantId && !tenantLoading,
-    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes - public data changes infrequently
+    gcTime: 30 * 60 * 1000, // Keep in cache 30 minutes
   });
 
   return {

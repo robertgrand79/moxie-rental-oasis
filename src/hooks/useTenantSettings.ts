@@ -107,7 +107,8 @@ export const useTenantSettings = () => {
       return settings;
     },
     enabled: !!tenantId && !tenantLoading,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes - settings rarely change, realtime handles updates
+    gcTime: 60 * 60 * 1000, // Keep in cache 1 hour
   });
 
   // Realtime subscription for live updates (shared per-tenant)

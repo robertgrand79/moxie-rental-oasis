@@ -53,7 +53,8 @@ export const useTenantProperties = () => {
       return data as Property[];
     },
     enabled: !!tenantId && !tenantLoading,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes - public data changes infrequently
+    gcTime: 30 * 60 * 1000, // Keep in cache 30 minutes
   });
 
   return {

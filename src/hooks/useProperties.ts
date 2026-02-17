@@ -15,10 +15,7 @@ export const useProperties = () => {
   const addProperty = async (propertyData: PropertyFormData) => {
     const result = await addPropertyOperation(propertyData);
     if (result) {
-      setProperties(prev => {
-        const safePrev = Array.isArray(prev) ? prev : [];
-        return [result, ...safePrev];
-      });
+      setProperties([result, ...safeProperties]);
     }
     return result;
   };
@@ -26,12 +23,9 @@ export const useProperties = () => {
   const editProperty = async (propertyId: string, propertyData: PropertyFormData) => {
     const result = await editPropertyOperation(propertyId, propertyData);
     if (result) {
-      setProperties(prev => {
-        const safePrev = Array.isArray(prev) ? prev : [];
-        return safePrev.map(property => 
-          property.id === propertyId ? result : property
-        );
-      });
+      setProperties(safeProperties.map(property => 
+        property.id === propertyId ? result : property
+      ));
     }
     return result;
   };
