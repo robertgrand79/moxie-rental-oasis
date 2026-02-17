@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Property } from '@/types/property';
 import { toast } from '@/hooks/use-toast';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
-import { debug } from '@/utils/debug';
 
 interface UsePaginatedPropertiesResult {
   properties: Property[];
@@ -24,65 +24,42 @@ const PROPERTIES_PER_PAGE = 20;
 
 export const usePaginatedProperties = (): UsePaginatedPropertiesResult => {
   const { organization, loading: orgLoading } = useCurrentOrganization();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const organizationId = organization?.id;
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
 
-  const totalPages = Math.ceil(totalCount / PROPERTIES_PER_PAGE);
-  const hasNextPage = currentPage < totalPages;
-  const hasPreviousPage = currentPage > 1;
+  const query = useQuery({
+    queryKey: ['properties-paginated', organizationId, currentPage],
+    queryFn: async () => {
+      if (!organizationId) return { data: [] as Property[], count: 0 };
 
-  const fetchProperties = async (page: number) => {
-    if (!organization?.id) {
-      setProperties([]);
-      setTotalCount(0);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      debug.property('Starting fetchProperties for page:', page, 'org:', organization.id);
-      setLoading(true);
-      setError(null);
-
-      const offset = (page - 1) * PROPERTIES_PER_PAGE;
-      debug.property('Fetch offset:', offset, 'limit:', PROPERTIES_PER_PAGE);
-
-      const { data, error: fetchError, count } = await supabase
+      const offset = (currentPage - 1) * PROPERTIES_PER_PAGE;
+      const { data, error, count } = await supabase
         .from('properties')
         .select('*', { count: 'exact' })
-        .eq('organization_id', organization.id)
+        .eq('organization_id', organizationId)
         .order('created_at', { ascending: false })
         .range(offset, offset + PROPERTIES_PER_PAGE - 1);
 
-      if (fetchError) {
-        debug.error('Error fetching properties:', fetchError);
-        setError(fetchError.message);
+      if (error) {
         toast({
           title: 'Error',
           description: 'Failed to fetch properties',
           variant: 'destructive',
         });
-        return;
+        throw error;
       }
 
-      debug.property('Properties fetched successfully:', {
-        count: data?.length,
-        totalCount: count,
-        firstProperty: data?.[0]?.title
-      });
+      return { data: data || [], count: count || 0 };
+    },
+    enabled: !!organizationId && !orgLoading,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
 
-      setProperties(data || []);
-      setTotalCount(count || 0);
-    } catch (err) {
-      debug.error('Error in fetchProperties:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const totalCount = query.data?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / PROPERTIES_PER_PAGE);
+  const hasNextPage = currentPage < totalPages;
+  const hasPreviousPage = currentPage > 1;
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -90,41 +67,18 @@ export const usePaginatedProperties = (): UsePaginatedPropertiesResult => {
     }
   };
 
-  const nextPage = () => {
-    if (hasNextPage) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const previousPage = () => {
-    if (hasPreviousPage) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
-
-  const refetch = () => {
-    debug.property('Refetching properties for page:', currentPage);
-    fetchProperties(currentPage);
-  };
-
-  useEffect(() => {
-    if (!orgLoading) {
-      fetchProperties(currentPage);
-    }
-  }, [currentPage, organization?.id, orgLoading]);
-
   return {
-    properties,
-    loading,
-    error,
+    properties: query.data?.data ?? [],
+    loading: orgLoading || query.isLoading,
+    error: query.error?.message ?? null,
     currentPage,
     totalPages,
     totalCount,
     hasNextPage,
     hasPreviousPage,
     goToPage,
-    nextPage,
-    previousPage,
-    refetch,
+    nextPage: () => hasNextPage && setCurrentPage(p => p + 1),
+    previousPage: () => hasPreviousPage && setCurrentPage(p => p - 1),
+    refetch: () => query.refetch(),
   };
 };

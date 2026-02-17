@@ -199,6 +199,9 @@ verify_jwt = false
 [functions.tv-device-unpair]
 verify_jwt = false
 
+[functions.get-dashboard-stats]
+verify_jwt = false
+
 [functions.get-weather]
 verify_jwt = false
 
