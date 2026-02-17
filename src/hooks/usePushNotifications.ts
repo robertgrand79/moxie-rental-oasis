@@ -55,7 +55,7 @@ export const usePushNotifications = () => {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      const subscription = await (registration as any).pushManager?.getSubscription();
       return !!subscription;
     } catch (error) {
       debug.error('[Push] Error checking subscription:', error);
@@ -145,13 +145,13 @@ export const usePushNotifications = () => {
       await navigator.serviceWorker.ready;
 
       // Check if already subscribed
-      let subscription = await registration.pushManager.getSubscription();
+      let subscription = await (registration as any).pushManager?.getSubscription();
       
       if (!subscription) {
         // VAPID key would be configured via environment variable in production
         // For now, we gracefully fall back to in-browser notifications
         try {
-          subscription = await registration.pushManager.subscribe({
+          subscription = await (registration as any).pushManager?.subscribe({
             userVisibleOnly: true,
             // applicationServerKey would go here with real VAPID key from server
           });
@@ -218,7 +218,7 @@ export const usePushNotifications = () => {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      const subscription = await (registration as any).pushManager?.getSubscription();
 
       if (subscription) {
         // Unsubscribe from push
