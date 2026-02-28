@@ -12395,15 +12395,12 @@ export type Database = {
           payments_enabled: boolean | null
           platform_fee_percent: number | null
           slug: string | null
-          stripe_account_id: string | null
-          stripe_connect_id: string | null
           stripe_connect_status: string | null
           stripe_customer_id: string | null
           subscription_status: string | null
           subscription_tier: string | null
           template_type: string | null
           trial_ends_at: string | null
-          turno_partner_id: string | null
           updated_at: string | null
           website: string | null
         }
@@ -12434,15 +12431,12 @@ export type Database = {
           payments_enabled?: boolean | null
           platform_fee_percent?: number | null
           slug?: string | null
-          stripe_account_id?: string | null
-          stripe_connect_id?: string | null
           stripe_connect_status?: string | null
           stripe_customer_id?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           template_type?: string | null
           trial_ends_at?: string | null
-          turno_partner_id?: string | null
           updated_at?: string | null
           website?: string | null
         }
@@ -12473,15 +12467,12 @@ export type Database = {
           payments_enabled?: boolean | null
           platform_fee_percent?: number | null
           slug?: string | null
-          stripe_account_id?: string | null
-          stripe_connect_id?: string | null
           stripe_connect_status?: string | null
           stripe_customer_id?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           template_type?: string | null
           trial_ends_at?: string | null
-          turno_partner_id?: string | null
           updated_at?: string | null
           website?: string | null
         }
@@ -12715,6 +12706,18 @@ export type Database = {
         Args: { _org_id: string; _secret_name: string }
         Returns: string
       }
+      get_organization_sensitive_fields: {
+        Args: { _org_id: string }
+        Returns: {
+          has_openphone_key: boolean
+          has_pricelabs_key: boolean
+          has_resend_key: boolean
+          has_seam_key: boolean
+          has_stripe_secret: boolean
+          stripe_account_id: string
+          stripe_connect_id: string
+        }[]
+      }
       get_organization_tier: {
         Args: { p_organization_id: string }
         Returns: string
@@ -12892,6 +12895,10 @@ export type Database = {
         Returns: boolean
       }
       user_is_org_admin: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_is_org_owner: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
