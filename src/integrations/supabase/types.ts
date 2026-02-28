@@ -12906,7 +12906,13 @@ export type Database = {
         | "first_booking"
         | "completed"
       platform_role: "super_admin" | "support" | "billing"
-      team_role: "owner" | "manager" | "staff" | "view_only"
+      team_role:
+        | "owner"
+        | "manager"
+        | "staff"
+        | "view_only"
+        | "maintenance"
+        | "cleaner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -13046,7 +13052,14 @@ export const Constants = {
         "completed",
       ],
       platform_role: ["super_admin", "support", "billing"],
-      team_role: ["owner", "manager", "staff", "view_only"],
+      team_role: [
+        "owner",
+        "manager",
+        "staff",
+        "view_only",
+        "maintenance",
+        "cleaner",
+      ],
     },
   },
 } as const

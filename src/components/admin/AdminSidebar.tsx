@@ -15,41 +15,60 @@ import {
 import AdminSidebarSection from './sidebar/AdminSidebarSection';
 import AdminSidebarFooter from './sidebar/AdminSidebarFooter';
 import { adminMenuItems } from './sidebar/adminMenuItems';
+import type { MenuSection, MenuItem } from './sidebar/adminMenuItems';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
+import { useTeamPermissions } from '@/hooks/useTeamPermissions';
 import TemplateEditingBanner from './TemplateEditingBanner';
 import OrganizationSwitcher from './OrganizationSwitcher';
 
 const AdminSidebar = () => {
   const isMobile = useIsMobile();
   const { settings, loading: settingsLoading } = useSimplifiedSiteSettings();
-  const { organization, loading: orgLoading, isPlatformMode } = useCurrentOrganization();
+  const { organization, loading: orgLoading } = useCurrentOrganization();
   const { isPlatformAdmin, checkingAdmin } = usePlatformAdmin();
+  const { hasPermission, loading: permLoading } = useTeamPermissions();
   const { state, toggleSidebar } = useSidebar();
   
   const isCollapsed = state === 'collapsed';
   const logoUrl = settings.siteLogo || organization?.logo_url;
   const isLoading = settingsLoading || orgLoading;
 
-  // Filter menu items based on platform admin status
-  // Only show Platform Administration section if explicitly confirmed as platform admin
   const filteredMenuItems = useMemo(() => {
+    // While loading permissions, show nothing to avoid flash
+    if (permLoading) return [];
+
     return adminMenuItems
-      .map(section => {
-        // Hide entire Platform Administration section unless confirmed as platform admin
+      .map((section: MenuSection) => {
+        // Hide Platform Administration unless confirmed platform admin
         if (section.title === 'Platform Administration') {
-          // Hide while checking or if not a platform admin
           if (checkingAdmin || isPlatformAdmin !== true) return null;
           return section;
         }
-        return section;
-      })
-      .filter(Boolean) as typeof adminMenuItems;
-  }, [isPlatformAdmin, checkingAdmin]);
 
-  // Show org switcher if platform admin
+        // Platform admins bypass permission checks
+        if (isPlatformAdmin) return section;
+
+        // Check section-level permission
+        if (section.requiredPermission && !hasPermission(section.requiredPermission)) {
+          return null;
+        }
+
+        // Filter individual items by permission
+        const filteredItems = section.items.filter((item: MenuItem) => {
+          if (!item.requiredPermission) return true;
+          return hasPermission(item.requiredPermission);
+        });
+
+        if (filteredItems.length === 0) return null;
+
+        return { ...section, items: filteredItems };
+      })
+      .filter(Boolean) as MenuSection[];
+  }, [isPlatformAdmin, checkingAdmin, hasPermission, permLoading]);
+
   const showOrgSwitcher = isPlatformAdmin && !isCollapsed;
 
   return (
@@ -57,7 +76,6 @@ const AdminSidebar = () => {
       <SidebarHeader>
         <div className={`${isMobile ? 'p-3' : 'p-4'} ${isCollapsed ? 'p-2' : ''}`}>
           <div className="flex items-center justify-between gap-2">
-            {/* Logo/Name - hidden when collapsed, placeholder while loading */}
             {!isCollapsed && (
               <>
                 {isLoading ? (
@@ -85,7 +103,6 @@ const AdminSidebar = () => {
               </>
             )}
             
-            {/* Toggle button */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -110,7 +127,6 @@ const AdminSidebar = () => {
       </SidebarHeader>
       <TemplateEditingBanner />
       <SidebarContent>
-        {/* Platform Mode Switcher - above menu sections */}
         {showOrgSwitcher && (
           <div className="px-3 pb-2">
             <OrganizationSwitcher />
