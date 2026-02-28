@@ -20,16 +20,8 @@ export const useContractorOperations = () => {
     try {
       if (editingContractor) {
         await updateContractor(editingContractor.id, contractorData);
-        toast({
-          title: 'Success',
-          description: 'Contractor updated successfully',
-        });
       } else {
         await createContractor(contractorData);
-        toast({
-          title: 'Success',
-          description: 'Contractor created successfully',
-        });
       }
     } catch (error) {
       console.error('Error saving contractor:', error);
@@ -49,10 +41,6 @@ export const useContractorOperations = () => {
 
     try {
       await updateContractor(contractorId, { is_active: isActive });
-      toast({
-        title: 'Success',
-        description: `Contractor ${isActive ? 'activated' : 'deactivated'} successfully`,
-      });
     } catch (error) {
       console.error('Error updating contractor status:', error);
       toast({

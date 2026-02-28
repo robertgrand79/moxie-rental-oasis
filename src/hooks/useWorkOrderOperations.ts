@@ -29,25 +29,11 @@ export const useWorkOrderOperations = () => {
     try {
       if (editingWorkOrder) {
         await updateWorkOrder(editingWorkOrder.id, workOrderData);
-        toast({
-          title: 'Success',
-          description: 'Work order updated successfully',
-        });
       } else {
         await createWorkOrder(workOrderData);
-        toast({
-          title: 'Success',
-          description: 'Work order created successfully',
-        });
       }
     } catch (error) {
       console.error('Error saving work order:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save work order. Please try again.',
-        variant: 'destructive',
-      });
-      // Re-throw the error so the calling component knows the operation failed
       throw error;
     }
   };
@@ -67,7 +53,6 @@ export const useWorkOrderOperations = () => {
       const currentWorkOrder = workOrders.find(wo => wo.id === workOrderId);
       const updateData: Partial<WorkOrderFormData> = { status };
       
-      // Set timestamps when moving TO certain statuses
       if (status === 'sent' && !currentWorkOrder?.sent_at) {
         updateData.sent_at = new Date().toISOString();
       }
@@ -77,8 +62,6 @@ export const useWorkOrderOperations = () => {
       if (status === 'completed') {
         updateData.completed_at = new Date().toISOString();
       }
-      
-      // Clear timestamps when moving AWAY from certain statuses
       if (status !== 'completed' && currentWorkOrder?.completed_at) {
         updateData.completed_at = null;
       }
@@ -90,19 +73,8 @@ export const useWorkOrderOperations = () => {
       }
       
       await updateWorkOrder(workOrderId, updateData);
-      
-      
-      toast({
-        title: 'Success',
-        description: 'Status updated successfully',
-      });
     } catch (error) {
       console.error('Error updating status:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update status',
-        variant: 'destructive',
-      });
     } finally {
       setUpdatingWorkOrders(prev => {
         const newSet = new Set(prev);
@@ -116,7 +88,6 @@ export const useWorkOrderOperations = () => {
     await sendWorkOrder(workOrder, handleStatusChange, method);
   };
 
-  // Legacy function for backwards compatibility
   const handleEmailWorkOrder = async (workOrder: WorkOrder) => {
     await sendWorkOrder(workOrder, handleStatusChange, 'both');
   };

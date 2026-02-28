@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
@@ -29,7 +29,6 @@ export interface WorkOrder {
   acknowledged_at?: string;
   completed_at?: string;
   contractor_notes?: string;
-  // Billing fields
   billing_type?: string;
   billing_rate?: number;
   hours_worked?: number;
@@ -74,7 +73,6 @@ export interface Contractor {
   notes?: string;
   is_active: boolean;
   sms_opt_in?: boolean;
-  // Billing fields
   hourly_rate?: number;
   default_billing_type?: string;
   created_by: string;
@@ -82,94 +80,83 @@ export interface Contractor {
   updated_at: string;
 }
 
+const WORK_ORDER_SELECT = `
+  *,
+  property:properties(*),
+  contractor:contractors(*),
+  assigned_user:profiles!work_orders_assigned_user_id_fkey(id, full_name, email)
+`;
+
+export const workOrderKeys = {
+  all: (orgId: string) => ['work-orders', orgId] as const,
+  contractors: (orgId: string) => ['contractors', orgId] as const,
+};
+
+const fetchWorkOrdersFn = async (organizationId: string) => {
+  const { data: orgProperties, error: propError } = await supabase
+    .from('properties')
+    .select('id')
+    .eq('organization_id', organizationId);
+
+  if (propError) throw propError;
+  const propertyIds = orgProperties?.map(p => p.id) || [];
+  if (propertyIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('work_orders')
+    .select(WORK_ORDER_SELECT)
+    .in('property_id', propertyIds)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data as WorkOrder[]) || [];
+};
+
+const fetchContractorsFn = async (organizationId: string) => {
+  const { data, error } = await supabase
+    .from('contractors')
+    .select('*')
+    .eq('organization_id', organizationId)
+    .eq('is_active', true)
+    .order('name');
+
+  if (error) throw error;
+  return (data as Contractor[]) || [];
+};
+
 export const useWorkOrderManagement = () => {
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
-  const [contractors, setContractors] = useState<Contractor[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { organization, loading: orgLoading } = useCurrentOrganization();
+  const queryClient = useQueryClient();
+  const orgId = organization?.id;
 
-  const fetchWorkOrders = useCallback(async () => {
-    if (!organization?.id) {
-      debug.workorder('Waiting for organization...');
-      setWorkOrders([]);
-      return;
-    }
+  const workOrdersQuery = useQuery({
+    queryKey: workOrderKeys.all(orgId || ''),
+    queryFn: () => fetchWorkOrdersFn(orgId!),
+    enabled: !!orgId && !orgLoading,
+    staleTime: 2 * 60 * 1000,
+  });
 
-    try {
-      // First get property IDs for this organization
-      const { data: orgProperties, error: propError } = await supabase
-        .from('properties')
-        .select('id')
-        .eq('organization_id', organization.id);
+  const contractorsQuery = useQuery({
+    queryKey: workOrderKeys.contractors(orgId || ''),
+    queryFn: () => fetchContractorsFn(orgId!),
+    enabled: !!orgId && !orgLoading,
+    staleTime: 5 * 60 * 1000,
+  });
 
-      if (propError) throw propError;
+  const invalidateAll = () => {
+    if (!orgId) return;
+    queryClient.invalidateQueries({ queryKey: workOrderKeys.all(orgId) });
+    queryClient.invalidateQueries({ queryKey: workOrderKeys.contractors(orgId) });
+  };
 
-      const propertyIds = orgProperties?.map(p => p.id) || [];
-
-      if (propertyIds.length === 0) {
-        setWorkOrders([]);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('work_orders')
-        .select(`
-          *,
-          property:properties(*),
-          contractor:contractors(*),
-          assigned_user:profiles!work_orders_assigned_user_id_fkey(id, full_name, email)
-        `)
-        .in('property_id', propertyIds)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setWorkOrders(data as WorkOrder[] || []);
-    } catch (error) {
-      debug.error('Error fetching work orders:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch work orders',
-        variant: 'destructive',
-      });
-    }
-  }, [organization?.id, toast]);
-
-  const fetchContractors = useCallback(async () => {
-    if (!organization?.id) {
-      setContractors([]);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('contractors')
-        .select('*')
-        .eq('organization_id', organization.id)
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      setContractors(data || []);
-    } catch (error) {
-      debug.error('Error fetching contractors:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch contractors',
-        variant: 'destructive',
-      });
-    }
-  }, [organization?.id, toast]);
-
-  const createWorkOrder = async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'contractor'>) => {
-    try {
+  const createWorkOrderMutation = useMutation({
+    mutationFn: async (workOrderData: Omit<WorkOrder, 'id' | 'work_order_number' | 'created_at' | 'updated_at' | 'created_by' | 'property' | 'contractor'>) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Remove fields that don't exist in the database schema or are auto-generated
       const { property, contractor, assigned_user, ...cleanData } = workOrderData as any;
 
-      // Ensure organization_id is set - get from property if not provided
       let organizationId = cleanData.organization_id;
       if (!organizationId && cleanData.property_id) {
         const { data: propertyData } = await supabase
@@ -179,321 +166,197 @@ export const useWorkOrderManagement = () => {
           .single();
         organizationId = propertyData?.organization_id;
       }
-      // Fallback to current organization
-      if (!organizationId && organization?.id) {
-        organizationId = organization.id;
+      if (!organizationId && orgId) {
+        organizationId = orgId;
       }
 
       const { data, error } = await supabase
         .from('work_orders')
-        .insert({
-          ...cleanData,
-          organization_id: organizationId,
-          created_by: user.id
-        })
-        .select(`
-          *,
-          property:properties(*),
-          contractor:contractors(*),
-          assigned_user:profiles!work_orders_assigned_user_id_fkey(id, full_name, email)
-        `)
+        .insert({ ...cleanData, organization_id: organizationId, created_by: user.id })
+        .select(WORK_ORDER_SELECT)
         .single();
 
       if (error) throw error;
-      
-      setWorkOrders(prev => [data as WorkOrder, ...prev]);
-      toast({
-        title: 'Success',
-        description: 'Work order created successfully',
-      });
+      return data as WorkOrder;
+    },
+    onSuccess: async (data) => {
+      queryClient.invalidateQueries({ queryKey: workOrderKeys.all(orgId || '') });
+      toast({ title: 'Success', description: 'Work order created successfully' });
 
       // Create notifications
-      if (organization?.id && data) {
-        const workOrder = data as WorkOrder;
-        const propertyName = workOrder.property?.title || 'Unknown Property';
-        
-        // If no assignee, notify all org admins. If assigned, only notify the assignee
-        if (!workOrder.assigned_user_id) {
-          // No assignee - notify all team members
+      if (orgId && data) {
+        const propertyName = data.property?.title || 'Unknown Property';
+        if (!data.assigned_user_id) {
           await supabase.from('admin_notifications').insert({
-            organization_id: organization.id,
-            user_id: null, // Notify all org admins
+            organization_id: orgId,
+            user_id: null,
             notification_type: 'work_order_created',
             category: 'operations',
             title: 'New Work Order Created',
-            message: `Work order "${workOrder.title}" created for ${propertyName}`,
-            action_url: `/admin/work-orders?id=${workOrder.id}`,
-            priority: workOrder.priority === 'urgent' || workOrder.priority === 'critical' ? 'high' : 'normal',
-            metadata: {
-              work_order_id: workOrder.id,
-              work_order_number: workOrder.work_order_number,
-              property_id: workOrder.property_id,
-              priority: workOrder.priority
-            }
+            message: `Work order "${data.title}" created for ${propertyName}`,
+            action_url: `/admin/work-orders?id=${data.id}`,
+            priority: data.priority === 'urgent' || data.priority === 'critical' ? 'high' : 'normal',
+            metadata: { work_order_id: data.id, work_order_number: data.work_order_number, property_id: data.property_id, priority: data.priority }
           });
         }
-
-        // Notify assigned team member if one is set
-        if (workOrder.assigned_user_id) {
-          const assigneeName = workOrder.assigned_user?.full_name || 'You';
+        if (data.assigned_user_id) {
           await supabase.from('admin_notifications').insert({
-            organization_id: organization.id,
-            user_id: workOrder.assigned_user_id, // Only notify this specific user
+            organization_id: orgId,
+            user_id: data.assigned_user_id,
             notification_type: 'work_order_assigned',
             category: 'operations',
             title: 'Work Order Assigned to You',
-            message: `You've been assigned to "${workOrder.title}" at ${propertyName}`,
-            action_url: `/admin/work-orders?id=${workOrder.id}`,
-            priority: workOrder.priority === 'critical' || workOrder.priority === 'high' ? 'high' : 'normal',
-            metadata: {
-              work_order_id: workOrder.id,
-              work_order_number: workOrder.work_order_number,
-              property_id: workOrder.property_id,
-              priority: workOrder.priority
-            }
+            message: `You've been assigned to "${data.title}" at ${propertyName}`,
+            action_url: `/admin/work-orders?id=${data.id}`,
+            priority: data.priority === 'critical' || data.priority === 'high' ? 'high' : 'normal',
+            metadata: { work_order_id: data.id, work_order_number: data.work_order_number, property_id: data.property_id, priority: data.priority }
           });
         }
       }
-      
-      return data;
-    } catch (error) {
+    },
+    onError: (error) => {
       debug.error('Error creating work order:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create work order',
-        variant: 'destructive',
-      });
-      throw error;
-    }
-  };
+      toast({ title: 'Error', description: 'Failed to create work order', variant: 'destructive' });
+    },
+  });
 
-  const updateWorkOrder = async (id: string, updates: Partial<WorkOrder>) => {
-    try {
-      // Get current work order to check status and assignment changes
-      const currentWorkOrder = workOrders.find(wo => wo.id === id);
-      
-      // Remove fields that don't belong in the database update
+  const updateWorkOrderMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<WorkOrder> }) => {
+      const currentWorkOrder = workOrdersQuery.data?.find(wo => wo.id === id);
       const { property, contractor, assigned_user, ...cleanUpdates } = updates as any;
 
       const { data, error } = await supabase
         .from('work_orders')
         .update(cleanUpdates)
         .eq('id', id)
-        .select(`
-          *,
-          property:properties(*),
-          contractor:contractors(*),
-          assigned_user:profiles!work_orders_assigned_user_id_fkey(id, full_name, email)
-        `)
+        .select(WORK_ORDER_SELECT)
         .single();
 
       if (error) throw error;
-      
-      setWorkOrders(prev => prev.map(wo => wo.id === id ? data as WorkOrder : wo));
-      toast({
-        title: 'Success',
-        description: 'Work order updated successfully',
-      });
+      return { data: data as WorkOrder, previousAssignee: currentWorkOrder?.assigned_user_id, previousStatus: currentWorkOrder?.status };
+    },
+    onSuccess: async ({ data, previousAssignee, previousStatus }) => {
+      queryClient.invalidateQueries({ queryKey: workOrderKeys.all(orgId || '') });
+      toast({ title: 'Success', description: 'Work order updated successfully' });
 
-      if (organization?.id && data) {
-        const workOrder = data as WorkOrder;
-        const propertyName = workOrder.property?.title || 'Unknown Property';
-
-        // Create notification if work order was completed
-        if (currentWorkOrder?.status !== 'completed' && updates.status === 'completed') {
+      if (orgId && data) {
+        const propertyName = data.property?.title || 'Unknown Property';
+        if (previousStatus !== 'completed' && data.status === 'completed') {
           await supabase.from('admin_notifications').insert({
-            organization_id: organization.id,
-            user_id: null,
-            notification_type: 'work_order_completed',
-            category: 'operations',
-            title: 'Work Order Completed',
-            message: `Work order "${workOrder.title}" at ${propertyName} has been completed`,
-            action_url: `/admin/work-orders?id=${workOrder.id}`,
-            priority: 'normal',
-            metadata: {
-              work_order_id: workOrder.id,
-              work_order_number: workOrder.work_order_number,
-              property_id: workOrder.property_id
-            }
+            organization_id: orgId, user_id: null, notification_type: 'work_order_completed', category: 'operations',
+            title: 'Work Order Completed', message: `Work order "${data.title}" at ${propertyName} has been completed`,
+            action_url: `/admin/work-orders?id=${data.id}`, priority: 'normal',
+            metadata: { work_order_id: data.id, work_order_number: data.work_order_number, property_id: data.property_id }
           });
         }
-
-        // Notify team member if assignment changed
-        const previousAssignee = currentWorkOrder?.assigned_user_id;
-        const newAssignee = workOrder.assigned_user_id;
-        if (newAssignee && newAssignee !== previousAssignee) {
+        if (data.assigned_user_id && data.assigned_user_id !== previousAssignee) {
           await supabase.from('admin_notifications').insert({
-            organization_id: organization.id,
-            user_id: newAssignee, // Only notify this specific user
-            notification_type: 'work_order_assigned',
-            category: 'operations',
-            title: 'Work Order Assigned to You',
-            message: `You've been assigned to "${workOrder.title}" at ${propertyName}`,
-            action_url: `/admin/work-orders?id=${workOrder.id}`,
-            priority: workOrder.priority === 'critical' || workOrder.priority === 'high' ? 'high' : 'normal',
-            metadata: {
-              work_order_id: workOrder.id,
-              work_order_number: workOrder.work_order_number,
-              property_id: workOrder.property_id,
-              priority: workOrder.priority
-            }
+            organization_id: orgId, user_id: data.assigned_user_id, notification_type: 'work_order_assigned', category: 'operations',
+            title: 'Work Order Assigned to You', message: `You've been assigned to "${data.title}" at ${propertyName}`,
+            action_url: `/admin/work-orders?id=${data.id}`,
+            priority: data.priority === 'critical' || data.priority === 'high' ? 'high' : 'normal',
+            metadata: { work_order_id: data.id, work_order_number: data.work_order_number, property_id: data.property_id, priority: data.priority }
           });
         }
       }
-      
-      return data;
-    } catch (error) {
+    },
+    onError: (error) => {
       debug.error('Error updating work order:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update work order',
-        variant: 'destructive',
-      });
-      throw error;
-    }
-  };
+      toast({ title: 'Error', description: 'Failed to update work order', variant: 'destructive' });
+    },
+  });
 
-  const deleteWorkOrder = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('work_orders')
-        .delete()
-        .eq('id', id);
-
+  const deleteWorkOrderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('work_orders').delete().eq('id', id);
       if (error) throw error;
-      
-      setWorkOrders(prev => prev.filter(wo => wo.id !== id));
-      toast({
-        title: 'Success',
-        description: 'Work order deleted successfully',
-      });
-    } catch (error) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workOrderKeys.all(orgId || '') });
+      toast({ title: 'Success', description: 'Work order deleted successfully' });
+    },
+    onError: (error) => {
       debug.error('Error deleting work order:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete work order',
-        variant: 'destructive',
-      });
-      throw error;
-    }
-  };
+      toast({ title: 'Error', description: 'Failed to delete work order', variant: 'destructive' });
+    },
+  });
 
-  const createContractor = async (contractorData: Omit<Contractor, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
-    try {
+  const createContractorMutation = useMutation({
+    mutationFn: async (contractorData: Omit<Contractor, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
-      if (!organization?.id) throw new Error('Organization not loaded');
+      if (!orgId) throw new Error('Organization not loaded');
 
       const { data, error } = await supabase
         .from('contractors')
-        .insert({
-          ...contractorData,
-          created_by: user.id,
-          organization_id: organization.id,
-        })
+        .insert({ ...contractorData, created_by: user.id, organization_id: orgId })
         .select()
         .single();
 
       if (error) throw error;
-      
-      setContractors(prev => [data, ...prev]);
-      toast({
-        title: 'Success',
-        description: 'Contractor created successfully',
-      });
-      
       return data;
-    } catch (error) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workOrderKeys.contractors(orgId || '') });
+      toast({ title: 'Success', description: 'Contractor created successfully' });
+    },
+    onError: (error) => {
       debug.error('Error creating contractor:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create contractor',
-        variant: 'destructive',
-      });
-      throw error;
-    }
-  };
+      toast({ title: 'Error', description: 'Failed to create contractor', variant: 'destructive' });
+    },
+  });
 
-  const updateContractor = async (id: string, updates: Partial<Contractor>) => {
-    try {
-      const { data, error } = await supabase
-        .from('contractors')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
+  const updateContractorMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Contractor> }) => {
+      const { data, error } = await supabase.from('contractors').update(updates).eq('id', id).select().single();
       if (error) throw error;
-      
-      setContractors(prev => prev.map(contractor => contractor.id === id ? data : contractor));
-      toast({
-        title: 'Success',
-        description: 'Contractor updated successfully',
-      });
-      
       return data;
-    } catch (error) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workOrderKeys.contractors(orgId || '') });
+      toast({ title: 'Success', description: 'Contractor updated successfully' });
+    },
+    onError: (error) => {
       debug.error('Error updating contractor:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update contractor',
-        variant: 'destructive',
-      });
-      throw error;
-    }
-  };
+      toast({ title: 'Error', description: 'Failed to update contractor', variant: 'destructive' });
+    },
+  });
 
-  const deleteContractor = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('contractors')
-        .delete()
-        .eq('id', id);
-
+  const deleteContractorMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('contractors').delete().eq('id', id);
       if (error) throw error;
-      
-      setContractors(prev => prev.filter(contractor => contractor.id !== id));
-      toast({
-        title: 'Success',
-        description: 'Contractor deleted successfully',
-      });
-    } catch (error) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workOrderKeys.contractors(orgId || '') });
+      toast({ title: 'Success', description: 'Contractor deleted successfully' });
+    },
+    onError: (error) => {
       debug.error('Error deleting contractor:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete contractor',
-        variant: 'destructive',
-      });
-      throw error;
-    }
-  };
+      toast({ title: 'Error', description: 'Failed to delete contractor', variant: 'destructive' });
+    },
+  });
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (orgLoading) return;
-      setLoading(true);
-      await Promise.all([fetchWorkOrders(), fetchContractors()]);
-      setLoading(false);
-    };
-    
-    loadData();
-  }, [orgLoading, fetchWorkOrders, fetchContractors]);
-
-  const refreshData = () => {
-    fetchWorkOrders();
-    fetchContractors();
-  };
+  // Backward-compatible API wrappers
+  const createWorkOrder = (data: any) => createWorkOrderMutation.mutateAsync(data);
+  const updateWorkOrder = (id: string, updates: Partial<WorkOrder>) => updateWorkOrderMutation.mutateAsync({ id, updates }).then(r => r.data);
+  const deleteWorkOrder = (id: string) => deleteWorkOrderMutation.mutateAsync(id);
+  const createContractor = (data: any) => createContractorMutation.mutateAsync(data);
+  const updateContractor = (id: string, updates: Partial<Contractor>) => updateContractorMutation.mutateAsync({ id, updates });
+  const deleteContractor = (id: string) => deleteContractorMutation.mutateAsync(id);
 
   return {
-    workOrders,
-    contractors,
-    loading,
+    workOrders: workOrdersQuery.data || [],
+    contractors: contractorsQuery.data || [],
+    loading: workOrdersQuery.isLoading || contractorsQuery.isLoading,
+    error: workOrdersQuery.error || contractorsQuery.error,
     createWorkOrder,
     updateWorkOrder,
     deleteWorkOrder,
     createContractor,
     updateContractor,
     deleteContractor,
-    refreshData,
+    // Keep refreshData for backward compat but now it just invalidates cache
+    refreshData: invalidateAll,
   };
 };
