@@ -13,6 +13,7 @@ interface User {
   created_at: string;
   updated_at: string;
   organization_role?: string; // Role within the organization (owner, admin, member)
+  team_role?: string; // Granular team role (owner, manager, staff, maintenance, cleaner, view_only)
 }
 
 export const useUserFetch = () => {
@@ -43,7 +44,7 @@ export const useUserFetch = () => {
       // Fetch organization members
       const { data: members, error: membersError } = await supabase
         .from('organization_members')
-        .select('id, user_id, role, joined_at')
+        .select('id, user_id, role, team_role, joined_at')
         .eq('organization_id', organization.id)
         .order('joined_at', { ascending: false });
 
@@ -91,6 +92,7 @@ export const useUserFetch = () => {
             created_at: profile.created_at,
             updated_at: profile.updated_at,
             organization_role: member.role,
+            team_role: member.team_role || undefined,
           };
         });
 

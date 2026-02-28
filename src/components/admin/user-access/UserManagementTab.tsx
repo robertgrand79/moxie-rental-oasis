@@ -115,18 +115,21 @@ const UserManagementTab = () => {
   const handleTeamRoleChange = async (userId: string, newTeamRole: string) => {
     if (!organization?.id) return;
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('organization_members')
       .update({ 
         team_role: newTeamRole as any,
         role: newTeamRole === 'owner' ? 'owner' : newTeamRole === 'manager' ? 'admin' : 'member',
       })
       .eq('user_id', userId)
-      .eq('organization_id', organization.id);
+      .eq('organization_id', organization.id)
+      .select();
 
     if (error) {
-      toast.error('Failed to update role');
+      toast.error('Failed to update role: ' + error.message);
       console.error(error);
+    } else if (!data || data.length === 0) {
+      toast.error('Permission denied: unable to update role');
     } else {
       toast.success(`Role updated to ${newTeamRole}`);
       fetchUsers();
