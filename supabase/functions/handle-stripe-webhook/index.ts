@@ -487,6 +487,50 @@ serve(async (req) => {
         break;
       }
 
+      case "account.updated": {
+        // Handle Stripe Connect account status updates
+        const account = event.data.object as any;
+        const connectAccountId = account.id;
+        logStep("Processing account.updated", { accountId: connectAccountId });
+
+        // Find org by stripe_connect_id
+        const { data: connectedOrg } = await supabaseClient
+          .from("organizations")
+          .select("id, stripe_connect_status")
+          .eq("stripe_connect_id", connectAccountId)
+          .single();
+
+        if (connectedOrg) {
+          const isActive = account.charges_enabled && account.payouts_enabled;
+          const newStatus = isActive ? "active" : account.details_submitted ? "pending_verification" : "pending";
+
+          await supabaseClient
+            .from("organizations")
+            .update({
+              stripe_connect_status: newStatus,
+              payments_enabled: isActive,
+            })
+            .eq("id", connectedOrg.id);
+
+          logStep("Organization Connect status updated", { orgId: connectedOrg.id, status: newStatus, paymentsEnabled: isActive });
+
+          // Notify org admins
+          if (isActive && connectedOrg.stripe_connect_status !== "active") {
+            await supabaseClient.from("admin_notifications").insert({
+              organization_id: connectedOrg.id,
+              user_id: null,
+              notification_type: "stripe_connected",
+              category: "payments",
+              title: "Stripe Account Activated!",
+              message: "Your Stripe account is now active. You can start accepting payments.",
+              action_url: "/admin/settings/payments",
+              priority: "high",
+            });
+          }
+        }
+        break;
+      }
+
       default:
         logStep("Unhandled event type", { type: event.type });
     }

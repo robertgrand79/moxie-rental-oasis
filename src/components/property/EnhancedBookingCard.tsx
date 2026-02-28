@@ -7,6 +7,8 @@ import { Property } from '@/types/property';
 import { Calendar, Users, Wifi, Car, Shield, Clock, Star, MapPin } from 'lucide-react';
 import GuestBookingWidget from '@/components/booking/GuestBookingWidget';
 import AvailabilityDisplay from '@/components/booking/AvailabilityDisplay';
+import BookingUnavailableBanner from '@/components/property/BookingUnavailableBanner';
+import { useOrgPaymentStatus } from '@/hooks/useOrgPaymentStatus';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface EnhancedBookingCardProps {
@@ -22,8 +24,10 @@ const EnhancedBookingCard = ({
 }: EnhancedBookingCardProps) => {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('book');
+  const { payments_enabled, loading: paymentStatusLoading } = useOrgPaymentStatus(property.organization_id);
 
-  const hasBookingUrl = true; // Always available with internal system
+  const hasBookingUrl = true;
+  const bookingDisabled = !paymentStatusLoading && !payments_enabled;
 
   const handleBookingComplete = (reservationId: string) => {
     setIsBookingModalOpen(false);
@@ -42,6 +46,9 @@ const EnhancedBookingCard = ({
   };
 
   const renderBookingButton = () => {
+    if (bookingDisabled) {
+      return <BookingUnavailableBanner />;
+    }
     return (
       <Button 
         onClick={() => setIsBookingModalOpen(true)}
