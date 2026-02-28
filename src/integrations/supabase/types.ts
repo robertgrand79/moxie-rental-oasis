@@ -12871,6 +12871,10 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      user_is_org_owner_or_manager: {
+        Args: { _organization_id: string; _user_id: string }
+        Returns: boolean
+      }
       validate_promo_code: {
         Args: {
           p_booking_total: number
