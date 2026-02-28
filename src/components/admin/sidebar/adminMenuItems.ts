@@ -12,7 +12,6 @@ import {
   Star,
   Settings,
   Shield,
-  AlertTriangle,
   MessageSquare,
   ClipboardList,
   Sparkles,
@@ -21,9 +20,27 @@ import {
   HelpCircle,
   Ticket,
   Activity,
+  Users,
 } from 'lucide-react';
+import type { PermissionKey } from '@/hooks/useTeamPermissions';
 
-export const adminMenuItems = [
+export interface MenuItem {
+  title: string;
+  href: string;
+  icon: typeof BarChart3;
+  description: string;
+  /** If set, user must have this permission to see the item */
+  requiredPermission?: PermissionKey;
+}
+
+export interface MenuSection {
+  title: string;
+  items: MenuItem[];
+  /** If set, user must have this permission to see the entire section */
+  requiredPermission?: PermissionKey;
+}
+
+export const adminMenuItems: MenuSection[] = [
   {
     title: 'Overview',
     items: [
@@ -31,13 +48,14 @@ export const adminMenuItems = [
         title: 'Dashboard',
         href: '/admin',
         icon: BarChart3,
-        description: 'Main admin dashboard with analytics'
+        description: 'Main admin dashboard with analytics',
+        requiredPermission: 'view_dashboard',
       },
       {
         title: 'Notifications',
         href: '/admin/notifications',
         icon: Bell,
-        description: 'View and manage your notifications'
+        description: 'View and manage your notifications',
       }
     ]
   },
@@ -48,129 +66,151 @@ export const adminMenuItems = [
         title: 'Properties',
         href: '/admin/properties',
         icon: Home,
-        description: 'Manage rental properties'
+        description: 'Manage rental properties',
+        requiredPermission: 'view_properties',
       },
       {
         title: 'Work Orders',
         href: '/admin/work-orders',
         icon: Wrench,
-        description: 'Property maintenance and work orders'
+        description: 'Property maintenance and work orders',
       },
       {
         title: 'Contractors',
         href: '/admin/contractors',
         icon: HardHat,
-        description: 'Manage contractors and service providers'
+        description: 'Manage contractors and service providers',
+        requiredPermission: 'manage_bookings',
       },
       {
         title: 'Checklists',
         href: '/admin/checklists',
         icon: ClipboardList,
-        description: 'Seasonal and periodic maintenance checklists'
+        description: 'Seasonal and periodic maintenance checklists',
       }
     ]
   },
   {
     title: 'Content Management',
+    requiredPermission: 'edit_site',
     items: [
       {
         title: 'Blog Management',
         href: '/admin/blog',
         icon: BookOpen,
-        description: 'Create and manage blog posts'
+        description: 'Create and manage blog posts',
       },
       {
         title: 'Custom Pages',
         href: '/admin/pages',
         icon: FileText,
-        description: 'Create additional custom pages for your site'
+        description: 'Create additional custom pages for your site',
       },
       {
         title: 'Newsletter',
         href: '/admin/newsletter',
         icon: Mail,
-        description: 'Newsletter campaigns and subscribers'
+        description: 'Newsletter campaigns and subscribers',
       },
       {
         title: 'AI Assistant',
         href: '/admin/ai-assistant',
         icon: Sparkles,
-        description: 'Your AI-powered assistant for content and productivity'
+        description: 'Your AI-powered assistant for content and productivity',
       }
     ]
   },
   {
     title: 'Local Content',
+    requiredPermission: 'edit_site',
     items: [
       {
         title: 'Events',
         href: '/admin/events',
         icon: Calendar,
-        description: 'Manage local events and activities'
+        description: 'Manage local events and activities',
       },
       {
         title: 'Places',
         href: '/admin/places',
         icon: MapPin,
-        description: 'Manage restaurants, attractions, activities, and local places'
+        description: 'Manage restaurants, attractions, activities, and local places',
       },
       {
         title: 'Reviews',
         href: '/admin/reviews',
         icon: Star,
-        description: 'Guest reviews and testimonials'
+        description: 'Guest reviews and testimonials',
       }
     ]
   },
   {
     title: 'Host Management',
+    requiredPermission: 'view_bookings',
     items: [
       {
         title: 'Property Analytics',
         href: '/admin/host/analytics',
         icon: TrendingUp,
-        description: 'Revenue tracking, occupancy rates, and performance metrics'
+        description: 'Revenue tracking, occupancy rates, and performance metrics',
+        requiredPermission: 'view_reports',
       },
       {
         title: 'Reports',
         href: '/admin/reports',
         icon: FileBarChart,
-        description: 'Booking, revenue, occupancy, guest and tax reports'
+        description: 'Booking, revenue, occupancy, guest and tax reports',
+        requiredPermission: 'view_reports',
       },
       {
         title: 'Booking Management',
         href: '/admin/host/bookings',
         icon: Calendar,
-        description: 'Manage reservations, cleaning coordination, and work orders'
+        description: 'Manage reservations, cleaning coordination, and work orders',
       },
       {
         title: 'Calendar Management',
         href: '/admin/calendar',
         icon: Calendar,
-        description: 'View bookings, pricing calendar, PriceLabs integration, and external calendar sync'
+        description: 'View bookings, pricing calendar, PriceLabs integration, and external calendar sync',
       },
       {
         title: 'Guest Inbox',
         href: '/admin/host/inbox',
         icon: Mail,
-        description: 'Unified inbox for all guest communications'
+        description: 'Unified inbox for all guest communications',
+        requiredPermission: 'respond_inquiries',
       },
       {
         title: 'Guest Experience',
         href: '/admin/guest-experience',
         icon: MessageSquare,
-        description: 'Automated messaging rules and templates'
+        description: 'Automated messaging rules and templates',
+        requiredPermission: 'respond_inquiries',
+      }
+    ]
+  },
+  {
+    title: 'Team',
+    requiredPermission: 'manage_team',
+    items: [
+      {
+        title: 'Team Management',
+        href: '/admin/settings/team',
+        icon: Users,
+        description: 'Manage team members, roles, and permissions',
       }
     ]
   },
   {
     title: 'Configuration',
+    requiredPermission: 'account_settings',
     items: [
       {
         title: 'Settings',
         href: '/admin/settings',
         icon: Settings,
-        description: 'Site, organization, integrations, team & access'
+        description: 'Site, organization, integrations, team & access',
       }
     ]
   },
@@ -181,19 +221,19 @@ export const adminMenuItems = [
         title: 'Help Center',
         href: '/admin/help',
         icon: HelpCircle,
-        description: 'Documentation, guides, and FAQs'
+        description: 'Documentation, guides, and FAQs',
       },
       {
         title: 'My Requests',
         href: '/admin/my-requests',
         icon: Ticket,
-        description: 'View your support tickets and feedback'
+        description: 'View your support tickets and feedback',
       },
       {
         title: 'System Status',
         href: '/admin/status',
         icon: Activity,
-        description: 'Check system health and status'
+        description: 'Check system health and status',
       }
     ]
   },
@@ -204,7 +244,7 @@ export const adminMenuItems = [
         title: 'Platform Command Center',
         href: '/admin/platform',
         icon: Shield,
-        description: 'Platform-wide administration and organization management (Super Admins only)'
+        description: 'Platform-wide administration and organization management (Super Admins only)',
       }
     ]
   }

@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
-export type TeamRole = 'owner' | 'manager' | 'staff' | 'view_only';
+export type TeamRole = 'owner' | 'manager' | 'staff' | 'maintenance' | 'cleaner' | 'view_only';
 
 export type PermissionKey = 
   | 'view_dashboard'
@@ -87,6 +87,38 @@ const DEFAULT_PERMISSIONS: Record<TeamRole, Record<PermissionKey, boolean>> = {
     manage_team: false,
     account_settings: false,
   },
+  maintenance: {
+    view_dashboard: true,
+    view_properties: true,
+    edit_properties: false,
+    add_delete_properties: false,
+    view_bookings: false,
+    manage_bookings: false,
+    view_guest_info: false,
+    respond_inquiries: false,
+    edit_site: false,
+    view_reports: false,
+    export_data: false,
+    manage_billing: false,
+    manage_team: false,
+    account_settings: false,
+  },
+  cleaner: {
+    view_dashboard: true,
+    view_properties: true,
+    edit_properties: false,
+    add_delete_properties: false,
+    view_bookings: false,
+    manage_bookings: false,
+    view_guest_info: false,
+    respond_inquiries: false,
+    edit_site: false,
+    view_reports: false,
+    export_data: false,
+    manage_billing: false,
+    manage_team: false,
+    account_settings: false,
+  },
 };
 
 interface TeamPermissionsHook {
@@ -110,7 +142,10 @@ interface TeamPermissionsHook {
   isOwner: boolean;
   isManager: boolean;
   isStaff: boolean;
+  isMaintenance: boolean;
+  isCleaner: boolean;
   isViewOnly: boolean;
+  isFieldRole: boolean;
   refetch: () => Promise<void>;
 }
 
@@ -214,7 +249,10 @@ export const useTeamPermissions = (): TeamPermissionsHook => {
     isOwner: teamRole === 'owner',
     isManager: teamRole === 'manager',
     isStaff: teamRole === 'staff',
+    isMaintenance: teamRole === 'maintenance',
+    isCleaner: teamRole === 'cleaner',
     isViewOnly: teamRole === 'view_only',
+    isFieldRole: teamRole === 'maintenance' || teamRole === 'cleaner',
     refetch: fetchTeamRole,
   };
 };
