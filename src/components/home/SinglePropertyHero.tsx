@@ -2,6 +2,7 @@ import React from 'react';
 import { Property } from '@/types/property';
 import { Bed, Bath, Users, MapPin } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { getOptimizedImageUrl } from '@/utils/imageOptimization';
 
 interface SinglePropertyHeroProps {
   property: Property;
@@ -13,7 +14,7 @@ const SinglePropertyHero: React.FC<SinglePropertyHeroProps> = ({ property, cover
     <section className="relative w-full">
       <AspectRatio ratio={16/7} className="w-full">
         <img
-          src={coverImage}
+          src={getOptimizedImageUrl(coverImage, { width: 1400, quality: 50, format: 'webp' })}
           alt={property.title}
           className="object-cover w-full h-full"
           fetchPriority="high"

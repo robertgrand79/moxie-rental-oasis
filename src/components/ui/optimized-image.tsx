@@ -27,7 +27,7 @@ const OptimizedImage = ({
   fallbackIcon = true,
   priority = false,
   sizes,
-  quality = 70,
+  quality = 50,
   width,
   height,
   ...props 
