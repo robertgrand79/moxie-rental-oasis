@@ -52,7 +52,6 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!membership) {
-      // Check if platform admin
       const { data: platformAdmin } = await supabase
         .from('platform_admins')
         .select('id')
@@ -68,80 +67,41 @@ Deno.serve(async (req) => {
       }
     }
 
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    // Read from the materialized view — single row, single query
+    const { data: stats, error: statsError } = await supabase
+      .from('organization_stats_summary')
+      .select('*')
+      .eq('organization_id', organization_id)
+      .maybeSingle();
 
-    // Single consolidated query using CTE pattern via parallel promises on the server
-    // This uses 1 connection from the pool instead of 20 from the browser
-    const [
-      propertiesResult,
-      blogTotalResult,
-      blogPublishedResult,
-      poiTotalResult,
-      poiFeaturedResult,
-      galleryTotalResult,
-      galleryFeaturedResult,
-      subscribersTotalResult,
-      subscribersMonthResult,
-      recentPostsResult,
-      checkInsResult,
-      checkOutsResult,
-      workOrdersResult,
-      bookingsMonthResult,
-      revenueResult,
-      reviewsResult,
-    ] = await Promise.all([
-      supabase.from('properties').select('id', { count: 'exact', head: true }).eq('organization_id', organization_id),
-      supabase.from('blog_posts').select('*', { count: 'exact', head: true }).eq('organization_id', organization_id),
-      supabase.from('blog_posts').select('*', { count: 'exact', head: true }).eq('organization_id', organization_id).eq('status', 'published'),
-      supabase.from('places').select('*', { count: 'exact', head: true }).eq('organization_id', organization_id),
-      supabase.from('places').select('*', { count: 'exact', head: true }).eq('organization_id', organization_id).eq('is_featured', true),
-      supabase.from('lifestyle_gallery').select('*', { count: 'exact', head: true }).eq('organization_id', organization_id),
-      supabase.from('lifestyle_gallery').select('*', { count: 'exact', head: true }).eq('organization_id', organization_id).eq('is_featured', true),
-      supabase.from('newsletter_subscribers').select('*', { count: 'exact', head: true }).eq('is_active', true).eq('email_opt_in', true),
-      supabase.from('newsletter_subscribers').select('*', { count: 'exact', head: true }).eq('is_active', true).gte('subscribed_at', startOfMonth),
-      supabase.from('blog_posts').select('id, title, status, created_at').eq('organization_id', organization_id).order('created_at', { ascending: false }).limit(5),
-      // Check-ins today (via property_reservations scoped by org properties)
-      supabase.from('property_reservations').select('*', { count: 'exact', head: true }).eq('organization_id', organization_id).eq('check_in_date', todayStr).eq('booking_status', 'confirmed'),
-      supabase.from('property_reservations').select('*', { count: 'exact', head: true }).eq('organization_id', organization_id).eq('check_out_date', todayStr).eq('booking_status', 'confirmed'),
-      supabase.from('work_orders').select('*', { count: 'exact', head: true }).eq('organization_id', organization_id).in('status', ['pending', 'in_progress']),
-      supabase.from('property_reservations').select('*', { count: 'exact', head: true }).eq('organization_id', organization_id).gte('created_at', startOfMonth),
-      supabase.from('property_reservations').select('total_amount').eq('organization_id', organization_id).gte('created_at', startOfMonth).eq('booking_status', 'confirmed'),
-      supabase.from('testimonials').select('rating, organization_id').eq('organization_id', organization_id).eq('is_active', true),
-    ]);
+    // Fetch recent blog posts (not in the MV since it's row-level data)
+    const { data: recentPosts } = await supabase
+      .from('blog_posts')
+      .select('id, title, status, created_at')
+      .eq('organization_id', organization_id)
+      .order('created_at', { ascending: false })
+      .limit(5);
 
-    // Calculate revenue
-    const revenueThisMonth = (revenueResult.data as { total_amount: number }[] | null)?.reduce(
-      (sum, r) => sum + (r.total_amount || 0), 0
-    ) || 0;
-
-    // Calculate average rating
-    const reviews = reviewsResult.data || [];
-    const totalReviews = reviews.length;
-    const averageRating = totalReviews > 0
-      ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / totalReviews
-      : null;
+    const s = stats || {};
 
     const result = {
-      // Content stats (useDashboardStats)
-      properties: { total: propertiesResult.count || 0 },
-      blogPosts: { total: blogTotalResult.count || 0, published: blogPublishedResult.count || 0 },
-      pointsOfInterest: { total: poiTotalResult.count || 0, featured: poiFeaturedResult.count || 0 },
-      galleryItems: { total: galleryTotalResult.count || 0, featured: galleryFeaturedResult.count || 0 },
-      testimonials: { total: (reviewsResult.data || []).length, featured: 0 },
-      subscriberCount: subscribersTotalResult.count || 0,
-      recentBlogPosts: recentPostsResult.data || [],
-      // Analytics stats (useSimplifiedAnalytics)
-      checkInsToday: checkInsResult.count || 0,
-      checkOutsToday: checkOutsResult.count || 0,
-      openWorkOrders: workOrdersResult.count || 0,
-      bookingsThisMonth: bookingsMonthResult.count || 0,
-      revenueThisMonth,
-      subscribersThisMonth: subscribersMonthResult.count || 0,
-      totalSubscribers: subscribersTotalResult.count || 0,
-      averageRating,
-      totalReviews,
+      properties: { total: s.total_properties ?? 0 },
+      blogPosts: { total: s.total_blog_posts ?? 0, published: s.published_blog_posts ?? 0 },
+      pointsOfInterest: { total: s.total_pois ?? 0, featured: s.featured_pois ?? 0 },
+      galleryItems: { total: s.total_gallery_items ?? 0, featured: s.featured_gallery_items ?? 0 },
+      testimonials: { total: s.total_testimonials ?? 0, featured: s.featured_testimonials ?? 0 },
+      subscriberCount: s.total_subscribers ?? 0,
+      recentBlogPosts: recentPosts || [],
+      checkInsToday: s.check_ins_today ?? 0,
+      checkOutsToday: s.check_outs_today ?? 0,
+      openWorkOrders: s.open_work_orders ?? 0,
+      bookingsThisMonth: s.bookings_this_month ?? 0,
+      revenueThisMonth: s.revenue_this_month ?? 0,
+      subscribersThisMonth: s.subscribers_this_month ?? 0,
+      totalSubscribers: s.total_subscribers ?? 0,
+      averageRating: s.average_rating ?? null,
+      totalReviews: s.total_reviews ?? 0,
+      lastRefreshedAt: s.last_refreshed_at ?? null,
     };
 
     return new Response(JSON.stringify(result), {
