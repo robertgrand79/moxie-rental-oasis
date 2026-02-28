@@ -147,6 +147,8 @@ const PriceLabsSettingsPage = lazy(() => import('@/pages/admin/settings/PriceLab
 const SetupWizardPage = lazy(() => import('@/pages/admin/settings/SetupWizardPage'));
 const TVDevicesSettingsPage = lazy(() => import('@/pages/admin/settings/TVDevicesSettingsPage'));
 const NavigationSettingsPage = lazy(() => import('@/pages/admin/settings/NavigationSettingsPage'));
+const TeamSettingsPage = lazy(() => import('@/pages/admin/settings/TeamSettingsPage'));
+const PermissionGate = lazy(() => import('@/components/PermissionGate'));
 
 // TV Pages
 const TVWelcome = lazy(() => import('@/pages/tv/TVWelcome'));
@@ -275,21 +277,21 @@ const AppRoutes: React.FC = () => {
             <Route path="settings/colors" element={<ColorsSettingsPage />} />
             <Route path="settings/fonts" element={<FontsSettingsPage />} />
             <Route path="settings/branding" element={<BrandingSettingsPage />} />
-            <Route path="settings/users" element={<UsersSettingsPage />} />
+            <Route path="settings/users" element={<PermissionGate requiredPermission="manage_team"><UsersSettingsPage /></PermissionGate>} />
             <Route path="settings/roles" element={<RolesSettingsPage />} />
             <Route path="settings/notifications-settings" element={<NotificationsSettingsPage />} />
             <Route path="settings/ai-assistant" element={<AIAssistantSettingsPage />} />
             <Route path="settings/communications" element={<CommunicationsSettingsPage />} />
             <Route path="settings/smart-home" element={<SmartHomeSettingsPage />} />
             <Route path="settings/services" element={<ServicesSettingsPage />} />
-            <Route path="settings/stripe" element={<StripeSettingsPage />} />
+            <Route path="settings/stripe" element={<PermissionGate requiredPermission="manage_billing"><StripeSettingsPage /></PermissionGate>} />
             <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
             <Route path="settings/tv-devices" element={<TVDevicesSettingsPage />} />
             {/* Redirects for old settings routes */}
             <Route path="settings/organization" element={<Navigate to="/admin/settings/general" replace />} />
             <Route path="settings/site-content" element={<Navigate to="/admin/settings/site-info" replace />} />
             <Route path="settings/appearance" element={<Navigate to="/admin/settings/colors" replace />} />
-            <Route path="settings/team" element={<Navigate to="/admin/settings/users" replace />} />
+            <Route path="settings/team" element={<PermissionGate requiredPermission="manage_team"><TeamSettingsPage /></PermissionGate>} />
             <Route path="settings/integrations" element={<Navigate to="/admin/settings/ai-assistant" replace />} />
             <Route path="settings/payments" element={<Navigate to="/admin/settings/stripe" replace />} />
             {/* Redirects for old routes */}
@@ -445,21 +447,21 @@ const AppRoutes: React.FC = () => {
           <Route path="settings/colors" element={<ColorsSettingsPage />} />
           <Route path="settings/fonts" element={<FontsSettingsPage />} />
           <Route path="settings/branding" element={<BrandingSettingsPage />} />
-          <Route path="settings/users" element={<UsersSettingsPage />} />
+          <Route path="settings/users" element={<PermissionGate requiredPermission="manage_team"><UsersSettingsPage /></PermissionGate>} />
           <Route path="settings/roles" element={<RolesSettingsPage />} />
           <Route path="settings/notifications-settings" element={<NotificationsSettingsPage />} />
           <Route path="settings/ai-assistant" element={<AIAssistantSettingsPage />} />
           <Route path="settings/communications" element={<CommunicationsSettingsPage />} />
           <Route path="settings/smart-home" element={<SmartHomeSettingsPage />} />
           <Route path="settings/services" element={<ServicesSettingsPage />} />
-          <Route path="settings/stripe" element={<StripeSettingsPage />} />
+          <Route path="settings/stripe" element={<PermissionGate requiredPermission="manage_billing"><StripeSettingsPage /></PermissionGate>} />
           <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
           <Route path="settings/tv-devices" element={<TVDevicesSettingsPage />} />
           {/* Redirects for old settings routes */}
           <Route path="settings/organization" element={<Navigate to="/admin/settings/general" replace />} />
           <Route path="settings/site-content" element={<Navigate to="/admin/settings/site-info" replace />} />
           <Route path="settings/appearance" element={<Navigate to="/admin/settings/colors" replace />} />
-          <Route path="settings/team" element={<Navigate to="/admin/settings/users" replace />} />
+          <Route path="settings/team" element={<PermissionGate requiredPermission="manage_team"><TeamSettingsPage /></PermissionGate>} />
           <Route path="settings/integrations" element={<Navigate to="/admin/settings/ai-assistant" replace />} />
           <Route path="settings/payments" element={<Navigate to="/admin/settings/stripe" replace />} />
           <Route path="settings/local-content" element={<Navigate to="/admin/settings/site-info" replace />} />
