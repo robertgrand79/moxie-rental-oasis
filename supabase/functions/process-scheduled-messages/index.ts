@@ -21,7 +21,19 @@ function processTemplate(template: string, variables: Record<string, string>): s
   for (const [key, value] of Object.entries(variables)) {
     processed = processed.replace(new RegExp(`{{${key}}}`, "g"), value || "");
   }
+  // Clean up any remaining unreplaced variables
+  processed = processed.replace(/\{\{[a-zA-Z_]+\}\}/g, "");
   return processed;
+}
+
+// Generate address-based slug for guidebook URL (mirrors src/utils/addressSlug.ts)
+function generateAddressSlug(location: string): string {
+  return location
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 // Map category to fallback template generator
@@ -125,7 +137,7 @@ serve(async (req) => {
           guest_count,
           total_amount,
           property_id,
-          properties(title, location, organization_id)
+          properties(title, location, organization_id, organizations(slug, custom_domain))
         ),
         messaging_rules(delivery_channel)
       `)
@@ -238,7 +250,21 @@ serve(async (req) => {
           wifi_network: "",
           wifi_password: "",
           door_code: "",
-          guidebook_link: `${Deno.env.get("SITE_URL") || ""}/guest/guidebook/${reservation.property_id}`,
+          guidebook_link: (() => {
+            // Build guidebook URL using org custom domain or slug-based URL
+            const org = reservation.properties?.organizations;
+            const propertyLocation = reservation.properties?.location;
+            const propertySlug = propertyLocation ? generateAddressSlug(propertyLocation) : reservation.property_id;
+            
+            if (org?.custom_domain) {
+              return `https://${org.custom_domain}/guest/guidebook/${reservation.property_id}`;
+            } else if (org?.slug) {
+              const siteUrl = Deno.env.get("SITE_URL") || `https://${org.slug}.lovable.app`;
+              return `${siteUrl}/guest/guidebook/${reservation.property_id}`;
+            }
+            return `${Deno.env.get("SITE_URL") || ""}/guest/guidebook/${reservation.property_id}`;
+          })(),
+          property_slug: reservation.properties?.location ? generateAddressSlug(reservation.properties.location) : "",
           // Company info for email templates
           company_name: orgSettings?.siteName || fromName,
           company_email: orgSettings?.contactEmail || replyTo,

@@ -23,10 +23,10 @@ serve(async (req) => {
     const { reservation_id }: ScheduleRequest = await req.json();
     console.log(`Scheduling messages for reservation: ${reservation_id}`);
 
-    // Get reservation details
+    // Get reservation details with organization context
     const { data: reservation, error: resError } = await supabase
       .from("property_reservations")
-      .select("*, properties(id, title)")
+      .select("*, properties(id, title, organization_id, location)")
       .eq("id", reservation_id)
       .single();
 
@@ -38,21 +38,30 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Reservation found: ${reservation.guest_name}, property: ${reservation.property_id}`);
+    const organizationId = reservation.organization_id || reservation.properties?.organization_id;
+    console.log(`Reservation found: ${reservation.guest_name}, property: ${reservation.property_id}, org: ${organizationId}`);
 
-    // Get all active messaging rules (global + property-specific)
-    const { data: rules, error: rulesError } = await supabase
+    // Get all active messaging rules scoped to this organization
+    // Include global rules (property_id IS NULL) and property-specific rules
+    let rulesQuery = supabase
       .from("messaging_rules")
-      .select("*, message_templates(id, name, subject, content)")
-      .eq("is_active", true)
-      .or(`property_id.is.null,property_id.eq.${reservation.property_id}`);
+      .select("*, message_templates(id, name, subject, content, category)")
+      .eq("is_active", true);
+
+    if (organizationId) {
+      rulesQuery = rulesQuery.eq("organization_id", organizationId);
+    }
+    
+    rulesQuery = rulesQuery.or(`property_id.is.null,property_id.eq.${reservation.property_id}`);
+
+    const { data: rules, error: rulesError } = await rulesQuery;
 
     if (rulesError) {
       console.error("Error fetching rules:", rulesError);
       throw rulesError;
     }
 
-    console.log(`Found ${rules?.length || 0} active rules`);
+    console.log(`Found ${rules?.length || 0} active rules for org ${organizationId}`);
 
     if (!rules || rules.length === 0) {
       return new Response(
@@ -61,19 +70,34 @@ serve(async (req) => {
       );
     }
 
+    // Check for existing scheduled messages for this reservation to prevent duplicates
+    const { data: existingMessages } = await supabase
+      .from("scheduled_messages")
+      .select("rule_id")
+      .eq("reservation_id", reservation.id)
+      .in("status", ["pending", "sent"]);
+
+    const existingRuleIds = new Set((existingMessages || []).map(m => m.rule_id));
+
     const checkInDate = new Date(reservation.check_in_date);
     const checkOutDate = new Date(reservation.check_out_date);
     const now = new Date();
     const scheduledMessages = [];
 
     for (const rule of rules) {
+      // Skip if this rule was already scheduled for this reservation
+      if (existingRuleIds.has(rule.id)) {
+        console.log(`Skipped rule "${rule.name}" - already scheduled for this reservation`);
+        continue;
+      }
+
       let scheduledFor: Date | null = null;
 
       // Calculate scheduled time based on trigger type
       switch (rule.trigger_type) {
         case "booking_confirmed":
           // Send immediately - schedule for now so process-scheduled-messages picks it up right away
-          scheduledFor = new Date(now.getTime());
+          scheduledFor = new Date(now.getTime() + 5000); // 5 seconds from now
           break;
 
         case "before_checkin":
@@ -106,8 +130,8 @@ serve(async (req) => {
           break;
       }
 
-      // Only schedule if the time is in the future
-      if (scheduledFor && scheduledFor > now) {
+      // Only schedule if the time is in the future (or for booking_confirmed, always schedule)
+      if (scheduledFor && (scheduledFor > now || rule.trigger_type === "booking_confirmed")) {
         const { data: scheduled, error: scheduleError } = await supabase
           .from("scheduled_messages")
           .insert({
