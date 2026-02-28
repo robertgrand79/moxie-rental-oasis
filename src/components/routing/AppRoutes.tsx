@@ -375,6 +375,11 @@ const AppRoutes: React.FC = () => {
           <Route path="signup" element={<PlatformSignup />} />
         </Route>
 
+        {/* Public standalone routes - BEFORE PublicLayout to avoid /:slug catch-all */}
+        <Route path="/acknowledge" element={<AcknowledgePage />} />
+        <Route path="/contractor/:token" element={<ContractorPortal />} />
+        <Route path="/auth/confirm" element={<AuthConfirm />} />
+
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<Index />} />
           <Route path="home" element={<Navigate to="/" replace />} />
@@ -406,11 +411,6 @@ const AppRoutes: React.FC = () => {
           <Route path="/guest/guidebook/:propertyId" element={<GuidebookPage />} />
           <Route path="/:slug" element={<DynamicPage />} />
         </Route>
-
-        {/* Public standalone routes */}
-        <Route path="/acknowledge" element={<AcknowledgePage />} />
-        <Route path="/contractor/:token" element={<ContractorPortal />} />
-        <Route path="/auth/confirm" element={<AuthConfirm />} />
         <Route path="/status" element={<Navigate to="/admin/status" replace />} />
 
         {/* TV Routes */}
