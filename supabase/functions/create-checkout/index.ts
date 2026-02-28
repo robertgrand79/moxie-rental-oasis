@@ -40,36 +40,47 @@ serve(async (req) => {
     // Determine which Stripe key to use
     let activeStripeKey = stripeKey;
     let stripeAccountId = null;
+    let useConnectSplit = false;
+    let connectAccountId = null;
+    let platformFeePercent = 10;
     
     if (propertyId) {
-      // Check if property has its own Stripe configuration (from secure credentials table)
-      const { data: propertyCredentials } = await supabaseClient
-        .rpc('get_property_stripe_credentials', { p_property_id: propertyId });
+      // Get property's organization
+      const { data: property } = await supabaseClient
+        .from('properties')
+        .select('organization_id')
+        .eq('id', propertyId)
+        .single();
 
-      if (propertyCredentials && propertyCredentials.length > 0 && propertyCredentials[0].stripe_secret_key) {
-        // Use property-specific Stripe account
-        activeStripeKey = propertyCredentials[0].stripe_secret_key;
-        stripeAccountId = propertyCredentials[0].stripe_account_id;
-        logStep("Using property-specific Stripe account", { stripeAccountId });
-      } else {
-        // Check if organization has Stripe configuration
-        const { data: property } = await supabaseClient
-          .from('properties')
-          .select('organization_id')
-          .eq('id', propertyId)
+      if (property?.organization_id) {
+        // Check if org has Stripe Connect configured and active
+        const { data: org } = await supabaseClient
+          .from('organizations')
+          .select('stripe_secret_key, stripe_account_id, stripe_connect_id, stripe_connect_status, payments_enabled, platform_fee_percent')
+          .eq('id', property.organization_id)
           .single();
 
-        if (property?.organization_id) {
-          const { data: org, error: orgError } = await supabaseClient
-            .from('organizations')
-            .select('stripe_secret_key, stripe_account_id')
-            .eq('id', property.organization_id)
-            .single();
-
-          if (!orgError && org?.stripe_secret_key) {
-            activeStripeKey = org.stripe_secret_key;
-            stripeAccountId = org.stripe_account_id;
-            logStep("Using organization-wide Stripe account", { stripeAccountId });
+        if (org?.stripe_connect_id && org?.payments_enabled && org?.stripe_connect_status === 'active') {
+          // Use Stripe Connect with destination charges
+          useConnectSplit = true;
+          connectAccountId = org.stripe_connect_id;
+          platformFeePercent = org.platform_fee_percent || 10;
+          // Platform key handles the charge; destination goes to connected account
+          activeStripeKey = Deno.env.get("PLATFORM_STRIPE_SECRET_KEY") || stripeKey;
+          logStep("Using Stripe Connect split payment", { connectAccountId, platformFeePercent });
+        } else if (org?.stripe_secret_key) {
+          // Fallback: org's own Stripe key (legacy)
+          activeStripeKey = org.stripe_secret_key;
+          stripeAccountId = org.stripe_account_id;
+          logStep("Using organization-wide Stripe account (legacy)", { stripeAccountId });
+        } else {
+          // Check property-specific credentials
+          const { data: propertyCredentials } = await supabaseClient
+            .rpc('get_property_stripe_credentials', { p_property_id: propertyId });
+          if (propertyCredentials?.length > 0 && propertyCredentials[0].stripe_secret_key) {
+            activeStripeKey = propertyCredentials[0].stripe_secret_key;
+            stripeAccountId = propertyCredentials[0].stripe_account_id;
+            logStep("Using property-specific Stripe account", { stripeAccountId });
           }
         }
       }
@@ -89,8 +100,8 @@ serve(async (req) => {
       logStep("Existing customer found", { customerId });
     }
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Build checkout session params
+    const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : guestEmail,
       line_items: [
@@ -101,7 +112,7 @@ serve(async (req) => {
               name: `Booking: ${propertyTitle}`,
               description: `Stay from ${checkInDate} to ${checkOutDate}`
             },
-            unit_amount: Math.round(totalAmount * 100), // Convert to cents
+            unit_amount: Math.round(totalAmount * 100),
           },
           quantity: 1,
         },
@@ -114,7 +125,22 @@ serve(async (req) => {
         propertyId: propertyId || '',
         stripeAccountId: stripeAccountId || '',
       },
-    });
+    };
+
+    // Add Stripe Connect destination charge with platform fee
+    if (useConnectSplit && connectAccountId) {
+      const applicationFeeAmount = Math.round(totalAmount * 100 * (platformFeePercent / 100));
+      sessionParams.payment_intent_data = {
+        application_fee_amount: applicationFeeAmount,
+        transfer_data: {
+          destination: connectAccountId,
+        },
+      };
+      logStep("Destination charge configured", { applicationFeeAmount, destination: connectAccountId });
+    }
+
+    // Create checkout session
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     logStep("Checkout session created", { sessionId: session.id });
 

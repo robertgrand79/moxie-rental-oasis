@@ -5685,12 +5685,16 @@ export type Database = {
           openphone_phone_number: string | null
           openphone_webhook_secret: string | null
           openweather_api_key: string | null
+          payments_enabled: boolean | null
+          platform_fee_percent: number | null
           pricelabs_api_key: string | null
           resend_api_key: string | null
           seam_api_key: string | null
           seam_webhook_secret: string | null
           slug: string
           stripe_account_id: string | null
+          stripe_connect_id: string | null
+          stripe_connect_status: string | null
           stripe_customer_id: string | null
           stripe_publishable_key: string | null
           stripe_secret_key: string | null
@@ -5732,12 +5736,16 @@ export type Database = {
           openphone_phone_number?: string | null
           openphone_webhook_secret?: string | null
           openweather_api_key?: string | null
+          payments_enabled?: boolean | null
+          platform_fee_percent?: number | null
           pricelabs_api_key?: string | null
           resend_api_key?: string | null
           seam_api_key?: string | null
           seam_webhook_secret?: string | null
           slug: string
           stripe_account_id?: string | null
+          stripe_connect_id?: string | null
+          stripe_connect_status?: string | null
           stripe_customer_id?: string | null
           stripe_publishable_key?: string | null
           stripe_secret_key?: string | null
@@ -5779,12 +5787,16 @@ export type Database = {
           openphone_phone_number?: string | null
           openphone_webhook_secret?: string | null
           openweather_api_key?: string | null
+          payments_enabled?: boolean | null
+          platform_fee_percent?: number | null
           pricelabs_api_key?: string | null
           resend_api_key?: string | null
           seam_api_key?: string | null
           seam_webhook_secret?: string | null
           slug?: string
           stripe_account_id?: string | null
+          stripe_connect_id?: string | null
+          stripe_connect_status?: string | null
           stripe_customer_id?: string | null
           stripe_publishable_key?: string | null
           stripe_secret_key?: string | null
@@ -12380,8 +12392,12 @@ export type Database = {
           onboarding_completed: boolean | null
           onboarding_step: number | null
           openphone_phone_number: string | null
+          payments_enabled: boolean | null
+          platform_fee_percent: number | null
           slug: string | null
           stripe_account_id: string | null
+          stripe_connect_id: string | null
+          stripe_connect_status: string | null
           stripe_customer_id: string | null
           subscription_status: string | null
           subscription_tier: string | null
@@ -12415,8 +12431,12 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
           openphone_phone_number?: string | null
+          payments_enabled?: boolean | null
+          platform_fee_percent?: number | null
           slug?: string | null
           stripe_account_id?: string | null
+          stripe_connect_id?: string | null
+          stripe_connect_status?: string | null
           stripe_customer_id?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
@@ -12450,8 +12470,12 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
           openphone_phone_number?: string | null
+          payments_enabled?: boolean | null
+          platform_fee_percent?: number | null
           slug?: string | null
           stripe_account_id?: string | null
+          stripe_connect_id?: string | null
+          stripe_connect_status?: string | null
           stripe_customer_id?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
