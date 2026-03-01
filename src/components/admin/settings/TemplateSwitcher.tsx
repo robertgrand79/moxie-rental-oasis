@@ -89,7 +89,9 @@ const TemplateSwitcher: React.FC = () => {
         .select('active_template_slug, template_type')
         .eq('id', organization.id)
         .single();
-      return data?.active_template_slug || 'classic';
+      if (data?.active_template_slug) return data.active_template_slug;
+      // Default based on org type
+      return data?.template_type === 'multi_property' ? 'multi-classic' : 'classic';
     },
     enabled: !!organization?.id,
   });

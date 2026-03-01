@@ -36,10 +36,10 @@ const Index = () => {
       if (!tenantId) return 'classic';
       const { data } = await supabase
         .from('organizations')
-        .select('active_template_slug')
+        .select('active_template_slug, template_type')
         .eq('id', tenantId)
         .single();
-      return (data as any)?.active_template_slug || 'classic';
+      return (data as any)?.active_template_slug || ((data as any)?.template_type === 'multi_property' ? 'multi-classic' : 'classic');
     },
     enabled: !!tenantId,
     staleTime: 5 * 60 * 1000,
