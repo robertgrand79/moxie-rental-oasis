@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import SinglePropertyHome from '@/components/home/SinglePropertyHome';
@@ -26,11 +27,15 @@ import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 const Index = () => {
   const { isSingleProperty, tenantId } = useTenant();
   const { settings } = useSimplifiedSiteSettings();
+  const [searchParams] = useSearchParams();
 
   const youtubeVideoUrl = settings?.youtubeVideoUrl || '';
 
+  // Allow ?template=slug to override the active template (read-only preview)
+  const templateOverride = searchParams.get('template');
+
   // Fetch active template slug
-  const { data: activeTemplateSlug } = useQuery({
+  const { data: dbTemplateSlug } = useQuery({
     queryKey: ['active-template-slug', tenantId],
     queryFn: async () => {
       if (!tenantId) return 'classic';
@@ -44,6 +49,8 @@ const Index = () => {
     enabled: !!tenantId,
     staleTime: 5 * 60 * 1000,
   });
+
+  const activeTemplateSlug = templateOverride || dbTemplateSlug;
 
   // Single property sites - route to the correct template
   if (isSingleProperty) {
