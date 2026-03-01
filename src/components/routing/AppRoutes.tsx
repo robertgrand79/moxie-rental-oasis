@@ -145,6 +145,7 @@ const HeroSettingsPage = lazyRetry(() => import('@/pages/admin/settings/HeroSett
 const AboutSettingsPage = lazyRetry(() => import('@/pages/admin/settings/AboutSettingsPage'));
 const ContactSettingsPage = lazyRetry(() => import('@/pages/admin/settings/ContactSettingsPage'));
 const SEOSettingsPage = lazyRetry(() => import('@/pages/admin/settings/SEOSettingsPage'));
+const SocialSettingsPage = lazyRetry(() => import('@/pages/admin/settings/SocialSettingsPage'));
 const AnalyticsSettingsPage = lazyRetry(() => import('@/pages/admin/settings/AnalyticsSettingsPage'));
 const ColorsSettingsPage = lazyRetry(() => import('@/pages/admin/settings/ColorsSettingsPage'));
 const FontsSettingsPage = lazyRetry(() => import('@/pages/admin/settings/FontsSettingsPage'));
@@ -286,6 +287,7 @@ const AppRoutes: React.FC = () => {
             <Route path="settings/hero" element={<HeroSettingsPage />} />
             <Route path="settings/about" element={<AboutSettingsPage />} />
             <Route path="settings/contact" element={<ContactSettingsPage />} />
+            <Route path="settings/social" element={<SocialSettingsPage />} />
             <Route path="settings/seo" element={<SEOSettingsPage />} />
             <Route path="settings/analytics" element={<AnalyticsSettingsPage />} />
             <Route path="settings/colors" element={<ColorsSettingsPage />} />
@@ -456,6 +458,7 @@ const AppRoutes: React.FC = () => {
           <Route path="settings/hero" element={<HeroSettingsPage />} />
           <Route path="settings/about" element={<AboutSettingsPage />} />
           <Route path="settings/contact" element={<ContactSettingsPage />} />
+          <Route path="settings/social" element={<SocialSettingsPage />} />
           <Route path="settings/seo" element={<SEOSettingsPage />} />
           <Route path="settings/analytics" element={<AnalyticsSettingsPage />} />
           <Route path="settings/colors" element={<ColorsSettingsPage />} />

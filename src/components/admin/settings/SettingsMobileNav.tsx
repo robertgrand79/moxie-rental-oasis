@@ -32,6 +32,7 @@ import {
   Plug,
   CreditCard,
   DollarSign,
+  Share2,
 } from 'lucide-react';
 
 interface SettingsNavItem {
@@ -61,6 +62,7 @@ const settingsNavGroups: SettingsNavGroup[] = [
       { label: 'Hero Section', href: '/admin/settings/hero', icon: Image },
       { label: 'About Page', href: '/admin/settings/about', icon: UsersIcon },
       { label: 'Contact', href: '/admin/settings/contact', icon: Phone },
+      { label: 'Social & Media', href: '/admin/settings/social', icon: Share2 },
       { label: 'SEO', href: '/admin/settings/seo', icon: Search },
       { label: 'Analytics', href: '/admin/settings/analytics', icon: BarChart },
     ],
