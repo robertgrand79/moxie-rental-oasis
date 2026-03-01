@@ -61,6 +61,19 @@ const SINGLE_TEMPLATES: TemplateOption[] = [
     ],
     templateType: 'single_property',
   },
+  {
+    slug: 'lux-single',
+    name: 'Lux',
+    description: 'Ultra-premium boutique hotel aesthetic. Full-screen hero, editorial story layout, bento gallery, and cinematic reviews slider. Quiet luxury.',
+    features: [
+      'Full-screen cinematic hero',
+      'Editorial two-column story',
+      'Bento box photo gallery',
+      'Floating sticky booking bar',
+      'Large-quote review slider',
+    ],
+    templateType: 'single_property',
+  },
 ];
 
 const MULTI_TEMPLATES: TemplateOption[] = [
