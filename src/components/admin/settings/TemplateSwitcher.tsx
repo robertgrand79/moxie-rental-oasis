@@ -87,22 +87,27 @@ const TemplateSwitcher: React.FC = () => {
   const [pendingTemplate, setPendingTemplate] = useState<TemplateOption | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<TemplateOption | null>(null);
 
-  // Fetch current active_template_slug
-  const { data: currentSlug, isLoading } = useQuery({
+  // Fetch current active_template_slug and subscription_tier
+  const { data: orgData, isLoading } = useQuery({
     queryKey: ['active-template-slug', organization?.id],
     queryFn: async () => {
-      if (!organization?.id) return 'classic';
+      if (!organization?.id) return { slug: 'classic', tier: 'starter' };
       const { data } = await supabase
         .from('organizations')
-        .select('active_template_slug, template_type')
+        .select('active_template_slug, template_type, subscription_tier')
         .eq('id', organization.id)
         .single();
-      if (data?.active_template_slug) return data.active_template_slug;
-      // Default based on org type
-      return data?.template_type === 'multi_property' ? 'multi-classic' : 'classic';
+      const slug = data?.active_template_slug
+        || (data?.template_type === 'multi_property' ? 'multi-classic' : 'classic');
+      return { slug, tier: (data as any)?.subscription_tier || 'starter' };
     },
     enabled: !!organization?.id,
   });
+
+  const currentSlug = orgData?.slug;
+  const isStarterTier = orgData?.tier === 'starter';
+  // Show upgrade prompt if on starter tier (single-property plan)
+  const needsUpgradeForMulti = isStarterTier;
 
   const switchMutation = useMutation({
     mutationFn: async (template: TemplateOption) => {
@@ -139,8 +144,8 @@ const TemplateSwitcher: React.FC = () => {
   const handleSelectTemplate = (template: TemplateOption) => {
     if (template.slug === currentSlug) return;
 
-    // If switching from single to multi, show upgrade prompt
-    if (isSingleProperty && template.templateType === 'multi_property') {
+    // If on starter tier and switching to multi, show upgrade prompt
+    if (needsUpgradeForMulti && template.templateType === 'multi_property') {
       setPendingTemplate(template);
       setUpgradeDialogOpen(true);
       return;
@@ -207,7 +212,7 @@ const TemplateSwitcher: React.FC = () => {
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4">
           Multi-Property Templates
-          {isSingleProperty && (
+          {needsUpgradeForMulti && (
             <Badge variant="outline" className="ml-2 text-xs">
               Requires plan upgrade
             </Badge>
@@ -222,7 +227,7 @@ const TemplateSwitcher: React.FC = () => {
               onSelect={() => handleSelectTemplate(template)}
               onPreview={() => setPreviewTemplate(template)}
               isLoading={switchMutation.isPending}
-              requiresUpgrade={isSingleProperty}
+              requiresUpgrade={needsUpgradeForMulti}
             />
           ))}
         </div>
