@@ -99,6 +99,14 @@ const PhotoDropzone = ({
     e.target.value = '';
   };
 
+  const fileInputId = React.useId() + '-photo-upload';
+
+  const handleDropzoneClick = useCallback(() => {
+    if (disabled) return;
+    const input = document.getElementById(fileInputId);
+    if (input) input.click();
+  }, [disabled, fileInputId]);
+
   return (
     <div className="space-y-4">
       {validationWarnings.length > 0 && (
@@ -125,6 +133,10 @@ const PhotoDropzone = ({
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
+        onClick={handleDropzoneClick}
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDropzoneClick(); } }}
       >
         <Upload className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
         <div className="space-y-4">
@@ -133,7 +145,7 @@ const PhotoDropzone = ({
               {disabled ? 'Upload in progress...' : 'Add more photos'}
             </p>
             <p className="text-sm text-muted-foreground">
-              {disabled ? 'Please wait while photos are being processed' : 'Drag and drop or click to select files'}
+              {disabled ? 'Please wait while photos are being processed' : 'Drag and drop or click anywhere to select files'}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               JPEG, PNG, WebP, GIF • Max {maxSizeMB}MB per file • {existingCount}/{maxFiles} photos used
@@ -147,13 +159,13 @@ const PhotoDropzone = ({
                 accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
                 onChange={handleFileInput}
                 className="hidden"
-                id="photo-upload"
+                id={fileInputId}
               />
               <Button
                 type="button"
                 variant="outline"
                 size="lg"
-                onClick={() => document.getElementById('photo-upload')?.click()}
+                onClick={(e) => { e.stopPropagation(); document.getElementById(fileInputId)?.click(); }}
                 className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               >
                 Choose Files
