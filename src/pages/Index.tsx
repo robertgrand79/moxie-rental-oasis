@@ -5,6 +5,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import SinglePropertyHome from '@/components/home/SinglePropertyHome';
 import MinimalSinglePropertyHome from '@/components/home/MinimalSinglePropertyHome';
+import LuxSinglePropertyHome from '@/components/templates/lux-single/LuxSinglePropertyHome';
 import ModernHeroSection from '@/components/home/ModernHeroSection';
 import MainSearchBar from '@/components/MainSearchBar';
 import CompactPropertyShowcase from '@/components/home/CompactPropertyShowcase';
@@ -53,12 +54,16 @@ const Index = () => {
   const activeTemplateSlug = templateOverride || dbTemplateSlug;
 
   // Determine if we should render as single-property based on template override or org type
+  const singleTemplateSlugs = ['classic', 'minimal', 'lux-single'];
   const renderAsSingle = templateOverride
-    ? ['classic', 'minimal'].includes(templateOverride)
+    ? singleTemplateSlugs.includes(templateOverride)
     : isSingleProperty;
 
   // Single property sites - route to the correct template
   if (renderAsSingle) {
+    if (activeTemplateSlug === 'lux-single') {
+      return <LuxSinglePropertyHome />;
+    }
     if (activeTemplateSlug === 'minimal') {
       return <MinimalSinglePropertyHome />;
     }
