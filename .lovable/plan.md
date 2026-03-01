@@ -1,43 +1,30 @@
 
 
-## Plan: Elevate Single Property Template to Match Multi-Property Quality
+## Plan: Add Live Preview to Template Switcher
 
-### Current State
-The **multi-property template** has a rich, marketing-driven layout with 12+ sections including social proof, booking benefits, testimonials, "why choose us," and final features. The **single-property template** is comparatively sparse — it goes straight from hero/gallery into description and amenities with no marketing polish in between.
+**Goal**: Add a "Preview" button to each template card that opens a dialog/drawer showing the user's actual site rendered with that template, using their real data.
 
-### Approach
-Reuse the existing multi-property marketing components within the single property page, weaving the property-specific content (gallery, description, booking) into the richer page structure. The property data still drives the hero and booking sections, but the surrounding page feels like a full branded homepage.
+### How It Works
 
-### Proposed New Section Order
-
-```text
- 1. Hero (keep SinglePropertyHero with cover image)
- 2. Sticky Booking Bar (keep, desktop only)
- 3. Social Proof strip (reuse SocialProofSection)
- 4. Photo Gallery (keep PhotoSpotlight)
- 5. YouTube Video (keep, conditional)
- 6. Property Description + Amenities (keep)
- 7. Booking Benefits (reuse BookingBenefitsSection)
- 8. Reviews / Testimonials (keep PropertyReviewsSection)
- 9. Why Choose Us (reuse WhyChooseUsSection)
-10. Local Events (keep EnhancedLocalEventsSection)
-11. What's Nearby (keep EnhancedWhatsNearbySection)
-12. Newsletter (keep TravelNewsletterSignup, match multi-property styling)
-13. Final Features (reuse FinalFeaturesSection)
-14. Mobile Sticky Booking Bar (keep StickyBookingBar)
-```
+The app already supports rendering any tenant's site via `/?org=slug`. We can leverage this by adding a query parameter to force a specific template slug (e.g., `/?org=moxie-vacation-rentals&template=minimal`). The homepage (`Index.tsx`) will read this param and use it to override the active template, giving a real-time preview with the user's actual property data.
 
 ### Changes
 
-**File: `src/components/home/SinglePropertyHome.tsx`**
-- Import `SocialProofSection`, `BookingBenefitsSection`, `WhyChooseUsSection`, `FinalFeaturesSection` from existing `@/components/home/` modules
-- Import `FeatureErrorBoundary` for consistency with multi-property template
-- Add Social Proof strip after the sticky booking bar
-- Add Booking Benefits section between amenities and reviews
-- Add Why Choose Us section after reviews
-- Add Final Features section before the mobile sticky bar
-- Wrap new sections in `FeatureErrorBoundary`
-- Update newsletter section styling to match multi-property (rounded-3xl, backdrop-blur, larger padding)
+1. **Add `template` query param support to `Index.tsx`**
+   - Read `?template=` from the URL search params
+   - If present, use it as the template slug instead of the database value
+   - This is read-only and does not change the database
 
-No new components needed — purely assembling existing pieces into the single property layout.
+2. **Add "Preview" button to each `TemplateCard`**
+   - An `Eye` icon button that opens a dialog containing the existing `SitePreviewPanel` component
+   - The preview URL will be `/?org={slug}&template={templateSlug}`
+   - Only shown for templates that are not currently active (active template is already what they see)
+
+3. **Preview Dialog in `TemplateSwitcher`**
+   - A `Dialog` with the `SitePreviewPanel` embedded, showing desktop/tablet/mobile toggle and the iframe preview
+   - The iframe loads the user's actual site with the selected template applied via the query param override
+
+### Result
+
+Users click "Preview" on any template card and see their own site (with their real properties, branding, etc.) rendered in that template layout -- without changing anything. They can then confidently click "Use This Template" to commit.
 
