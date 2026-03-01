@@ -3,10 +3,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useTenant } from '@/contexts/TenantContext';
-import { Check, Layout, Minus, ArrowUpRight, Loader2 } from 'lucide-react';
+import { Check, Layout, Minus, ArrowUpRight, Loader2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import SitePreviewPanel from './SitePreviewPanel';
 
 interface TemplateOption {
   slug: string;
@@ -78,6 +85,7 @@ const TemplateSwitcher: React.FC = () => {
   const queryClient = useQueryClient();
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [pendingTemplate, setPendingTemplate] = useState<TemplateOption | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<TemplateOption | null>(null);
 
   // Fetch current active_template_slug
   const { data: currentSlug, isLoading } = useQuery({
@@ -151,6 +159,15 @@ const TemplateSwitcher: React.FC = () => {
 
   const allTemplates = [...SINGLE_TEMPLATES, ...MULTI_TEMPLATES];
 
+  const orgSlug = organization?.slug;
+
+  const buildPreviewUrl = (templateSlug: string) => {
+    const params = new URLSearchParams();
+    if (orgSlug) params.set('org', orgSlug);
+    params.set('template', templateSlug);
+    return `/?${params.toString()}`;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -179,6 +196,7 @@ const TemplateSwitcher: React.FC = () => {
               template={template}
               isActive={currentSlug === template.slug}
               onSelect={() => handleSelectTemplate(template)}
+              onPreview={() => setPreviewTemplate(template)}
               isLoading={switchMutation.isPending}
             />
           ))}
@@ -202,6 +220,7 @@ const TemplateSwitcher: React.FC = () => {
               template={template}
               isActive={currentSlug === template.slug}
               onSelect={() => handleSelectTemplate(template)}
+              onPreview={() => setPreviewTemplate(template)}
               isLoading={switchMutation.isPending}
               requiresUpgrade={isSingleProperty}
             />
@@ -241,6 +260,23 @@ const TemplateSwitcher: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Template Preview Dialog */}
+      <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
+        <DialogContent className="max-w-6xl w-[95vw] h-[85vh] p-0 flex flex-col">
+          <DialogHeader className="px-6 pt-6 pb-0">
+            <DialogTitle>Preview: {previewTemplate?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden px-2 pb-2">
+            {previewTemplate && (
+              <SitePreviewPanel
+                previewUrl={buildPreviewUrl(previewTemplate.slug)}
+                className="border-0 shadow-none h-full"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -249,6 +285,7 @@ interface TemplateCardProps {
   template: TemplateOption;
   isActive: boolean;
   onSelect: () => void;
+  onPreview: () => void;
   isLoading: boolean;
   requiresUpgrade?: boolean;
 }
@@ -257,6 +294,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   template,
   isActive,
   onSelect,
+  onPreview,
   isLoading,
   requiresUpgrade,
 }) => {
@@ -277,8 +315,20 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
       )}
 
       {/* Template preview placeholder */}
-      <div className="bg-muted rounded-lg h-32 mb-4 flex items-center justify-center border border-border/50">
+      <div className="bg-muted rounded-lg h-32 mb-4 flex items-center justify-center border border-border/50 relative group">
         <Layout className="h-10 w-10 text-muted-foreground/50" />
+        <Button
+          variant="secondary"
+          size="sm"
+          className="absolute inset-0 m-auto w-fit h-fit opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPreview();
+          }}
+        >
+          <Eye className="h-4 w-4 mr-1.5" />
+          Preview
+        </Button>
       </div>
 
       {/* Info */}
