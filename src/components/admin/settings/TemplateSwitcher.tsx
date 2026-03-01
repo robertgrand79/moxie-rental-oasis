@@ -90,6 +90,19 @@ const MULTI_TEMPLATES: TemplateOption[] = [
     ],
     templateType: 'multi_property',
   },
+  {
+    slug: 'lux-portfolio',
+    name: 'Lux Portfolio',
+    description: 'Ultra-premium editorial layout for curated property collections. Cinematic hero, asymmetrical grid, concierge search, and destination showcases. Quiet luxury.',
+    features: [
+      'Full-screen cycling hero',
+      'Frosted-glass concierge search',
+      'Asymmetrical editorial grid',
+      'Portrait destination cards',
+      'Borderless property cards',
+    ],
+    templateType: 'multi_property',
+  },
 ];
 
 const TemplateSwitcher: React.FC = () => {

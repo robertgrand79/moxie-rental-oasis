@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import SinglePropertyHome from '@/components/home/SinglePropertyHome';
 import MinimalSinglePropertyHome from '@/components/home/MinimalSinglePropertyHome';
 import LuxSinglePropertyHome from '@/components/templates/lux-single/LuxSinglePropertyHome';
+import LuxPortfolioHome from '@/components/templates/lux-portfolio/LuxPortfolioHome';
 import ModernHeroSection from '@/components/home/ModernHeroSection';
 import MainSearchBar from '@/components/MainSearchBar';
 import CompactPropertyShowcase from '@/components/home/CompactPropertyShowcase';
@@ -68,6 +69,11 @@ const Index = () => {
       return <MinimalSinglePropertyHome />;
     }
     return <SinglePropertyHome />;
+  }
+
+  // Multi-property templates
+  if (activeTemplateSlug === 'lux-portfolio') {
+    return <LuxPortfolioHome />;
   }
 
   // Multi-property sites get the current layout with search and grid
