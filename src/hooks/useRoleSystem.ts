@@ -68,7 +68,7 @@ export const useRoleSystem = () => {
         .limit(1);
 
       if (rolesError) {
-        console.warn('New role system not available, falling back to default user role');
+        // Expected when user_roles table has restrictive RLS - silently fall back
         setState({
           userRole: DEFAULT_USER_ROLE,
           permissions: DEFAULT_USER_PERMISSION_OBJECTS,
