@@ -54,7 +54,7 @@ const DraggablePhotoItem = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: photo.id, disabled: true });
+  } = useSortable({ id: photo.id, disabled: disabled || isMarkedForDeletion });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -92,8 +92,8 @@ const DraggablePhotoItem = ({
           </div>
         )}
 
-        {/* Photo */}
-        <div className="cursor-pointer">
+        {/* Photo - drag handle */}
+        <div className="cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
           <ThumbnailImage
             src={photo.url}
             alt={`Property image ${index + 1}`}
