@@ -16,6 +16,11 @@ import EnhancedLocalEventsSection from './EnhancedLocalEventsSection';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import BackgroundWrapper from './BackgroundWrapper';
 import SinglePropertyVideoSection from '@/components/single-property/SinglePropertyVideoSection';
+import SocialProofSection from './SocialProofSection';
+import BookingBenefitsSection from './BookingBenefitsSection';
+import WhyChooseUsSection from './WhyChooseUsSection';
+import FinalFeaturesSection from './FinalFeaturesSection';
+import { FeatureErrorBoundary } from '@/components/error-boundaries/FeatureErrorBoundary';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
@@ -121,7 +126,12 @@ const SinglePropertyHome: React.FC = () => {
           </div>
         </div>
 
-        {/* 3. Full Photo Gallery */}
+        {/* 3. Social Proof */}
+        <FeatureErrorBoundary featureName="Social Proof" showRetry={false}>
+          <SocialProofSection />
+        </FeatureErrorBoundary>
+
+        {/* 4. Full Photo Gallery */}
         {images.length > 1 && (
           <section>
             <PhotoSpotlight 
@@ -132,12 +142,12 @@ const SinglePropertyHome: React.FC = () => {
           </section>
         )}
 
-        {/* 4. YouTube Video Section (conditional) */}
+        {/* 5. YouTube Video Section (conditional) */}
         {youtubeVideoUrl && (
           <SinglePropertyVideoSection youtubeUrl={youtubeVideoUrl} />
         )}
 
-        {/* 5. Property Description + Amenities */}
+        {/* 6. Property Description + Amenities */}
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto space-y-0">
             <section className="py-8 border-b border-border">
@@ -153,28 +163,40 @@ const SinglePropertyHome: React.FC = () => {
           </div>
         </div>
 
+        {/* 7. Booking Benefits */}
+        <FeatureErrorBoundary featureName="Booking Benefits" showRetry={false}>
+          <BookingBenefitsSection />
+        </FeatureErrorBoundary>
 
-
-
-        {/* 7. Reviews */}
+        {/* 8. Reviews */}
         <section className="bg-muted/30">
           <PropertyReviewsSection propertyId={property.id} />
         </section>
 
-        {/* 8. What's Nearby + Local Events */}
+        {/* 9. Why Choose Us */}
+        <FeatureErrorBoundary featureName="Why Choose Us" showRetry={false}>
+          <WhyChooseUsSection />
+        </FeatureErrorBoundary>
+
+        {/* 10. What's Nearby + Local Events */}
         <EnhancedWhatsNearbySection />
         <EnhancedLocalEventsSection />
 
-        {/* 9. Newsletter */}
-        <section className="py-16 bg-muted/30">
+        {/* 11. Newsletter */}
+        <section className="py-20 relative">
           <div className="container mx-auto px-4">
-            <div className="bg-card rounded-2xl shadow-xl p-8 md:p-12 max-w-4xl mx-auto border border-border/50">
+            <div className="bg-card/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 md:p-12 max-w-4xl mx-auto border border-border/50">
               <TravelNewsletterSignup />
             </div>
           </div>
         </section>
 
-        {/* 10. Mobile Sticky Booking Bar */}
+        {/* 12. Final Features */}
+        <FeatureErrorBoundary featureName="Final Features" showRetry={false}>
+          <FinalFeaturesSection />
+        </FeatureErrorBoundary>
+
+        {/* 13. Mobile Sticky Booking Bar */}
         <StickyBookingBar property={property} />
       </main>
     </BackgroundWrapper>
