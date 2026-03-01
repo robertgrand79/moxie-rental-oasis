@@ -16,7 +16,7 @@ import FinalFeaturesSection from '@/components/home/FinalFeaturesSection';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import BackgroundWrapper from '@/components/home/BackgroundWrapper';
 import SinglePropertyVideoSection from '@/components/single-property/SinglePropertyVideoSection';
-import SinglePropertySocialSection from '@/components/single-property/SinglePropertySocialSection';
+
 import { FeatureErrorBoundary } from '@/components/error-boundaries/FeatureErrorBoundary';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
@@ -25,8 +25,6 @@ const Index = () => {
   const { settings } = useSimplifiedSiteSettings();
 
   const youtubeVideoUrl = settings?.youtubeVideoUrl || '';
-  const tiktokProfileUrl = settings?.tiktokProfileUrl || '';
-  const instagramFeedUrl = settings?.instagramFeedUrl || '';
 
   // Single property sites get a dedicated property landing page
   if (isSingleProperty) {
@@ -89,16 +87,7 @@ const Index = () => {
           <LocalInfoSection />
         </FeatureErrorBoundary>
 
-        {/* Instagram & TikTok Section (conditional) */}
-        {(instagramFeedUrl || tiktokProfileUrl) && (
-          <FeatureErrorBoundary featureName="Social Feeds" showRetry={false}>
-            <SinglePropertySocialSection 
-              instagramUrl={instagramFeedUrl} 
-              tiktokUrl={tiktokProfileUrl} 
-            />
-          </FeatureErrorBoundary>
-        )}
-        
+
         {/* Newsletter Section */}
         <section className="py-20 relative">
           <div className="container mx-auto px-4">

@@ -16,7 +16,7 @@ import EnhancedLocalEventsSection from './EnhancedLocalEventsSection';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import BackgroundWrapper from './BackgroundWrapper';
 import SinglePropertyVideoSection from '@/components/single-property/SinglePropertyVideoSection';
-import SinglePropertySocialSection from '@/components/single-property/SinglePropertySocialSection';
+
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
@@ -107,8 +107,6 @@ const SinglePropertyHome: React.FC = () => {
 
   // Get media URLs from settings
   const youtubeVideoUrl = settings?.youtubeVideoUrl || '';
-  const tiktokProfileUrl = settings?.tiktokProfileUrl || '';
-  const instagramFeedUrl = settings?.instagramFeedUrl || '';
 
   return (
     <BackgroundWrapper>
@@ -155,13 +153,8 @@ const SinglePropertyHome: React.FC = () => {
           </div>
         </div>
 
-        {/* 6. Instagram & TikTok Section (conditional) */}
-        {(instagramFeedUrl || tiktokProfileUrl) && (
-          <SinglePropertySocialSection 
-            instagramUrl={instagramFeedUrl} 
-            tiktokUrl={tiktokProfileUrl} 
-          />
-        )}
+
+
 
         {/* 7. Reviews */}
         <section className="bg-muted/30">
