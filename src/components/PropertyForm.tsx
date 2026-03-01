@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -90,6 +90,7 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
   });
 
   const [saveAndContinue, setSaveAndContinue] = useState(false);
+  const saveAndContinueRef = useRef(false);
 
   const handleSubmit = (data: PropertyFormData) => {
     if (isSubmitting) {
@@ -101,6 +102,8 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
     const filteredExistingImages = existingImages.filter((url) => !deletedSet.has(url));
     const filteredFeaturedPhotos = featuredPhotos.filter((url) => !deletedSet.has(url));
 
+    const shouldStay = saveAndContinueRef.current;
+
     onSubmit(
       {
         ...data,
@@ -109,14 +112,16 @@ const PropertyForm = ({ onSubmit, onCancel, initialData, isEditing = false, isSu
         featuredPhotos: filteredFeaturedPhotos,
         deletedImages,
       },
-      saveAndContinue
+      shouldStay
     );
 
     // Reset the flag after submission
+    saveAndContinueRef.current = false;
     setSaveAndContinue(false);
   };
 
   const handleSaveAndContinue = () => {
+    saveAndContinueRef.current = true;
     setSaveAndContinue(true);
     form.handleSubmit(handleSubmit)();
   };
