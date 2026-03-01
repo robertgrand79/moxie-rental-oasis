@@ -1,0 +1,2 @@
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS active_template_slug text DEFAULT 'classic';
+COMMENT ON COLUMN public.organizations.active_template_slug IS 'The slug of the active template variant (e.g., classic, minimal).';

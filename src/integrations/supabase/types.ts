@@ -5662,6 +5662,7 @@ export type Database = {
       }
       organizations: {
         Row: {
+          active_template_slug: string | null
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
@@ -5713,6 +5714,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          active_template_slug?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -5764,6 +5766,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          active_template_slug?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null

@@ -1,6 +1,9 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTenant } from '@/contexts/TenantContext';
+import { supabase } from '@/integrations/supabase/client';
 import SinglePropertyHome from '@/components/home/SinglePropertyHome';
+import MinimalSinglePropertyHome from '@/components/home/MinimalSinglePropertyHome';
 import ModernHeroSection from '@/components/home/ModernHeroSection';
 import MainSearchBar from '@/components/MainSearchBar';
 import CompactPropertyShowcase from '@/components/home/CompactPropertyShowcase';
@@ -21,13 +24,32 @@ import { FeatureErrorBoundary } from '@/components/error-boundaries/FeatureError
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
 const Index = () => {
-  const { isSingleProperty } = useTenant();
+  const { isSingleProperty, tenantId } = useTenant();
   const { settings } = useSimplifiedSiteSettings();
 
   const youtubeVideoUrl = settings?.youtubeVideoUrl || '';
 
-  // Single property sites get a dedicated property landing page
+  // Fetch active template slug
+  const { data: activeTemplateSlug } = useQuery({
+    queryKey: ['active-template-slug', tenantId],
+    queryFn: async () => {
+      if (!tenantId) return 'classic';
+      const { data } = await supabase
+        .from('organizations')
+        .select('active_template_slug')
+        .eq('id', tenantId)
+        .single();
+      return (data as any)?.active_template_slug || 'classic';
+    },
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Single property sites - route to the correct template
   if (isSingleProperty) {
+    if (activeTemplateSlug === 'minimal') {
+      return <MinimalSinglePropertyHome />;
+    }
     return <SinglePropertyHome />;
   }
 
