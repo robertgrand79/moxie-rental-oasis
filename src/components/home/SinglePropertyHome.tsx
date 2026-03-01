@@ -15,14 +15,16 @@ import EnhancedWhatsNearbySection from './EnhancedWhatsNearbySection';
 import EnhancedLocalEventsSection from './EnhancedLocalEventsSection';
 import TravelNewsletterSignup from '@/components/TravelNewsletterSignup';
 import BackgroundWrapper from './BackgroundWrapper';
+import SinglePropertyVideoSection from '@/components/single-property/SinglePropertyVideoSection';
+import SinglePropertySocialSection from '@/components/single-property/SinglePropertySocialSection';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSettings } from '@/hooks/useSettings';
 
 // Preload LCP hero image via link tag for better Lighthouse score
 const usePreloadHeroImage = (imageUrl: string | null) => {
   useEffect(() => {
     if (!imageUrl || imageUrl === '/placeholder.svg') return;
     
-    // Check if preload already exists
     const existingPreload = document.querySelector(`link[rel="preload"][href="${imageUrl}"]`);
     if (existingPreload) return;
     
@@ -44,6 +46,7 @@ const usePreloadHeroImage = (imageUrl: string | null) => {
 const SinglePropertyHome: React.FC = () => {
   const { tenantId } = useTenant();
   const isMobile = useIsMobile();
+  const { settings } = useSettings();
 
   // Fetch the single property for this organization
   const { data: property, isLoading, error } = useQuery({
@@ -68,7 +71,6 @@ const SinglePropertyHome: React.FC = () => {
   const preloadImages: string[] = property && Array.isArray(property.images) ? property.images : [];
   const preloadCoverImage = property ? (property.cover_image_url || property.image_url || preloadImages[0] || null) : null;
   
-  // Preload hero image for better LCP
   usePreloadHeroImage(preloadCoverImage);
 
   if (isLoading) {
@@ -95,8 +97,6 @@ const SinglePropertyHome: React.FC = () => {
     );
   }
 
-  // Photos shown on the public site must come from what is actually saved on the property.
-  // Treat `images` as the source of truth; only allow featured_photos that exist in `images`.
   const images: string[] = Array.isArray(property.images) ? property.images : [];
   const featuredFromImages: string[] = Array.isArray(property.featured_photos)
     ? property.featured_photos.filter((url) => images.includes(url))
@@ -104,37 +104,44 @@ const SinglePropertyHome: React.FC = () => {
 
   const photos: string[] = featuredFromImages.length > 0 ? featuredFromImages : images;
   const coverImage = property.cover_image_url || property.image_url || images[0] || '/placeholder.svg';
+
+  // Get media URLs from settings
+  const youtubeVideoUrl = settings?.youtubeVideoUrl || '';
+  const tiktokProfileUrl = settings?.tiktokProfileUrl || '';
+  const instagramFeedUrl = settings?.instagramFeedUrl || '';
+
   return (
     <BackgroundWrapper>
       <main>
-        {/* Hero Section */}
+        {/* 1. Hero Section */}
         <SinglePropertyHero property={property} coverImage={coverImage} />
 
-        {/* Full-Width Sticky Booking Bar - Desktop Only */}
+        {/* 2. Sticky Booking Bar - Desktop Only */}
         <div className="hidden lg:block sticky top-16 z-40 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
           <div className="container mx-auto px-4">
             <CompactBookingCard property={property} />
           </div>
         </div>
 
-        {/* Photo Gallery - Full Width */}
+        {/* 3. Full Photo Gallery */}
         {images.length > 1 && (
-          <section className="py-12">
-            <div className="container mx-auto px-4">
-              <PhotoSpotlight 
-                images={images} 
-                featuredPhotos={featuredFromImages}
-                title={property.title} 
-              />
-            </div>
+          <section>
+            <PhotoSpotlight 
+              images={images} 
+              featuredPhotos={featuredFromImages}
+              title={property.title} 
+            />
           </section>
         )}
 
-        {/* Property Info Section */}
+        {/* 4. YouTube Video Section (conditional) */}
+        {youtubeVideoUrl && (
+          <SinglePropertyVideoSection youtubeUrl={youtubeVideoUrl} />
+        )}
+
+        {/* 5. Property Description + Amenities */}
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto space-y-0">
-            
-            {/* Property Description */}
             <section className="py-8 border-b border-border">
               <h2 className="text-2xl font-bold text-foreground mb-6">
                 About This Property
@@ -142,25 +149,30 @@ const SinglePropertyHome: React.FC = () => {
               <PropertyDescription description={property.description} isMobile={isMobile} />
             </section>
 
-            {/* Amenities */}
             <section className="py-8">
               <AmenitiesSection amenities={property.amenities} />
             </section>
           </div>
         </div>
 
-        {/* Reviews - Full Width */}
+        {/* 6. Instagram & TikTok Section (conditional) */}
+        {(instagramFeedUrl || tiktokProfileUrl) && (
+          <SinglePropertySocialSection 
+            instagramUrl={instagramFeedUrl} 
+            tiktokUrl={tiktokProfileUrl} 
+          />
+        )}
+
+        {/* 7. Reviews */}
         <section className="bg-muted/30">
           <PropertyReviewsSection propertyId={property.id} />
         </section>
 
-        {/* What's Nearby */}
+        {/* 8. What's Nearby + Local Events */}
         <EnhancedWhatsNearbySection />
-
-        {/* Local Events */}
         <EnhancedLocalEventsSection />
 
-        {/* Newsletter */}
+        {/* 9. Newsletter */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="bg-card rounded-2xl shadow-xl p-8 md:p-12 max-w-4xl mx-auto border border-border/50">
@@ -169,7 +181,7 @@ const SinglePropertyHome: React.FC = () => {
           </div>
         </section>
 
-        {/* Mobile Sticky Booking Bar */}
+        {/* 10. Mobile Sticky Booking Bar */}
         <StickyBookingBar property={property} />
       </main>
     </BackgroundWrapper>

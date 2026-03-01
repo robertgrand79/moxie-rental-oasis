@@ -122,4 +122,9 @@ export interface SettingsState {
   ownerTravelsDescription: string;
   ownerTravelsImageUrl: string;
   ownerTravelsEnabled: string;
+  
+  // Video & Social Feed URLs
+  youtubeVideoUrl: string;
+  tiktokProfileUrl: string;
+  instagramFeedUrl: string;
 }

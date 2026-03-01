@@ -106,5 +106,10 @@ export const defaultSettings: SettingsState = {
   ownerTravelsTitle: '',
   ownerTravelsDescription: '',
   ownerTravelsImageUrl: '',
-  ownerTravelsEnabled: 'true'
+  ownerTravelsEnabled: 'true',
+  
+  // Video & Social Feed URLs
+  youtubeVideoUrl: '',
+  tiktokProfileUrl: '',
+  instagramFeedUrl: '',
 };
