@@ -18,7 +18,7 @@ import BackgroundWrapper from './BackgroundWrapper';
 import SinglePropertyVideoSection from '@/components/single-property/SinglePropertyVideoSection';
 import SinglePropertySocialSection from '@/components/single-property/SinglePropertySocialSection';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useSettings } from '@/hooks/useSettings';
+import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 
 // Preload LCP hero image via link tag for better Lighthouse score
 const usePreloadHeroImage = (imageUrl: string | null) => {
@@ -46,7 +46,7 @@ const usePreloadHeroImage = (imageUrl: string | null) => {
 const SinglePropertyHome: React.FC = () => {
   const { tenantId } = useTenant();
   const isMobile = useIsMobile();
-  const { settings } = useSettings();
+  const { settings } = useSimplifiedSiteSettings();
 
   // Fetch the single property for this organization
   const { data: property, isLoading, error } = useQuery({
