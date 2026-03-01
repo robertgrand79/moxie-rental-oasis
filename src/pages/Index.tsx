@@ -37,7 +37,7 @@ const Index = () => {
   const templateOverride = searchParams.get('template');
 
   // Fetch active template slug
-  const { data: dbTemplateSlug } = useQuery({
+  const { data: dbTemplateSlug, isLoading: isTemplateLoading } = useQuery({
     queryKey: ['active-template-slug', tenantId],
     queryFn: async () => {
       if (!tenantId) return 'classic';
@@ -53,6 +53,15 @@ const Index = () => {
   });
 
   const activeTemplateSlug = templateOverride || dbTemplateSlug;
+
+  // Wait for template slug to resolve before rendering to prevent flash of wrong template
+  if (!templateOverride && isTemplateLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   // Determine if we should render as single-property based on template override or org type
   const singleTemplateSlugs = ['classic', 'minimal', 'lux-single'];
