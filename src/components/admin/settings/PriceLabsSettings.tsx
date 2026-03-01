@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,6 +54,7 @@ export const PriceLabsSettings = () => {
   const queryClient = useQueryClient();
   const [priceLabsIds, setPriceLabsIds] = useState<Record<string, string>>({});
   const [priceLabsListings, setPriceLabsListings] = useState<PriceLabsListing[]>(() => getCachedListings() || []);
+  const { organization } = useCurrentOrganization();
 
   // Get organization-scoped properties
   const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
@@ -85,7 +87,9 @@ export const PriceLabsSettings = () => {
 
   const fetchPriceLabsMutation = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('fetch-pricelabs-listings');
+      const { data, error } = await supabase.functions.invoke('fetch-pricelabs-listings', {
+        body: { organization_id: organization?.id }
+      });
       if (error) throw error;
       return data.listings as PriceLabsListing[];
     },

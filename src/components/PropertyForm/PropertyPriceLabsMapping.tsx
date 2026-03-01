@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import { Loader2, RefreshCw, Link as LinkIcon, CheckCircle2 } from 'lucide-react';
 import { Property } from '@/types/property';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 interface PropertyPriceLabsMappingProps {
   property: Property;
@@ -23,10 +24,13 @@ export const PropertyPriceLabsMapping: React.FC<PropertyPriceLabsMappingProps> =
   const queryClient = useQueryClient();
   const [priceLabsListings, setPriceLabsListings] = useState<PriceLabsListing[]>([]);
   const [selectedListingId, setSelectedListingId] = useState<string>(property.pricelabs_listing_id || '');
+  const { organization } = useCurrentOrganization();
 
   const fetchPriceLabsMutation = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('fetch-pricelabs-listings');
+      const { data, error } = await supabase.functions.invoke('fetch-pricelabs-listings', {
+        body: { organization_id: organization?.id }
+      });
       if (error) throw error;
       return data.listings as PriceLabsListing[];
     },
