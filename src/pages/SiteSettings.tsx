@@ -119,7 +119,12 @@ const SiteSettings = () => {
             <TabsContent value="social">
               <SocialSettingsTab
                 siteData={settings}
-                onSocialMediaChange={() => {}}
+                onSocialMediaChange={(platform, value) => {
+                  saveSetting('socialMedia', { ...settings.socialMedia, [platform]: value });
+                }}
+                onSettingChange={(key, value) => {
+                  saveSetting(key, value);
+                }}
                 onSave={() => {}}
               />
             </TabsContent>

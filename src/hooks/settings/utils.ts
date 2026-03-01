@@ -29,6 +29,9 @@ const keyMapping: Record<string, string> = {
   'email_verification_details': 'emailVerificationDetails',
   'font_pairing': 'fontPairing',
   'font_scale': 'fontScale',
+  'youtube_video_url': 'youtubeVideoUrl',
+  'tiktok_profile_url': 'tiktokProfileUrl',
+  'instagram_feed_url': 'instagramFeedUrl',
 };
 
 const normalizeKey = (key: string): string => {

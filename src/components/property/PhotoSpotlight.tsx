@@ -16,10 +16,10 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const isMobile = useIsMobile();
 
-  // Use featured photos if available, otherwise use images
+  // Use featured photos if available, otherwise use images — show up to 10
   const displayPhotos = featuredPhotos && featuredPhotos.length > 0 
-    ? featuredPhotos 
-    : images;
+    ? featuredPhotos.slice(0, 10)
+    : images.slice(0, 10);
   
   if (displayPhotos.length === 0) return null;
 
@@ -27,11 +27,6 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
     setSelectedImageIndex(index);
     setShowModal(true);
   };
-
-  // Get photos for bento grid display
-  const mainPhoto = displayPhotos[0];
-  const gridPhotos = displayPhotos.slice(1, 5);
-  const remainingCount = images.length - 5;
 
   return (
     <>
@@ -56,14 +51,15 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
               </Button>
             </div>
             
-            {/* Bento Grid Layout */}
             {isMobile ? (
-              /* Mobile: Simple 2-column grid */
+              /* Mobile: 2-column grid showing all featured */
               <div className="grid grid-cols-2 gap-2">
-                {displayPhotos.slice(0, 4).map((image, index) => (
+                {displayPhotos.map((image, index) => (
                   <div
                     key={index}
-                    className="relative aspect-square cursor-pointer group overflow-hidden rounded-xl"
+                    className={`relative cursor-pointer group overflow-hidden rounded-xl ${
+                      index === 0 ? 'col-span-2 aspect-[16/9]' : 'aspect-square'
+                    }`}
                     onClick={() => openModal(index)}
                   >
                     <ThumbnailImage
@@ -71,72 +67,51 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
                       alt={`${title} - Photo ${index + 1}`}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    {index === 3 && remainingCount > 0 && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span className="text-white text-xl font-semibold">
-                          +{remainingCount + 1} more
-                        </span>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
             ) : (
-              /* Desktop: Bento grid with large hero */
-              <div className="grid grid-cols-4 grid-rows-2 gap-3 h-[500px]">
-                {/* Main large image - spans 2 columns and 2 rows */}
-                <div
-                  className="col-span-2 row-span-2 relative cursor-pointer group overflow-hidden rounded-2xl"
-                  onClick={() => openModal(0)}
-                >
-                  <ThumbnailImage
-                    src={mainPhoto}
-                    alt={`${title} - Main Photo`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-                
-                {/* Grid of 4 smaller images */}
-                {gridPhotos.map((image, index) => (
-                  <div
-                    key={index}
-                    className="relative cursor-pointer group overflow-hidden rounded-xl"
-                    onClick={() => openModal(index + 1)}
-                  >
-                    <ThumbnailImage
-                      src={image}
-                      alt={`${title} - Photo ${index + 2}`}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                    
-                    {/* Show "+X more" on the last visible image if there are more */}
-                    {index === 3 && remainingCount > 0 && (
-                      <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2">
-                        <Images className="h-8 w-8 text-white" />
-                        <span className="text-white text-lg font-semibold">
-                          +{remainingCount} more
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                ))}
+              /* Desktop: Masonry-style grid for all photos */
+              <div className="grid grid-cols-3 gap-3 auto-rows-[200px]">
+                {displayPhotos.map((image, index) => {
+                  // First image spans 2 cols + 2 rows, every 4th spans 2 cols
+                  const isHero = index === 0;
+                  const isWide = index === 3 || index === 7;
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={`relative cursor-pointer group overflow-hidden rounded-2xl ${
+                        isHero ? 'col-span-2 row-span-2' : isWide ? 'col-span-2' : ''
+                      }`}
+                      onClick={() => openModal(index)}
+                    >
+                      <ThumbnailImage
+                        src={image}
+                        alt={`${title} - Photo ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                  );
+                })}
               </div>
             )}
             
             {/* Mobile: View All Button */}
-            <div className="mt-6 text-center md:hidden">
-              <Button 
-                onClick={() => openModal(0)}
-                variant="outline"
-                size="lg"
-                className="w-full"
-              >
-                <Images className="h-5 w-5 mr-2" />
-                View All {images.length} Photos
-              </Button>
-            </div>
+            {images.length > displayPhotos.length && (
+              <div className="mt-6 text-center md:hidden">
+                <Button 
+                  onClick={() => openModal(0)}
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                >
+                  <Images className="h-5 w-5 mr-2" />
+                  View All {images.length} Photos
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
