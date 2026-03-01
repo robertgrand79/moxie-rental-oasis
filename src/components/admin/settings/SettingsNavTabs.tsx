@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Building2, Globe, Palette, Users, Plug, CreditCard } from 'lucide-react';
+import { Building2, Globe, Palette, Users, Plug, CreditCard, Layout } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const settingsTabs = [
+  { id: 'template', label: 'Template', href: '/admin/settings/template', icon: Layout },
   { id: 'organization', label: 'Organization', href: '/admin/settings/organization', icon: Building2 },
   { id: 'site', label: 'Site & Content', href: '/admin/settings/site-content', icon: Globe },
   { id: 'appearance', label: 'Appearance', href: '/admin/settings/appearance', icon: Palette },
