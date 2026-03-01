@@ -89,6 +89,36 @@ export const usePhotoManagement = (
     return activeExistingImages;
   }, [existingImages, deletedExistingImages, previewUrls, photos, onPhotosChange]);
 
+  const movePhoto = useCallback((fromIndex: number, toIndex: number) => {
+    const activeExisting = existingImages.filter(img => !deletedExistingImages.includes(img));
+    const allUrls = [...activeExisting, ...previewUrls];
+    
+    // Reorder
+    const [moved] = allUrls.splice(fromIndex, 1);
+    allUrls.splice(toIndex, 0, moved);
+    
+    // Split back
+    const newExisting: string[] = [];
+    const newPreviewUrls: string[] = [];
+    const newPhotos: File[] = [];
+    
+    allUrls.forEach((url) => {
+      const origExistingIdx = activeExisting.indexOf(url);
+      if (origExistingIdx !== -1 && !newExisting.includes(url)) {
+        newExisting.push(url);
+      } else {
+        const previewIdx = previewUrls.indexOf(url);
+        if (previewIdx !== -1 && photos[previewIdx]) {
+          newPhotos.push(photos[previewIdx]);
+          newPreviewUrls.push(url);
+        }
+      }
+    });
+    
+    onPhotosChange(newPhotos);
+    setPreviewUrls(newPreviewUrls);
+  }, [existingImages, deletedExistingImages, previewUrls, photos, onPhotosChange]);
+
   // Combine existing images (excluding deleted ones) and new photos for display
   const activeExistingImages = existingImages.filter(img => !deletedExistingImages.includes(img));
   const allPhotos: Photo[] = [
@@ -108,6 +138,7 @@ export const usePhotoManagement = (
     allPhotos,
     addPhotos,
     removePhoto,
+    movePhoto,
     movePhotoToFirst,
     deletedExistingImages
   };

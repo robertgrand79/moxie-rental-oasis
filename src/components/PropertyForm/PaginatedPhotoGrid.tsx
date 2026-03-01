@@ -37,7 +37,7 @@ const PaginatedPhotoGrid = ({
   onRemove,
   onMove,
   disabled = false,
-  itemsPerPage = 12
+  itemsPerPage = 999
 }: PaginatedPhotoGridProps) => {
   const {
     currentPage,

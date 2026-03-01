@@ -32,7 +32,7 @@ const PhotoUploadSection = ({
   onDeletedImagesChange,
   disabled = false
 }: PhotoUploadSectionProps) => {
-  const { allPhotos, addPhotos, removePhoto, movePhotoToFirst, deletedExistingImages } = usePhotoManagement(
+  const { allPhotos, addPhotos, removePhoto, movePhoto, movePhotoToFirst, deletedExistingImages } = usePhotoManagement(
     photos,
     onPhotosChange,
     existingImages
@@ -81,7 +81,7 @@ const PhotoUploadSection = ({
             onCoverSelect={handleCoverSelect}
             onFeaturedPhotosChange={(photos) => !disabled && onFeaturedPhotosChange?.(photos)}
             onRemove={removePhoto}
-            onMove={() => {}}
+            onMove={movePhoto}
             disabled={disabled}
           />
         </div>
