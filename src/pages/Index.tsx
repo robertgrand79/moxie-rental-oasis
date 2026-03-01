@@ -52,8 +52,13 @@ const Index = () => {
 
   const activeTemplateSlug = templateOverride || dbTemplateSlug;
 
+  // Determine if we should render as single-property based on template override or org type
+  const renderAsSingle = templateOverride
+    ? ['classic', 'minimal'].includes(templateOverride)
+    : isSingleProperty;
+
   // Single property sites - route to the correct template
-  if (isSingleProperty) {
+  if (renderAsSingle) {
     if (activeTemplateSlug === 'minimal') {
       return <MinimalSinglePropertyHome />;
     }
