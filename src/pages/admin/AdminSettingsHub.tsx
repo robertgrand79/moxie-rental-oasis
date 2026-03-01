@@ -8,13 +8,21 @@ import {
   Palette, 
   Users, 
   Plug, 
-  CreditCard
+  CreditCard,
+  Layout
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useSettingsCompletion } from '@/hooks/useSettingsCompletion';
 
 const settingsTiles = [
+  {
+    id: 'template',
+    title: 'Template',
+    description: 'Switch between site templates and layouts',
+    icon: Layout,
+    href: '/admin/settings/template',
+  },
   {
     id: 'organization',
     title: 'Organization',

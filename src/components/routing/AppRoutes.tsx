@@ -161,6 +161,7 @@ const StripeSettingsPage = lazyRetry(() => import('@/pages/admin/settings/Stripe
 const PriceLabsSettingsPage = lazyRetry(() => import('@/pages/admin/settings/PriceLabsSettingsPage'));
 const SetupWizardPage = lazyRetry(() => import('@/pages/admin/settings/SetupWizardPage'));
 const TVDevicesSettingsPage = lazyRetry(() => import('@/pages/admin/settings/TVDevicesSettingsPage'));
+const TemplateSettingsPage = lazyRetry(() => import('@/pages/admin/settings/TemplateSettingsPage'));
 const NavigationSettingsPage = lazyRetry(() => import('@/pages/admin/settings/NavigationSettingsPage'));
 const TeamSettingsPage = lazyRetry(() => import('@/pages/admin/settings/TeamSettingsPage'));
 const PermissionGate = lazyRetry(() => import('@/components/PermissionGate'));
@@ -303,6 +304,7 @@ const AppRoutes: React.FC = () => {
             <Route path="settings/stripe" element={<PermissionGate requiredPermission="manage_billing"><StripeSettingsPage /></PermissionGate>} />
             <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
             <Route path="settings/tv-devices" element={<TVDevicesSettingsPage />} />
+            <Route path="settings/template" element={<TemplateSettingsPage />} />
             {/* Redirects for old settings routes */}
             <Route path="settings/organization" element={<Navigate to="/admin/settings/general" replace />} />
             <Route path="settings/site-content" element={<Navigate to="/admin/settings/site-info" replace />} />
@@ -473,7 +475,8 @@ const AppRoutes: React.FC = () => {
           <Route path="settings/services" element={<ServicesSettingsPage />} />
           <Route path="settings/stripe" element={<PermissionGate requiredPermission="manage_billing"><StripeSettingsPage /></PermissionGate>} />
           <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
-          <Route path="settings/tv-devices" element={<TVDevicesSettingsPage />} />
+           <Route path="settings/tv-devices" element={<TVDevicesSettingsPage />} />
+           <Route path="settings/template" element={<TemplateSettingsPage />} />
           {/* Redirects for old settings routes */}
           <Route path="settings/organization" element={<Navigate to="/admin/settings/general" replace />} />
           <Route path="settings/site-content" element={<Navigate to="/admin/settings/site-info" replace />} />
