@@ -34,7 +34,7 @@ import {
 import { useUserManagement } from '@/hooks/useUserManagement';
 import UserInviteModal from '@/components/admin/UserInviteModal';
 import UserProfileModal from '@/components/admin/UserProfileModal';
-import UserPermissionDiagnostics from '@/components/admin/UserPermissionDiagnostics';
+
 import AddExistingUserModal from '@/components/admin/AddExistingUserModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeamPermissions } from '@/hooks/useTeamPermissions';
@@ -367,8 +367,6 @@ const UserManagementTab = () => {
         </CardContent>
       </Card>
 
-      {/* Permission Diagnostics */}
-      <UserPermissionDiagnostics />
 
       {/* Remove Confirmation */}
       <AlertDialog open={!!removeConfirm} onOpenChange={() => setRemoveConfirm(null)}>

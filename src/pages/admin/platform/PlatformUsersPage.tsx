@@ -1,5 +1,6 @@
 import React from 'react';
 import PlatformUsersTab from '@/components/admin/superadmin/PlatformUsersTab';
+import UserPermissionDiagnostics from '@/components/admin/UserPermissionDiagnostics';
 
 const PlatformUsersPage = () => {
   return (
@@ -9,6 +10,7 @@ const PlatformUsersPage = () => {
         <p className="text-muted-foreground">View and manage all platform users</p>
       </div>
       <PlatformUsersTab />
+      <UserPermissionDiagnostics />
     </div>
   );
 };
