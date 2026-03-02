@@ -200,6 +200,7 @@ export const useUserOperations = () => {
           email: invitation.email,
           full_name: invitation.full_name,
           role: invitation.role,
+          team_role: invitation.team_role,
           organizationId: organization.id
         }
       });
