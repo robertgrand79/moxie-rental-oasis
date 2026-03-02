@@ -12,7 +12,7 @@ const HeroSection = () => {
   if (isLoading) {
     return (
       <section 
-        className="relative h-screen flex items-center justify-center overflow-hidden"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden"
         data-hero-section
       >
         <div className="absolute inset-0 bg-black/80"></div>
@@ -25,7 +25,7 @@ const HeroSection = () => {
 
   return (
     <section 
-      className="relative h-screen flex items-center justify-center overflow-hidden"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden py-20"
       data-hero-section
     >
       <HeroBackground imageUrl={settings.heroBackgroundImage}>
