@@ -74,9 +74,13 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
               /* Desktop: Masonry-style grid for all photos */
               <div className="grid grid-cols-3 gap-3 auto-rows-[200px]">
                 {displayPhotos.map((image, index) => {
-                  // First image spans 2 cols + 2 rows, every 4th spans 2 cols
+                  // Layout pattern for 10 photos in 3-col grid with no gaps:
+                  // Row 1-2: photo 0 (2col×2row hero) + photos 1,2 (1col each)
+                  // Row 3: photo 3 (2col) + photo 4 (1col)
+                  // Row 4: photos 5,6,7 (1col each)
+                  // Row 5: photo 8 (2col) + photo 9 (1col)
                   const isHero = index === 0;
-                  const isWide = index === 3 || index === 7;
+                  const isWide = index === 3 || index === 8;
                   
                   return (
                     <div
