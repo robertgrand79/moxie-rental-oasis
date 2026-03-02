@@ -63,26 +63,30 @@ const Index = () => {
     );
   }
 
-  // Determine if we should render as single-property based on template override or org type
+  // Route based on the resolved template slug directly
+  // This ensures the template selection always takes priority over template_type
   const singleTemplateSlugs = ['classic', 'minimal', 'lux-single'];
-  const renderAsSingle = templateOverride
-    ? singleTemplateSlugs.includes(templateOverride)
-    : isSingleProperty;
+  const multiTemplateSlugs = ['multi-classic', 'lux-portfolio'];
 
-  // Single property sites - route to the correct template
-  if (renderAsSingle) {
-    if (activeTemplateSlug === 'lux-single') {
-      return <LuxSinglePropertyHome />;
-    }
-    if (activeTemplateSlug === 'minimal') {
-      return <MinimalSinglePropertyHome />;
-    }
+  // Single property templates
+  if (activeTemplateSlug === 'lux-single') {
+    return <LuxSinglePropertyHome />;
+  }
+  if (activeTemplateSlug === 'minimal') {
+    return <MinimalSinglePropertyHome />;
+  }
+  if (activeTemplateSlug === 'classic') {
     return <SinglePropertyHome />;
   }
 
   // Multi-property templates
   if (activeTemplateSlug === 'lux-portfolio') {
     return <LuxPortfolioHome />;
+  }
+
+  // Fallback: use isSingleProperty from org type if slug doesn't match known templates
+  if (isSingleProperty) {
+    return <SinglePropertyHome />;
   }
 
   // Multi-property sites get the current layout with search and grid
