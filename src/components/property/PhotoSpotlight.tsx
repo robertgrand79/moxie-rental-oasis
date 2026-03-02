@@ -16,11 +16,17 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const isMobile = useIsMobile();
 
-  // Use featured photos if available, otherwise use images — show up to 10
-  const displayPhotos = featuredPhotos && featuredPhotos.length > 0 
-    ? featuredPhotos.slice(0, 10)
-    : images.slice(0, 10);
-  
+  // Build a robust photo list: featured first, then fill from remaining images (max 10)
+  const safeImages = (images || []).filter((url): url is string => typeof url === 'string' && url.trim().length > 0);
+  const safeFeatured = (featuredPhotos || []).filter((url): url is string => typeof url === 'string' && url.trim().length > 0);
+
+  const uniqueFeatured = Array.from(new Set(safeFeatured));
+  const uniqueImages = Array.from(new Set(safeImages));
+  const remainingImages = uniqueImages.filter((url) => !uniqueFeatured.includes(url));
+
+  const allPhotos = [...uniqueFeatured, ...remainingImages];
+  const displayPhotos = allPhotos.slice(0, 10);
+
   if (displayPhotos.length === 0) return null;
 
   const openModal = (index: number) => {
@@ -38,19 +44,19 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
               <div>
                 <h2 className="text-3xl font-bold text-foreground mb-2">Gallery</h2>
                 <p className="text-muted-foreground">
-                  {images.length} photos of this beautiful property
+                  {allPhotos.length} photos of this beautiful property
                 </p>
               </div>
-              <Button 
+              <Button
                 onClick={() => openModal(0)}
                 variant="outline"
                 className="hidden md:flex items-center gap-2"
               >
                 <Grid3X3 className="h-4 w-4" />
-                View all {images.length} photos
+                View all {allPhotos.length} photos
               </Button>
             </div>
-            
+
             {isMobile ? (
               /* Mobile: 2-column grid showing all featured */
               <div className="grid grid-cols-2 gap-2">
@@ -81,7 +87,7 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
                   // Row 5: photo 8 (2col) + photo 9 (1col)
                   const isHero = index === 0;
                   const isWide = index === 3 || index === 8;
-                  
+
                   return (
                     <div
                       key={index}
@@ -101,18 +107,18 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
                 })}
               </div>
             )}
-            
+
             {/* Mobile: View All Button */}
-            {images.length > displayPhotos.length && (
+            {allPhotos.length > displayPhotos.length && (
               <div className="mt-6 text-center md:hidden">
-                <Button 
+                <Button
                   onClick={() => openModal(0)}
                   variant="outline"
                   size="lg"
                   className="w-full"
                 >
                   <Images className="h-5 w-5 mr-2" />
-                  View All {images.length} Photos
+                  View All {allPhotos.length} Photos
                 </Button>
               </div>
             )}
@@ -121,7 +127,7 @@ const PhotoSpotlight = ({ images, featuredPhotos, title }: PhotoSpotlightProps) 
       </div>
 
       <PropertyPhotoModal
-        images={images}
+        images={allPhotos}
         title={title}
         isOpen={showModal}
         onClose={() => setShowModal(false)}
