@@ -34,47 +34,7 @@ interface TemplateOption {
   preview?: string;
 }
 
-const SINGLE_TEMPLATES: TemplateOption[] = [
-  {
-    slug: 'classic',
-    name: 'Classic',
-    description: 'Full-featured homepage with social proof, booking benefits, reviews, and marketing sections. Great for maximizing conversions.',
-    features: [
-      'Social proof strip',
-      'Booking benefits section',
-      'Why Choose Us section',
-      'Final features section',
-      'Rich marketing layout',
-    ],
-    templateType: 'single_property',
-  },
-  {
-    slug: 'minimal',
-    name: 'Minimal',
-    description: 'Clean, editorial layout that puts your property front and center. Large hero image, focused content, and elegant typography.',
-    features: [
-      'Full-bleed hero image',
-      'Editorial description layout',
-      'Clean photo gallery',
-      'Minimal distraction design',
-      'Content-first approach',
-    ],
-    templateType: 'single_property',
-  },
-  {
-    slug: 'lux-single',
-    name: 'Lux',
-    description: 'Ultra-premium boutique hotel aesthetic. Full-screen hero, editorial story layout, bento gallery, and cinematic reviews slider. Quiet luxury.',
-    features: [
-      'Full-screen cinematic hero',
-      'Editorial two-column story',
-      'Bento box photo gallery',
-      'Floating sticky booking bar',
-      'Large-quote review slider',
-    ],
-    templateType: 'single_property',
-  },
-];
+const SINGLE_TEMPLATES: TemplateOption[] = [];
 
 const MULTI_TEMPLATES: TemplateOption[] = [
   {
@@ -217,22 +177,7 @@ const TemplateSwitcher: React.FC = () => {
         </p>
       </div>
 
-      {/* Single Property Templates */}
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Single Property Templates</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {SINGLE_TEMPLATES.map((template) => (
-            <TemplateCard
-              key={template.slug}
-              template={template}
-              isActive={currentSlug === template.slug}
-              onSelect={() => handleSelectTemplate(template)}
-              onPreview={() => setPreviewTemplate(template)}
-              isLoading={switchMutation.isPending}
-            />
-          ))}
-        </div>
-      </div>
+      {/* Single Property Templates removed */}
 
       {/* Multi Property Templates */}
       <div>
