@@ -1,14 +1,31 @@
-import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import SearchPropertyResults from '@/components/SearchPropertyResults';
 import InternalSearchBar from '@/components/InternalSearchBar';
 import { format, parseISO } from 'date-fns';
+import { useTenantProperties } from '@/hooks/useTenantProperties';
+import { generateAddressSlug } from '@/utils/addressSlug';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const checkin = searchParams.get('checkin') || '';
   const checkout = searchParams.get('checkout') || '';
   const guests = searchParams.get('guests') || '';
+  const { properties, loading: propertiesLoading } = useTenantProperties();
+
+  // Single property redirect: skip search results and go straight to booking
+  useEffect(() => {
+    if (!propertiesLoading && properties.length === 1) {
+      const property = properties[0];
+      const addressSlug = generateAddressSlug(property.location);
+      const params = new URLSearchParams();
+      if (checkin) params.set('checkin', checkin);
+      if (checkout) params.set('checkout', checkout);
+      params.set('tab', 'booking');
+      navigate(`/property/${addressSlug}?${params.toString()}`, { replace: true });
+    }
+  }, [propertiesLoading, properties, checkin, checkout, navigate]);
 
   // Format dates for display
   const formatDate = (dateStr: string) => {
@@ -19,6 +36,11 @@ const SearchResults = () => {
       return dateStr;
     }
   };
+
+  // Don't render search results page if we're about to redirect
+  if (!propertiesLoading && properties.length === 1) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to">
