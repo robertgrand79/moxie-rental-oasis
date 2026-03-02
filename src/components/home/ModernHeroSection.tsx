@@ -2,6 +2,7 @@
 import React from 'react';
 import { ArrowRight, MapPin, Star, Users, Calendar, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTenantProperties } from '@/hooks/useTenantProperties';
 import { Link } from 'react-router-dom';
 import { useHeroSettings } from './hooks/useHeroSettings';
 import { useRatingMetrics } from '@/hooks/useRatingMetrics';
@@ -10,10 +11,12 @@ import AnimatedBackground from './ModernHeroBackground';
 const ModernHeroSection = () => {
   const { settings, isLoading } = useHeroSettings();
   const { metrics, isLoading: isRatingLoading } = useRatingMetrics();
+  const { properties } = useTenantProperties();
+  const isSingleProperty = properties.length === 1;
 
   if (isLoading) {
     return (
-      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-muted to-background">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-muted to-background">
         <div className="animate-pulse text-foreground text-center">
           <div className="h-16 bg-muted rounded-lg w-96 mx-auto mb-4"></div>
           <div className="h-8 bg-muted rounded-lg w-64 mx-auto"></div>
@@ -26,12 +29,12 @@ const ModernHeroSection = () => {
   const exploreText = settings.heroExploreText || 'Explore the Area';
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-black">
+    <section className="relative min-h-screen w-full overflow-hidden bg-black">
       {/* Animated Background with optional hero image */}
       <AnimatedBackground imageUrl={settings.heroBackgroundImage} />
       
       {/* Main Content Container - Centered */}
-      <div className="relative z-10 h-full flex items-center justify-center">
+      <div className="relative z-10 min-h-screen flex items-center justify-center py-20">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="text-center space-y-8">
             
@@ -113,7 +116,7 @@ const ModernHeroSection = () => {
                 size="lg" 
                 className="bg-gradient-to-r from-[hsl(var(--accent))] to-[hsl(var(--secondary))] hover:opacity-90 text-primary-foreground font-semibold px-8 py-4 text-lg rounded-full shadow-2xl transform transition-all duration-300 hover:scale-105"
               >
-                <Link to="/properties" className="flex items-center gap-2">
+                <Link to={isSingleProperty ? "#about-property" : "/properties"} className="flex items-center gap-2">
                   <span>{settings.heroCTAText}</span>
                   <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -125,8 +128,8 @@ const ModernHeroSection = () => {
                 size="lg" 
                 className="border-2 border-white/30 bg-white/10 backdrop-blur-xl text-white hover:bg-white/20 font-semibold px-8 py-4 text-lg rounded-full"
               >
-                <Link to="/experiences">
-                  <span>{exploreText}</span>
+                <Link to={isSingleProperty ? "#photo-spotlight" : "/experiences"}>
+                  <span>{isSingleProperty ? 'View Photos' : exploreText}</span>
                 </Link>
               </Button>
             </div>
