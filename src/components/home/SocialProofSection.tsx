@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Shield, Award, Users, Star } from 'lucide-react';
+import { ShieldCheck, Gem, Star, Headset } from 'lucide-react';
 import { useRatingMetrics } from '@/hooks/useRatingMetrics';
 
 const SocialProofSection = () => {
@@ -8,12 +8,12 @@ const SocialProofSection = () => {
 
   const trustSignals = [
     {
-      icon: Shield,
+      icon: ShieldCheck,
       label: 'Verified Properties',
-      description: 'All properties professionally managed'
+      description: 'Professionally managed & inspected'
     },
     {
-      icon: Award,
+      icon: Gem,
       label: 'Superhost Status',
       description: 'Top-rated hospitality excellence'
     },
@@ -24,22 +24,21 @@ const SocialProofSection = () => {
       isRating: true
     },
     {
-      icon: Users,
+      icon: Headset,
       label: '24/7 Support',
       description: 'Always here when you need us'
     }
   ];
 
   return (
-    <section className="py-8 bg-background border-t border-b border-border">
+    <section className="py-10 bg-background border-t border-b border-border/50">
       <div className="container mx-auto px-4">
-        {/* Trust Signals */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {trustSignals.map((signal, index) => (
-            <div key={index} className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 text-primary rounded-full mb-3">
+            <div key={index} className="flex flex-col items-center text-center gap-3">
+              <div className="flex items-center justify-center w-11 h-11 rounded-full border border-border/60 bg-muted/40">
                 {signal.isRating && metrics && !isLoading ? (
-                  <div className="flex">
+                  <div className="flex gap-0.5">
                     {Array.from({ length: 5 }).map((_, starIndex) => (
                       <Star 
                         key={starIndex} 
@@ -48,15 +47,17 @@ const SocialProofSection = () => {
                     ))}
                   </div>
                 ) : (
-                  <signal.icon className="h-6 w-6" />
+                  <signal.icon className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
                 )}
               </div>
-              <h4 className="font-semibold text-foreground text-sm mb-1">
-                {signal.label}
-              </h4>
-              <p className="text-xs text-muted-foreground">
-                {signal.description}
-              </p>
+              <div>
+                <h4 className="font-semibold text-foreground text-sm tracking-tight">
+                  {signal.label}
+                </h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {signal.description}
+                </p>
+              </div>
             </div>
           ))}
         </div>
