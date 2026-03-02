@@ -14,4 +14,5 @@ export interface UserInvitation {
   email: string;
   role: string;
   full_name?: string;
+  team_role?: string;
 }
