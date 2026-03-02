@@ -3,9 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
-import SinglePropertyHome from '@/components/home/SinglePropertyHome';
-import MinimalSinglePropertyHome from '@/components/home/MinimalSinglePropertyHome';
-import LuxSinglePropertyHome from '@/components/templates/lux-single/LuxSinglePropertyHome';
 import LuxPortfolioHome from '@/components/templates/lux-portfolio/LuxPortfolioHome';
 import ModernHeroSection from '@/components/home/ModernHeroSection';
 import MainSearchBar from '@/components/MainSearchBar';
@@ -63,31 +60,15 @@ const Index = () => {
     );
   }
 
-  // Route based on the resolved template slug directly
-  // This ensures the template selection always takes priority over template_type
-  const singleTemplateSlugs = ['classic', 'minimal', 'lux-single'];
-  const multiTemplateSlugs = ['multi-classic', 'lux-portfolio'];
-
-  // Single property templates
-  if (activeTemplateSlug === 'lux-single') {
-    return <LuxSinglePropertyHome />;
-  }
-  if (activeTemplateSlug === 'minimal') {
-    return <MinimalSinglePropertyHome />;
-  }
-  if (activeTemplateSlug === 'classic') {
-    return <SinglePropertyHome />;
-  }
-
-  // Multi-property templates
-  if (activeTemplateSlug === 'lux-portfolio') {
+  // Route based on the resolved template slug
+  // Both templates auto-adapt for single vs multi property
+  if (activeTemplateSlug === 'lux-portfolio' || activeTemplateSlug === 'lux-single') {
     return <LuxPortfolioHome />;
   }
 
-  // If slug is a known multi template (multi-classic) or org is multi-property, show multi layout
-  // If slug is unknown and org is single-property, fallback to single
-  if (!multiTemplateSlugs.includes(activeTemplateSlug || '') && isSingleProperty) {
-    return <SinglePropertyHome />;
+  // Legacy single-property slugs map to the classic adaptive template
+  if (activeTemplateSlug === 'classic' || activeTemplateSlug === 'minimal') {
+    // Fall through to the classic multi-property layout which auto-adapts
   }
 
   // Multi-property sites get the current layout with search and grid

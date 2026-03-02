@@ -34,32 +34,30 @@ interface TemplateOption {
   preview?: string;
 }
 
-const SINGLE_TEMPLATES: TemplateOption[] = [];
-
-const MULTI_TEMPLATES: TemplateOption[] = [
+const TEMPLATES: TemplateOption[] = [
   {
     slug: 'multi-classic',
-    name: 'Multi-Property Classic',
-    description: 'Full-featured multi-property site with property search, filtering, testimonials, and comprehensive marketing sections.',
+    name: 'Classic',
+    description: 'Full-featured site with property search, filtering, testimonials, and comprehensive marketing sections. Automatically adapts for single or multiple properties.',
     features: [
+      'Auto-adapts for 1 or many properties',
       'Property search & filtering',
-      'Testimonials section',
-      'Local information',
+      'Testimonials & social proof',
+      'Local information & events',
       'Booking benefits',
-      'Scalable for portfolios',
     ],
     templateType: 'multi_property',
   },
   {
     slug: 'lux-portfolio',
-    name: 'Lux Portfolio',
-    description: 'Ultra-premium editorial layout for curated property collections. Cinematic hero, asymmetrical grid, concierge search, and destination showcases. Quiet luxury.',
+    name: 'Lux',
+    description: 'Ultra-premium editorial layout with cinematic hero, concierge search, and quiet luxury aesthetics. Automatically adapts for single or multiple properties.',
     features: [
+      'Auto-adapts for 1 or many properties',
       'Full-screen cycling hero',
       'Frosted-glass concierge search',
-      'Asymmetrical editorial grid',
-      'Portrait destination cards',
-      'Borderless property cards',
+      'Editorial grid layout',
+      'Quiet luxury design',
     ],
     templateType: 'multi_property',
   },
@@ -91,9 +89,6 @@ const TemplateSwitcher: React.FC = () => {
   });
 
   const currentSlug = orgData?.slug;
-  const isStarterTier = orgData?.tier === 'starter';
-  // Show upgrade prompt if on starter tier (single-property plan)
-  const needsUpgradeForMulti = isStarterTier;
 
   const switchMutation = useMutation({
     mutationFn: async (template: TemplateOption) => {
@@ -129,14 +124,6 @@ const TemplateSwitcher: React.FC = () => {
 
   const handleSelectTemplate = (template: TemplateOption) => {
     if (template.slug === currentSlug) return;
-
-    // If on starter tier and switching to multi, show upgrade prompt
-    if (needsUpgradeForMulti && template.templateType === 'multi_property') {
-      setPendingTemplate(template);
-      setUpgradeDialogOpen(true);
-      return;
-    }
-
     switchMutation.mutate(template);
   };
 
@@ -148,7 +135,7 @@ const TemplateSwitcher: React.FC = () => {
     setPendingTemplate(null);
   };
 
-  const allTemplates = [...SINGLE_TEMPLATES, ...MULTI_TEMPLATES];
+  const allTemplates = TEMPLATES;
 
   const orgSlug = organization?.slug;
 
@@ -177,31 +164,18 @@ const TemplateSwitcher: React.FC = () => {
         </p>
       </div>
 
-      {/* Single Property Templates removed */}
-
-      {/* Multi Property Templates */}
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">
-          Multi-Property Templates
-          {needsUpgradeForMulti && (
-            <Badge variant="outline" className="ml-2 text-xs">
-              Requires plan upgrade
-            </Badge>
-          )}
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {MULTI_TEMPLATES.map((template) => (
-            <TemplateCard
-              key={template.slug}
-              template={template}
-              isActive={currentSlug === template.slug}
-              onSelect={() => handleSelectTemplate(template)}
-              onPreview={() => setPreviewTemplate(template)}
-              isLoading={switchMutation.isPending}
-              requiresUpgrade={needsUpgradeForMulti}
-            />
-          ))}
-        </div>
+      {/* Templates */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {TEMPLATES.map((template) => (
+          <TemplateCard
+            key={template.slug}
+            template={template}
+            isActive={currentSlug === template.slug}
+            onSelect={() => handleSelectTemplate(template)}
+            onPreview={() => setPreviewTemplate(template)}
+            isLoading={switchMutation.isPending}
+          />
+        ))}
       </div>
 
       {/* Upgrade Dialog */}
