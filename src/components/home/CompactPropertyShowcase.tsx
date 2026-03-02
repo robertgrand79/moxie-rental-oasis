@@ -9,10 +9,16 @@ import { generateAddressSlug } from '@/utils/addressSlug';
 import OptimizedImage from '@/components/ui/optimized-image';
 import PropertyCardSkeleton from '@/components/ui/property-card-skeleton';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import InlinePropertyDetail from '@/components/home/InlinePropertyDetail';
 
 const CompactPropertyShowcase = () => {
   const { properties, loading } = useTenantProperties();
   const { settings } = useTenantSettings();
+
+  // Single property: render full property detail inline instead of a card grid
+  if (!loading && properties.length === 1) {
+    return <InlinePropertyDetail property={properties[0]} />;
+  }
 
   const sectionTitle = settings.propertiesSectionTitle || 'Our Properties';
   const sectionDescription = settings.propertiesSectionDescription || 
