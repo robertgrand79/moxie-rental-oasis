@@ -7,6 +7,7 @@ import LuxPortfolioHero from './LuxPortfolioHero';
 import LuxConciergeSearch from './LuxConciergeSearch';
 import LuxDestinations from './LuxDestinations';
 import LuxEditorialGrid from './LuxEditorialGrid';
+import InlinePropertyDetail from '@/components/home/InlinePropertyDetail';
 
 import TestimonialsSection from '@/components/home/TestimonialsSection';
 import EnhancedWhatsNearbySection from '@/components/home/EnhancedWhatsNearbySection';
@@ -71,6 +72,34 @@ const LuxPortfolioHome: React.FC = () => {
             ))}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Single property: show inline property detail with lux styling wrapper
+  if (properties.length === 1) {
+    return (
+      <div className="bg-background text-foreground">
+        <main>
+          <InlinePropertyDetail property={properties[0]} />
+          <div className="border-t border-primary/10">
+            <FeatureErrorBoundary featureName="Testimonials" showRetry={false}>
+              <TestimonialsSection />
+            </FeatureErrorBoundary>
+          </div>
+          <div className="border-t border-primary/10">
+            <FeatureErrorBoundary featureName="What's Nearby" showRetry={false}>
+              <EnhancedWhatsNearbySection />
+            </FeatureErrorBoundary>
+          </div>
+          <section className="py-32 border-t border-primary/10">
+            <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
+              <div className="max-w-xl mx-auto text-center">
+                <TravelNewsletterSignup />
+              </div>
+            </div>
+          </section>
+        </main>
       </div>
     );
   }
