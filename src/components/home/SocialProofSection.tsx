@@ -37,15 +37,8 @@ const SocialProofSection = () => {
           {trustSignals.map((signal, index) => (
             <div key={index} className="flex flex-col items-center text-center gap-3">
               <div className="flex items-center justify-center w-11 h-11 rounded-full border border-border/60 bg-muted/40">
-                {signal.isRating && metrics && !isLoading ? (
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: 5 }).map((_, starIndex) => (
-                      <Star 
-                        key={starIndex} 
-                        className="h-3 w-3 fill-current text-icon-amber"
-                      />
-                    ))}
-                  </div>
+                {signal.isRating ? (
+                  <Star className="h-5 w-5 fill-current text-icon-amber" strokeWidth={1.5} />
                 ) : (
                   <signal.icon className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
                 )}
