@@ -34,7 +34,7 @@ const LuxPropertyCard: React.FC<LuxPropertyCardProps> = ({ property, featured = 
 
   return (
     <Link
-      to={`/properties/${addressSlug}`}
+      to={`/property/${addressSlug}`}
       className="group block"
     >
       {/* Image */}
