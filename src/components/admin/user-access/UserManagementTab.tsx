@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2, Search, Download, Link } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2, Search, Download, Link, Clock, RefreshCw, X } from 'lucide-react';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -85,6 +85,93 @@ const UserManagementTab = () => {
   const { user: currentUser } = useAuth();
   const { canManageTeam, isOwner } = useTeamPermissions();
   const { organization } = useCurrentOrganization();
+
+  // Pending invitations state
+  const [pendingInvitations, setPendingInvitations] = useState<any[]>([]);
+  const [loadingInvitations, setLoadingInvitations] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+
+  const fetchPendingInvitations = useCallback(async () => {
+    if (!organization?.id) return;
+    setLoadingInvitations(true);
+    const { data, error } = await supabase
+      .from('user_invitations')
+      .select('*')
+      .eq('organization_id', organization.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    
+    if (!error && data) {
+      setPendingInvitations(data);
+    }
+    setLoadingInvitations(false);
+  }, [organization?.id]);
+
+  useEffect(() => {
+    fetchPendingInvitations();
+  }, [fetchPendingInvitations]);
+
+  const handleResendInvite = async (invitation: any) => {
+    setResendingId(invitation.id);
+    try {
+      // Generate new token and extend expiry
+      const newToken = crypto.randomUUID();
+      const newExpiry = new Date();
+      newExpiry.setDate(newExpiry.getDate() + 7);
+
+      const { error: updateError } = await supabase
+        .from('user_invitations')
+        .update({
+          invitation_token: newToken,
+          expires_at: newExpiry.toISOString(),
+          resend_count: (invitation.resend_count || 0) + 1,
+          resent_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', invitation.id);
+
+      if (updateError) throw updateError;
+
+      // Re-trigger the invitation email via edge function
+      const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+        body: {
+          email: invitation.email,
+          invitationToken: newToken,
+          organizationId: organization?.id,
+          inviterName: invitation.inviter_name,
+          organizationName: invitation.organization_name,
+          fullName: invitation.full_name,
+          teamRole: invitation.team_role,
+        },
+      });
+
+      if (emailError) {
+        console.warn('Email send failed (invite still updated):', emailError);
+      }
+
+      toast.success(`Invitation resent to ${invitation.email}`);
+      fetchPendingInvitations();
+    } catch (err) {
+      console.error('Resend error:', err);
+      toast.error('Failed to resend invitation');
+    } finally {
+      setResendingId(null);
+    }
+  };
+
+  const handleCancelInvite = async (invitationId: string) => {
+    const { error } = await supabase
+      .from('user_invitations')
+      .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+      .eq('id', invitationId);
+
+    if (error) {
+      toast.error('Failed to cancel invitation');
+    } else {
+      toast.success('Invitation cancelled');
+      fetchPendingInvitations();
+    }
+  };
 
   const filteredUsers = searchUsers(searchQuery);
 
@@ -367,6 +454,90 @@ const UserManagementTab = () => {
         </CardContent>
       </Card>
 
+      {/* Pending Invitations */}
+      {pendingInvitations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+              Pending Invitations
+            </CardTitle>
+            <CardDescription>
+              These users have been invited but haven't accepted yet.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Invitee</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Invited</TableHead>
+                    <TableHead>Expires</TableHead>
+                    <TableHead>Resends</TableHead>
+                    {canManageTeam && <TableHead className="text-right">Actions</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingInvitations.map((inv) => {
+                    const isExpired = new Date(inv.expires_at) < new Date();
+                    return (
+                      <TableRow key={inv.id} className={isExpired ? 'opacity-60' : ''}>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{inv.full_name || 'No name'}</span>
+                            <span className="text-sm text-muted-foreground">{inv.email}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {inv.team_role || inv.role || 'staff'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(inv.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={isExpired ? 'destructive' : 'secondary'}>
+                            {isExpired ? 'Expired' : new Date(inv.expires_at).toLocaleDateString()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {inv.resend_count || 0}
+                        </TableCell>
+                        {canManageTeam && (
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResendInvite(inv)}
+                                disabled={resendingId === inv.id}
+                              >
+                                <RefreshCw className={`h-3.5 w-3.5 mr-1 ${resendingId === inv.id ? 'animate-spin' : ''}`} />
+                                Resend
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCancelInvite(inv.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Remove Confirmation */}
       <AlertDialog open={!!removeConfirm} onOpenChange={() => setRemoveConfirm(null)}>
@@ -392,7 +563,11 @@ const UserManagementTab = () => {
       {/* Modals */}
       <UserInviteModal
         isOpen={isInviteModalOpen}
-        onClose={() => setIsInviteModalOpen(false)}
+        onClose={() => {
+          setIsInviteModalOpen(false);
+          fetchPendingInvitations();
+          fetchUsers();
+        }}
         onInvite={inviteUser}
       />
       <UserProfileModal
