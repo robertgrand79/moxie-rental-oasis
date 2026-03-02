@@ -84,8 +84,9 @@ const Index = () => {
     return <LuxPortfolioHome />;
   }
 
-  // Fallback: use isSingleProperty from org type if slug doesn't match known templates
-  if (isSingleProperty) {
+  // If slug is a known multi template (multi-classic) or org is multi-property, show multi layout
+  // If slug is unknown and org is single-property, fallback to single
+  if (!multiTemplateSlugs.includes(activeTemplateSlug || '') && isSingleProperty) {
     return <SinglePropertyHome />;
   }
 
