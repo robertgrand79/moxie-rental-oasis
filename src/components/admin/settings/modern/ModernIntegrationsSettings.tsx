@@ -17,7 +17,8 @@ const ModernIntegrationsSettings: React.FC = () => {
 
   const org = organization as any;
   const hasAI = true;
-  const hasComms = !!(org?.openphone_api_key || org?.resend_api_key);
+  const isPortfolio = org?.subscription_tier === 'portfolio';
+  const hasComms = !!(org?.openphone_api_key || (isPortfolio && org?.resend_api_key));
   const hasSmartHome = !!org?.seam_api_key;
   const hasServices = !!(org?.turno_api_token);
 
