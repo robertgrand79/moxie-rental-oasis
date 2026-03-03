@@ -159,18 +159,21 @@ const UserManagementTab = () => {
     }
   };
 
-  const handleCancelInvite = async (invitationId: string) => {
+  const [deleteInviteConfirm, setDeleteInviteConfirm] = useState<{ id: string; email: string } | null>(null);
+
+  const handleDeleteInvite = async (invitationId: string) => {
     const { error } = await supabase
       .from('user_invitations')
-      .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+      .delete()
       .eq('id', invitationId);
 
     if (error) {
-      toast.error('Failed to cancel invitation');
+      toast.error('Failed to delete invitation');
     } else {
-      toast.success('Invitation cancelled');
+      toast.success('Invitation deleted');
       fetchPendingInvitations();
     }
+    setDeleteInviteConfirm(null);
   };
 
   const filteredUsers = searchUsers(searchQuery);
@@ -521,10 +524,10 @@ const UserManagementTab = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleCancelInvite(inv.id)}
+                                onClick={() => setDeleteInviteConfirm({ id: inv.id, email: inv.email })}
                                 className="text-destructive hover:text-destructive"
                               >
-                                <X className="h-3.5 w-3.5" />
+                                <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           </TableCell>
@@ -560,7 +563,27 @@ const UserManagementTab = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Modals */}
+      {/* Delete Invite Confirmation */}
+      <AlertDialog open={!!deleteInviteConfirm} onOpenChange={() => setDeleteInviteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete invitation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the invitation for <strong>{deleteInviteConfirm?.email}</strong>. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteInviteConfirm && handleDeleteInvite(deleteInviteConfirm.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <UserInviteModal
         isOpen={isInviteModalOpen}
         onClose={() => {
