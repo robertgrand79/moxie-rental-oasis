@@ -1,30 +1,28 @@
 
 
-## Plan: Add Live Preview to Template Switcher
+## Plan: Hide Resend Config Unless Portfolio Plan
 
-**Goal**: Add a "Preview" button to each template card that opens a dialog/drawer showing the user's actual site rendered with that template, using their real data.
-
-### How It Works
-
-The app already supports rendering any tenant's site via `/?org=slug`. We can leverage this by adding a query parameter to force a specific template slug (e.g., `/?org=moxie-vacation-rentals&template=minimal`). The homepage (`Index.tsx`) will read this param and use it to override the active template, giving a real-time preview with the user's actual property data.
+The Resend API key configuration is currently exposed to all organizations in two places. Since we're using a single platform Resend account, org-level Resend config should only be available to Portfolio-tier orgs as a premium feature (custom sending domain).
 
 ### Changes
 
-1. **Add `template` query param support to `Index.tsx`**
-   - Read `?template=` from the URL search params
-   - If present, use it as the template slug instead of the database value
-   - This is read-only and does not change the database
+**1. CommunicationsSettingsPage.tsx** (lines 302-318)
+- Wrap the "Resend Email" section in a tier check: only render if `organization.subscription_tier === 'portfolio'`
+- For non-portfolio orgs, show a brief note like "Email is managed by the platform. Upgrade to Portfolio for custom email domain configuration."
+- Also remove `resend_api_key` from the form submission logic when not portfolio tier
 
-2. **Add "Preview" button to each `TemplateCard`**
-   - An `Eye` icon button that opens a dialog containing the existing `SitePreviewPanel` component
-   - The preview URL will be `/?org={slug}&template={templateSlug}`
-   - Only shown for templates that are not currently active (active template is already what they see)
+**2. IntegrationsSettingsPanel.tsx** (lines 475-492)
+- Same treatment: hide the Resend API key input unless the org is on the portfolio plan
+- Show a small upgrade prompt instead
 
-3. **Preview Dialog in `TemplateSwitcher`**
-   - A `Dialog` with the `SitePreviewPanel` embedded, showing desktop/tablet/mobile toggle and the iframe preview
-   - The iframe loads the user's actual site with the selected template applied via the query param override
+**3. CommunicationsSettingsPage.tsx** — form state cleanup
+- Skip submitting `resend_api_key` when org is not portfolio tier (line 117-119)
 
-### Result
+### How tier is accessed
+- `organization.subscription_tier` is already available from `useCurrentOrganization()` — used elsewhere in the codebase (e.g., `useActiveAnnouncements`)
+- Simple string comparison: `organization?.subscription_tier === 'portfolio'`
 
-Users click "Preview" on any template card and see their own site (with their real properties, branding, etc.) rendered in that template layout -- without changing anything. They can then confidently click "Use This Template" to commit.
+### What users see
+- **Starter/Professional**: QUO SMS config only. A note explaining email is platform-managed.
+- **Portfolio**: Full Resend API key config section, enabling custom sending domains.
 
