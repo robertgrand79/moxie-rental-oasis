@@ -148,7 +148,8 @@ const IntegrationsSettingsPanel = () => {
     if (formData.openphone_api_key) {
       success = await setApiKey(organization.id, 'openphone_api_key', formData.openphone_api_key) && success;
     }
-    if (formData.resend_api_key) {
+    const isPortfolio = (organization as any)?.subscription_tier === 'portfolio';
+    if (formData.resend_api_key && isPortfolio) {
       success = await setApiKey(organization.id, 'resend_api_key', formData.resend_api_key) && success;
     }
     
@@ -472,23 +473,29 @@ const IntegrationsSettingsPanel = () => {
                   </div>
                 </div>
 
-                {/* Resend Section */}
+                {/* Email Section */}
                 <div className="space-y-4 pt-4 border-t">
-                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Resend Email</h4>
-                  <div>
-                    <Label htmlFor="resend_api_key">Resend API Key</Label>
-                    <Input
-                      id="resend_api_key"
-                      type="password"
-                      placeholder={configuredKeys.resend_api_key ? '••••••••••••••••' : 'Enter your Resend API key'}
-                      value={formData.resend_api_key}
-                      onChange={(e) => setFormData({ ...formData, resend_api_key: e.target.value })}
-                      disabled={!isOrgAdmin() || loading}
-                    />
-                    <div className="mt-1">
-                      <ConfigStatus configured={configuredKeys.resend_api_key} />
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Email</h4>
+                  {(organization as any)?.subscription_tier === 'portfolio' ? (
+                    <div>
+                      <Label htmlFor="resend_api_key">Resend API Key</Label>
+                      <Input
+                        id="resend_api_key"
+                        type="password"
+                        placeholder={configuredKeys.resend_api_key ? '••••••••••••••••' : 'Enter your Resend API key'}
+                        value={formData.resend_api_key}
+                        onChange={(e) => setFormData({ ...formData, resend_api_key: e.target.value })}
+                        disabled={!isOrgAdmin() || loading}
+                      />
+                      <div className="mt-1">
+                        <ConfigStatus configured={configuredKeys.resend_api_key} />
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Email is managed by the platform. Upgrade to the <span className="font-medium text-foreground">Portfolio</span> plan to configure a custom sending domain.
+                    </p>
+                  )}
                 </div>
 
                 {isOrgAdmin() && (
