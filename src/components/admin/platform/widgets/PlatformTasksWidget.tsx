@@ -262,7 +262,7 @@ const PlatformTasksWidget: React.FC = () => {
             variant="ghost"
             size="sm"
             className="w-full mt-2 text-xs"
-            onClick={() => navigate('/admin/platform/tasks')}
+            onClick={() => navigate('/admin/platform/workflows')}
           >
             View all {pendingTasks.length} tasks
             <ArrowRight className="h-3 w-3 ml-1" />
