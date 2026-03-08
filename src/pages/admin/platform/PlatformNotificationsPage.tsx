@@ -14,7 +14,9 @@ import {
   Search,
   Bell,
   Archive,
-  RefreshCw
+  RefreshCw,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { usePlatformNotifications, PlatformNotification } from '@/hooks/usePlatformNotifications';
 import { useNavigate } from 'react-router-dom';
@@ -115,8 +117,12 @@ export default function PlatformNotificationsPage() {
     isLoading, 
     markAsRead, 
     markAllAsRead, 
-    archiveNotification 
+    archiveNotification,
+    deleteAllRead,
+    isDeletingRead,
   } = usePlatformNotifications({ limit: 100, includeRead: true });
+
+  const readCount = notifications.filter(n => n.is_read).length;
 
   const filteredNotifications = notifications.filter(n => {
     const matchesSearch = !searchTerm || 
@@ -150,6 +156,21 @@ export default function PlatformNotificationsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {readCount > 0 && (
+            <Button 
+              variant="outline" 
+              onClick={() => deleteAllRead()}
+              disabled={isDeletingRead}
+              className="text-destructive hover:text-destructive"
+            >
+              {isDeletingRead ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Clear read ({readCount})
+            </Button>
+          )}
           {unreadCount > 0 && (
             <Button variant="outline" onClick={() => markAllAsRead()}>
               <CheckCircle className="h-4 w-4 mr-2" />

@@ -157,6 +157,22 @@ export const usePlatformNotifications = (options?: { limit?: number; includeRead
     },
   });
 
+  const deleteAllRead = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('platform_notifications')
+        .delete()
+        .eq('is_read', true)
+        .eq('is_archived', false);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platform-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['platform-notifications-unread-count'] });
+    },
+  });
+
   return {
     notifications,
     unreadCount,
@@ -165,5 +181,7 @@ export const usePlatformNotifications = (options?: { limit?: number; includeRead
     markAsRead: markAsRead.mutate,
     markAllAsRead: markAllAsRead.mutate,
     archiveNotification: archiveNotification.mutate,
+    deleteAllRead: deleteAllRead.mutate,
+    isDeletingRead: deleteAllRead.isPending,
   };
 };
