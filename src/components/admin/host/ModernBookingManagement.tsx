@@ -529,19 +529,19 @@ const ModernBookingManagement = () => {
             <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1.5">
                 <CalendarIcon className="h-4 w-4" />
-                <span className="font-medium text-foreground">{stats.total}</span> Total
+                <span className="font-medium text-foreground">{bookingStats.total}</span> Total
               </span>
               <span className="flex items-center gap-1.5">
                 <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="font-medium text-green-600">{stats.confirmed}</span> Confirmed
+                <span className="font-medium text-green-600">{bookingStats.confirmed}</span> Confirmed
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4 text-yellow-600" />
-                <span className="font-medium text-yellow-600">{stats.pending}</span> Pending
+                <span className="font-medium text-yellow-600">{bookingStats.pending}</span> Pending
               </span>
               <span className="flex items-center gap-1.5">
                 <DollarSign className="h-4 w-4 text-blue-600" />
-                <span className="font-medium text-blue-600">${stats.totalRevenue.toLocaleString()}</span> Revenue
+                <span className="font-medium text-blue-600">${bookingStats.totalRevenue.toLocaleString()}</span> Revenue
               </span>
             </div>
           </div>
