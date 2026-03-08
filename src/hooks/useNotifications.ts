@@ -164,6 +164,15 @@ export const useNotifications = () => {
             const newNotification = payload.new as AdminNotification;
             if (newNotification.user_id === null || newNotification.user_id === user.id) {
               queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+              
+              // Show in-app toast
+              toast({
+                title: newNotification.title,
+                description: newNotification.message,
+              });
+              
+              // Show browser push notification
+              showBrowserNotification(newNotification);
             }
           }
         )
