@@ -15,24 +15,19 @@ Deno.serve(async (req) => {
     const url = new URL(req.url)
     
     // Support both path-based and query-param formats:
-    // Path: /functions/v1/calendar-export/PROPERTY_ID/TOKEN  (preferred for external platforms)
-    // Query: /calendar-export?property_id=X&token=Y  (legacy)
-    const pathSegments = url.pathname.split('/').filter(Boolean)
-    console.log('URL pathname:', url.pathname, 'segments:', JSON.stringify(pathSegments))
-    
-    // Find "calendar-export" in the path and extract subsequent segments
-    const calExportIdx = pathSegments.findIndex(s => s === 'calendar-export')
-    const pathPropertyId = calExportIdx >= 0 && pathSegments.length > calExportIdx + 1 
-      ? pathSegments[calExportIdx + 1] 
-      : undefined
-    const pathToken = calExportIdx >= 0 && pathSegments.length > calExportIdx + 2 
-      ? pathSegments[calExportIdx + 2] 
-      : undefined
+    // Path: .../calendar-export/PROPERTY_ID/TOKEN  (preferred for external platforms)
+    // Query: .../calendar-export?property_id=X&token=Y  (legacy)
+    const pathParts = url.pathname.replace(/\/+$/, '').split('/')
+    // In Supabase edge functions, req.url pathname is like /calendar-export or /calendar-export/xxx/yyy
+    // (the /functions/v1/ prefix is stripped by the runtime)
+    // So pathParts will be: ["", "calendar-export"] or ["", "calendar-export", propertyId, token]
+    const pathPropertyId = pathParts.length > 2 ? pathParts[2] : null
+    const pathToken = pathParts.length > 3 ? pathParts[3] : null
     
     const propertyId = pathPropertyId || url.searchParams.get('property_id')
     const token = pathToken || url.searchParams.get('token')
     
-    console.log('Resolved propertyId:', propertyId, 'token present:', !!token)
+    console.log('URL path:', url.pathname, 'pathParts:', JSON.stringify(pathParts), 'propertyId:', propertyId, 'token present:', !!token)
 
     if (!propertyId) {
       return new Response(
