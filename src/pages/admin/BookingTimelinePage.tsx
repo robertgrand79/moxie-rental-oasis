@@ -541,7 +541,7 @@ const BookingTimelinePage = () => {
                   <div>
                     <p className="font-medium">{property.title}</p>
                     <p className="text-xs text-muted-foreground font-mono break-all">
-                      https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id={property.id}
+                      {PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id={property.id}
                     </p>
                   </div>
                   <div className="flex gap-2">
