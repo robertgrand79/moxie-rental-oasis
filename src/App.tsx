@@ -15,6 +15,7 @@ import { ErrorBoundary } from './components/ui/error-boundary';
 import { WidgetErrorBoundary } from './components/error-boundaries/WidgetErrorBoundary';
 import { RUMProvider } from './providers/RUMProvider';
 import IOSInstallPrompt from './components/pwa/IOSInstallPrompt';
+import InstallBanner from './components/pwa/InstallBanner';
 
 // Note: QueryClient is created in main.tsx - single instance for entire app
 
@@ -24,6 +25,7 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background text-foreground">
+        <InstallBanner />
         <Router>
           <RUMProvider 
             sampleRate={isDev ? 1.0 : 0.1} 
