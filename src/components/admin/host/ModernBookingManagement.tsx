@@ -37,6 +37,7 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useDeleteReservation } from '@/hooks/useBookingData';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import PaginationControls from '@/components/ui/pagination-controls';
 
 interface Reservation {
   id: string;
