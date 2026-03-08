@@ -98,7 +98,26 @@ serve(async (req) => {
             const fullEmail = await resendRes.json();
             emailData.html = fullEmail.html || emailData.html;
             emailData.text = fullEmail.text || emailData.text;
-            console.log("[InboundWebhook] Fetched email body, html length:", emailData.html?.length || 0);
+            console.log("[InboundWebhook] Fetched email body, html length:", emailData.html?.length || 0, "text length:", emailData.text?.length || 0);
+            
+            // If still no body, try downloading the raw email
+            if (!emailData.html && !emailData.text && fullEmail.raw?.download_url) {
+              try {
+                console.log("[InboundWebhook] Downloading raw email from:", fullEmail.raw.download_url);
+                const rawRes = await fetch(fullEmail.raw.download_url);
+                if (rawRes.ok) {
+                  const rawContent = await rawRes.text();
+                  // Extract HTML body from raw MIME content
+                  const htmlMatch = rawContent.match(/Content-Type:\s*text\/html[\s\S]*?\r?\n\r?\n([\s\S]*?)(?:\r?\n--|\Z)/i);
+                  const textMatch = rawContent.match(/Content-Type:\s*text\/plain[\s\S]*?\r?\n\r?\n([\s\S]*?)(?:\r?\n--|\Z)/i);
+                  if (htmlMatch) emailData.html = htmlMatch[1];
+                  if (textMatch) emailData.text = textMatch[1];
+                  console.log("[InboundWebhook] Extracted from raw - html:", !!emailData.html, "text:", !!emailData.text);
+                }
+              } catch (rawErr) {
+                console.warn("[InboundWebhook] Error downloading raw email:", rawErr);
+              }
+            }
           } else {
             console.warn("[InboundWebhook] Failed to fetch email from Resend:", resendRes.status, await resendRes.text());
           }
