@@ -1,28 +1,25 @@
 
 
-## Plan: Hide Resend Config Unless Portfolio Plan
+## Plan: Inbound Email → Guest Inbox Routing (COMPLETED)
 
-The Resend API key configuration is currently exposed to all organizations in two places. Since we're using a single platform Resend account, org-level Resend config should only be available to Portfolio-tier orgs as a premium feature (custom sending domain).
+### What was done
 
-### Changes
+1. **Updated `platform-inbound-webhook`** to also route inbound emails to the guest inbox system:
+   - After storing in `platform_emails` (existing behavior), now also calls `routeToGuestInbox()`
+   - Looks up organization from recipient email domain (via `organizations.custom_domain`, `organizations.website`, or `site_settings` contactEmail/emailFromAddress)
+   - Matches sender email to `property_reservations` for reservation linking
+   - Creates/finds `guest_inbox_threads` via `get_or_create_inbox_thread` RPC
+   - Inserts `guest_communications` record with email content and HTML body stored in `raw_email_data`
+   - Updates thread with last message preview and sets status to `awaiting_reply`
+   - Creates admin notification for the org
 
-**1. CommunicationsSettingsPage.tsx** (lines 302-318)
-- Wrap the "Resend Email" section in a tier check: only render if `organization.subscription_tier === 'portfolio'`
-- For non-portfolio orgs, show a brief note like "Email is managed by the platform. Upgrade to Portfolio for custom email domain configuration."
-- Also remove `resend_api_key` from the form submission logic when not portfolio tier
+2. **Made `reservation_id` handling flexible** — already nullable in schema, now properly handled:
+   - Unmatched emails (no reservation found) still create inbox threads
+   - ThreadReplyComposer updated to store SMS without requiring reservation_id
 
-**2. IntegrationsSettingsPanel.tsx** (lines 475-492)
-- Same treatment: hide the Resend API key input unless the org is on the portfolio plan
-- Show a small upgrade prompt instead
+3. **Updated Guest Inbox UI** for email rendering:
+   - `MessageThread.tsx` now renders HTML email bodies (sanitized via DOMPurify) when `raw_email_data.body_html` is available
+   - Falls back to plain text for SMS and emails without HTML
+   - `ThreadMessage` interface updated to include `raw_email_data` typing
 
-**3. CommunicationsSettingsPage.tsx** — form state cleanup
-- Skip submitting `resend_api_key` when org is not portfolio tier (line 117-119)
-
-### How tier is accessed
-- `organization.subscription_tier` is already available from `useCurrentOrganization()` — used elsewhere in the codebase (e.g., `useActiveAnnouncements`)
-- Simple string comparison: `organization?.subscription_tier === 'portfolio'`
-
-### What users see
-- **Starter/Professional**: QUO SMS config only. A note explaining email is platform-managed.
-- **Portfolio**: Full Resend API key config section, enabling custom sending domains.
-
+4. **Deleted `resend-inbound-webhook`** — consolidated into `platform-inbound-webhook`
