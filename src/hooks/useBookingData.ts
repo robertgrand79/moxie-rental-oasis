@@ -62,7 +62,9 @@ export const useReservations = (propertyId?: string, status?: string, includeAba
         query = query.not('payment_status', 'eq', 'pending').or('booking_status.neq.pending');
       }
       
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query
+        .order('created_at', { ascending: false })
+        .range(0, 499);
       
       if (error) throw error;
       return data;

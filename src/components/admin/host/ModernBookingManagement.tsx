@@ -86,7 +86,8 @@ const ModernBookingManagement = () => {
           properties:properties!inner(title, location)
         `)
         .in('property_id', orgPropertyIds)
-        .order('check_in_date', { ascending: false });
+        .order('check_in_date', { ascending: false })
+        .range(0, 49);
 
       if (error) throw error;
       if (!data) return [];
