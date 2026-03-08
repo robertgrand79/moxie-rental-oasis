@@ -130,12 +130,16 @@ const EmailViewer: React.FC<EmailViewerProps> = ({ email, onReply, onClose }) =>
       <ScrollArea className="flex-1 p-4">
         {email.body_html ? (
           <div
-            className="prose prose-sm max-w-none dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: email.body_html }}
+            className="prose prose-sm max-w-none dark:prose-invert [&_img]:max-w-full [&_table]:text-sm"
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.body_html) }}
           />
-        ) : (
-          <div className="whitespace-pre-wrap text-sm">
+        ) : email.body_text ? (
+          <div className="whitespace-pre-wrap text-sm text-foreground">
             {email.body_text}
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground italic py-8 text-center">
+            No email content available
           </div>
         )}
       </ScrollArea>
