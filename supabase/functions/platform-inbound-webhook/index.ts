@@ -91,7 +91,7 @@ serve(async (req) => {
       if (resendApiKey) {
         try {
           console.log("[InboundWebhook] Fetching email body from Resend API for:", emailData.email_id);
-          const resendRes = await fetch(`https://api.resend.com/emails/${emailData.email_id}`, {
+          const resendRes = await fetch(`https://api.resend.com/emails/receiving/${emailData.email_id}`, {
             headers: { "Authorization": `Bearer ${resendApiKey}` },
           });
           if (resendRes.ok) {
