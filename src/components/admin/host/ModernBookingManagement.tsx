@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,7 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useDeleteReservation } from '@/hooks/useBookingData';
 import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import PaginationControls from '@/components/ui/pagination-controls';
 
 interface Reservation {
   id: string;
@@ -65,6 +66,8 @@ const ModernBookingManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const deleteReservation = useDeleteReservation();
@@ -73,67 +76,97 @@ const ModernBookingManagement = () => {
   const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
   const orgPropertyIds = orgProperties.map(p => p.id);
 
-  // Fetch reservations scoped to organization properties
-  const { data: reservations = [], isLoading: reservationsLoading, refetch } = useQuery({
-    queryKey: ['bookings-management', orgPropertyIds],
+  // Fetch paginated reservations scoped to organization properties
+  const { data: paginatedResult, isLoading: reservationsLoading, refetch } = useQuery({
+    queryKey: ['bookings-management', orgPropertyIds, currentPage, statusFilter, searchTerm],
     queryFn: async () => {
-      if (orgPropertyIds.length === 0) return [];
+      if (orgPropertyIds.length === 0) return { data: [], count: 0 };
 
-      const { data, error } = await supabase
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage - 1;
+
+      let query = supabase
         .from('property_reservations')
         .select(`
           *,
           properties:properties!inner(title, location)
-        `)
+        `, { count: 'exact' })
         .in('property_id', orgPropertyIds)
-        .order('check_in_date', { ascending: false })
-        .range(0, 49);
+        .order('check_in_date', { ascending: false });
+
+      if (statusFilter !== 'all') {
+        query = query.eq('booking_status', statusFilter);
+      }
+
+      const { data, error, count } = await query.range(start, end);
 
       if (error) throw error;
-      if (!data) return [];
       
-      return data.map((item: any) => ({
+      const mapped = (data || []).map((item: any) => ({
         ...item,
         properties: item.properties || { title: 'Unknown Property', location: '' }
       })) as Reservation[];
+
+      return { data: mapped, count: count || 0 };
     },
     enabled: orgPropertyIds.length > 0,
   });
 
+  const reservations = paginatedResult?.data || [];
+  const totalCount = paginatedResult?.count || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+  // Fetch global stats from DB (not just current page)
+  const { data: stats } = useQuery({
+    queryKey: ['bookings-stats', orgPropertyIds],
+    queryFn: async () => {
+      if (orgPropertyIds.length === 0) return { total: 0, confirmed: 0, pending: 0, cancelled: 0, totalRevenue: 0 };
+
+      const { data, error } = await supabase
+        .from('property_reservations')
+        .select('booking_status, total_amount')
+        .in('property_id', orgPropertyIds);
+
+      if (error) throw error;
+
+      const records = data || [];
+      const confirmed = records.filter(r => r.booking_status === 'confirmed');
+      return {
+        total: records.length,
+        confirmed: confirmed.length,
+        pending: records.filter(r => r.booking_status === 'pending').length,
+        cancelled: records.filter(r => r.booking_status === 'cancelled').length,
+        totalRevenue: confirmed.reduce((sum, r) => sum + (r.total_amount || 0), 0),
+      };
+    },
+    enabled: orgPropertyIds.length > 0,
+  });
+
+  const bookingStats = stats || { total: 0, confirmed: 0, pending: 0, cancelled: 0, totalRevenue: 0 };
+
   const isLoading = propertiesLoading || reservationsLoading;
 
-  // Calculate stats
-  const stats = useMemo(() => {
-    const total = reservations.length;
-    const confirmed = reservations.filter(r => r.booking_status === 'confirmed').length;
-    const pending = reservations.filter(r => r.booking_status === 'pending').length;
-    const cancelled = reservations.filter(r => r.booking_status === 'cancelled').length;
-    const totalRevenue = reservations
-      .filter(r => r.booking_status === 'confirmed')
-      .reduce((sum, r) => sum + (r.total_amount || 0), 0);
-    
-    return { total, confirmed, pending, cancelled, totalRevenue };
-  }, [reservations]);
+  // Reset to page 1 when filters change
+  const handleStatusFilterChange = useCallback((value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  }, []);
 
-  // Filter reservations
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
+
+  // Client-side search filter (status is handled server-side)
   const filteredReservations = useMemo(() => {
-    let result = reservations;
-
-    if (searchTerm.trim()) {
-      const query = searchTerm.toLowerCase();
-      result = result.filter(r => 
-        r.guest_name.toLowerCase().includes(query) ||
-        r.guest_email.toLowerCase().includes(query) ||
-        r.properties.title.toLowerCase().includes(query)
-      );
-    }
-
-    if (statusFilter !== 'all') {
-      result = result.filter(r => r.booking_status === statusFilter);
-    }
-
-    return result;
-  }, [reservations, searchTerm, statusFilter]);
+    if (!searchTerm.trim()) return reservations;
+    const query = searchTerm.toLowerCase();
+    return reservations.filter(r => 
+      r.guest_name.toLowerCase().includes(query) ||
+      r.guest_email.toLowerCase().includes(query) ||
+      r.properties.title.toLowerCase().includes(query)
+    );
+  }, [reservations, searchTerm]);
 
   // Create Turno cleaning task
   const createTurnoTask = useMutation({
@@ -496,19 +529,19 @@ const ModernBookingManagement = () => {
             <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1.5">
                 <CalendarIcon className="h-4 w-4" />
-                <span className="font-medium text-foreground">{stats.total}</span> Total
+                <span className="font-medium text-foreground">{bookingStats.total}</span> Total
               </span>
               <span className="flex items-center gap-1.5">
                 <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="font-medium text-green-600">{stats.confirmed}</span> Confirmed
+                <span className="font-medium text-green-600">{bookingStats.confirmed}</span> Confirmed
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4 text-yellow-600" />
-                <span className="font-medium text-yellow-600">{stats.pending}</span> Pending
+                <span className="font-medium text-yellow-600">{bookingStats.pending}</span> Pending
               </span>
               <span className="flex items-center gap-1.5">
                 <DollarSign className="h-4 w-4 text-blue-600" />
-                <span className="font-medium text-blue-600">${stats.totalRevenue.toLocaleString()}</span> Revenue
+                <span className="font-medium text-blue-600">${bookingStats.totalRevenue.toLocaleString()}</span> Revenue
               </span>
             </div>
           </div>
@@ -524,12 +557,12 @@ const ModernBookingManagement = () => {
                 <Input
                   placeholder="Search guests, properties..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-9"
                 />
               </div>
 
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                 <SelectTrigger className="w-full sm:w-[140px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -605,6 +638,21 @@ const ModernBookingManagement = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Pagination */}
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+        onNextPage={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+        onPreviousPage={() => setCurrentPage(p => Math.max(p - 1, 1))}
+        hasNextPage={currentPage < totalPages}
+        hasPreviousPage={currentPage > 1}
+        loading={isLoading}
+        itemName="bookings"
+      />
     </div>
   );
 };
