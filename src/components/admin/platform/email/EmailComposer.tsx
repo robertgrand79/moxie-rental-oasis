@@ -161,11 +161,11 @@ const EmailComposer: React.FC<EmailComposerProps> = ({
           {/* Body */}
           <div className="space-y-2">
             <Label>Message</Label>
-            <Textarea
-              value={bodyHtml}
-              onChange={(e) => setBodyHtml(e.target.value)}
-              placeholder="Type your message here..."
-              className="min-h-[200px]"
+            <EmailRichTextEditor
+              content={bodyHtml}
+              onChange={setBodyHtml}
+              placeholder="Type your message..."
+              minHeight="250px"
             />
           </div>
         </div>
