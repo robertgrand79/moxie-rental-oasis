@@ -66,6 +66,8 @@ const ModernBookingManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const deleteReservation = useDeleteReservation();
@@ -74,47 +76,86 @@ const ModernBookingManagement = () => {
   const { properties: orgProperties, loading: propertiesLoading } = usePropertyFetch();
   const orgPropertyIds = orgProperties.map(p => p.id);
 
-  // Fetch reservations scoped to organization properties
-  const { data: reservations = [], isLoading: reservationsLoading, refetch } = useQuery({
-    queryKey: ['bookings-management', orgPropertyIds],
+  // Fetch paginated reservations scoped to organization properties
+  const { data: paginatedResult, isLoading: reservationsLoading, refetch } = useQuery({
+    queryKey: ['bookings-management', orgPropertyIds, currentPage, statusFilter, searchTerm],
     queryFn: async () => {
-      if (orgPropertyIds.length === 0) return [];
+      if (orgPropertyIds.length === 0) return { data: [], count: 0 };
 
-      const { data, error } = await supabase
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage - 1;
+
+      let query = supabase
         .from('property_reservations')
         .select(`
           *,
           properties:properties!inner(title, location)
-        `)
+        `, { count: 'exact' })
         .in('property_id', orgPropertyIds)
-        .order('check_in_date', { ascending: false })
-        .range(0, 49);
+        .order('check_in_date', { ascending: false });
+
+      if (statusFilter !== 'all') {
+        query = query.eq('booking_status', statusFilter);
+      }
+
+      const { data, error, count } = await query.range(start, end);
 
       if (error) throw error;
-      if (!data) return [];
       
-      return data.map((item: any) => ({
+      const mapped = (data || []).map((item: any) => ({
         ...item,
         properties: item.properties || { title: 'Unknown Property', location: '' }
       })) as Reservation[];
+
+      return { data: mapped, count: count || 0 };
     },
     enabled: orgPropertyIds.length > 0,
   });
 
+  const reservations = paginatedResult?.data || [];
+  const totalCount = paginatedResult?.count || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+  // Fetch global stats from DB (not just current page)
+  const { data: stats } = useQuery({
+    queryKey: ['bookings-stats', orgPropertyIds],
+    queryFn: async () => {
+      if (orgPropertyIds.length === 0) return { total: 0, confirmed: 0, pending: 0, cancelled: 0, totalRevenue: 0 };
+
+      const { data, error } = await supabase
+        .from('property_reservations')
+        .select('booking_status, total_amount')
+        .in('property_id', orgPropertyIds);
+
+      if (error) throw error;
+
+      const records = data || [];
+      const confirmed = records.filter(r => r.booking_status === 'confirmed');
+      return {
+        total: records.length,
+        confirmed: confirmed.length,
+        pending: records.filter(r => r.booking_status === 'pending').length,
+        cancelled: records.filter(r => r.booking_status === 'cancelled').length,
+        totalRevenue: confirmed.reduce((sum, r) => sum + (r.total_amount || 0), 0),
+      };
+    },
+    enabled: orgPropertyIds.length > 0,
+  });
+
+  const bookingStats = stats || { total: 0, confirmed: 0, pending: 0, cancelled: 0, totalRevenue: 0 };
+
   const isLoading = propertiesLoading || reservationsLoading;
 
-  // Calculate stats
-  const stats = useMemo(() => {
-    const total = reservations.length;
-    const confirmed = reservations.filter(r => r.booking_status === 'confirmed').length;
-    const pending = reservations.filter(r => r.booking_status === 'pending').length;
-    const cancelled = reservations.filter(r => r.booking_status === 'cancelled').length;
-    const totalRevenue = reservations
-      .filter(r => r.booking_status === 'confirmed')
-      .reduce((sum, r) => sum + (r.total_amount || 0), 0);
-    
-    return { total, confirmed, pending, cancelled, totalRevenue };
-  }, [reservations]);
+  // Reset to page 1 when filters change
+  const handleStatusFilterChange = useCallback((value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
 
   // Filter reservations
   const filteredReservations = useMemo(() => {
