@@ -93,7 +93,8 @@ const ContactForm = () => {
           name: sanitizedName,
           email: sanitizedEmail,
           phone: sanitizedPhone || undefined,
-          message: `Subject: ${sanitizedSubject || 'General Inquiry'}\n\n${sanitizedMessage}`
+          message: `Subject: ${sanitizedSubject || 'General Inquiry'}\n\n${sanitizedMessage}`,
+          organizationId: tenantId || undefined
         }
       });
 
