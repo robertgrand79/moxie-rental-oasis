@@ -557,7 +557,7 @@ const ModernBookingManagement = () => {
                 <Input
                   placeholder="Search guests, properties..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-9"
                 />
               </div>
