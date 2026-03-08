@@ -117,8 +117,12 @@ export default function PlatformNotificationsPage() {
     isLoading, 
     markAsRead, 
     markAllAsRead, 
-    archiveNotification 
+    archiveNotification,
+    deleteAllRead,
+    isDeletingRead,
   } = usePlatformNotifications({ limit: 100, includeRead: true });
+
+  const readCount = notifications.filter(n => n.is_read).length;
 
   const filteredNotifications = notifications.filter(n => {
     const matchesSearch = !searchTerm || 
