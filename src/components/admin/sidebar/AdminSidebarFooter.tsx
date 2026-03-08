@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { User, LogOut, Edit2, Save, X, ChevronDown } from 'lucide-react';
+import { User, LogOut, Edit2, Save, X, ChevronDown, Download } from 'lucide-react';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { SidebarFooter, useSidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,7 @@ const AdminSidebarFooter = () => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const { state } = useSidebar();
+  const { canInstall, promptInstall } = usePWAInstall();
   const isCollapsed = state === 'collapsed';
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -182,6 +184,12 @@ const AdminSidebarFooter = () => {
                 <Edit2 className="h-4 w-4 mr-2" />
                 Edit Profile
               </DropdownMenuItem>
+              {canInstall && (
+                <DropdownMenuItem onClick={promptInstall} className="cursor-pointer">
+                  <Download className="h-4 w-4 mr-2" />
+                  Install App
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                 <LogOut className="h-4 w-4 mr-2" />
@@ -222,6 +230,12 @@ const AdminSidebarFooter = () => {
               <Edit2 className="h-4 w-4 mr-2" />
               Edit Profile
             </DropdownMenuItem>
+            {canInstall && (
+              <DropdownMenuItem onClick={promptInstall} className="cursor-pointer">
+                <Download className="h-4 w-4 mr-2" />
+                Install App
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
               <LogOut className="h-4 w-4 mr-2" />
