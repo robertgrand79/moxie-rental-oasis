@@ -157,25 +157,16 @@ const ModernBookingManagement = () => {
     setCurrentPage(1);
   }, []);
 
-  // Filter reservations
+  // Client-side search filter (status is handled server-side)
   const filteredReservations = useMemo(() => {
-    let result = reservations;
-
-    if (searchTerm.trim()) {
-      const query = searchTerm.toLowerCase();
-      result = result.filter(r => 
-        r.guest_name.toLowerCase().includes(query) ||
-        r.guest_email.toLowerCase().includes(query) ||
-        r.properties.title.toLowerCase().includes(query)
-      );
-    }
-
-    if (statusFilter !== 'all') {
-      result = result.filter(r => r.booking_status === statusFilter);
-    }
-
-    return result;
-  }, [reservations, searchTerm, statusFilter]);
+    if (!searchTerm.trim()) return reservations;
+    const query = searchTerm.toLowerCase();
+    return reservations.filter(r => 
+      r.guest_name.toLowerCase().includes(query) ||
+      r.guest_email.toLowerCase().includes(query) ||
+      r.properties.title.toLowerCase().includes(query)
+    );
+  }, [reservations, searchTerm]);
 
   // Create Turno cleaning task
   const createTurnoTask = useMutation({
