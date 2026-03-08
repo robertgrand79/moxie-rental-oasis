@@ -172,79 +172,68 @@ const MessageThread: React.FC<MessageThreadProps> = ({
         ) : (
           <div className="space-y-3 md:space-y-4">
             {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  'flex',
-                  message.direction === 'outbound' ? 'justify-end' : 'justify-start'
-                )}
-              >
+              message.message_type === 'email' ? (
+                <EmailMessageCard
+                  key={message.id}
+                  message={message}
+                  onReply={handleQuickReply}
+                />
+              ) : (
                 <div
+                  key={message.id}
                   className={cn(
-                    'max-w-[85%] md:max-w-[70%] rounded-lg p-2.5 md:p-3',
-                    message.direction === 'outbound'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
+                    'flex',
+                    message.direction === 'outbound' ? 'justify-end' : 'justify-start'
                   )}
                 >
-                  {/* Message type indicator */}
-                  <div className={cn(
-                    'flex items-center gap-1 text-xs mb-1',
-                    message.direction === 'outbound' ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                  )}>
-                    {message.message_type === 'sms' ? (
+                  <div
+                    className={cn(
+                      'max-w-[85%] md:max-w-[70%] rounded-lg p-2.5 md:p-3',
+                      message.direction === 'outbound'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    )}
+                  >
+                    <div className={cn(
+                      'flex items-center gap-1 text-xs mb-1',
+                      message.direction === 'outbound' ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                    )}>
                       <Phone className="h-3 w-3" />
-                    ) : (
-                      <Mail className="h-3 w-3" />
-                    )}
-                    <span>{message.message_type.toUpperCase()}</span>
-                    {message.source_platform && message.source_platform !== 'direct' && (
-                      <Badge variant="outline" className="ml-1 text-xs py-0 h-4">
-                        {message.source_platform}
-                      </Badge>
-                    )}
-                    {message.subject && message.subject !== 'SMS Message' && (
-                      <span className="ml-1 truncate max-w-[100px] md:max-w-none">• {message.subject}</span>
-                    )}
-                  </div>
-                  
-                  {/* Message content */}
-                  {message.message_type === 'email' && (message as any).raw_email_data?.body_html ? (
-                    <div 
-                      className="text-sm break-words prose prose-sm max-w-none dark:prose-invert"
-                      dangerouslySetInnerHTML={{ 
-                        __html: sanitizeHtml((message as any).raw_email_data.body_html)
-                      }}
-                    />
-                  ) : (
+                      <span>SMS</span>
+                      {message.source_platform && message.source_platform !== 'direct' && (
+                        <Badge variant="outline" className="ml-1 text-xs py-0 h-4">
+                          {message.source_platform}
+                        </Badge>
+                      )}
+                    </div>
+                    
                     <p className="text-sm whitespace-pre-wrap break-words">{message.message_content}</p>
-                  )}
-                  
-                  {/* Timestamp and Reply button */}
-                  <div className={cn(
-                    'flex items-center justify-between gap-2 text-xs mt-1',
-                    message.direction === 'outbound' ? 'text-primary-foreground/60' : 'text-muted-foreground'
-                  )}>
-                    <span>
-                      {message.sent_at 
-                        ? format(new Date(message.sent_at), 'MMM d, h:mm a')
-                        : format(new Date(message.created_at), 'MMM d, h:mm a')
-                      }
-                    </span>
-                    {message.direction === 'inbound' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 text-xs opacity-70 hover:opacity-100 -mr-1"
-                        onClick={() => handleQuickReply(message)}
-                      >
-                        <Reply className="h-3 w-3 mr-1" />
-                        Reply
-                      </Button>
-                    )}
+                    
+                    <div className={cn(
+                      'flex items-center justify-between gap-2 text-xs mt-1',
+                      message.direction === 'outbound' ? 'text-primary-foreground/60' : 'text-muted-foreground'
+                    )}>
+                      <span>
+                        {message.sent_at 
+                          ? format(new Date(message.sent_at), 'MMM d, h:mm a')
+                          : format(new Date(message.created_at), 'MMM d, h:mm a')
+                        }
+                      </span>
+                      {message.direction === 'inbound' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs opacity-70 hover:opacity-100 -mr-1"
+                          onClick={() => handleQuickReply(message)}
+                        >
+                          <Reply className="h-3 w-3 mr-1" />
+                          Reply
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )
             ))}
           </div>
         )}
