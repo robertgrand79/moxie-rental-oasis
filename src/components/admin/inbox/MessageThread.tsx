@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { InboxThread, ThreadMessage, ThreadReservation } from '@/hooks/useGuestInbox';
+import { sanitizeHtml } from '@/utils/security';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
