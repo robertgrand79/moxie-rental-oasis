@@ -85,6 +85,50 @@ serve(async (req) => {
     const emailData = payload.data;
     const senderInfo = parseSenderInfo(emailData.from);
 
+    // Resend webhooks don't include email body — fetch it from the Receiving API
+    if (!emailData.html && !emailData.text && emailData.email_id) {
+      const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      if (resendApiKey) {
+        try {
+          console.log("[InboundWebhook] Fetching email body from Resend API for:", emailData.email_id);
+          const resendRes = await fetch(`https://api.resend.com/emails/receiving/${emailData.email_id}`, {
+            headers: { "Authorization": `Bearer ${resendApiKey}` },
+          });
+          if (resendRes.ok) {
+            const fullEmail = await resendRes.json();
+            emailData.html = fullEmail.html || emailData.html;
+            emailData.text = fullEmail.text || emailData.text;
+            console.log("[InboundWebhook] Fetched email body, html length:", emailData.html?.length || 0, "text length:", emailData.text?.length || 0);
+            
+            // If still no body, try downloading the raw email
+            if (!emailData.html && !emailData.text && fullEmail.raw?.download_url) {
+              try {
+                console.log("[InboundWebhook] Downloading raw email from:", fullEmail.raw.download_url);
+                const rawRes = await fetch(fullEmail.raw.download_url);
+                if (rawRes.ok) {
+                  const rawContent = await rawRes.text();
+                  // Extract HTML body from raw MIME content
+                  const htmlMatch = rawContent.match(/Content-Type:\s*text\/html[\s\S]*?\r?\n\r?\n([\s\S]*?)(?:\r?\n--|\Z)/i);
+                  const textMatch = rawContent.match(/Content-Type:\s*text\/plain[\s\S]*?\r?\n\r?\n([\s\S]*?)(?:\r?\n--|\Z)/i);
+                  if (htmlMatch) emailData.html = htmlMatch[1];
+                  if (textMatch) emailData.text = textMatch[1];
+                  console.log("[InboundWebhook] Extracted from raw - html:", !!emailData.html, "text:", !!emailData.text);
+                }
+              } catch (rawErr) {
+                console.warn("[InboundWebhook] Error downloading raw email:", rawErr);
+              }
+            }
+          } else {
+            console.warn("[InboundWebhook] Failed to fetch email from Resend:", resendRes.status, await resendRes.text());
+          }
+        } catch (fetchErr) {
+          console.error("[InboundWebhook] Error fetching email body from Resend:", fetchErr);
+        }
+      } else {
+        console.warn("[InboundWebhook] No RESEND_API_KEY configured, cannot fetch email body");
+      }
+    }
+
     // Initialize Supabase client with service role
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

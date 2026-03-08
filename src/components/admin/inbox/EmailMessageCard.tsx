@@ -72,9 +72,13 @@ const EmailMessageCard: React.FC<EmailMessageCardProps> = ({ message, onReply })
                 style={{ maxHeight: '500px', overflowY: 'auto' }}
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(bodyHtml) }}
               />
-            ) : (
+            ) : message.message_content ? (
               <p className="text-sm whitespace-pre-wrap break-words text-foreground">
                 {message.message_content}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                Email body not available — this email was received before body fetching was enabled.
               </p>
             )}
           </div>
