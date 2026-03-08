@@ -7,7 +7,7 @@ import {
   Home,
   Wrench,
   HardHat,
-  Calendar,
+  CalendarDays,
   MapPin,
   Star,
   Settings,
@@ -21,81 +21,100 @@ import {
   Ticket,
   Activity,
   Users,
+  BookCheck,
 } from 'lucide-react';
 import type { PermissionKey } from '@/hooks/useTeamPermissions';
 
 export interface MenuItem {
   title: string;
-  href: string;
+  /** If omitted, item is a collapsible parent only */
+  href?: string;
   icon: typeof BarChart3;
   description: string;
-  /** If set, user must have this permission to see the item */
   requiredPermission?: PermissionKey;
+  /** Sub-items rendered as collapsible group */
+  children?: MenuItem[];
+  /** Optional stable key for identification */
+  key?: string;
 }
 
-export interface MenuSection {
-  title: string;
-  items: MenuItem[];
-  /** If set, user must have this permission to see the entire section */
-  requiredPermission?: PermissionKey;
-}
-
-export const adminMenuItems: MenuSection[] = [
+export const adminMenuItems: MenuItem[] = [
   {
-    title: 'Overview',
-    items: [
-      {
-        title: 'Dashboard',
-        href: '/admin',
-        icon: BarChart3,
-        description: 'Main admin dashboard with analytics',
-        requiredPermission: 'view_dashboard',
-      },
-      {
-        title: 'Notifications',
-        href: '/admin/notifications',
-        icon: Bell,
-        description: 'View and manage your notifications',
-      }
-    ]
+    key: 'dashboard',
+    title: 'Dashboard',
+    href: '/admin',
+    icon: BarChart3,
+    description: 'Main admin dashboard with analytics',
+    requiredPermission: 'view_dashboard',
   },
   {
-    title: 'Property & Booking',
-    items: [
-      {
-        title: 'Properties',
-        href: '/admin/properties',
-        icon: Home,
-        description: 'Manage rental properties',
-        requiredPermission: 'view_properties',
-      },
-      {
-        title: 'Work Orders',
-        href: '/admin/work-orders',
-        icon: Wrench,
-        description: 'Property maintenance and work orders',
-      },
-      {
-        title: 'Contractors',
-        href: '/admin/contractors',
-        icon: HardHat,
-        description: 'Manage contractors and service providers',
-        requiredPermission: 'manage_bookings',
-      },
-      {
-        title: 'Checklists',
-        href: '/admin/checklists',
-        icon: ClipboardList,
-        description: 'Seasonal and periodic maintenance checklists',
-      }
-    ]
+    key: 'notifications',
+    title: 'Notifications',
+    href: '/admin/notifications',
+    icon: Bell,
+    description: 'View and manage your notifications',
   },
   {
-    title: 'Content Management',
+    key: 'properties',
+    title: 'Properties',
+    href: '/admin/properties',
+    icon: Home,
+    description: 'Manage rental properties',
+    requiredPermission: 'view_properties',
+  },
+  {
+    key: 'calendar',
+    title: 'Calendar',
+    href: '/admin/calendar',
+    icon: CalendarDays,
+    description: 'Bookings, pricing, and external calendar sync',
+  },
+  {
+    key: 'bookings',
+    title: 'Bookings',
+    href: '/admin/host/bookings',
+    icon: BookCheck,
+    description: 'Manage reservations and cleaning coordination',
+    requiredPermission: 'view_bookings',
+  },
+  {
+    key: 'guest-experience',
+    title: 'Guest Experience',
+    icon: MessageSquare,
+    description: 'Inbox, messaging, and reviews',
+    requiredPermission: 'respond_inquiries',
+    children: [
+      {
+        title: 'Guest Inbox',
+        href: '/admin/host/inbox',
+        icon: Mail,
+        description: 'Unified inbox for all guest communications',
+        requiredPermission: 'respond_inquiries',
+      },
+      {
+        title: 'Messaging',
+        href: '/admin/guest-experience',
+        icon: MessageSquare,
+        description: 'Automated messaging rules and templates',
+        requiredPermission: 'respond_inquiries',
+      },
+      {
+        title: 'Reviews',
+        href: '/admin/reviews',
+        icon: Star,
+        description: 'Guest reviews and testimonials',
+      },
+    ],
+  },
+  {
+    key: 'content',
+    title: 'Content',
+    icon: FileText,
+    description: 'Blog, pages, newsletter, and AI assistant',
     requiredPermission: 'edit_site',
-    items: [
+    children: [
       {
-        title: 'Blog Management',
+        title: 'Blog',
         href: '/admin/blog',
         icon: BookOpen,
         description: 'Create and manage blog posts',
@@ -116,38 +135,65 @@ export const adminMenuItems: MenuSection[] = [
         title: 'AI Assistant',
         href: '/admin/ai-assistant',
         icon: Sparkles,
-        description: 'Your AI-powered assistant for content and productivity',
-      }
-    ]
+        description: 'AI-powered assistant for content and productivity',
+      },
+    ],
   },
   {
-    title: 'Local Content',
+    key: 'local',
+    title: 'Local',
+    icon: MapPin,
+    description: 'Events and local places',
     requiredPermission: 'edit_site',
-    items: [
+    children: [
       {
         title: 'Events',
         href: '/admin/events',
-        icon: Calendar,
+        icon: CalendarDays,
         description: 'Manage local events and activities',
       },
       {
         title: 'Places',
         href: '/admin/places',
         icon: MapPin,
-        description: 'Manage restaurants, attractions, activities, and local places',
+        description: 'Manage restaurants, attractions, and local places',
       },
-      {
-        title: 'Reviews',
-        href: '/admin/reviews',
-        icon: Star,
-        description: 'Guest reviews and testimonials',
-      }
-    ]
+    ],
   },
   {
-    title: 'Host Management',
-    requiredPermission: 'view_bookings',
-    items: [
+    key: 'operations',
+    title: 'Operations',
+    icon: Wrench,
+    description: 'Work orders, contractors, and checklists',
+    children: [
+      {
+        title: 'Work Orders',
+        href: '/admin/work-orders',
+        icon: Wrench,
+        description: 'Property maintenance and work orders',
+      },
+      {
+        title: 'Contractors',
+        href: '/admin/contractors',
+        icon: HardHat,
+        description: 'Manage contractors and service providers',
+        requiredPermission: 'manage_bookings',
+      },
+      {
+        title: 'Checklists',
+        href: '/admin/checklists',
+        icon: ClipboardList,
+        description: 'Seasonal and periodic maintenance checklists',
+      },
+    ],
+  },
+  {
+    key: 'analytics',
+    title: 'Analytics',
+    icon: TrendingUp,
+    description: 'Performance metrics and reports',
+    requiredPermission: 'view_reports',
+    children: [
       {
         title: 'Property Analytics',
         href: '/admin/host/analytics',
@@ -162,61 +208,22 @@ export const adminMenuItems: MenuSection[] = [
         description: 'Booking, revenue, occupancy, guest and tax reports',
         requiredPermission: 'view_reports',
       },
-      {
-        title: 'Booking Management',
-        href: '/admin/host/bookings',
-        icon: Calendar,
-        description: 'Manage reservations, cleaning coordination, and work orders',
-      },
-      {
-        title: 'Calendar Management',
-        href: '/admin/calendar',
-        icon: Calendar,
-        description: 'View bookings, pricing calendar, PriceLabs integration, and external calendar sync',
-      },
-      {
-        title: 'Guest Inbox',
-        href: '/admin/host/inbox',
-        icon: Mail,
-        description: 'Unified inbox for all guest communications',
-        requiredPermission: 'respond_inquiries',
-      },
-      {
-        title: 'Guest Experience',
-        href: '/admin/guest-experience',
-        icon: MessageSquare,
-        description: 'Automated messaging rules and templates',
-        requiredPermission: 'respond_inquiries',
-      }
-    ]
+    ],
   },
   {
-    title: 'Team',
-    requiredPermission: 'manage_team',
-    items: [
-      {
-        title: 'Team Management',
-        href: '/admin/settings/team',
-        icon: Users,
-        description: 'Manage team members, roles, and permissions',
-      }
-    ]
-  },
-  {
-    title: 'Configuration',
+    key: 'settings',
+    title: 'Settings',
+    href: '/admin/settings',
+    icon: Settings,
+    description: 'Site, organization, integrations, team & access',
     requiredPermission: 'account_settings',
-    items: [
-      {
-        title: 'Settings',
-        href: '/admin/settings',
-        icon: Settings,
-        description: 'Site, organization, integrations, team & access',
-      }
-    ]
   },
   {
+    key: 'help',
     title: 'Help & Support',
-    items: [
+    icon: HelpCircle,
+    description: 'Help center, support requests, and system status',
+    children: [
       {
         title: 'Help Center',
         href: '/admin/help',
@@ -234,18 +241,22 @@ export const adminMenuItems: MenuSection[] = [
         href: '/admin/status',
         icon: Activity,
         description: 'Check system health and status',
-      }
-    ]
+      },
+    ],
   },
   {
-    title: 'Platform Administration',
-    items: [
-      {
-        title: 'Platform Command Center',
-        href: '/admin/platform',
-        icon: Shield,
-        description: 'Platform-wide administration and organization management (Super Admins only)',
-      }
-    ]
-  }
+    key: 'team',
+    title: 'Team',
+    href: '/admin/settings/team',
+    icon: Users,
+    description: 'Manage team members, roles, and permissions',
+    requiredPermission: 'manage_team',
+  },
+  {
+    key: 'platform',
+    title: 'Platform Admin',
+    href: '/admin/platform',
+    icon: Shield,
+    description: 'Platform-wide administration (Super Admins only)',
+  },
 ];

@@ -1,119 +1,165 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { LucideIcon } from 'lucide-react';
 import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useIsMobile } from '@/hooks/use-mobile';
+import type { MenuItem } from './adminMenuItems';
 
-type MenuItem = {
-  title: string;
-  href: string;
-  icon: LucideIcon;
-};
-
-interface AdminSidebarSectionProps {
-  title: string;
-  items: MenuItem[];
+interface AdminSidebarItemProps {
+  item: MenuItem;
 }
 
-const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
+const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const { state } = useSidebar();
-  
   const isCollapsed = state === 'collapsed';
 
-  const handleItemClick = (item: MenuItem, event: React.MouseEvent) => {
-    const isActive = location.pathname === item.href;
-    
-    // If clicking the same active menu item, force a navigation reset
-    if (isActive) {
-      event.preventDefault();
-      // Add a timestamp to force a route change and component remount
-      const resetUrl = `${item.href}?reset=${Date.now()}`;
+  const IconComponent = item.icon;
+
+  const isChildActive = item.children?.some(
+    (child) => child.href && location.pathname.startsWith(child.href)
+  ) ?? false;
+
+  const isLeafActive = item.href
+    ? location.pathname === item.href
+    : false;
+
+  const isActive = item.children ? isChildActive : isLeafActive;
+
+  const [isOpen, setIsOpen] = useState(isChildActive);
+
+  const handleLeafClick = (href: string, e: React.MouseEvent) => {
+    if (location.pathname === href) {
+      e.preventDefault();
+      const resetUrl = `${href}?reset=${Date.now()}`;
       navigate(resetUrl, { replace: true });
-      // Immediately navigate back to clean URL to maintain clean history
-      setTimeout(() => {
-        navigate(item.href, { replace: true });
-      }, 10);
+      setTimeout(() => navigate(href, { replace: true }), 10);
     }
   };
 
-  return (
-    <SidebarGroup>
-      {!isCollapsed && (
-        <SidebarGroupLabel className={`text-xs font-semibold text-gray-500 uppercase tracking-wider ${isMobile ? 'px-3' : ''}`}>
-          {title}
-        </SidebarGroupLabel>
-      )}
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {items.map((item) => {
-            const IconComponent = item.icon;
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <SidebarMenuItem key={item.href}>
-                {isCollapsed ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SidebarMenuButton 
-                        asChild 
-                        isActive={isActive}
-                        className="justify-center"
-                      >
-                        <Link 
-                          to={item.href} 
-                          className="flex items-center justify-center"
-                          onClick={(e) => handleItemClick(item, e)}
-                        >
-                          <IconComponent className="h-5 w-5 text-gray-600" />
-                        </Link>
-                      </SidebarMenuButton>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      {item.title}
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive}
-                    className={isMobile ? 'min-h-[44px]' : ''}
-                  >
-                    <Link 
-                      to={item.href} 
-                      className={`flex items-center space-x-3 ${isMobile ? 'px-3 py-3' : ''}`}
-                      onClick={(e) => handleItemClick(item, e)}
-                    >
-                      <IconComponent className="h-5 w-5 text-gray-600" />
-                      <span className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
-                        {item.title}
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
+  // ── Collapsible parent item ──────────────────────────────────────────────
+  if (item.children && item.children.length > 0) {
+    if (isCollapsed) {
+      return (
+        <SidebarMenuItem>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <SidebarMenuButton isActive={isChildActive} className="justify-center">
+                <IconComponent className="h-5 w-5" />
+              </SidebarMenuButton>
+            </TooltipTrigger>
+            <TooltipContent side="right">{item.title}</TooltipContent>
+          </Tooltip>
+        </SidebarMenuItem>
+      );
+    }
+
+    return (
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="group/collapsible">
+        <SidebarMenuItem>
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton
+              isActive={isChildActive && !isOpen}
+              className="w-full"
+            >
+              <IconComponent className="h-5 w-5" />
+              <span className="font-medium flex-1">{item.title}</span>
+              <ChevronRight
+                className={cn(
+                  'h-4 w-4 text-muted-foreground transition-transform duration-200 ml-auto',
+                  isOpen && 'rotate-90'
                 )}
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+              />
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent>
+            <SidebarMenuSub>
+              {item.children.map((child) => {
+                const ChildIcon = child.icon;
+                const isChildItemActive = child.href
+                  ? location.pathname === child.href
+                  : false;
+
+                return (
+                  <SidebarMenuSubItem key={child.href ?? child.title}>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={isChildItemActive}
+                    >
+                      <Link
+                        to={child.href!}
+                        className="flex items-center gap-2"
+                        onClick={(e) => handleLeafClick(child.href!, e)}
+                      >
+                        <ChildIcon className="h-4 w-4" />
+                        <span>{child.title}</span>
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                );
+              })}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        </SidebarMenuItem>
+      </Collapsible>
+    );
+  }
+
+  // ── Simple leaf item ─────────────────────────────────────────────────────
+  if (isCollapsed) {
+    return (
+      <SidebarMenuItem>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <SidebarMenuButton asChild isActive={isActive} className="justify-center">
+              <Link
+                to={item.href!}
+                className="flex items-center justify-center"
+                onClick={(e) => handleLeafClick(item.href!, e)}
+              >
+                <IconComponent className="h-5 w-5" />
+              </Link>
+            </SidebarMenuButton>
+          </TooltipTrigger>
+          <TooltipContent side="right">{item.title}</TooltipContent>
+        </Tooltip>
+      </SidebarMenuItem>
+    );
+  }
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={isActive}>
+        <Link
+          to={item.href!}
+          className="flex items-center gap-3"
+          onClick={(e) => handleLeafClick(item.href!, e)}
+        >
+          <IconComponent className="h-5 w-5" />
+          <span className="font-medium">{item.title}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 };
 
-export default AdminSidebarSection;
+export default AdminSidebarItem;
