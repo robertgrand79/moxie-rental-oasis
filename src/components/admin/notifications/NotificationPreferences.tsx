@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Bell, Mail, MessageSquare, Smartphone, Globe, AlertCircle, Check, X } from 'lucide-react';
+import { Bell, Mail, MessageSquare, Smartphone, Globe, AlertCircle, Check, X, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
