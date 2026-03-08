@@ -216,6 +216,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Always persist the resolved org slug so public pages can pick it up
         if (selectedMember.organization?.slug) {
           sessionStorage.setItem('admin_current_org_slug', selectedMember.organization.slug);
+          sessionStorage.setItem('current_tenant_slug', selectedMember.organization.slug);
           debug.org('Persisted admin org context on init:', selectedMember.organization.slug);
         }
       } else {

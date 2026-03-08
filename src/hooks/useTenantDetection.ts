@@ -221,9 +221,19 @@ export const useTenantDetection = (): TenantDetectionResult => {
                   .eq('user_id', user.id)
                   .order('joined_at', { ascending: true });
 
-                if (membership?.organization) {
-                  const orgData = membership.organization as unknown as TenantInfo;
-                  if (orgData.is_active) {
+                if (memberships && memberships.length > 0) {
+                  const persistedOrgSlug =
+                    sessionStorage.getItem('admin_current_org_slug') ||
+                    sessionStorage.getItem('current_tenant_slug');
+
+                  const matchedMembership = persistedOrgSlug
+                    ? memberships.find((m: any) => m.organization?.slug === persistedOrgSlug)
+                    : null;
+
+                  const selectedMembership = matchedMembership ?? memberships[0];
+                  const orgData = selectedMembership?.organization as TenantInfo | undefined;
+
+                  if (orgData?.is_active) {
                     return orgData;
                   }
                 }
