@@ -174,9 +174,9 @@ const NotificationPreferences: React.FC = () => {
             </div>
             <div className="flex items-center gap-3">
               {!pushSupported ? (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <X className="h-3 w-3" />
-                  Not Supported
+                <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
+                  <Download className="h-3 w-3" />
+                  Available When Installed
                 </Badge>
               ) : pushPermission === 'denied' ? (
                 <Badge variant="destructive" className="flex items-center gap-1">
