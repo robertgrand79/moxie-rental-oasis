@@ -12,6 +12,7 @@ import { validateInput, sanitizeFormInput } from '@/utils/security';
 import { useTenant } from '@/contexts/TenantContext';
 
 const ContactForm = () => {
+  const { tenantId } = useTenant();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
