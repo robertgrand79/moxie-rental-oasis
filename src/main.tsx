@@ -39,10 +39,12 @@ if (!isRedirecting) {
   // Apply accessibility settings
   applyAccessibilitySettings();
 
-  // Force unregister all service workers and clear caches to fix stale content issues
+  // Unregister stale service workers but preserve the push notification SW
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       registrations.forEach((registration) => {
+        // Keep the push notification service worker
+        if (registration.active?.scriptURL?.includes('sw-push.js')) return;
         registration.unregister();
         debug.log('Unregistered service worker:', registration.scope);
       });

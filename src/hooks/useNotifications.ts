@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from './use-toast';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface AdminNotification {
@@ -25,7 +26,34 @@ export const useNotifications = () => {
   const { organization } = useCurrentOrganization();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const channelRef = useRef<RealtimeChannel | null>(null);
+
+  // Show browser notification if permission granted
+  const showBrowserNotification = useCallback((notification: AdminNotification) => {
+    if (typeof window === 'undefined' || Notification.permission !== 'granted') return;
+    
+    try {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then((reg) => {
+          reg.showNotification(notification.title, {
+            body: notification.message,
+            icon: '/favicon.ico',
+            tag: notification.id,
+            data: { url: notification.action_url || '/admin' },
+          });
+        });
+      } else {
+        new Notification(notification.title, {
+          body: notification.message,
+          icon: '/favicon.ico',
+          tag: notification.id,
+        });
+      }
+    } catch (e) {
+      // Silently fail if notifications unavailable
+    }
+  }, []);
 
   // Fetch notifications
   const { data: notifications = [], isLoading, refetch } = useQuery({
@@ -136,6 +164,15 @@ export const useNotifications = () => {
             const newNotification = payload.new as AdminNotification;
             if (newNotification.user_id === null || newNotification.user_id === user.id) {
               queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+              
+              // Show in-app toast
+              toast({
+                title: newNotification.title,
+                description: newNotification.message,
+              });
+              
+              // Show browser push notification
+              showBrowserNotification(newNotification);
             }
           }
         )
