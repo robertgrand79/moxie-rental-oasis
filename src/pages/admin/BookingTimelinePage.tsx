@@ -552,18 +552,18 @@ const BookingTimelinePage = () => {
                   <div>
                     <p className="font-medium">{property.title}</p>
                     <p className="text-xs text-muted-foreground font-mono break-all">
-                      {PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id={property.id}
+                      {buildCalendarExportUrl(property)}
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => copyExportUrl(property.id)}>
+                    <Button variant="outline" size="sm" onClick={() => copyExportUrl(property)}>
                       <Copy className="h-4 w-4 mr-1" />
                       Copy
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => window.open(`${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id=${property.id}`, '_blank')}
+                      onClick={() => window.open(buildCalendarExportUrl(property), '_blank')}
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Button>
