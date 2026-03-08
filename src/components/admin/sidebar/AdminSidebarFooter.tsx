@@ -38,6 +38,7 @@ const AdminSidebarFooter = () => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const { state } = useSidebar();
+  const { canInstall, promptInstall } = usePWAInstall();
   const isCollapsed = state === 'collapsed';
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
