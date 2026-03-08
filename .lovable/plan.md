@@ -1,31 +1,21 @@
 
 
-## Problem
+## Plan: Migrate Test Bookings & Add Pagination (COMPLETED)
 
-The calendar export edge function currently exports **all** availability blocks (including synced OTA bookings from Airbnb, VRBO, etc.). When other platforms import this feed, they see their own bookings reflected back, causing duplicate/error issues.
+### What was done
 
-## Solution
+1. **Migrated 5,000 test bookings** from `reservations` → `property_reservations` for Test Org (`297f9511-...`)
+   - Temporarily disabled validation triggers (`validate_reservation_insert`, `on_reservation_created_schedule_messages`) for bulk insert
+   - Used COALESCE for nullable fields (guest_email generated as `guest{N}@test.example.com`)
+   - All enterprise columns defaulted: `cleaning_status='pending'`, `currency='USD'`, `source_platform='direct'`
+   - Triggers re-enabled after migration
 
-Add a `source_platform` filter to the query in `supabase/functions/calendar-export/index.ts` so it only exports:
-- **Direct bookings** (`source_platform` is `null`, `'direct'`, or `'staymoxie'`)
-- **Blocked** periods
-- **Maintenance** blocks
+2. **Added server-side pagination** to `ModernBookingManagement.tsx`
+   - `currentPage` state with 50 items per page
+   - Supabase query uses `{ count: 'exact' }` and `.range(start, end)`
+   - Status filter is now server-side (resets page to 1 on change)
+   - Integrated `PaginationControls` component below the booking list
 
-This is a single-line change to the existing query (line ~73-77):
-
-```typescript
-const { data: blocks, error: blocksError } = await supabase
-  .from('availability_blocks')
-  .select('*')
-  .eq('property_id', propertyId)
-  .in('block_type', ['booked', 'blocked', 'maintenance'])
-  .neq('sync_status', 'cancelled')
-  .or('source_platform.is.null,source_platform.eq.direct,source_platform.eq.staymoxie,block_type.neq.booked')
-```
-
-The `.or()` filter ensures:
-- All `blocked` and `maintenance` blocks are always included (regardless of source)
-- `booked` blocks are only included if `source_platform` is null, `'direct'`, or `'staymoxie'` — excluding Airbnb, VRBO, Hospitable synced bookings
-
-After updating, redeploy the edge function.
-
+3. **Fixed stats to query full dataset**
+   - Separate React Query (`bookings-stats`) fetches all records' `booking_status` and `total_amount`
+   - Stats reflect all 5,000 bookings regardless of current pagination page
