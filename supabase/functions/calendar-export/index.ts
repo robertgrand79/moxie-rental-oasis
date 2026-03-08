@@ -75,6 +75,7 @@ Deno.serve(async (req) => {
       .eq('property_id', propertyId)
       .in('block_type', ['booked', 'blocked', 'maintenance'])
       .neq('sync_status', 'cancelled')
+      .or('source_platform.is.null,source_platform.eq.direct,source_platform.eq.staymoxie,block_type.neq.booked')
 
     if (blocksError) {
       console.error('Error fetching availability blocks:', blocksError)
