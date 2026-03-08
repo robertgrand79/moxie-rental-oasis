@@ -26,7 +26,7 @@ export interface InboxThread {
 export interface ThreadMessage {
   id: string;
   thread_id: string | null;
-  reservation_id: string;
+  reservation_id: string | null;
   message_type: string;
   subject: string;
   message_content: string;
@@ -37,6 +37,14 @@ export interface ThreadMessage {
   sender_email: string | null;
   source_platform: string | null;
   external_message_id: string | null;
+  raw_email_data?: {
+    body_html?: string;
+    from?: string;
+    to?: string[];
+    cc?: string[];
+    has_attachments?: boolean;
+    [key: string]: unknown;
+  } | null;
 }
 
 export interface ThreadReservation {

@@ -132,19 +132,17 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
         if (!data?.success) throw new Error(data?.error || 'SMS send failed');
         results.sms = true;
 
-        // Store SMS in guest_communications (only if we have a reservation)
-        if (selectedReservationId) {
-          await supabase.from('guest_communications').insert({
-            reservation_id: selectedReservationId,
-            thread_id: thread.id,
-            message_type: 'sms',
-            subject: 'SMS Message',
-            message_content: message,
-            delivery_status: 'delivered',
-            sent_at: new Date().toISOString(),
-            direction: 'outbound',
-          });
-        }
+        // Store SMS in guest_communications
+        await supabase.from('guest_communications').insert({
+          reservation_id: selectedReservationId || null,
+          thread_id: thread.id,
+          message_type: 'sms',
+          subject: 'SMS Message',
+          message_content: message,
+          delivery_status: 'delivered',
+          sent_at: new Date().toISOString(),
+          direction: 'outbound',
+        });
       }
 
       toast({

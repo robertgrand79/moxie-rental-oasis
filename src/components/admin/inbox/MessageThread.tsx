@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { InboxThread, ThreadMessage, ThreadReservation } from '@/hooks/useGuestInbox';
+import { sanitizeHtml } from '@/utils/security';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -208,7 +209,16 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                   </div>
                   
                   {/* Message content */}
-                  <p className="text-sm whitespace-pre-wrap break-words">{message.message_content}</p>
+                  {message.message_type === 'email' && (message as any).raw_email_data?.body_html ? (
+                    <div 
+                      className="text-sm break-words prose prose-sm max-w-none dark:prose-invert"
+                      dangerouslySetInnerHTML={{ 
+                        __html: sanitizeHtml((message as any).raw_email_data.body_html)
+                      }}
+                    />
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap break-words">{message.message_content}</p>
+                  )}
                   
                   {/* Timestamp and Reply button */}
                   <div className={cn(
