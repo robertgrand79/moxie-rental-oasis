@@ -638,6 +638,21 @@ const ModernBookingManagement = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Pagination */}
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+        onNextPage={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+        onPreviousPage={() => setCurrentPage(p => Math.max(p - 1, 1))}
+        hasNextPage={currentPage < totalPages}
+        hasPreviousPage={currentPage > 1}
+        loading={isLoading}
+        itemName="bookings"
+      />
     </div>
   );
 };
