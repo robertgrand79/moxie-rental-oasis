@@ -212,6 +212,12 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         retryCountRef.current = 0;
         lastFetchedUserIdRef.current = user.id;
         hasInitializedRef.current = true;
+        
+        // Always persist the resolved org slug so public pages can pick it up
+        if (selectedMember.organization?.slug) {
+          sessionStorage.setItem('admin_current_org_slug', selectedMember.organization.slug);
+          debug.org('Persisted admin org context on init:', selectedMember.organization.slug);
+        }
       } else {
         // No organization found - retry once if this is first attempt
         if (retryCountRef.current === 0 && !isRetry) {
