@@ -3,7 +3,10 @@ import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
+  SidebarMenu,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -12,10 +15,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import AdminSidebarSection from './sidebar/AdminSidebarSection';
+import AdminSidebarItem from './sidebar/AdminSidebarSection';
 import AdminSidebarFooter from './sidebar/AdminSidebarFooter';
 import { adminMenuItems } from './sidebar/adminMenuItems';
-import type { MenuSection, MenuItem } from './sidebar/adminMenuItems';
+import type { MenuItem } from './sidebar/adminMenuItems';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
@@ -37,36 +40,37 @@ const AdminSidebar = () => {
   const isLoading = settingsLoading || orgLoading;
 
   const filteredMenuItems = useMemo(() => {
-    // While loading permissions, show nothing to avoid flash
     if (permLoading) return [];
 
     return adminMenuItems
-      .map((section: MenuSection) => {
-        // Hide Platform Administration unless confirmed platform admin
-        if (section.title === 'Platform Administration') {
+      .map((item: MenuItem) => {
+        // Platform admin only — hide unless confirmed platform admin
+        if (item.key === 'platform') {
           if (checkingAdmin || isPlatformAdmin !== true) return null;
-          return section;
+          return item;
         }
 
-        // Platform admins bypass permission checks
-        if (isPlatformAdmin) return section;
+        // Platform admins bypass all permission checks
+        if (isPlatformAdmin) return item;
 
-        // Check section-level permission
-        if (section.requiredPermission && !hasPermission(section.requiredPermission)) {
+        // Check top-level permission
+        if (item.requiredPermission && !hasPermission(item.requiredPermission)) {
           return null;
         }
 
-        // Filter individual items by permission
-        const filteredItems = section.items.filter((item: MenuItem) => {
-          if (!item.requiredPermission) return true;
-          return hasPermission(item.requiredPermission);
-        });
+        // Filter children by permission
+        if (item.children) {
+          const filteredChildren = item.children.filter((child) => {
+            if (!child.requiredPermission) return true;
+            return hasPermission(child.requiredPermission);
+          });
+          if (filteredChildren.length === 0) return null;
+          return { ...item, children: filteredChildren };
+        }
 
-        if (filteredItems.length === 0) return null;
-
-        return { ...section, items: filteredItems };
+        return item;
       })
-      .filter(Boolean) as MenuSection[];
+      .filter(Boolean) as MenuItem[];
   }, [isPlatformAdmin, checkingAdmin, hasPermission, permLoading]);
 
   const showOrgSwitcher = isPlatformAdmin && !isCollapsed;
@@ -132,14 +136,15 @@ const AdminSidebar = () => {
             <OrganizationSwitcher />
           </div>
         )}
-        
-        {filteredMenuItems.map((section) => (
-          <AdminSidebarSection 
-            key={section.title}
-            title={section.title} 
-            items={section.items} 
-          />
-        ))}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {filteredMenuItems.map((item) => (
+                <AdminSidebarItem key={item.key ?? item.title} item={item} />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <AdminSidebarFooter />
     </Sidebar>

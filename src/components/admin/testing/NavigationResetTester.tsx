@@ -40,14 +40,17 @@ const NavigationResetTester = () => {
   // Extract all admin routes from menu items
   const allAdminRoutes = React.useMemo(() => {
     const routes: { route: string; title: string }[] = [];
-    adminMenuItems.forEach(section => {
-      section.items.forEach(item => {
-        routes.push({
-          route: item.href,
-          title: item.title
-        });
+    const collectRoutes = (items: typeof adminMenuItems) => {
+      items.forEach(item => {
+        if (item.href) {
+          routes.push({ route: item.href, title: item.title });
+        }
+        if (item.children) {
+          collectRoutes(item.children);
+        }
       });
-    });
+    };
+    collectRoutes(adminMenuItems);
     return routes;
   }, []);
 
