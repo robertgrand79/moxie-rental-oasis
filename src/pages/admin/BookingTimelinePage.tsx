@@ -271,8 +271,8 @@ const BookingTimelinePage = () => {
     });
   };
 
-  const copyExportUrl = (propertyId: string) => {
-    const url = `${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id=${propertyId}`;
+  const copyExportUrl = (property: PropertyWithCalendars) => {
+    const url = buildCalendarExportUrl(property);
     navigator.clipboard.writeText(url);
     toast({ title: 'Copied!', description: 'Export URL copied to clipboard' });
   };
