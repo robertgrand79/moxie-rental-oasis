@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { PLATFORM_CONFIG } from '@/config/platform';
 import { UnifiedCalendarView } from '@/components/booking/UnifiedCalendarView';
 import { MonthlyGridCalendar } from '@/components/booking/MonthlyGridCalendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,13 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { 
-  CalendarDays, 
-  LayoutGrid, 
-  RefreshCw, 
-  ExternalLink, 
-  CheckCircle, 
-  AlertCircle, 
+import {
+  CalendarDays,
+  LayoutGrid,
+  RefreshCw,
+  ExternalLink,
+  CheckCircle,
+  AlertCircle,
   Clock,
   Copy,
   Building2,
@@ -58,6 +57,7 @@ interface PropertyWithCalendars {
   id: string;
   title: string;
   location: string;
+  calendar_export_token?: string;
   calendars: ExternalCalendar[];
 }
 
@@ -67,6 +67,15 @@ const PLATFORM_OPTIONS = [
   { value: 'booking', label: 'Booking.com', icon: '🌐' },
   { value: 'other', label: 'Other iCal', icon: '📅' },
 ];
+
+const DIRECT_EXPORT_BASE_URL = 'https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export';
+
+const buildCalendarExportUrl = (property: { id: string; calendar_export_token?: string | null }) => {
+  if (property.calendar_export_token) {
+    return `${DIRECT_EXPORT_BASE_URL}?feed=${property.id}_${property.calendar_export_token}`;
+  }
+  return `${DIRECT_EXPORT_BASE_URL}?property_id=${property.id}`;
+};
 
 const getPlatformInstructions = (platform: string) => {
   switch (platform) {
@@ -148,6 +157,7 @@ const BookingTimelinePage = () => {
         id: prop.id,
         title: prop.title,
         location: prop.location || '',
+        calendar_export_token: prop.calendar_export_token,
         calendars: (calendars || []).filter(cal => cal.property_id === prop.id)
       })) as PropertyWithCalendars[];
     },
@@ -261,8 +271,8 @@ const BookingTimelinePage = () => {
     });
   };
 
-  const copyExportUrl = (propertyId: string) => {
-    const url = `${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id=${propertyId}`;
+  const copyExportUrl = (property: PropertyWithCalendars) => {
+    const url = buildCalendarExportUrl(property);
     navigator.clipboard.writeText(url);
     toast({ title: 'Copied!', description: 'Export URL copied to clipboard' });
   };
@@ -542,18 +552,18 @@ const BookingTimelinePage = () => {
                   <div>
                     <p className="font-medium">{property.title}</p>
                     <p className="text-xs text-muted-foreground font-mono break-all">
-                      {PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id={property.id}
+                      {buildCalendarExportUrl(property)}
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => copyExportUrl(property.id)}>
+                    <Button variant="outline" size="sm" onClick={() => copyExportUrl(property)}>
                       <Copy className="h-4 w-4 mr-1" />
                       Copy
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => window.open(`${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id=${property.id}`, '_blank')}
+                      onClick={() => window.open(buildCalendarExportUrl(property), '_blank')}
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Button>
