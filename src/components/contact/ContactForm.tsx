@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { validateInput, sanitizeFormInput } from '@/utils/security';
+import { useTenant } from '@/contexts/TenantContext';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
