@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Inbox, Send, Star, Archive, RefreshCw, Plus } from 'lucide-react';
+import { Inbox, Send, Star, Archive, RefreshCw, Plus, PanelRight } from 'lucide-react';
 import { usePlatformEmails } from '@/hooks/usePlatformEmails';
 import { usePlatformEmailAddresses } from '@/hooks/usePlatformEmailAddresses';
+import { useTenantIntelligence } from '@/hooks/useTenantIntelligence';
 import EmailList from './EmailList';
 import EmailViewer from './EmailViewer';
 import EmailComposer from './EmailComposer';
+import TenantIntelligenceSidebar from './TenantIntelligenceSidebar';
 
 type Folder = 'inbox' | 'sent' | 'starred' | 'archived';
 
@@ -16,6 +18,7 @@ const PlatformEmailInbox = () => {
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [isComposing, setIsComposing] = useState(false);
   const [replyToEmail, setReplyToEmail] = useState<any>(null);
+  const [showTenantSidebar, setShowTenantSidebar] = useState(true);
 
   const { emails, isLoading, refetch } = usePlatformEmails();
   const { activeAddresses } = usePlatformEmailAddresses();
@@ -38,7 +41,10 @@ const PlatformEmailInbox = () => {
     }
   }, [emails, selectedFolder]);
 
-  const selectedEmail = emails?.find(e => e.id === selectedEmailId);
+  const selectedEmail = emails?.find(e => e.id === selectedEmailId) ?? null;
+
+  // Tenant intelligence for the selected email
+  const { tenant, isLoading: isTenantLoading } = useTenantIntelligence(selectedEmail);
 
   // Count unread emails
   const unreadCount = emails?.filter(e => !e.is_read && e.direction === 'inbound' && !e.is_archived).length || 0;
@@ -59,6 +65,8 @@ const PlatformEmailInbox = () => {
     setIsComposing(false);
     setReplyToEmail(null);
   };
+
+  const showSidebar = selectedEmail && !isComposing && showTenantSidebar;
 
   return (
     <div className="flex gap-4 h-[calc(100vh-280px)] min-h-[500px]">
@@ -136,11 +144,29 @@ const PlatformEmailInbox = () => {
               }}
             />
           ) : selectedEmail ? (
-            <EmailViewer
-              email={selectedEmail}
-              onReply={handleReply}
-              onClose={() => setSelectedEmailId(null)}
-            />
+            <div className="h-full flex flex-col">
+              {/* Toggle button for tenant sidebar */}
+              {!showTenantSidebar && (
+                <div className="flex justify-end p-2 pb-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1.5 text-xs"
+                    onClick={() => setShowTenantSidebar(true)}
+                  >
+                    <PanelRight className="h-3.5 w-3.5" />
+                    Tenant Intel
+                  </Button>
+                </div>
+              )}
+              <div className="flex-1 overflow-hidden">
+                <EmailViewer
+                  email={selectedEmail}
+                  onReply={handleReply}
+                  onClose={() => setSelectedEmailId(null)}
+                />
+              </div>
+            </div>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               Select an email to view
@@ -148,6 +174,18 @@ const PlatformEmailInbox = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Tenant Intelligence Sidebar */}
+      {showSidebar && (
+        <div className="w-64 shrink-0 hidden xl:block">
+          <TenantIntelligenceSidebar
+            tenant={tenant}
+            isLoading={isTenantLoading}
+            email={selectedEmail!}
+            onCollapse={() => setShowTenantSidebar(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };
