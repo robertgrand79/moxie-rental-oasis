@@ -1,25 +1,21 @@
 
 
-## Plan: Inbound Email → Guest Inbox Routing (COMPLETED)
+## Plan: Migrate Test Bookings & Add Pagination (COMPLETED)
 
 ### What was done
 
-1. **Updated `platform-inbound-webhook`** to also route inbound emails to the guest inbox system:
-   - After storing in `platform_emails` (existing behavior), now also calls `routeToGuestInbox()`
-   - Looks up organization from recipient email domain (via `organizations.custom_domain`, `organizations.website`, or `site_settings` contactEmail/emailFromAddress)
-   - Matches sender email to `property_reservations` for reservation linking
-   - Creates/finds `guest_inbox_threads` via `get_or_create_inbox_thread` RPC
-   - Inserts `guest_communications` record with email content and HTML body stored in `raw_email_data`
-   - Updates thread with last message preview and sets status to `awaiting_reply`
-   - Creates admin notification for the org
+1. **Migrated 5,000 test bookings** from `reservations` → `property_reservations` for Test Org (`297f9511-...`)
+   - Temporarily disabled validation triggers (`validate_reservation_insert`, `on_reservation_created_schedule_messages`) for bulk insert
+   - Used COALESCE for nullable fields (guest_email generated as `guest{N}@test.example.com`)
+   - All enterprise columns defaulted: `cleaning_status='pending'`, `currency='USD'`, `source_platform='direct'`
+   - Triggers re-enabled after migration
 
-2. **Made `reservation_id` handling flexible** — already nullable in schema, now properly handled:
-   - Unmatched emails (no reservation found) still create inbox threads
-   - ThreadReplyComposer updated to store SMS without requiring reservation_id
+2. **Added server-side pagination** to `ModernBookingManagement.tsx`
+   - `currentPage` state with 50 items per page
+   - Supabase query uses `{ count: 'exact' }` and `.range(start, end)`
+   - Status filter is now server-side (resets page to 1 on change)
+   - Integrated `PaginationControls` component below the booking list
 
-3. **Updated Guest Inbox UI** for email rendering:
-   - `MessageThread.tsx` now renders HTML email bodies (sanitized via DOMPurify) when `raw_email_data.body_html` is available
-   - Falls back to plain text for SMS and emails without HTML
-   - `ThreadMessage` interface updated to include `raw_email_data` typing
-
-4. **Deleted `resend-inbound-webhook`** — consolidated into `platform-inbound-webhook`
+3. **Fixed stats to query full dataset**
+   - Separate React Query (`bookings-stats`) fetches all records' `booking_status` and `total_amount`
+   - Stats reflect all 5,000 bookings regardless of current pagination page
