@@ -230,6 +230,12 @@ const AdminSidebarFooter = () => {
               <Edit2 className="h-4 w-4 mr-2" />
               Edit Profile
             </DropdownMenuItem>
+            {canInstall && (
+              <DropdownMenuItem onClick={promptInstall} className="cursor-pointer">
+                <Download className="h-4 w-4 mr-2" />
+                Install App
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
               <LogOut className="h-4 w-4 mr-2" />
