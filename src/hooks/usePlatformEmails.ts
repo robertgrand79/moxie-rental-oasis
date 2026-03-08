@@ -77,7 +77,7 @@ export interface SendEmailInput {
 export const usePlatformEmails = (filters: EmailFilters = {}) => {
   const queryClient = useQueryClient();
 
-  // Fetch active platform email addresses to filter by domain
+  // Fetch active platform email addresses for reference
   const { data: activeAddresses = [] } = useQuery({
     queryKey: ['platform-email-addresses-for-filter'],
     queryFn: async () => {
@@ -88,7 +88,7 @@ export const usePlatformEmails = (filters: EmailFilters = {}) => {
       if (error) throw error;
       return data.map(a => a.email_address.toLowerCase());
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch emails with filters
@@ -145,23 +145,8 @@ export const usePlatformEmails = (filters: EmailFilters = {}) => {
       const { data, error } = await query.limit(100);
       if (error) throw error;
       
-      // Filter emails to only include those sent to configured platform addresses
-      if (activeAddresses.length > 0) {
-        return (data as PlatformEmail[]).filter(email => {
-          // For inbound emails, check if any to_address matches our configured addresses
-          if (email.direction === 'inbound') {
-            return email.to_addresses?.some(addr => 
-              activeAddresses.includes(addr.toLowerCase())
-            );
-          }
-          // For outbound emails, check from_address
-          return activeAddresses.includes(email.from_address?.toLowerCase());
-        });
-      }
-      
       return data as PlatformEmail[];
     },
-    enabled: activeAddresses.length > 0,
   });
 
   // Get single email
