@@ -157,6 +157,7 @@ const BookingTimelinePage = () => {
         id: prop.id,
         title: prop.title,
         location: prop.location || '',
+        calendar_export_token: prop.calendar_export_token,
         calendars: (calendars || []).filter(cal => cal.property_id === prop.id)
       })) as PropertyWithCalendars[];
     },
