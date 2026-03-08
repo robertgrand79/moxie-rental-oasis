@@ -3,6 +3,7 @@ import { InboxThread, ThreadReservation, ThreadMessage } from '@/hooks/useGuestI
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import EmailRichTextEditor from '@/components/admin/platform/email/EmailRichTextEditor';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -229,14 +230,23 @@ const ThreadReplyComposer: React.FC<ThreadReplyComposerProps> = ({
       )}
 
       {/* Message content */}
-      <Textarea
-        ref={textareaRef}
-        placeholder="Type your message..."
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        rows={4}
-        className="resize-none min-h-[100px]"
-      />
+      {channel === 'sms' ? (
+        <Textarea
+          ref={textareaRef}
+          placeholder="Type your message..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={4}
+          className="resize-none min-h-[100px]"
+        />
+      ) : (
+        <EmailRichTextEditor
+          content={message}
+          onChange={setMessage}
+          placeholder="Type your message..."
+          minHeight="150px"
+        />
+      )}
 
       {/* Actions - stack on mobile */}
       <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
