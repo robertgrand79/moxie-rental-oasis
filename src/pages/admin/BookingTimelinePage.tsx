@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PLATFORM_CONFIG } from '@/config/platform';
 import { UnifiedCalendarView } from '@/components/booking/UnifiedCalendarView';
 import { MonthlyGridCalendar } from '@/components/booking/MonthlyGridCalendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -261,7 +262,7 @@ const BookingTimelinePage = () => {
   };
 
   const copyExportUrl = (propertyId: string) => {
-    const url = `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${propertyId}`;
+    const url = `${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id=${propertyId}`;
     navigator.clipboard.writeText(url);
     toast({ title: 'Copied!', description: 'Export URL copied to clipboard' });
   };
@@ -541,7 +542,7 @@ const BookingTimelinePage = () => {
                   <div>
                     <p className="font-medium">{property.title}</p>
                     <p className="text-xs text-muted-foreground font-mono break-all">
-                      https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id={property.id}
+                      {PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id={property.id}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -552,7 +553,7 @@ const BookingTimelinePage = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => window.open(`https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}`, '_blank')}
+                      onClick={() => window.open(`${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id=${property.id}`, '_blank')}
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Button>

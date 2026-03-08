@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PLATFORM_CONFIG } from '@/config/platform';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -395,9 +396,9 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                 {(() => {
                   const token = (property as any).calendar_export_token;
                   if (token) {
-                    return `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?feed=${property.id}_${token}`;
+                    return `${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?feed=${property.id}_${token}`;
                   }
-                  return `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}`;
+                  return `${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id=${property.id}`;
                 })()}
               </div>
               <p className="text-xs text-amber-700 dark:text-amber-300 mb-2">
@@ -410,8 +411,8 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                   onClick={() => {
                     const token = (property as any).calendar_export_token;
                     const url = token
-                      ? `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?feed=${property.id}_${token}`
-                      : `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}`;
+                      ? `${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?feed=${property.id}_${token}`
+                      : `${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id=${property.id}`;
                     navigator.clipboard.writeText(url);
                     toast({ title: 'Copied!', description: 'Calendar export URL copied to clipboard' });
                   }}
