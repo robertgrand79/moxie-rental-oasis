@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Star, Paperclip } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -11,6 +12,9 @@ interface EmailListProps {
   selectedEmailId: string | null;
   onSelectEmail: (id: string) => void;
   isLoading: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
+  selectionMode?: boolean;
 }
 
 const EmailList: React.FC<EmailListProps> = ({
@@ -18,6 +22,9 @@ const EmailList: React.FC<EmailListProps> = ({
   selectedEmailId,
   onSelectEmail,
   isLoading,
+  selectedIds = new Set(),
+  onToggleSelect,
+  selectionMode = false,
 }) => {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -51,14 +58,28 @@ const EmailList: React.FC<EmailListProps> = ({
         {emails.map(email => (
           <div
             key={email.id}
-            onClick={() => onSelectEmail(email.id)}
+            onClick={(e) => {
+              // Don't select email if clicking the checkbox
+              if ((e.target as HTMLElement).closest('[data-checkbox]')) return;
+              onSelectEmail(email.id);
+            }}
             className={cn(
               'p-3 cursor-pointer hover:bg-muted/50 transition-colors',
               selectedEmailId === email.id && 'bg-muted',
-              !email.is_read && 'bg-primary/5'
+              !email.is_read && 'bg-primary/5',
+              selectedIds.has(email.id) && 'bg-accent/50'
             )}
           >
             <div className="flex items-start gap-2">
+              {selectionMode && onToggleSelect && (
+                <div data-checkbox className="pt-0.5 shrink-0">
+                  <Checkbox
+                    checked={selectedIds.has(email.id)}
+                    onCheckedChange={() => onToggleSelect(email.id)}
+                    className="h-4 w-4"
+                  />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className={cn(
