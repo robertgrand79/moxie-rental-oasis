@@ -14,6 +14,7 @@ import CookieConsentBanner from './components/legal/CookieConsentBanner';
 import { ErrorBoundary } from './components/ui/error-boundary';
 import { WidgetErrorBoundary } from './components/error-boundaries/WidgetErrorBoundary';
 import { RUMProvider } from './providers/RUMProvider';
+import IOSInstallPrompt from './components/pwa/IOSInstallPrompt';
 
 // Note: QueryClient is created in main.tsx - single instance for entire app
 

@@ -39,25 +39,13 @@ if (!isRedirecting) {
   // Apply accessibility settings
   applyAccessibilitySettings();
 
-  // Unregister stale service workers but preserve the push notification SW
+  // Register the caching service worker for offline support
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => {
-        // Keep the push notification service worker
-        if (registration.active?.scriptURL?.includes('sw-push.js')) return;
-        registration.unregister();
-        debug.log('Unregistered service worker:', registration.scope);
-      });
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      debug.log('Caching SW registered:', reg.scope);
+    }).catch((err) => {
+      debug.log('Caching SW registration failed:', err);
     });
-    
-    if ('caches' in window) {
-      caches.keys().then((names) => {
-        names.forEach((name) => {
-          caches.delete(name);
-          debug.log('Deleted cache:', name);
-        });
-      });
-    }
   }
 
   // Ensure touch targets are properly sized after DOM load
