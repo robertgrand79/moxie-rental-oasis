@@ -95,8 +95,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     const siteName = settingsMap.siteName || 'Vacation Rentals';
     const contactEmail = settingsMap.contactEmail || '';
-    const fromEmail = settingsMap.emailFromAddress || '';
+    const fromEmail = settingsMap.emailFromAddress || contactEmail || '';
     const fromName = settingsMap.emailFromName || siteName;
+
+    if (!fromEmail) {
+      throw new Error('No from email address configured. Please set an Email From Address or Contact Email in Settings.');
+    }
+
+    if (!contactEmail) {
+      throw new Error('No contact email configured. Please set a Contact Email in Settings.');
+    }
 
     // Email to business owner
     const businessEmailHtml = `
