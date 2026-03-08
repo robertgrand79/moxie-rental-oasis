@@ -392,22 +392,18 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                 📤 Your Calendar Export URL (Give this to Airbnb/VRBO/Hospitable):
               </p>
               <div className="bg-white dark:bg-gray-900 p-2 rounded border font-mono text-xs break-all mb-2">
-                {(() => {
-                  const token = (property as any).calendar_export_token;
-                  return token
-                    ? `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export/${property.id}/${token}`
-                    : `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export/${property.id}`;
-                })()}
+                {`https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}${(property as any).calendar_export_token ? `&token=${(property as any).calendar_export_token}` : ''}`}
               </div>
+              <p className="text-xs text-amber-700 dark:text-amber-300 mb-2">
+                ⚠️ Make sure you copy the <strong>entire URL</strong> including the token parameter. External platforms need the full URL to access your calendar.
+              </p>
               <div className="flex gap-2 flex-wrap">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
                     const token = (property as any).calendar_export_token;
-                    const url = token
-                      ? `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export/${property.id}/${token}`
-                      : `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export/${property.id}`;
+                    const url = `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}${token ? `&token=${token}` : ''}`;
                     navigator.clipboard.writeText(url);
                     toast({ title: 'Copied!', description: 'Calendar export URL copied to clipboard' });
                   }}
@@ -419,9 +415,7 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                   size="sm"
                   onClick={() => {
                     const token = (property as any).calendar_export_token;
-                    const url = token
-                      ? `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export/${property.id}/${token}`
-                      : `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export/${property.id}`;
+                    const url = `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}${token ? `&token=${token}` : ''}`;
                     window.open(url, '_blank');
                   }}
                 >
