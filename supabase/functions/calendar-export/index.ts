@@ -14,20 +14,21 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url)
     
-    // Support both path-based and query-param formats:
-    // Path: .../calendar-export/PROPERTY_ID/TOKEN  (preferred for external platforms)
-    // Query: .../calendar-export?property_id=X&token=Y  (legacy)
+    // Support multiple auth URL formats:
+    // 1) Preferred (single param): ?feed=<property_id>_<token>
+    // 2) Legacy query params: ?property_id=<id>&token=<token>
+    // 3) Optional path fallback: /calendar-export/<property_id>/<token>
     const pathParts = url.pathname.replace(/\/+$/, '').split('/')
-    // In Supabase edge functions, req.url pathname is like /calendar-export or /calendar-export/xxx/yyy
-    // (the /functions/v1/ prefix is stripped by the runtime)
-    // So pathParts will be: ["", "calendar-export"] or ["", "calendar-export", propertyId, token]
     const pathPropertyId = pathParts.length > 2 ? pathParts[2] : null
     const pathToken = pathParts.length > 3 ? pathParts[3] : null
-    
-    const propertyId = pathPropertyId || url.searchParams.get('property_id')
-    const token = pathToken || url.searchParams.get('token')
-    
-    console.log('URL path:', url.pathname, 'pathParts:', JSON.stringify(pathParts), 'propertyId:', propertyId, 'token present:', !!token)
+
+    const feed = url.searchParams.get('feed')
+    const feedSeparatorIdx = feed?.lastIndexOf('_') ?? -1
+    const feedPropertyId = feed && feedSeparatorIdx > 0 ? feed.slice(0, feedSeparatorIdx) : null
+    const feedToken = feed && feedSeparatorIdx > 0 ? feed.slice(feedSeparatorIdx + 1) : null
+
+    const propertyId = feedPropertyId || pathPropertyId || url.searchParams.get('property_id')
+    const token = feedToken || pathToken || url.searchParams.get('token')
 
     if (!propertyId) {
       return new Response(
