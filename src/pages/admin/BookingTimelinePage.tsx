@@ -552,7 +552,7 @@ const BookingTimelinePage = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => window.open(`https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}`, '_blank')}
+                      onClick={() => window.open(`${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id=${property.id}`, '_blank')}
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Button>
