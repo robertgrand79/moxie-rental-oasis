@@ -26,7 +26,34 @@ export const useNotifications = () => {
   const { organization } = useCurrentOrganization();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const channelRef = useRef<RealtimeChannel | null>(null);
+
+  // Show browser notification if permission granted
+  const showBrowserNotification = useCallback((notification: AdminNotification) => {
+    if (typeof window === 'undefined' || Notification.permission !== 'granted') return;
+    
+    try {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then((reg) => {
+          reg.showNotification(notification.title, {
+            body: notification.message,
+            icon: '/favicon.ico',
+            tag: notification.id,
+            data: { url: notification.action_url || '/admin' },
+          });
+        });
+      } else {
+        new Notification(notification.title, {
+          body: notification.message,
+          icon: '/favicon.ico',
+          tag: notification.id,
+        });
+      }
+    } catch (e) {
+      // Silently fail if notifications unavailable
+    }
+  }, []);
 
   // Fetch notifications
   const { data: notifications = [], isLoading, refetch } = useQuery({
