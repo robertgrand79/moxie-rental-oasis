@@ -14,7 +14,9 @@ import {
   Search,
   Bell,
   Archive,
-  RefreshCw
+  RefreshCw,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { usePlatformNotifications, PlatformNotification } from '@/hooks/usePlatformNotifications';
 import { useNavigate } from 'react-router-dom';
