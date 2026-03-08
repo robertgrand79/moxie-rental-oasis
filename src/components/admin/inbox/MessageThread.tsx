@@ -209,11 +209,11 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                   </div>
                   
                   {/* Message content */}
-                  {message.message_type === 'email' && message.raw_email_data?.body_html ? (
+                  {message.message_type === 'email' && (message as any).raw_email_data?.body_html ? (
                     <div 
                       className="text-sm break-words prose prose-sm max-w-none dark:prose-invert"
                       dangerouslySetInnerHTML={{ 
-                        __html: (message as any).raw_email_data?.body_html || message.message_content 
+                        __html: sanitizeHtml((message as any).raw_email_data.body_html)
                       }}
                     />
                   ) : (
