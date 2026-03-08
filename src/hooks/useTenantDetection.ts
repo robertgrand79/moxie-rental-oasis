@@ -215,13 +215,11 @@ export const useTenantDetection = (): TenantDetectionResult => {
               if (user) {
                 logTenant('User authenticated:', user.id);
                 
-                const { data: membership } = await supabase
+                const { data: memberships } = await supabase
                   .from('organization_members')
                   .select('organization:organizations(id, name, slug, logo_url, website, custom_domain, is_active, template_type)')
                   .eq('user_id', user.id)
-                  .order('joined_at', { ascending: true })
-                  .limit(1)
-                  .maybeSingle();
+                  .order('joined_at', { ascending: true });
 
                 if (membership?.organization) {
                   const orgData = membership.organization as unknown as TenantInfo;
