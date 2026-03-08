@@ -374,8 +374,9 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         joined_at: new Date().toISOString(),
       });
       
-      // Persist the switched org slug for "Back to Site" synchronization
+      // Persist the switched org slug for public page synchronization
       sessionStorage.setItem('admin_current_org_slug', targetOrg.slug);
+      sessionStorage.setItem('current_tenant_slug', targetOrg.slug);
       debug.org('Persisted admin org context:', targetOrg.slug);
 
       debug.org('Successfully switched to organization:', targetOrg.name);

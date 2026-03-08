@@ -180,19 +180,23 @@ export const useTenantDetection = (): TenantDetectionResult => {
           }
         }
 
-        // Strategy 2: Check for admin-set context (persisted from OrganizationSwitcher)
-        const adminCurrentOrgSlug = sessionStorage.getItem('admin_current_org_slug');
-        if (adminCurrentOrgSlug && !isAdminRoute) {
-          logTenant('Trying admin-set org context:', adminCurrentOrgSlug);
+        // Strategy 2: Check for persisted org context from admin/public navigation
+        const persistedOrgSlug =
+          sessionStorage.getItem('admin_current_org_slug') ||
+          sessionStorage.getItem('current_tenant_slug');
+
+        if (persistedOrgSlug && !isAdminRoute) {
+          logTenant('Trying persisted org context:', persistedOrgSlug);
           
           const { data, error: fetchError } = await supabase
-            .rpc('get_organization_by_identifier', { _identifier: adminCurrentOrgSlug });
+            .rpc('get_organization_by_identifier', { _identifier: persistedOrgSlug });
 
           if (!fetchError) {
             const orgData = Array.isArray(data) ? data[0] : data;
             if (orgData && isMounted) {
-              logTenant('✅ Tenant resolved from admin context:', { id: orgData.id, name: orgData.name, slug: orgData.slug });
+              logTenant('✅ Tenant resolved from persisted context:', { id: orgData.id, name: orgData.name, slug: orgData.slug });
               sessionStorage.setItem('current_tenant_slug', orgData.slug);
+              sessionStorage.setItem('admin_current_org_slug', orgData.slug);
               setTenant(orgData as TenantInfo);
               setIsDefaultTenant(false);
               setLoading(false);
