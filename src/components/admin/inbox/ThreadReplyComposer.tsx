@@ -3,6 +3,7 @@ import { InboxThread, ThreadReservation, ThreadMessage } from '@/hooks/useGuestI
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import EmailRichTextEditor from '@/components/admin/platform/email/EmailRichTextEditor';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
