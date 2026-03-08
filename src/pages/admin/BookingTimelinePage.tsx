@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PLATFORM_CONFIG } from '@/config/platform';
 import { UnifiedCalendarView } from '@/components/booking/UnifiedCalendarView';
 import { MonthlyGridCalendar } from '@/components/booking/MonthlyGridCalendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
