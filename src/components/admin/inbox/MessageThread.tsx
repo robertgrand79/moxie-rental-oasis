@@ -208,7 +208,16 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                   </div>
                   
                   {/* Message content */}
-                  <p className="text-sm whitespace-pre-wrap break-words">{message.message_content}</p>
+                  {message.message_type === 'email' && message.raw_email_data?.body_html ? (
+                    <div 
+                      className="text-sm break-words prose prose-sm max-w-none dark:prose-invert"
+                      dangerouslySetInnerHTML={{ 
+                        __html: (message as any).raw_email_data?.body_html || message.message_content 
+                      }}
+                    />
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap break-words">{message.message_content}</p>
+                  )}
                   
                   {/* Timestamp and Reply button */}
                   <div className={cn(
