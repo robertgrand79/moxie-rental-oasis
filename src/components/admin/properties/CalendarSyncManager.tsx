@@ -395,9 +395,9 @@ const CalendarSyncManager = ({ property }: CalendarSyncManagerProps) => {
                 {(() => {
                   const token = (property as any).calendar_export_token;
                   if (token) {
-                    return `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?feed=${property.id}_${token}`;
+                    return `${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?feed=${property.id}_${token}`;
                   }
-                  return `https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export?property_id=${property.id}`;
+                  return `${PLATFORM_CONFIG.API_BASE_URL}/functions/v1/calendar-export?property_id=${property.id}`;
                 })()}
               </div>
               <p className="text-xs text-amber-700 dark:text-amber-300 mb-2">
