@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { PLATFORM_CONFIG } from '@/config/platform';
 import { UnifiedCalendarView } from '@/components/booking/UnifiedCalendarView';
 import { MonthlyGridCalendar } from '@/components/booking/MonthlyGridCalendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,13 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { 
-  CalendarDays, 
-  LayoutGrid, 
-  RefreshCw, 
-  ExternalLink, 
-  CheckCircle, 
-  AlertCircle, 
+import {
+  CalendarDays,
+  LayoutGrid,
+  RefreshCw,
+  ExternalLink,
+  CheckCircle,
+  AlertCircle,
   Clock,
   Copy,
   Building2,
@@ -58,6 +57,7 @@ interface PropertyWithCalendars {
   id: string;
   title: string;
   location: string;
+  calendar_export_token?: string;
   calendars: ExternalCalendar[];
 }
 
@@ -67,6 +67,15 @@ const PLATFORM_OPTIONS = [
   { value: 'booking', label: 'Booking.com', icon: '🌐' },
   { value: 'other', label: 'Other iCal', icon: '📅' },
 ];
+
+const DIRECT_EXPORT_BASE_URL = 'https://joiovubyokikqjytxtuv.supabase.co/functions/v1/calendar-export';
+
+const buildCalendarExportUrl = (property: { id: string; calendar_export_token?: string | null }) => {
+  if (property.calendar_export_token) {
+    return `${DIRECT_EXPORT_BASE_URL}?feed=${property.id}_${property.calendar_export_token}`;
+  }
+  return `${DIRECT_EXPORT_BASE_URL}?property_id=${property.id}`;
+};
 
 const getPlatformInstructions = (platform: string) => {
   switch (platform) {
