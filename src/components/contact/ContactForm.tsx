@@ -9,8 +9,10 @@ import { toast } from '@/hooks/use-toast';
 import { Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { validateInput, sanitizeFormInput } from '@/utils/security';
+import { useTenant } from '@/contexts/TenantContext';
 
 const ContactForm = () => {
+  const { tenantId } = useTenant();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -91,7 +93,8 @@ const ContactForm = () => {
           name: sanitizedName,
           email: sanitizedEmail,
           phone: sanitizedPhone || undefined,
-          message: `Subject: ${sanitizedSubject || 'General Inquiry'}\n\n${sanitizedMessage}`
+          message: `Subject: ${sanitizedSubject || 'General Inquiry'}\n\n${sanitizedMessage}`,
+          organizationId: tenantId || undefined
         }
       });
 
