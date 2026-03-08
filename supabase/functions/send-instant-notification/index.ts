@@ -138,7 +138,8 @@ const handler = async (req: Request): Promise<Response> => {
         .single();
 
       // Default preferences if none set (send instant email for high/urgent priority)
-      const shouldSendEmail = preferences?.email_instant ?? (payload.priority === "urgent" || payload.priority === "high");
+      const shouldSendEmail = preferences?.email_instant ?? 
+        (payload.priority === "urgent" || payload.priority === "high" || payload.notification_type === "guest_message");
       const shouldSendSMS = preferences?.sms ?? (payload.priority === "urgent");
 
       console.log(`[Instant Notification] Preferences for ${recipient.email}:`, {
