@@ -180,19 +180,23 @@ export const useTenantDetection = (): TenantDetectionResult => {
           }
         }
 
-        // Strategy 2: Check for admin-set context (persisted from OrganizationSwitcher)
-        const adminCurrentOrgSlug = sessionStorage.getItem('admin_current_org_slug');
-        if (adminCurrentOrgSlug && !isAdminRoute) {
-          logTenant('Trying admin-set org context:', adminCurrentOrgSlug);
+        // Strategy 2: Check for persisted org context from admin/public navigation
+        const persistedOrgSlug =
+          sessionStorage.getItem('admin_current_org_slug') ||
+          sessionStorage.getItem('current_tenant_slug');
+
+        if (persistedOrgSlug && !isAdminRoute) {
+          logTenant('Trying persisted org context:', persistedOrgSlug);
           
           const { data, error: fetchError } = await supabase
-            .rpc('get_organization_by_identifier', { _identifier: adminCurrentOrgSlug });
+            .rpc('get_organization_by_identifier', { _identifier: persistedOrgSlug });
 
           if (!fetchError) {
             const orgData = Array.isArray(data) ? data[0] : data;
             if (orgData && isMounted) {
-              logTenant('✅ Tenant resolved from admin context:', { id: orgData.id, name: orgData.name, slug: orgData.slug });
+              logTenant('✅ Tenant resolved from persisted context:', { id: orgData.id, name: orgData.name, slug: orgData.slug });
               sessionStorage.setItem('current_tenant_slug', orgData.slug);
+              sessionStorage.setItem('admin_current_org_slug', orgData.slug);
               setTenant(orgData as TenantInfo);
               setIsDefaultTenant(false);
               setLoading(false);
@@ -211,17 +215,25 @@ export const useTenantDetection = (): TenantDetectionResult => {
               if (user) {
                 logTenant('User authenticated:', user.id);
                 
-                const { data: membership } = await supabase
+                const { data: memberships } = await supabase
                   .from('organization_members')
                   .select('organization:organizations(id, name, slug, logo_url, website, custom_domain, is_active, template_type)')
                   .eq('user_id', user.id)
-                  .order('joined_at', { ascending: true })
-                  .limit(1)
-                  .maybeSingle();
+                  .order('joined_at', { ascending: true });
 
-                if (membership?.organization) {
-                  const orgData = membership.organization as unknown as TenantInfo;
-                  if (orgData.is_active) {
+                if (memberships && memberships.length > 0) {
+                  const persistedOrgSlug =
+                    sessionStorage.getItem('admin_current_org_slug') ||
+                    sessionStorage.getItem('current_tenant_slug');
+
+                  const matchedMembership = persistedOrgSlug
+                    ? memberships.find((m: any) => m.organization?.slug === persistedOrgSlug)
+                    : null;
+
+                  const selectedMembership = matchedMembership ?? memberships[0];
+                  const orgData = selectedMembership?.organization as TenantInfo | undefined;
+
+                  if (orgData?.is_active) {
                     return orgData;
                   }
                 }
