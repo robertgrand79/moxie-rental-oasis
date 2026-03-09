@@ -87,6 +87,7 @@ const TurnoPropertyMapping = ({ property }: TurnoPropertyMappingProps) => {
               </CardDescription>
             </div>
             <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={fetchTurnoProperties}
