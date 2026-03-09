@@ -103,7 +103,7 @@ export const useTurnoProperties = () => {
       console.log('🔄 Creating mapping:', { propertyId, turnoPropertyId, organizationId: organization.id });
       
       // Get Turno property details
-      const turnoProperty = turnoProperties.find(p => p.id === turnoPropertyId);
+      const turnoProperty = turnoProperties.find(p => String(p.id) === String(turnoPropertyId));
       if (!turnoProperty) {
         throw new Error('Turno property not found');
       }
