@@ -153,6 +153,7 @@ const TurnoPropertyMapping = ({ property }: TurnoPropertyMappingProps) => {
 
               <div className="flex gap-2">
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={handleToggleStatus}
                   className="flex-1"
