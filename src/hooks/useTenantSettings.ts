@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { debug } from '@/utils/debug';
 import { acquireTenantSettingsChannel } from '@/hooks/tenantSettingsRealtime';
-import { defaultTenantSettings } from '@/hooks/defaultTenantSettings';
+import { defaultTenantSettings } from '@/hooks/settings/defaultTenantSettings';
 
 interface TenantSettings {
   [key: string]: string | undefined;
