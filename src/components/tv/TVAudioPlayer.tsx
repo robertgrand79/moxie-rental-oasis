@@ -83,13 +83,13 @@ const TVAudioPlayer: React.FC<TVAudioPlayerProps> = ({ src }) => {
       )}
 
       {isPlaying && !autoplayBlocked && (
-        <div className="fixed bottom-8 left-8 z-50 flex items-center gap-3 rounded-full bg-zinc-900/50 backdrop-blur-md px-4 py-2 border border-white/10 shadow-lg">
+        <div className="fixed bottom-8 left-8 z-50 flex items-center gap-3 rounded-full bg-background/50 backdrop-blur-md px-4 py-2 border border-border/50 shadow-lg">
           <div className="flex items-end h-3 gap-[3px] overflow-hidden py-[1px]">
-            <div className="w-[3px] h-full bg-zinc-400 animate-bounce rounded-full" style={{ animationDuration: '0.8s' }} />
-            <div className="w-[3px] h-full bg-zinc-400 animate-bounce rounded-full" style={{ animationDuration: '1.2s' }} />
-            <div className="w-[3px] h-full bg-zinc-400 animate-bounce rounded-full" style={{ animationDuration: '1s' }} />
+            <div className="w-[3px] h-full bg-muted-foreground animate-bounce rounded-full" style={{ animationDuration: '0.8s' }} />
+            <div className="w-[3px] h-full bg-muted-foreground animate-bounce rounded-full" style={{ animationDuration: '1.2s' }} />
+            <div className="w-[3px] h-full bg-muted-foreground animate-bounce rounded-full" style={{ animationDuration: '1s' }} />
           </div>
-          <span className="text-xs text-zinc-400 tracking-widest uppercase font-medium">
+          <span className="text-xs text-muted-foreground tracking-widest uppercase font-medium">
             Now Playing: Moxie Curated Vibes
           </span>
         </div>
