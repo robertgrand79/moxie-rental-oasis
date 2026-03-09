@@ -87,6 +87,7 @@ const TurnoPropertyMapping = ({ property }: TurnoPropertyMappingProps) => {
               </CardDescription>
             </div>
             <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={fetchTurnoProperties}
@@ -152,6 +153,7 @@ const TurnoPropertyMapping = ({ property }: TurnoPropertyMappingProps) => {
 
               <div className="flex gap-2">
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={handleToggleStatus}
                   className="flex-1"
@@ -159,6 +161,7 @@ const TurnoPropertyMapping = ({ property }: TurnoPropertyMappingProps) => {
                   {existingMapping.is_active ? 'Deactivate' : 'Activate'} Mapping
                 </Button>
                 <Button
+                  type="button"
                   variant="destructive"
                   onClick={handleDeleteMapping}
                 >
@@ -190,6 +193,7 @@ const TurnoPropertyMapping = ({ property }: TurnoPropertyMappingProps) => {
               </div>
 
               <Button
+                type="button"
                 onClick={handleCreateMapping}
                 disabled={!selectedTurnoProperty}
                 className="w-full"
