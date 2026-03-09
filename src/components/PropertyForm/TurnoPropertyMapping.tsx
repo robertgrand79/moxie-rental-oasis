@@ -160,6 +160,7 @@ const TurnoPropertyMapping = ({ property }: TurnoPropertyMappingProps) => {
                   {existingMapping.is_active ? 'Deactivate' : 'Activate'} Mapping
                 </Button>
                 <Button
+                  type="button"
                   variant="destructive"
                   onClick={handleDeleteMapping}
                 >
