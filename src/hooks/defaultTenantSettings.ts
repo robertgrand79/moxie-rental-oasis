@@ -93,8 +93,8 @@ export const defaultTenantSettings: Record<string, string> = {
   aboutTagline: 'Your local ambassadors to exceptional vacation experiences',
   aboutTags: 'Local,Trusted,Quality,Family',
   aboutMissionCards: JSON.stringify([
-    { icon: 'Mountain', title: 'Outdoor Adventures', description: 'From hiking trails to scenic views, we'll guide you to the most breathtaking outdoor experiences and hidden natural gems.' },
-    { icon: 'Coffee', title: 'Culinary Delights', description: 'Discover the vibrant food scene, from artisan coffee shops to farm-to-table restaurants and local breweries that define regional cuisine.' },
+    { icon: "Mountain", title: "Outdoor Adventures", description: "From hiking trails to scenic views, we'll guide you to the most breathtaking outdoor experiences and hidden natural gems." },
+    { icon: "Coffee", title: "Culinary Delights", description: "Discover the vibrant food scene, from artisan coffee shops to farm-to-table restaurants and local breweries that define regional cuisine." },
   ]),
   aboutValuesCards: JSON.stringify([
     { icon: 'CheckCircle', title: 'Integrity First', description: 'We prioritize unwavering honesty, transparency, and ethical practices in all aspects of our business.' },
