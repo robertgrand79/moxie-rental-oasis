@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import TVAudioPlayer from './TVAudioPlayer';
 
 interface TVLayoutProps {
   children: React.ReactNode;
@@ -33,13 +34,15 @@ const TVLayout: React.FC<TVLayoutProps> = ({
         padding: '5vh 5vw',
       }}
     >
+      <TVAudioPlayer src="https://joiovubyokikqjytxtuv.supabase.co/storage/v1/object/public/assets/moxie-island-vibe.mp3" />
+      
       {showSafeZone && (
         <div 
           className="fixed inset-0 pointer-events-none border-4 border-dashed border-red-500/30 z-50"
           style={{ margin: '5vh 5vw' }}
         />
       )}
-      <div className="h-full w-full">
+      <div className="h-full w-full relative z-10">
         {children}
       </div>
     </div>
