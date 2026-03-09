@@ -193,6 +193,7 @@ const TurnoPropertyMapping = ({ property }: TurnoPropertyMappingProps) => {
               </div>
 
               <Button
+                type="button"
                 onClick={handleCreateMapping}
                 disabled={!selectedTurnoProperty}
                 className="w-full"
