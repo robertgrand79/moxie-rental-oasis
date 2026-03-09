@@ -2,14 +2,15 @@
  * Comprehensive default settings for tenant-facing (public) site_settings keys.
  * Used by useTenantSettings to soft-patch missing keys so the UI never hits undefined.
  *
- * Keep this file in sync with every key the admin settings panels can write.
+ * ⚠️  Keep this file in sync with every key the admin settings panels can write.
+ *     When you add a new setting key anywhere in the UI, add it here too.
  */
 
 export const defaultTenantSettings: Record<string, string> = {
   // ── Branding ──────────────────────────────────────────
   siteName: '',
   siteLogo: '',
-  site_name: '',
+  site_name: 'My Rentals',
   logo_url: '',
   logoUrl: '',
   favicon_url: '',
@@ -18,8 +19,8 @@ export const defaultTenantSettings: Record<string, string> = {
   site_description: '',
 
   // ── Hero ──────────────────────────────────────────────
-  heroTitle: '',
-  hero_title: '',
+  heroTitle: 'Welcome to our properties',
+  hero_title: 'Welcome to our properties',
   heroSubtitle: '',
   hero_subtitle: '',
   heroDescription: '',
@@ -38,6 +39,7 @@ export const defaultTenantSettings: Record<string, string> = {
   social_facebook: '',
   social_instagram: '',
   social_twitter: '',
+  social_googlePlaces: '',
 
   // ── SEO ───────────────────────────────────────────────
   siteTitle: '',
@@ -74,6 +76,7 @@ export const defaultTenantSettings: Record<string, string> = {
   emailHeaderColorEnd: '#1d4ed8',
   emailAccentColor: '#3b82f6',
   emailFooterColor: '#f8fafc',
+  emailSetupVerified: 'false',
 
   // ── About page ────────────────────────────────────────
   aboutTitle: '',
@@ -132,7 +135,7 @@ export const defaultTenantSettings: Record<string, string> = {
   blogDescription: '',
 
   // ── Colors ────────────────────────────────────────────
-  colorPrimary: '#767b8d',
+  colorPrimary: '#000000',
   colorSecondary: '#8b929a',
   colorAccent: '#cbcfd2',
   colorBackground: '#ffffff',
@@ -154,12 +157,41 @@ export const defaultTenantSettings: Record<string, string> = {
 
   // ── Assistant / Chat Widget ───────────────────────────
   assistant_bubble_color: '#3b82f6',
-  assistant_display_name: '',
-  assistant_welcome_message: '',
+  assistant_display_name: 'Virtual Assistant',
+  assistant_welcome_message: 'Hi there! How can I help you today?',
   assistant_personality: '',
   assistant_is_enabled: 'true',
   assistant_text_color: '#ffffff',
+  assistant_message_bg_color: '',
+  assistant_header_text_color: '#ffffff',
+  assistant_quick_action_text_color: '',
+  assistant_submit_button_color: '',
+  assistant_user_message_text_color: '#ffffff',
+  assistant_welcome_title_color: '',
+  assistant_welcome_subtitle_color: '',
+  assistant_chat_style: 'modern',
+  assistant_avatar_type: 'default',
+  assistant_custom_avatar_url: '',
+  assistant_avatar_background_color: '',
+  assistant_avatar_background_color_end: '',
+  assistant_use_custom_avatar: 'false',
+
+  // ── TV / Signage Mode ─────────────────────────────────
+  tv_welcome_message: 'Welcome to your stay',
+  tv_chat_enabled: 'true',
+  tv_show_avatar: 'true',
+  tv_signage_rotation_seconds: '10',
 
   // ── Footer ────────────────────────────────────────────
   footer_text: '',
+
+  // ── Booking / Reservation defaults ────────────────────
+  default_check_in_time: '15:00',
+  default_check_out_time: '11:00',
+  currency: 'USD',
+  timezone: 'America/New_York',
+
+  // ── Notifications ─────────────────────────────────────
+  notification_email_enabled: 'true',
+  notification_sms_enabled: 'false',
 };
