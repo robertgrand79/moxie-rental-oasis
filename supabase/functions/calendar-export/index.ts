@@ -68,22 +68,38 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Get all availability blocks - only confirmed bookings, exclude cancelled
+    // Get availability blocks with strict direct-booking filtering
     const { data: blocks, error: blocksError } = await supabase
       .from('availability_blocks')
       .select('*')
       .eq('property_id', propertyId)
       .in('block_type', ['booked', 'blocked', 'maintenance'])
       .neq('sync_status', 'cancelled')
-      .or('source_platform.is.null,source_platform.eq.direct,source_platform.eq.staymoxie,block_type.neq.booked')
 
     if (blocksError) {
       console.error('Error fetching availability blocks:', blocksError)
     }
 
-    const availabilityBlocks = blocks || []
+    const rawBlocks = blocks || []
 
-    console.log(`Found ${availabilityBlocks.length} availability blocks for export`)
+    // Defense-in-depth filter: never export OTA/hospitable booked blocks,
+    // even if a source_platform is misclassified.
+    const availabilityBlocks = rawBlocks.filter((block) => {
+      if (block.block_type !== 'booked') return true
+
+      const source = (block.source_platform || '').toLowerCase()
+      const externalId = (block.external_booking_id || '').toLowerCase()
+
+      const isDirectSource = source === '' || source === 'direct' || source === 'staymoxie'
+      const hasExternalSignature =
+        externalId.includes('@reservations.hospitable.com') ||
+        externalId.includes('@airbnb.com') ||
+        externalId.includes('vrbo')
+
+      return isDirectSource && !hasExternalSignature
+    })
+
+    console.log(`Found ${availabilityBlocks.length} availability blocks for export (${rawBlocks.length - availabilityBlocks.length} filtered out)`)
 
     // Generate iCal content with privacy-safe data
     const icalContent = generateICalContent(property, availabilityBlocks, propertyId)
