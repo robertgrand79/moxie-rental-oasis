@@ -67,6 +67,7 @@ serve(async (req) => {
       .from('tv_pairing_audit_logs')
       .insert({
         device_pairing_id: device.id,
+        organization_id: device.organization_id,
         action: 'device_unpaired',
         guest_email: device.guest_email,
         details: { reason: reason || 'manual' },

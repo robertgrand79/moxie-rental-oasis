@@ -103,6 +103,7 @@ serve(async (req) => {
       .from('tv_pairing_audit_logs')
       .insert({
         device_pairing_id: result.id,
+        organization_id: property.organization_id,
         action: 'device_registered',
         details: { device_id, device_name, property_id },
       });
