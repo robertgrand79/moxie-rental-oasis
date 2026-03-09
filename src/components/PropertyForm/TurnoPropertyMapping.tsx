@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTurnoProperties } from '@/hooks/useTurnoProperties';
-import { Loader2, Wrench, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, Wrench, RefreshCw, CheckCircle2, XCircle, ArrowRightLeft } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface TurnoPropertyMappingProps {
@@ -109,26 +109,46 @@ const TurnoPropertyMapping = ({ property }: TurnoPropertyMappingProps) => {
         <CardContent className="space-y-4">
           {existingMapping ? (
             <>
-              <Alert className={existingMapping.is_active ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}>
-                <div className="flex items-center justify-between">
+              {/* Mapping status banner */}
+              <div className={`rounded-lg border p-4 ${existingMapping.is_active ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}`}>
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     {existingMapping.is_active ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
                     ) : (
-                      <XCircle className="h-4 w-4 text-yellow-600" />
+                      <XCircle className="h-5 w-5 text-yellow-600" />
                     )}
-                    <AlertDescription>
-                      <span className="font-medium">
-                        {existingMapping.is_active ? 'Active mapping: ' : 'Inactive mapping: '}
-                      </span>
-                      {existingMapping.property_name}
-                    </AlertDescription>
+                    <span className="font-semibold text-sm">
+                      {existingMapping.is_active ? 'Mapped & Active' : 'Mapped — Inactive'}
+                    </span>
                   </div>
                   <Badge variant={existingMapping.is_active ? 'default' : 'secondary'}>
                     {existingMapping.is_active ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
-              </Alert>
+
+                {/* Mapping detail cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                  {/* StayMoxie property */}
+                  <div className="rounded-md border bg-white p-3 space-y-1">
+                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">StayMoxie Property</p>
+                    <p className="font-medium text-sm leading-tight">{property.title}</p>
+                    <p className="text-xs text-muted-foreground">{property.location}</p>
+                  </div>
+
+                  {/* Arrow connector */}
+                  <div className="hidden sm:flex items-center justify-center">
+                    <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+                  </div>
+
+                  {/* Turno property */}
+                  <div className="rounded-md border bg-white p-3 space-y-1">
+                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Turno Property</p>
+                    <p className="font-medium text-sm leading-tight">{existingMapping.property_name}</p>
+                    <p className="text-xs text-muted-foreground">ID: {existingMapping.turno_property_id}</p>
+                  </div>
+                </div>
+              </div>
 
               <div className="flex gap-2">
                 <Button
@@ -161,7 +181,7 @@ const TurnoPropertyMapping = ({ property }: TurnoPropertyMappingProps) => {
                     {turnoProperties
                       .filter(tp => !mappings.some(m => m.turno_property_id === tp.id && m.property_id && m.is_active))
                       .map((turnoProperty) => (
-                        <SelectItem key={turnoProperty.id} value={turnoProperty.id}>
+                        <SelectItem key={turnoProperty.id} value={String(turnoProperty.id)}>
                           {turnoProperty.name || turnoProperty.alias || turnoProperty.title || `Property ${turnoProperty.id}`}
                         </SelectItem>
                       ))}
