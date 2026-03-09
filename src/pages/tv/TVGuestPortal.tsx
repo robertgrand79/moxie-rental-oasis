@@ -9,6 +9,7 @@ import TVChatInterface from '@/components/tv/TVChatInterface';
 import TVPropertyInfo from '@/components/tv/TVPropertyInfo';
 import TVLocalGuide from '@/components/tv/TVLocalGuide';
 import TVWeatherWidget from '@/components/tv/TVWeatherWidget';
+import { useTVDevice } from '@/hooks/useTVDevice';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
@@ -40,6 +41,18 @@ const TVGuestPortal: React.FC = () => {
   const [property, setProperty] = useState<PropertyData | null>(null);
   const [reservation, setReservation] = useState<ReservationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { displayMode, isPaired } = useTVDevice(propertyId);
+
+  // React to display_mode changes — navigate away if mode changes
+  useEffect(() => {
+    if (!isPaired) return;
+    if (displayMode === 'signage') {
+      navigate(`/tv/${propertyId}/signage`);
+    } else if (displayMode === 'welcome') {
+      navigate(`/tv/${propertyId}`);
+    }
+  }, [displayMode, isPaired, propertyId, navigate]);
 
   useEffect(() => {
     if (propertyId) fetchData();
@@ -78,7 +91,21 @@ const TVGuestPortal: React.FC = () => {
           organization_id: propertyData.organization_id,
         });
       }
-      setReservation({
+
+      // Try to get active reservation for guest name
+      const now = new Date().toISOString().split('T')[0];
+      const { data: res } = await supabase
+        .from('property_reservations')
+        .select('guest_name, check_in_date, check_out_date')
+        .eq('property_id', propertyId)
+        .eq('booking_status', 'confirmed')
+        .lte('check_in_date', now)
+        .gte('check_out_date', now)
+        .order('check_in_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      setReservation(res || {
         guest_name: 'Guest',
         check_in_date: new Date().toISOString(),
         check_out_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()

@@ -1,21 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { QrCode, Tv, Loader2, RefreshCw } from 'lucide-react';
+import { QrCode, Tv, Loader2, RefreshCw, ArrowRight } from 'lucide-react';
 import TVLayout, { tvStyles } from '@/components/tv/TVLayout';
 import TVHeader from '@/components/tv/TVHeader';
 import TVFocusableButton from '@/components/tv/TVFocusableButton';
 import { useTVDevice } from '@/hooks/useTVDevice';
 import { cn } from '@/lib/utils';
 
-/**
- * TVWelcome - Unpaired TV welcome screen
- * 
- * Shows:
- * - Property branding
- * - QR code for guest pairing
- * - 6-digit pairing code
- * - Auto-navigates when paired
- */
 const TVWelcome: React.FC = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
   const navigate = useNavigate();
@@ -25,6 +16,7 @@ const TVWelcome: React.FC = () => {
     isLoading,
     error,
     isPaired,
+    displayMode,
     pairingCode,
     isPairingCodeExpired,
     getQRCodeUrl,
@@ -33,12 +25,16 @@ const TVWelcome: React.FC = () => {
     refetch,
   } = useTVDevice(propertyId);
 
-  // Navigate to portal when paired
+  // React to display_mode changes
   useEffect(() => {
-    if (isPaired) {
+    if (!isPaired) return;
+    if (displayMode === 'signage') {
+      navigate(`/tv/${propertyId}/signage`);
+    } else if (displayMode === 'guest_portal') {
       navigate(`/tv/${propertyId}/portal`);
     }
-  }, [isPaired, propertyId, navigate]);
+    // 'welcome' stays on this page
+  }, [isPaired, displayMode, propertyId, navigate]);
 
   // Register device if not exists
   useEffect(() => {
@@ -48,6 +44,10 @@ const TVWelcome: React.FC = () => {
   }, [isLoading, device, propertyId, registerDevice]);
 
   const qrCodeUrl = getQRCodeUrl(window.location.origin);
+
+  // Determine if we have a guest name from the heartbeat data
+  const guestName = (device as any)?.guest_name || null;
+  const hasActiveReservation = isPaired && guestName;
 
   if (isLoading || registerDevice.isPending) {
     return (
@@ -79,6 +79,39 @@ const TVWelcome: React.FC = () => {
     );
   }
 
+  // Paired with active reservation — show personalized welcome
+  if (hasActiveReservation) {
+    return (
+      <TVLayout>
+        <div className="h-full flex flex-col items-center justify-center text-center">
+          <TVHeader propertyName={device?.property?.title} />
+          <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto px-8">
+            <h1 className="text-6xl md:text-8xl font-bold tracking-tight mb-6">
+              Welcome, {guestName}!
+            </h1>
+            <p className={cn(tvStyles.heading3, "text-muted-foreground mb-4")}>
+              to {device?.property?.title}
+            </p>
+            <p className={cn(tvStyles.body, "text-muted-foreground mb-12 max-w-xl")}>
+              We're delighted to have you. Explore local recommendations, house info, and more through the guest portal.
+            </p>
+            <TVFocusableButton
+              className="text-xl px-12 py-6"
+              onClick={() => navigate(`/tv/${propertyId}/portal`)}
+            >
+              Enter Guest Portal
+              <ArrowRight className="h-6 w-6 ml-3" />
+            </TVFocusableButton>
+          </div>
+          <footer className="py-6 text-center">
+            <p className={tvStyles.caption}>Powered by Guidio TV</p>
+          </footer>
+        </div>
+      </TVLayout>
+    );
+  }
+
+  // Not paired — show QR/pairing code
   return (
     <TVLayout>
       <div className="h-full flex flex-col">
