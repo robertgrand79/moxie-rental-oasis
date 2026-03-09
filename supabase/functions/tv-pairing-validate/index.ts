@@ -78,6 +78,7 @@ serve(async (req) => {
       .from('tv_pairing_audit_logs')
       .insert({
         device_pairing_id: device.id,
+        organization_id: device.organization_id,
         action: 'device_paired',
         guest_email: email,
         details: { pairing_code },

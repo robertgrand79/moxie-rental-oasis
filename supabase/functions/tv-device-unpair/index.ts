@@ -32,7 +32,7 @@ serve(async (req) => {
     // Find device
     const { data: device, error: deviceError } = await supabase
       .from('tv_device_pairings')
-      .select('id, guest_email')
+      .select('id, guest_email, organization_id')
       .eq('device_id', device_id)
       .single();
 
@@ -67,6 +67,7 @@ serve(async (req) => {
       .from('tv_pairing_audit_logs')
       .insert({
         device_pairing_id: device.id,
+        organization_id: device.organization_id,
         action: 'device_unpaired',
         guest_email: device.guest_email,
         details: { reason: reason || 'manual' },
