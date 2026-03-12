@@ -110,7 +110,7 @@ const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
                         className="flex items-center gap-2"
                         onClick={(e) => handleLeafClick(child.href!, e)}
                       >
-                        <ChildIcon className="h-4 w-4" />
+                        <ChildIcon className="h-4 w-4" strokeWidth={1.5} />
                         <span>{child.title}</span>
                       </Link>
                     </SidebarMenuSubButton>
