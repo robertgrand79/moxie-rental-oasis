@@ -2,8 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import { InboxThread, ThreadMessage } from '@/hooks/useGuestInbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { sanitizeHtml } from '@/utils/security';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Mail,
   Phone,
@@ -11,6 +22,10 @@ import {
   ChevronDown,
   ChevronUp,
   Paperclip,
+  Trash2,
+  Archive,
+  X,
+  CheckSquare,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -21,21 +36,39 @@ interface ModernMessageThreadProps {
   loading: boolean;
   onStatusChange: (status: InboxThread['status']) => Promise<void>;
   onSnooze: (until: Date | null) => Promise<void>;
+  onDeleteMessages?: (ids: string[]) => Promise<boolean>;
+  onArchiveMessages?: (ids: string[]) => Promise<boolean>;
+  onRefresh?: () => void;
 }
 
 /** SMS rendered as sleek chat bubble */
-const SmsBubble: React.FC<{ message: ThreadMessage }> = ({ message }) => {
+const SmsBubble: React.FC<{
+  message: ThreadMessage;
+  selected: boolean;
+  selectMode: boolean;
+  onToggleSelect: (id: string) => void;
+}> = ({ message, selected, selectMode, onToggleSelect }) => {
   const isOutbound = message.direction === 'outbound';
   const ts = message.sent_at || message.created_at;
 
   return (
-    <div className={cn('flex', isOutbound ? 'justify-end' : 'justify-start')}>
+    <div className={cn('flex gap-2 group', isOutbound ? 'justify-end' : 'justify-start')}>
+      {selectMode && !isOutbound && (
+        <div className="flex items-start pt-2">
+          <Checkbox
+            checked={selected}
+            onCheckedChange={() => onToggleSelect(message.id)}
+            className="h-4 w-4"
+          />
+        </div>
+      )}
       <div
         className={cn(
           'max-w-[75%] px-4 py-2.5 rounded-2xl',
           isOutbound
             ? 'bg-primary text-primary-foreground rounded-br-md'
-            : 'bg-muted text-foreground rounded-bl-md'
+            : 'bg-muted text-foreground rounded-bl-md',
+          selected && 'ring-2 ring-primary/40'
         )}
       >
         <div className={cn(
@@ -55,12 +88,27 @@ const SmsBubble: React.FC<{ message: ThreadMessage }> = ({ message }) => {
           {format(new Date(ts), 'MMM d · h:mm a')}
         </div>
       </div>
+      {selectMode && isOutbound && (
+        <div className="flex items-start pt-2">
+          <Checkbox
+            checked={selected}
+            onCheckedChange={() => onToggleSelect(message.id)}
+            className="h-4 w-4"
+          />
+        </div>
+      )}
     </div>
   );
 };
 
 /** Email rendered as a full-width card */
-const EmailCard: React.FC<{ message: ThreadMessage }> = ({ message }) => {
+const EmailCard: React.FC<{
+  message: ThreadMessage;
+  selected: boolean;
+  selectMode: boolean;
+  onToggleSelect: (id: string) => void;
+  onDelete?: (id: string) => void;
+}> = ({ message, selected, selectMode, onToggleSelect, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
   const isOutbound = message.direction === 'outbound';
   const rawEmail = message.raw_email_data;
@@ -70,18 +118,25 @@ const EmailCard: React.FC<{ message: ThreadMessage }> = ({ message }) => {
   const hasAttachments = rawEmail?.has_attachments;
   const subject = message.subject && message.subject !== 'SMS Message' ? message.subject : null;
   const ts = message.sent_at || message.created_at;
-
   const hasLongBody = bodyHtml && bodyHtml.length > 600;
 
   return (
     <div className={cn(
-      'w-full rounded-xl border border-border/50 bg-background overflow-hidden transition-shadow hover:shadow-sm',
-      isOutbound && 'border-l-2 border-l-primary/40'
+      'w-full rounded-xl border border-border/50 bg-background overflow-hidden transition-shadow hover:shadow-sm group relative',
+      isOutbound && 'border-l-2 border-l-primary/40',
+      selected && 'ring-2 ring-primary/40'
     )}>
       {/* Email header */}
       <div className="px-4 py-3 space-y-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
+            {selectMode && (
+              <Checkbox
+                checked={selected}
+                onCheckedChange={() => onToggleSelect(message.id)}
+                className="h-4 w-4 shrink-0"
+              />
+            )}
             <div className={cn(
               'h-6 w-6 rounded-full flex items-center justify-center shrink-0',
               isOutbound ? 'bg-primary/10' : 'bg-muted'
@@ -92,9 +147,42 @@ const EmailCard: React.FC<{ message: ThreadMessage }> = ({ message }) => {
               <span className="text-sm font-medium truncate">{subject}</span>
             )}
           </div>
-          <span className="text-[10px] text-muted-foreground/60 shrink-0 pt-0.5">
-            {format(new Date(ts), 'MMM d · h:mm a')}
-          </span>
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[10px] text-muted-foreground/60 pt-0.5">
+              {format(new Date(ts), 'MMM d · h:mm a')}
+            </span>
+            {/* Individual delete button */}
+            {!selectMode && onDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this message?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this email message. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onDelete(message.id)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
         <div className="flex flex-col gap-0 text-xs text-muted-foreground/70 pl-8">
           <span className="truncate"><span className="font-medium text-muted-foreground">From:</span> {fromAddress}</span>
@@ -120,7 +208,6 @@ const EmailCard: React.FC<{ message: ThreadMessage }> = ({ message }) => {
                 )}
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(bodyHtml) }}
               />
-              {/* Gradient fade for long emails */}
               {hasLongBody && !expanded && (
                 <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
               )}
@@ -143,15 +230,9 @@ const EmailCard: React.FC<{ message: ThreadMessage }> = ({ message }) => {
               onClick={() => setExpanded(!expanded)}
             >
               {expanded ? (
-                <>
-                  <ChevronUp className="h-3 w-3 mr-1" />
-                  Show Less
-                </>
+                <><ChevronUp className="h-3 w-3 mr-1" /> Show Less</>
               ) : (
-                <>
-                  <ChevronDown className="h-3 w-3 mr-1" />
-                  Show Full Email
-                </>
+                <><ChevronDown className="h-3 w-3 mr-1" /> Show Full Email</>
               )}
             </Button>
           )}
@@ -165,11 +246,17 @@ const ModernMessageThread: React.FC<ModernMessageThreadProps> = ({
   thread,
   messages,
   loading,
+  onDeleteMessages,
+  onArchiveMessages,
+  onRefresh,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkArchiving, setBulkArchiving] = useState(false);
 
   useEffect(() => {
-    // Scroll to bottom on new messages
     if (scrollRef.current) {
       const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollContainer) {
@@ -178,34 +265,177 @@ const ModernMessageThread: React.FC<ModernMessageThreadProps> = ({
     }
   }, [messages]);
 
+  // Exit select mode when messages change
+  useEffect(() => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  }, [thread.id]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === messages.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(messages.map(m => m.id)));
+    }
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    if (!onDeleteMessages || selectedIds.size === 0) return;
+    setBulkDeleting(true);
+    const success = await onDeleteMessages(Array.from(selectedIds));
+    setBulkDeleting(false);
+    if (success) {
+      exitSelectMode();
+      onRefresh?.();
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    if (!onArchiveMessages || selectedIds.size === 0) return;
+    setBulkArchiving(true);
+    const success = await onArchiveMessages(Array.from(selectedIds));
+    setBulkArchiving(false);
+    if (success) {
+      exitSelectMode();
+      onRefresh?.();
+    }
+  };
+
+  const handleSingleDelete = async (id: string) => {
+    if (!onDeleteMessages) return;
+    const success = await onDeleteMessages([id]);
+    if (success) onRefresh?.();
+  };
+
   return (
-    <ScrollArea ref={scrollRef} className="flex-1">
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
-        {loading ? (
-          <div className="text-center py-12 text-muted-foreground/50">
-            <div className="h-6 w-6 border-2 border-muted-foreground/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm">Loading messages…</p>
+    <div className="flex-1 flex flex-col min-h-0">
+      {/* Select mode action bar */}
+      {selectMode && (
+        <div className="px-4 py-2 border-b border-border/40 bg-muted/30 flex items-center gap-3 shrink-0 animate-in slide-in-from-top-2 duration-200">
+          <Button variant="ghost" size="sm" onClick={exitSelectMode} className="h-7 w-7 p-0 rounded-full">
+            <X className="h-3.5 w-3.5" />
+          </Button>
+          <button
+            onClick={selectAll}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {selectedIds.size === messages.length ? 'Deselect all' : 'Select all'}
+          </button>
+          <span className="text-xs text-muted-foreground">
+            {selectedIds.size} selected
+          </span>
+          <div className="ml-auto flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBulkArchive}
+              disabled={selectedIds.size === 0 || bulkArchiving}
+              className="h-7 text-xs rounded-full gap-1.5 px-3"
+            >
+              <Archive className="h-3 w-3" />
+              Archive
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={selectedIds.size === 0 || bulkDeleting}
+                  className="h-7 text-xs rounded-full gap-1.5 px-3 text-destructive border-destructive/30 hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {selectedIds.size} message{selectedIds.size > 1 ? 's' : ''}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete the selected messages. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleBulkDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
-        ) : messages.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground/40">
-            <MessageSquare className="h-10 w-10 mx-auto mb-3" />
-            <p className="text-sm font-medium">No messages yet</p>
-            <p className="text-xs mt-1">Start a conversation with this guest</p>
-          </div>
-        ) : (
-          <>
-            {/* Date grouping could go here in the future */}
-            {messages.map((message) =>
+        </div>
+      )}
+
+      {/* Toggle select mode button */}
+      {!selectMode && messages.length > 0 && (
+        <div className="px-4 py-1.5 border-b border-border/30 flex justify-end shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectMode(true)}
+            className="h-7 text-xs text-muted-foreground hover:text-foreground rounded-full gap-1.5 px-3"
+          >
+            <CheckSquare className="h-3 w-3" />
+            Select
+          </Button>
+        </div>
+      )}
+
+      <ScrollArea ref={scrollRef} className="flex-1">
+        <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+          {loading ? (
+            <div className="text-center py-12 text-muted-foreground/50">
+              <div className="h-6 w-6 border-2 border-muted-foreground/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm">Loading messages…</p>
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground/40">
+              <MessageSquare className="h-10 w-10 mx-auto mb-3" />
+              <p className="text-sm font-medium">No messages yet</p>
+              <p className="text-xs mt-1">Start a conversation with this guest</p>
+            </div>
+          ) : (
+            messages.map((message) =>
               message.message_type === 'email' ? (
-                <EmailCard key={message.id} message={message} />
+                <EmailCard
+                  key={message.id}
+                  message={message}
+                  selected={selectedIds.has(message.id)}
+                  selectMode={selectMode}
+                  onToggleSelect={toggleSelect}
+                  onDelete={onDeleteMessages ? handleSingleDelete : undefined}
+                />
               ) : (
-                <SmsBubble key={message.id} message={message} />
+                <SmsBubble
+                  key={message.id}
+                  message={message}
+                  selected={selectedIds.has(message.id)}
+                  selectMode={selectMode}
+                  onToggleSelect={toggleSelect}
+                />
               )
-            )}
-          </>
-        )}
-      </div>
-    </ScrollArea>
+            )
+          )}
+        </div>
+      </ScrollArea>
+    </div>
   );
 };
 
