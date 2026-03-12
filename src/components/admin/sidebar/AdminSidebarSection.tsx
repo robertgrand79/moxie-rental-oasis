@@ -154,7 +154,7 @@ const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
           className="flex items-center gap-3"
           onClick={(e) => handleLeafClick(item.href!, e)}
         >
-          <IconComponent className="h-5 w-5" />
+          <IconComponent className="h-5 w-5" strokeWidth={1.5} />
           <span className="font-medium">{item.title}</span>
         </Link>
       </SidebarMenuButton>
