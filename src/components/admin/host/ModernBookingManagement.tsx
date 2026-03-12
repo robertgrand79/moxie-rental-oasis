@@ -391,18 +391,18 @@ const ModernBookingManagement = () => {
   );
 
   const renderReservationListItem = (reservation: Reservation) => (
-    <div key={reservation.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+    <div key={reservation.id} className="rounded-xl py-4 px-6 hover:bg-muted/30 transition-colors">
       <div className="flex items-start justify-between">
-        <div className="space-y-2 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="space-y-2.5 flex-1">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{reservation.guest_name}</span>
+              <User className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+              <span className="font-medium tracking-tight">{reservation.guest_name}</span>
             </div>
-            <Badge variant={getStatusColor(reservation.booking_status)}>
+            <Badge className={getStatusBadgeClasses(reservation.booking_status)}>
               {reservation.booking_status}
             </Badge>
-            <Badge variant={getCleaningStatusColor(reservation.cleaning_status)}>
+            <Badge className={getCleaningBadgeClasses(reservation.cleaning_status)}>
               Cleaning: {reservation.cleaning_status}
             </Badge>
           </div>
