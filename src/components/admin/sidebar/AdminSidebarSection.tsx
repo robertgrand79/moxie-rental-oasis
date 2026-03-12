@@ -63,7 +63,7 @@ const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
           <Tooltip>
             <TooltipTrigger asChild>
               <SidebarMenuButton isActive={isChildActive} className="justify-center">
-                <IconComponent className="h-5 w-5" />
+                <IconComponent className="h-5 w-5" strokeWidth={1.5} />
               </SidebarMenuButton>
             </TooltipTrigger>
             <TooltipContent side="right">{item.title}</TooltipContent>
