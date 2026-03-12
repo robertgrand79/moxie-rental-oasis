@@ -690,7 +690,7 @@ const ReservationManageForm = ({
           <select
             value={bookingStatus}
             onChange={(e) => setBookingStatus(e.target.value)}
-            className="w-full mt-1 px-3 py-2 border rounded-md bg-background"
+            className="w-full mt-1 px-3 py-2 border border-border/40 rounded-xl bg-muted/30 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50"
           >
             <option value="confirmed">Confirmed</option>
             <option value="pending">Pending</option>
