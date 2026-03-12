@@ -64,26 +64,26 @@ const SmsBubble: React.FC<{
       )}
       <div
         className={cn(
-          'max-w-[75%] px-4 py-2.5 rounded-2xl',
+          'max-w-[75%] px-4 py-3 rounded-2xl transition-shadow',
           isOutbound
-            ? 'bg-primary text-primary-foreground rounded-br-md'
-            : 'bg-muted text-foreground rounded-bl-md',
-          selected && 'ring-2 ring-primary/40'
+            ? 'bg-primary text-primary-foreground rounded-br-lg'
+            : 'bg-muted/60 text-foreground rounded-bl-lg',
+          selected && 'ring-2 ring-primary/30'
         )}
       >
         <div className={cn(
-          'flex items-center gap-1 text-[10px] uppercase tracking-wide font-medium mb-1',
-          isOutbound ? 'text-primary-foreground/50' : 'text-muted-foreground/70'
+          'flex items-center gap-1 text-[10px] uppercase tracking-widest font-medium mb-1.5',
+          isOutbound ? 'text-primary-foreground/40' : 'text-muted-foreground/50'
         )}>
-          <Phone className="h-2.5 w-2.5" />
+          <Phone className="h-2.5 w-2.5" strokeWidth={1.5} />
           SMS
         </div>
         <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
           {message.message_content}
         </p>
         <div className={cn(
-          'text-[10px] mt-1.5',
-          isOutbound ? 'text-primary-foreground/40' : 'text-muted-foreground/50'
+          'text-[10px] mt-2',
+          isOutbound ? 'text-primary-foreground/30' : 'text-muted-foreground/40'
         )}>
           {format(new Date(ts), 'MMM d · h:mm a')}
         </div>
@@ -122,14 +122,14 @@ const EmailCard: React.FC<{
 
   return (
     <div className={cn(
-      'w-full rounded-xl border border-border/50 bg-background overflow-hidden transition-shadow hover:shadow-sm group relative',
-      isOutbound && 'border-l-2 border-l-primary/40',
-      selected && 'ring-2 ring-primary/40'
+      'w-full rounded-xl border border-border/30 bg-background overflow-hidden transition-all duration-200 hover:shadow-sm group relative',
+      isOutbound && 'border-l-2 border-l-primary/30',
+      selected && 'ring-2 ring-primary/30'
     )}>
       {/* Email header */}
-      <div className="px-4 py-3 space-y-1">
+      <div className="px-5 py-4 space-y-1.5">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             {selectMode && (
               <Checkbox
                 checked={selected}
@@ -138,29 +138,28 @@ const EmailCard: React.FC<{
               />
             )}
             <div className={cn(
-              'h-6 w-6 rounded-full flex items-center justify-center shrink-0',
-              isOutbound ? 'bg-primary/10' : 'bg-muted'
+              'h-7 w-7 rounded-full flex items-center justify-center shrink-0',
+              isOutbound ? 'bg-primary/5' : 'bg-muted/60'
             )}>
-              <Mail className="h-3 w-3 text-muted-foreground" />
+              <Mail className="h-3.5 w-3.5 text-muted-foreground/60" strokeWidth={1.5} />
             </div>
             {subject && (
-              <span className="text-sm font-medium truncate">{subject}</span>
+              <span className="text-sm font-medium tracking-tight truncate">{subject}</span>
             )}
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="text-[10px] text-muted-foreground/60 pt-0.5">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[10px] text-muted-foreground/50 pt-0.5">
               {format(new Date(ts), 'MMM d · h:mm a')}
             </span>
-            {/* Individual delete button */}
             {!selectMode && onDelete && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive rounded-full"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3 w-3" strokeWidth={1.5} />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -184,21 +183,21 @@ const EmailCard: React.FC<{
             )}
           </div>
         </div>
-        <div className="flex flex-col gap-0 text-xs text-muted-foreground/70 pl-8">
-          <span className="truncate"><span className="font-medium text-muted-foreground">From:</span> {fromAddress}</span>
-          <span className="truncate"><span className="font-medium text-muted-foreground">To:</span> {toAddresses}</span>
+        <div className="flex flex-col gap-0 text-xs text-muted-foreground/50 pl-9">
+          <span className="truncate"><span className="font-medium text-muted-foreground/70">From:</span> {fromAddress}</span>
+          <span className="truncate"><span className="font-medium text-muted-foreground/70">To:</span> {toAddresses}</span>
         </div>
         {hasAttachments && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground/60 pl-8">
-            <Paperclip className="h-3 w-3" />
+          <div className="flex items-center gap-1 text-xs text-muted-foreground/40 pl-9">
+            <Paperclip className="h-3 w-3" strokeWidth={1.5} />
             <span>Attachments</span>
           </div>
         )}
       </div>
 
       {/* Email body */}
-      <div className="px-4 pb-4">
-        <div className="border-t border-border/30 pt-3">
+      <div className="px-5 pb-5">
+        <div className="border-t border-border/20 pt-4">
           {bodyHtml ? (
             <div className="relative">
               <div
@@ -209,7 +208,7 @@ const EmailCard: React.FC<{
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(bodyHtml) }}
               />
               {hasLongBody && !expanded && (
-                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent" />
               )}
             </div>
           ) : message.message_content ? (
@@ -217,7 +216,7 @@ const EmailCard: React.FC<{
               {message.message_content}
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground/50 italic">
+            <p className="text-sm text-muted-foreground/40 italic">
               Email body not available
             </p>
           )}
@@ -226,13 +225,13 @@ const EmailCard: React.FC<{
             <Button
               variant="ghost"
               size="sm"
-              className="mt-2 h-7 text-xs text-muted-foreground hover:text-foreground rounded-full px-3"
+              className="mt-3 h-7 text-xs text-muted-foreground hover:text-foreground rounded-full px-3"
               onClick={() => setExpanded(!expanded)}
             >
               {expanded ? (
-                <><ChevronUp className="h-3 w-3 mr-1" /> Show Less</>
+                <><ChevronUp className="h-3 w-3 mr-1" strokeWidth={1.5} /> Show Less</>
               ) : (
-                <><ChevronDown className="h-3 w-3 mr-1" /> Show Full Email</>
+                <><ChevronDown className="h-3 w-3 mr-1" strokeWidth={1.5} /> Show Full Email</>
               )}
             </Button>
           )}
@@ -265,7 +264,6 @@ const ModernMessageThread: React.FC<ModernMessageThreadProps> = ({
     }
   }, [messages]);
 
-  // Exit select mode when messages change
   useEffect(() => {
     setSelectMode(false);
     setSelectedIds(new Set());
@@ -325,9 +323,9 @@ const ModernMessageThread: React.FC<ModernMessageThreadProps> = ({
     <div className="flex-1 flex flex-col min-h-0">
       {/* Select mode action bar */}
       {selectMode && (
-        <div className="px-4 py-2 border-b border-border/40 bg-muted/30 flex items-center gap-3 shrink-0 animate-in slide-in-from-top-2 duration-200">
+        <div className="px-4 py-2 border-b border-border/30 bg-muted/20 flex items-center gap-3 shrink-0 animate-in slide-in-from-top-2 duration-200">
           <Button variant="ghost" size="sm" onClick={exitSelectMode} className="h-7 w-7 p-0 rounded-full">
-            <X className="h-3.5 w-3.5" />
+            <X className="h-3.5 w-3.5" strokeWidth={1.5} />
           </Button>
           <button
             onClick={selectAll}
@@ -335,7 +333,7 @@ const ModernMessageThread: React.FC<ModernMessageThreadProps> = ({
           >
             {selectedIds.size === messages.length ? 'Deselect all' : 'Select all'}
           </button>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground/60">
             {selectedIds.size} selected
           </span>
           <div className="ml-auto flex items-center gap-1.5">
@@ -344,9 +342,9 @@ const ModernMessageThread: React.FC<ModernMessageThreadProps> = ({
               size="sm"
               onClick={handleBulkArchive}
               disabled={selectedIds.size === 0 || bulkArchiving}
-              className="h-7 text-xs rounded-full gap-1.5 px-3"
+              className="h-7 text-xs rounded-full gap-1.5 px-3 border-border/40"
             >
-              <Archive className="h-3 w-3" />
+              <Archive className="h-3 w-3" strokeWidth={1.5} />
               Archive
             </Button>
             <AlertDialog>
@@ -355,9 +353,9 @@ const ModernMessageThread: React.FC<ModernMessageThreadProps> = ({
                   variant="outline"
                   size="sm"
                   disabled={selectedIds.size === 0 || bulkDeleting}
-                  className="h-7 text-xs rounded-full gap-1.5 px-3 text-destructive border-destructive/30 hover:bg-destructive/10"
+                  className="h-7 text-xs rounded-full gap-1.5 px-3 text-destructive border-destructive/20 hover:bg-destructive/5"
                 >
-                  <Trash2 className="h-3 w-3" />
+                  <Trash2 className="h-3 w-3" strokeWidth={1.5} />
                   Delete
                 </Button>
               </AlertDialogTrigger>
@@ -385,31 +383,33 @@ const ModernMessageThread: React.FC<ModernMessageThreadProps> = ({
 
       {/* Toggle select mode button */}
       {!selectMode && messages.length > 0 && (
-        <div className="px-4 py-1.5 border-b border-border/30 flex justify-end shrink-0">
+        <div className="px-4 py-1.5 border-b border-border/20 flex justify-end shrink-0">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setSelectMode(true)}
-            className="h-7 text-xs text-muted-foreground hover:text-foreground rounded-full gap-1.5 px-3"
+            className="h-7 text-xs text-muted-foreground/60 hover:text-foreground rounded-full gap-1.5 px-3"
           >
-            <CheckSquare className="h-3 w-3" />
+            <CheckSquare className="h-3 w-3" strokeWidth={1.5} />
             Select
           </Button>
         </div>
       )}
 
       <ScrollArea ref={scrollRef} className="flex-1">
-        <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-5">
           {loading ? (
-            <div className="text-center py-12 text-muted-foreground/50">
+            <div className="text-center py-16">
               <div className="h-6 w-6 border-2 border-muted-foreground/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-sm">Loading messages…</p>
+              <p className="text-sm text-muted-foreground/50">Loading messages…</p>
             </div>
           ) : messages.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground/40">
-              <MessageSquare className="h-10 w-10 mx-auto mb-3" />
-              <p className="text-sm font-medium">No messages yet</p>
-              <p className="text-xs mt-1">Start a conversation with this guest</p>
+            <div className="text-center py-24">
+              <div className="h-16 w-16 rounded-full bg-primary/5 flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="h-7 w-7 text-primary/40" strokeWidth={1.5} />
+              </div>
+              <p className="text-sm font-medium tracking-tight text-foreground">No messages yet</p>
+              <p className="text-xs text-muted-foreground/50 mt-1">Start a conversation with this guest</p>
             </div>
           ) : (
             messages.map((message) =>

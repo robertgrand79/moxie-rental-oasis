@@ -3,7 +3,6 @@ import { InboxThread, ThreadReservation } from '@/hooks/useGuestInbox';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import EmailRichTextEditor from '@/components/admin/platform/email/EmailRichTextEditor';
@@ -30,7 +29,6 @@ const SmartComposer: React.FC<SmartComposerProps> = ({
   const canSendEmail = !!thread.guest_email;
   const canSendSms = !!thread.guest_phone;
 
-  // Default to SMS if available, else email
   const [channel, setChannel] = useState<'sms' | 'email'>(canSendSms ? 'sms' : 'email');
   const [message, setMessage] = useState('');
   const [subject, setSubject] = useState('');
@@ -110,39 +108,39 @@ const SmartComposer: React.FC<SmartComposerProps> = ({
   };
 
   return (
-    <div className="border-t border-border/40 bg-background shrink-0">
-      <div className="max-w-3xl mx-auto px-4 py-3 space-y-3">
+    <div className="border-t border-border/30 bg-background shrink-0">
+      <div className="max-w-3xl mx-auto px-4 md:px-6 py-3 space-y-3">
         {/* Channel toggle + reservation selector */}
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Label className="text-xs text-muted-foreground">Reply via</Label>
-            <div className="flex items-center gap-1.5 bg-muted/50 rounded-full p-0.5">
+          <div className="flex items-center gap-2.5">
+            <Label className="text-xs text-muted-foreground/60 uppercase tracking-widest font-medium">Reply via</Label>
+            <div className="flex items-center gap-0.5 bg-muted/40 rounded-full p-0.5">
               <button
                 onClick={() => canSendSms && setChannel('sms')}
                 disabled={!canSendSms}
                 className={cn(
-                  'flex items-center gap-1 text-xs px-3 py-1.5 rounded-full transition-all font-medium',
+                  'flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all duration-200 font-medium',
                   channel === 'sms'
                     ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
-                  !canSendSms && 'opacity-40 cursor-not-allowed'
+                    : 'text-muted-foreground/60 hover:text-foreground',
+                  !canSendSms && 'opacity-30 cursor-not-allowed'
                 )}
               >
-                <Phone className="h-3 w-3" />
+                <Phone className="h-3 w-3" strokeWidth={1.5} />
                 SMS
               </button>
               <button
                 onClick={() => canSendEmail && setChannel('email')}
                 disabled={!canSendEmail}
                 className={cn(
-                  'flex items-center gap-1 text-xs px-3 py-1.5 rounded-full transition-all font-medium',
+                  'flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all duration-200 font-medium',
                   channel === 'email'
                     ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
-                  !canSendEmail && 'opacity-40 cursor-not-allowed'
+                    : 'text-muted-foreground/60 hover:text-foreground',
+                  !canSendEmail && 'opacity-30 cursor-not-allowed'
                 )}
               >
-                <Mail className="h-3 w-3" />
+                <Mail className="h-3 w-3" strokeWidth={1.5} />
                 Email
               </button>
             </div>
@@ -150,7 +148,7 @@ const SmartComposer: React.FC<SmartComposerProps> = ({
 
           {reservations.length > 1 && (
             <Select value={selectedReservationId} onValueChange={setSelectedReservationId}>
-              <SelectTrigger className="h-8 text-xs w-auto min-w-[140px] rounded-full border-border/50">
+              <SelectTrigger className="h-8 text-xs w-auto min-w-[140px] rounded-full border-border/40">
                 <SelectValue placeholder="Select reservation" />
               </SelectTrigger>
               <SelectContent position="popper" className="z-[100]">
@@ -164,25 +162,42 @@ const SmartComposer: React.FC<SmartComposerProps> = ({
           )}
         </div>
 
-        {/* Email subject field */}
+        {/* Email subject field - animated entry */}
         {isEmailMode && (
-          <Input
-            placeholder="Subject"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className="h-9 rounded-lg border-border/50 text-sm"
-          />
+          <div className="animate-in slide-in-from-bottom-2 duration-200">
+            <Input
+              placeholder="Subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="h-9 rounded-xl border-border/30 bg-muted/20 text-sm focus:bg-background"
+            />
+          </div>
         )}
 
         {/* Message input */}
         {isEmailMode ? (
-          <div className="rounded-xl border border-border/50 overflow-hidden">
+          <div className="rounded-xl border border-border/30 overflow-hidden bg-background animate-in slide-in-from-bottom-2 duration-200">
             <EmailRichTextEditor
               content={message}
               onChange={setMessage}
               placeholder="Write your email…"
               minHeight="120px"
             />
+            <div className="flex justify-end px-3 py-2 border-t border-border/20">
+              <Button
+                onClick={handleSend}
+                disabled={sending || !message.trim()}
+                size="sm"
+                className="rounded-full gap-1.5 px-5 shadow-sm hover:-translate-y-0.5 transition-all duration-200"
+              >
+                {sending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Send className="h-3.5 w-3.5" strokeWidth={1.5} />
+                )}
+                Send Email
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="flex items-end gap-2">
@@ -197,10 +212,10 @@ const SmartComposer: React.FC<SmartComposerProps> = ({
                 placeholder="Type a message…"
                 rows={focused || message ? 3 : 1}
                 className={cn(
-                  'w-full resize-none rounded-2xl border border-border/50 bg-muted/30 px-4 py-2.5 text-sm',
-                  'placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30',
-                  'transition-all duration-200',
-                  focused || message ? 'rounded-xl' : ''
+                  'w-full resize-none border border-border/30 bg-muted/20 px-4 py-2.5 text-sm',
+                  'placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary/20 focus:bg-background',
+                  'transition-all duration-300',
+                  focused || message ? 'rounded-xl' : 'rounded-2xl'
                 )}
               />
             </div>
@@ -208,32 +223,13 @@ const SmartComposer: React.FC<SmartComposerProps> = ({
               onClick={handleSend}
               disabled={sending || !message.trim()}
               size="sm"
-              className="h-10 w-10 rounded-full p-0 shrink-0"
+              className="h-10 w-10 rounded-full p-0 shrink-0 shadow-sm hover:-translate-y-0.5 transition-all duration-200"
             >
               {sending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4" strokeWidth={1.5} />
               )}
-            </Button>
-          </div>
-        )}
-
-        {/* Email send button */}
-        {isEmailMode && (
-          <div className="flex justify-end">
-            <Button
-              onClick={handleSend}
-              disabled={sending || !message.trim()}
-              size="sm"
-              className="rounded-full gap-1.5 px-5"
-            >
-              {sending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Send className="h-3.5 w-3.5" />
-              )}
-              Send Email
             </Button>
           </div>
         )}
