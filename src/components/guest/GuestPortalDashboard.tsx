@@ -160,7 +160,7 @@ const GuestPortalDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header with full-bleed feel */}
-      <div className="relative overflow-hidden">
+      <div className="relative">
         {/* Gradient background simulating property imagery overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-primary/4 to-background" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
