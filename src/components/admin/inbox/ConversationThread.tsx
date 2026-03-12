@@ -3,6 +3,7 @@ import { InboxThread, ThreadMessage, ThreadReservation } from '@/hooks/useGuestI
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+import { parseEmailReply } from '@/utils/emailReplyParser';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
