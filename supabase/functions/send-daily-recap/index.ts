@@ -103,17 +103,20 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        // Fetch profiles separately
+        // Fetch profiles separately (including timezone preferences)
         const userIds = orgMembers.map(m => m.user_id);
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, email, full_name")
+          .select("id, email, full_name, digest_timezone, digest_send_hour, digest_send_minute")
           .in("id", userIds);
 
         // Map profiles to members
         const members = orgMembers.map(m => ({
           ...m,
-          profiles: profiles?.find(p => p.id === m.user_id) || { email: null, full_name: null }
+          profiles: profiles?.find(p => p.id === m.user_id) || { 
+            email: null, full_name: null, 
+            digest_timezone: 'America/Los_Angeles', digest_send_hour: 7, digest_send_minute: 30 
+          }
         }));
 
         if (members.length === 0) {
@@ -122,9 +125,34 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         // Filter recipients by their notification preferences (email_digest enabled)
+        // AND by whether it's currently their preferred send time (within 30-min window)
         const recipientsWithPrefs: { email: string; name: string; userId: string }[] = [];
+        const now = new Date();
         
         for (const m of members as any[]) {
+          const profile = m.profiles;
+          
+          // Check if it's the right time for this user (skip check for test/manual sends)
+          if (!testEmailOverride && !targetOrgId) {
+            const tz = profile.digest_timezone || 'America/Los_Angeles';
+            const preferredHour = profile.digest_send_hour ?? 7;
+            const preferredMinute = profile.digest_send_minute ?? 30;
+            
+            // Get current time in user's timezone
+            const userLocalTime = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+            const currentHour = userLocalTime.getHours();
+            const currentMinute = userLocalTime.getMinutes();
+            
+            // Check if we're within the 30-minute window of their preferred time
+            const preferredTotalMin = preferredHour * 60 + preferredMinute;
+            const currentTotalMin = currentHour * 60 + currentMinute;
+            const diff = currentTotalMin - preferredTotalMin;
+            
+            if (diff < 0 || diff >= 30) {
+              continue; // Not this user's send window
+            }
+          }
+
           // Check if user has email_digest enabled for any notification type
           const { data: prefs } = await supabase
             .from("notification_preferences")
@@ -142,15 +170,15 @@ const handler = async (req: Request): Promise<Response> => {
           
           if (!prefCount || prefCount === 0 || (prefs && prefs.length > 0)) {
             recipientsWithPrefs.push({
-              email: m.profiles.email,
-              name: m.profiles.full_name || "Team Member",
+              email: profile.email,
+              name: profile.full_name || "Team Member",
               userId: m.user_id,
             });
           }
         }
 
         if (recipientsWithPrefs.length === 0) {
-          console.log(`No recipients opted into daily digest for ${org.name}`);
+          console.log(`No recipients due for daily digest for ${org.name} at this time`);
           continue;
         }
 
