@@ -232,22 +232,22 @@ const ModernBookingManagement = () => {
     },
   });
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeClasses = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'default';
-      case 'cancelled': return 'destructive';
-      case 'pending': return 'secondary';
-      default: return 'outline';
+      case 'confirmed': return 'rounded-full px-3 py-1 text-xs font-medium bg-green-500/10 text-green-700 dark:text-green-400 border-0';
+      case 'cancelled': return 'rounded-full px-3 py-1 text-xs font-medium bg-destructive/10 text-destructive border-0';
+      case 'pending': return 'rounded-full px-3 py-1 text-xs font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border-0';
+      default: return 'rounded-full px-3 py-1 text-xs font-medium bg-muted text-muted-foreground border-0';
     }
   };
 
-  const getCleaningStatusColor = (status: string) => {
+  const getCleaningBadgeClasses = (status: string) => {
     switch (status) {
-      case 'completed': return 'default';
-      case 'turno_scheduled': return 'secondary';
-      case 'scheduled': return 'outline';
-      case 'pending': return 'destructive';
-      default: return 'outline';
+      case 'completed': return 'rounded-full px-3 py-1 text-xs font-medium bg-green-500/10 text-green-700 dark:text-green-400 border-0';
+      case 'turno_scheduled': return 'rounded-full px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-700 dark:text-blue-400 border-0';
+      case 'scheduled': return 'rounded-full px-3 py-1 text-xs font-medium bg-sky-500/10 text-sky-700 dark:text-sky-400 border-0';
+      case 'pending': return 'rounded-full px-3 py-1 text-xs font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border-0';
+      default: return 'rounded-full px-3 py-1 text-xs font-medium bg-muted text-muted-foreground border-0';
     }
   };
 
@@ -270,47 +270,47 @@ const ModernBookingManagement = () => {
   };
 
   const renderReservationCard = (reservation: Reservation) => (
-    <Card key={reservation.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
+    <Card key={reservation.id} className="overflow-hidden hover:shadow-md transition-all duration-200">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{reservation.guest_name}</span>
+            <User className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+            <span className="font-medium tracking-tight">{reservation.guest_name}</span>
           </div>
           <div className="flex gap-1.5">
-            <Badge variant={getStatusColor(reservation.booking_status)}>
+            <Badge className={getStatusBadgeClasses(reservation.booking_status)}>
               {reservation.booking_status}
             </Badge>
-            <Badge variant={getCleaningStatusColor(reservation.cleaning_status)} className="text-xs">
+            <Badge className={getCleaningBadgeClasses(reservation.cleaning_status)}>
               {reservation.cleaning_status}
             </Badge>
           </div>
         </div>
         
-        <div className="space-y-2 text-sm text-muted-foreground mb-4">
-          <div className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
+        <div className="space-y-2.5 text-sm text-muted-foreground mb-5">
+          <div className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} />
             <span className="truncate">{reservation.properties.title}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <CalendarIcon className="h-3 w-3" />
+          <div className="flex items-center gap-1.5">
+            <CalendarIcon className="h-3.5 w-3.5" strokeWidth={1.5} />
             <span>
-              {format(new Date(reservation.check_in_date), 'MMM dd')} - {format(new Date(reservation.check_out_date), 'MMM dd')}
+              {format(new Date(reservation.check_in_date), 'MMM dd')} – {format(new Date(reservation.check_out_date), 'MMM dd')}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5" strokeWidth={1.5} />
               <span>{reservation.guest_count} guests</span>
             </div>
             <div className="flex items-center gap-1 font-medium text-foreground">
-              <DollarSign className="h-3 w-3" />
+              <DollarSign className="h-3.5 w-3.5" strokeWidth={1.5} />
               <span>${reservation.total_amount}</span>
             </div>
           </div>
         </div>
 
-        <div className="flex gap-2 pt-3 border-t">
+        <div className="flex gap-2 pt-4 border-t border-border/30">
           {reservation.cleaning_status === 'pending' && (
             <Button
               size="sm"
@@ -350,7 +350,7 @@ const ModernBookingManagement = () => {
                     })
                   }
                   isUpdating={updateReservation.isPending}
-                  getCleaningStatusColor={getCleaningStatusColor}
+                  getCleaningStatusColor={getCleaningBadgeClasses}
                 />
               )}
             </DialogContent>
@@ -391,18 +391,18 @@ const ModernBookingManagement = () => {
   );
 
   const renderReservationListItem = (reservation: Reservation) => (
-    <div key={reservation.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+    <div key={reservation.id} className="rounded-xl py-4 px-6 hover:bg-muted/30 transition-colors">
       <div className="flex items-start justify-between">
-        <div className="space-y-2 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="space-y-2.5 flex-1">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{reservation.guest_name}</span>
+              <User className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+              <span className="font-medium tracking-tight">{reservation.guest_name}</span>
             </div>
-            <Badge variant={getStatusColor(reservation.booking_status)}>
+            <Badge className={getStatusBadgeClasses(reservation.booking_status)}>
               {reservation.booking_status}
             </Badge>
-            <Badge variant={getCleaningStatusColor(reservation.cleaning_status)}>
+            <Badge className={getCleaningBadgeClasses(reservation.cleaning_status)}>
               Cleaning: {reservation.cleaning_status}
             </Badge>
           </div>
@@ -477,7 +477,7 @@ const ModernBookingManagement = () => {
                     })
                   }
                   isUpdating={updateReservation.isPending}
-                  getCleaningStatusColor={getCleaningStatusColor}
+                  getCleaningStatusColor={getCleaningBadgeClasses}
                 />
               )}
             </DialogContent>
@@ -577,7 +577,7 @@ const ModernBookingManagement = () => {
 
             {/* Right side: View Controls */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center border rounded-lg p-1 bg-background">
+              <div className="flex items-center border border-border/40 rounded-xl p-1 bg-background">
                 <Button
                   variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                   size="sm"
@@ -622,7 +622,7 @@ const ModernBookingManagement = () => {
           </CardContent>
         </Card>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredReservations.map(renderReservationCard)}
         </div>
       ) : (
@@ -632,7 +632,7 @@ const ModernBookingManagement = () => {
             <CardDescription>Recent booking activity and cleaning status</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="divide-y divide-border/30">
               {filteredReservations.map(renderReservationListItem)}
             </div>
           </CardContent>
@@ -667,7 +667,7 @@ const ReservationManageForm = ({
   reservation: Reservation; 
   onUpdate: (updates: Partial<Reservation>) => void;
   isUpdating: boolean;
-  getCleaningStatusColor: (status: string) => "default" | "destructive" | "secondary" | "outline";
+  getCleaningStatusColor: (status: string) => string;
 }) => {
   const [checkInInstructions, setCheckInInstructions] = useState(reservation.check_in_instructions || '');
   const [specialRequests, setSpecialRequests] = useState(reservation.special_requests || '');
@@ -690,7 +690,7 @@ const ReservationManageForm = ({
           <select
             value={bookingStatus}
             onChange={(e) => setBookingStatus(e.target.value)}
-            className="w-full mt-1 px-3 py-2 border rounded-md bg-background"
+            className="w-full mt-1 px-3 py-2 border border-border/40 rounded-xl bg-muted/30 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50"
           >
             <option value="confirmed">Confirmed</option>
             <option value="pending">Pending</option>
@@ -700,7 +700,7 @@ const ReservationManageForm = ({
         <div>
           <label className="text-sm font-medium">Cleaning Status</label>
           <div className="mt-2">
-            <Badge variant={getCleaningStatusColor(reservation.cleaning_status)}>
+            <Badge className={getCleaningStatusColor(reservation.cleaning_status)}>
               {reservation.cleaning_status}
             </Badge>
           </div>
