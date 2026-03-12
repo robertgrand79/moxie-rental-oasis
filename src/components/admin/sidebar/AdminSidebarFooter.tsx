@@ -223,7 +223,7 @@ const AdminSidebarFooter = () => {
 
   return (
     <SidebarFooter>
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border/30 p-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 

@@ -54,7 +54,7 @@ const PlatformAdminLayout = () => {
   return (
     <div className="flex flex-col min-h-screen w-full bg-background">
       <PlatformToolbar />
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="flex-1 p-8 overflow-auto">
         <Suspense fallback={<ContentLoader />}>
           <Outlet />
         </Suspense>
