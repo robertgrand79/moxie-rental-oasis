@@ -151,7 +151,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 </div>
               </div>
             </header>
-            <main className={`flex-1 overflow-y-auto overflow-x-hidden min-w-0 ${isMobile ? 'p-4' : 'p-8'}`}>
+            <main className={`flex-1 overflow-y-auto overflow-x-hidden min-w-0 ${isMobile ? 'p-4' : 'p-8'}`} style={{ gap: '1.5rem' }}>
               {children}
             </main>
           </SidebarInset>
