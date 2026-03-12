@@ -23,6 +23,8 @@ const ConversationDetailPage = () => {
     markAsRead,
     snoozeThread,
     generateAISummary,
+    deleteMessages,
+    archiveMessages,
   } = useGuestInbox();
 
   const [thread, setThread] = useState<InboxThread | null>(null);
