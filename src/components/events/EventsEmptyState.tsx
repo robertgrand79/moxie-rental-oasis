@@ -10,17 +10,22 @@ interface EventsEmptyStateProps {
 const EventsEmptyState = ({ onClearFilters }: EventsEmptyStateProps) => {
   return (
     <div className="text-center py-24 animate-fade-in">
-      <div className="h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center mx-auto mb-8">
-        <Calendar className="h-9 w-9 text-primary" strokeWidth={1.5} />
+      <div className="h-20 w-20 rounded-full bg-primary/5 text-primary flex items-center justify-center mx-auto mb-6">
+        <Calendar className="h-9 w-9" strokeWidth={1.5} />
       </div>
-      <h3 className="text-xl font-medium tracking-tight text-foreground mb-3">No Events Found</h3>
-      <p className="text-muted-foreground/70 text-sm mb-6">No events found matching your criteria.</p>
-      <Button 
-        variant="outline" 
-        onClick={onClearFilters}
-      >
-        Clear Filters
-      </Button>
+      <h3 className="text-xl font-medium tracking-tight text-foreground mt-4">No Events Found</h3>
+      <p className="text-muted-foreground max-w-sm mx-auto mt-2 text-sm">
+        No events found matching your criteria.
+      </p>
+      <div className="mt-8">
+        <Button 
+          variant="outline" 
+          onClick={onClearFilters}
+          className="rounded-full shadow-sm hover:-translate-y-0.5 transition-all"
+        >
+          Clear Filters
+        </Button>
+      </div>
     </div>
   );
 };
