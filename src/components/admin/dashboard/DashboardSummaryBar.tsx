@@ -32,96 +32,31 @@ const DashboardSummaryBar = ({
     }).format(amount);
   };
 
+  const items = [
+    { to: '/admin/host/bookings', icon: LogIn, value: checkInsToday, label: 'Check-ins', color: 'text-green-700 dark:text-green-400', bg: 'bg-green-500/10' },
+    { to: '/admin/host/bookings', icon: LogOut, value: checkOutsToday, label: 'Check-outs', color: 'text-orange-700 dark:text-orange-400', bg: 'bg-orange-500/10' },
+    { to: '/admin/work-orders', icon: Wrench, value: openWorkOrders, label: 'Work orders', color: openWorkOrders > 0 ? 'text-red-700 dark:text-red-400' : 'text-muted-foreground', bg: openWorkOrders > 0 ? 'bg-red-500/10' : 'bg-muted/50' },
+    { to: '/admin/host/bookings', icon: Calendar, value: bookingsThisMonth, label: 'Bookings', color: 'text-violet-700 dark:text-violet-400', bg: 'bg-violet-500/10' },
+    { to: '/admin/host/bookings', icon: DollarSign, value: formatCurrency(revenueThisMonth), label: 'Revenue', color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-500/10' },
+    { to: '/admin/reviews', icon: Star, value: averageRating !== null ? averageRating.toFixed(1) : '—', label: `${totalReviews} reviews`, color: 'text-amber-700 dark:text-amber-400', bg: 'bg-amber-500/10' },
+    { to: '/admin/newsletter', icon: Mail, value: totalSubscribers, label: 'Subscribers', color: 'text-blue-700 dark:text-blue-400', bg: 'bg-blue-500/10' },
+  ];
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {/* Today's Stats */}
-      <Link 
-        to="/admin/host/bookings" 
-        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 transition-colors"
-      >
-        <LogIn className="h-4 w-4 text-green-600 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-lg font-bold text-foreground leading-tight">{checkInsToday}</p>
-          <p className="text-xs text-muted-foreground truncate">Check-ins</p>
-        </div>
-      </Link>
-
-      <Link 
-        to="/admin/host/bookings" 
-        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 transition-colors"
-      >
-        <LogOut className="h-4 w-4 text-orange-600 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-lg font-bold text-foreground leading-tight">{checkOutsToday}</p>
-          <p className="text-xs text-muted-foreground truncate">Check-outs</p>
-        </div>
-      </Link>
-
-      <Link 
-        to="/admin/work-orders" 
-        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg transition-colors ${
-          openWorkOrders > 0 
-            ? 'bg-red-500/10 hover:bg-red-500/20' 
-            : 'bg-muted hover:bg-muted/80'
-        }`}
-      >
-        <Wrench className={`h-4 w-4 shrink-0 ${openWorkOrders > 0 ? 'text-red-600' : 'text-muted-foreground'}`} />
-        <div className="min-w-0">
-          <p className={`text-lg font-bold leading-tight ${openWorkOrders > 0 ? 'text-red-600' : 'text-foreground'}`}>
-            {openWorkOrders}
-          </p>
-          <p className="text-xs text-muted-foreground truncate">Work orders</p>
-        </div>
-      </Link>
-
-      {/* This Month Stats */}
-      <Link 
-        to="/admin/host/bookings" 
-        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 transition-colors"
-      >
-        <Calendar className="h-4 w-4 text-violet-600 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-lg font-bold text-foreground leading-tight">{bookingsThisMonth}</p>
-          <p className="text-xs text-muted-foreground truncate">Bookings</p>
-        </div>
-      </Link>
-
-      <Link 
-        to="/admin/host/bookings" 
-        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors"
-      >
-        <DollarSign className="h-4 w-4 text-emerald-600 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-lg font-bold text-foreground leading-tight">{formatCurrency(revenueThisMonth)}</p>
-          <p className="text-xs text-muted-foreground truncate">Revenue</p>
-        </div>
-      </Link>
-
-      {/* Reputation */}
-      <Link 
-        to="/admin/reviews" 
-        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 transition-colors"
-      >
-        <Star className="h-4 w-4 text-amber-600 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-lg font-bold text-foreground leading-tight">
-            {averageRating !== null ? averageRating.toFixed(1) : '—'}
-          </p>
-          <p className="text-xs text-muted-foreground truncate">{totalReviews} reviews</p>
-        </div>
-      </Link>
-
-      {/* Newsletter */}
-      <Link 
-        to="/admin/newsletter" 
-        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
-      >
-        <Mail className="h-4 w-4 text-blue-600 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-lg font-bold text-foreground leading-tight">{totalSubscribers}</p>
-          <p className="text-xs text-muted-foreground truncate">Subscribers</p>
-        </div>
-      </Link>
+      {items.map((item, i) => (
+        <Link
+          key={i}
+          to={item.to}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl ${item.bg} hover:opacity-80 transition-all duration-200`}
+        >
+          <item.icon className={`h-4 w-4 ${item.color} shrink-0`} strokeWidth={1.5} />
+          <div className="min-w-0">
+            <p className="text-lg font-semibold tracking-tight text-foreground leading-tight">{item.value}</p>
+            <p className="text-xs text-muted-foreground truncate">{item.label}</p>
+          </div>
+        </Link>
+      ))}
     </div>
   );
 };
