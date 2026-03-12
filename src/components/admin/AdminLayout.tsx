@@ -116,37 +116,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     </SidebarTrigger>
                   )}
                   
-                  {/* Show different header content based on template editing mode */}
-                  {isTemplateEditing ? (
+                  {/* Show template editing banner if applicable */}
+                  {isTemplateEditing && (
                     <TemplateEditingBanner variant="header" />
-                  ) : (
-                    isExternalBack ? (
-                      <EnhancedButton 
-                        variant="outline" 
-                        size={isMobile ? "sm" : "default"} 
-                        asChild 
-                        className={isMobile ? 'min-h-[44px]' : ''}
-                      >
-                        <a href={backUrl} className="flex items-center gap-2">
-                          <ArrowLeft className="h-4 w-4" />
-                          <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
-                          <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                        </a>
-                      </EnhancedButton>
-                    ) : (
-                      <EnhancedButton 
-                        variant="outline" 
-                        size={isMobile ? "sm" : "default"} 
-                        asChild 
-                        className={isMobile ? 'min-h-[44px]' : ''}
-                      >
-                        <Link to={backUrl} className="flex items-center gap-2">
-                          <ArrowLeft className="h-4 w-4" />
-                          <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
-                          <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                        </Link>
-                      </EnhancedButton>
-                    )
                   )}
                 </div>
                 
