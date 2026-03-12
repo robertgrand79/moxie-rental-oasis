@@ -136,7 +136,7 @@ const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
                 className="flex items-center justify-center"
                 onClick={(e) => handleLeafClick(item.href!, e)}
               >
-                <IconComponent className="h-5 w-5" />
+                <IconComponent className="h-5 w-5" strokeWidth={1.5} />
               </Link>
             </SidebarMenuButton>
           </TooltipTrigger>
