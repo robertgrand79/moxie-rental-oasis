@@ -40,6 +40,20 @@ const AdminSidebarFooter = () => {
   const queryClient = useQueryClient();
   const { state } = useSidebar();
   const { canInstall, promptInstall } = usePWAInstall();
+  const { organization, isPlatformMode } = useCurrentOrganization();
+
+  const getViewSiteUrl = () => {
+    if (isPlatformMode || !organization) return '/';
+    const hostname = window.location.hostname;
+    const isNeutral = hostname.includes('lovable.app') || hostname.includes('localhost') || hostname.includes('127.0.0.1');
+    if (isNeutral) return `/?org=${organization.slug}`;
+    if (organization.custom_domain) return `https://${organization.custom_domain}`;
+    return `https://${organization.slug}.staymoxie.com`;
+  };
+
+  const handleViewSite = () => {
+    window.open(getViewSiteUrl(), '_blank');
+  };
   const isCollapsed = state === 'collapsed';
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
