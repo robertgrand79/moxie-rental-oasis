@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { sanitizeHtml } from '@/utils/security';
+import { parseEmailReply } from '@/utils/emailReplyParser';
 import {
   AlertDialog,
   AlertDialogAction,
