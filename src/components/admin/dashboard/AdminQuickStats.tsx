@@ -7,7 +7,7 @@ import { Plus, Building2, BookOpen, FileText, Calendar } from 'lucide-react';
 interface QuickStat {
   title: string;
   value: number;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  icon: React.ComponentType<any>;
   href: string;
   actionText: string;
 }
