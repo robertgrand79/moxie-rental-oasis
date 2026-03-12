@@ -80,7 +80,7 @@ const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
               isActive={isChildActive && !isOpen}
               className="w-full"
             >
-              <IconComponent className="h-5 w-5" />
+              <IconComponent className="h-5 w-5" strokeWidth={1.5} />
               <span className="font-medium flex-1">{item.title}</span>
               <ChevronRight
                 className={cn(
