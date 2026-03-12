@@ -270,41 +270,41 @@ const ModernBookingManagement = () => {
   };
 
   const renderReservationCard = (reservation: Reservation) => (
-    <Card key={reservation.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
+    <Card key={reservation.id} className="overflow-hidden hover:shadow-md transition-all duration-200">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{reservation.guest_name}</span>
+            <User className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+            <span className="font-medium tracking-tight">{reservation.guest_name}</span>
           </div>
           <div className="flex gap-1.5">
-            <Badge variant={getStatusColor(reservation.booking_status)}>
+            <Badge className={getStatusBadgeClasses(reservation.booking_status)}>
               {reservation.booking_status}
             </Badge>
-            <Badge variant={getCleaningStatusColor(reservation.cleaning_status)} className="text-xs">
+            <Badge className={getCleaningBadgeClasses(reservation.cleaning_status)}>
               {reservation.cleaning_status}
             </Badge>
           </div>
         </div>
         
-        <div className="space-y-2 text-sm text-muted-foreground mb-4">
-          <div className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
+        <div className="space-y-2.5 text-sm text-muted-foreground mb-5">
+          <div className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} />
             <span className="truncate">{reservation.properties.title}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <CalendarIcon className="h-3 w-3" />
+          <div className="flex items-center gap-1.5">
+            <CalendarIcon className="h-3.5 w-3.5" strokeWidth={1.5} />
             <span>
-              {format(new Date(reservation.check_in_date), 'MMM dd')} - {format(new Date(reservation.check_out_date), 'MMM dd')}
+              {format(new Date(reservation.check_in_date), 'MMM dd')} – {format(new Date(reservation.check_out_date), 'MMM dd')}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5" strokeWidth={1.5} />
               <span>{reservation.guest_count} guests</span>
             </div>
             <div className="flex items-center gap-1 font-medium text-foreground">
-              <DollarSign className="h-3 w-3" />
+              <DollarSign className="h-3.5 w-3.5" strokeWidth={1.5} />
               <span>${reservation.total_amount}</span>
             </div>
           </div>
