@@ -1,21 +1,29 @@
 
 
-## Plan: Migrate Test Bookings & Add Pagination (COMPLETED)
+## Problem
 
-### What was done
+The "Back to Site" button sits in the top-left header bar, right next to where the sidebar collapse/expand toggle is. When the sidebar is collapsed, users instinctively click that area expecting to expand the sidebar, but instead navigate away from admin entirely.
 
-1. **Migrated 5,000 test bookings** from `reservations` → `property_reservations` for Test Org (`297f9511-...`)
-   - Temporarily disabled validation triggers (`validate_reservation_insert`, `on_reservation_created_schedule_messages`) for bulk insert
-   - Used COALESCE for nullable fields (guest_email generated as `guest{N}@test.example.com`)
-   - All enterprise columns defaulted: `cleaning_status='pending'`, `currency='USD'`, `source_platform='direct'`
-   - Triggers re-enabled after migration
+Modern SaaS apps (Linear, Notion, Vercel) solve this by:
+1. Keeping navigation actions (expand sidebar) physically separated from "leave this context" links
+2. Placing the "view live site" link in the **user profile dropdown** or as a subtle icon in the **top-right header area** — not as a prominent button in the primary action zone
 
-2. **Added server-side pagination** to `ModernBookingManagement.tsx`
-   - `currentPage` state with 50 items per page
-   - Supabase query uses `{ count: 'exact' }` and `.range(start, end)`
-   - Status filter is now server-side (resets page to 1 on change)
-   - Integrated `PaginationControls` component below the booking list
+## Plan
 
-3. **Fixed stats to query full dataset**
-   - Separate React Query (`bookings-stats`) fetches all records' `booking_status` and `total_amount`
-   - Stats reflect all 5,000 bookings regardless of current pagination page
+### 1. Move "Back to Site" out of the header left side
+
+Remove the `EnhancedButton` with "Back to Site" from the left side of the `AdminLayout.tsx` header. Replace it with a **breadcrumb or page title** area (currently empty after removing the button).
+
+### 2. Add "View Site" to two discoverable locations
+
+**A. User profile dropdown (sidebar footer)**
+Add a "View Live Site" menu item with an `ExternalLink` icon to the `DropdownMenu` in `AdminSidebarFooter.tsx` — both collapsed and expanded states. This opens the front-end in a new tab (`window.open`).
+
+**B. Top-right header area**
+Add a small icon-only button (using `ExternalLink` or `Globe` icon) with a tooltip "View Site" next to the `NotificationBell` in the header. This keeps it accessible but not in the way of sidebar interactions.
+
+### Files to modify
+
+- `src/components/admin/AdminLayout.tsx` — Remove the "Back to Site" button from the left header area; add a small "View Site" icon button to the right header area next to NotificationBell
+- `src/components/admin/sidebar/AdminSidebarFooter.tsx` — Add "View Live Site" item to both collapsed and expanded dropdown menus
+
