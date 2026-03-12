@@ -3,6 +3,7 @@ import { InboxThread, ThreadMessage, ThreadReservation } from '@/hooks/useGuestI
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+import { parseEmailReply } from '@/utils/emailReplyParser';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -37,6 +38,35 @@ interface ConversationThreadProps {
   fetchMessages: (threadId: string) => Promise<ThreadMessage[]>;
   fetchReservations: (guestEmail: string, organizationId: string) => Promise<ThreadReservation[]>;
 }
+
+/** Renders plain-text email with reply parsing */
+const EmailPlainTextBody: React.FC<{ content: string }> = ({ content }) => {
+  const { newText, quotedText } = parseEmailReply(content);
+  const [showQuoted, setShowQuoted] = useState(false);
+
+  return (
+    <div>
+      <p className="text-sm whitespace-pre-wrap">{newText}</p>
+      {quotedText && (
+        <div className="mt-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 text-xs text-muted-foreground/50 hover:text-muted-foreground rounded-full px-2.5 gap-1"
+            onClick={() => setShowQuoted(!showQuoted)}
+          >
+            {showQuoted ? '▾ Hide quoted text' : '••• Show original message'}
+          </Button>
+          {showQuoted && (
+            <div className="mt-2 pl-3 border-l-2 border-border/30">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{quotedText}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ConversationThread: React.FC<ConversationThreadProps> = ({
   thread,
@@ -256,7 +286,11 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
                     </div>
                     
                     {/* Message content */}
-                    <p className="text-sm whitespace-pre-wrap">{message.message_content}</p>
+                    {message.message_type === 'email' ? (
+                      <EmailPlainTextBody content={message.message_content} />
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">{message.message_content}</p>
+                    )}
                     
                     {/* Timestamp */}
                     <div className={cn(

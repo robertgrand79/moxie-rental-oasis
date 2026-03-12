@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { sanitizeHtml } from '@/utils/security';
+import { parseEmailReply } from '@/utils/emailReplyParser';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -95,6 +96,39 @@ const SmsBubble: React.FC<{
             onCheckedChange={() => onToggleSelect(message.id)}
             className="h-4 w-4"
           />
+        </div>
+      )}
+    </div>
+  );
+};
+
+/** Renders plain-text email with reply parsing */
+const EmailPlainTextBody: React.FC<{ content: string }> = ({ content }) => {
+  const { newText, quotedText } = parseEmailReply(content);
+  const [showQuoted, setShowQuoted] = useState(false);
+
+  return (
+    <div>
+      <p className="text-sm whitespace-pre-wrap break-words text-foreground leading-relaxed">
+        {newText}
+      </p>
+      {quotedText && (
+        <div className="mt-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 text-xs text-muted-foreground/50 hover:text-muted-foreground rounded-full px-2.5 gap-1"
+            onClick={() => setShowQuoted(!showQuoted)}
+          >
+            {showQuoted ? '▾ Hide quoted text' : '••• Show original message'}
+          </Button>
+          {showQuoted && (
+            <div className="mt-2 pl-3 border-l-2 border-border/30 animate-in slide-in-from-top-1 duration-200">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">
+                {quotedText}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -212,9 +246,7 @@ const EmailCard: React.FC<{
               )}
             </div>
           ) : message.message_content ? (
-            <p className="text-sm whitespace-pre-wrap break-words text-foreground leading-relaxed">
-              {message.message_content}
-            </p>
+            <EmailPlainTextBody content={message.message_content} />
           ) : (
             <p className="text-sm text-muted-foreground/40 italic">
               Email body not available
