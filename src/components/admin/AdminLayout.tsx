@@ -123,6 +123,26 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {/* View Site icon button */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {isExternalBack ? (
+                        <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
+                          <a href={backUrl} target="_blank" rel="noopener noreferrer">
+                            <Globe className="h-5 w-5" />
+                          </a>
+                        </Button>
+                      ) : (
+                        <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
+                          <Link to={backUrl} target="_blank">
+                            <Globe className="h-5 w-5" />
+                          </Link>
+                        </Button>
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent>View Site</TooltipContent>
+                  </Tooltip>
+                  
                   {/* Notification Bell */}
                   <NotificationBell />
                   
