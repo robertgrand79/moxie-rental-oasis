@@ -21,6 +21,8 @@ export interface TextareaProps
   onValueChange?: (value: string) => void;
 }
 
+const textareaBaseClasses = "flex min-h-[80px] w-full rounded-xl border border-border/40 bg-muted/30 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:border-primary/30 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, enableAI = false, aiPrompt = '', aiLabel, aiTooltip = 'Generate with AI', onValueChange, ...props }, ref) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,10 +62,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           </div>
           <textarea
             id={textareaId}
-            className={cn(
-              "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-              className
-            )}
+            className={cn(textareaBaseClasses, className)}
             ref={ref}
             {...props}
           />
@@ -83,10 +82,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     // Standard textarea without AI
     return (
       <textarea
-        className={cn(
-          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-          className
-        )}
+        className={cn(textareaBaseClasses, className)}
         ref={ref}
         {...props}
       />

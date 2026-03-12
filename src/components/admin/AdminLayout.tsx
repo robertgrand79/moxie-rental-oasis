@@ -106,7 +106,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <ContextBanner />
             {/* Trial Banner - sticky at top */}
             <TrialBanner />
-            <header className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background ${isMobile ? 'px-3' : ''}`}>
+            <header className={`flex h-14 shrink-0 items-center gap-2 border-b border-border/30 px-4 bg-background/80 backdrop-blur-sm ${isMobile ? 'px-3' : ''}`}>
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex items-center gap-2">
                   {/* Mobile menu trigger - only visible on mobile */}
@@ -151,7 +151,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 </div>
               </div>
             </header>
-            <main className={`flex-1 overflow-y-auto overflow-x-hidden min-w-0 ${isMobile ? 'p-4' : 'p-8'}`}>
+            <main className={`flex-1 overflow-y-auto overflow-x-hidden min-w-0 ${isMobile ? 'p-4' : 'p-8'}`} style={{ gap: '1.5rem' }}>
               {children}
             </main>
           </SidebarInset>
