@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -64,63 +64,66 @@ const UserInviteModal = ({ isOpen, onClose, onInvite }: UserInviteModalProps) =>
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
+    <Sheet open={isOpen} onOpenChange={handleClose}>
+      <SheetContent side="right" className="w-full sm:max-w-md md:w-[500px] p-0 flex flex-col">
+        <SheetHeader className="p-6 pb-4">
+          <SheetTitle className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+            <UserPlus className="h-5 w-5" strokeWidth={1.5} />
             Invite Team Member
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             Send an invitation email to add a new member to your organization.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="team@example.com"
-              required
-              disabled={isSubmitting}
-            />
+          </SheetDescription>
+        </SheetHeader>
+
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="team@example.com"
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name (Optional)</Label>
+              <Input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Jane Smith"
+                disabled={isSubmitting}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="teamRole">Role</Label>
+              <Select value={teamRole} onValueChange={setTeamRole} disabled={isSubmitting}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEAM_ROLES.map(role => (
+                    <SelectItem key={role.value} value={role.value}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedRoleInfo && (
+                <p className="text-xs text-muted-foreground">{selectedRoleInfo.description}</p>
+              )}
+            </div>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name (Optional)</Label>
-            <Input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Jane Smith"
-              disabled={isSubmitting}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="teamRole">Role</Label>
-            <Select value={teamRole} onValueChange={setTeamRole} disabled={isSubmitting}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                {TEAM_ROLES.map(role => (
-                  <SelectItem key={role.value} value={role.value}>
-                    {role.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedRoleInfo && (
-              <p className="text-xs text-muted-foreground">{selectedRoleInfo.description}</p>
-            )}
-          </div>
-          
-          <div className="flex justify-end space-x-2 pt-2">
+
+          <div className="border-t border-border/40 p-6 flex justify-end gap-3 mt-auto">
             <Button
               type="button"
               variant="outline"
@@ -134,8 +137,8 @@ const UserInviteModal = ({ isOpen, onClose, onInvite }: UserInviteModalProps) =>
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
 

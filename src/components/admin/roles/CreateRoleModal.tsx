@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,12 +31,10 @@ const CreateRoleModal = ({ open, onOpenChange, permissions, onCreateRole, loadin
     permissions: [] as string[]
   });
 
-  // Group permissions by category (extract from permission key)
   const groupedPermissions = React.useMemo(() => {
     const groups: Record<string, Permission[]> = {};
     
     permissions.filter(p => p.enabled).forEach(permission => {
-      // Extract category from permission key (e.g., 'users.create' -> 'Users')
       const category = permission.id.split('.')[0];
       const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
       
@@ -82,67 +80,69 @@ const CreateRoleModal = ({ open, onOpenChange, permissions, onCreateRole, loadin
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Create New Role</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-md md:w-[500px] p-0 flex flex-col">
+        <SheetHeader className="p-6 pb-4">
+          <SheetTitle className="text-lg font-semibold tracking-tight">Create New Role</SheetTitle>
+          <SheetDescription>
             Define a new role and assign permissions to it.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 space-y-4">
-          <div>
-            <Label htmlFor="roleName">Role Name *</Label>
-            <Input
-              id="roleName"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter role name"
-              className="mt-1"
-              required
-            />
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-6 space-y-4">
+            <div>
+              <Label htmlFor="roleName">Role Name *</Label>
+              <Input
+                id="roleName"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter role name"
+                className="mt-1"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="roleDescription">Description</Label>
+              <Textarea
+                id="roleDescription"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Describe this role's purpose"
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label className="mb-3 block">
+                Permissions ({formData.permissions.length} selected)
+              </Label>
+              <ScrollArea className="max-h-96 pr-4">
+                <div className="space-y-3">
+                  {Object.entries(groupedPermissions).map(([category, categoryPermissions]) => (
+                    <PermissionGroup
+                      key={category}
+                      category={category}
+                      permissions={categoryPermissions}
+                      selectedPermissions={formData.permissions}
+                      onPermissionChange={handlePermissionChange}
+                      onSelectAll={handleSelectAllInCategory}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="roleDescription">Description</Label>
-            <Textarea
-              id="roleDescription"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe this role's purpose"
-              className="mt-1"
-              rows={3}
-            />
-          </div>
-
-          <div className="flex-1 flex flex-col">
-            <Label className="mb-3">
-              Permissions ({formData.permissions.length} selected)
-            </Label>
-            <ScrollArea className="flex-1 max-h-96 pr-4">
-              <div className="space-y-3">
-                {Object.entries(groupedPermissions).map(([category, categoryPermissions]) => (
-                  <PermissionGroup
-                    key={category}
-                    category={category}
-                    permissions={categoryPermissions}
-                    selectedPermissions={formData.permissions}
-                    onPermissionChange={handlePermissionChange}
-                    onSelectAll={handleSelectAllInCategory}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="border-t border-border/40 p-6 flex gap-3 mt-auto">
             <EnhancedButton
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               className="flex-1"
-              icon={<X className="h-4 w-4" />}
+              icon={<X className="h-4 w-4" strokeWidth={1.5} />}
             >
               Cancel
             </EnhancedButton>
@@ -152,14 +152,14 @@ const CreateRoleModal = ({ open, onOpenChange, permissions, onCreateRole, loadin
               loading={loading}
               disabled={!formData.name.trim()}
               className="flex-1"
-              icon={<Save className="h-4 w-4" />}
+              icon={<Save className="h-4 w-4" strokeWidth={1.5} />}
             >
               Create Role
             </EnhancedButton>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
 
