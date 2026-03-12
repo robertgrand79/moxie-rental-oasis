@@ -1,8 +1,6 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Wifi, Key, Car, Copy, Check } from 'lucide-react';
-import { useState } from 'react';
+import { Wifi, Key, Car, Copy, Check, Clock } from 'lucide-react';
 
 interface QuickAccessProps {
   wifi?: {
@@ -29,104 +27,119 @@ const GuidebookQuickAccess = ({ wifi, doorCode, parkingInstructions, checkInTime
   if (!hasQuickInfo) return null;
 
   return (
-    <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-      <CardContent className="p-4">
-        <h3 className="font-semibold mb-4 text-lg">Quick Access</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* WiFi */}
-          {wifi?.network && (
-            <div className="bg-background rounded-lg p-4 space-y-2">
-              <div className="flex items-center gap-2 text-primary">
-                <Wifi className="h-5 w-5" />
-                <span className="font-medium">WiFi</span>
+    <div className="space-y-3">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Essentials</p>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* WiFi */}
+        {wifi?.network && (
+          <div className="rounded-2xl p-4 backdrop-blur-md bg-card/60 border border-border/20 space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                <Wifi className="h-4 w-4 text-primary" strokeWidth={1.5} />
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Network</p>
+              <span className="text-sm font-medium">Wi-Fi</span>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-1">Network</p>
                 <div className="flex items-center gap-2">
-                  <code className="bg-muted px-2 py-1 rounded text-sm flex-1">{wifi.network}</code>
+                  <code className="bg-background/60 px-2.5 py-1.5 rounded-lg text-sm flex-1 font-mono">{wifi.network}</code>
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8"
+                    className="h-8 w-8 rounded-full"
                     onClick={() => copyToClipboard(wifi.network, 'network')}
                   >
-                    {copiedField === 'network' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                    {copiedField === 'network' ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                   </Button>
                 </div>
               </div>
               {wifi.password && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Password</p>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-1">Password</p>
                   <div className="flex items-center gap-2">
-                    <code className="bg-muted px-2 py-1 rounded text-sm flex-1">{wifi.password}</code>
+                    <code className="bg-background/60 px-2.5 py-1.5 rounded-lg text-sm flex-1 font-mono">{wifi.password}</code>
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8"
+                      className="h-8 w-8 rounded-full"
                       onClick={() => copyToClipboard(wifi.password, 'password')}
                     >
-                      {copiedField === 'password' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                      {copiedField === 'password' ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                     </Button>
                   </div>
                 </div>
               )}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Door Code */}
-          {doorCode && (
-            <div className="bg-background rounded-lg p-4 space-y-2">
-              <div className="flex items-center gap-2 text-primary">
-                <Key className="h-5 w-5" />
-                <span className="font-medium">Door Code</span>
+        {/* Door Code */}
+        {doorCode && (
+          <div className="rounded-2xl p-4 backdrop-blur-md bg-card/60 border border-border/20 space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                <Key className="h-4 w-4 text-primary" strokeWidth={1.5} />
               </div>
-              <div className="flex items-center gap-2">
-                <code className="bg-muted px-3 py-2 rounded text-lg font-mono tracking-wider flex-1 text-center">
-                  {doorCode}
-                </code>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  onClick={() => copyToClipboard(doorCode, 'doorCode')}
-                >
-                  {copiedField === 'doorCode' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                </Button>
-              </div>
+              <span className="text-sm font-medium">Door Code</span>
             </div>
-          )}
+            <div className="flex items-center gap-2">
+              <code className="bg-background/60 px-3 py-2.5 rounded-lg text-lg font-mono tracking-[0.15em] flex-1 text-center">
+                {doorCode}
+              </code>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 rounded-full"
+                onClick={() => copyToClipboard(doorCode, 'doorCode')}
+              >
+                {copiedField === 'doorCode' ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+              </Button>
+            </div>
+          </div>
+        )}
 
-          {/* Parking */}
-          {parkingInstructions && (
-            <div className="bg-background rounded-lg p-4 space-y-2">
-              <div className="flex items-center gap-2 text-primary">
-                <Car className="h-5 w-5" />
-                <span className="font-medium">Parking</span>
+        {/* Parking */}
+        {parkingInstructions && (
+          <div className="rounded-2xl p-4 backdrop-blur-md bg-card/60 border border-border/20 space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                <Car className="h-4 w-4 text-primary" strokeWidth={1.5} />
               </div>
-              <p className="text-sm text-muted-foreground">{parkingInstructions}</p>
+              <span className="text-sm font-medium">Parking</span>
             </div>
-          )}
-        </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">{parkingInstructions}</p>
+          </div>
+        )}
 
         {/* Check-in/out times */}
         {(checkInTime || checkOutTime) && (
-          <div className="flex gap-4 mt-4 pt-4 border-t border-border/50">
-            {checkInTime && (
-              <div className="text-sm">
-                <span className="text-muted-foreground">Check-in: </span>
-                <span className="font-medium">{checkInTime}</span>
+          <div className="rounded-2xl p-4 backdrop-blur-md bg-card/60 border border-border/20 space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                <Clock className="h-4 w-4 text-primary" strokeWidth={1.5} />
               </div>
-            )}
-            {checkOutTime && (
-              <div className="text-sm">
-                <span className="text-muted-foreground">Check-out: </span>
-                <span className="font-medium">{checkOutTime}</span>
-              </div>
-            )}
+              <span className="text-sm font-medium">Times</span>
+            </div>
+            <div className="flex gap-6 text-sm">
+              {checkInTime && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-0.5">Check-in</p>
+                  <p className="font-medium">{checkInTime}</p>
+                </div>
+              )}
+              {checkOutTime && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-0.5">Check-out</p>
+                  <p className="font-medium">{checkOutTime}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
