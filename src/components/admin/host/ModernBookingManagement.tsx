@@ -667,7 +667,7 @@ const ReservationManageForm = ({
   reservation: Reservation; 
   onUpdate: (updates: Partial<Reservation>) => void;
   isUpdating: boolean;
-  getCleaningStatusColor: (status: string) => "default" | "destructive" | "secondary" | "outline";
+  getCleaningStatusColor: (status: string) => string;
 }) => {
   const [checkInInstructions, setCheckInInstructions] = useState(reservation.check_in_instructions || '');
   const [specialRequests, setSpecialRequests] = useState(reservation.special_requests || '');
