@@ -92,7 +92,10 @@ const ConversationDetailPage = () => {
   if (!thread) {
     return (
       <div className="h-[calc(100vh-4rem)] flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading conversation...</p>
+        <div className="text-center">
+          <div className="h-6 w-6 border-2 border-muted-foreground/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Loading conversation…</p>
+        </div>
       </div>
     );
   }
@@ -100,21 +103,21 @@ const ConversationDetailPage = () => {
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col bg-background">
       {/* Minimal top bar */}
-      <div className="border-b border-border/40 px-4 py-2.5 flex items-center gap-3 bg-background shrink-0">
+      <div className="border-b border-border/30 px-4 py-2.5 flex items-center gap-3 bg-background/80 backdrop-blur-sm shrink-0">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate('/admin/host/inbox')}
-          className="gap-1.5 text-muted-foreground hover:text-foreground -ml-2"
+          className="gap-1.5 text-muted-foreground hover:text-foreground -ml-2 rounded-full"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
           <span className="hidden sm:inline text-sm">Inbox</span>
         </Button>
         
-        <div className="h-4 w-px bg-border/60" />
+        <div className="h-4 w-px bg-border/30" />
         
         <div className="flex-1 min-w-0">
-          <span className="text-sm font-medium truncate block">
+          <span className="text-sm font-medium tracking-tight truncate block">
             {thread.guest_name || thread.guest_email || 'Guest'}
           </span>
         </div>
@@ -122,11 +125,11 @@ const ConversationDetailPage = () => {
         {/* Mobile sidebar trigger */}
         <Sheet open={sideSheetOpen} onOpenChange={setSideSheetOpen}>
           <SheetTrigger asChild className="lg:hidden">
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
-              <PanelRight className="h-4 w-4" />
+            <Button variant="ghost" size="sm" className="text-muted-foreground rounded-full h-8 w-8 p-0">
+              <PanelRight className="h-4 w-4" strokeWidth={1.5} />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-full max-w-sm p-0 border-l border-border/40">
+          <SheetContent side="right" className="w-full max-w-sm p-0 border-l border-border/30">
             <ContextSidebar
               thread={thread}
               messages={messages}
@@ -164,7 +167,7 @@ const ConversationDetailPage = () => {
         </div>
 
         {/* Right context sidebar - desktop only */}
-        <div className="hidden lg:flex lg:flex-[35] border-l border-border/40">
+        <div className="hidden lg:flex lg:flex-[35] border-l border-border/30 bg-muted/5">
           <ContextSidebar
             thread={thread}
             messages={messages}
