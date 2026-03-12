@@ -171,7 +171,7 @@ const AdminSidebarFooter = () => {
   if (isCollapsed) {
     return (
       <SidebarFooter>
-        <div className="border-t border-gray-200 p-2 flex justify-center">
+        <div className="border-t border-border/30 p-2 flex justify-center">
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
