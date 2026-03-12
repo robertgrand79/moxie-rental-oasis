@@ -115,25 +115,25 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 
   const sizeClasses = {
     sm: {
-      container: 'py-8',
-      iconWrapper: 'w-16 h-16',
-      icon: 'h-8 w-8',
+      container: 'py-12',
+      iconWrapper: 'h-16 w-16',
+      icon: 'h-7 w-7',
       title: 'text-lg',
       description: 'text-sm max-w-sm',
     },
     md: {
-      container: 'py-12',
-      iconWrapper: 'w-20 h-20',
-      icon: 'h-10 w-10',
+      container: 'py-24',
+      iconWrapper: 'h-20 w-20',
+      icon: 'h-9 w-9',
       title: 'text-xl',
-      description: 'text-base max-w-md',
+      description: 'text-sm max-w-md',
     },
     lg: {
-      container: 'py-16',
-      iconWrapper: 'w-24 h-24',
-      icon: 'h-12 w-12',
+      container: 'py-32',
+      iconWrapper: 'h-24 w-24',
+      icon: 'h-10 w-10',
       title: 'text-2xl',
-      description: 'text-lg max-w-lg',
+      description: 'text-base max-w-lg',
     },
   };
 
@@ -143,18 +143,18 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     <div className={cn('text-center animate-fade-in', sizes.container, className)}>
       {showIllustration && (
         <div className={cn(
-          'bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg border border-primary/10',
+          'rounded-full bg-primary/5 flex items-center justify-center mx-auto mb-8',
           sizes.iconWrapper
         )}>
-          <Icon className={cn('text-primary', sizes.icon)} />
+          <Icon className={cn('text-primary', sizes.icon)} strokeWidth={1.5} />
         </div>
       )}
       
-      <h3 className={cn('font-bold text-foreground mb-3', sizes.title)}>
+      <h3 className={cn('font-medium tracking-tight text-foreground mb-3', sizes.title)}>
         {displayTitle}
       </h3>
       
-      <p className={cn('text-muted-foreground mx-auto leading-relaxed mb-6', sizes.description)}>
+      <p className={cn('text-muted-foreground/70 mx-auto leading-relaxed mb-8', sizes.description)}>
         {displayDescription}
       </p>
       
@@ -164,7 +164,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
             onClick={onAction}
             variant="gradient"
             size={size === 'sm' ? 'sm' : 'default'}
-            icon={<Plus className="h-4 w-4" />}
+            icon={<Plus className="h-4 w-4" strokeWidth={1.5} />}
           >
             {displayActionLabel}
           </EnhancedButton>

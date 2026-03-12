@@ -10,23 +10,21 @@ interface BlogEmptyStateProps {
 
 const BlogEmptyState = ({ searchQuery, onClearSearch }: BlogEmptyStateProps) => {
   return (
-    <div className="text-center py-16">
-      <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-      <h3 className="text-2xl font-semibold text-foreground mb-2">
+    <div className="text-center py-24 animate-fade-in">
+      <div className="h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center mx-auto mb-8">
+        <BookOpen className="h-9 w-9 text-primary" strokeWidth={1.5} />
+      </div>
+      <h3 className="text-xl font-medium tracking-tight text-foreground mb-3">
         {searchQuery ? 'No posts found' : 'No blog posts yet'}
       </h3>
-      <p className="text-muted-foreground mb-6">
+      <p className="text-muted-foreground/70 text-sm mb-6">
         {searchQuery 
           ? 'Try adjusting your search terms or browse all posts.' 
           : 'Check back soon for new content!'
         }
       </p>
       {searchQuery && (
-        <Button 
-          variant="outline" 
-          onClick={onClearSearch}
-          className="bg-card hover:bg-accent"
-        >
+        <Button variant="outline" onClick={onClearSearch}>
           Clear Search
         </Button>
       )}
