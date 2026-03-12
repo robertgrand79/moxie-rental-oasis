@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Menu } from 'lucide-react';
+import { Menu, Globe } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
 import OrganizationSwitcher from './OrganizationSwitcher';
@@ -11,11 +11,12 @@ import SupportWidget from '@/components/support/SupportWidget';
 import TemplateEditingBanner from './TemplateEditingBanner';
 import TrialBanner from './TrialBanner';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
+import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '@/components/ui/sonner';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
