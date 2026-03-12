@@ -50,20 +50,40 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log("Starting daily recap email generation...");
+    // Parse request body for optional targeting params
+    let body: { test_email?: string; organization_id?: string; time?: string } = {};
+    try {
+      body = await req.json();
+    } catch {
+      // No body is fine for scheduled runs
+    }
 
-    // Get all active organizations
-    const { data: organizations, error: orgError } = await supabase
+    const targetOrgId = body.organization_id;
+    const testEmailOverride = body.test_email;
+
+    console.log("Starting daily recap email generation...", { targetOrgId, testEmailOverride });
+
+    // Build org query - skip template orgs unless targeting a specific org
+    let orgQuery = supabase
       .from("organizations")
-      .select("id, name, resend_api_key")
+      .select("id, name, resend_api_key, is_template")
       .eq("is_active", true);
+
+    if (targetOrgId) {
+      orgQuery = orgQuery.eq("id", targetOrgId);
+    } else {
+      // For scheduled runs, skip template orgs
+      orgQuery = orgQuery.eq("is_template", false);
+    }
+
+    const { data: organizations, error: orgError } = await orgQuery;
 
     if (orgError) {
       console.error("Error fetching organizations:", orgError);
       throw orgError;
     }
 
-    console.log(`Found ${organizations?.length || 0} active organizations`);
+    console.log(`Found ${organizations?.length || 0} organizations to process`);
 
     const results: { org: string; success: boolean; error?: string }[] = [];
 
@@ -71,12 +91,12 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         console.log(`Processing organization: ${org.name} (${org.id})`);
         
-        // Get organization members with admin/owner roles (using separate queries to avoid FK join issues)
+        // Get organization members with admin/owner roles
         const { data: orgMembers } = await supabase
           .from("organization_members")
-          .select("user_id, role")
+          .select("user_id, role, team_role")
           .eq("organization_id", org.id)
-          .in("role", ["admin", "owner"]);
+          .or("role.in.(admin,owner),team_role.in.(owner,manager)");
 
         if (!orgMembers || orgMembers.length === 0) {
           console.log(`No admin/owner members found for ${org.name}`);
@@ -134,7 +154,10 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        const recipients = recipientsWithPrefs.map(r => ({ email: r.email, name: r.name }));
+        // If test_email is provided, override all recipients
+        const recipients = testEmailOverride 
+          ? [{ email: testEmailOverride, name: "Test Recipient" }]
+          : recipientsWithPrefs.map(r => ({ email: r.email, name: r.name }));
 
         // Get organization properties
         const { data: properties } = await supabase

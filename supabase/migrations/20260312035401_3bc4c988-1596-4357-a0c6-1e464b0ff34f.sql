@@ -1,0 +1,1 @@
+UPDATE public.organizations SET is_template = false WHERE name IN ('Moxie Vacation Rentals', 'GREI Vacation Rentals', 'STACY+CO');
