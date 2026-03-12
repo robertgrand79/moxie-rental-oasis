@@ -23,6 +23,8 @@ const ConversationDetailPage = () => {
     markAsRead,
     snoozeThread,
     generateAISummary,
+    deleteMessages,
+    archiveMessages,
   } = useGuestInbox();
 
   const [thread, setThread] = useState<InboxThread | null>(null);
@@ -149,6 +151,9 @@ const ConversationDetailPage = () => {
             loading={loadingData}
             onStatusChange={handleStatusChange}
             onSnooze={handleSnooze}
+            onDeleteMessages={deleteMessages}
+            onArchiveMessages={archiveMessages}
+            onRefresh={loadThreadData}
           />
           
           <SmartComposer

@@ -2948,6 +2948,7 @@ export type Database = {
           direction: string | null
           external_message_id: string | null
           id: string
+          is_archived: boolean
           is_read: boolean | null
           message_content: string
           message_type: string
@@ -2971,6 +2972,7 @@ export type Database = {
           direction?: string | null
           external_message_id?: string | null
           id?: string
+          is_archived?: boolean
           is_read?: boolean | null
           message_content: string
           message_type: string
@@ -2994,6 +2996,7 @@ export type Database = {
           direction?: string | null
           external_message_id?: string | null
           id?: string
+          is_archived?: boolean
           is_read?: boolean | null
           message_content?: string
           message_type?: string

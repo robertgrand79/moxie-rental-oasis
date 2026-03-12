@@ -160,6 +160,7 @@ export function useGuestInbox() {
       .from('guest_communications')
       .select('*')
       .eq('thread_id', threadId)
+      .eq('is_archived', false)
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -169,6 +170,34 @@ export function useGuestInbox() {
 
     return data as ThreadMessage[];
   }, []);
+
+  const deleteMessages = useCallback(async (messageIds: string[]) => {
+    const { error } = await supabase
+      .from('guest_communications')
+      .delete()
+      .in('id', messageIds);
+
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to delete messages', variant: 'destructive' });
+      return false;
+    }
+    toast({ title: 'Deleted', description: `${messageIds.length} message${messageIds.length > 1 ? 's' : ''} deleted` });
+    return true;
+  }, [toast]);
+
+  const archiveMessages = useCallback(async (messageIds: string[]) => {
+    const { error } = await supabase
+      .from('guest_communications')
+      .update({ is_archived: true } as any)
+      .in('id', messageIds);
+
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to archive messages', variant: 'destructive' });
+      return false;
+    }
+    toast({ title: 'Archived', description: `${messageIds.length} message${messageIds.length > 1 ? 's' : ''} archived` });
+    return true;
+  }, [toast]);
 
   const fetchThreadReservations = useCallback(async (
     guestEmail: string | null, 
@@ -417,5 +446,7 @@ export function useGuestInbox() {
     generateAISummary,
     getUnreadCount,
     getSnoozedCount,
+    deleteMessages,
+    archiveMessages,
   };
 }
