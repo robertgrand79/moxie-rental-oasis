@@ -144,14 +144,15 @@ const DigitalGuidebook = ({ propertyId }: DigitalGuidebookProps) => {
   const hasAppliances = content.appliance_guides && content.appliance_guides.length > 0;
   const propertyTitle = property?.title || guidebook.title;
 
-  const sections: { id: GuidebookSection; icon: typeof BookOpen; label: string; available: boolean }[] = [
+  const allSections: { id: GuidebookSection; icon: typeof BookOpen; label: string; available: boolean }[] = [
     { id: 'welcome', icon: BookOpen, label: 'Welcome', available: true },
     { id: 'amenities', icon: Wifi, label: 'Amenities', available: true },
     { id: 'appliances', icon: Wrench, label: 'Appliances', available: !!hasAppliances },
     { id: 'local', icon: MapPin, label: 'Local Guide', available: true },
     { id: 'info', icon: Navigation, label: 'Getting Here', available: true },
     { id: 'contact', icon: Shield, label: 'Emergency', available: true },
-  ].filter(s => s.available);
+  ];
+  const sections = allSections.filter(s => s.available);
 
   return (
     <div className="min-h-screen bg-background">
