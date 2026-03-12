@@ -257,7 +257,11 @@ const ConversationThread: React.FC<ConversationThreadProps> = ({
                     </div>
                     
                     {/* Message content */}
-                    <p className="text-sm whitespace-pre-wrap">{message.message_content}</p>
+                    {message.message_type === 'email' ? (
+                      <EmailPlainTextBody content={message.message_content} />
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">{message.message_content}</p>
+                    )}
                     
                     {/* Timestamp */}
                     <div className={cn(

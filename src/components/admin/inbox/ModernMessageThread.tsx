@@ -213,9 +213,7 @@ const EmailCard: React.FC<{
               )}
             </div>
           ) : message.message_content ? (
-            <p className="text-sm whitespace-pre-wrap break-words text-foreground leading-relaxed">
-              {message.message_content}
-            </p>
+            <EmailPlainTextBody content={message.message_content} />
           ) : (
             <p className="text-sm text-muted-foreground/40 italic">
               Email body not available
