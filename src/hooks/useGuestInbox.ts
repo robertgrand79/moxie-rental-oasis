@@ -446,5 +446,7 @@ export function useGuestInbox() {
     generateAISummary,
     getUnreadCount,
     getSnoozedCount,
+    deleteMessages,
+    archiveMessages,
   };
 }
