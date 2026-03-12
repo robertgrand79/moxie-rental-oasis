@@ -195,6 +195,10 @@ const AdminSidebarFooter = () => {
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="start" side="right" className="w-48 mb-2">
+              <DropdownMenuItem onClick={handleViewSite} className="cursor-pointer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View Live Site
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleEditToggle} className="cursor-pointer">
                 <Edit2 className="h-4 w-4 mr-2" />
                 Edit Profile
