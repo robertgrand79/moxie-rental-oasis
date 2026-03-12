@@ -154,7 +154,10 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        const recipients = recipientsWithPrefs.map(r => ({ email: r.email, name: r.name }));
+        // If test_email is provided, override all recipients
+        const recipients = testEmailOverride 
+          ? [{ email: testEmailOverride, name: "Test Recipient" }]
+          : recipientsWithPrefs.map(r => ({ email: r.email, name: r.name }));
 
         // Get organization properties
         const { data: properties } = await supabase
