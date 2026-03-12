@@ -632,7 +632,7 @@ const ModernBookingManagement = () => {
             <CardDescription>Recent booking activity and cleaning status</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="divide-y divide-border/30">
               {filteredReservations.map(renderReservationListItem)}
             </div>
           </CardContent>
