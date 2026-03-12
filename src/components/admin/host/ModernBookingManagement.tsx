@@ -700,7 +700,7 @@ const ReservationManageForm = ({
         <div>
           <label className="text-sm font-medium">Cleaning Status</label>
           <div className="mt-2">
-            <Badge variant={getCleaningStatusColor(reservation.cleaning_status)}>
+            <Badge className={getCleaningStatusColor(reservation.cleaning_status)}>
               {reservation.cleaning_status}
             </Badge>
           </div>
