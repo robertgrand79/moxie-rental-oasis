@@ -151,6 +151,9 @@ const ConversationDetailPage = () => {
             loading={loadingData}
             onStatusChange={handleStatusChange}
             onSnooze={handleSnooze}
+            onDeleteMessages={deleteMessages}
+            onArchiveMessages={archiveMessages}
+            onRefresh={loadThreadData}
           />
           
           <SmartComposer
