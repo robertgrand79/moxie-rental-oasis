@@ -285,6 +285,75 @@ export function useGuestInbox() {
     return true;
   }, []);
 
+  const bulkMarkAsRead = useCallback(async (threadIds: string[]) => {
+    if (threadIds.length === 0) return false;
+    const { error } = await supabase
+      .from('guest_inbox_threads')
+      .update({ is_read: true, updated_at: new Date().toISOString() })
+      .in('id', threadIds);
+
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to mark threads as read', variant: 'destructive' });
+      return false;
+    }
+    setThreads(prev => prev.map(t => threadIds.includes(t.id) ? { ...t, is_read: true } : t));
+    toast({ title: 'Done', description: `${threadIds.length} thread${threadIds.length > 1 ? 's' : ''} marked as read` });
+    return true;
+  }, [toast]);
+
+  const bulkArchiveThreads = useCallback(async (threadIds: string[]) => {
+    if (threadIds.length === 0) return false;
+    // Archive all messages in these threads
+    const { error } = await supabase
+      .from('guest_communications')
+      .update({ is_archived: true } as any)
+      .in('thread_id', threadIds);
+
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to archive threads', variant: 'destructive' });
+      return false;
+    }
+
+    // Mark threads as resolved
+    await supabase
+      .from('guest_inbox_threads')
+      .update({ status: 'resolved', updated_at: new Date().toISOString() })
+      .in('id', threadIds);
+
+    setThreads(prev => prev.filter(t => !threadIds.includes(t.id)));
+    toast({ title: 'Archived', description: `${threadIds.length} thread${threadIds.length > 1 ? 's' : ''} archived` });
+    return true;
+  }, [toast]);
+
+  const bulkDeleteThreads = useCallback(async (threadIds: string[]) => {
+    if (threadIds.length === 0) return false;
+    // Delete all messages in threads first
+    const { error: msgError } = await supabase
+      .from('guest_communications')
+      .delete()
+      .in('thread_id', threadIds);
+
+    if (msgError) {
+      toast({ title: 'Error', description: 'Failed to delete thread messages', variant: 'destructive' });
+      return false;
+    }
+
+    // Delete threads
+    const { error } = await supabase
+      .from('guest_inbox_threads')
+      .delete()
+      .in('id', threadIds);
+
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to delete threads', variant: 'destructive' });
+      return false;
+    }
+
+    setThreads(prev => prev.filter(t => !threadIds.includes(t.id)));
+    toast({ title: 'Deleted', description: `${threadIds.length} thread${threadIds.length > 1 ? 's' : ''} deleted` });
+    return true;
+  }, [toast]);
+
   const snoozeThread = useCallback(async (threadId: string, until: Date | null) => {
     const { error } = await supabase
       .from('guest_inbox_threads')
