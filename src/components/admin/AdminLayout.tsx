@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Menu } from 'lucide-react';
+import { Menu, Globe } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
 import OrganizationSwitcher from './OrganizationSwitcher';
@@ -11,11 +11,12 @@ import SupportWidget from '@/components/support/SupportWidget';
 import TemplateEditingBanner from './TemplateEditingBanner';
 import TrialBanner from './TrialBanner';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
+import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '@/components/ui/sonner';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -115,41 +116,33 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     </SidebarTrigger>
                   )}
                   
-                  {/* Show different header content based on template editing mode */}
-                  {isTemplateEditing ? (
+                  {/* Show template editing banner if applicable */}
+                  {isTemplateEditing && (
                     <TemplateEditingBanner variant="header" />
-                  ) : (
-                    isExternalBack ? (
-                      <EnhancedButton 
-                        variant="outline" 
-                        size={isMobile ? "sm" : "default"} 
-                        asChild 
-                        className={isMobile ? 'min-h-[44px]' : ''}
-                      >
-                        <a href={backUrl} className="flex items-center gap-2">
-                          <ArrowLeft className="h-4 w-4" />
-                          <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
-                          <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                        </a>
-                      </EnhancedButton>
-                    ) : (
-                      <EnhancedButton 
-                        variant="outline" 
-                        size={isMobile ? "sm" : "default"} 
-                        asChild 
-                        className={isMobile ? 'min-h-[44px]' : ''}
-                      >
-                        <Link to={backUrl} className="flex items-center gap-2">
-                          <ArrowLeft className="h-4 w-4" />
-                          <span className={isMobile ? 'hidden' : 'inline'}>Back to Site</span>
-                          <span className={isMobile ? 'inline' : 'hidden'}>Back</span>
-                        </Link>
-                      </EnhancedButton>
-                    )
                   )}
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {/* View Site icon button */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {isExternalBack ? (
+                        <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
+                          <a href={backUrl} target="_blank" rel="noopener noreferrer">
+                            <Globe className="h-5 w-5" />
+                          </a>
+                        </Button>
+                      ) : (
+                        <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
+                          <Link to={backUrl} target="_blank">
+                            <Globe className="h-5 w-5" />
+                          </Link>
+                        </Button>
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent>View Site</TooltipContent>
+                  </Tooltip>
+                  
                   {/* Notification Bell */}
                   <NotificationBell />
                   

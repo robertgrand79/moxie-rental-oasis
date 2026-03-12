@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { User, LogOut, Edit2, Save, X, ChevronDown, Download } from 'lucide-react';
+import { User, LogOut, Edit2, Save, X, ChevronDown, Download, ExternalLink } from 'lucide-react';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { SidebarFooter, useSidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,20 @@ const AdminSidebarFooter = () => {
   const queryClient = useQueryClient();
   const { state } = useSidebar();
   const { canInstall, promptInstall } = usePWAInstall();
+  const { organization, isPlatformMode } = useCurrentOrganization();
+
+  const getViewSiteUrl = () => {
+    if (isPlatformMode || !organization) return '/';
+    const hostname = window.location.hostname;
+    const isNeutral = hostname.includes('lovable.app') || hostname.includes('localhost') || hostname.includes('127.0.0.1');
+    if (isNeutral) return `/?org=${organization.slug}`;
+    if (organization.custom_domain) return `https://${organization.custom_domain}`;
+    return `https://${organization.slug}.staymoxie.com`;
+  };
+
+  const handleViewSite = () => {
+    window.open(getViewSiteUrl(), '_blank');
+  };
   const isCollapsed = state === 'collapsed';
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -180,6 +195,10 @@ const AdminSidebarFooter = () => {
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="start" side="right" className="w-48 mb-2">
+              <DropdownMenuItem onClick={handleViewSite} className="cursor-pointer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View Live Site
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleEditToggle} className="cursor-pointer">
                 <Edit2 className="h-4 w-4 mr-2" />
                 Edit Profile
@@ -226,6 +245,10 @@ const AdminSidebarFooter = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-48 mb-2">
+            <DropdownMenuItem onClick={handleViewSite} className="cursor-pointer">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              View Live Site
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleEditToggle} className="cursor-pointer">
               <Edit2 className="h-4 w-4 mr-2" />
               Edit Profile
