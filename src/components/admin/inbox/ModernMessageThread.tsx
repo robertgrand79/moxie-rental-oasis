@@ -102,6 +102,39 @@ const SmsBubble: React.FC<{
   );
 };
 
+/** Renders plain-text email with reply parsing */
+const EmailPlainTextBody: React.FC<{ content: string }> = ({ content }) => {
+  const { newText, quotedText } = parseEmailReply(content);
+  const [showQuoted, setShowQuoted] = useState(false);
+
+  return (
+    <div>
+      <p className="text-sm whitespace-pre-wrap break-words text-foreground leading-relaxed">
+        {newText}
+      </p>
+      {quotedText && (
+        <div className="mt-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 text-xs text-muted-foreground/50 hover:text-muted-foreground rounded-full px-2.5 gap-1"
+            onClick={() => setShowQuoted(!showQuoted)}
+          >
+            {showQuoted ? '▾ Hide quoted text' : '••• Show original message'}
+          </Button>
+          {showQuoted && (
+            <div className="mt-2 pl-3 border-l-2 border-border/30 animate-in slide-in-from-top-1 duration-200">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">
+                {quotedText}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 /** Email rendered as a full-width card */
 const EmailCard: React.FC<{
   message: ThreadMessage;
