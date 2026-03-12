@@ -13,8 +13,9 @@ import { ReviewStep } from './ReviewStep';
 import { PromoCodeInput, AppliedPromo } from './PromoCodeInput';
 import { useBookingCharges } from '@/hooks/useBookingCharges';
 import { usePromoCode } from '@/hooks/usePromoCode';
-import { CheckCircle, Loader2, ExternalLink } from 'lucide-react';
+import { CheckCircle, Loader2, ExternalLink, Lock, ArrowLeft, ArrowRight, Shield } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+
 interface GuestBookingWidgetProps {
   property: Property;
   onBookingComplete?: (reservationId: string) => void;
@@ -31,7 +32,6 @@ interface BookingForm {
 }
 
 const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBookingComplete, initialCheckin, initialCheckout }) => {
-  // Initialize step and dateRange based on whether initial dates are provided
   const [step, setStep] = useState<1 | 2 | 3 | 4>(() => {
     return (initialCheckin && initialCheckout) ? 2 : 1;
   });
@@ -60,7 +60,6 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
   const { toast } = useToast();
   const createReservationMutation = useCreateReservation();
 
-  // Promo code hook
   const { recordPromoUsage } = usePromoCode({
     propertyId: property.id,
     organizationId: property.organization_id
@@ -96,52 +95,26 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
 
   const handleNextStep = () => {
     if (step === 1 && !selectedDates) {
-      toast({
-        title: "Select Dates",
-        description: "Please select check-in and check-out dates",
-        variant: "destructive"
-      });
+      toast({ title: "Select Dates", description: "Please select check-in and check-out dates", variant: "destructive" });
       return;
     }
     
     if (step === 2) {
-      // Validate required fields
       if (!bookingForm.guestName.trim()) {
-        toast({
-          title: "Name Required",
-          description: "Please enter your full name",
-          variant: "destructive"
-        });
+        toast({ title: "Name Required", description: "Please enter your full name", variant: "destructive" });
         return;
       }
-      
       if (!bookingForm.guestEmail.trim()) {
-        toast({
-          title: "Email Required",
-          description: "Please enter your email address",
-          variant: "destructive"
-        });
+        toast({ title: "Email Required", description: "Please enter your email address", variant: "destructive" });
         return;
       }
-      
-      // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(bookingForm.guestEmail)) {
-        toast({
-          title: "Invalid Email",
-          description: "Please enter a valid email address",
-          variant: "destructive"
-        });
+        toast({ title: "Invalid Email", description: "Please enter a valid email address", variant: "destructive" });
         return;
       }
-      
-      // Validate guest count against property max
       if (bookingForm.guestCount > (property.max_guests || 10)) {
-        toast({
-          title: "Too Many Guests",
-          description: `This property allows a maximum of ${property.max_guests || 10} guests`,
-          variant: "destructive"
-        });
+        toast({ title: "Too Many Guests", description: `This property allows a maximum of ${property.max_guests || 10} guests`, variant: "destructive" });
         return;
       }
     }
@@ -187,7 +160,6 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
 
       const reservation = await createReservationMutation.mutateAsync(reservationData);
       
-      // Record promo code usage if one was applied
       if (appliedPromo) {
         await recordPromoUsage(
           reservation.id,
@@ -211,43 +183,21 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
         }
       });
 
-      console.log('[CHECKOUT] Response received:', checkoutData);
-
-      if (checkoutError) {
-        console.error('[CHECKOUT] Error:', checkoutError);
-        throw new Error(checkoutError.message || 'Failed to create checkout session');
-      }
+      if (checkoutError) throw new Error(checkoutError.message || 'Failed to create checkout session');
 
       if (checkoutData?.url) {
-        console.log('[CHECKOUT] Redirecting to Stripe:', checkoutData.url);
         setCheckoutUrl(checkoutData.url);
-        
-        // Try redirect - this may be blocked in iframes or by popup blockers
-        try {
-          window.location.href = checkoutData.url;
-        } catch (e) {
-          console.log('[CHECKOUT] Direct redirect failed, showing fallback button');
-        }
-        
-        // After 2.5 seconds, if we're still here, show the fallback button
-        setTimeout(() => {
-          setPaymentStage('blocked');
-        }, 2500);
-        
+        try { window.location.href = checkoutData.url; } catch (e) {}
+        setTimeout(() => { setPaymentStage('blocked'); }, 2500);
         return;
       } else {
-        console.error('[CHECKOUT] No URL in response:', checkoutData);
         throw new Error('No checkout URL received from payment provider');
       }
     } catch (error: any) {
       console.error('Booking error:', error);
       setIsProcessingPayment(false);
       setPaymentStage('idle');
-      toast({
-        title: "Booking Failed",
-        description: error.message || "Failed to create booking. Please try again.",
-        variant: "destructive"
-      });
+      toast({ title: "Booking Failed", description: error.message || "Failed to create booking. Please try again.", variant: "destructive" });
     }
   };
 
@@ -258,59 +208,57 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
     return 'Confirm & Pay';
   };
 
-  // Fallback UI when redirect is blocked
   const renderPaymentFallback = () => (
-    <Card className="border-primary/20 bg-primary/5">
-      <CardContent className="p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <CheckCircle className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-semibold">Reservation Created!</h3>
-            <p className="text-sm text-muted-foreground">Click below to complete your payment</p>
-          </div>
+    <div className="rounded-2xl border border-primary/10 bg-primary/5 p-6 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+          <CheckCircle className="w-5 h-5 text-primary" strokeWidth={1.5} />
         </div>
-        <a 
-          href={checkoutUrl!} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-6 rounded-md font-medium transition-colors"
-        >
-          Continue to Payment
-          <ExternalLink className="w-4 h-4" />
-        </a>
-        <p className="text-xs text-muted-foreground text-center">
-          You'll be redirected to Stripe to complete your secure payment
-        </p>
-      </CardContent>
-    </Card>
+        <div>
+          <h3 className="font-semibold">Reservation Created!</h3>
+          <p className="text-sm text-muted-foreground">Click below to complete your payment</p>
+        </div>
+      </div>
+      <a 
+        href={checkoutUrl!} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 w-full bg-primary text-primary-foreground hover:bg-primary/90 h-14 px-6 rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5"
+      >
+        Continue to Payment
+        <ExternalLink className="w-4 h-4" />
+      </a>
+      <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1.5">
+        <Lock className="h-3 w-3" />
+        Secure payment via Stripe
+      </p>
+    </div>
   );
 
   const renderComplete = () => (
-    <div className="text-center space-y-6 py-12 max-w-2xl mx-auto">
+    <div className="text-center space-y-8 py-16 max-w-lg mx-auto">
       <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-        <CheckCircle className="w-12 h-12 text-primary" />
+        <CheckCircle className="w-10 h-10 text-primary" strokeWidth={1.5} />
       </div>
       <div className="space-y-2">
-        <h2 className="text-3xl font-bold">Booking Confirmed!</h2>
-        <p className="text-lg text-muted-foreground">
-          A confirmation email has been sent to {bookingForm.guestEmail}
+        <h2 className="text-3xl font-semibold tracking-tight">Booking Confirmed</h2>
+        <p className="text-muted-foreground">
+          A confirmation has been sent to {bookingForm.guestEmail}
         </p>
       </div>
-      <div className="bg-muted/50 rounded-lg p-6 space-y-3 text-left">
-        <h3 className="font-semibold">What's Next?</h3>
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          <li className="flex items-start gap-2">
-            <CheckCircle className="w-4 h-4 text-primary mt-0.5" />
+      <div className="bg-muted/30 rounded-2xl p-6 space-y-4 text-left border border-border/30">
+        <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground">What's next</p>
+        <ul className="space-y-3 text-sm text-muted-foreground">
+          <li className="flex items-start gap-3">
+            <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={1.5} />
             <span>Check your email for booking details and payment confirmation</span>
           </li>
-          <li className="flex items-start gap-2">
-            <CheckCircle className="w-4 h-4 text-primary mt-0.5" />
+          <li className="flex items-start gap-3">
+            <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={1.5} />
             <span>You'll receive check-in instructions 24 hours before arrival</span>
           </li>
-          <li className="flex items-start gap-2">
-            <CheckCircle className="w-4 h-4 text-primary mt-0.5" />
+          <li className="flex items-start gap-3">
+            <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={1.5} />
             <span>Contact us anytime if you have questions</span>
           </li>
         </ul>
@@ -319,22 +267,20 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
   );
 
   if (step === 4) {
-    return (
-      <div className="w-full">
-        {renderComplete()}
-      </div>
-    );
+    return <div className="w-full">{renderComplete()}</div>;
   }
 
   return (
     <div className="w-full">
-      <div className="bg-background">
+      {/* Progress Bar */}
+      <div className="mb-10">
         <BookingProgressBar currentStep={step} steps={steps} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 py-8">
-        {/* Main Content Area */}
-        <div className="lg:col-span-2 space-y-8">
+      {/* Two-column layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+        {/* Left: Form Steps (~60%) */}
+        <div className="lg:col-span-3 space-y-8">
           {step === 1 && (
             <DateSelectionStep
               propertyId={property.id}
@@ -354,7 +300,6 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
           
           {step === 3 && selectedDates && charges && (
             <>
-              {/* Promo Code Input */}
               <PromoCodeInput
                 propertyId={property.id}
                 organizationId={property.organization_id}
@@ -363,11 +308,10 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
                 bookingTotal={charges.accommodationSubtotal}
                 onPromoApplied={(promo) => {
                   setAppliedPromo(promo);
-                  // Refetch charges to recalculate with the promo code
                   refetchCharges();
                 }}
                 appliedPromo={appliedPromo}
-                className="mb-6"
+                className="mb-2"
               />
               
               <ReviewStep
@@ -389,47 +333,60 @@ const GuestBookingWidget: React.FC<GuestBookingWidgetProps> = ({ property, onBoo
             </>
           )}
 
-          {/* Navigation Buttons */}
-          <div className="flex gap-4 pt-6">
+          {/* Navigation */}
+          <div className="flex gap-4 pt-4">
             {step > 1 && (
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={handlePreviousStep}
                 size="lg"
-                className="flex-1"
+                className="rounded-xl text-muted-foreground hover:text-foreground gap-2"
               >
+                <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
                 Back
               </Button>
             )}
+            <div className="flex-1" />
             {step < 3 && (
               <Button
                 onClick={handleNextStep}
                 size="lg"
-                className="flex-1"
+                className="rounded-xl px-8 gap-2 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
                 disabled={step === 1 && (!selectedDates || !dateRangeValid)}
               >
                 Continue
+                <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
               </Button>
             )}
             {step === 3 && paymentStage !== 'blocked' && (
               <Button
                 onClick={handleConfirmBooking}
                 size="lg"
-                className="flex-1"
+                className="rounded-xl px-10 h-14 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all hover:-translate-y-0.5 gap-2"
                 disabled={isProcessingPayment || !charges}
               >
-                {isProcessingPayment && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isProcessingPayment ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Lock className="h-4 w-4" strokeWidth={1.5} />
                 )}
                 {getButtonText()}
               </Button>
             )}
-            {step === 3 && paymentStage === 'blocked' && checkoutUrl && renderPaymentFallback()}
           </div>
+          {step === 3 && paymentStage === 'blocked' && checkoutUrl && renderPaymentFallback()}
+          
+          {/* Trust indicator on payment step */}
+          {step === 3 && (
+            <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1.5 pt-2">
+              <Shield className="h-3 w-3" strokeWidth={1.5} />
+              Your payment is processed securely via Stripe
+            </p>
+          )}
         </div>
 
-        {/* Sticky Summary Card */}
-        <div className="lg:col-span-1">
+        {/* Right: Sticky Summary (~40%) */}
+        <div className="lg:col-span-2">
           <BookingSummaryCard
             property={property}
             checkInDate={selectedDates?.start}

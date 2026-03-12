@@ -17,7 +17,6 @@ interface GuestDetailsStepProps {
   maxGuests: number;
 }
 
-// Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const GuestDetailsStep = ({
@@ -28,100 +27,91 @@ export const GuestDetailsStep = ({
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
   const [guestCountError, setGuestCountError] = useState<string | null>(null);
 
-  // Validate email on change
   useEffect(() => {
-    if (formData.guestEmail.length === 0) {
-      setEmailValid(null);
-    } else {
-      setEmailValid(EMAIL_REGEX.test(formData.guestEmail));
-    }
+    if (formData.guestEmail.length === 0) setEmailValid(null);
+    else setEmailValid(EMAIL_REGEX.test(formData.guestEmail));
   }, [formData.guestEmail]);
 
-  // Validate guest count
   useEffect(() => {
-    if (formData.guestCount < 1) {
-      setGuestCountError('At least 1 guest is required');
-    } else if (formData.guestCount > maxGuests) {
-      setGuestCountError(`Maximum ${maxGuests} guests allowed for this property`);
-    } else {
-      setGuestCountError(null);
-    }
+    if (formData.guestCount < 1) setGuestCountError('At least 1 guest is required');
+    else if (formData.guestCount > maxGuests) setGuestCountError(`Maximum ${maxGuests} guests allowed`);
+    else setGuestCountError(null);
   }, [formData.guestCount, maxGuests]);
 
   const handleGuestCountChange = (value: string) => {
     const num = parseInt(value) || 1;
-    // Clamp to valid range
-    const clampedValue = Math.max(1, Math.min(num, maxGuests));
-    onFormChange('guestCount', clampedValue);
+    onFormChange('guestCount', Math.max(1, Math.min(num, maxGuests)));
   };
 
+  // Quiet luxury input classes — no heavy borders, subtle bg, soft focus ring
+  const inputClasses = "border-0 bg-muted/30 rounded-xl h-12 px-4 text-sm placeholder:text-muted-foreground/50 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0 transition-all";
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Guest Information</h2>
-        <p className="text-muted-foreground">Please provide your contact details</p>
+        <h2 className="text-2xl font-semibold tracking-tight mb-1">Guest information</h2>
+        <p className="text-sm text-muted-foreground">We'll use this to send your confirmation</p>
       </div>
 
-      <div className="space-y-4 max-w-2xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-5 max-w-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-2">
-            <Label htmlFor="guestName">Full Name *</Label>
+            <Label htmlFor="guestName" className="text-xs font-medium tracking-wide text-muted-foreground">Full Name *</Label>
             <Input
               id="guestName"
               value={formData.guestName}
               onChange={(e) => onFormChange('guestName', e.target.value)}
-              placeholder="John Doe"
+              placeholder="Jane Smith"
               required
-              className={formData.guestName.length > 0 ? 'border-green-500' : ''}
+              className={inputClasses}
             />
             {formData.guestName.length > 0 && (
-              <p className="text-xs text-green-600 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" /> Name entered
+              <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" strokeWidth={1.5} /> Looks good
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="guestEmail">Email Address *</Label>
+            <Label htmlFor="guestEmail" className="text-xs font-medium tracking-wide text-muted-foreground">Email Address *</Label>
             <Input
               id="guestEmail"
               type="email"
               value={formData.guestEmail}
               onChange={(e) => onFormChange('guestEmail', e.target.value)}
-              placeholder="john@example.com"
+              placeholder="jane@example.com"
               required
-              className={emailValid === true ? 'border-green-500' : emailValid === false ? 'border-red-500' : ''}
+              className={inputClasses}
             />
             {emailValid === true && (
-              <p className="text-xs text-green-600 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" /> Valid email
+              <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" strokeWidth={1.5} /> Valid email
               </p>
             )}
             {emailValid === false && (
-              <p className="text-xs text-red-600 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" /> Please enter a valid email address
+              <p className="text-xs text-destructive flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" /> Please enter a valid email
               </p>
             )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-2">
-            <Label htmlFor="guestPhone">Phone Number</Label>
+            <Label htmlFor="guestPhone" className="text-xs font-medium tracking-wide text-muted-foreground">Phone Number</Label>
             <Input
               id="guestPhone"
               type="tel"
               value={formData.guestPhone}
               onChange={(e) => onFormChange('guestPhone', e.target.value)}
               placeholder="+1 (555) 000-0000"
+              className={inputClasses}
             />
-            <p className="text-xs text-muted-foreground">
-              Optional, but helps us reach you
-            </p>
+            <p className="text-[11px] text-muted-foreground/60">Optional</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="guestCount">Number of Guests *</Label>
+            <Label htmlFor="guestCount" className="text-xs font-medium tracking-wide text-muted-foreground">Guests *</Label>
             <Input
               id="guestCount"
               type="number"
@@ -130,42 +120,40 @@ export const GuestDetailsStep = ({
               value={formData.guestCount}
               onChange={(e) => handleGuestCountChange(e.target.value)}
               required
-              className={guestCountError ? 'border-red-500' : ''}
+              className={inputClasses}
             />
             {guestCountError ? (
-              <p className="text-xs text-red-600 flex items-center gap-1">
+              <p className="text-xs text-destructive flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" /> {guestCountError}
               </p>
             ) : (
-              <p className="text-xs text-muted-foreground">
-                Maximum {maxGuests} guests allowed
+              <p className="text-[11px] text-muted-foreground/60">
+                Up to {maxGuests}
               </p>
             )}
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="specialRequests">Special Requests (Optional)</Label>
+          <Label htmlFor="specialRequests" className="text-xs font-medium tracking-wide text-muted-foreground">Special Requests</Label>
           <Textarea
             id="specialRequests"
             value={formData.specialRequests}
             onChange={(e) => onFormChange('specialRequests', e.target.value)}
-            placeholder="Any special requests or requirements... (e.g., early check-in, late checkout, accessibility needs)"
-            rows={4}
+            placeholder="Early check-in, late checkout, accessibility needs..."
+            rows={3}
+            className="border-0 bg-muted/30 rounded-xl px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0 transition-all resize-none"
           />
-          <p className="text-xs text-muted-foreground">
-            We'll do our best to accommodate your requests
-          </p>
         </div>
 
-        {/* Validation Summary */}
+        {/* Validation hint */}
         {(formData.guestName.length === 0 || emailValid !== true) && (
-          <Alert variant="default" className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
-            <AlertCircle className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-yellow-700 dark:text-yellow-400">
-              Please fill in all required fields before continuing.
-            </AlertDescription>
-          </Alert>
+          <div className="rounded-xl bg-muted/30 border border-border/30 px-4 py-3 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
+            <p className="text-xs text-muted-foreground">
+              Fill in name and email to continue
+            </p>
+          </div>
         )}
       </div>
     </div>
