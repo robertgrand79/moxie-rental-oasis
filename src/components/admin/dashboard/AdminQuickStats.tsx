@@ -1,16 +1,13 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { Plus, Building2, BookOpen, FileText, Calendar } from 'lucide-react';
 
 interface QuickStat {
   title: string;
   value: number;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   href: string;
   actionText: string;
 }
@@ -28,7 +25,6 @@ const AdminQuickStats = ({ properties, blogPosts, pages, events }: AdminQuickSta
       title: 'Properties',
       value: properties.length,
       icon: Building2,
-      color: 'text-blue-600',
       href: '/properties',
       actionText: 'Add Property'
     },
@@ -36,7 +32,6 @@ const AdminQuickStats = ({ properties, blogPosts, pages, events }: AdminQuickSta
       title: 'Blog Posts',
       value: blogPosts.length,
       icon: BookOpen,
-      color: 'text-green-600',
       href: '/admin/blog',
       actionText: 'Write Post'
     },
@@ -44,7 +39,6 @@ const AdminQuickStats = ({ properties, blogPosts, pages, events }: AdminQuickSta
       title: 'Custom Pages',
       value: pages.length,
       icon: FileText,
-      color: 'text-purple-600',
       href: '/admin/pages',
       actionText: 'Create Page'
     },
@@ -52,7 +46,6 @@ const AdminQuickStats = ({ properties, blogPosts, pages, events }: AdminQuickSta
       title: 'Events',
       value: events.length,
       icon: Calendar,
-      color: 'text-orange-600',
       href: '/admin/events',
       actionText: 'Add Event'
     }
@@ -61,19 +54,22 @@ const AdminQuickStats = ({ properties, blogPosts, pages, events }: AdminQuickSta
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {quickStats.map((stat) => (
-        <Card key={stat.title} className="hover:shadow-lg transition-shadow">
+        <Card key={stat.title} className="border-border/30 bg-gradient-to-br from-background to-muted/20 hover:shadow-md transition-all duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <stat.icon className={`h-8 w-8 ${stat.color}`} />
-              <Badge variant="secondary">{stat.value}</Badge>
+              <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center">
+                <stat.icon className="h-5 w-5 text-primary" strokeWidth={1.5} />
+              </div>
+              <span className="text-4xl font-semibold tracking-tight text-foreground">{stat.value}</span>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">{stat.title}</h3>
-            <Button asChild size="sm" variant="outline" className="w-full">
-              <Link to={stat.href}>
-                <Plus className="h-3 w-3 mr-1" />
-                {stat.actionText}
-              </Link>
-            </Button>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4">{stat.title}</p>
+            <Link
+              to={stat.href}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
+              {stat.actionText}
+            </Link>
           </CardContent>
         </Card>
       ))}
