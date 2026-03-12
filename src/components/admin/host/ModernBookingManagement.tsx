@@ -232,22 +232,22 @@ const ModernBookingManagement = () => {
     },
   });
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeClasses = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'default';
-      case 'cancelled': return 'destructive';
-      case 'pending': return 'secondary';
-      default: return 'outline';
+      case 'confirmed': return 'rounded-full px-3 py-1 text-xs font-medium bg-green-500/10 text-green-700 dark:text-green-400 border-0';
+      case 'cancelled': return 'rounded-full px-3 py-1 text-xs font-medium bg-destructive/10 text-destructive border-0';
+      case 'pending': return 'rounded-full px-3 py-1 text-xs font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border-0';
+      default: return 'rounded-full px-3 py-1 text-xs font-medium bg-muted text-muted-foreground border-0';
     }
   };
 
-  const getCleaningStatusColor = (status: string) => {
+  const getCleaningBadgeClasses = (status: string) => {
     switch (status) {
-      case 'completed': return 'default';
-      case 'turno_scheduled': return 'secondary';
-      case 'scheduled': return 'outline';
-      case 'pending': return 'destructive';
-      default: return 'outline';
+      case 'completed': return 'rounded-full px-3 py-1 text-xs font-medium bg-green-500/10 text-green-700 dark:text-green-400 border-0';
+      case 'turno_scheduled': return 'rounded-full px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-700 dark:text-blue-400 border-0';
+      case 'scheduled': return 'rounded-full px-3 py-1 text-xs font-medium bg-sky-500/10 text-sky-700 dark:text-sky-400 border-0';
+      case 'pending': return 'rounded-full px-3 py-1 text-xs font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border-0';
+      default: return 'rounded-full px-3 py-1 text-xs font-medium bg-muted text-muted-foreground border-0';
     }
   };
 
