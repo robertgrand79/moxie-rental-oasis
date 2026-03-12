@@ -63,7 +63,7 @@ const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
           <Tooltip>
             <TooltipTrigger asChild>
               <SidebarMenuButton isActive={isChildActive} className="justify-center">
-                <IconComponent className="h-5 w-5" />
+                <IconComponent className="h-5 w-5" strokeWidth={1.5} />
               </SidebarMenuButton>
             </TooltipTrigger>
             <TooltipContent side="right">{item.title}</TooltipContent>
@@ -80,7 +80,7 @@ const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
               isActive={isChildActive && !isOpen}
               className="w-full"
             >
-              <IconComponent className="h-5 w-5" />
+              <IconComponent className="h-5 w-5" strokeWidth={1.5} />
               <span className="font-medium flex-1">{item.title}</span>
               <ChevronRight
                 className={cn(
@@ -110,7 +110,7 @@ const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
                         className="flex items-center gap-2"
                         onClick={(e) => handleLeafClick(child.href!, e)}
                       >
-                        <ChildIcon className="h-4 w-4" />
+                        <ChildIcon className="h-4 w-4" strokeWidth={1.5} />
                         <span>{child.title}</span>
                       </Link>
                     </SidebarMenuSubButton>
@@ -136,7 +136,7 @@ const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
                 className="flex items-center justify-center"
                 onClick={(e) => handleLeafClick(item.href!, e)}
               >
-                <IconComponent className="h-5 w-5" />
+                <IconComponent className="h-5 w-5" strokeWidth={1.5} />
               </Link>
             </SidebarMenuButton>
           </TooltipTrigger>
@@ -154,7 +154,7 @@ const AdminSidebarItem = ({ item }: AdminSidebarItemProps) => {
           className="flex items-center gap-3"
           onClick={(e) => handleLeafClick(item.href!, e)}
         >
-          <IconComponent className="h-5 w-5" />
+          <IconComponent className="h-5 w-5" strokeWidth={1.5} />
           <span className="font-medium">{item.title}</span>
         </Link>
       </SidebarMenuButton>
