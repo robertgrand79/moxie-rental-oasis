@@ -577,7 +577,7 @@ const ModernBookingManagement = () => {
 
             {/* Right side: View Controls */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center border rounded-lg p-1 bg-background">
+              <div className="flex items-center border border-border/40 rounded-xl p-1 bg-background">
                 <Button
                   variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                   size="sm"
