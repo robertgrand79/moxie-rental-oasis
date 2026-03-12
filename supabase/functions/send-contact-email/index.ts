@@ -106,6 +106,95 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('No contact email configured. Please set a Contact Email in Settings.');
     }
 
+    // ==========================================
+    // Store in Guest Inbox + Platform Inbox
+    // ==========================================
+    let threadId: string | null = null;
+    let platformInboxId: string | null = null;
+
+    if (orgId) {
+      // 1. Create/get Guest Inbox thread
+      try {
+        const { data: tid, error: threadError } = await supabaseAdmin
+          .rpc('get_or_create_inbox_thread', {
+            p_organization_id: orgId,
+            p_guest_email: email,
+            p_guest_name: name,
+            p_guest_phone: phone || null,
+          });
+
+        if (threadError) {
+          console.error("Error getting/creating inbox thread:", threadError);
+        } else {
+          threadId = tid;
+          console.log("✅ Guest Inbox thread:", threadId);
+
+          // Store as guest communication
+          const { error: commError } = await supabaseAdmin
+            .from('guest_communications')
+            .insert({
+              thread_id: threadId,
+              message_type: 'email',
+              subject: `Contact Form: ${propertyName ? `Re: ${propertyName}` : 'General Inquiry'}`,
+              message_content: message,
+              direction: 'inbound',
+              sender_email: email,
+              is_read: false,
+              delivery_status: 'received',
+              sent_at: new Date().toISOString(),
+              source_platform: 'contact_form',
+              raw_email_data: {
+                source: 'contact_form',
+                name,
+                email,
+                phone: phone || null,
+                property_name: propertyName || null,
+              },
+            });
+
+          if (commError) {
+            console.error("Error storing guest communication:", commError);
+          } else {
+            console.log("✅ Contact form stored in Guest Inbox");
+          }
+        }
+      } catch (e) {
+        console.error("Error storing in Guest Inbox:", e);
+      }
+
+      // 2. Store in Platform Inbox as a support ticket
+      try {
+        const { data: inboxItem, error: inboxError } = await supabaseAdmin
+          .from('platform_inbox')
+          .insert({
+            type: 'support',
+            category: 'contact_form',
+            subject: `Contact Form: ${name} - ${propertyName ? `Re: ${propertyName}` : 'General Inquiry'}`,
+            description: message,
+            name: name,
+            email: email,
+            organization_id: orgId,
+            priority: 'normal',
+            status: 'open',
+          })
+          .select('id')
+          .single();
+
+        if (inboxError) {
+          console.error("Error storing in Platform Inbox:", inboxError);
+        } else {
+          platformInboxId = inboxItem?.id;
+          console.log("✅ Contact form stored in Platform Inbox:", platformInboxId);
+        }
+      } catch (e) {
+        console.error("Error storing in Platform Inbox:", e);
+      }
+    }
+
+    // ==========================================
+    // Send email notifications (existing logic)
+    // ==========================================
+
     // Email to business owner
     const businessEmailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -228,7 +317,9 @@ const handler = async (req: Request): Promise<Response> => {
         success: true,
         businessEmailId: businessEmailResult.data?.id,
         customerEmailId: customerEmailResult.data?.id,
-        message: 'Contact emails sent successfully'
+        threadId,
+        platformInboxId,
+        message: 'Contact emails sent and stored successfully'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
