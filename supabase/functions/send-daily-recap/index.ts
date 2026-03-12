@@ -384,7 +384,8 @@ const handler = async (req: Request): Promise<Response> => {
         const html = generateEmailHtml(recapData);
         
         // Use org-level Resend key or fall back to global
-        const resendApiKey = org.resend_api_key || Deno.env.get("RESEND_API_KEY");
+        const globalResendApiKey = Deno.env.get("RESEND_API_KEY");
+        const resendApiKey = org.resend_api_key || globalResendApiKey;
         
         if (!resendApiKey) {
           console.log(`No Resend API key configured for ${org.name}`);
@@ -393,19 +394,57 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         const resend = new Resend(resendApiKey);
+        const subject = testEmailOverride
+          ? `[TEST: ${org.name}] Daily Recap - ${formatDate(today)}`
+          : `Daily Recap - ${formatDate(today)}`;
+
+        let sentCount = 0;
+        const failedRecipients: string[] = [];
 
         for (const recipient of recipients) {
-          try {
-            await resend.emails.send({
-              from: `${org.name} <notifications@resend.dev>`,
-              to: [recipient.email],
-              subject: `Daily Recap - ${formatDate(today)}`,
-              html,
-            });
-            console.log(`Email sent to ${recipient.email} for ${org.name}`);
-          } catch (emailError) {
-            console.error(`Failed to send email to ${recipient.email}:`, emailError);
+          const emailPayload = {
+            from: `${org.name} <notifications@resend.dev>`,
+            to: [recipient.email],
+            subject,
+            html,
+          };
+
+          const sendResult = await resend.emails.send(emailPayload);
+
+          // Resend returns errors in response body (not always throw)
+          if (sendResult.error) {
+            // If org-level key fails, try global fallback once
+            if (org.resend_api_key && globalResendApiKey && org.resend_api_key !== globalResendApiKey) {
+              const fallbackResend = new Resend(globalResendApiKey);
+              const fallbackResult = await fallbackResend.emails.send(emailPayload);
+
+              if (!fallbackResult.error) {
+                sentCount += 1;
+                console.log(`Email sent to ${recipient.email} for ${org.name} using global fallback key (id: ${fallbackResult.data?.id})`);
+                continue;
+              }
+
+              failedRecipients.push(`${recipient.email}: ${fallbackResult.error.message}`);
+              console.error(`Failed to send email to ${recipient.email} with org key + fallback for ${org.name}:`, fallbackResult.error);
+              continue;
+            }
+
+            failedRecipients.push(`${recipient.email}: ${sendResult.error.message}`);
+            console.error(`Failed to send email to ${recipient.email} for ${org.name}:`, sendResult.error);
+            continue;
           }
+
+          sentCount += 1;
+          console.log(`Email sent to ${recipient.email} for ${org.name} (id: ${sendResult.data?.id})`);
+        }
+
+        if (failedRecipients.length > 0) {
+          results.push({
+            org: org.name,
+            success: sentCount > 0,
+            error: `Failed ${failedRecipients.length}/${recipients.length} recipients: ${failedRecipients.join("; ")}`,
+          });
+          continue;
         }
 
         results.push({ org: org.name, success: true });
