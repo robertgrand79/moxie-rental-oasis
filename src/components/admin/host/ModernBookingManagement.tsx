@@ -477,7 +477,7 @@ const ModernBookingManagement = () => {
                     })
                   }
                   isUpdating={updateReservation.isPending}
-                  getCleaningStatusColor={getCleaningStatusColor}
+                  getCleaningStatusColor={getCleaningBadgeClasses}
                 />
               )}
             </DialogContent>
