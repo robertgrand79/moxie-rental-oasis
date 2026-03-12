@@ -25,43 +25,43 @@ interface PropertyCardProps {
 
 const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
   return (
-    <Card className="overflow-hidden">
-      <div className="aspect-video bg-gray-200 relative">
+    <Card className="overflow-hidden group hover:shadow-md transition-all duration-200">
+      <div className="aspect-video relative overflow-hidden">
         <ThumbnailImage 
           src={property.image_url} 
           alt={property.title}
-          className="w-full h-full"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
       </div>
-      <CardHeader>
-        <CardTitle className="text-lg">{property.title}</CardTitle>
+      <CardHeader className="p-6 pb-3">
+        <CardTitle className="text-lg font-medium tracking-tight">{property.title}</CardTitle>
         <CardDescription className="flex items-center text-sm">
-          <MapPin className="h-3 w-3 mr-1 text-icon-blue" />
+          <MapPin className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" strokeWidth={1.5} />
           {property.location}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-600 mb-4">{property.description}</p>
+      <CardContent className="p-6 pt-0">
+        <p className="text-sm text-muted-foreground mb-5 line-clamp-2">{property.description}</p>
         
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
-          <div className="flex items-center">
-            <Bed className="h-4 w-4 mr-1 text-icon-purple" />
-            {property.bedrooms} bed
+        <div className="flex items-center justify-between text-sm text-muted-foreground mb-6">
+          <div className="flex items-center gap-1">
+            <Bed className="h-4 w-4" strokeWidth={1.5} />
+            <span>{property.bedrooms} bed</span>
           </div>
-          <div className="flex items-center">
-            <Bath className="h-4 w-4 mr-1 text-icon-teal" />
-            {property.bathrooms} bath
+          <div className="flex items-center gap-1">
+            <Bath className="h-4 w-4" strokeWidth={1.5} />
+            <span>{property.bathrooms} bath</span>
           </div>
-          <div className="flex items-center">
-            <Users className="h-4 w-4 mr-1 text-icon-emerald" />
-            {property.max_guests} guests
+          <div className="flex items-center gap-1">
+            <Users className="h-4 w-4" strokeWidth={1.5} />
+            <span>{property.max_guests} guests</span>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 justify-end">
+        <div className="flex flex-col sm:flex-row gap-2 justify-end pt-4 border-t border-border/30">
           <Link to={`/booking/${property.id}`} className="w-full sm:w-auto">
             <Button variant="default" size="sm" className="w-full sm:w-auto min-h-[44px]">
-              <Calendar className="h-4 w-4 mr-2" />
+              <Calendar className="h-4 w-4 mr-2" strokeWidth={1.5} />
               Book Now
             </Button>
           </Link>
@@ -71,7 +71,7 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
             onClick={() => onEdit(property.id)}
             className="min-h-[44px]"
           >
-            <Edit className="h-4 w-4 mr-2 text-icon-amber" />
+            <Edit className="h-4 w-4 mr-2" strokeWidth={1.5} />
             Edit
           </Button>
           <AlertDialog>
@@ -79,9 +79,9 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
               <Button 
                 variant="outline" 
                 size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 min-h-[44px]"
+                className="text-destructive hover:text-destructive hover:bg-destructive/5 min-h-[44px]"
               >
-                <Trash2 className="h-4 w-4 mr-2 text-icon-rose" />
+                <Trash2 className="h-4 w-4 mr-2" strokeWidth={1.5} />
                 Delete
               </Button>
             </AlertDialogTrigger>
@@ -96,7 +96,7 @@ const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction 
                   onClick={() => onDelete(property.id)}
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   Delete Property
                 </AlertDialogAction>

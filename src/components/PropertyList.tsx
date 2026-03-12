@@ -32,38 +32,21 @@ const PropertyList = ({
   if (!Array.isArray(safeProperties) || safeProperties.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">No properties found.</p>
+        <p className="text-muted-foreground">No properties found.</p>
       </div>
     );
   }
 
   // Helper function to get the best image URL for thumbnail display
   const getBestImageUrl = (property: Property): string | null => {
-    // Priority: cover_image_url > image_url > images[0]
-    if (property.cover_image_url) {
-      console.log('🖼️ Using cover_image_url:', property.cover_image_url);
-      return property.cover_image_url;
-    }
-    
-    if (property.image_url) {
-      console.log('🖼️ Using image_url:', property.image_url);
-      return property.image_url;
-    }
-    
-    if (property.images && Array.isArray(property.images) && property.images.length > 0) {
-      console.log('🖼️ Using first image from array:', property.images[0]);
-      return property.images[0];
-    }
-    
-    console.log('🖼️ No image found for property:', property.title);
+    if (property.cover_image_url) return property.cover_image_url;
+    if (property.image_url) return property.image_url;
+    if (property.images && Array.isArray(property.images) && property.images.length > 0) return property.images[0];
     return null;
   };
 
   const handleDeleteClick = (id: string, title: string) => {
-    if (deletingProperties.has(id)) {
-      return; // Prevent multiple deletion attempts
-    }
-    
+    if (deletingProperties.has(id)) return;
     if (window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
       onDelete?.(id);
     }
@@ -80,11 +63,7 @@ const PropertyList = ({
       <ImagePreloader images={priorityImages} priority={true} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {safeProperties.map((property) => {
-        // Additional safety check for individual property
-        if (!property || !property.id) {
-          console.warn('PropertyList: Skipping invalid property', property);
-          return null;
-        }
+        if (!property || !property.id) return null;
 
         const isDeleting = deletingProperties.has(property.id);
         const addressSlug = generateAddressSlug(property.location || '');
@@ -93,7 +72,7 @@ const PropertyList = ({
         return (
           <Card 
             key={property.id} 
-            className={`group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-md ${
+            className={`group overflow-hidden hover:shadow-md transition-all duration-200 ${
               isDeleting ? 'opacity-50 pointer-events-none' : ''
             }`}
           >
@@ -102,17 +81,17 @@ const PropertyList = ({
                 <OptimizedImage
                   src={imageUrl}
                   alt={property.title || 'Property image'}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   fallbackIcon={true}
                   width={400}
                   height={300}
-                  priority={safeProperties.indexOf(property) < 6} // Prioritize first 6 images
+                  priority={safeProperties.indexOf(property) < 6}
                   quality={85}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
               ) : (
-                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                  <div className="text-center text-gray-400">
+                <div className="w-full h-full bg-muted/50 flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
                     <div className="text-2xl mb-2">🏠</div>
                     <div className="text-sm">No image available</div>
                   </div>
@@ -120,14 +99,14 @@ const PropertyList = ({
               )}
             </div>
             
-            <CardHeader className="p-6">
+            <CardHeader className="p-6 pb-3">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <CardTitle className="font-bold text-lg mb-2 line-clamp-2 text-gray-900 min-h-[3.5rem]">
+                  <CardTitle className="font-medium tracking-tight text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
                     {property.title || 'Untitled Property'}
                   </CardTitle>
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <MapPin className="h-4 w-4 mr-1 flex-shrink-0 text-icon-blue" />
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" strokeWidth={1.5} />
                     <span className="line-clamp-1">{property.location || 'Location not specified'}</span>
                   </div>
                 </div>
@@ -135,33 +114,33 @@ const PropertyList = ({
             </CardHeader>
             
             <CardContent className="p-6 pt-0">
-              <p className="text-gray-700 text-sm line-clamp-3 mb-4">
+              <p className="text-muted-foreground text-sm line-clamp-3 mb-5">
                 {property.description || 'No description available'}
               </p>
               
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
-                <div className="flex items-center">
-                  <Bed className="h-4 w-4 mr-1 text-icon-purple" />
+              <div className="flex items-center justify-between text-sm text-muted-foreground mb-6">
+                <div className="flex items-center gap-1">
+                  <Bed className="h-4 w-4" strokeWidth={1.5} />
                   <span>{property.bedrooms || 0}</span>
                 </div>
-                <div className="flex items-center">
-                  <Bath className="h-4 w-4 mr-1 text-icon-teal" />
+                <div className="flex items-center gap-1">
+                  <Bath className="h-4 w-4" strokeWidth={1.5} />
                   <span>{property.bathrooms || 0}</span>
                 </div>
-                <div className="flex items-center">
-                  <Users className="h-4 w-4 mr-1 text-icon-emerald" />
+                <div className="flex items-center gap-1">
+                  <Users className="h-4 w-4" strokeWidth={1.5} />
                   <span>{property.max_guests || 0}</span>
                 </div>
               </div>
 
               {property.amenities && (
                 <div className="mb-6">
-                  <p className="text-xs text-gray-500 font-medium mb-2">Amenities:</p>
-                  <p className="text-sm text-gray-700 line-clamp-2">{property.amenities}</p>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2">Amenities</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{property.amenities}</p>
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-4 border-t border-border/30">
                 {!showActions && (
                   <Link to={`/property/${addressSlug}`} className="flex-1">
                     <Button size="sm" className="w-full min-h-[40px]">
@@ -178,7 +157,7 @@ const PropertyList = ({
                       onClick={() => onEdit?.(property)}
                       disabled={isDeleting}
                     >
-                      <Edit3 className="h-4 w-4" />
+                      <Edit3 className="h-4 w-4" strokeWidth={1.5} />
                     </Button>
                     <Button
                       variant="outline"
@@ -190,7 +169,7 @@ const PropertyList = ({
                       {isDeleting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" strokeWidth={1.5} />
                       )}
                     </Button>
                   </>
