@@ -121,14 +121,50 @@ export const useNotifications = () => {
   // Archive notification mutation
   const archiveMutation = useMutation({
     mutationFn: async (notificationId: string) => {
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('admin_notifications')
         .update({ is_archived: true })
-        .eq('id', notificationId);
+        .eq('id', notificationId)
+        .select('id');
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('No rows updated — possible RLS restriction');
+      }
+      return data;
     },
-    onSuccess: () => {
+    onMutate: async (notificationId: string) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['admin-notifications'] });
+      
+      // Snapshot previous value
+      const previousNotifications = queryClient.getQueryData(['admin-notifications', organization?.id, user?.id]);
+      
+      // Optimistically remove the notification from the list
+      queryClient.setQueryData(
+        ['admin-notifications', organization?.id, user?.id],
+        (old: AdminNotification[] | undefined) => 
+          old ? old.filter(n => n.id !== notificationId) : []
+      );
+      
+      return { previousNotifications };
+    },
+    onError: (err, _notificationId, context) => {
+      // Rollback on error
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(
+          ['admin-notifications', organization?.id, user?.id],
+          context.previousNotifications
+        );
+      }
+      console.error('Archive failed:', err);
+      toast({
+        title: 'Failed to archive',
+        description: 'Could not archive the notification. Please try again.',
+        variant: 'destructive',
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
     },
   });
