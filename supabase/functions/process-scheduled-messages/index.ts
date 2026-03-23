@@ -58,15 +58,16 @@ async function getOrgSettings(supabase: any, organizationId: string): Promise<{
   openPhoneApiKey: string | null;
   siteName: string;
   contactEmail: string;
+  inboundEmailPrefix: string | null;
 }> {
   if (!organizationId) {
-    return { resendApiKey: null, openPhoneApiKey: null, siteName: '', contactEmail: '' };
+    return { resendApiKey: null, openPhoneApiKey: null, siteName: '', contactEmail: '', inboundEmailPrefix: null };
   }
 
   // Get organization API keys
   const { data: org } = await supabase
     .from('organizations')
-    .select('resend_api_key, openphone_api_key, name')
+    .select('resend_api_key, openphone_api_key, name, inbound_email_prefix')
     .eq('id', organizationId)
     .single();
 
@@ -87,6 +88,7 @@ async function getOrgSettings(supabase: any, organizationId: string): Promise<{
     openPhoneApiKey: org?.openphone_api_key || null,
     siteName: settingsMap.siteName || org?.name || '',
     contactEmail: settingsMap.contactEmail || '',
+    inboundEmailPrefix: org?.inbound_email_prefix || null,
   };
 }
 
@@ -195,7 +197,10 @@ serve(async (req) => {
         // Use org-specific sender info or fall back to global
         const fromName = orgSettings?.siteName || globalFromName;
         const fromEmail = globalFromEmail; // Always use verified sender
-        const replyTo = orgSettings?.contactEmail || globalReplyTo;
+        // Prefer org's dedicated inbox address for reply routing
+        const replyTo = orgSettings?.inboundEmailPrefix 
+          ? `${orgSettings.inboundEmailPrefix}@inbox.staymoxie.com`
+          : (orgSettings?.contactEmail || globalReplyTo);
         
         const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
