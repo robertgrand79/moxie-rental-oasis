@@ -117,6 +117,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
   onMarkAsRead,
   onMarkAllAsRead,
   onArchive,
+  onArchiveAll,
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
