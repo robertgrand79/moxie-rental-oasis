@@ -88,6 +88,7 @@ async function getOrgSettings(supabase: any, organizationId: string): Promise<{
     openPhoneApiKey: org?.openphone_api_key || null,
     siteName: settingsMap.siteName || org?.name || '',
     contactEmail: settingsMap.contactEmail || '',
+    inboundEmailPrefix: org?.inbound_email_prefix || null,
   };
 }
 
