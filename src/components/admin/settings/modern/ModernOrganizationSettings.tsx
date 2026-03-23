@@ -12,7 +12,8 @@ import {
   Calendar, 
   RefreshCw,
   Save,
-  CheckCircle2
+  CheckCircle2,
+  Mail
 } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationOperations } from '@/hooks/useOrganizationOperations';
@@ -28,6 +29,7 @@ const ModernOrganizationSettings: React.FC = () => {
     name: '',
     slug: '',
     website: '',
+    inbound_email_prefix: '',
   });
 
   const [domainDrawerOpen, setDomainDrawerOpen] = useState(false);
@@ -39,6 +41,7 @@ const ModernOrganizationSettings: React.FC = () => {
         name: organization.name || '',
         slug: organization.slug || '',
         website: organization.website || '',
+        inbound_email_prefix: (organization as any).inbound_email_prefix || '',
       });
     }
   }, [organization]);
@@ -51,6 +54,7 @@ const ModernOrganizationSettings: React.FC = () => {
       name: formData.name,
       slug: formData.slug,
       website: formData.website,
+      inbound_email_prefix: formData.inbound_email_prefix || undefined,
     });
     refetch();
   };
@@ -207,6 +211,30 @@ const ModernOrganizationSettings: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                 disabled={!isOrgAdmin()}
               />
+            </div>
+
+            {/* Inbound Email Prefix */}
+            <div className="space-y-2">
+              <Label htmlFor="inbound_email_prefix" className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                Inbound Email Prefix
+              </Label>
+              <div className="flex items-center gap-0">
+                <Input
+                  id="inbound_email_prefix"
+                  placeholder={formData.slug || 'your-prefix'}
+                  value={formData.inbound_email_prefix}
+                  onChange={(e) => setFormData({ ...formData, inbound_email_prefix: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                  disabled={!isOrgAdmin()}
+                  className="rounded-r-none border-r-0"
+                />
+                <span className="inline-flex items-center px-3 h-9 border border-input bg-muted text-muted-foreground text-sm rounded-r-md whitespace-nowrap">
+                  @inbox.staymoxie.com
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This is your dedicated Stay Moxie inbox address. Any emails sent here will automatically appear in your Unified Inbox.
+              </p>
             </div>
             {isOrgAdmin() && (
               <Button type="submit" disabled={updating} className="gap-2">

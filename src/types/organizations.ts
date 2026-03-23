@@ -33,6 +33,7 @@ export interface Organization {
   turno_partner_id: string | null;
   apify_api_key: string | null;
   openweather_api_key: string | null;
+  inbound_email_prefix: string | null;
   // Subscription
   subscription_status: string;
   subscription_tier: string;
@@ -79,6 +80,7 @@ export interface UpdateOrganizationData {
   turno_partner_id?: string;
   apify_api_key?: string;
   openweather_api_key?: string;
+  inbound_email_prefix?: string;
 }
 
 export interface InviteOrganizationMemberData {
