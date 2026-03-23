@@ -54,6 +54,7 @@ const ModernOrganizationSettings: React.FC = () => {
       name: formData.name,
       slug: formData.slug,
       website: formData.website,
+      inbound_email_prefix: formData.inbound_email_prefix || undefined,
     });
     refetch();
   };
