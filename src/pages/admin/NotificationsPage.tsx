@@ -21,6 +21,9 @@ const NotificationsPage: React.FC = () => {
     markAsRead, 
     markAllAsRead, 
     archiveNotification,
+    bulkArchive,
+    archiveAll,
+    isArchivingAll,
     unreadCount
   } = useNotifications();
   
