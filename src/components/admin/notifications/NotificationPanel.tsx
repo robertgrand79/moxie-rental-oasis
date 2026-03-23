@@ -5,6 +5,7 @@ import {
   CheckCheck, 
   Settings, 
   Filter,
+  Archive,
   CalendarCheck,
   MessageSquare,
   Wrench,
