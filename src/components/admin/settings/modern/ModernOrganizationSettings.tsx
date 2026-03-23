@@ -29,6 +29,7 @@ const ModernOrganizationSettings: React.FC = () => {
     name: '',
     slug: '',
     website: '',
+    inbound_email_prefix: '',
   });
 
   const [domainDrawerOpen, setDomainDrawerOpen] = useState(false);
