@@ -103,7 +103,7 @@ const NotificationsPage: React.FC = () => {
   };
 
   const handleBulkArchive = () => {
-    selectedIds.forEach(id => archiveNotification(id));
+    bulkArchive(Array.from(selectedIds));
     setSelectedIds(new Set());
   };
 
