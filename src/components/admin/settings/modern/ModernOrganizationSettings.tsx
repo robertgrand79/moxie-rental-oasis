@@ -41,6 +41,7 @@ const ModernOrganizationSettings: React.FC = () => {
         name: organization.name || '',
         slug: organization.slug || '',
         website: organization.website || '',
+        inbound_email_prefix: (organization as any).inbound_email_prefix || '',
       });
     }
   }, [organization]);
