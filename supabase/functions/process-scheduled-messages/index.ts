@@ -58,6 +58,7 @@ async function getOrgSettings(supabase: any, organizationId: string): Promise<{
   openPhoneApiKey: string | null;
   siteName: string;
   contactEmail: string;
+  inboundEmailPrefix: string | null;
 }> {
   if (!organizationId) {
     return { resendApiKey: null, openPhoneApiKey: null, siteName: '', contactEmail: '' };
