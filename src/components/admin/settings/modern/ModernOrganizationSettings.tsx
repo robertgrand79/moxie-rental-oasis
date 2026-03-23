@@ -12,7 +12,8 @@ import {
   Calendar, 
   RefreshCw,
   Save,
-  CheckCircle2
+  CheckCircle2,
+  Mail
 } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationOperations } from '@/hooks/useOrganizationOperations';
