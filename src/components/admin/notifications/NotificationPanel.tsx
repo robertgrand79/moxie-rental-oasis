@@ -35,6 +35,7 @@ interface NotificationPanelProps {
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
   onArchive: (id: string) => void;
+  onArchiveAll?: () => void;
   onClose: () => void;
 }
 
