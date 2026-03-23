@@ -1,5 +1,5 @@
 
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "npm:resend@6.9.4";
 
 export async function sendWorkOrderEmail(
   workOrder: any,
