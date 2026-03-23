@@ -312,6 +312,57 @@ const DomainSettingsTab = () => {
         </CardContent>
       </Card>
 
+      {/* Email Addresses */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Email Addresses
+          </CardTitle>
+          <CardDescription>Email addresses associated with your site</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Notification Sender */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+            <div>
+              <p className="font-medium">Notification Sender</p>
+              <p className="text-sm text-muted-foreground">
+                notifications@resend.dev
+              </p>
+            </div>
+            <Badge variant="outline">Outbound</Badge>
+          </div>
+
+          {/* Inbound Email */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+            <div>
+              <p className="font-medium">Inbound Email</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-primary font-mono">
+                  {(organization as any)?.inbound_email_prefix || organization?.slug}@inbox.staymoxie.com
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => copyToClipboard(
+                    `${(organization as any)?.inbound_email_prefix || organization?.slug}@inbox.staymoxie.com`,
+                    'inbound-email'
+                  )}
+                >
+                  {copiedField === 'inbound-email' ? (
+                    <Check className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+            </div>
+            <Badge variant="outline">Inbound</Badge>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Add/Edit Custom Domain */}
       <Card>
         <CardHeader>
