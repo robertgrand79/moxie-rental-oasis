@@ -5678,6 +5678,7 @@ export type Database = {
           domain_verification_status: string | null
           domain_verified_at: string | null
           id: string
+          inbound_email_prefix: string | null
           is_active: boolean | null
           is_template: boolean | null
           is_template_source: boolean | null
@@ -5730,6 +5731,7 @@ export type Database = {
           domain_verification_status?: string | null
           domain_verified_at?: string | null
           id?: string
+          inbound_email_prefix?: string | null
           is_active?: boolean | null
           is_template?: boolean | null
           is_template_source?: boolean | null
@@ -5782,6 +5784,7 @@ export type Database = {
           domain_verification_status?: string | null
           domain_verified_at?: string | null
           id?: string
+          inbound_email_prefix?: string | null
           is_active?: boolean | null
           is_template?: boolean | null
           is_template_source?: boolean | null

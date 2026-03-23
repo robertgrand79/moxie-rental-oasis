@@ -151,9 +151,15 @@ serve(async (req: Request): Promise<Response> => {
     if (orgId) {
       const { data: org } = await supabase
         .from("organizations")
-        .select("resend_api_key")
+        .select("resend_api_key, inbound_email_prefix")
         .eq("id", orgId)
         .single();
+
+      // Use org-specific inbound email prefix for Reply-To if available
+      if (org?.inbound_email_prefix) {
+        replyTo = `${org.inbound_email_prefix}@inbox.staymoxie.com`;
+        console.log("[send-guest-email] Using org inbound Reply-To:", replyTo);
+      }
 
       if (org?.resend_api_key) {
         resendApiKey = org.resend_api_key;
