@@ -197,7 +197,10 @@ serve(async (req) => {
         // Use org-specific sender info or fall back to global
         const fromName = orgSettings?.siteName || globalFromName;
         const fromEmail = globalFromEmail; // Always use verified sender
-        const replyTo = orgSettings?.contactEmail || globalReplyTo;
+        // Prefer org's dedicated inbox address for reply routing
+        const replyTo = orgSettings?.inboundEmailPrefix 
+          ? `${orgSettings.inboundEmailPrefix}@inbox.staymoxie.com`
+          : (orgSettings?.contactEmail || globalReplyTo);
         
         const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
