@@ -5,6 +5,7 @@ import {
   CheckCheck, 
   Settings, 
   Filter,
+  Archive,
   CalendarCheck,
   MessageSquare,
   Wrench,
@@ -35,6 +36,7 @@ interface NotificationPanelProps {
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
   onArchive: (id: string) => void;
+  onArchiveAll?: () => void;
   onClose: () => void;
 }
 
@@ -116,6 +118,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
   onMarkAsRead,
   onMarkAllAsRead,
   onArchive,
+  onArchiveAll,
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
@@ -210,6 +213,17 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
             >
               <CheckCheck className="h-3.5 w-3.5 mr-1" />
               Mark all read
+            </Button>
+          )}
+          {onArchiveAll && notifications.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs whitespace-nowrap"
+              onClick={onArchiveAll}
+            >
+              <Archive className="h-3.5 w-3.5 mr-1" />
+              Clear all
             </Button>
           )}
         </div>

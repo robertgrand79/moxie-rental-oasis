@@ -169,6 +169,57 @@ export const useNotifications = () => {
     },
   });
 
+  // Bulk archive mutation
+  const bulkArchiveMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase
+        .from('admin_notifications')
+        .update({ is_archived: true })
+        .in('id', ids);
+      if (error) throw error;
+    },
+    onMutate: async (ids: string[]) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-notifications'] });
+      const previousNotifications = queryClient.getQueryData(['admin-notifications', organization?.id, user?.id]);
+      queryClient.setQueryData(
+        ['admin-notifications', organization?.id, user?.id],
+        (old: AdminNotification[] | undefined) =>
+          old ? old.filter(n => !ids.includes(n.id)) : []
+      );
+      return { previousNotifications };
+    },
+    onError: (_err, _ids, context) => {
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(
+          ['admin-notifications', organization?.id, user?.id],
+          context.previousNotifications
+        );
+      }
+      toast({ title: 'Failed to archive', variant: 'destructive' });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+    },
+  });
+
+  // Archive all visible notifications
+  const archiveAllMutation = useMutation({
+    mutationFn: async () => {
+      if (!organization?.id || !user?.id) return;
+      const { error } = await supabase
+        .from('admin_notifications')
+        .update({ is_archived: true })
+        .eq('organization_id', organization.id)
+        .eq('is_archived', false)
+        .or(`user_id.is.null,user_id.eq.${user.id}`);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+      toast({ title: 'All notifications archived' });
+    },
+  });
+
   // Real-time subscription for new notifications
   useEffect(() => {
     if (!organization?.id || !user?.id) return;
@@ -240,8 +291,11 @@ export const useNotifications = () => {
     markAsRead: markAsReadMutation.mutate,
     markAllAsRead: markAllAsReadMutation.mutate,
     archiveNotification: archiveMutation.mutate,
+    bulkArchive: bulkArchiveMutation.mutate,
+    archiveAll: archiveAllMutation.mutate,
     isMarkingAsRead: markAsReadMutation.isPending,
     isMarkingAllAsRead: markAllAsReadMutation.isPending,
+    isArchivingAll: archiveAllMutation.isPending,
   };
 };
 

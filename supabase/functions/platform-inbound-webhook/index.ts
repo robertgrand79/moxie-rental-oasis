@@ -429,22 +429,48 @@ async function routeToGuestInbox(
       })
       .eq('id', inboxThreadId);
 
-    // Create admin notification
-    await createAdminNotification(supabase, {
-      organizationId,
-      notificationType: NOTIFICATION_TYPES.GUEST_MESSAGE,
-      category: NOTIFICATION_CATEGORIES.COMMUNICATIONS,
-      title: `New Email from ${guestName || senderInfo.email}`,
-      message: emailData.subject || '(No Subject)',
-      actionUrl: `/admin/host/inbox/${inboxThreadId}`,
-      metadata: {
-        thread_id: inboxThreadId,
-        reservation_id: reservationId,
-        sender_email: senderInfo.email,
-        message_type: 'email',
-      },
-      priority: 'normal',
-    });
+    // Create admin notification (with dedup - check for existing from same sender within 1 hour)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: existingNotif } = await supabase
+      .from('admin_notifications')
+      .select('id, metadata')
+      .eq('organization_id', organizationId)
+      .eq('notification_type', NOTIFICATION_TYPES.GUEST_MESSAGE)
+      .eq('is_read', false)
+      .eq('is_archived', false)
+      .gte('created_at', oneHourAgo)
+      .contains('metadata', { sender_email: senderInfo.email })
+      .limit(1)
+      .single();
+
+    if (existingNotif) {
+      const count = ((existingNotif.metadata as any)?.email_count || 1) + 1;
+      await supabase
+        .from('admin_notifications')
+        .update({
+          message: `${emailData.subject || '(No Subject)'} (+${count} emails)`,
+          created_at: new Date().toISOString(),
+          metadata: { ...(existingNotif.metadata as any), email_count: count },
+        })
+        .eq('id', existingNotif.id);
+    } else {
+      await createAdminNotification(supabase, {
+        organizationId,
+        notificationType: NOTIFICATION_TYPES.GUEST_MESSAGE,
+        category: NOTIFICATION_CATEGORIES.COMMUNICATIONS,
+        title: `New Email from ${guestName || senderInfo.email}`,
+        message: emailData.subject || '(No Subject)',
+        actionUrl: `/admin/host/inbox/${inboxThreadId}`,
+        metadata: {
+          thread_id: inboxThreadId,
+          reservation_id: reservationId,
+          sender_email: senderInfo.email,
+          message_type: 'email',
+          email_count: 1,
+        },
+        priority: 'normal',
+      });
+    }
 
     console.log("[GuestInbox] Successfully routed email to guest inbox:", comm?.id);
   } catch (error) {

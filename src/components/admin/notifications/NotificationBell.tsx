@@ -19,6 +19,7 @@ const NotificationBell: React.FC = () => {
     markAsRead,
     markAllAsRead,
     archiveNotification,
+    archiveAll,
   } = useNotifications();
 
   return (
@@ -59,6 +60,7 @@ const NotificationBell: React.FC = () => {
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
           onArchive={archiveNotification}
+          onArchiveAll={archiveAll}
           onClose={() => setOpen(false)}
         />
       </PopoverContent>

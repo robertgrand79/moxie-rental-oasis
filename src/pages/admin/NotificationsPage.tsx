@@ -21,6 +21,9 @@ const NotificationsPage: React.FC = () => {
     markAsRead, 
     markAllAsRead, 
     archiveNotification,
+    bulkArchive,
+    archiveAll,
+    isArchivingAll,
     unreadCount
   } = useNotifications();
   
@@ -100,7 +103,7 @@ const NotificationsPage: React.FC = () => {
   };
 
   const handleBulkArchive = () => {
-    selectedIds.forEach(id => archiveNotification(id));
+    bulkArchive(Array.from(selectedIds));
     setSelectedIds(new Set());
   };
 
@@ -120,14 +123,24 @@ const NotificationsPage: React.FC = () => {
               {notifications.length} total
             </Badge>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={() => markAllAsRead()}
-            disabled={unreadCount === 0}
-          >
-            <Check className="h-4 w-4 mr-2" />
-            Mark all as read
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => markAllAsRead()}
+              disabled={unreadCount === 0}
+            >
+              <Check className="h-4 w-4 mr-2" />
+              Mark all as read
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => archiveAll()}
+              disabled={notifications.length === 0 || isArchivingAll}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Archive all
+            </Button>
+          </div>
         </div>
 
         {/* Search and Filters */}

@@ -284,23 +284,49 @@ serve(async (req) => {
 
       console.log(`✓ Inbound email stored for reservation ${reservation.id}:`, insertedComm?.id);
 
-      // Create notification for inbound guest email
+      // Create notification for inbound guest email (with dedup)
       if (property?.organization_id) {
-        await createAdminNotification(supabase, {
-          organizationId: property.organization_id,
-          notificationType: NOTIFICATION_TYPES.GUEST_MESSAGE,
-          category: NOTIFICATION_CATEGORIES.COMMUNICATIONS,
-          title: `New Email from ${reservation.guest_name}`,
-          message: emailData.subject || "(No Subject)",
-          actionUrl: `/admin/host/inbox/${threadId}`,
-          metadata: {
-            thread_id: threadId,
-            reservation_id: reservation.id,
-            sender_email: senderEmail,
-            message_type: 'email',
-          },
-          priority: 'normal',
-        });
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { data: existingNotif } = await supabase
+          .from('admin_notifications')
+          .select('id, metadata')
+          .eq('organization_id', property.organization_id)
+          .eq('notification_type', NOTIFICATION_TYPES.GUEST_MESSAGE)
+          .eq('is_read', false)
+          .eq('is_archived', false)
+          .gte('created_at', oneHourAgo)
+          .contains('metadata', { sender_email: senderEmail })
+          .limit(1)
+          .single();
+
+        if (existingNotif) {
+          const count = ((existingNotif.metadata as any)?.email_count || 1) + 1;
+          await supabase
+            .from('admin_notifications')
+            .update({
+              message: `${emailData.subject || "(No Subject)"} (+${count} emails)`,
+              created_at: new Date().toISOString(),
+              metadata: { ...(existingNotif.metadata as any), email_count: count },
+            })
+            .eq('id', existingNotif.id);
+        } else {
+          await createAdminNotification(supabase, {
+            organizationId: property.organization_id,
+            notificationType: NOTIFICATION_TYPES.GUEST_MESSAGE,
+            category: NOTIFICATION_CATEGORIES.COMMUNICATIONS,
+            title: `New Email from ${reservation.guest_name}`,
+            message: emailData.subject || "(No Subject)",
+            actionUrl: `/admin/host/inbox/${threadId}`,
+            metadata: {
+              thread_id: threadId,
+              reservation_id: reservation.id,
+              sender_email: senderEmail,
+              message_type: 'email',
+              email_count: 1,
+            },
+            priority: 'normal',
+          });
+        }
       }
 
       return new Response(
