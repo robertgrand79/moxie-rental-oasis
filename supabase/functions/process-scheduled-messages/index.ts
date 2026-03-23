@@ -66,7 +66,7 @@ async function getOrgSettings(supabase: any, organizationId: string): Promise<{
   // Get organization API keys
   const { data: org } = await supabase
     .from('organizations')
-    .select('resend_api_key, openphone_api_key, name')
+    .select('resend_api_key, openphone_api_key, name, inbound_email_prefix')
     .eq('id', organizationId)
     .single();
 
