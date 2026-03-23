@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   Clock,
   Trash2,
-  Shield
+  Shield,
+  Mail
 } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationOperations } from '@/hooks/useOrganizationOperations';
