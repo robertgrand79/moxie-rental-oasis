@@ -1,21 +1,52 @@
 
 
-## Plan: Migrate Test Bookings & Add Pagination (COMPLETED)
+## Problem
 
-### What was done
+Archiving notifications **does work** at the database level (242 archived, 185 active). The real issue is that every inbound email creates a new `admin_notification`, resulting in massive duplicates:
+- 42 notifications from `info@turno.com`
+- 28 from `support@hospitable.com`  
+- 27 "Work Order Assigned to You"
+- 13 from `automated@airbnb.com`
 
-1. **Migrated 5,000 test bookings** from `reservations` → `property_reservations` for Test Org (`297f9511-...`)
-   - Temporarily disabled validation triggers (`validate_reservation_insert`, `on_reservation_created_schedule_messages`) for bulk insert
-   - Used COALESCE for nullable fields (guest_email generated as `guest{N}@test.example.com`)
-   - All enterprise columns defaulted: `cleaning_status='pending'`, `currency='USD'`, `source_platform='direct'`
-   - Triggers re-enabled after migration
+When you archive one, dozens of identical-looking ones remain, making it appear that archiving doesn't work.
 
-2. **Added server-side pagination** to `ModernBookingManagement.tsx`
-   - `currentPage` state with 50 items per page
-   - Supabase query uses `{ count: 'exact' }` and `.range(start, end)`
-   - Status filter is now server-side (resets page to 1 on change)
-   - Integrated `PaginationControls` component below the booking list
+## Plan
 
-3. **Fixed stats to query full dataset**
-   - Separate React Query (`bookings-stats`) fetches all records' `booking_status` and `total_amount`
-   - Stats reflect all 5,000 bookings regardless of current pagination page
+### 1. Add bulk archive capability
+- **NotificationsPage.tsx**: Add a "Archive Selected" button to the bulk actions bar (already has multi-select with checkboxes)
+- **useNotifications.ts**: Add a `bulkArchive(ids: string[])` mutation that archives multiple notifications in one call
+- Add an "Archive All" / "Clear All" button to quickly dismiss all visible notifications
+
+### 2. Deduplicate email notifications  
+- **resend-inbound-webhook** and **platform-inbound-webhook**: Before creating a new `admin_notification`, check if an unread notification with the same sender already exists within the last hour. If so, update the existing one's message/timestamp instead of creating a duplicate.
+- This prevents the same sender from generating dozens of separate notifications.
+
+### 3. Bulk cleanup of existing duplicates
+- Run a one-time SQL cleanup to archive the 185 existing duplicate/noise notifications (turno.com, hospitable.com, pinterest.com, airbnb.com automated emails) so the inbox starts clean.
+
+## Technical Details
+
+**Bulk archive mutation** (useNotifications.ts):
+```typescript
+const bulkArchiveMutation = useMutation({
+  mutationFn: async (ids: string[]) => {
+    const { error } = await supabase
+      .from('admin_notifications')
+      .update({ is_archived: true })
+      .in('id', ids);
+    if (error) throw error;
+  },
+  // optimistic update + invalidation
+});
+```
+
+**Deduplication check** (edge functions):
+Before inserting, query for an existing unread notification from the same sender within 1 hour. If found, update its `created_at` and append a count instead of inserting.
+
+**Files to modify:**
+- `src/hooks/useNotifications.ts` — add `bulkArchive` and `archiveAll` mutations
+- `src/pages/admin/NotificationsPage.tsx` — add bulk archive UI buttons
+- `src/components/admin/notifications/NotificationPanel.tsx` — add "Clear all" option
+- `supabase/functions/resend-inbound-webhook/index.ts` — deduplicate notifications
+- `supabase/functions/platform-inbound-webhook/index.ts` — deduplicate notifications
+
