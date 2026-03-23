@@ -214,6 +214,17 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
               Mark all read
             </Button>
           )}
+          {onArchiveAll && notifications.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs whitespace-nowrap"
+              onClick={onArchiveAll}
+            >
+              <Archive className="h-3.5 w-3.5 mr-1" />
+              Clear all
+            </Button>
+          )}
         </div>
       </div>
 

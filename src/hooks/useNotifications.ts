@@ -291,8 +291,11 @@ export const useNotifications = () => {
     markAsRead: markAsReadMutation.mutate,
     markAllAsRead: markAllAsReadMutation.mutate,
     archiveNotification: archiveMutation.mutate,
+    bulkArchive: bulkArchiveMutation.mutate,
+    archiveAll: archiveAllMutation.mutate,
     isMarkingAsRead: markAsReadMutation.isPending,
     isMarkingAllAsRead: markAllAsReadMutation.isPending,
+    isArchivingAll: archiveAllMutation.isPending,
   };
 };
 
