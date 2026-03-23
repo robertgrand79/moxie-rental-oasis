@@ -19,6 +19,7 @@ const NotificationBell: React.FC = () => {
     markAsRead,
     markAllAsRead,
     archiveNotification,
+    archiveAll,
   } = useNotifications();
 
   return (
