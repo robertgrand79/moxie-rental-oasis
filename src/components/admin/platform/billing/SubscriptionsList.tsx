@@ -19,10 +19,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, ExternalLink, Building2 } from 'lucide-react';
+import { Search, ExternalLink, Building2, Gift } from 'lucide-react';
 import { usePlatformBilling } from '@/hooks/usePlatformBilling';
 import { formatDistanceToNow, format, isBefore, addDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import CompAccountDialog from './CompAccountDialog';
 
 const SubscriptionsList = () => {
   const { subscriptions, loadingSubscriptions } = usePlatformBilling();
@@ -31,6 +32,7 @@ const SubscriptionsList = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tierFilter, setTierFilter] = useState<string>('all');
+  const [compTarget, setCompTarget] = useState<{ id: string; name: string; tier: string | null; status: string | null; isComped: boolean } | null>(null);
 
   const filteredSubscriptions = useMemo(() => {
     if (!subscriptions) return [];
