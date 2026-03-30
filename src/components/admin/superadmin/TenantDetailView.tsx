@@ -50,6 +50,7 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [isProvisioning, setIsProvisioning] = useState(false);
   const [showCompDialog, setShowCompDialog] = useState(false);
+  const [showDiscountDialog, setShowDiscountDialog] = useState(false);
 
   // Handle View As Tenant - switch to this organization
   const handleViewAsTenant = async () => {
