@@ -97,7 +97,7 @@ export const usePlatformBilling = () => {
     queryFn: async (): Promise<OrganizationSubscription[]> => {
       const { data, error } = await supabase
         .from('organizations')
-        .select('id, name, subscription_status, subscription_tier, trial_ends_at, stripe_customer_id, created_at')
+        .select('id, name, subscription_status, subscription_tier, trial_ends_at, stripe_customer_id, created_at, discount_percent, discount_notes')
         .eq('is_template', false)
         .order('created_at', { ascending: false });
 

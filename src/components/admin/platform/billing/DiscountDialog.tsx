@@ -59,7 +59,7 @@ const DiscountDialog: React.FC<DiscountDialogProps> = ({
       if (error) throw error;
 
       toast.success(`${percent}% discount set for ${organizationName}`);
-      queryClient.invalidateQueries({ queryKey: ['platform-billing'] });
+      queryClient.invalidateQueries({ queryKey: ['platform-all-subscriptions'] });
       queryClient.invalidateQueries({ queryKey: ['tenant-detail'] });
       onOpenChange(false);
     } catch (error: any) {
@@ -87,7 +87,7 @@ const DiscountDialog: React.FC<DiscountDialogProps> = ({
       if (error) throw error;
 
       toast.success(`Discount removed from ${organizationName}`);
-      queryClient.invalidateQueries({ queryKey: ['platform-billing'] });
+      queryClient.invalidateQueries({ queryKey: ['platform-all-subscriptions'] });
       queryClient.invalidateQueries({ queryKey: ['tenant-detail'] });
       onOpenChange(false);
     } catch (error: any) {
