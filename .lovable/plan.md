@@ -1,52 +1,61 @@
 
 
-## Problem
+## Per-Organization Discount System
 
-Archiving notifications **does work** at the database level (242 archived, 185 active). The real issue is that every inbound email creates a new `admin_notification`, resulting in massive duplicates:
-- 42 notifications from `info@turno.com`
-- 28 from `support@hospitable.com`  
-- 27 "Work Order Assigned to You"
-- 13 from `automated@airbnb.com`
+**Goal**: Allow platform admins to set a custom % discount per organization. When they subscribe or renew through Stripe, the discount is automatically applied via a Stripe Coupon.
 
-When you archive one, dozens of identical-looking ones remain, making it appear that archiving doesn't work.
+### How It Works
 
-## Plan
+Stripe has a native **Coupon + Customer** system. We'll store the discount % on the org record, then when the checkout session is created, we dynamically create a Stripe coupon and attach it. For renewals, Stripe automatically continues applying the coupon to subsequent invoices.
 
-### 1. Add bulk archive capability
-- **NotificationsPage.tsx**: Add a "Archive Selected" button to the bulk actions bar (already has multi-select with checkboxes)
-- **useNotifications.ts**: Add a `bulkArchive(ids: string[])` mutation that archives multiple notifications in one call
-- Add an "Archive All" / "Clear All" button to quickly dismiss all visible notifications
+---
 
-### 2. Deduplicate email notifications  
-- **resend-inbound-webhook** and **platform-inbound-webhook**: Before creating a new `admin_notification`, check if an unread notification with the same sender already exists within the last hour. If so, update the existing one's message/timestamp instead of creating a duplicate.
-- This prevents the same sender from generating dozens of separate notifications.
+### 1. Database: Add discount fields to `organizations`
 
-### 3. Bulk cleanup of existing duplicates
-- Run a one-time SQL cleanup to archive the 185 existing duplicate/noise notifications (turno.com, hospitable.com, pinterest.com, airbnb.com automated emails) so the inbox starts clean.
+New columns:
+- `discount_percent` (integer, nullable) — e.g. 20 for 20% off
+- `discount_notes` (text, nullable) — reason for discount
+- `discount_set_by` (uuid, nullable, references auth.users)
+- `discount_set_at` (timestamptz, nullable)
+- `stripe_coupon_id` (text, nullable) — stores the Stripe coupon ID for this org
 
-## Technical Details
+### 2. UI: Discount Dialog (new component)
 
-**Bulk archive mutation** (useNotifications.ts):
-```typescript
-const bulkArchiveMutation = useMutation({
-  mutationFn: async (ids: string[]) => {
-    const { error } = await supabase
-      .from('admin_notifications')
-      .update({ is_archived: true })
-      .in('id', ids);
-    if (error) throw error;
-  },
-  // optimistic update + invalidation
-});
-```
+Create `DiscountDialog.tsx` alongside `CompAccountDialog.tsx` in `src/components/admin/platform/billing/`. Fields:
+- Percentage input (1–100 slider or number input)
+- Notes field (e.g., "Partner rate", "Early adopter")
+- Remove discount button if one exists
 
-**Deduplication check** (edge functions):
-Before inserting, query for an existing unread notification from the same sender within 1 hour. If found, update its `created_at` and append a count instead of inserting.
+Add a "%" icon action button to `SubscriptionsList.tsx` rows (next to the comp gift icon) and to `TenantDetailView.tsx`.
 
-**Files to modify:**
-- `src/hooks/useNotifications.ts` — add `bulkArchive` and `archiveAll` mutations
-- `src/pages/admin/NotificationsPage.tsx` — add bulk archive UI buttons
-- `src/components/admin/notifications/NotificationPanel.tsx` — add "Clear all" option
-- `supabase/functions/resend-inbound-webhook/index.ts` — deduplicate notifications
-- `supabase/functions/platform-inbound-webhook/index.ts` — deduplicate notifications
+### 3. Checkout: Apply Stripe Coupon at subscription creation
+
+In `platform-subscription-checkout/index.ts`:
+- After fetching the org, check if `discount_percent` is set
+- If so, create or reuse a Stripe coupon (`stripe.coupons.create({ percent_off, duration: 'forever' })`)
+- Store the `stripe_coupon_id` back on the org
+- Pass `discounts: [{ coupon: couponId }]` to `stripe.checkout.sessions.create()`
+- Remove the `trial_period_days` if a discount is set (or keep it — your call)
+
+### 4. Webhook: Ensure renewals honor the coupon
+
+No extra work needed — Stripe automatically applies `duration: 'forever'` coupons to every renewal invoice. If you remove the discount, we'll call `stripe.subscriptions.update()` to remove the coupon.
+
+### 5. Display discount info
+
+- Show a badge on `SubscriptionsList` rows (e.g., "20% off")
+- Show discount details on `BillingSubscriptionTab` so the org owner can see their rate
+
+---
+
+### Files to create/modify
+
+| File | Change |
+|------|--------|
+| `supabase/migrations/...` | Add `discount_percent`, `discount_notes`, `discount_set_by`, `discount_set_at`, `stripe_coupon_id` to `organizations` |
+| `src/components/admin/platform/billing/DiscountDialog.tsx` | **New** — UI for setting/removing discount |
+| `src/components/admin/platform/billing/SubscriptionsList.tsx` | Add discount icon action + discount badge |
+| `src/components/admin/superadmin/TenantDetailView.tsx` | Add "Set Discount" button |
+| `supabase/functions/platform-subscription-checkout/index.ts` | Create Stripe coupon and attach to checkout session |
+| `src/integrations/supabase/types.ts` | Auto-updated with new columns |
 
