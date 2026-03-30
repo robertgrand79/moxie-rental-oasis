@@ -37,6 +37,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import SubdomainSetupHelper from './organizations/SubdomainSetupHelper';
 import CompAccountDialog from '@/components/admin/platform/billing/CompAccountDialog';
+import DiscountDialog from '@/components/admin/platform/billing/DiscountDialog';
 
 interface TenantDetailViewProps {
   organizationId: string;
