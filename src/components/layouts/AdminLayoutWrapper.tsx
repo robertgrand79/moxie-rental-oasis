@@ -5,6 +5,8 @@ import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { PlatformAnnouncementBanner } from '@/components/admin/PlatformAnnouncementBanner';
+import InstallBanner from '@/components/pwa/InstallBanner';
+import IOSInstallPrompt from '@/components/pwa/IOSInstallPrompt';
 
 // Content loader for lazy-loaded admin pages
 const ContentLoader = () => (

@@ -43,7 +43,7 @@ function App() {
                         <WidgetErrorBoundary widgetName="Cookie Consent" silent>
                           <CookieConsentBanner />
                         </WidgetErrorBoundary>
-                        <IOSInstallPrompt />
+                        
                       </GlobalThemeProvider>
                     </StaticSettingsProvider>
                   </PageViewTracker>
