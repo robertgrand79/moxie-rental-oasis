@@ -208,6 +208,19 @@ const SubscriptionsList = () => {
                         <Button
                           variant="ghost"
                           size="icon"
+                          title="Set Discount"
+                          onClick={() => setDiscountTarget({
+                            id: sub.id,
+                            name: sub.name || 'Unknown',
+                            discount: (sub as any).discount_percent || null,
+                            notes: (sub as any).discount_notes || null,
+                          })}
+                        >
+                          <Percent className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           title="Comp Account"
                           onClick={() => setCompTarget({
                             id: sub.id,
