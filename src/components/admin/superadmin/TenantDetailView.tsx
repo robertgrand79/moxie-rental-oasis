@@ -451,6 +451,17 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                   isCurrentlyComped={org.subscription_status === 'comped'}
                 />
               )}
+
+              {showDiscountDialog && org && (
+                <DiscountDialog
+                  open={showDiscountDialog}
+                  onOpenChange={setShowDiscountDialog}
+                  organizationId={organizationId}
+                  organizationName={org.name || 'Unknown'}
+                  currentDiscount={(org as any).discount_percent}
+                  currentNotes={(org as any).discount_notes}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="members" className="mt-4">

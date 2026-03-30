@@ -260,6 +260,17 @@ const SubscriptionsList = () => {
           isCurrentlyComped={compTarget.isComped}
         />
       )}
+
+      {discountTarget && (
+        <DiscountDialog
+          open={!!discountTarget}
+          onOpenChange={(open) => !open && setDiscountTarget(null)}
+          organizationId={discountTarget.id}
+          organizationName={discountTarget.name}
+          currentDiscount={discountTarget.discount}
+          currentNotes={discountTarget.notes}
+        />
+      )}
     </Card>
   );
 };
