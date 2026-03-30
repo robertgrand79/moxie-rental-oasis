@@ -180,7 +180,14 @@ const SubscriptionsList = () => {
                       {getStatusBadge(sub.subscription_status, sub.trial_ends_at)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{sub.subscription_tier || 'N/A'}</Badge>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant="outline">{sub.subscription_tier || 'N/A'}</Badge>
+                        {(sub as any).discount_percent && (
+                          <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+                            {(sub as any).discount_percent}% off
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {sub.trial_ends_at ? (
