@@ -35,6 +35,7 @@ import {
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import SubdomainSetupHelper from './organizations/SubdomainSetupHelper';
+import CompAccountDialog from '@/components/admin/platform/billing/CompAccountDialog';
 
 interface TenantDetailViewProps {
   organizationId: string;
@@ -47,6 +48,7 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
   const { switchOrganization } = useCurrentOrganization();
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [isProvisioning, setIsProvisioning] = useState(false);
+  const [showCompDialog, setShowCompDialog] = useState(false);
 
   // Handle View As Tenant - switch to this organization
   const handleViewAsTenant = async () => {
