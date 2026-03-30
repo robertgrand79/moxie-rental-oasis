@@ -19,10 +19,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, ExternalLink, Building2 } from 'lucide-react';
+import { Search, ExternalLink, Building2, Gift } from 'lucide-react';
 import { usePlatformBilling } from '@/hooks/usePlatformBilling';
 import { formatDistanceToNow, format, isBefore, addDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import CompAccountDialog from './CompAccountDialog';
 
 const SubscriptionsList = () => {
   const { subscriptions, loadingSubscriptions } = usePlatformBilling();
@@ -31,6 +32,7 @@ const SubscriptionsList = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tierFilter, setTierFilter] = useState<string>('all');
+  const [compTarget, setCompTarget] = useState<{ id: string; name: string; tier: string | null; status: string | null; isComped: boolean } | null>(null);
 
   const filteredSubscriptions = useMemo(() => {
     if (!subscriptions) return [];
@@ -197,6 +199,20 @@ const SubscriptionsList = () => {
                         <Button
                           variant="ghost"
                           size="icon"
+                          title="Comp Account"
+                          onClick={() => setCompTarget({
+                            id: sub.id,
+                            name: sub.name || 'Unknown',
+                            tier: sub.subscription_tier,
+                            status: sub.subscription_status,
+                            isComped: sub.subscription_status === 'comped',
+                          })}
+                        >
+                          <Gift className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => navigate(`/admin/platform/organizations?id=${sub.id}`)}
                         >
                           <ExternalLink className="h-4 w-4" />
@@ -210,6 +226,18 @@ const SubscriptionsList = () => {
           </Table>
         </div>
       </CardContent>
+
+      {compTarget && (
+        <CompAccountDialog
+          open={!!compTarget}
+          onOpenChange={(open) => !open && setCompTarget(null)}
+          organizationId={compTarget.id}
+          organizationName={compTarget.name}
+          currentTier={compTarget.tier}
+          currentStatus={compTarget.status}
+          isCurrentlyComped={compTarget.isComped}
+        />
+      )}
     </Card>
   );
 };

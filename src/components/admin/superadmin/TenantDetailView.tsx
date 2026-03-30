@@ -30,11 +30,13 @@ import {
   Eye,
   MessageSquare,
   AlertCircle,
-  Loader2
+  Loader2,
+  Gift
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import SubdomainSetupHelper from './organizations/SubdomainSetupHelper';
+import CompAccountDialog from '@/components/admin/platform/billing/CompAccountDialog';
 
 interface TenantDetailViewProps {
   organizationId: string;
@@ -47,6 +49,7 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
   const { switchOrganization } = useCurrentOrganization();
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [isProvisioning, setIsProvisioning] = useState(false);
+  const [showCompDialog, setShowCompDialog] = useState(false);
 
   // Handle View As Tenant - switch to this organization
   const handleViewAsTenant = async () => {
@@ -403,6 +406,15 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                   <Button 
                     variant="outline" 
                     size="sm" 
+                    onClick={() => setShowCompDialog(true)}
+                    className={org?.subscription_status === 'comped' ? 'border-violet-500/30 text-violet-600' : ''}
+                  >
+                    <Gift className="h-4 w-4 mr-2" />
+                    {org?.subscription_status === 'comped' ? 'Manage Comp' : 'Comp Account'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
                     onClick={handleProvisionSubdomain}
                     disabled={isProvisioning || org?.subdomain_status === 'active'}
                   >
@@ -415,6 +427,18 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                   </Button>
                 </CardContent>
               </Card>
+
+              {showCompDialog && org && (
+                <CompAccountDialog
+                  open={showCompDialog}
+                  onOpenChange={setShowCompDialog}
+                  organizationId={organizationId}
+                  organizationName={org.name || 'Unknown'}
+                  currentTier={org.subscription_tier}
+                  currentStatus={org.subscription_status}
+                  isCurrentlyComped={org.subscription_status === 'comped'}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="members" className="mt-4">
