@@ -23,7 +23,6 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background text-foreground">
-        <InstallBanner />
         <Router>
           <RUMProvider 
             sampleRate={isDev ? 1.0 : 0.1} 
