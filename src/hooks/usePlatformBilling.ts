@@ -47,6 +47,8 @@ interface OrganizationSubscription {
   trial_ends_at: string | null;
   stripe_customer_id: string | null;
   created_at: string;
+  discount_percent: number | null;
+  discount_notes: string | null;
 }
 
 interface RevenueDataPoint {
