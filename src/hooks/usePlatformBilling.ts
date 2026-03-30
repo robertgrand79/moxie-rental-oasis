@@ -47,6 +47,8 @@ interface OrganizationSubscription {
   trial_ends_at: string | null;
   stripe_customer_id: string | null;
   created_at: string;
+  discount_percent: number | null;
+  discount_notes: string | null;
 }
 
 interface RevenueDataPoint {
@@ -97,7 +99,7 @@ export const usePlatformBilling = () => {
     queryFn: async (): Promise<OrganizationSubscription[]> => {
       const { data, error } = await supabase
         .from('organizations')
-        .select('id, name, subscription_status, subscription_tier, trial_ends_at, stripe_customer_id, created_at')
+        .select('id, name, subscription_status, subscription_tier, trial_ends_at, stripe_customer_id, created_at, discount_percent, discount_notes')
         .eq('is_template', false)
         .order('created_at', { ascending: false });
 
