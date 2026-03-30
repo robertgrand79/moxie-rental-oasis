@@ -405,6 +405,15 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                   <Button 
                     variant="outline" 
                     size="sm" 
+                    onClick={() => setShowCompDialog(true)}
+                    className={org?.subscription_status === 'comped' ? 'border-violet-500/30 text-violet-600' : ''}
+                  >
+                    <Gift className="h-4 w-4 mr-2" />
+                    {org?.subscription_status === 'comped' ? 'Manage Comp' : 'Comp Account'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
                     onClick={handleProvisionSubdomain}
                     disabled={isProvisioning || org?.subdomain_status === 'active'}
                   >
@@ -417,6 +426,18 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                   </Button>
                 </CardContent>
               </Card>
+
+              {showCompDialog && org && (
+                <CompAccountDialog
+                  open={showCompDialog}
+                  onOpenChange={setShowCompDialog}
+                  organizationId={organizationId}
+                  organizationName={org.name || 'Unknown'}
+                  currentTier={org.subscription_tier}
+                  currentStatus={org.subscription_status}
+                  isCurrentlyComped={org.subscription_status === 'comped'}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="members" className="mt-4">
