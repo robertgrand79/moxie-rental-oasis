@@ -418,6 +418,15 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                   <Button 
                     variant="outline" 
                     size="sm" 
+                    onClick={() => setShowDiscountDialog(true)}
+                    className={(org as any)?.discount_percent ? 'border-amber-500/30 text-amber-600' : ''}
+                  >
+                    <Percent className="h-4 w-4 mr-2" />
+                    {(org as any)?.discount_percent ? `${(org as any).discount_percent}% Discount` : 'Set Discount'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
                     onClick={handleProvisionSubdomain}
                     disabled={isProvisioning || org?.subdomain_status === 'active'}
                   >
