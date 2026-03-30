@@ -90,6 +90,31 @@ serve(async (req) => {
 
     logStep("Using price ID", { stripePriceId, billingCycle });
 
+    // Check if org has a discount
+    const discountPercent = org.discount_percent;
+    let stripeCouponId = org.stripe_coupon_id;
+
+    if (discountPercent && !stripeCouponId) {
+      // Create a new Stripe coupon for this org
+      const coupon = await stripe.coupons.create({
+        percent_off: discountPercent,
+        duration: 'forever',
+        name: `${discountPercent}% Off - ${org.name}`,
+        metadata: {
+          organization_id: organizationId,
+        }
+      });
+      stripeCouponId = coupon.id;
+
+      // Save coupon ID back to org
+      await supabaseClient
+        .from("organizations")
+        .update({ stripe_coupon_id: stripeCouponId })
+        .eq("id", organizationId);
+
+      logStep("Created Stripe coupon", { couponId: stripeCouponId, discountPercent });
+    }
+
     // Get or create Stripe customer
     let customerId = org.stripe_customer_id;
 
@@ -130,8 +155,8 @@ serve(async (req) => {
       logStep("Created Stripe customer", { customerId });
     }
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Build checkout session params
+    const sessionParams: any = {
       customer: customerId,
       mode: "subscription",
       payment_method_types: ["card"],
@@ -156,7 +181,18 @@ serve(async (req) => {
         template_slug: templateSlug,
         billing_cycle: billingCycle || 'monthly'
       }
-    });
+    };
+
+    // Apply discount coupon if exists
+    if (stripeCouponId) {
+      sessionParams.discounts = [{ coupon: stripeCouponId }];
+      // Remove trial when discount is applied
+      delete sessionParams.subscription_data.trial_period_days;
+      logStep("Applying discount coupon to checkout", { stripeCouponId, discountPercent });
+    }
+
+    // Create checkout session
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     logStep("Created checkout session", { sessionId: session.id });
 
