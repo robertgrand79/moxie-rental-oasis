@@ -199,6 +199,20 @@ const SubscriptionsList = () => {
                         <Button
                           variant="ghost"
                           size="icon"
+                          title="Comp Account"
+                          onClick={() => setCompTarget({
+                            id: sub.id,
+                            name: sub.name || 'Unknown',
+                            tier: sub.subscription_tier,
+                            status: sub.subscription_status,
+                            isComped: sub.subscription_status === 'comped',
+                          })}
+                        >
+                          <Gift className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => navigate(`/admin/platform/organizations?id=${sub.id}`)}
                         >
                           <ExternalLink className="h-4 w-4" />
