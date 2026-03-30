@@ -5670,6 +5670,11 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           cloudflare_hostname_id: string | null
+          comp_notes: string | null
+          comped_at: string | null
+          comped_by: string | null
+          comped_tier: string | null
+          comped_until: string | null
           created_at: string | null
           created_from_template_id: string | null
           custom_domain: string | null
@@ -5680,6 +5685,7 @@ export type Database = {
           id: string
           inbound_email_prefix: string | null
           is_active: boolean | null
+          is_comped: boolean | null
           is_template: boolean | null
           is_template_source: boolean | null
           logo_url: string | null
@@ -5723,6 +5729,11 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           cloudflare_hostname_id?: string | null
+          comp_notes?: string | null
+          comped_at?: string | null
+          comped_by?: string | null
+          comped_tier?: string | null
+          comped_until?: string | null
           created_at?: string | null
           created_from_template_id?: string | null
           custom_domain?: string | null
@@ -5733,6 +5744,7 @@ export type Database = {
           id?: string
           inbound_email_prefix?: string | null
           is_active?: boolean | null
+          is_comped?: boolean | null
           is_template?: boolean | null
           is_template_source?: boolean | null
           logo_url?: string | null
@@ -5776,6 +5788,11 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           cloudflare_hostname_id?: string | null
+          comp_notes?: string | null
+          comped_at?: string | null
+          comped_by?: string | null
+          comped_tier?: string | null
+          comped_until?: string | null
           created_at?: string | null
           created_from_template_id?: string | null
           custom_domain?: string | null
@@ -5786,6 +5803,7 @@ export type Database = {
           id?: string
           inbound_email_prefix?: string | null
           is_active?: boolean | null
+          is_comped?: boolean | null
           is_template?: boolean | null
           is_template_source?: boolean | null
           logo_url?: string | null
