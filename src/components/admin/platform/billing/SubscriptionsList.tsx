@@ -226,6 +226,18 @@ const SubscriptionsList = () => {
           </Table>
         </div>
       </CardContent>
+
+      {compTarget && (
+        <CompAccountDialog
+          open={!!compTarget}
+          onOpenChange={(open) => !open && setCompTarget(null)}
+          organizationId={compTarget.id}
+          organizationName={compTarget.name}
+          currentTier={compTarget.tier}
+          currentStatus={compTarget.status}
+          isCurrentlyComped={compTarget.isComped}
+        />
+      )}
     </Card>
   );
 };
