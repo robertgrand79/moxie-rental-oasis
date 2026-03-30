@@ -31,12 +31,14 @@ import {
   MessageSquare,
   AlertCircle,
   Loader2,
-  Gift
+  Gift,
+  Percent
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import SubdomainSetupHelper from './organizations/SubdomainSetupHelper';
 import CompAccountDialog from '@/components/admin/platform/billing/CompAccountDialog';
+import DiscountDialog from '@/components/admin/platform/billing/DiscountDialog';
 
 interface TenantDetailViewProps {
   organizationId: string;
@@ -50,6 +52,7 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [isProvisioning, setIsProvisioning] = useState(false);
   const [showCompDialog, setShowCompDialog] = useState(false);
+  const [showDiscountDialog, setShowDiscountDialog] = useState(false);
 
   // Handle View As Tenant - switch to this organization
   const handleViewAsTenant = async () => {
@@ -415,6 +418,15 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                   <Button 
                     variant="outline" 
                     size="sm" 
+                    onClick={() => setShowDiscountDialog(true)}
+                    className={(org as any)?.discount_percent ? 'border-amber-500/30 text-amber-600' : ''}
+                  >
+                    <Percent className="h-4 w-4 mr-2" />
+                    {(org as any)?.discount_percent ? `${(org as any).discount_percent}% Discount` : 'Set Discount'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
                     onClick={handleProvisionSubdomain}
                     disabled={isProvisioning || org?.subdomain_status === 'active'}
                   >
@@ -437,6 +449,17 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
                   currentTier={org.subscription_tier}
                   currentStatus={org.subscription_status}
                   isCurrentlyComped={org.subscription_status === 'comped'}
+                />
+              )}
+
+              {showDiscountDialog && org && (
+                <DiscountDialog
+                  open={showDiscountDialog}
+                  onOpenChange={setShowDiscountDialog}
+                  organizationId={organizationId}
+                  organizationName={org.name || 'Unknown'}
+                  currentDiscount={(org as any).discount_percent}
+                  currentNotes={(org as any).discount_notes}
                 />
               )}
             </TabsContent>

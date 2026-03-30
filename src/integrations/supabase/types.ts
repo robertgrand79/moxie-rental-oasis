@@ -5678,6 +5678,10 @@ export type Database = {
           created_at: string | null
           created_from_template_id: string | null
           custom_domain: string | null
+          discount_notes: string | null
+          discount_percent: number | null
+          discount_set_at: string | null
+          discount_set_by: string | null
           domain_dns_records: Json | null
           domain_last_checked_at: string | null
           domain_verification_status: string | null
@@ -5706,6 +5710,7 @@ export type Database = {
           stripe_account_id: string | null
           stripe_connect_id: string | null
           stripe_connect_status: string | null
+          stripe_coupon_id: string | null
           stripe_customer_id: string | null
           stripe_publishable_key: string | null
           stripe_secret_key: string | null
@@ -5737,6 +5742,10 @@ export type Database = {
           created_at?: string | null
           created_from_template_id?: string | null
           custom_domain?: string | null
+          discount_notes?: string | null
+          discount_percent?: number | null
+          discount_set_at?: string | null
+          discount_set_by?: string | null
           domain_dns_records?: Json | null
           domain_last_checked_at?: string | null
           domain_verification_status?: string | null
@@ -5765,6 +5774,7 @@ export type Database = {
           stripe_account_id?: string | null
           stripe_connect_id?: string | null
           stripe_connect_status?: string | null
+          stripe_coupon_id?: string | null
           stripe_customer_id?: string | null
           stripe_publishable_key?: string | null
           stripe_secret_key?: string | null
@@ -5796,6 +5806,10 @@ export type Database = {
           created_at?: string | null
           created_from_template_id?: string | null
           custom_domain?: string | null
+          discount_notes?: string | null
+          discount_percent?: number | null
+          discount_set_at?: string | null
+          discount_set_by?: string | null
           domain_dns_records?: Json | null
           domain_last_checked_at?: string | null
           domain_verification_status?: string | null
@@ -5824,6 +5838,7 @@ export type Database = {
           stripe_account_id?: string | null
           stripe_connect_id?: string | null
           stripe_connect_status?: string | null
+          stripe_coupon_id?: string | null
           stripe_customer_id?: string | null
           stripe_publishable_key?: string | null
           stripe_secret_key?: string | null

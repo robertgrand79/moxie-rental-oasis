@@ -19,11 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, ExternalLink, Building2, Gift } from 'lucide-react';
+import { Search, ExternalLink, Building2, Gift, Percent } from 'lucide-react';
 import { usePlatformBilling } from '@/hooks/usePlatformBilling';
 import { formatDistanceToNow, format, isBefore, addDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import CompAccountDialog from './CompAccountDialog';
+import DiscountDialog from './DiscountDialog';
 
 const SubscriptionsList = () => {
   const { subscriptions, loadingSubscriptions } = usePlatformBilling();
@@ -33,6 +34,7 @@ const SubscriptionsList = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tierFilter, setTierFilter] = useState<string>('all');
   const [compTarget, setCompTarget] = useState<{ id: string; name: string; tier: string | null; status: string | null; isComped: boolean } | null>(null);
+  const [discountTarget, setDiscountTarget] = useState<{ id: string; name: string; discount: number | null; notes: string | null } | null>(null);
 
   const filteredSubscriptions = useMemo(() => {
     if (!subscriptions) return [];
@@ -178,7 +180,14 @@ const SubscriptionsList = () => {
                       {getStatusBadge(sub.subscription_status, sub.trial_ends_at)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{sub.subscription_tier || 'N/A'}</Badge>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant="outline">{sub.subscription_tier || 'N/A'}</Badge>
+                        {(sub as any).discount_percent && (
+                          <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+                            {(sub as any).discount_percent}% off
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {sub.trial_ends_at ? (
@@ -196,6 +205,19 @@ const SubscriptionsList = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Set Discount"
+                          onClick={() => setDiscountTarget({
+                            id: sub.id,
+                            name: sub.name || 'Unknown',
+                            discount: (sub as any).discount_percent || null,
+                            notes: (sub as any).discount_notes || null,
+                          })}
+                        >
+                          <Percent className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -236,6 +258,17 @@ const SubscriptionsList = () => {
           currentTier={compTarget.tier}
           currentStatus={compTarget.status}
           isCurrentlyComped={compTarget.isComped}
+        />
+      )}
+
+      {discountTarget && (
+        <DiscountDialog
+          open={!!discountTarget}
+          onOpenChange={(open) => !open && setDiscountTarget(null)}
+          organizationId={discountTarget.id}
+          organizationName={discountTarget.name}
+          currentDiscount={discountTarget.discount}
+          currentNotes={discountTarget.notes}
         />
       )}
     </Card>
