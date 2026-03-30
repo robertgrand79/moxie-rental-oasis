@@ -73,12 +73,16 @@ const AdminLayoutWrapper = () => {
   }
 
   return (
-    <AdminLayout>
-      <PlatformAnnouncementBanner />
-      <Suspense fallback={<ContentLoader />}>
-        <Outlet />
-      </Suspense>
-    </AdminLayout>
+    <>
+      <InstallBanner />
+      <AdminLayout>
+        <PlatformAnnouncementBanner />
+        <Suspense fallback={<ContentLoader />}>
+          <Outlet />
+        </Suspense>
+      </AdminLayout>
+      <IOSInstallPrompt />
+    </>
   );
 };
 
