@@ -34,6 +34,7 @@ const SubscriptionsList = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tierFilter, setTierFilter] = useState<string>('all');
   const [compTarget, setCompTarget] = useState<{ id: string; name: string; tier: string | null; status: string | null; isComped: boolean } | null>(null);
+  const [discountTarget, setDiscountTarget] = useState<{ id: string; name: string; discount: number | null; notes: string | null } | null>(null);
 
   const filteredSubscriptions = useMemo(() => {
     if (!subscriptions) return [];
