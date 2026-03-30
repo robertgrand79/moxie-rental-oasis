@@ -31,7 +31,8 @@ import {
   MessageSquare,
   AlertCircle,
   Loader2,
-  Gift
+  Gift,
+  Percent
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
