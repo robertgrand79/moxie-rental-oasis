@@ -19,11 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, ExternalLink, Building2, Gift } from 'lucide-react';
+import { Search, ExternalLink, Building2, Gift, Percent } from 'lucide-react';
 import { usePlatformBilling } from '@/hooks/usePlatformBilling';
 import { formatDistanceToNow, format, isBefore, addDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import CompAccountDialog from './CompAccountDialog';
+import DiscountDialog from './DiscountDialog';
 
 const SubscriptionsList = () => {
   const { subscriptions, loadingSubscriptions } = usePlatformBilling();
