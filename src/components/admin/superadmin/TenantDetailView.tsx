@@ -30,7 +30,8 @@ import {
   Eye,
   MessageSquare,
   AlertCircle,
-  Loader2
+  Loader2,
+  Gift
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
