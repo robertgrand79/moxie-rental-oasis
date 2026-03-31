@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { usePlatform } from './PlatformContext';
-import { Organization, OrganizationMember } from '@/types/organizations';
+import { Organization, OrganizationMember, ORGANIZATION_SAFE_SELECT } from '@/types/organizations';
 import { debug } from '@/utils/debug';
 
 interface OrganizationContextType {
@@ -147,7 +147,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           .from('organization_members')
           .select(`
             *,
-            organization:organizations(*)
+            organization:organizations(${ORGANIZATION_SAFE_SELECT})
           `)
           .eq('user_id', user.id)
           .order('joined_at', { ascending: true }), // Oldest first (primary)
@@ -297,7 +297,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       // Fetch the target organization
       const { data: targetOrg, error: orgError } = await supabase
         .from('organizations')
-        .select('*')
+        .select('id, name, slug, logo_url, website, custom_domain, created_at, updated_at, is_active, is_template, is_template_source, template_type, template_category, stripe_account_id, stripe_customer_id, stripe_connect_id, stripe_connect_status, payments_enabled, platform_fee_percent, turno_partner_id, openphone_phone_number, inbound_email_prefix, onboarding_completed, onboarding_step, domain_verification_status, domain_verified_at, domain_last_checked_at, domain_dns_records, created_from_template_id, active_template_slug, archived_at, archived_by, archive_reason, subdomain_status, subdomain_error, cloudflare_hostname_id, subscription_status, subscription_tier, trial_ends_at, is_comped, comped_tier, comped_until, comped_by, comped_at, comp_notes, discount_percent, discount_notes, discount_set_by, discount_set_at, stripe_coupon_id')
         .eq('id', orgId)
         .single();
 

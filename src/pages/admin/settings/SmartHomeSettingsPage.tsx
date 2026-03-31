@@ -297,7 +297,7 @@ const SmartHomeSettingsPage = () => {
   useEffect(() => {
     if (organization) {
       setConfiguredKeys({
-        seam_api_key: !!(organization as any).seam_api_key,
+        seam_api_key: !!(organization as any).has_seam_configured,
       });
     }
   }, [organization]);

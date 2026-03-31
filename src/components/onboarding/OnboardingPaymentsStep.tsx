@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useSecureApiKeys } from '@/hooks/useSecureApiKeys';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ interface Props {
 const OnboardingPaymentsStep = ({ onComplete, isCompleting }: Props) => {
   const { organization } = useCurrentOrganization();
   const { toast } = useToast();
+  const { setApiKey } = useSecureApiKeys();
   const [stripeSecretKey, setStripeSecretKey] = useState('');
   const [stripePublishableKey, setStripePublishableKey] = useState('');
   const [saving, setSaving] = useState(false);
@@ -25,18 +26,14 @@ const OnboardingPaymentsStep = ({ onComplete, isCompleting }: Props) => {
     setSaving(true);
 
     try {
-      const { error } = await supabase
-        .from('organizations')
-        .update({
-          stripe_secret_key: stripeSecretKey || null,
-          stripe_publishable_key: stripePublishableKey || null,
-        })
-        .eq('id', organization.id);
+      let success = true;
+      if (stripeSecretKey) success = await setApiKey(organization.id, 'stripe_secret_key', stripeSecretKey) && success;
+      if (stripePublishableKey) success = await setApiKey(organization.id, 'stripe_publishable_key', stripePublishableKey) && success;
 
-      if (error) throw error;
-
-      toast({ title: 'Payment settings saved!' });
-      onComplete({ stripeConfigured: !!stripeSecretKey });
+      if (success) {
+        toast({ title: 'Payment settings saved!' });
+        onComplete({ stripeConfigured: !!stripeSecretKey });
+      }
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {

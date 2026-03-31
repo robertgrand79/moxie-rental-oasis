@@ -52,8 +52,8 @@ export const useSettingsCompletion = () => {
           .select('key, value')
           .eq('organization_id', orgId),
         supabase
-          .from('organizations')
-          .select('name, slug, stripe_secret_key, pricelabs_api_key, resend_api_key, seam_api_key, openphone_api_key')
+          .from('organizations_safe')
+          .select('name, slug, has_stripe_configured, has_pricelabs_configured, has_resend_configured, has_seam_configured, has_openphone_configured')
           .eq('id', orgId)
           .single(),
         getTableCount('organization_members', orgId),
@@ -124,9 +124,9 @@ export const useSettingsCompletion = () => {
 
       // Integrations: at least 1 configured
       const integrationsConfigured = [
-        !!org?.resend_api_key,
-        !!org?.seam_api_key,
-        !!org?.openphone_api_key
+        !!org?.has_resend_configured,
+        !!org?.has_seam_configured,
+        !!org?.has_openphone_configured
       ].filter(Boolean).length;
       categories.integrations = {
         id: 'integrations',
@@ -137,7 +137,7 @@ export const useSettingsCompletion = () => {
 
       // Payments: Stripe configured
       const paymentsComplete = [
-        !!org?.stripe_secret_key
+        !!org?.has_stripe_configured
       ].filter(Boolean).length;
       categories.payments = {
         id: 'payments',

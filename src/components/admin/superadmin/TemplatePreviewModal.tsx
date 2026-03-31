@@ -196,12 +196,12 @@ export const TemplatePreviewModal = ({
                   Integrations Configured
                 </h4>
                 <div className="bg-muted/50 rounded-lg p-4 space-y-1">
-                  <SettingRow label="Stripe" value={organization.stripe_secret_key} />
-                  <SettingRow label="PriceLabs" value={organization.pricelabs_api_key} />
-                  <SettingRow label="Resend (Email)" value={organization.resend_api_key} />
-                  <SettingRow label="QUO (SMS)" value={organization.openphone_api_key} />
-                  <SettingRow label="SEAM (Smart Home)" value={organization.seam_api_key} />
-                  <SettingRow label="Turno (Cleaning)" value={organization.turno_api_token} />
+                  <SettingRow label="Stripe" value={organization.has_stripe_configured ? 'Configured' : null} />
+                  <SettingRow label="PriceLabs" value={organization.has_pricelabs_configured ? 'Configured' : null} />
+                  <SettingRow label="Resend (Email)" value={organization.has_resend_configured ? 'Configured' : null} />
+                  <SettingRow label="QUO (SMS)" value={organization.has_openphone_configured ? 'Configured' : null} />
+                  <SettingRow label="SEAM (Smart Home)" value={organization.has_seam_configured ? 'Configured' : null} />
+                  <SettingRow label="Turno (Cleaning)" value={organization.has_turno_configured ? 'Configured' : null} />
                 </div>
               </div>
             </div>
