@@ -327,9 +327,9 @@ const StripeSettingsPage = () => {
   useEffect(() => {
     if (organization) {
       setConfiguredKeys({
-        stripe_secret_key: !!organization.stripe_secret_key,
-        stripe_publishable_key: !!organization.stripe_publishable_key,
-        stripe_webhook_secret: !!organization.stripe_webhook_secret,
+        stripe_secret_key: !!(organization as any).has_stripe_configured,
+        stripe_publishable_key: !!(organization as any).has_stripe_publishable_configured,
+        stripe_webhook_secret: !!(organization as any).has_stripe_webhook_configured,
       });
     }
   }, [organization]);
