@@ -80,58 +80,52 @@ const AdminOrganization = () => {
   const handleUpdateStripe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!organization) return;
-
-    await updateOrganization(organization.id, {
-      stripe_secret_key: formData.stripe_secret_key || undefined,
-      stripe_publishable_key: formData.stripe_publishable_key || undefined,
-      stripe_webhook_secret: formData.stripe_webhook_secret || undefined,
-    });
-    refetch();
+    let success = true;
+    if (formData.stripe_secret_key) success = await setApiKey(organization.id, 'stripe_secret_key', formData.stripe_secret_key) && success;
+    if (formData.stripe_publishable_key) success = await setApiKey(organization.id, 'stripe_publishable_key', formData.stripe_publishable_key) && success;
+    if (formData.stripe_webhook_secret) success = await setApiKey(organization.id, 'stripe_webhook_secret', formData.stripe_webhook_secret) && success;
+    if (success) { setFormData(prev => ({ ...prev, stripe_secret_key: '', stripe_publishable_key: '', stripe_webhook_secret: '' })); refetch(); }
   };
 
   const handleUpdatePriceLabs = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!organization) return;
-
-    await updateOrganization(organization.id, {
-      pricelabs_api_key: formData.pricelabs_api_key || undefined,
-    });
-    refetch();
+    if (formData.pricelabs_api_key) {
+      const success = await setApiKey(organization.id, 'pricelabs_api_key', formData.pricelabs_api_key);
+      if (success) { setFormData(prev => ({ ...prev, pricelabs_api_key: '' })); refetch(); }
+    }
   };
 
   const handleUpdateCommunications = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!organization) return;
-
-    await updateOrganization(organization.id, {
-      openphone_api_key: formData.openphone_api_key || undefined,
-      resend_api_key: formData.resend_api_key || undefined,
-    });
-    refetch();
+    let success = true;
+    if (formData.openphone_api_key) success = await setApiKey(organization.id, 'openphone_api_key', formData.openphone_api_key) && success;
+    if (formData.resend_api_key) success = await setApiKey(organization.id, 'resend_api_key', formData.resend_api_key) && success;
+    if (success) { setFormData(prev => ({ ...prev, openphone_api_key: '', resend_api_key: '' })); refetch(); }
   };
 
   const handleUpdateSmartHome = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!organization) return;
-
-    await updateOrganization(organization.id, {
-      seam_api_key: formData.seam_api_key || undefined,
-      seam_webhook_secret: formData.seam_webhook_secret || undefined,
-    });
-    refetch();
+    let success = true;
+    if (formData.seam_api_key) success = await setApiKey(organization.id, 'seam_api_key', formData.seam_api_key) && success;
+    if (formData.seam_webhook_secret) success = await setApiKey(organization.id, 'seam_webhook_secret', formData.seam_webhook_secret) && success;
+    if (success) { setFormData(prev => ({ ...prev, seam_api_key: '', seam_webhook_secret: '' })); refetch(); }
   };
 
   const handleUpdateIntegrations = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!organization) return;
-
-    await updateOrganization(organization.id, {
-      turno_api_token: formData.turno_api_token || undefined,
-      turno_api_secret: formData.turno_api_secret || undefined,
-      turno_partner_id: formData.turno_partner_id || undefined,
-      openweather_api_key: formData.openweather_api_key || undefined,
-    });
-    refetch();
+    let success = true;
+    if (formData.turno_api_token) success = await setApiKey(organization.id, 'turno_api_token', formData.turno_api_token) && success;
+    if (formData.turno_api_secret) success = await setApiKey(organization.id, 'turno_api_secret', formData.turno_api_secret) && success;
+    if (formData.openweather_api_key) success = await setApiKey(organization.id, 'openweather_api_key', formData.openweather_api_key) && success;
+    if (success) {
+      await updateOrganization(organization.id, { turno_partner_id: formData.turno_partner_id || undefined });
+      setFormData(prev => ({ ...prev, turno_api_token: '', turno_api_secret: '', openweather_api_key: '' }));
+      refetch();
+    }
   };
 
   const getRoleBadge = (role: string) => {
