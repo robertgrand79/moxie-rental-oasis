@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationOperations } from '@/hooks/useOrganizationOperations';
+import { useSecureApiKeys } from '@/hooks/useSecureApiKeys';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import BillingSubscriptionTab from '@/components/admin/organization/BillingSubsc
 const AdminOrganization = () => {
   const { organization, membership, isPlatformAdmin, loading, isOrgAdmin, canManageOrganization, refetch } = useCurrentOrganization();
   const { updateOrganization, updating } = useOrganizationOperations();
+  const { setApiKey, loading: savingKey } = useSecureApiKeys();
   
   const [formData, setFormData] = useState({
     name: '',
