@@ -118,7 +118,7 @@ export const usePlatformBilling = () => {
 
       const { data: orgs, error } = await supabase
         .from('organizations')
-        .select('created_at, subscription_status, subscription_tier')
+        .select('created_at, subscription_status, subscription_tier, discount_percent')
         .eq('is_template', false)
         .gte('created_at', sixMonthsAgo.toISOString());
 
