@@ -12420,8 +12420,23 @@ export type Database = {
       }
       organizations_safe: {
         Row: {
+          active_template_slug: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          cloudflare_hostname_id: string | null
+          comp_notes: string | null
+          comped_at: string | null
+          comped_by: string | null
+          comped_tier: string | null
+          comped_until: string | null
           created_at: string | null
+          created_from_template_id: string | null
           custom_domain: string | null
+          discount_notes: string | null
+          discount_percent: number | null
+          discount_set_at: string | null
+          discount_set_by: string | null
           domain_dns_records: Json | null
           domain_last_checked_at: string | null
           domain_verification_status: string | null
@@ -12436,8 +12451,11 @@ export type Database = {
           has_stripe_webhook_configured: boolean | null
           has_turno_configured: boolean | null
           id: string | null
+          inbound_email_prefix: string | null
           is_active: boolean | null
+          is_comped: boolean | null
           is_template: boolean | null
+          is_template_source: boolean | null
           logo_url: string | null
           name: string | null
           onboarding_completed: boolean | null
@@ -12446,18 +12464,40 @@ export type Database = {
           payments_enabled: boolean | null
           platform_fee_percent: number | null
           slug: string | null
+          stripe_account_id: string | null
+          stripe_connect_id: string | null
           stripe_connect_status: string | null
+          stripe_coupon_id: string | null
           stripe_customer_id: string | null
+          subdomain_error: string | null
+          subdomain_status: string | null
           subscription_status: string | null
           subscription_tier: string | null
+          template_category: string | null
           template_type: string | null
           trial_ends_at: string | null
+          turno_partner_id: string | null
           updated_at: string | null
           website: string | null
         }
         Insert: {
+          active_template_slug?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          cloudflare_hostname_id?: string | null
+          comp_notes?: string | null
+          comped_at?: string | null
+          comped_by?: string | null
+          comped_tier?: string | null
+          comped_until?: string | null
           created_at?: string | null
+          created_from_template_id?: string | null
           custom_domain?: string | null
+          discount_notes?: string | null
+          discount_percent?: number | null
+          discount_set_at?: string | null
+          discount_set_by?: string | null
           domain_dns_records?: Json | null
           domain_last_checked_at?: string | null
           domain_verification_status?: string | null
@@ -12472,8 +12512,11 @@ export type Database = {
           has_stripe_webhook_configured?: never
           has_turno_configured?: never
           id?: string | null
+          inbound_email_prefix?: string | null
           is_active?: boolean | null
+          is_comped?: boolean | null
           is_template?: boolean | null
+          is_template_source?: boolean | null
           logo_url?: string | null
           name?: string | null
           onboarding_completed?: boolean | null
@@ -12482,18 +12525,40 @@ export type Database = {
           payments_enabled?: boolean | null
           platform_fee_percent?: number | null
           slug?: string | null
+          stripe_account_id?: string | null
+          stripe_connect_id?: string | null
           stripe_connect_status?: string | null
+          stripe_coupon_id?: string | null
           stripe_customer_id?: string | null
+          subdomain_error?: string | null
+          subdomain_status?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
+          template_category?: string | null
           template_type?: string | null
           trial_ends_at?: string | null
+          turno_partner_id?: string | null
           updated_at?: string | null
           website?: string | null
         }
         Update: {
+          active_template_slug?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          cloudflare_hostname_id?: string | null
+          comp_notes?: string | null
+          comped_at?: string | null
+          comped_by?: string | null
+          comped_tier?: string | null
+          comped_until?: string | null
           created_at?: string | null
+          created_from_template_id?: string | null
           custom_domain?: string | null
+          discount_notes?: string | null
+          discount_percent?: number | null
+          discount_set_at?: string | null
+          discount_set_by?: string | null
           domain_dns_records?: Json | null
           domain_last_checked_at?: string | null
           domain_verification_status?: string | null
@@ -12508,8 +12573,11 @@ export type Database = {
           has_stripe_webhook_configured?: never
           has_turno_configured?: never
           id?: string | null
+          inbound_email_prefix?: string | null
           is_active?: boolean | null
+          is_comped?: boolean | null
           is_template?: boolean | null
+          is_template_source?: boolean | null
           logo_url?: string | null
           name?: string | null
           onboarding_completed?: boolean | null
@@ -12518,16 +12586,31 @@ export type Database = {
           payments_enabled?: boolean | null
           platform_fee_percent?: number | null
           slug?: string | null
+          stripe_account_id?: string | null
+          stripe_connect_id?: string | null
           stripe_connect_status?: string | null
+          stripe_coupon_id?: string | null
           stripe_customer_id?: string | null
+          subdomain_error?: string | null
+          subdomain_status?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
+          template_category?: string | null
           template_type?: string | null
           trial_ends_at?: string | null
+          turno_partner_id?: string | null
           updated_at?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organizations_created_from_template_id_fkey"
+            columns: ["created_from_template_id"]
+            isOneToOne: false
+            referencedRelation: "organization_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_onboarding_funnel: {
         Row: {
