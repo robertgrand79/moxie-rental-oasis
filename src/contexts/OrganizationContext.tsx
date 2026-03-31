@@ -169,16 +169,42 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
 
       // Set organization and membership data - prioritize domain matching
-      const memberships = membershipResult.data as any[];
+      const memberships = membershipResult.data;
       
       if (memberships && memberships.length > 0) {
-        let selectedMember: any = null;
+        // Fetch org details from organizations_safe view for all member orgs
+        const orgIds = memberships.map(m => m.organization_id);
+        const { data: orgsData, error: orgsError } = await supabase
+          .from('organizations_safe')
+          .select(ORGANIZATION_SAFE_SELECT)
+          .in('id', orgIds);
+
+        if (orgsError) {
+          debug.error('Error fetching organizations_safe:', orgsError);
+          throw orgsError;
+        }
+
+        // Build a map of org_id -> org data
+        const orgMap = new Map<string, Organization>();
+        if (orgsData) {
+          for (const org of orgsData) {
+            orgMap.set(org.id!, org as unknown as Organization);
+          }
+        }
+
+        // Attach org data to memberships for selection logic
+        const membershipsWithOrg = memberships.map(m => ({
+          ...m,
+          organization: orgMap.get(m.organization_id) || null,
+        }));
+
+        let selectedMember: typeof membershipsWithOrg[0] | null = null;
         
         // Priority 1: Match by custom domain
         if (domainCustomDomain) {
-          selectedMember = memberships.find((m: any) => 
+          selectedMember = membershipsWithOrg.find(m => 
             m.organization?.custom_domain?.replace(/^www\./, '') === domainCustomDomain
-          );
+          ) || null;
           if (selectedMember) {
             debug.org('Organization matched by custom domain:', selectedMember.organization?.name);
           }
@@ -186,9 +212,9 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         
         // Priority 2: Match by subdomain slug
         if (!selectedMember && domainOrgSlug) {
-          selectedMember = memberships.find((m: any) => 
+          selectedMember = membershipsWithOrg.find(m => 
             m.organization?.slug === domainOrgSlug
-          );
+          ) || null;
           if (selectedMember) {
             debug.org('Organization matched by subdomain:', selectedMember.organization?.name);
           }
@@ -196,7 +222,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         
         // Priority 3: Fall back to oldest (primary) organization
         if (!selectedMember) {
-          selectedMember = memberships[0]; // Already sorted oldest first
+          selectedMember = membershipsWithOrg[0];
           debug.org('Using primary (oldest) organization:', selectedMember.organization?.name);
         }
         
