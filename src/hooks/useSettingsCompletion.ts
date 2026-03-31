@@ -124,9 +124,9 @@ export const useSettingsCompletion = () => {
 
       // Integrations: at least 1 configured
       const integrationsConfigured = [
-        !!org?.resend_api_key,
-        !!org?.seam_api_key,
-        !!org?.openphone_api_key
+        !!org?.has_resend_configured,
+        !!org?.has_seam_configured,
+        !!org?.has_openphone_configured
       ].filter(Boolean).length;
       categories.integrations = {
         id: 'integrations',
@@ -137,7 +137,7 @@ export const useSettingsCompletion = () => {
 
       // Payments: Stripe configured
       const paymentsComplete = [
-        !!org?.stripe_secret_key
+        !!org?.has_stripe_configured
       ].filter(Boolean).length;
       categories.payments = {
         id: 'payments',
