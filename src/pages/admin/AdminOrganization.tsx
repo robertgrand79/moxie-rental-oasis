@@ -406,7 +406,7 @@ const AdminOrganization = () => {
                       disabled={!isOrgAdmin()}
                     />
                     <div className="mt-1">
-                      <ConfigStatus configured={!!organization.pricelabs_api_key} />
+                      <ConfigStatus configured={!!organization.has_pricelabs_configured} />
                     </div>
                   </div>
                   {isOrgAdmin() && (
