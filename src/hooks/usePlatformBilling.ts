@@ -147,7 +147,11 @@ export const usePlatformBilling = () => {
           const data = monthlyData.get(monthKey)!;
           data.new += 1;
           if (org.subscription_status === 'active' && org.subscription_tier) {
-            data.mrr += priceMap.get(org.subscription_tier) || 0;
+            let price = priceMap.get(org.subscription_tier) || 0;
+            if (org.discount_percent && org.discount_percent > 0) {
+              price = price * (100 - org.discount_percent) / 100;
+            }
+            data.mrr += price;
           }
         }
       });
