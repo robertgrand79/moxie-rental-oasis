@@ -188,7 +188,8 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const orgMap = new Map<string, Organization>();
         if (orgsData) {
           for (const org of orgsData) {
-            orgMap.set(org.id!, org as unknown as Organization);
+            const orgId = (org as any).id as string;
+            if (orgId) orgMap.set(orgId, org as unknown as Organization);
           }
         }
 
