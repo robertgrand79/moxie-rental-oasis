@@ -22,8 +22,7 @@ const ServicesSettingsPage = () => {
 
   useEffect(() => {
     if (organization) {
-      const org = organization as any;
-      setConfiguredKeys({ turno_api_token: !!org.turno_api_token, openweather_api_key: !!org.openweather_api_key });
+      setConfiguredKeys({ turno_api_token: !!(organization as any).has_turno_configured, openweather_api_key: !!(organization as any).has_openweather_configured });
     }
   }, [organization]);
 
