@@ -296,8 +296,8 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Fetch the target organization
       const { data: targetOrg, error: orgError } = await supabase
-        .from('organizations')
-        .select('*')
+        .from('organizations_safe')
+        .select(ORGANIZATION_SAFE_SELECT)
         .eq('id', orgId)
         .single();
 
