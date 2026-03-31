@@ -52,8 +52,8 @@ export const useSettingsCompletion = () => {
           .select('key, value')
           .eq('organization_id', orgId),
         supabase
-          .from('organizations')
-          .select('name, slug, stripe_secret_key, pricelabs_api_key, resend_api_key, seam_api_key, openphone_api_key')
+          .from('organizations_safe')
+          .select('name, slug, has_stripe_configured, has_pricelabs_configured, has_resend_configured, has_seam_configured, has_openphone_configured')
           .eq('id', orgId)
           .single(),
         getTableCount('organization_members', orgId),
