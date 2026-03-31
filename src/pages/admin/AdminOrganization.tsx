@@ -351,7 +351,7 @@ const AdminOrganization = () => {
                       disabled={!isOrgAdmin()}
                     />
                     <div className="mt-1">
-                      <ConfigStatus configured={!!organization.stripe_secret_key} />
+                      <ConfigStatus configured={!!organization.has_stripe_configured} />
                     </div>
                   </div>
                   <div>
