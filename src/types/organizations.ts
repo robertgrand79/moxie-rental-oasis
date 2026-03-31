@@ -119,6 +119,7 @@ export interface UpdateOrganizationData {
   logo_url?: string;
   website?: string;
   custom_domain?: string;
+  turno_partner_id?: string;
   // Note: API keys are set via edge functions (useSecureApiKeys), not direct updates
   inbound_email_prefix?: string;
 }
