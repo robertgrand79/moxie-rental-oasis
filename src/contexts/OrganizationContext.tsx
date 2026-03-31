@@ -142,13 +142,13 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
 
       // Fetch ALL organization memberships and platform admin status in parallel
+      // NOTE: We fetch memberships separately from org data because the 
+      // organizations_safe VIEW (with has_*_configured columns) can't be 
+      // used in PostgREST foreign-key joins - only base tables can.
       const [membershipResult, platformAdminResult] = await Promise.all([
         supabase
           .from('organization_members')
-          .select(`
-            *,
-            organization:organizations(${ORGANIZATION_SAFE_SELECT})
-          `)
+          .select('id, organization_id, user_id, role, invited_by, joined_at')
           .eq('user_id', user.id)
           .order('joined_at', { ascending: true }), // Oldest first (primary)
         supabase
