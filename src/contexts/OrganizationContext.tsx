@@ -147,7 +147,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           .from('organization_members')
           .select(`
             *,
-            organization:organizations(*)
+            organization:organizations_safe!inner(${ORGANIZATION_SAFE_SELECT})
           `)
           .eq('user_id', user.id)
           .order('joined_at', { ascending: true }), // Oldest first (primary)
