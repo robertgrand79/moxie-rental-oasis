@@ -74,7 +74,7 @@ export const usePlatformAdmin = () => {
     queryKey: ['platform-organizations', showArchived],
     queryFn: async () => {
       let query = supabase
-        .from('organizations')
+        .from('organizations_safe')
         .select('*')
         .order('created_at', { ascending: false });
 

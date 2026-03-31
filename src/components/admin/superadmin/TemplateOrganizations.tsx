@@ -119,7 +119,7 @@ const TemplateOrganizations: React.FC<TemplateOrganizationsProps> = ({
     try {
       // Fetch full organization data including API keys
       const { data, error } = await supabase
-        .from('organizations')
+        .from('organizations_safe')
         .select('*')
         .eq('id', org.id)
         .single();

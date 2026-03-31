@@ -130,7 +130,7 @@ const TenantDetailView = ({ organizationId, open, onOpenChange }: TenantDetailVi
     queryKey: ['tenant-detail', organizationId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('organizations')
+        .from('organizations_safe')
         .select('*')
         .eq('id', organizationId)
         .single();
