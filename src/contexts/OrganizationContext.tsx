@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { usePlatform } from './PlatformContext';
-import { Organization, OrganizationMember } from '@/types/organizations';
+import { Organization, OrganizationMember, ORGANIZATION_SAFE_SELECT } from '@/types/organizations';
 import { debug } from '@/utils/debug';
 
 interface OrganizationContextType {
