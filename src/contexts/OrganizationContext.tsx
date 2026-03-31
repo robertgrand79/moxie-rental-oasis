@@ -231,7 +231,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           id: selectedMember.id,
           organization_id: selectedMember.organization_id,
           user_id: selectedMember.user_id,
-          role: selectedMember.role,
+          role: selectedMember.role as 'owner' | 'admin' | 'member',
           invited_by: selectedMember.invited_by,
           joined_at: selectedMember.joined_at,
         });
