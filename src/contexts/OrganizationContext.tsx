@@ -142,13 +142,13 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
 
       // Fetch ALL organization memberships and platform admin status in parallel
+      // NOTE: We fetch memberships separately from org data because the 
+      // organizations_safe VIEW (with has_*_configured columns) can't be 
+      // used in PostgREST foreign-key joins - only base tables can.
       const [membershipResult, platformAdminResult] = await Promise.all([
         supabase
           .from('organization_members')
-          .select(`
-            *,
-            organization:organizations(${ORGANIZATION_SAFE_SELECT})
-          `)
+          .select('id, organization_id, user_id, role, invited_by, joined_at')
           .eq('user_id', user.id)
           .order('joined_at', { ascending: true }), // Oldest first (primary)
         supabase
@@ -169,16 +169,43 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
 
       // Set organization and membership data - prioritize domain matching
-      const memberships = membershipResult.data as any[];
+      const memberships = membershipResult.data;
       
       if (memberships && memberships.length > 0) {
-        let selectedMember: any = null;
+        // Fetch org details from organizations_safe view for all member orgs
+        const orgIds = memberships.map(m => m.organization_id);
+        const { data: orgsData, error: orgsError } = await supabase
+          .from('organizations_safe')
+          .select(ORGANIZATION_SAFE_SELECT)
+          .in('id', orgIds);
+
+        if (orgsError) {
+          debug.error('Error fetching organizations_safe:', orgsError);
+          throw orgsError;
+        }
+
+        // Build a map of org_id -> org data
+        const orgMap = new Map<string, Organization>();
+        if (orgsData) {
+          for (const org of orgsData) {
+            const orgId = (org as any).id as string;
+            if (orgId) orgMap.set(orgId, org as unknown as Organization);
+          }
+        }
+
+        // Attach org data to memberships for selection logic
+        const membershipsWithOrg = memberships.map(m => ({
+          ...m,
+          organization: orgMap.get(m.organization_id) || null,
+        }));
+
+        let selectedMember: typeof membershipsWithOrg[0] | null = null;
         
         // Priority 1: Match by custom domain
         if (domainCustomDomain) {
-          selectedMember = memberships.find((m: any) => 
+          selectedMember = membershipsWithOrg.find(m => 
             m.organization?.custom_domain?.replace(/^www\./, '') === domainCustomDomain
-          );
+          ) || null;
           if (selectedMember) {
             debug.org('Organization matched by custom domain:', selectedMember.organization?.name);
           }
@@ -186,9 +213,9 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         
         // Priority 2: Match by subdomain slug
         if (!selectedMember && domainOrgSlug) {
-          selectedMember = memberships.find((m: any) => 
+          selectedMember = membershipsWithOrg.find(m => 
             m.organization?.slug === domainOrgSlug
-          );
+          ) || null;
           if (selectedMember) {
             debug.org('Organization matched by subdomain:', selectedMember.organization?.name);
           }
@@ -196,7 +223,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         
         // Priority 3: Fall back to oldest (primary) organization
         if (!selectedMember) {
-          selectedMember = memberships[0]; // Already sorted oldest first
+          selectedMember = membershipsWithOrg[0];
           debug.org('Using primary (oldest) organization:', selectedMember.organization?.name);
         }
         
@@ -204,7 +231,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           id: selectedMember.id,
           organization_id: selectedMember.organization_id,
           user_id: selectedMember.user_id,
-          role: selectedMember.role,
+          role: selectedMember.role as 'owner' | 'admin' | 'member',
           invited_by: selectedMember.invited_by,
           joined_at: selectedMember.joined_at,
         });
