@@ -42,7 +42,7 @@ serve(async (req) => {
 
     // For subdomains under staymoxie.com, we use wildcard DNS (already configured)
     // No need to call Cloudflare API - just mark as active since wildcard DNS handles routing
-    // Lovable/the hosting provider handles SSL for these subdomains automatically
+    // Vercel handles SSL for these subdomains automatically via wildcard domain
 
     // Update status to active - wildcard DNS handles the subdomain routing
     const { error: updateError } = await supabase

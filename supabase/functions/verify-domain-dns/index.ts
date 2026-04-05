@@ -6,7 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const LOVABLE_IP = '185.158.133.1';
+const VERCEL_IP = '76.76.21.21';
+const VERCEL_CNAME = 'cname.vercel-dns.com';
 
 interface DnsAnswer {
   type: number;
@@ -70,19 +71,19 @@ async function checkDomain(domain: string, orgId: string): Promise<{
         check: 'Root Domain A Record',
         status: 'fail',
         message: 'No A record found for root domain',
-        details: `Add an A record for @ pointing to ${LOVABLE_IP}`
+        details: `Add an A record for @ pointing to ${VERCEL_IP}`
       });
-    } else if (ipAddresses.includes(LOVABLE_IP)) {
+    } else if (ipAddresses.includes(VERCEL_IP)) {
       diagnostics.push({
         check: 'Root Domain A Record',
         status: 'pass',
-        message: `Root domain correctly points to ${LOVABLE_IP}`
+        message: `Root domain correctly points to ${VERCEL_IP}`
       });
     } else {
       diagnostics.push({
         check: 'Root Domain A Record',
         status: 'fail',
-        message: `Root domain points to ${ipAddresses.join(', ')} instead of ${LOVABLE_IP}`,
+        message: `Root domain points to ${ipAddresses.join(', ')} instead of ${VERCEL_IP}`,
         details: 'Update your A record to point to the correct IP address'
       });
     }
@@ -106,19 +107,19 @@ async function checkDomain(domain: string, orgId: string): Promise<{
         check: 'WWW Subdomain A Record',
         status: 'warning',
         message: 'No A record found for www subdomain',
-        details: `Add an A record for www pointing to ${LOVABLE_IP} if you want www.${cleanDomain} to work`
+        details: `Add an A record for www pointing to ${VERCEL_IP} if you want www.${cleanDomain} to work`
       });
-    } else if (wwwIps.includes(LOVABLE_IP)) {
+    } else if (wwwIps.includes(VERCEL_IP)) {
       diagnostics.push({
         check: 'WWW Subdomain A Record',
         status: 'pass',
-        message: `www subdomain correctly points to ${LOVABLE_IP}`
+        message: `www subdomain correctly points to ${VERCEL_IP}`
       });
     } else {
       diagnostics.push({
         check: 'WWW Subdomain A Record',
         status: 'warning',
-        message: `www subdomain points to ${wwwIps.join(', ')} instead of ${LOVABLE_IP}`,
+        message: `www subdomain points to ${wwwIps.join(', ')} instead of ${VERCEL_IP}`,
         details: 'Update the www A record to point to the correct IP for www to work'
       });
     }
@@ -134,10 +135,10 @@ async function checkDomain(domain: string, orgId: string): Promise<{
   
   // Check 3: TXT verification record
   try {
-    const txtResults = await lookupDns(`_lovable.${cleanDomain}`, 'TXT');
+    const txtResults = await lookupDns(`_staymoxie.${cleanDomain}`, 'TXT');
     txtRecords = txtResults.map(r => r.data.replace(/"/g, ''));
     
-    const expectedTxt = `lovable_verify=${orgId}`;
+    const expectedTxt = `staymoxie_verify=${orgId}`;
     const hasTxtRecord = txtRecords.some(txt => txt.includes(expectedTxt) || txt.includes(orgId));
     
     if (hasTxtRecord) {

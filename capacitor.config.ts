@@ -1,13 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.5ce4b690a4664c258e909a85d0f8004e',
-  appName: 'moxie-rental-oasis',
+  appId: 'com.staymoxie.app',
+  appName: 'StayMoxie',
   webDir: 'dist',
-  server: {
-    url: 'https://5ce4b690-a466-4c25-8e90-9a85d0f8004e.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 3000,
