@@ -1,12 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Images, Loader2 } from 'lucide-react';
-import { getOptimizedImageUrl, supportsWebP } from '@/utils/imageOptimization';
-
-// Check if URL is a Supabase storage URL
-const isSupabaseUrl = (url: string): boolean => {
-  return url.includes('supabase.co') || url.includes('supabase.in');
-};
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -20,9 +14,9 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
   height?: number;
 }
 
-const OptimizedImage = ({ 
-  src, 
-  alt, 
+const OptimizedImage = ({
+  src,
+  alt,
   className,
   fallbackIcon = true,
   priority = false,
@@ -30,18 +24,13 @@ const OptimizedImage = ({
   quality = 80,
   width,
   height,
-  ...props 
+  ...props
 }: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [useOriginalSrc, setUseOriginalSrc] = useState(false);
   const [isInView, setIsInView] = useState(priority);
-  const [webpSupported, setWebpSupported] = useState<boolean | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-
-  // Check WebP support
-  useEffect(() => {
-    supportsWebP().then(setWebpSupported);
-  }, []);
 
   // Intersection Observer for lazy loading (unless priority)
   useEffect(() => {
@@ -65,6 +54,7 @@ const OptimizedImage = ({
   useEffect(() => {
     setIsLoaded(false);
     setHasError(false);
+    setUseOriginalSrc(false);
     if (priority) setIsInView(true);
   }, [src, priority]);
 
@@ -73,11 +63,10 @@ const OptimizedImage = ({
     setHasError(false);
   };
 
-  const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    // If optimized URL fails, try original URL as fallback
-    if (img.src !== src && src) {
-      img.src = src;
+  const handleError = () => {
+    // If we were trying an optimized URL, fall back to the original src via React state
+    if (!useOriginalSrc && src) {
+      setUseOriginalSrc(true);
       return;
     }
     setHasError(true);
@@ -93,33 +82,11 @@ const OptimizedImage = ({
     );
   }
 
-  // For external URLs, use original src directly without optimization
-  const isExternal = !isSupabaseUrl(src);
-  const optimizedSrc = isExternal ? src : (webpSupported !== null ? getOptimizedImageUrl(src, {
-    width,
-    height,
-    quality,
-    format: webpSupported ? 'webp' : 'jpeg'
-  }) : src);
-
-  // Only generate srcSet for Supabase URLs
-  const generateSrcSet = () => {
-    if (!width || webpSupported === null || isExternal) return undefined;
-    
-    const format = webpSupported ? 'webp' : 'jpeg';
-    const breakpoints = [0.5, 1, 1.5, 2];
-    
-    return breakpoints
-      .map(ratio => {
-        const scaledWidth = Math.round(width * ratio);
-        const url = getOptimizedImageUrl(src, { width: scaledWidth, quality, format });
-        return `${url} ${ratio}x`;
-      })
-      .join(', ');
-  };
+  // Use original src directly - images are already optimized WebP from the upload pipeline
+  const imageSrc = src;
 
   return (
-    <div 
+    <div
       ref={imgRef}
       className={cn("relative overflow-hidden bg-gray-100", className)}
     >
@@ -143,9 +110,7 @@ const OptimizedImage = ({
       {/* Main image */}
       {(isInView || priority) && (
         <img
-          src={optimizedSrc}
-          srcSet={generateSrcSet()}
-          sizes={sizes}
+          src={imageSrc}
           alt={alt}
           onLoad={handleLoad}
           onError={handleError}
