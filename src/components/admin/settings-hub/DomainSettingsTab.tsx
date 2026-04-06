@@ -75,7 +75,7 @@ const DomainSettingsTab = () => {
     if (!organization) return;
 
     const cleanedDomain = cleanDomainInput(customDomain);
-    
+
     if (cleanedDomain && !validateDomain(cleanedDomain)) {
       toast({
         title: 'Invalid Domain',
@@ -85,18 +85,39 @@ const DomainSettingsTab = () => {
       return;
     }
 
+    // Save domain to org record first
     await updateOrganization(organization.id, {
       custom_domain: cleanedDomain || null,
     });
-    
+
     setCustomDomain(cleanedDomain);
     setVerificationStatus('pending');
+
+    // Register the domain with Vercel so SSL and routing work
+    if (cleanedDomain) {
+      try {
+        const { error } = await supabase.functions.invoke('provision-custom-domain', {
+          body: { organization_id: organization.id, domain: cleanedDomain },
+        });
+        if (error) throw error;
+      } catch (err: any) {
+        console.error('Failed to register domain with hosting:', err);
+        toast({
+          title: 'Domain Saved — Action Needed',
+          description: 'DNS instructions are ready, but auto-registration with hosting failed. Contact support if your domain does not resolve after DNS is configured.',
+          variant: 'destructive',
+        });
+        refetch();
+        return;
+      }
+    }
+
     refetch();
-    
+
     toast({
       title: 'Domain Saved',
-      description: cleanedDomain 
-        ? 'Configure your DNS records and verify to complete setup.' 
+      description: cleanedDomain
+        ? 'Add the DNS records below at your registrar, then click Verify DNS.'
         : 'Custom domain has been removed.',
     });
   };
@@ -372,7 +393,8 @@ const DomainSettingsTab = () => {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  DNS changes can take up to 48-72 hours to propagate worldwide.
+                  DNS changes can take up to 24–48 hours to propagate worldwide.
+                  {' '}<strong>Using Cloudflare?</strong> Make sure all records are set to <strong>DNS only</strong> (grey cloud ☁️, not orange 🟠) — the orange proxy will break SSL.
                 </AlertDescription>
               </Alert>
 
