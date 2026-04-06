@@ -30,30 +30,31 @@ interface DomainDiagnosticsProps {
   orgId: string;
 }
 
-const LOVABLE_IP = '185.158.133.1';
+const VERCEL_IP = '76.76.21.21';
+const VERCEL_CNAME = 'cname.vercel-dns.com';
 
 const troubleshootingTips: Record<string, { title: string; tips: string[] }> = {
   'Root Domain A Record': {
     title: 'How to fix root domain A record',
     tips: [
-      `Add an A record with host "@" or blank pointing to ${LOVABLE_IP}`,
+      `Add an A record with host "@" or blank pointing to ${VERCEL_IP}`,
       'Remove any conflicting A records pointing to different IP addresses',
-      'If using Cloudflare, set proxy status to "DNS only" (gray cloud)',
+      'If using Cloudflare, set proxy status to "DNS only" (gray cloud — NOT orange)',
       'DNS changes can take 24-48 hours to propagate worldwide',
     ],
   },
-  'WWW Subdomain A Record': {
+  'WWW Subdomain': {
     title: 'How to fix www subdomain',
     tips: [
-      `Add an A record with host "www" pointing to ${LOVABLE_IP}`,
-      'Alternatively, add a CNAME record for "www" pointing to your root domain',
+      `Add a CNAME record with host "www" pointing to ${VERCEL_CNAME}`,
+      `Or add an A record with host "www" pointing to ${VERCEL_IP}`,
       'This ensures visitors using www.yourdomain.com can access your site',
     ],
   },
   'TXT Verification Record': {
     title: 'How to add TXT verification',
     tips: [
-      'Add a TXT record with host "_lovable"',
+      'Add a TXT record with host "_staymoxie"',
       'Set the value to the verification string shown above',
       'This proves domain ownership and speeds up SSL provisioning',
     ],
@@ -92,9 +93,10 @@ const DomainDiagnostics: React.FC<DomainDiagnosticsProps> = ({
   
   // Required DNS records for display
   const requiredRecords = [
-    { type: 'A', host: '@', value: LOVABLE_IP, description: 'Root domain' },
-    { type: 'A', host: 'www', value: LOVABLE_IP, description: 'WWW subdomain (recommended)' },
-    { type: 'TXT', host: '_lovable', value: `lovable_verify=${orgId}`, description: 'Verification (optional)' },
+    { type: 'A', host: '@', value: VERCEL_IP, description: 'Root domain' },
+    { type: 'CNAME', host: 'www', value: VERCEL_CNAME, description: 'WWW subdomain' },
+    { type: 'CNAME', host: '_acme-challenge', value: `_acme-challenge.${domain}.cname.vercel-dns.com`, description: 'SSL certificate (required)' },
+    { type: 'TXT', host: '_staymoxie', value: `staymoxie_verify=${orgId}`, description: 'Domain ownership verification' },
   ];
   
   return (

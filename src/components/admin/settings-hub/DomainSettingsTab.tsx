@@ -25,7 +25,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import DomainDiagnostics from '@/components/domain/DomainDiagnostics';
 
-const LOVABLE_IP = '185.158.133.1';
+const VERCEL_IP = '76.76.21.21';
+const VERCEL_CNAME = 'cname.vercel-dns.com';
 
 interface DnsRecord {
   type: string;
@@ -166,10 +167,12 @@ const DomainSettingsTab = () => {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  const activeDomain = organization?.custom_domain || customDomain || 'yourdomain.com';
   const dnsRecords: DnsRecord[] = [
-    { type: 'A', host: '@', value: LOVABLE_IP },
-    { type: 'A', host: 'www', value: LOVABLE_IP },
-    { type: 'TXT', host: '_lovable', value: `lovable_verify=${organization?.id || 'your-org-id'}` },
+    { type: 'A', host: '@', value: VERCEL_IP },
+    { type: 'CNAME', host: 'www', value: VERCEL_CNAME },
+    { type: 'CNAME', host: '_acme-challenge', value: `_acme-challenge.${activeDomain}.cname.vercel-dns.com` },
+    { type: 'TXT', host: '_staymoxie', value: `staymoxie_verify=${organization?.id || 'your-org-id'}` },
   ];
 
   const registrarInstructions = [
@@ -483,14 +486,7 @@ const DomainSettingsTab = () => {
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <ExternalLink className="h-4 w-4" />
-                <a 
-                  href="https://docs.lovable.dev/features/custom-domain" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="underline hover:text-foreground"
-                >
-                  Learn more about custom domains
-                </a>
+                <span>DNS changes can take up to 24–48 hours to propagate worldwide.</span>
               </div>
             </CardContent>
           </Card>
