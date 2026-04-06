@@ -140,8 +140,8 @@ const PropertyGrid = ({ properties, checkin, checkout, showAvailabilityBadge, is
             className={`overflow-hidden transition-shadow ${isUnavailable ? 'grayscale' : 'hover:shadow-lg'}`}
           >
             <div className="aspect-video relative">
-              <img 
-                src={property.image_url} 
+              <img
+                src={property.cover_image_url || property.image_url || (property.images && property.images.length > 0 ? property.images[0] : '') || ''}
                 alt={property.title}
                 className="w-full h-full object-cover"
               />

@@ -9,6 +9,17 @@ import { generateAddressSlug } from '@/utils/addressSlug';
 import OptimizedImage from '@/components/ui/optimized-image';
 import PropertyCardSkeleton from '@/components/ui/property-card-skeleton';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import { Images } from 'lucide-react';
+import { Property } from '@/types/property';
+
+// Get the best available image URL for a property
+const getBestImageUrl = (property: Property): string | null => {
+  if (property.cover_image_url) return property.cover_image_url;
+  if (property.image_url) return property.image_url;
+  if (property.images && Array.isArray(property.images) && property.images.length > 0) return property.images[0];
+  if (property.featured_photos && Array.isArray(property.featured_photos) && property.featured_photos.length > 0) return property.featured_photos[0];
+  return null;
+};
 
 const CompactPropertyShowcase = () => {
   const { properties, loading } = useTenantProperties();
@@ -50,13 +61,22 @@ const CompactPropertyShowcase = () => {
                   return (
                     <Card key={property.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border-0 shadow-md">
                       <div className="aspect-[4/3] relative overflow-hidden">
-                        <OptimizedImage 
-                          src={property.image_url} 
-                          alt={property.title}
-                          width={300}
-                          height={225}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
+                        {(() => {
+                          const imageUrl = getBestImageUrl(property);
+                          return imageUrl ? (
+                            <OptimizedImage
+                              src={imageUrl}
+                              alt={property.title}
+                              width={300}
+                              height={225}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                              <Images className="h-8 w-8 text-gray-400" />
+                            </div>
+                          );
+                        })()}
                       </div>
                       <CardContent className="p-6">
                         <h3 className="font-bold text-lg mb-2 line-clamp-2 text-gray-900 min-h-[3.5rem]">

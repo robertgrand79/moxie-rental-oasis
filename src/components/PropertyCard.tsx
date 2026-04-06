@@ -24,14 +24,28 @@ interface PropertyCardProps {
 }
 
 const PropertyCard = ({ property, onEdit, onDelete }: PropertyCardProps) => {
+  // Get the best available image URL
+  const imageUrl = property.cover_image_url || property.image_url ||
+    (property.images && Array.isArray(property.images) && property.images.length > 0 ? property.images[0] : null) ||
+    (property.featured_photos && Array.isArray(property.featured_photos) && property.featured_photos.length > 0 ? property.featured_photos[0] : null);
+
   return (
     <Card className="overflow-hidden">
       <div className="aspect-video bg-gray-200 relative">
-        <ThumbnailImage 
-          src={property.image_url} 
-          alt={property.title}
-          className="w-full h-full"
-        />
+        {imageUrl ? (
+          <ThumbnailImage
+            src={imageUrl}
+            alt={property.title}
+            className="w-full h-full"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <div className="text-2xl mb-1">🏠</div>
+              <div className="text-sm">No image</div>
+            </div>
+          </div>
+        )}
       </div>
       <CardHeader>
         <CardTitle className="text-lg">{property.title}</CardTitle>

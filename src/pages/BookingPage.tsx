@@ -56,7 +56,7 @@ const BookingPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="aspect-video lg:aspect-square relative">
                 <ThumbnailImage
-                  src={property.image_url}
+                  src={property.cover_image_url || property.image_url || (property.images && property.images.length > 0 ? property.images[0] : '') || ''}
                   alt={property.title}
                   className="w-full h-full"
                 />

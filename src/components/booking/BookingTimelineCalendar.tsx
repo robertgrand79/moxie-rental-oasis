@@ -573,9 +573,9 @@ export const BookingTimelineCalendar: React.FC<BookingTimelineCalendarProps> = (
                     className="h-24 py-4 border-b border-border/30 flex items-start gap-4 px-4 hover:bg-accent/20"
                   >
                     <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                      {property.image_url ? (
-                        <img 
-                          src={property.image_url} 
+                      {(property.cover_image_url || property.image_url || (property.images && property.images.length > 0 ? property.images[0] : null)) ? (
+                        <img
+                          src={property.cover_image_url || property.image_url || (property.images && property.images.length > 0 ? property.images[0] : '')}
                           alt={property.title}
                           className="w-full h-full object-cover"
                         />

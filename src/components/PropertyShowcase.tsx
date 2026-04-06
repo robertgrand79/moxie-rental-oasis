@@ -2,11 +2,22 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Bed, Bath, Users, Loader2 } from 'lucide-react';
+import { MapPin, Bed, Bath, Users, Loader2, Images } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTenantProperties } from '@/hooks/useTenantProperties';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import OptimizedImage from '@/components/ui/optimized-image';
+import { Property } from '@/types/property';
+
+// Get the best available image URL for a property
+const getBestImageUrl = (property: Property): string | null => {
+  if (property.cover_image_url) return property.cover_image_url;
+  if (property.image_url) return property.image_url;
+  if (property.images && Array.isArray(property.images) && property.images.length > 0) return property.images[0];
+  if (property.featured_photos && Array.isArray(property.featured_photos) && property.featured_photos.length > 0) return property.featured_photos[0];
+  return null;
+};
 
 const PropertyShowcase = () => {
   const { properties, loading } = useTenantProperties();
@@ -54,14 +65,25 @@ const PropertyShowcase = () => {
               // Generate clean address slug without property ID
               const addressSlug = generateAddressSlug(property.location);
               
+              const imageUrl = getBestImageUrl(property);
+
               return (
                 <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="aspect-video relative">
-                    <img 
-                      src={property.image_url} 
-                      alt={property.title}
-                      className="w-full h-full object-cover"
-                    />
+                    {imageUrl ? (
+                      <OptimizedImage
+                        src={imageUrl}
+                        alt={property.title}
+                        className="w-full h-full object-cover"
+                        width={400}
+                        height={225}
+                        priority={properties.indexOf(property) < 3}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                        <Images className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
                   </div>
                   <CardHeader className="p-4 sm:p-6">
                     <CardTitle className="text-lg sm:text-xl">{property.title}</CardTitle>
