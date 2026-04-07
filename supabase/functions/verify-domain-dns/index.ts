@@ -159,7 +159,7 @@ async function checkDomain(domain: string, orgId: string): Promise<{
         check: 'TXT Verification Record',
         status: 'warning',
         message: 'No TXT verification record found',
-        details: `Add a TXT record for _lovable with value: ${expectedTxt}`
+        details: `Add a TXT record for _staymoxie with value: ${expectedTxt}`
       });
     }
   } catch (error) {
