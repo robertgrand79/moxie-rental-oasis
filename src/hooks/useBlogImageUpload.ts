@@ -137,7 +137,7 @@ export const useBlogImageUpload = () => {
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('hero-images')
         .upload(fileName, file, {
-          cacheControl: '3600',
+          cacheControl: '31536000',
           upsert: false
         });
 

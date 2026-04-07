@@ -110,37 +110,50 @@ export const supportsWebP = (): Promise<boolean> => {
 };
 
 // Get optimized image URL with Supabase transformations
+// Supabase image transforms ONLY work via the /render/image/public/ endpoint,
+// not /object/public/. This function converts the URL to the correct endpoint.
 export const getOptimizedImageUrl = (
-  baseUrl: string, 
+  baseUrl: string,
   options: { width?: number; height?: number; quality?: number; format?: string } = {}
 ): string => {
   if (!baseUrl) return baseUrl;
-  
+
   // Silently return relative paths - they can't be optimized but are valid
   if (baseUrl.startsWith('/') || baseUrl.startsWith('./') || baseUrl.startsWith('../')) {
     return baseUrl;
   }
-  
-  // Check if the URL is relative or not a valid URL for optimization
+
   try {
     const url = new URL(baseUrl);
-    
+
     // Only apply transformations to Supabase storage URLs
     if (!url.hostname.includes('supabase')) {
       return baseUrl;
     }
-    
+
+    // Convert /storage/v1/object/public/ → /storage/v1/render/image/public/
+    // This is required for Supabase's image transform API to work
+    if (url.pathname.includes('/storage/v1/object/public/')) {
+      url.pathname = url.pathname.replace(
+        '/storage/v1/object/public/',
+        '/storage/v1/render/image/public/'
+      );
+    }
+
+    // Only append params if already on the render endpoint
+    if (!url.pathname.includes('/storage/v1/render/image/')) {
+      return baseUrl;
+    }
+
     const { width, height, quality = 80, format = 'webp' } = options;
-    
-    // Add transformation parameters for Supabase storage
+
     if (width) url.searchParams.set('width', width.toString());
     if (height) url.searchParams.set('height', height.toString());
     url.searchParams.set('quality', quality.toString());
     url.searchParams.set('format', format);
-    
+
     return url.toString();
   } catch (error) {
-    // If URL construction fails (e.g., relative path), return the original URL
     console.warn('⚠️ Could not optimize image URL, using original:', baseUrl);
     return baseUrl;
   }

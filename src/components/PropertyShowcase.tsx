@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { useTenantProperties } from '@/hooks/useTenantProperties';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
+import ThumbnailImage from '@/components/ui/thumbnail-image';
 
 const PropertyShowcase = () => {
   const { properties, loading } = useTenantProperties();
@@ -57,10 +58,10 @@ const PropertyShowcase = () => {
               return (
                 <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="aspect-video relative">
-                    <img 
-                      src={property.image_url} 
+                    <ThumbnailImage
+                      src={property.image_url || ''}
                       alt={property.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full"
                     />
                   </div>
                   <CardHeader className="p-4 sm:p-6">

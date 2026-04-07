@@ -35,7 +35,9 @@ const OptimizedImage = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(priority);
-  const [webpSupported, setWebpSupported] = useState<boolean | null>(null);
+  // Default true — WebP is supported in all modern browsers (Chrome 23+, Firefox 65+, Safari 14+).
+  // Verified async but we don't block the initial optimized render on the check.
+  const [webpSupported, setWebpSupported] = useState<boolean>(true);
   const imgRef = useRef<HTMLImageElement>(null);
 
   // Check WebP support
@@ -95,16 +97,16 @@ const OptimizedImage = ({
 
   // For external URLs, use original src directly without optimization
   const isExternal = !isSupabaseUrl(src);
-  const optimizedSrc = isExternal ? src : (webpSupported !== null ? getOptimizedImageUrl(src, {
+  const optimizedSrc = isExternal ? src : getOptimizedImageUrl(src, {
     width,
     height,
     quality,
     format: webpSupported ? 'webp' : 'jpeg'
-  }) : src);
+  });
 
   // Only generate srcSet for Supabase URLs
   const generateSrcSet = () => {
-    if (!width || webpSupported === null || isExternal) return undefined;
+    if (!width || isExternal) return undefined;
     
     const format = webpSupported ? 'webp' : 'jpeg';
     const breakpoints = [0.5, 1, 1.5, 2];
