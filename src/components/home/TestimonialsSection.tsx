@@ -44,35 +44,28 @@ const TestimonialsSection = () => {
       }
       
       debug.log('[Testimonials]', '⭐ Fetching for org:', tenantId);
-      
-      // Step 1: Get property IDs for this tenant
-      const { data: properties } = await supabase
-        .from('properties')
-        .select('id')
-        .eq('organization_id', tenantId);
-      
-      const propertyIds = properties?.map(p => p.id) || [];
-      debug.log('[Testimonials]', '⭐ Found', propertyIds.length, 'properties');
-      
-      if (propertyIds.length === 0) {
-        return { data: [], count: 0 };
-      }
-      
-      // Step 2: Fetch testimonials for those properties
-      const { data, error, count } = await supabase
+
+      // Single query using embedded JOIN — no separate property lookup needed
+      const { data: rawData, error, count } = await supabase
         .from('testimonials')
-        .select('*', { count: 'exact' })
-        .in('property_id', propertyIds)
+        .select(
+          'id, guest_name, guest_location, guest_avatar_url, rating, content, review_text, property_name, stay_date, booking_platform, is_active, is_featured, properties!inner(organization_id)',
+          { count: 'exact' }
+        )
+        .eq('properties.organization_id', tenantId)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
         .range(page * pageSize, (page + 1) * pageSize - 1);
+
+      // Strip the embedded properties join from each row before returning
+      const data = (rawData || []).map(({ properties: _p, ...t }) => t);
       
       if (error) {
         console.error('⭐ [Testimonials] Error:', error.message);
         throw error;
       }
-      
-      debug.log('[Testimonials]', '⭐ Loaded', data?.length ?? 0, 'reviews (total:', count, ')');
+
+      debug.log('[Testimonials]', '⭐ Loaded', data.length, 'reviews (total:', count, ')');
       return { data: data as Testimonial[], count: count || 0 };
     },
     enabled: !!tenantId

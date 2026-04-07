@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getOptimizedImageUrl } from '@/utils/imageOptimization';
 
 interface ImageTransformation {
   width?: number;
@@ -45,28 +46,19 @@ export const useAdvancedImageOptimization = () => {
   const [settings, setSettings] = useState<OptimizationSettings | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Generate optimized image URL using Supabase Edge Function
+  // Generate optimized image URL using Supabase's built-in render API
   const generateOptimizedUrl = useCallback((
     originalUrl: string,
     transformations: ImageTransformation = {}
   ) => {
     try {
-      // If it's already a Supabase URL or the edge function is not available, return original
-      if (!originalUrl || originalUrl.includes('image-transform')) {
-        return originalUrl;
-      }
-
-      const supabaseUrl = 'https://joiovubyokikqjytxtuv.supabase.co';
-      const functionUrl = `${supabaseUrl}/functions/v1/image-transform`;
-      
-      const params = new URLSearchParams({
-        url: originalUrl,
-        ...Object.fromEntries(
-          Object.entries(transformations).map(([key, value]) => [key, String(value)])
-        )
+      if (!originalUrl) return originalUrl;
+      return getOptimizedImageUrl(originalUrl, {
+        width: transformations.width,
+        height: transformations.height,
+        quality: transformations.quality ?? 80,
+        format: transformations.format === 'avif' ? 'webp' : (transformations.format ?? 'webp'),
       });
-
-      return `${functionUrl}?${params.toString()}`;
     } catch (error) {
       console.error('Error generating optimized URL:', error);
       return originalUrl;
