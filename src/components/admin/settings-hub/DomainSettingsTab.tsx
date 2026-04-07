@@ -6,18 +6,19 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { 
-  Globe, 
-  Copy, 
-  Check, 
-  RefreshCw, 
-  ExternalLink, 
+import {
+  Globe,
+  Copy,
+  Check,
+  RefreshCw,
+  ExternalLink,
   ChevronDown,
   AlertCircle,
   CheckCircle2,
   Clock,
   Trash2,
-  Shield
+  Shield,
+  Info,
 } from 'lucide-react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useOrganizationOperations } from '@/hooks/useOrganizationOperations';
@@ -32,6 +33,7 @@ interface DnsRecord {
   type: string;
   host: string;
   value: string;
+  description: string;
 }
 
 interface DiagnosticResult {
@@ -41,34 +43,52 @@ interface DiagnosticResult {
   details?: string;
 }
 
+// Step indicator component
+const StepIndicator = ({ step, current }: { step: number; current: number }) => {
+  const done = current > step;
+  const active = current === step;
+  return (
+    <div className={`flex items-center justify-center h-8 w-8 rounded-full text-sm font-bold border-2 shrink-0 ${
+      done    ? 'bg-green-500 border-green-500 text-white' :
+      active  ? 'bg-primary border-primary text-primary-foreground' :
+                'bg-muted border-muted-foreground/30 text-muted-foreground'
+    }`}>
+      {done ? <Check className="h-4 w-4" /> : step}
+    </div>
+  );
+};
+
 const DomainSettingsTab = () => {
   const { organization, isOrgAdmin, refetch } = useCurrentOrganization();
   const { updateOrganization, updating } = useOrganizationOperations();
   const { toast } = useToast();
-  
+
   const [customDomain, setCustomDomain] = useState('');
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'verified' | 'error' | null>(null);
   const [verificationMessage, setVerificationMessage] = useState('');
   const [diagnostics, setDiagnostics] = useState<DiagnosticResult[]>([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (organization?.custom_domain) {
       setCustomDomain(organization.custom_domain);
+      setVerificationStatus('pending');
     }
   }, [organization]);
 
+  // Derive which step the user is on
+  const currentStep = !organization?.custom_domain ? 1 : verificationStatus === 'verified' ? 3 : 2;
+
   const validateDomain = (domain: string): boolean => {
-    // Remove any protocol or path
     const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
-    // Basic domain validation regex
     const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$/;
     return domainRegex.test(cleanDomain);
   };
 
   const cleanDomainInput = (input: string): string => {
-    return input.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim().toLowerCase();
+    return input.replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/^www\./, '').trim().toLowerCase();
   };
 
   const handleSaveDomain = async () => {
@@ -85,7 +105,8 @@ const DomainSettingsTab = () => {
       return;
     }
 
-    // Save domain to org record first
+    setSaving(true);
+
     await updateOrganization(organization.id, {
       custom_domain: cleanedDomain || null,
     });
@@ -93,7 +114,6 @@ const DomainSettingsTab = () => {
     setCustomDomain(cleanedDomain);
     setVerificationStatus('pending');
 
-    // Register the domain with Vercel so SSL and routing work
     if (cleanedDomain) {
       try {
         const { error } = await supabase.functions.invoke('provision-custom-domain', {
@@ -104,79 +124,63 @@ const DomainSettingsTab = () => {
         console.error('Failed to register domain with hosting:', err);
         toast({
           title: 'Domain Saved — Action Needed',
-          description: 'DNS instructions are ready, but auto-registration with hosting failed. Contact support if your domain does not resolve after DNS is configured.',
+          description: 'DNS instructions are ready, but auto-registration failed. Contact support if your domain does not resolve.',
           variant: 'destructive',
         });
         refetch();
+        setSaving(false);
         return;
       }
     }
 
     refetch();
+    setSaving(false);
 
     toast({
-      title: 'Domain Saved',
+      title: cleanedDomain ? '✅ Domain registered!' : 'Domain removed',
       description: cleanedDomain
-        ? 'Add the DNS records below at your registrar, then click Verify DNS.'
-        : 'Custom domain has been removed.',
+        ? 'Now add the DNS records below at your registrar.'
+        : 'Your custom domain has been removed.',
     });
   };
 
   const handleRemoveDomain = async () => {
     if (!organization) return;
-    
-    await updateOrganization(organization.id, {
-      custom_domain: null,
-    });
-    
+    await updateOrganization(organization.id, { custom_domain: null });
     setCustomDomain('');
     setVerificationStatus(null);
+    setDiagnostics([]);
+    setVerificationMessage('');
     refetch();
-    
-    toast({
-      title: 'Domain Removed',
-      description: 'Your custom domain has been removed.',
-    });
+    toast({ title: 'Domain Removed', description: 'Your custom domain has been removed.' });
   };
 
   const handleVerifyDns = async () => {
     if (!customDomain || !organization) return;
-    
     setVerifying(true);
     setVerificationStatus(null);
     setDiagnostics([]);
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('verify-domain-dns', {
-        body: { 
-          domain: customDomain,
-          organization_id: organization.id 
-        },
+        body: { domain: customDomain, organization_id: organization.id },
       });
-
       if (error) throw error;
 
       setVerificationStatus(data.verified ? 'verified' : 'pending');
       setVerificationMessage(data.message || '');
       setDiagnostics(data.diagnostics || []);
-      
-      // Refetch to get updated verification status
       refetch();
-      
+
       toast({
-        title: data.verified ? 'DNS Verified!' : 'DNS Configuration Issues',
+        title: data.verified ? '🎉 DNS Verified!' : 'DNS not ready yet',
         description: data.message,
         variant: data.verified ? 'default' : 'destructive',
       });
     } catch (error: any) {
-      console.error('DNS verification error:', error);
       setVerificationStatus('error');
       setVerificationMessage(error.message || 'Failed to verify DNS');
-      toast({
-        title: 'Verification Failed',
-        description: 'Could not verify DNS records. Please try again.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Verification Failed', description: 'Could not check DNS. Please try again.', variant: 'destructive' });
     } finally {
       setVerifying(false);
     }
@@ -190,231 +194,176 @@ const DomainSettingsTab = () => {
 
   const activeDomain = organization?.custom_domain || customDomain || 'yourdomain.com';
   const dnsRecords: DnsRecord[] = [
-    { type: 'A', host: '@', value: VERCEL_IP },
-    { type: 'CNAME', host: 'www', value: VERCEL_CNAME },
-    { type: 'CNAME', host: '_acme-challenge', value: `_acme-challenge.${activeDomain}.cname.vercel-dns.com` },
-    { type: 'TXT', host: '_staymoxie', value: `staymoxie_verify=${organization?.id || 'your-org-id'}` },
+    {
+      type: 'A',
+      host: '@',
+      value: VERCEL_IP,
+      description: 'Points your root domain to StayMoxie',
+    },
+    {
+      type: 'CNAME',
+      host: 'www',
+      value: VERCEL_CNAME,
+      description: 'Redirects www visitors to your site',
+    },
+    {
+      type: 'CNAME',
+      host: '_acme-challenge',
+      value: `_acme-challenge.${activeDomain}.cname.vercel-dns.com`,
+      description: 'Required for free SSL (https) — add this first',
+    },
+    {
+      type: 'TXT',
+      host: '_staymoxie',
+      value: `staymoxie_verify=${organization?.id || 'your-org-id'}`,
+      description: 'Proves you own this domain',
+    },
   ];
 
   const registrarInstructions = [
     {
       name: 'GoDaddy',
       steps: [
-        'Log in to your GoDaddy account',
-        'Go to My Products → Domains → DNS',
-        'Click "Add" under Records',
-        'Select the record type (A or TXT)',
-        'Enter the host and value from above',
-        'Save your changes',
+        'Log in → My Products → Domains → click DNS next to your domain',
+        'Click "Add" and select the record type (A, CNAME, or TXT)',
+        'Enter the Host and Value from the table above — add all 4 records',
+        'Save changes',
       ],
     },
     {
       name: 'Namecheap',
       steps: [
-        'Log in to Namecheap and go to Domain List',
-        'Click "Manage" next to your domain',
-        'Go to Advanced DNS tab',
-        'Click "Add New Record"',
-        'Select record type and enter values',
+        'Log in → Domain List → click Manage next to your domain',
+        'Go to the Advanced DNS tab',
+        'Click "Add New Record" — add all 4 records from the table above',
         'Save all changes',
       ],
     },
     {
       name: 'Cloudflare',
       steps: [
-        'Log in to Cloudflare dashboard',
-        'Select your domain',
-        'Go to DNS → Records',
-        'Click "Add Record"',
-        'For A records, set Proxy status to "DNS only" (gray cloud)',
-        'Enter the values and save',
+        'Log in → select your domain → DNS → Records',
+        'Click "Add Record" for each of the 4 records above',
+        '⚠️ Critical: set Proxy status to "DNS only" (grey cloud ☁️) for EVERY record — the orange proxy will break SSL',
+        'Save each record',
       ],
     },
     {
-      name: 'Google Domains',
+      name: 'Google Domains / Squarespace',
       steps: [
-        'Go to domains.google.com',
-        'Select your domain',
-        'Click "DNS" in the left sidebar',
-        'Scroll to "Custom records"',
-        'Add each record with the values above',
+        'Go to domains.google.com → select your domain → DNS',
+        'Scroll to "Custom records" and click "Manage custom records"',
+        'Add each of the 4 records from the table above',
         'Save your changes',
       ],
     },
   ];
 
-  const getStatusBadge = () => {
-    switch (verificationStatus) {
-      case 'verified':
-        return (
-          <Badge className="bg-green-500 text-white">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
-            Verified
-          </Badge>
-        );
-      case 'pending':
-        return (
-          <Badge variant="secondary">
-            <Clock className="h-3 w-3 mr-1" />
-            Pending
-          </Badge>
-        );
-      case 'error':
-        return (
-          <Badge variant="destructive">
-            <AlertCircle className="h-3 w-3 mr-1" />
-            Error
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Info Alert */}
+    <div className="space-y-6 max-w-2xl">
+
+      {/* Free subdomain always-on banner */}
       <Alert>
         <Globe className="h-4 w-4" />
         <AlertDescription>
-          Every organization gets an automatic subdomain at <strong>{organization?.slug}.staymoxie.com</strong>. 
-          You can also connect your own custom domain (e.g., myrentals.com).
+          Your site is already live at{' '}
+          <a
+            href={`https://${organization?.slug}.staymoxie.com`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-primary underline underline-offset-2"
+          >
+            {organization?.slug}.staymoxie.com
+          </a>
+          . Connect a custom domain below to use your own address instead.
         </AlertDescription>
       </Alert>
 
-      {/* Current Domains */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5" />
-            Your Domains
-          </CardTitle>
-          <CardDescription>View your default subdomain and configure a custom domain</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Default Subdomain */}
-          <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
-            <div>
-              <p className="font-medium">Default Subdomain</p>
-              <a 
-                href={`https://${organization?.slug}.staymoxie.com`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-primary hover:underline flex items-center gap-1"
-              >
-                {organization?.slug}.staymoxie.com
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-              Active
-            </Badge>
-          </div>
-
-          {/* Custom Domain */}
-          {organization?.custom_domain && (
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div>
-                <p className="font-medium">Custom Domain</p>
-                <a 
-                  href={`https://${organization.custom_domain}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline flex items-center gap-1"
-                >
-                  {organization.custom_domain}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+      {/* ── STEP 1: Enter domain ── */}
+      <div className="flex gap-4">
+        <div className="flex flex-col items-center gap-1">
+          <StepIndicator step={1} current={currentStep} />
+          <div className="w-px flex-1 bg-border" />
+        </div>
+        <div className="flex-1 pb-6">
+          <p className="font-semibold mb-1 mt-1">Enter your domain</p>
+          <p className="text-sm text-muted-foreground mb-3">
+            Type the domain you own (e.g. <code>myrentals.com</code>). Don't include http:// or www.
+          </p>
+          <Card>
+            <CardContent className="pt-4 space-y-3">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="myrentals.com"
+                  value={customDomain}
+                  onChange={(e) => setCustomDomain(e.target.value)}
+                  disabled={!isOrgAdmin() || saving}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveDomain()}
+                />
+                {isOrgAdmin() && (
+                  <Button onClick={handleSaveDomain} disabled={saving || !customDomain.trim()}>
+                    {saving ? <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Saving...</> : organization?.custom_domain ? 'Update' : 'Add Domain'}
+                  </Button>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                {getStatusBadge()}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Add/Edit Custom Domain */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Custom Domain</CardTitle>
-          <CardDescription>
-            Connect your own domain to your site
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="customDomain">Domain Name</Label>
-            <div className="flex gap-2">
-              <Input
-                id="customDomain"
-                placeholder="myrentals.com"
-                value={customDomain}
-                onChange={(e) => setCustomDomain(e.target.value)}
-                disabled={!isOrgAdmin()}
-              />
-              {isOrgAdmin() && (
-                <Button onClick={handleSaveDomain} disabled={updating}>
-                  {updating ? 'Saving...' : organization?.custom_domain ? 'Update' : 'Add Domain'}
+              {organization?.custom_domain && isOrgAdmin() && (
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={handleRemoveDomain}>
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  Remove custom domain
                 </Button>
               )}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Enter your domain without http:// or www (e.g., myrentals.com)
-            </p>
-          </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
-          {organization?.custom_domain && isOrgAdmin() && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleRemoveDomain}
-              disabled={updating}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Remove Custom Domain
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+      {/* ── STEP 2: Add DNS records ── */}
+      <div className="flex gap-4">
+        <div className="flex flex-col items-center gap-1">
+          <StepIndicator step={2} current={currentStep} />
+          <div className="w-px flex-1 bg-border" />
+        </div>
+        <div className={`flex-1 pb-6 ${currentStep < 2 ? 'opacity-40 pointer-events-none' : ''}`}>
+          <p className="font-semibold mb-1 mt-1">Add DNS records at your registrar</p>
+          <p className="text-sm text-muted-foreground mb-3">
+            Log in to wherever you bought your domain and add these 4 records. Each has a copy button.
+          </p>
 
-      {/* DNS Instructions - Show when domain is set */}
-      {organization?.custom_domain && (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle>DNS Configuration</CardTitle>
-              <CardDescription>
-                Add these DNS records at your domain registrar
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  DNS changes can take up to 24–48 hours to propagate worldwide.
-                  {' '}<strong>Using Cloudflare?</strong> Make sure all records are set to <strong>DNS only</strong> (grey cloud ☁️, not orange 🟠) — the orange proxy will break SSL.
+          {organization?.custom_domain && (
+            <div className="space-y-4">
+              {/* Cloudflare warning */}
+              <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800 dark:text-amber-200">
+                  <strong>Using Cloudflare?</strong> Set every record to <strong>DNS only</strong> (grey cloud ☁️, not orange 🟠).
+                  The orange proxy will break SSL and your site won't load.
                 </AlertDescription>
               </Alert>
 
+              {/* DNS records table */}
               <div className="rounded-lg border overflow-hidden">
-                <table className="w-full">
+                <table className="w-full text-sm">
                   <thead className="bg-muted">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Host</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Value</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium">Copy</th>
+                      <th className="px-3 py-2.5 text-left font-medium">Type</th>
+                      <th className="px-3 py-2.5 text-left font-medium">Host</th>
+                      <th className="px-3 py-2.5 text-left font-medium">Value</th>
+                      <th className="px-3 py-2.5 text-right font-medium">Copy</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {dnsRecords.map((record, idx) => (
-                      <tr key={idx}>
-                        <td className="px-4 py-3 text-sm font-mono">{record.type}</td>
-                        <td className="px-4 py-3 text-sm font-mono">{record.host}</td>
-                        <td className="px-4 py-3 text-sm font-mono break-all">{record.value}</td>
-                        <td className="px-4 py-3 text-right">
+                      <tr key={idx} className="hover:bg-muted/40">
+                        <td className="px-3 py-3 font-mono font-semibold">{record.type}</td>
+                        <td className="px-3 py-3 font-mono">{record.host}</td>
+                        <td className="px-3 py-3">
+                          <div className="font-mono text-xs break-all">{record.value}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                            <Info className="h-3 w-3 shrink-0" />
+                            {record.description}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 text-right">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -433,87 +382,114 @@ const DomainSettingsTab = () => {
                 </table>
               </div>
 
-              {/* Registrar Instructions */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Instructions for Popular Registrars</p>
+              {/* Propagation note */}
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 shrink-0" />
+                DNS changes usually take 5–30 minutes but can take up to 48 hours to propagate worldwide.
+              </p>
+
+              {/* Per-registrar instructions */}
+              <div className="space-y-1.5">
+                <p className="text-sm font-medium">Step-by-step for your registrar</p>
                 {registrarInstructions.map((registrar) => (
                   <Collapsible key={registrar.name}>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 text-left bg-muted/50 rounded-lg hover:bg-muted transition-colors">
+                    <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 text-left bg-muted/50 rounded-lg hover:bg-muted transition-colors text-sm">
                       <span className="font-medium">{registrar.name}</span>
-                      <ChevronDown className="h-4 w-4" />
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="p-3 border border-t-0 rounded-b-lg">
-                      <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                        {registrar.steps.map((step, idx) => (
-                          <li key={idx}>{step}</li>
+                    <CollapsibleContent className="px-3 pb-3 pt-2 border border-t-0 rounded-b-lg">
+                      <ol className="list-decimal list-inside space-y-1.5 text-sm text-muted-foreground">
+                        {registrar.steps.map((step, i) => (
+                          <li key={i}>{step}</li>
                         ))}
                       </ol>
                     </CollapsibleContent>
                   </Collapsible>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          )}
+        </div>
+      </div>
 
-          {/* Verification */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Verify Configuration</CardTitle>
-              <CardDescription>
-                Check if your DNS records are properly configured
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Button onClick={handleVerifyDns} disabled={verifying}>
-                  {verifying ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Verify DNS
-                    </>
+      {/* ── STEP 3: Verify ── */}
+      <div className="flex gap-4">
+        <div className="flex flex-col items-center gap-1">
+          <StepIndicator step={3} current={currentStep} />
+        </div>
+        <div className={`flex-1 mt-1 ${currentStep < 2 ? 'opacity-40 pointer-events-none' : ''}`}>
+          <p className="font-semibold mb-1">Verify your DNS</p>
+          <p className="text-sm text-muted-foreground mb-3">
+            Once you've added all 4 records, click below. We'll check them and activate your domain.
+          </p>
+
+          {organization?.custom_domain && (
+            <Card>
+              <CardContent className="pt-4 space-y-4">
+                <div className="flex items-center gap-3">
+                  <Button onClick={handleVerifyDns} disabled={verifying}>
+                    {verifying ? (
+                      <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Checking DNS...</>
+                    ) : (
+                      <><RefreshCw className="h-4 w-4 mr-2" />Verify DNS</>
+                    )}
+                  </Button>
+                  {verificationStatus === 'verified' && (
+                    <Badge className="bg-green-500 text-white"><CheckCircle2 className="h-3 w-3 mr-1" />Verified</Badge>
                   )}
-                </Button>
-                {getStatusBadge()}
-              </div>
+                  {verificationStatus === 'pending' && diagnostics.length > 0 && (
+                    <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Not ready yet</Badge>
+                  )}
+                  {verificationStatus === 'error' && (
+                    <Badge variant="destructive"><AlertCircle className="h-3 w-3 mr-1" />Error</Badge>
+                  )}
+                </div>
 
-              {verificationMessage && (
-                <Alert variant={verificationStatus === 'verified' ? 'default' : 'destructive'}>
-                  <AlertDescription>{verificationMessage}</AlertDescription>
-                </Alert>
-              )}
+                {verificationStatus === 'verified' && (
+                  <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20">
+                    <Shield className="h-4 w-4 text-green-500" />
+                    <AlertDescription>
+                      <strong>You're all set!</strong> SSL is being provisioned automatically.
+                      Your site will be live at{' '}
+                      <a
+                        href={`https://${organization.custom_domain}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold underline underline-offset-2"
+                      >
+                        https://{organization.custom_domain}
+                      </a>{' '}
+                      within a few minutes.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-              {/* Diagnostics Display */}
-              {diagnostics.length > 0 && (
-                <DomainDiagnostics 
-                  diagnostics={diagnostics}
-                  domain={organization.custom_domain}
-                  orgId={organization.id}
-                />
-              )}
+                {verificationMessage && verificationStatus !== 'verified' && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{verificationMessage}</AlertDescription>
+                  </Alert>
+                )}
 
-              {verificationStatus === 'verified' && (
-                <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20">
-                  <Shield className="h-4 w-4 text-green-500" />
-                  <AlertDescription>
-                    Your DNS is configured correctly! SSL will be automatically provisioned.
-                    Your site should be live at <strong>https://{organization.custom_domain}</strong> shortly.
-                  </AlertDescription>
-                </Alert>
-              )}
+                {diagnostics.length > 0 && (
+                  <DomainDiagnostics
+                    diagnostics={diagnostics}
+                    domain={organization.custom_domain}
+                    orgId={organization.id}
+                  />
+                )}
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ExternalLink className="h-4 w-4" />
-                <span>DNS changes can take up to 24–48 hours to propagate worldwide.</span>
-              </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
+                {verificationStatus === 'pending' && diagnostics.length === 0 && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5" />
+                    Add the DNS records above, wait a few minutes, then click Verify DNS.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
