@@ -345,36 +345,56 @@ const DomainSettingsTab = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-muted">
                     <tr>
-                      <th className="px-3 py-2.5 text-left font-medium">Type</th>
-                      <th className="px-3 py-2.5 text-left font-medium">Host</th>
+                      <th className="px-3 py-2.5 text-left font-medium w-16">Type</th>
+                      <th className="px-3 py-2.5 text-left font-medium w-40">Host</th>
                       <th className="px-3 py-2.5 text-left font-medium">Value</th>
-                      <th className="px-3 py-2.5 text-right font-medium">Copy</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {dnsRecords.map((record, idx) => (
                       <tr key={idx} className="hover:bg-muted/40">
-                        <td className="px-3 py-3 font-mono font-semibold">{record.type}</td>
-                        <td className="px-3 py-3 font-mono">{record.host}</td>
+                        <td className="px-3 py-3 font-mono font-semibold text-xs">{record.type}</td>
                         <td className="px-3 py-3">
-                          <div className="font-mono text-xs break-all">{record.value}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                            <Info className="h-3 w-3 shrink-0" />
-                            {record.description}
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono text-xs">{record.host}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 shrink-0"
+                              onClick={() => copyToClipboard(record.host, `host-${idx}`)}
+                              title="Copy host"
+                            >
+                              {copiedField === `host-${idx}` ? (
+                                <Check className="h-3 w-3 text-green-500" />
+                              ) : (
+                                <Copy className="h-3 w-3 text-muted-foreground" />
+                              )}
+                            </Button>
                           </div>
                         </td>
-                        <td className="px-3 py-3 text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyToClipboard(record.value, `${record.type}-${record.host}`)}
-                          >
-                            {copiedField === `${record.type}-${record.host}` ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
-                          </Button>
+                        <td className="px-3 py-3">
+                          <div className="flex items-start gap-1.5">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-mono text-xs break-all">{record.value}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                                <Info className="h-3 w-3 shrink-0" />
+                                {record.description}
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 shrink-0 mt-0.5"
+                              onClick={() => copyToClipboard(record.value, `value-${idx}`)}
+                              title="Copy value"
+                            >
+                              {copiedField === `value-${idx}` ? (
+                                <Check className="h-3 w-3 text-green-500" />
+                              ) : (
+                                <Copy className="h-3 w-3 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
