@@ -110,29 +110,40 @@ export const supportsWebP = (): Promise<boolean> => {
 };
 
 // Get optimized image URL with Supabase transformations
-// Supabase image transforms ONLY work via the /render/image/public/ endpoint,
-// not /object/public/. This function converts the URL to the correct endpoint.
+//
+// NOTE: Supabase Image Transformation (/render/image/ endpoint) requires the
+// Pro plan add-on. Until that is enabled, this function returns the original
+// /object/public/ URL unchanged — images load correctly without transformation.
+// To enable: Supabase dashboard → Storage → Image Transformations → Enable,
+// then flip SUPABASE_IMAGE_TRANSFORM_ENABLED to true below.
+const SUPABASE_IMAGE_TRANSFORM_ENABLED = false;
+
 export const getOptimizedImageUrl = (
   baseUrl: string,
   options: { width?: number; height?: number; quality?: number; format?: string } = {}
 ): string => {
   if (!baseUrl) return baseUrl;
 
-  // Silently return relative paths - they can't be optimized but are valid
+  // Relative paths are returned as-is
   if (baseUrl.startsWith('/') || baseUrl.startsWith('./') || baseUrl.startsWith('../')) {
+    return baseUrl;
+  }
+
+  // When transform is disabled, return original URL directly.
+  // The /render/image/ endpoint returns 400 on free/starter plans which causes
+  // images to fail silently in the browser.
+  if (!SUPABASE_IMAGE_TRANSFORM_ENABLED) {
     return baseUrl;
   }
 
   try {
     const url = new URL(baseUrl);
 
-    // Only apply transformations to Supabase storage URLs
     if (!url.hostname.includes('supabase')) {
       return baseUrl;
     }
 
     // Convert /storage/v1/object/public/ → /storage/v1/render/image/public/
-    // This is required for Supabase's image transform API to work
     if (url.pathname.includes('/storage/v1/object/public/')) {
       url.pathname = url.pathname.replace(
         '/storage/v1/object/public/',
@@ -140,7 +151,6 @@ export const getOptimizedImageUrl = (
       );
     }
 
-    // Only append params if already on the render endpoint
     if (!url.pathname.includes('/storage/v1/render/image/')) {
       return baseUrl;
     }
