@@ -5,12 +5,12 @@ import { useDatabase } from '@/hooks/useDatabase';
 import { toast } from '@/hooks/use-toast';
 import { trackFailedLogin, clearFailedLoginTracking } from '@/utils/securityNotifications';
 import { debug } from '@/utils/debug';
-import { 
-  AuthResult, 
-  LockoutCheckResult, 
-  FailedLoginTrackResult, 
+import {
+  AuthResult,
+  LockoutCheckResult,
+  FailedLoginTrackResult,
   UserProfile,
-  AuthErrorWithCode 
+  AuthErrorWithCode
 } from '@/types/auth';
 
 type Profile = UserProfile;
@@ -38,6 +38,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const SIGNUP_CONFIRM_PATH = '/auth/confirm?next=/create-organization';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -57,11 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState(false);
   const [authRetryCount, setAuthRetryCount] = useState(0);
   const [roleRetriesMap, setRoleRetriesMap] = useState<Map<string, number>>(new Map());
-  
+
   const databaseStatus = useDatabase();
 
   const fetchUserRoleWithTimeout = async (userId: string, timeoutMs: number = 5000, retryCount = 0) => {
-    // Prevent duplicate simultaneous fetches for the same user
     const currentRetries = roleRetriesMap.get(userId) || 0;
     if (currentRetries > 0) {
       debug.auth('Role fetch already in progress for user:', userId, 'skipping duplicate');
@@ -70,25 +70,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     debug.auth('Starting role fetch for user:', userId, `(attempt ${retryCount + 1})`);
     setRoleLoading(true);
-    
-    // Track this user's retry attempt
+
     setRoleRetriesMap(prev => new Map(prev.set(userId, retryCount + 1)));
-    
+
     try {
-      // Shorter timeout and simpler database check
       if (!databaseStatus.isConnected && retryCount === 0) {
         debug.warn('Database not connected, attempting to connect...');
         databaseStatus.checkConnection();
       }
 
-      // Create the fetch promise with a reasonable timeout
       const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-      
-      const timeoutPromise = new Promise<never>((_, reject) => 
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Role fetch timeout')), timeoutMs)
       );
 
@@ -104,43 +101,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const role = profileData?.role || 'user';
       debug.auth('User role fetched successfully:', role);
-      
+
       setUserRole(role);
       setIsAdmin(role === 'admin');
       setProfile(profileData);
-      
-      // Clear retry tracking on success
+
       setRoleRetriesMap(prev => {
         const newMap = new Map(prev);
         newMap.delete(userId);
         return newMap;
       });
-      
+
     } catch (error) {
       debug.error('Role fetch failed or timed out:', error);
-      
-      // Only retry on first attempt and for connection-related errors
+
       if (retryCount === 0 && error instanceof Error && (
-        error.message.includes('timeout') || 
+        error.message.includes('timeout') ||
         error.message.includes('connection') ||
         error.message.includes('network')
       )) {
         debug.auth('Retrying role fetch due to connection issue...');
-        
-        // Schedule single retry after delay
+
         setTimeout(() => {
           fetchUserRoleWithTimeout(userId, timeoutMs, 1);
         }, 2000);
         return;
       }
-      
-      // After max retries or non-connection errors, fallback to user role
+
       debug.auth('Max retries reached or permanent error, defaulting to user role');
       setUserRole('user');
       setIsAdmin(false);
       setProfile(null);
-      
-      // Clear retry tracking
+
       setRoleRetriesMap(prev => {
         const newMap = new Map(prev);
         newMap.delete(userId);
@@ -154,19 +146,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     debug.auth('Setting up auth listener...');
-    
-    // Set up auth state listener
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         debug.auth('Auth state changed:', event, session?.user?.email);
-        
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           debug.auth('User authenticated, fetching role...');
-          
-          // Update last_login_at for SIGNED_IN events (covers all login methods)
+
           if (event === 'SIGNED_IN') {
             debug.auth('Updating last login timestamp...');
             supabase.rpc('update_user_last_login', { user_id: session.user.id })
@@ -178,8 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
               });
           }
-          
-          // Use setTimeout to avoid blocking the auth callback
+
           setTimeout(() => {
             fetchUserRoleWithTimeout(session.user.id);
           }, 0);
@@ -190,42 +179,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setProfile(null);
           setRoleLoading(false);
         }
-        
-        // Always set loading to false after processing auth state
+
         setLoading(false);
       }
     );
 
-    // Check for existing session
     const initializeAuth = async () => {
       try {
         debug.auth('Checking for existing session...');
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           debug.error('Error getting session:', error);
           setLoading(false);
           return;
         }
-        
+
         debug.auth('Initial session check:', session?.user?.email || 'No session');
-        
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
-          // Fetch role for existing session
           setTimeout(() => {
             fetchUserRoleWithTimeout(session.user.id);
           }, 0);
         } else {
-          // No user, ensure loading is complete
           setRoleLoading(false);
         }
-        
+
       } catch (error) {
         debug.error('Error initializing auth:', error);
-        // Ensure we always stop loading even on error
         setUserRole('user');
         setIsAdmin(false);
         setProfile(null);
@@ -245,17 +229,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, fullName: string, phone?: string, extraMetadata?: Record<string, unknown>) => {
     debug.auth('Attempting sign up for:', email);
-    
+
     try {
-      // Check database connection before attempting sign up
       if (!databaseStatus.isConnected && !databaseStatus.isChecking) {
         debug.warn('Database not connected, checking connection...');
         await databaseStatus.checkConnection();
       }
 
-      // Use /auth/confirm to handle email verification properly
-      const redirectUrl = `${window.location.origin}/auth/confirm?next=/signup`;
-      
+      const redirectUrl = `${window.location.origin}${SIGNUP_CONFIRM_PATH}`;
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -264,18 +246,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             full_name: fullName,
             phone: phone || null,
-            ...extraMetadata // Spread extra metadata (plan info stored here)
+            ...extraMetadata
           }
         }
       });
-      
-      // Check if user already exists (identities array is empty for existing users)
+
       if (data?.user && data.user.identities?.length === 0) {
         debug.auth('User already exists:', email);
-        return { 
-          error: { 
-            message: 'This email is already registered. Please try logging in or reset your password.' 
-          } 
+        return {
+          error: {
+            message: 'This email is already registered. Please try logging in or reset your password.'
+          }
         };
       }
 
@@ -295,15 +276,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     debug.auth('Attempting sign in for:', email);
-    
+
     try {
-      // Check database connection before attempting sign in
       if (!databaseStatus.isConnected && !databaseStatus.isChecking) {
         debug.warn('Database not connected, checking connection...');
         await databaseStatus.checkConnection();
       }
 
-      // Check if account is locked before attempting sign in
       const { data: lockoutData, error: lockoutError } = await supabase.rpc('check_account_lockout', {
         p_email: email
       });
@@ -313,10 +292,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         debug.warn('Account is locked:', email);
         const lockedUntil = new Date(lockout.locked_until || '');
         const minutesRemaining = Math.ceil((lockedUntil.getTime() - Date.now()) / 60000);
-        return { 
-          error: { 
-            message: `Account temporarily locked. Please try again in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}.` 
-          } 
+        return {
+          error: {
+            message: `Account temporarily locked. Please try again in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}.`
+          }
         };
       }
 
@@ -327,24 +306,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         debug.error('Sign in error:', error);
-        
-        // Track failed login attempt server-side
+
         if (error.message.includes('Invalid login credentials')) {
           const { data: trackData } = await supabase.rpc('track_failed_login', {
             p_email: email
           });
           const trackResult = trackData as { is_locked?: boolean; remaining_attempts?: number; message?: string } | null;
-          
-          // Also track locally for security notifications
+
           const { data: orgData } = await supabase
             .from('organization_members')
             .select('organization_id')
             .limit(1)
             .maybeSingle();
-          
+
           trackFailedLogin(email, orgData?.organization_id);
-          
-          // Customize error message based on remaining attempts
+
           let errorMessage = 'Invalid email or password. Please check your credentials.';
           if (trackResult?.remaining_attempts !== undefined && trackResult.remaining_attempts <= 2) {
             errorMessage = `Invalid email or password. ${trackResult.remaining_attempts} attempt${trackResult.remaining_attempts !== 1 ? 's' : ''} remaining before lockout.`;
@@ -352,28 +328,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (trackResult?.is_locked) {
             errorMessage = trackResult.message || 'Too many failed attempts. Account temporarily locked.';
           }
-          
+
           return { error: { ...error, message: errorMessage } };
         }
         return { error };
       }
 
-      // Clear failed login tracking on successful login
       await supabase.rpc('clear_failed_logins', { p_email: email });
       clearFailedLoginTracking(email);
 
       debug.auth('Sign in successful');
-      
-      // Note: last_login_at is now updated via onAuthStateChange SIGNED_IN event
+
       if (data?.user?.id) {
-        // Check for unread notifications and show welcome toast
         try {
           const { count, error: notifError } = await supabase
             .from('admin_notifications')
             .select('*', { count: 'exact', head: true })
             .eq('is_read', false)
             .eq('is_archived', false);
-          
+
           if (!notifError && count !== null) {
             const firstName = data.user.user_metadata?.full_name?.split(' ')[0] || 'back';
             if (count > 0) {
@@ -403,85 +376,76 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     debug.auth('Signing out...');
-    
+
     try {
-      // Clear localStorage auth tokens first to prevent re-authentication
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('sb-') && key.includes('-auth-token')) {
           localStorage.removeItem(key);
         }
       });
-      
-      // Use 'global' scope to invalidate session on all devices/tabs
+
       const { error } = await supabase.auth.signOut({ scope: 'global' });
-      
-      // Always clear local state regardless of error
-      // This handles cases where session is already expired/missing on server
+
       setUser(null);
       setSession(null);
       setUserRole(null);
       setIsAdmin(false);
       setProfile(null);
       setRoleLoading(false);
-      
-      // CRITICAL: Clear session storage to prevent user context mixing
+
       sessionStorage.removeItem('current_tenant_slug');
       sessionStorage.removeItem('chat_session_id');
       sessionStorage.removeItem('client_id');
       sessionStorage.removeItem('ga-connected-shown');
       sessionStorage.removeItem('ga_retry_count');
-      
-      // Handle "session not found" or "Auth session missing" gracefully
-      // These errors mean the user is already signed out on the server
+
       if (error) {
         const authError = error as AuthErrorWithCode;
-        const isSessionMissingError = 
-          authError.message?.includes('session') || 
+        const isSessionMissingError =
+          authError.message?.includes('session') ||
           authError.message?.includes('Session') ||
           authError.code === 'session_not_found';
-        
+
         if (isSessionMissingError) {
           debug.auth('Session already expired or missing, treating as successful sign out');
-          return { error: null }; // Treat as success
+          return { error: null };
         }
-        
+
         debug.error('Sign out error:', error);
         return { error };
       }
-      
+
       debug.auth('Sign out successful, session storage cleared');
       return { error: null };
     } catch (error) {
       debug.error('Unexpected sign out error:', error);
-      
-      // Still clear local state on unexpected errors
+
       setUser(null);
       setSession(null);
       setUserRole(null);
       setIsAdmin(false);
       setProfile(null);
       setRoleLoading(false);
-      
-      // Return null error to allow redirect - user is effectively signed out locally
+
       return { error: null };
     }
   };
 
   const resetPassword = async (email: string) => {
     debug.auth('Requesting password reset for:', email);
-    
+
     const redirectUrl = `${window.location.origin}/reset-password`;
-    
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     });
-    
+
     if (error) {
       debug.error('Password reset error:', error);
     } else {
       debug.auth('Password reset email sent');
     }
-    
+
     return { error };
   };
 
@@ -489,17 +453,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (authRetryCount < 3) {
       debug.auth('Retrying authentication...', authRetryCount + 1);
       setAuthRetryCount(prev => prev + 1);
-      
-      // Retry getting the session
+
       supabase.auth.getSession().then(({ data: { session }, error }) => {
         if (error) {
           debug.error('Auth retry failed:', error);
           return;
         }
-        
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           setTimeout(() => {
             fetchUserRoleWithTimeout(session.user.id);
