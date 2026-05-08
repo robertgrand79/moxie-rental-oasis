@@ -12,7 +12,6 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
-// Helper to check if event was already processed (idempotency)
 async function checkEventProcessed(supabaseClient: any, eventId: string): Promise<boolean> {
   const { data } = await supabaseClient
     .from('stripe_webhook_events')
@@ -22,7 +21,6 @@ async function checkEventProcessed(supabaseClient: any, eventId: string): Promis
   return !!data;
 }
 
-// Helper to mark event as processed
 async function markEventProcessed(supabaseClient: any, eventId: string, eventType: string, metadata: any): Promise<void> {
   await supabaseClient
     .from('stripe_webhook_events')
@@ -30,7 +28,7 @@ async function markEventProcessed(supabaseClient: any, eventId: string, eventTyp
       stripe_event_id: eventId,
       event_type: eventType,
       metadata,
-      processed_at: new Date().toISOString()
+      processed_at: new Date().toISOString(),
     });
 }
 
@@ -52,12 +50,12 @@ async function provisionSeamAccessCodeForReservation(
     return;
   }
 
-  // Current schema does not support a primary lock, so use the first smart lock for now.
   const { data: smartLock } = await supabaseClient
     .from('seam_devices')
-    .select('id, device_name')
+    .select('id, device_name, is_primary_lock')
     .eq('property_id', propertyId)
     .eq('device_type', 'smart_lock')
+    .order('is_primary_lock', { ascending: false })
     .order('device_name', { ascending: true })
     .limit(1)
     .maybeSingle();
@@ -101,6 +99,7 @@ async function provisionSeamAccessCodeForReservation(
     reservationId,
     propertyId,
     deviceId: smartLock.id,
+    isPrimaryLock: smartLock.is_primary_lock ?? false,
   });
 }
 
@@ -118,24 +117,22 @@ serve(async (req) => {
     }
 
     const body = await req.text();
-    
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    // Parse event without verification first to get metadata
     let event: Stripe.Event;
     try {
       event = JSON.parse(body) as Stripe.Event;
-    } catch (err) {
+    } catch {
       throw new Error("Invalid JSON");
     }
 
     logStep("Event parsed", { type: event.type, id: event.id });
 
-    // Idempotency check - skip if already processed
     const alreadyProcessed = await checkEventProcessed(supabaseClient, event.id);
     if (alreadyProcessed) {
       logStep("Event already processed, skipping", { eventId: event.id });
@@ -145,7 +142,6 @@ serve(async (req) => {
       });
     }
 
-    // Get metadata to determine which Stripe account to verify against
     const metadata = (event.data.object as any).metadata || {};
     const reservationId = metadata.reservationId;
     const propertyId = metadata.propertyId;
@@ -153,12 +149,10 @@ serve(async (req) => {
 
     logStep("Metadata extracted", { reservationId, propertyId, stripeAccountId });
 
-    // Determine which webhook secret to use for verification
     let webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     let stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    
+
     if (propertyId) {
-      // Check property-specific credentials from secure table
       const { data: propertyCredentials } = await supabaseClient
         .rpc('get_property_stripe_credentials', { p_property_id: propertyId });
 
@@ -173,8 +167,7 @@ serve(async (req) => {
           logStep("Using property-specific Stripe key");
         }
       }
-      
-      // Fallback to organization credentials
+
       if (!webhookSecret || webhookSecret === Deno.env.get("STRIPE_WEBHOOK_SECRET")) {
         const { data: property } = await supabaseClient
           .from('properties')
@@ -211,7 +204,6 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Verify webhook signature (use async version for Deno compatibility)
     try {
       event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
       logStep("Signature verified");
@@ -220,7 +212,6 @@ serve(async (req) => {
       throw new Error(`Webhook signature verification failed: ${err.message}`);
     }
 
-    // Helper function to get organization ID from property
     const getOrganizationId = async (propId: string): Promise<string | null> => {
       const { data: prop } = await supabaseClient
         .from('properties')
@@ -230,7 +221,6 @@ serve(async (req) => {
       return prop?.organization_id || null;
     };
 
-    // Handle the event
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -240,7 +230,6 @@ serve(async (req) => {
           throw new Error("No reservationId in metadata");
         }
 
-        // Update reservation as paid
         const { error: updateError } = await supabaseClient
           .from("property_reservations")
           .update({
@@ -256,7 +245,6 @@ serve(async (req) => {
 
         logStep("Reservation marked as paid", { reservationId });
 
-        // Get reservation details to create availability block and notifications
         const { data: reservation, error: fetchError } = await supabaseClient
           .from("property_reservations")
           .select("check_in_date, check_out_date, guest_name, guest_email, total_amount, property_id")
@@ -267,9 +255,8 @@ serve(async (req) => {
           logStep("Error fetching reservation for availability block", fetchError);
         } else if (reservation) {
           const effectivePropertyId = propertyId || reservation.property_id;
-          
+
           if (effectivePropertyId) {
-            // Create availability block for direct booking
             const { error: blockError } = await supabaseClient
               .from("availability_blocks")
               .insert({
@@ -280,7 +267,7 @@ serve(async (req) => {
                 source_platform: 'direct',
                 external_booking_id: reservationId,
                 notes: `Direct Booking - ${reservation.guest_name}`,
-                sync_status: 'synced'
+                sync_status: 'synced',
               });
 
             if (blockError) {
@@ -289,7 +276,6 @@ serve(async (req) => {
               logStep("Availability block created", { reservationId, propertyId: effectivePropertyId });
             }
 
-            // Create notifications for new booking and payment
             const organizationId = await getOrganizationId(effectivePropertyId);
             if (organizationId) {
               await provisionSeamAccessCodeForReservation(
@@ -299,7 +285,6 @@ serve(async (req) => {
                 organizationId,
               );
 
-              // Get property name for notification
               const { data: propertyData } = await supabaseClient
                 .from('properties')
                 .select('name')
@@ -307,7 +292,6 @@ serve(async (req) => {
                 .single();
               const propertyName = propertyData?.name || 'Property';
 
-              // Create new booking notification
               await supabaseClient.from('admin_notifications').insert({
                 organization_id: organizationId,
                 user_id: null,
@@ -324,12 +308,11 @@ serve(async (req) => {
                   guest_email: reservation.guest_email,
                   check_in: reservation.check_in_date,
                   check_out: reservation.check_out_date,
-                  total_amount: reservation.total_amount
-                }
+                  total_amount: reservation.total_amount,
+                },
               });
               logStep("New booking notification created");
 
-              // Create payment received notification
               await supabaseClient.from('admin_notifications').insert({
                 organization_id: organizationId,
                 user_id: null,
@@ -344,12 +327,11 @@ serve(async (req) => {
                   property_id: effectivePropertyId,
                   amount: reservation.total_amount,
                   guest_name: reservation.guest_name,
-                  stripe_session_id: session.id
-                }
+                  stripe_session_id: session.id,
+                },
               });
               logStep("Payment received notification created");
 
-              // Create guest notification for booking confirmation
               const { data: guestProfile } = await supabaseClient
                 .from('guest_profiles')
                 .select('id')
@@ -379,12 +361,11 @@ serve(async (req) => {
         logStep("Processing checkout.session.expired", { sessionId: session.id });
 
         if (reservationId) {
-          // Delete abandoned reservation instead of marking as failed
           const { error: deleteError } = await supabaseClient
             .from("property_reservations")
             .delete()
             .eq("id", reservationId)
-            .eq("payment_status", "pending"); // Only delete if still pending
+            .eq("payment_status", "pending");
 
           if (deleteError) {
             logStep("Error deleting abandoned reservation", deleteError);
@@ -398,20 +379,17 @@ serve(async (req) => {
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         logStep("Processing payment_intent.succeeded", { paymentIntentId: paymentIntent.id });
-        // This confirms payment was successful - reservation should already be updated by checkout.session.completed
-        // Log for audit trail
         break;
       }
 
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        logStep("Processing payment_intent.payment_failed", { 
+        logStep("Processing payment_intent.payment_failed", {
           paymentIntentId: paymentIntent.id,
-          lastPaymentError: paymentIntent.last_payment_error?.message 
+          lastPaymentError: paymentIntent.last_payment_error?.message,
         });
 
         if (reservationId) {
-          // Get reservation details before updating
           const { data: reservation } = await supabaseClient
             .from("property_reservations")
             .select("guest_name, guest_email, property_id, total_amount")
@@ -420,9 +398,9 @@ serve(async (req) => {
 
           const { error: updateError } = await supabaseClient
             .from("property_reservations")
-            .update({ 
+            .update({
               payment_status: "failed",
-              payment_notes: paymentIntent.last_payment_error?.message || 'Payment failed'
+              payment_notes: paymentIntent.last_payment_error?.message || 'Payment failed',
             })
             .eq("id", reservationId);
 
@@ -430,7 +408,6 @@ serve(async (req) => {
             logStep("Error updating reservation", updateError);
           }
 
-          // Create payment failed notification
           if (reservation?.property_id) {
             const organizationId = await getOrganizationId(reservation.property_id);
             if (organizationId) {
@@ -457,8 +434,8 @@ serve(async (req) => {
                   guest_email: reservation.guest_email,
                   amount: reservation.total_amount,
                   stripe_payment_intent_id: paymentIntent.id,
-                  error_message: paymentIntent.last_payment_error?.message
-                }
+                  error_message: paymentIntent.last_payment_error?.message,
+                },
               });
               logStep("Payment failed notification created");
             }
@@ -470,8 +447,7 @@ serve(async (req) => {
       case "charge.refunded": {
         const charge = event.data.object as Stripe.Charge;
         logStep("Processing charge.refunded", { chargeId: charge.id, amount: charge.amount_refunded });
-        
-        // Find reservation by payment intent or session
+
         const paymentIntentId = charge.payment_intent as string;
         if (paymentIntentId) {
           const { data: reservation } = await supabaseClient
@@ -486,13 +462,12 @@ serve(async (req) => {
 
             await supabaseClient
               .from("property_reservations")
-              .update({ 
+              .update({
                 payment_status: isFullRefund ? "refunded" : "partially_refunded",
-                refund_amount: refundAmount
+                refund_amount: refundAmount,
               })
               .eq("id", reservation.id);
 
-            // Create refund notification
             if (reservation.property_id) {
               const organizationId = await getOrganizationId(reservation.property_id);
               if (organizationId) {
@@ -508,8 +483,8 @@ serve(async (req) => {
                   metadata: {
                     reservation_id: reservation.id,
                     refund_amount: refundAmount,
-                    is_full_refund: isFullRefund
-                  }
+                    is_full_refund: isFullRefund,
+                  },
                 });
               }
             }
@@ -522,14 +497,12 @@ serve(async (req) => {
       case "charge.dispute.created": {
         const dispute = event.data.object as Stripe.Dispute;
         logStep("Processing charge.dispute.created", { disputeId: dispute.id, amount: dispute.amount });
-        
-        // Alert admin about dispute - this is urgent
+
         const chargeId = dispute.charge as string;
         if (chargeId) {
-          // Try to find the associated reservation
           const charge = await stripe.charges.retrieve(chargeId);
           const paymentIntentId = charge.payment_intent as string;
-          
+
           if (paymentIntentId) {
             const { data: reservation } = await supabaseClient
               .from("property_reservations")
@@ -553,8 +526,8 @@ serve(async (req) => {
                     reservation_id: reservation.id,
                     dispute_id: dispute.id,
                     dispute_amount: dispute.amount / 100,
-                    dispute_reason: dispute.reason
-                  }
+                    dispute_reason: dispute.reason,
+                  },
                 });
                 logStep("Dispute notification created");
               }
@@ -568,7 +541,6 @@ serve(async (req) => {
         logStep("Unhandled event type", { type: event.type });
     }
 
-    // Mark event as processed for idempotency
     await markEventProcessed(supabaseClient, event.id, event.type, metadata);
 
     return new Response(JSON.stringify({ received: true }), {
