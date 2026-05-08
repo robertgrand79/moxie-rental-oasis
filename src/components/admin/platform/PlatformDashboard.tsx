@@ -13,10 +13,10 @@ import PlatformTasksWidget from './widgets/PlatformTasksWidget';
 import InboxSummaryWidget from './widgets/InboxSummaryWidget';
 
 const PlatformDashboard = () => {
-  const { starredSections, isStarred, toggleStarSection } = usePlatformPreferences();
+  const { isStarred, toggleStarSection } = usePlatformPreferences();
   const { stats, loadingStats } = usePlatformAdmin();
 
-  const { data: openTickets = 0, isLoading: loadingTickets } = useQuery({
+  const { data: openTickets = 0 } = useQuery({
     queryKey: ['platform-open-ticket-count'],
     queryFn: async () => {
       const { count, error } = await supabase
