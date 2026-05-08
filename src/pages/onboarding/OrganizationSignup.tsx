@@ -41,10 +41,23 @@ const OrganizationSignup = () => {
 
   const planSlug = user?.user_metadata?.pending_plan_slug as string | undefined;
   const planName = user?.user_metadata?.pending_plan_name as string | undefined;
+  const planType = user?.user_metadata?.pending_plan_type as 'single_property' | 'multi_property' | undefined;
+  const pendingPricingTierId = user?.user_metadata?.pending_pricing_tier_id as string | undefined;
 
-  const allowedTemplateType: 'single_property' | 'multi_property' | null =
-    planSlug === 'single_property' ? 'single_property' :
-    planSlug ? 'multi_property' : null;
+  const fallbackTemplateType: 'single_property' | 'multi_property' | null =
+    planType ??
+    (planSlug === 'single_property' ? 'single_property' : planSlug ? 'multi_property' : null);
+
+  const exactPlanTemplates = templates?.filter((template) => {
+    return pendingPricingTierId ? template.pricing_tier_id === pendingPricingTierId : false;
+  }) || [];
+
+  const visibleTemplates = exactPlanTemplates.length > 0
+    ? exactPlanTemplates
+    : (templates?.filter((template) => {
+        if (!fallbackTemplateType) return true;
+        return template.template_type === fallbackTemplateType;
+      }) || []);
 
   useEffect(() => {
     if (!authLoading && !orgLoading && organization?.slug) {
@@ -87,6 +100,12 @@ const OrganizationSignup = () => {
       setIncludeDemoData(selectedTemplate.include_demo_data && selectedTemplate.source_organization_id != null);
     }
   }, [selectedTemplate]);
+
+  useEffect(() => {
+    if (selectedTemplate && !visibleTemplates.some((template) => template.id === selectedTemplate.id)) {
+      setSelectedTemplate(null);
+    }
+  }, [selectedTemplate, visibleTemplates]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,12 +220,7 @@ const OrganizationSignup = () => {
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {templates
-                  ?.filter((template) => {
-                    if (!allowedTemplateType) return true;
-                    return template.template_type === allowedTemplateType;
-                  })
-                  .map((template) => (
+                {visibleTemplates.map((template) => (
                   <TemplateCard
                     key={template.id}
                     template={template}
