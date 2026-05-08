@@ -6,7 +6,8 @@ import { usePlatform } from '@/contexts/PlatformContext';
 
 const CTASection: React.FC = () => {
   const { isPlatformSite } = usePlatform();
-  const signupPath = '/platform/signup';
+  const basePath = isPlatformSite ? '' : '/platform';
+  const signupPath = `${basePath}/signup`;
 
   return (
     <section className="py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
