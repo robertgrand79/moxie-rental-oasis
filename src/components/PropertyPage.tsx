@@ -14,13 +14,78 @@ import PropertyReviewsSection from '@/components/property/PropertyReviewsSection
 import PropertyLocationMap from '@/components/property/PropertyLocationMap';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import { useIsMobile } from '@/hooks/use-mobile';
+import type { Property } from '@/types/property';
 
-const PropertyPage = () => {
+type PropertyPageErrorBoundaryState = {
+  hasError: boolean;
+};
+
+class PropertyPageErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  PropertyPageErrorBoundaryState
+> {
+  state: PropertyPageErrorBoundaryState = {
+    hasError: false,
+  };
+
+  static getDerivedStateFromError(): PropertyPageErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('PropertyPage render failed', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <BackgroundWrapper>
+          <div className="container mx-auto px-4 py-16">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">Property Unavailable</h1>
+              <p className="text-xl text-gray-600">
+                We hit a problem loading this property page. Please try again in a moment.
+              </p>
+            </div>
+          </div>
+        </BackgroundWrapper>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const sanitizePropertyForRender = (property: Property): Property => {
+  const sanitizedImages = Array.isArray(property.images)
+    ? property.images.filter((image): image is string => typeof image === 'string' && image.trim().length > 0)
+    : [];
+
+  const sanitizedFeaturedPhotos = Array.isArray(property.featured_photos)
+    ? property.featured_photos.filter(
+        (image): image is string => typeof image === 'string' && image.trim().length > 0
+      )
+    : [];
+
+  return {
+    ...property,
+    title: property.title || 'Untitled Property',
+    description: property.description || '',
+    location: property.location || '',
+    amenities: property.amenities || '',
+    images: sanitizedImages,
+    featured_photos: sanitizedFeaturedPhotos,
+    image_url: property.image_url || undefined,
+    cover_image_url: property.cover_image_url || undefined,
+    organization_id: property.organization_id || undefined,
+  };
+};
+
+const PropertyPageContent = () => {
   const { addressSlug } = useParams<{ addressSlug: string }>();
   const { properties, loading } = useTenantProperties();
   const isMobile = useIsMobile();
-  
-  // Check URL for tab and date parameters
+
   const searchParams = new URLSearchParams(window.location.search);
   const tabParam = searchParams.get('tab');
   const checkinParam = searchParams.get('checkin');
@@ -40,13 +105,12 @@ const PropertyPage = () => {
     );
   }
 
-  // Find property by generating consistent slug from location
-  const property = properties.find(p => {
-    if (!p.location) return false;
-    
-    const propertySlug = generateAddressSlug(p.location);
-    console.log(`Comparing: "${addressSlug}" with "${propertySlug}" for property: ${p.location}`);
-    
+  const property = properties.find((candidate) => {
+    if (!candidate.location) return false;
+
+    const propertySlug = generateAddressSlug(candidate.location);
+    console.log(`Comparing: "${addressSlug}" with "${propertySlug}" for property: ${candidate.location}`);
+
     return addressSlug === propertySlug;
   });
 
@@ -66,103 +130,112 @@ const PropertyPage = () => {
     );
   }
 
-  // Determine cover image - prioritize cover_image_url, then first image, then featured photos, then image_url
-  const coverImage = property.cover_image_url || property.images?.[0] || property.featured_photos?.[0] || property.image_url;
+  const safeProperty = sanitizePropertyForRender(property);
+  const coverImage =
+    safeProperty.cover_image_url ||
+    safeProperty.images?.[0] ||
+    safeProperty.featured_photos?.[0] ||
+    safeProperty.image_url;
 
   const handleBackClick = () => {
-    window.history.back();
+    if (typeof window !== 'undefined') {
+      window.history.back();
+    }
   };
 
-  const handleShareClick = () => {
+  const handleShareClick = async () => {
     if (navigator.share) {
-      navigator.share({
-        title: property.title,
-        text: property.description,
-        url: window.location.href,
-      });
-    } else {
-      // Fallback to copying URL to clipboard
-      navigator.clipboard.writeText(window.location.href);
+      try {
+        await navigator.share({
+          title: safeProperty.title,
+          text: safeProperty.description,
+          url: window.location.href,
+        });
+        return;
+      } catch (error) {
+        console.warn('Native share failed, falling back to clipboard', error);
+      }
+    }
+
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+      } catch (error) {
+        console.warn('Clipboard copy failed', error);
+      }
     }
   };
 
   const handleBookingClick = () => {
-    // Switch to booking tab
-    setActiveTab("booking");
-    
-    // Smooth scroll to the about property section
+    setActiveTab('booking');
+
     const aboutSection = document.getElementById('about-property');
     if (aboutSection) {
-      aboutSection.scrollIntoView({ 
+      aboutSection.scrollIntoView({
         behavior: 'smooth',
-        block: 'start'
+        block: 'start',
       });
     }
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section - Mobile vs Desktop */}
       {coverImage && (
         <>
           {isMobile ? (
-            <MobilePropertyHero 
-              property={property} 
+            <MobilePropertyHero
+              property={safeProperty}
               coverImage={coverImage}
               onBackClick={handleBackClick}
               onShareClick={handleShareClick}
             />
           ) : (
-            <PropertyPageHero 
-              property={property} 
-              coverImage={coverImage} 
-            />
+            <PropertyPageHero property={safeProperty} coverImage={coverImage} />
           )}
         </>
       )}
 
-      {/* Quick Info Section - Mobile Only */}
-      {isMobile && <QuickInfoSection property={property} />}
+      {isMobile && <QuickInfoSection property={safeProperty} />}
 
-      {/* Photo Spotlight - Property Highlights - Now above About */}
-      {property.images && property.images.length > 0 && (
+      {safeProperty.images && safeProperty.images.length > 0 && (
         <PhotoSpotlight
-          images={property.images}
-          featuredPhotos={property.featured_photos}
-          title={property.title}
+          images={safeProperty.images}
+          featuredPhotos={safeProperty.featured_photos}
+          title={safeProperty.title}
         />
       )}
 
-      {/* About This Property Section with Booking Tab */}
-      <AboutPropertySection 
-        property={property} 
+      <AboutPropertySection
+        property={safeProperty}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         initialCheckin={checkinParam}
         initialCheckout={checkoutParam}
       />
 
-      {/* Amenities Section - Enhanced with new colors and 12-item layout */}
-      <AmenitiesSection amenities={property.amenities} />
+      <AmenitiesSection amenities={safeProperty.amenities} />
 
-      {/* Property Location Map */}
       <section className="py-12 px-4 md:px-8 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Location</h2>
-          <PropertyLocationMap property={property} />
-          <p className="text-sm text-muted-foreground mt-4">{property.location}</p>
+          <PropertyLocationMap property={safeProperty} />
+          <p className="text-sm text-muted-foreground mt-4">{safeProperty.location}</p>
         </div>
       </section>
 
-      {/* Guest Reviews Section */}
-      <PropertyReviewsSection propertyId={property.id} />
+      <PropertyReviewsSection propertyId={safeProperty.id} />
 
-      {/* Mobile Booking Bar - Updated to use new booking flow */}
-      {isMobile && <MobileBookingBar property={property} onBookingClick={handleBookingClick} />}
-
-      {/* Mobile bottom padding to account for fixed booking bar */}
+      {isMobile && <MobileBookingBar property={safeProperty} onBookingClick={handleBookingClick} />}
       {isMobile && <div className="h-20" />}
     </div>
+  );
+};
+
+const PropertyPage = () => {
+  return (
+    <PropertyPageErrorBoundary>
+      <PropertyPageContent />
+    </PropertyPageErrorBoundary>
   );
 };
 
