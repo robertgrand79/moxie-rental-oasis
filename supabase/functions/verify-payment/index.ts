@@ -12,6 +12,75 @@ const logStep = (step: string, details?: any) => {
   console.log(`[VERIFY-PAYMENT] ${step}${detailsStr}`);
 };
 
+async function provisionSeamAccessCodeForReservation(
+  supabaseClient: any,
+  reservationId: string,
+  propertyId: string,
+  organizationId: string | null,
+) {
+  const { data: existingAccessCode } = await supabaseClient
+    .from('seam_access_codes')
+    .select('id')
+    .eq('reservation_id', reservationId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (existingAccessCode) {
+    logStep('Active Seam access code already exists, skipping auto-provision', { reservationId });
+    return;
+  }
+
+  const { data: smartLock } = await supabaseClient
+    .from('seam_devices')
+    .select('id, device_name')
+    .eq('property_id', propertyId)
+    .eq('device_type', 'smart_lock')
+    .order('device_name', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!smartLock) {
+    logStep('No smart lock found for property, skipping access code provisioning', { reservationId, propertyId });
+    return;
+  }
+
+  const seamFunctionUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/seam-access-codes`;
+  const seamFunctionAuth = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? '';
+
+  const response = await fetch(seamFunctionUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${seamFunctionAuth}`,
+    },
+    body: JSON.stringify({
+      action: 'create',
+      deviceId: smartLock.id,
+      reservationId,
+      organizationId,
+      accessCodeData: {},
+    }),
+  });
+
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok || result?.success === false) {
+    logStep('Failed to auto-provision Seam access code', {
+      reservationId,
+      propertyId,
+      deviceId: smartLock.id,
+      error: result?.error || response.statusText,
+    });
+    return;
+  }
+
+  logStep('Auto-provisioned Seam access code', {
+    reservationId,
+    propertyId,
+    deviceId: smartLock.id,
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -159,6 +228,23 @@ serve(async (req) => {
         }
       } catch (blockErr) {
         logStep("Warning: Error creating availability block", { error: String(blockErr) });
+      }
+
+      try {
+        const { data: propertyRecord } = await supabaseClient
+          .from('properties')
+          .select('organization_id')
+          .eq('id', reservation.property_id)
+          .single();
+
+        await provisionSeamAccessCodeForReservation(
+          supabaseClient,
+          reservationId,
+          reservation.property_id,
+          propertyRecord?.organization_id || null,
+        );
+      } catch (seamError) {
+        logStep("Warning: Error provisioning Seam access code", { error: String(seamError) });
       }
 
       // Schedule confirmation email
