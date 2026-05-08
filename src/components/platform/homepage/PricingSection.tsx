@@ -38,6 +38,7 @@ const fallbackPlans = [
     ],
     cta: 'Start Free Trial',
     popular: false,
+    isContactOnly: false,
   },
   {
     name: 'Professional',
@@ -55,9 +56,9 @@ const fallbackPlans = [
       'Team member access',
       'Priority support',
     ],
-    cta: 'Contact Us',
+    cta: 'Start Free Trial',
     popular: true,
-    isContactOnly: true,
+    isContactOnly: false,
   },
   {
     name: 'Portfolio',
@@ -75,9 +76,9 @@ const fallbackPlans = [
       'Dedicated account manager',
       'Custom integrations',
     ],
-    cta: 'Contact Us',
+    cta: 'Start Free Trial',
     popular: false,
-    isContactOnly: true,
+    isContactOnly: false,
   },
 ];
 
@@ -103,8 +104,8 @@ const PricingSection: React.FC = () => {
   // Transform database templates to display format
   const plans = templates?.length ? templates.map((template) => {
     const isProfessional = template.slug === 'professional' || template.name.toLowerCase() === 'professional';
-    const isPortfolio = template.slug === 'portfolio' || template.name.toLowerCase() === 'portfolio';
-    const isContactOnly = isProfessional || isPortfolio;
+    const supportsSelfServeSignup = Boolean(template.stripe_price_id || template.stripe_annual_price_id);
+    const isContactOnly = !supportsSelfServeSignup;
     
     // Filter out "Unlimited properties" from Professional features
     let features = template.features && template.features.length > 0 
@@ -121,8 +122,8 @@ const PricingSection: React.FC = () => {
       description: template.description || '',
       monthlyPrice: template.monthly_price_cents / 100,
       yearlyPrice: template.annual_price_cents 
-        ? Math.floor(template.annual_price_cents / 100 / 12) // Show monthly equivalent
-        : Math.floor(template.monthly_price_cents / 100 * 0.83), // 17% discount default
+        ? Math.floor(template.annual_price_cents / 100 / 12)
+        : Math.floor(template.monthly_price_cents / 100 * 0.83),
       properties: template.max_properties 
         ? template.max_properties === 1 
           ? '1 property' 
@@ -144,7 +145,8 @@ const PricingSection: React.FC = () => {
       return `${basePath}/contact`;
     }
 
-    return `${basePath}/signup`;
+    const billing = isYearly ? 'annual' : 'monthly';
+    return `${basePath}/signup?plan=${encodeURIComponent(plan.slug)}&billing=${billing}`;
   };
 
   return (
