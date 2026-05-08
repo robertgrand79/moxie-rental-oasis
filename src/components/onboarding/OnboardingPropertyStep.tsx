@@ -1,21 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Home, Shield, KeyRound, CheckCircle2, RefreshCw, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { usePropertyFetch } from '@/hooks/usePropertyFetch';
+import { useSecureApiKeys } from '@/hooks/useSecureApiKeys';
 
 interface Props {
   onComplete: (data?: Record<string, any>) => void;
   isCompleting: boolean;
 }
 
+interface SeamWorkspace {
+  id: string;
+  workspace_id: string;
+  workspace_name: string;
+  sync_status: string;
+  last_sync_at: string | null;
+}
+
 const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
   const { organization } = useCurrentOrganization();
   const { toast } = useToast();
+  const { properties, refetch: refetchProperties } = usePropertyFetch();
+  const { setApiKey, loading: apiKeyLoading } = useSecureApiKeys();
+
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
@@ -23,6 +38,74 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
   const [bathrooms, setBathrooms] = useState('1');
   const [maxGuests, setMaxGuests] = useState('2');
   const [saving, setSaving] = useState(false);
+
+  const [phase, setPhase] = useState<'property' | 'seam'>('property');
+  const [createdPropertyId, setCreatedPropertyId] = useState<string | null>(null);
+  const [createdPropertyTitle, setCreatedPropertyTitle] = useState<string>('');
+
+  const [seamApiKey, setSeamApiKeyInput] = useState('');
+  const [workspaceId, setWorkspaceId] = useState('');
+  const [workspaceName, setWorkspaceName] = useState('');
+  const [workspace, setWorkspace] = useState<SeamWorkspace | null>(null);
+  const [deviceCount, setDeviceCount] = useState(0);
+  const [loadingSeam, setLoadingSeam] = useState(false);
+  const [savingSeam, setSavingSeam] = useState(false);
+  const [syncingSeam, setSyncingSeam] = useState(false);
+
+  useEffect(() => {
+    const existingProperty = properties[0];
+
+    if (existingProperty) {
+      setCreatedPropertyId(existingProperty.id);
+      setCreatedPropertyTitle(existingProperty.title || 'Your property');
+      setPhase('seam');
+    }
+  }, [properties]);
+
+  useEffect(() => {
+    if (createdPropertyId) {
+      loadSeamState(createdPropertyId);
+    }
+  }, [createdPropertyId]);
+
+  const loadSeamState = async (propertyId: string) => {
+    try {
+      setLoadingSeam(true);
+
+      const [{ data: workspaceData, error: workspaceError }, { data: devicesData, error: devicesError }] = await Promise.all([
+        supabase
+          .from('seam_workspaces')
+          .select('*')
+          .eq('property_id', propertyId)
+          .eq('is_active', true)
+          .maybeSingle(),
+        supabase
+          .from('seam_devices')
+          .select('id', { count: 'exact' })
+          .eq('property_id', propertyId),
+      ]);
+
+      if (workspaceError && workspaceError.code !== 'PGRST116') {
+        throw workspaceError;
+      }
+
+      if (devicesError) {
+        throw devicesError;
+      }
+
+      setWorkspace((workspaceData as SeamWorkspace | null) || null);
+      setDeviceCount(devicesData?.length || 0);
+
+      if (workspaceData) {
+        setWorkspaceId(workspaceData.workspace_id || '');
+        setWorkspaceName(workspaceData.workspace_name || '');
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to load Seam setup', variant: 'destructive' });
+    } finally {
+      setLoadingSeam(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!organization || !title || !location) return;
@@ -48,8 +131,15 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
 
       if (error) throw error;
 
-      toast({ title: 'Property added!', description: 'You can add more details later' });
-      onComplete({ propertyId: data.id, title });
+      setCreatedPropertyId(data.id);
+      setCreatedPropertyTitle(data.title || title);
+      setPhase('seam');
+      await refetchProperties();
+
+      toast({
+        title: 'Property added!',
+        description: 'Now connect Seam so guest codes and device automation can work automatically.',
+      });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
@@ -57,10 +147,240 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
     }
   };
 
+  const handleSyncDevices = async (overrideWorkspaceId?: string) => {
+    if (!createdPropertyId) return;
+
+    const effectiveWorkspaceId = overrideWorkspaceId || workspace?.workspace_id || workspaceId;
+    if (!effectiveWorkspaceId) return;
+
+    try {
+      setSyncingSeam(true);
+
+      const { data, error } = await supabase.functions.invoke('seam-sync', {
+        body: {
+          workspaceId: effectiveWorkspaceId,
+          propertyId: createdPropertyId,
+          organizationId: organization?.id,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Devices synced',
+        description: `Imported ${data?.deviceCount || 0} Seam device${data?.deviceCount === 1 ? '' : 's'}.`,
+      });
+
+      await loadSeamState(createdPropertyId);
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to sync Seam devices', variant: 'destructive' });
+    } finally {
+      setSyncingSeam(false);
+    }
+  };
+
+  const handleSaveSeamAndContinue = async () => {
+    if (!organization || !createdPropertyId) return;
+
+    if (!workspace && (!workspaceId.trim() || !workspaceName.trim())) {
+      toast({
+        title: 'Missing workspace details',
+        description: 'Enter a Seam workspace ID and workspace name, or skip for now.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setSavingSeam(true);
+
+      if (seamApiKey.trim()) {
+        const saved = await setApiKey(organization.id, 'seam_api_key', seamApiKey.trim());
+        if (!saved) {
+          setSavingSeam(false);
+          return;
+        }
+      }
+
+      let effectiveWorkspaceId = workspace?.workspace_id || workspaceId.trim();
+
+      if (!workspace) {
+        const { data: workspaceRecord, error: workspaceError } = await supabase
+          .from('seam_workspaces')
+          .insert({
+            property_id: createdPropertyId,
+            workspace_id: workspaceId.trim(),
+            workspace_name: workspaceName.trim(),
+            api_key_configured: true,
+            is_active: true,
+            sync_status: 'pending',
+          })
+          .select()
+          .single();
+
+        if (workspaceError) throw workspaceError;
+
+        setWorkspace(workspaceRecord as SeamWorkspace);
+        effectiveWorkspaceId = workspaceRecord.workspace_id;
+      }
+
+      await handleSyncDevices(effectiveWorkspaceId);
+
+      onComplete({
+        propertyId: createdPropertyId,
+        title: createdPropertyTitle,
+        seamConfigured: true,
+        workspaceId: effectiveWorkspaceId,
+      });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to connect Seam', variant: 'destructive' });
+    } finally {
+      setSavingSeam(false);
+    }
+  };
+
+  const handleSkipSeam = () => {
+    onComplete({
+      propertyId: createdPropertyId,
+      title: createdPropertyTitle,
+      seamConfigured: false,
+    });
+  };
+
+  if (phase === 'seam' && createdPropertyId) {
+    return (
+      <div className="space-y-6">
+        <Alert>
+          <Shield className="h-4 w-4" />
+          <AlertDescription>
+            Connect Seam now so Stay Moxie can create guest access codes automatically and sync your smart locks and thermostats.
+          </AlertDescription>
+        </Alert>
+
+        <div className="rounded-lg border p-4 bg-muted/30">
+          <div className="flex items-center gap-2 mb-2">
+            <Home className="h-4 w-4 text-primary" />
+            <span className="font-medium">{createdPropertyTitle}</span>
+            {workspace && (
+              <Badge variant="secondary">
+                Seam Connected
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Finish smart-home setup for this property now, or skip and return later from Settings or the property editor.
+          </p>
+        </div>
+
+        {loadingSeam ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading Seam setup...
+          </div>
+        ) : (
+          <>
+            {!workspace && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="seam_api_key">Seam API Key</Label>
+                  <Input
+                    id="seam_api_key"
+                    type="password"
+                    placeholder="Enter your Seam API key"
+                    value={seamApiKey}
+                    onChange={(e) => setSeamApiKeyInput(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This is optional here if you already saved it in Smart Home settings. If not, enter it now so device sync can work immediately.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="workspace_id">Workspace ID</Label>
+                  <Input
+                    id="workspace_id"
+                    placeholder="e.g. ws_abc123..."
+                    value={workspaceId}
+                    onChange={(e) => setWorkspaceId(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="workspace_name">Workspace Name</Label>
+                  <Input
+                    id="workspace_name"
+                    placeholder={`${createdPropertyTitle} Smart Home`}
+                    value={workspaceName}
+                    onChange={(e) => setWorkspaceName(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {workspace && (
+              <div className="space-y-4 rounded-lg border p-4">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span className="font-medium">{workspace.workspace_name}</span>
+                </div>
+                <div className="grid gap-2 text-sm text-muted-foreground">
+                  <div>Workspace ID: <span className="font-mono text-foreground">{workspace.workspace_id}</span></div>
+                  <div>Devices synced: <span className="text-foreground">{deviceCount}</span></div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleSyncDevices()}
+                  disabled={syncingSeam}
+                >
+                  {syncingSeam ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Syncing...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Sync Devices Again
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+
+        <div className="flex flex-wrap gap-3">
+          <Button
+            onClick={handleSaveSeamAndContinue}
+            disabled={savingSeam || syncingSeam || apiKeyLoading || isCompleting || loadingSeam}
+          >
+            {savingSeam || apiKeyLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving Seam...
+              </>
+            ) : (
+              <>
+                <KeyRound className="h-4 w-4 mr-2" />
+                {workspace ? 'Continue with Seam Connected' : 'Connect Seam & Continue'}
+              </>
+            )}
+          </Button>
+
+          <Button variant="ghost" onClick={handleSkipSeam} disabled={savingSeam || syncingSeam || isCompleting}>
+            Skip Seam for now
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        Add your first property. You can add more properties and edit details later.
+        Add your first property. Right after this, you can connect Seam for guest codes and smart-home automation without leaving onboarding.
       </p>
 
       <div className="space-y-2">
@@ -138,7 +458,7 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
               Adding...
             </>
           ) : (
-            'Add Property & Continue'
+            'Add Property & Set Up Seam'
           )}
         </Button>
         <Button variant="ghost" onClick={() => onComplete()}>
