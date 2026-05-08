@@ -24,6 +24,47 @@ serve(async (req) => {
       }
     });
 
+    const cleanupUserReferences = async (userId: string, organizationId: string) => {
+      // Remove org-scoped memberships first so a sole-member account can be deleted cleanly.
+      await supabaseAdmin
+        .from('organization_members')
+        .delete()
+        .eq('organization_id', organizationId)
+        .eq('user_id', userId);
+
+      // Clear nullable profile references that can otherwise block auth user deletion.
+      await supabaseAdmin
+        .from('admin_notifications')
+        .update({ user_id: null })
+        .eq('user_id', userId);
+
+      await supabaseAdmin
+        .from('assistant_escalations')
+        .update({ answered_by: null })
+        .eq('answered_by', userId);
+
+      await supabaseAdmin
+        .from('admin_audit_logs')
+        .update({ admin_id: null })
+        .eq('admin_id', userId);
+
+      // Remove user-owned admin/session records that should not survive account deletion.
+      await supabaseAdmin
+        .from('admin_impersonation_sessions')
+        .delete()
+        .eq('admin_user_id', userId);
+
+      await supabaseAdmin
+        .from('admin_impersonation_sessions')
+        .delete()
+        .eq('target_user_id', userId);
+
+      await supabaseAdmin
+        .from('platform_admins')
+        .delete()
+        .eq('user_id', userId);
+    };
+
     // Get the authorization header to verify the requesting user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -139,7 +180,16 @@ serve(async (req) => {
         continue;
       }
 
-      // Delete user from auth (this cascades to profiles and organization_members)
+      try {
+        await cleanupUserReferences(userId, organizationId);
+      } catch (cleanupError) {
+        console.error(`Error cleaning up references for user ${userId}:`, cleanupError);
+        const message = cleanupError instanceof Error ? cleanupError.message : 'unknown cleanup error';
+        errors.push(`Failed to clean up user ${userId}: ${message}`);
+        continue;
+      }
+
+      // Delete user from auth after clearing profile-linked references.
       const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
       
       if (deleteError) {
@@ -252,7 +302,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Organization "${org.name}" deleted successfully`,
+        message: `Organization \"${org.name}\" deleted successfully`,
         deletedUsers,
         skippedUsers,
         errors: errors.length > 0 ? errors : undefined
