@@ -57,6 +57,14 @@ const PlatformSignup: React.FC = () => {
 
   useEffect(() => {
     const planParam = searchParams.get('plan');
+    const billingParam = searchParams.get('billing');
+
+    if (billingParam === 'annual') {
+      setIsYearlyBilling(true);
+    } else if (billingParam === 'monthly') {
+      setIsYearlyBilling(false);
+    }
+
     if (planParam && templates && !selectedPlanSlug) {
       const matchedTemplate = templates.find(
         t => t.slug === planParam || t.name.toLowerCase().includes(planParam.toLowerCase())
@@ -65,8 +73,11 @@ const PlatformSignup: React.FC = () => {
         setSelectedPlanSlug(matchedTemplate.slug);
         setSelectedTemplate(matchedTemplate);
         setCurrentStep(2);
-        searchParams.delete('plan');
-        setSearchParams(searchParams, { replace: true });
+
+        const nextSearchParams = new URLSearchParams(searchParams);
+        nextSearchParams.delete('plan');
+        nextSearchParams.delete('billing');
+        setSearchParams(nextSearchParams, { replace: true });
       }
     }
   }, [templates, searchParams, setSearchParams, selectedPlanSlug]);
