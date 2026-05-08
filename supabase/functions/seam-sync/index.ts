@@ -24,11 +24,9 @@ serve(async (req) => {
       throw new Error('Workspace ID is required');
     }
 
-    // Get SEAM API key - check organization first, then fall back to global secret
     let seamApiKey: string | null = null;
     let effectiveOrgId = organizationId;
 
-    // If property provided but no org, look up org from property
     if (propertyId && !organizationId) {
       const { data: property } = await supabase
         .from('properties')
@@ -38,7 +36,6 @@ serve(async (req) => {
       effectiveOrgId = property?.organization_id;
     }
 
-    // Try to get org-level API key
     if (effectiveOrgId) {
       const { data: org } = await supabase
         .from('organizations')
@@ -51,7 +48,6 @@ serve(async (req) => {
       }
     }
 
-    // Fall back to global secret if no org key
     if (!seamApiKey) {
       seamApiKey = Deno.env.get('SEAM_API_KEY');
       if (seamApiKey) {
@@ -63,7 +59,6 @@ serve(async (req) => {
       throw new Error('SEAM_API_KEY not configured for this organization');
     }
 
-    // Fetch devices from Seam API
     const seamResponse = await fetch(`https://connect.getseam.com/devices/list`, {
       method: 'POST',
       headers: {
@@ -82,11 +77,9 @@ serve(async (req) => {
     const seamData = await seamResponse.json();
     console.log(`Found ${seamData.devices?.length || 0} devices in Seam workspace`);
 
-    // Process each device
     for (const device of seamData.devices || []) {
       console.log(`Processing device: ${device.display_name} (${device.device_id})`);
 
-      // Determine device type and brand
       let deviceType = 'unknown';
       let deviceBrand = device.device_type || 'unknown';
 
@@ -100,7 +93,6 @@ serve(async (req) => {
         deviceBrand = device.manufacturer.toLowerCase();
       }
 
-      // Prepare device data for upsert
       const deviceData = {
         seam_device_id: device.device_id,
         workspace_id: workspaceId,
@@ -120,17 +112,16 @@ serve(async (req) => {
         current_state: {
           locked: device.locked,
           temperature: device.temperature,
-          ...device.state
+          ...device.state,
         },
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
-      // Upsert device into database
       const { error: upsertError } = await supabase
         .from('seam_devices')
-        .upsert(deviceData, { 
+        .upsert(deviceData, {
           onConflict: 'seam_device_id',
-          ignoreDuplicates: false 
+          ignoreDuplicates: false,
         });
 
       if (upsertError) {
@@ -138,18 +129,19 @@ serve(async (req) => {
         throw upsertError;
       }
 
-      // Log device sync event
+      const { data: syncedDevice } = await supabase
+        .from('seam_devices')
+        .select('id')
+        .eq('seam_device_id', device.device_id)
+        .single();
+
       const { error: eventError } = await supabase
         .from('device_events')
         .insert({
-          device_id: (await supabase
-            .from('seam_devices')
-            .select('id')
-            .eq('seam_device_id', device.device_id)
-            .single()).data?.id,
+          device_id: syncedDevice?.id,
           event_type: 'device.synced',
           event_source: 'seam_sync',
-          event_data: { sync_timestamp: new Date().toISOString() }
+          event_data: { sync_timestamp: new Date().toISOString() },
         });
 
       if (eventError) {
@@ -157,12 +149,41 @@ serve(async (req) => {
       }
     }
 
-    // Update workspace sync status
+    if (propertyId) {
+      const { data: smartLocks, error: smartLockError } = await supabase
+        .from('seam_devices')
+        .select('id, device_name, is_primary_lock')
+        .eq('property_id', propertyId)
+        .eq('device_type', 'smart_lock')
+        .order('device_name');
+
+      if (smartLockError) {
+        console.error('Error loading smart locks after sync:', smartLockError);
+      } else if ((smartLocks || []).length > 0) {
+        const existingPrimaryLock = smartLocks?.find((device) => device.is_primary_lock);
+        if (!existingPrimaryLock) {
+          const defaultPrimaryLock = smartLocks?.[0];
+          if (defaultPrimaryLock) {
+            const { error: primaryLockError } = await supabase
+              .from('seam_devices')
+              .update({ is_primary_lock: true })
+              .eq('id', defaultPrimaryLock.id);
+
+            if (primaryLockError) {
+              console.error('Error assigning default primary smart lock:', primaryLockError);
+            } else {
+              console.log(`Assigned default primary smart lock: ${defaultPrimaryLock.device_name}`);
+            }
+          }
+        }
+      }
+    }
+
     const { error: workspaceError } = await supabase
       .from('seam_workspaces')
       .update({
         last_sync_at: new Date().toISOString(),
-        sync_status: 'success'
+        sync_status: 'success',
       })
       .eq('workspace_id', workspaceId);
 
@@ -175,16 +196,15 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       message: `Successfully synced ${seamData.devices?.length || 0} devices`,
-      deviceCount: seamData.devices?.length || 0
+      deviceCount: seamData.devices?.length || 0,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
   } catch (error) {
     console.error('Error in seam-sync function:', error);
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       error: error.message,
-      success: false 
+      success: false,
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
