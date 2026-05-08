@@ -40,13 +40,11 @@ const OnboardingWizard = () => {
   const { steps, currentStep, completedSteps, totalSteps, isComplete, loading, completeStep, isCompleting } = useOnboarding(organization?.id ?? null);
   const [activeStep, setActiveStep] = useState<string | null>(null);
 
-  // Use current incomplete step or allow viewing any step
   const displayStep = activeStep || currentStep;
 
-  // Redirect to signup if no organization (after loading completes)
   useEffect(() => {
     if (!orgLoading && !loading && !organization) {
-      window.location.href = '/signup';
+      window.location.href = '/create-organization';
     }
   }, [organization, orgLoading, loading]);
 
@@ -59,7 +57,6 @@ const OnboardingWizard = () => {
   }
 
   if (!organization) {
-    // Show loading while redirect happens via useEffect
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -83,7 +80,6 @@ const OnboardingWizard = () => {
           </CardHeader>
           <CardContent>
             <Button onClick={() => {
-              // Force a full page reload to ensure the organization context is refreshed
               window.location.href = '/admin/dashboard';
             }} className="w-full">
               Go to Dashboard
@@ -99,10 +95,9 @@ const OnboardingWizard = () => {
 
   const handleStepComplete = (stepName: string, data?: Record<string, any>) => {
     completeStep({ stepName, data });
-    // Move to next incomplete step
     const stepOrder = ['branding', 'contact', 'property', 'payments'];
     const currentIndex = stepOrder.indexOf(stepName);
-    const nextIncomplete = stepOrder.slice(currentIndex + 1).find(s => 
+    const nextIncomplete = stepOrder.slice(currentIndex + 1).find(s =>
       !steps?.find(step => step.step_name === s)?.completed
     );
     setActiveStep(nextIncomplete || null);
@@ -126,13 +121,11 @@ const OnboardingWizard = () => {
   return (
     <div className="min-h-screen bg-muted/30 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Welcome to {organization.name}</h1>
           <p className="text-muted-foreground">Let's get your account set up in a few quick steps</p>
         </div>
 
-        {/* Progress */}
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-2">
@@ -144,7 +137,6 @@ const OnboardingWizard = () => {
         </Card>
 
         <div className="grid md:grid-cols-[240px_1fr] gap-6">
-          {/* Step Navigation */}
           <Card className="h-fit">
             <CardContent className="p-4 space-y-2">
               {steps?.map((step) => {
@@ -159,18 +151,18 @@ const OnboardingWizard = () => {
                     key={step.id}
                     onClick={() => setActiveStep(step.step_name)}
                     className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${
-                      isActive 
-                        ? 'bg-primary/10 text-primary' 
-                        : isCompleted 
-                          ? 'text-muted-foreground hover:bg-muted' 
+                      isActive
+                        ? 'bg-primary/10 text-primary'
+                        : isCompleted
+                          ? 'text-muted-foreground hover:bg-muted'
                           : 'hover:bg-muted'
                     }`}
                   >
                     <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                      isCompleted 
-                        ? 'bg-green-100 dark:bg-green-900/30' 
-                        : isActive 
-                          ? 'bg-primary/20' 
+                      isCompleted
+                        ? 'bg-green-100 dark:bg-green-900/30'
+                        : isActive
+                          ? 'bg-primary/20'
                           : 'bg-muted'
                     }`}>
                       {isCompleted ? (
@@ -189,7 +181,6 @@ const OnboardingWizard = () => {
             </CardContent>
           </Card>
 
-          {/* Step Content */}
           <Card>
             <CardHeader>
               <CardTitle>
@@ -205,7 +196,6 @@ const OnboardingWizard = () => {
           </Card>
         </div>
 
-        {/* Skip option */}
         <div className="text-center">
           <Button variant="ghost" onClick={() => navigate('/admin/dashboard')}>
             Skip for now and go to dashboard
