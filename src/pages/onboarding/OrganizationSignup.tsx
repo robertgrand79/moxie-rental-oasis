@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 
-// Format price from cents to dollars (floor to avoid rounding up)
 const formatPrice = (cents: number): string => {
   return `$${Math.floor(cents / 100)}`;
 };
@@ -32,39 +31,33 @@ const OrganizationSignup = () => {
   const { createOrganization, checkSlugAvailability, creating } = useCreateOrganization();
   const { data: templates, isLoading: loadingTemplates } = useOrganizationTemplates();
 
-  // Organization details - collected post-verification
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [selectedTemplate, setSelectedTemplate] = useState<OrganizationTemplate | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<OrganizationTemplate | null>(null);
-  const [includeDemoData, setIncludeDemoData] = useState(true); // Default to ON
+  const [includeDemoData, setIncludeDemoData] = useState(true);
   const [isWhatsIncludedOpen, setIsWhatsIncludedOpen] = useState(false);
-  
-  // Get plan info from user metadata (set during signup, survives cross-browser)
+
   const planSlug = user?.user_metadata?.pending_plan_slug as string | undefined;
   const planName = user?.user_metadata?.pending_plan_name as string | undefined;
-  
-  // Filter templates based on the user's selected plan tier
-  const allowedTemplateType: 'single_property' | 'multi_property' | null = 
-    planSlug === 'single_property' ? 'single_property' : 
+
+  const allowedTemplateType: 'single_property' | 'multi_property' | null =
+    planSlug === 'single_property' ? 'single_property' :
     planSlug ? 'multi_property' : null;
 
-  // Redirect if already has organization - go to dashboard
   useEffect(() => {
     if (!authLoading && !orgLoading && organization?.slug) {
       window.location.href = `/admin/dashboard?org=${organization.slug}`;
     }
   }, [organization, authLoading, orgLoading]);
 
-  // Redirect to auth if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth?redirect=/signup');
+      navigate('/auth?redirect=/create-organization');
     }
   }, [user, authLoading, navigate]);
 
-  // Auto-generate slug from name
   useEffect(() => {
     const generatedSlug = name
       .toLowerCase()
@@ -74,7 +67,6 @@ const OrganizationSignup = () => {
     setSlug(generatedSlug);
   }, [name]);
 
-  // Check slug availability with debounce
   useEffect(() => {
     if (!slug || slug.length < 3) {
       setSlugStatus('idle');
@@ -90,10 +82,8 @@ const OrganizationSignup = () => {
     return () => clearTimeout(timer);
   }, [slug, checkSlugAvailability]);
 
-  // When template is selected, sync its demo data default (defaulting to ON if available)
   useEffect(() => {
     if (selectedTemplate) {
-      // Default to ON if demo data is available
       setIncludeDemoData(selectedTemplate.include_demo_data && selectedTemplate.source_organization_id != null);
     }
   }, [selectedTemplate]);
@@ -102,15 +92,14 @@ const OrganizationSignup = () => {
     e.preventDefault();
     if (!name || !slug || slugStatus !== 'available' || !selectedTemplate) return;
 
-    const orgId = await createOrganization({ 
-      name, 
-      slug, 
+    const orgId = await createOrganization({
+      name,
+      slug,
       visualTemplateId: selectedTemplate.id,
       includeDemoData,
     });
     if (orgId) {
-      // Use full page reload to ensure context picks up new org
-      window.location.href = `/admin/dashboard?org=${slug}`;
+      window.location.href = `/admin/onboarding?org=${slug}`;
     }
   };
 
@@ -122,7 +111,6 @@ const OrganizationSignup = () => {
     );
   }
 
-  // Check if selected template has demo data available
   const hasDemoDataAvailable = selectedTemplate?.include_demo_data && selectedTemplate?.source_organization_id != null;
   const pricingTier = selectedTemplate?.pricing_tier;
   const featureHighlights = selectedTemplate?.feature_highlights || [];
@@ -130,7 +118,6 @@ const OrganizationSignup = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 py-8 px-4">
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* Header */}
         <div className="text-center space-y-3">
           <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg shadow-primary/10">
             <Building2 className="h-8 w-8 text-primary" />
@@ -147,7 +134,6 @@ const OrganizationSignup = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Organization Name & Slug - Always shown */}
           <Card className="border-2 border-border/50 shadow-lg">
             <CardContent className="pt-6">
               <div className="grid gap-6 md:grid-cols-2">
@@ -201,7 +187,6 @@ const OrganizationSignup = () => {
             </CardContent>
           </Card>
 
-          {/* Template Selection */}
           <div className="space-y-5">
             <div className="text-center">
               <h2 className="text-2xl font-semibold">Choose Your Template</h2>
@@ -218,8 +203,7 @@ const OrganizationSignup = () => {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {templates
                   ?.filter((template) => {
-                    // Filter templates based on the user's selected plan tier
-                    if (!allowedTemplateType) return true; // Show all if no filter set
+                    if (!allowedTemplateType) return true;
                     return template.template_type === allowedTemplateType;
                   })
                   .map((template) => (
@@ -231,8 +215,7 @@ const OrganizationSignup = () => {
                     onPreview={() => setPreviewTemplate(template)}
                   />
                 ))}
-                
-                {/* Coming Soon Card */}
+
                 <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border/50 p-10 text-center bg-muted/10 hover:bg-muted/20 transition-colors">
                   <div className="h-14 w-14 rounded-full bg-muted/50 flex items-center justify-center mb-4">
                     <Plus className="h-7 w-7 text-muted-foreground/70" />
@@ -244,11 +227,9 @@ const OrganizationSignup = () => {
             )}
           </div>
 
-          {/* Selected Template Summary & Options */}
           {selectedTemplate && (
             <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent shadow-lg overflow-hidden">
               <CardContent className="pt-6 space-y-5">
-                {/* Template Info */}
                 {pricingTier && (
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-4">
@@ -270,7 +251,6 @@ const OrganizationSignup = () => {
                   </div>
                 )}
 
-                {/* What's Included Collapsible */}
                 {featureHighlights.length > 0 && (
                   <Collapsible open={isWhatsIncludedOpen} onOpenChange={setIsWhatsIncludedOpen}>
                     <CollapsibleTrigger asChild>
@@ -288,8 +268,8 @@ const OrganizationSignup = () => {
                     <CollapsibleContent className="mt-3">
                       <div className="grid gap-2 sm:grid-cols-2">
                         {featureHighlights.map((feature, idx) => (
-                          <div 
-                            key={idx} 
+                          <div
+                            key={idx}
                             className="flex items-center gap-3 p-3 rounded-lg bg-background/50"
                           >
                             <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -301,7 +281,6 @@ const OrganizationSignup = () => {
                   </Collapsible>
                 )}
 
-                {/* Demo Data Toggle */}
                 {hasDemoDataAvailable && (
                   <div className="flex items-center justify-between rounded-xl border-2 p-5 bg-green-500/5 border-green-500/20">
                     <div className="flex items-start gap-4">
@@ -329,7 +308,6 @@ const OrganizationSignup = () => {
             </Card>
           )}
 
-          {/* Submit Button */}
           <div className="pt-2">
             <Button
               type="submit"
@@ -358,7 +336,6 @@ const OrganizationSignup = () => {
           </div>
         </form>
 
-        {/* Template Preview Drawer */}
         <TemplatePreviewDrawer
           template={previewTemplate}
           isOpen={!!previewTemplate}
