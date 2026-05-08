@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Check, Sparkles, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { usePlatform } from '@/contexts/PlatformContext';
 
 interface SiteTemplate {
   id: string;
@@ -82,6 +83,8 @@ const fallbackPlans = [
 
 const PricingSection: React.FC = () => {
   const [isYearly, setIsYearly] = useState(false);
+  const { isPlatformSite } = usePlatform();
+  const basePath = isPlatformSite ? '' : '/platform';
 
   // Fetch templates from database
   const { data: templates, isLoading } = useQuery({
@@ -137,11 +140,11 @@ const PricingSection: React.FC = () => {
   }) : fallbackPlans;
 
   const getCtaLink = (plan: typeof plans[0]) => {
-    // Professional tier goes to contact, others to signup
     if ('isContactOnly' in plan && plan.isContactOnly) {
-      return `/contact`;
+      return `${basePath}/contact`;
     }
-    return `/platform/signup`;
+
+    return `${basePath}/signup`;
   };
 
   return (
