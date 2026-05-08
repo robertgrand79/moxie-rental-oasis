@@ -10,7 +10,6 @@ import { Sparkles, CheckCircle2, Mail } from 'lucide-react';
 import { PlanSelectionStep } from '@/components/signup/PlanSelectionStep';
 import { AccountDetailsStep } from '@/components/signup/AccountDetailsStep';
 
-// Interface for site_templates data
 interface SiteTemplate {
   id: string;
   name: string;
@@ -25,22 +24,23 @@ interface SiteTemplate {
   is_popular?: boolean | null;
 }
 
+const ORGANIZATION_CREATION_PATH = '/create-organization';
+
 const PlatformSignup: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
-  
+
   const [selectedPlanSlug, setSelectedPlanSlug] = useState<string | null>(null);
   const [isYearlyBilling, setIsYearlyBilling] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<SiteTemplate | null>(null);
-  
+
   const { signUp, user, loading, roleLoading } = useAuth();
   const { organization, loading: orgLoading } = useCurrentOrganization();
   const navigate = useNavigate();
 
-  // Fetch templates from site_templates (same source as PlanSelectionStep)
   const { data: templates } = useQuery({
     queryKey: ['site-templates-signup'],
     queryFn: async () => {
@@ -48,13 +48,12 @@ const PlatformSignup: React.FC = () => {
         .from('site_templates')
         .select('*')
         .order('monthly_price_cents', { ascending: true });
-      
+
       if (error) throw error;
       return data as unknown as SiteTemplate[];
     },
   });
 
-  // Handle pre-selection from URL param (e.g., /platform/signup?plan=starter)
   useEffect(() => {
     const planParam = searchParams.get('plan');
     if (planParam && templates && !selectedPlanSlug) {
@@ -65,14 +64,12 @@ const PlatformSignup: React.FC = () => {
         setSelectedPlanSlug(matchedTemplate.slug);
         setSelectedTemplate(matchedTemplate);
         setCurrentStep(2);
-        // Clean up URL
         searchParams.delete('plan');
         setSearchParams(searchParams, { replace: true });
       }
     }
   }, [templates, searchParams, setSearchParams, selectedPlanSlug]);
 
-  // Set selected template when plan is selected
   useEffect(() => {
     if (selectedPlanSlug && templates) {
       const template = templates.find(t => t.slug === selectedPlanSlug);
@@ -82,14 +79,12 @@ const PlatformSignup: React.FC = () => {
     }
   }, [selectedPlanSlug, templates]);
 
-  // Redirect authenticated users based on organization status
   useEffect(() => {
     if (user && !loading && !roleLoading && !orgLoading) {
       if (organization?.slug) {
         window.location.href = `/admin?org=${organization.slug}`;
       } else {
-        // User is logged in but no org - redirect to org creation
-        navigate('/signup', { replace: true });
+        navigate(ORGANIZATION_CREATION_PATH, { replace: true });
       }
     }
   }, [user, loading, roleLoading, orgLoading, organization, navigate]);
@@ -108,8 +103,7 @@ const PlatformSignup: React.FC = () => {
     signupData: { email: string; password: string; fullName: string; phone: string };
   }) => {
     if (!selectedTemplate) return;
-    
-    // Validate fields
+
     if (!data.signupData.fullName || !data.signupData.email || !data.signupData.password) {
       toast({
         title: 'Missing Information',
@@ -118,18 +112,16 @@ const PlatformSignup: React.FC = () => {
       });
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
-      // Map pricing tiers: single_property, multi_property (Professional), portfolio (unlimited)
       const planSlug = selectedTemplate.slug === 'single_property' ? 'single_property' : 'multi_property';
-      
-      // Store plan info in Supabase user_metadata (survives cross-browser email verification)
+
       const { error } = await signUp(
-        data.signupData.email, 
-        data.signupData.password, 
-        data.signupData.fullName, 
+        data.signupData.email,
+        data.signupData.password,
+        data.signupData.fullName,
         data.signupData.phone || undefined,
         {
           pending_plan_slug: planSlug,
@@ -137,13 +129,13 @@ const PlatformSignup: React.FC = () => {
           pending_pricing_tier_id: selectedTemplate.id,
         }
       );
-      
+
       if (error) {
         let errorMessage = error.message;
         if (error.message.includes('already registered')) {
           errorMessage = 'This email is already registered. Please try logging in instead.';
         }
-        
+
         toast({
           title: 'Signup Failed',
           description: errorMessage,
@@ -180,7 +172,6 @@ const PlatformSignup: React.FC = () => {
     );
   }
 
-  // Email sent confirmation screen
   if (emailSent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
@@ -208,14 +199,14 @@ const PlatformSignup: React.FC = () => {
               </div>
             </div>
             <div className="mt-6 space-y-3">
-              <button 
+              <button
                 onClick={async () => {
                   try {
                     const { error } = await supabase.auth.resend({
                       type: 'signup',
                       email: submittedEmail,
                       options: {
-                        emailRedirectTo: `${window.location.origin}/auth/confirm?next=/signup`
+                        emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(ORGANIZATION_CREATION_PATH)}`
                       }
                     });
                     if (error) {
@@ -244,7 +235,7 @@ const PlatformSignup: React.FC = () => {
               </button>
               <p className="text-xs text-muted-foreground">
                 Didn't receive the email? Check your spam folder or{' '}
-                <button 
+                <button
                   onClick={() => {
                     setEmailSent(false);
                     setCurrentStep(2);
@@ -261,16 +252,13 @@ const PlatformSignup: React.FC = () => {
     );
   }
 
-  // Step 1: Full-page pricing view (matches homepage)
   if (currentStep === 1) {
     return <PlanSelectionStep onSelectPlan={handleSelectPlan} />;
   }
 
-  // Step 2: Account details form (personal info only)
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-lg mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
@@ -282,7 +270,6 @@ const PlatformSignup: React.FC = () => {
           </Link>
         </div>
 
-        {/* Account Details Step */}
         {selectedTemplate && (
           <AccountDetailsStep
             selectedTemplate={selectedTemplate}
