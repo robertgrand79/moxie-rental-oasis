@@ -6,6 +6,7 @@ import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getAuthRedirectOrigin } from '@/utils/authRedirects';
 import { Sparkles, CheckCircle2, Mail } from 'lucide-react';
 import { PlanSelectionStep } from '@/components/signup/PlanSelectionStep';
 import { AccountDetailsStep } from '@/components/signup/AccountDetailsStep';
@@ -208,7 +209,7 @@ const PlatformSignup: React.FC = () => {
                       type: 'signup',
                       email: submittedEmail,
                       options: {
-                        emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(ORGANIZATION_CREATION_PATH)}`
+                        emailRedirectTo: `${getAuthRedirectOrigin()}/auth/confirm?next=${encodeURIComponent(ORGANIZATION_CREATION_PATH)}`
                       }
                     });
                     if (error) {
