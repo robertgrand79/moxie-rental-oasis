@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Property } from '@/types/property';
-import { Home, Lock, Thermometer, Wifi, Battery, AlertCircle, RefreshCw } from 'lucide-react';
+import { Home, Lock, Thermometer, Wifi, Battery, AlertCircle, RefreshCw, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { DeviceGrid } from './DeviceGrid';
@@ -37,7 +37,7 @@ interface DeviceCurrentState {
   target_temperature?: number;
   hvac_mode?: 'heat' | 'cool' | 'auto' | 'off';
   fan_mode?: 'auto' | 'on';
-  [key: string]: unknown; // Allow additional device-specific properties
+  [key: string]: unknown;
 }
 
 interface SeamDevice {
@@ -52,6 +52,7 @@ interface SeamDevice {
   battery_status: string | null;
   current_state: DeviceCurrentState | null;
   last_seen_at: string | null;
+  is_primary_lock?: boolean;
 }
 
 export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
@@ -60,17 +61,24 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
   const [devices, setDevices] = useState<SeamDevice[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [savingPrimaryLock, setSavingPrimaryLock] = useState(false);
+  const [selectedPrimaryLock, setSelectedPrimaryLock] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     loadWorkspaceAndDevices();
   }, [property.id]);
 
+  useEffect(() => {
+    const smartLocks = devices.filter((device) => device.device_type === 'smart_lock');
+    const primaryLock = smartLocks.find((device) => device.is_primary_lock);
+    setSelectedPrimaryLock(primaryLock?.id ?? smartLocks[0]?.id ?? '');
+  }, [devices]);
+
   const loadWorkspaceAndDevices = async () => {
     try {
       setLoading(true);
 
-      // Load workspace
       const { data: workspaceData, error: workspaceError } = await supabase
         .from('seam_workspaces')
         .select('*')
@@ -84,7 +92,6 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
 
       setWorkspace(workspaceData);
 
-      // Load devices if workspace exists
       if (workspaceData) {
         const { data: devicesData, error: devicesError } = await supabase
           .from('seam_devices')
@@ -96,21 +103,22 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
           throw devicesError;
         }
 
-        // Map database response to typed interface
-        const typedDevices: SeamDevice[] = (devicesData || []).map(d => ({
+        const typedDevices: SeamDevice[] = (devicesData || []).map((d) => ({
           ...d,
-          current_state: d.current_state as DeviceCurrentState | null
+          current_state: d.current_state as DeviceCurrentState | null,
+          is_primary_lock: (d as { is_primary_lock?: boolean }).is_primary_lock ?? false,
         }));
 
         setDevices(typedDevices);
+      } else {
+        setDevices([]);
       }
-
     } catch (error) {
       debug.error('[SmartHome] Error loading data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load smart home data",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load smart home data',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -122,50 +130,92 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
 
     try {
       setSyncing(true);
-      
+
       const { data, error } = await supabase.functions.invoke('seam-sync', {
         body: {
           workspaceId: workspace.workspace_id,
-          propertyId: property.id
-        }
+          propertyId: property.id,
+        },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Success",
+        title: 'Success',
         description: `Synced ${data.deviceCount} devices from Seam`,
       });
 
-      // Reload devices
       await loadWorkspaceAndDevices();
-
     } catch (error) {
       debug.error('[SmartHome] Error syncing devices:', error);
       toast({
-        title: "Error",
-        description: "Failed to sync devices from Seam",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to sync devices from Seam',
+        variant: 'destructive',
       });
     } finally {
       setSyncing(false);
     }
   };
 
+  const handleSavePrimaryLock = async () => {
+    if (!selectedPrimaryLock) {
+      toast({
+        title: 'Select a lock',
+        description: 'Choose the smart lock that should receive automated guest codes.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setSavingPrimaryLock(true);
+
+      const { error: clearError } = await supabase
+        .from('seam_devices')
+        .update({ is_primary_lock: false })
+        .eq('property_id', property.id)
+        .eq('device_type', 'smart_lock');
+
+      if (clearError) throw clearError;
+
+      const { error: setError } = await supabase
+        .from('seam_devices')
+        .update({ is_primary_lock: true })
+        .eq('id', selectedPrimaryLock);
+
+      if (setError) throw setError;
+
+      toast({
+        title: 'Primary lock saved',
+        description: 'New guest access codes will use this lock by default.',
+      });
+
+      await loadWorkspaceAndDevices();
+    } catch (error) {
+      debug.error('[SmartHome] Error saving primary lock:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save the primary smart lock.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingPrimaryLock(false);
+    }
+  };
+
   const getDeviceStats = () => {
-    const locks = devices.filter(d => d.device_type === 'smart_lock');
-    const thermostats = devices.filter(d => d.device_type === 'thermostat');
-    const online = devices.filter(d => d.is_online);
-    const lowBattery = devices.filter(d => 
-      d.battery_level && d.battery_level < 20
-    );
+    const locks = devices.filter((d) => d.device_type === 'smart_lock');
+    const thermostats = devices.filter((d) => d.device_type === 'thermostat');
+    const online = devices.filter((d) => d.is_online);
+    const lowBattery = devices.filter((d) => d.battery_level && d.battery_level < 20);
 
     return {
       total: devices.length,
       locks: locks.length,
       thermostats: thermostats.length,
       online: online.length,
-      lowBattery: lowBattery.length
+      lowBattery: lowBattery.length,
     };
   };
 
@@ -188,7 +238,6 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
     );
   }
 
-  // Show message to configure in settings if no workspace
   if (!workspace) {
     return (
       <Card className="w-full">
@@ -210,10 +259,7 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
                 Configure your Seam workspace in Settings → Smart Home to manage smart devices for this property.
               </p>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/admin/settings/smart-home')}
-            >
+            <Button variant="outline" onClick={() => navigate('/admin/settings/smart-home')}>
               Go to Smart Home Settings
             </Button>
           </div>
@@ -223,6 +269,8 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
   }
 
   const stats = getDeviceStats();
+  const smartLocks = devices.filter((device) => device.device_type === 'smart_lock');
+  const currentPrimaryLock = smartLocks.find((device) => device.is_primary_lock);
 
   return (
     <Card className="w-full">
@@ -238,15 +286,10 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={workspace.api_key_configured ? "default" : "secondary"}>
+            <Badge variant={workspace.api_key_configured ? 'default' : 'secondary'}>
               {workspace.workspace_name}
             </Badge>
-            <Button
-              onClick={handleSyncDevices}
-              disabled={syncing}
-              size="sm"
-              variant="outline"
-            >
+            <Button onClick={handleSyncDevices} disabled={syncing} size="sm" variant="outline">
               {syncing ? (
                 <RefreshCw className="h-4 w-4 animate-spin mr-2" />
               ) : (
@@ -257,7 +300,6 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
           </div>
         </div>
 
-        {/* Device Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
           <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
             <Home className="h-5 w-5 text-primary" />
@@ -301,6 +343,47 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
             </div>
           )}
         </div>
+
+        {smartLocks.length > 0 && (
+          <div className="mt-4 rounded-lg border bg-muted/30 p-4">
+            <div className="flex items-start gap-3">
+              <Star className="mt-0.5 h-5 w-5 text-amber-500" />
+              <div className="flex-1 space-y-3">
+                <div>
+                  <div className="font-medium">Primary Smart Lock</div>
+                  <div className="text-sm text-muted-foreground">
+                    Automated guest access codes will be created on this lock after a paid booking is confirmed.
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                  <select
+                    value={selectedPrimaryLock}
+                    onChange={(e) => setSelectedPrimaryLock(e.target.value)}
+                    className="w-full rounded-md border bg-background px-3 py-2 text-sm md:max-w-md"
+                  >
+                    {smartLocks.map((device) => (
+                      <option key={device.id} value={device.id}>
+                        {device.device_name}
+                        {device.location ? ` (${device.location})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    onClick={handleSavePrimaryLock}
+                    disabled={savingPrimaryLock || !selectedPrimaryLock || selectedPrimaryLock === currentPrimaryLock?.id}
+                  >
+                    {savingPrimaryLock ? 'Saving...' : 'Save Primary Lock'}
+                  </Button>
+                </div>
+                {currentPrimaryLock && (
+                  <div className="text-sm text-muted-foreground">
+                    Current primary: <span className="font-medium text-foreground">{currentPrimaryLock.device_name}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </CardHeader>
 
       <CardContent>
@@ -333,10 +416,7 @@ export const SmartHomeManager = ({ property }: SmartHomeManagerProps) => {
           </TabsContent>
 
           <TabsContent value="access" className="space-y-6">
-            <AccessCodeManager 
-              property={property}
-              devices={devices.filter(d => d.device_type === 'smart_lock')}
-            />
+            <AccessCodeManager property={property} devices={smartLocks} />
           </TabsContent>
 
           <TabsContent value="automations" className="space-y-6">
