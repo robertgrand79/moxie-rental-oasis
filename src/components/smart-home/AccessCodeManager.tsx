@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Property } from '@/types/property';
-import { Key, Trash2, Plus, Calendar, User } from 'lucide-react';
+import { Key, Trash2, Plus, Calendar, User, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -14,6 +14,7 @@ interface Device {
   device_name: string;
   device_type: string;
   location: string | null;
+  is_primary_lock?: boolean;
 }
 
 interface AccessCode {
@@ -54,22 +55,33 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
+  const orderedDevices = [...devices].sort((a, b) => {
+    const primaryDiff = Number(Boolean(b.is_primary_lock)) - Number(Boolean(a.is_primary_lock));
+    if (primaryDiff !== 0) return primaryDiff;
+    return a.device_name.localeCompare(b.device_name);
+  });
+
   useEffect(() => {
     loadData();
   }, [property.id]);
 
+  useEffect(() => {
+    if (!selectedDevice && orderedDevices.length > 0) {
+      setSelectedDevice(orderedDevices[0].id);
+    }
+  }, [selectedDevice, orderedDevices]);
+
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       const currentAccessCodes = await loadAccessCodes();
       const reservationIdsWithActiveCodes = new Set(
         currentAccessCodes
           .map((code) => code.reservation_id)
           .filter((reservationId): reservationId is string => Boolean(reservationId))
       );
-      
-      // Load upcoming reservations without active access codes
+
       const { data: reservationData, error: reservationError } = await supabase
         .from('property_reservations')
         .select(`
@@ -91,13 +103,12 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
       ) as Reservation[];
 
       setReservations(availableReservations);
-
     } catch (error) {
       console.error('Error loading access code data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load access code data",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load access code data',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -105,7 +116,7 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
   };
 
   const loadAccessCodes = async (): Promise<AccessCode[]> => {
-    const deviceIds = devices.map(d => d.id);
+    const deviceIds = devices.map((d) => d.id);
     if (deviceIds.length === 0) {
       setAccessCodes([]);
       return [];
@@ -131,9 +142,9 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
   const handleCreateAccessCode = async () => {
     if (!selectedDevice || !selectedReservation) {
       toast({
-        title: "Error",
-        description: "Please select both a device and reservation",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please select both a device and reservation',
+        variant: 'destructive',
       });
       return;
     }
@@ -146,28 +157,26 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
           action: 'create',
           deviceId: selectedDevice,
           reservationId: selectedReservation,
-          accessCodeData: {} // Additional code settings can be added here
-        }
+          accessCodeData: {},
+        },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Access code created successfully",
+        title: 'Success',
+        description: 'Access code created successfully',
       });
 
-      // Reset form and reload data
-      setSelectedDevice('');
+      setSelectedDevice(orderedDevices[0]?.id ?? '');
       setSelectedReservation('');
       await loadData();
-
     } catch (error) {
       console.error('Error creating access code:', error);
       toast({
-        title: "Error",
-        description: "Failed to create access code",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create access code',
+        variant: 'destructive',
       });
     } finally {
       setCreating(false);
@@ -183,25 +192,24 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
       const { error } = await supabase.functions.invoke('seam-access-codes', {
         body: {
           action: 'delete',
-          accessCodeData: { accessCodeId }
-        }
+          accessCodeData: { accessCodeId },
+        },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Access code deleted successfully",
+        title: 'Success',
+        description: 'Access code deleted successfully',
       });
 
       await loadData();
-
     } catch (error) {
       console.error('Error deleting access code:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete access code",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete access code',
+        variant: 'destructive',
       });
     }
   };
@@ -223,25 +231,20 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
       <div className="text-center py-8">
         <Key className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">No Smart Locks Found</h3>
-        <p className="text-muted-foreground">
-          Connect smart locks to manage guest access codes.
-        </p>
+        <p className="text-muted-foreground">Connect smart locks to manage guest access codes.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Create New Access Code */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
             Create Access Code
           </CardTitle>
-          <CardDescription>
-            Generate a new access code for a guest reservation
-          </CardDescription>
+          <CardDescription>Generate a new access code for a guest reservation</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -253,12 +256,20 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
                 className="w-full px-3 py-2 border rounded-lg"
               >
                 <option value="">Select a smart lock...</option>
-                {devices.map(device => (
+                {orderedDevices.map((device) => (
                   <option key={device.id} value={device.id}>
-                    {device.device_name} {device.location && `(${device.location})`}
+                    {device.device_name}
+                    {device.location ? ` (${device.location})` : ''}
+                    {device.is_primary_lock ? ' - Primary' : ''}
                   </option>
                 ))}
               </select>
+              {orderedDevices[0]?.is_primary_lock && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Star className="h-3 w-3 text-amber-500" />
+                  The primary lock is preselected for faster guest-code creation.
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -269,44 +280,36 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
                 className="w-full px-3 py-2 border rounded-lg"
               >
                 <option value="">Select a reservation...</option>
-                {reservations.map(reservation => (
+                {reservations.map((reservation) => (
                   <option key={reservation.id} value={reservation.id}>
-                    {reservation.guest_name} - {format(new Date(reservation.check_in_date), 'MMM d')} to {format(new Date(reservation.check_out_date), 'MMM d')}
+                    {reservation.guest_name} - {format(new Date(reservation.check_in_date), 'MMM d')} to{' '}
+                    {format(new Date(reservation.check_out_date), 'MMM d')}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          <Button 
-            onClick={handleCreateAccessCode}
-            disabled={creating || !selectedDevice || !selectedReservation}
-            className="w-full"
-          >
+          <Button onClick={handleCreateAccessCode} disabled={creating || !selectedDevice || !selectedReservation} className="w-full">
             {creating ? 'Creating...' : 'Create Access Code'}
           </Button>
         </CardContent>
       </Card>
 
-      {/* Existing Access Codes */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Key className="h-5 w-5" />
             Active Access Codes ({accessCodes.length})
           </CardTitle>
-          <CardDescription>
-            Manage existing guest access codes
-          </CardDescription>
+          <CardDescription>Manage existing guest access codes</CardDescription>
         </CardHeader>
         <CardContent>
           {accessCodes.length === 0 ? (
             <div className="text-center py-8">
               <Key className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Access Codes</h3>
-              <p className="text-muted-foreground">
-                Create access codes for guest reservations to get started.
-              </p>
+              <p className="text-muted-foreground">Create access codes for guest reservations to get started.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -317,11 +320,9 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
                       <div className="flex items-center gap-2 mb-2">
                         <User className="h-4 w-4" />
                         <span className="font-medium">{code.code_name}</span>
-                        <Badge variant="outline">
-                          Used {code.usage_count} times
-                        </Badge>
+                        <Badge variant="outline">Used {code.usage_count} times</Badge>
                       </div>
-                      
+
                       {code.property_reservations && (
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                           <span className="flex items-center gap-1">
@@ -332,17 +333,11 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
                       )}
 
                       {code.code_value && (
-                        <div className="font-mono text-lg font-bold bg-muted px-3 py-2 rounded w-fit">
-                          {code.code_value}
-                        </div>
+                        <div className="font-mono text-lg font-bold bg-muted px-3 py-2 rounded w-fit">{code.code_value}</div>
                       )}
                     </div>
 
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteAccessCode(code.id)}
-                    >
+                    <Button variant="destructive" size="sm" onClick={() => handleDeleteAccessCode(code.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
