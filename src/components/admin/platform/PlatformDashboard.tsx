@@ -7,32 +7,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PlatformSectionCard from './PlatformSectionCard';
 import { platformNavItems } from './platformNavItems';
 import { usePlatformPreferences } from '@/hooks/usePlatformPreferences';
+import { usePlatformAdmin } from '@/hooks/usePlatformAdmin';
 import RecentActivityWidget from './widgets/RecentActivityWidget';
 import PlatformTasksWidget from './widgets/PlatformTasksWidget';
 import InboxSummaryWidget from './widgets/InboxSummaryWidget';
 
 const PlatformDashboard = () => {
   const { starredSections, isStarred, toggleStarSection } = usePlatformPreferences();
+  const { stats, loadingStats } = usePlatformAdmin();
 
-  // Fetch platform stats
-  const { data: stats, isLoading: loadingStats } = useQuery({
-    queryKey: ['platform-stats'],
+  const { data: openTickets = 0, isLoading: loadingTickets } = useQuery({
+    queryKey: ['platform-open-ticket-count'],
     queryFn: async () => {
-      const [orgsResult, usersResult, propertiesResult, reservationsResult, ticketsResult] = await Promise.all([
-        supabase.from('organizations').select('id', { count: 'exact', head: true }),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('properties').select('id', { count: 'exact', head: true }),
-        supabase.from('reservations').select('id', { count: 'exact', head: true }),
-        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-      ]);
+      const { count, error } = await supabase
+        .from('support_tickets')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'open');
 
-      return {
-        organizations: orgsResult.count ?? 0,
-        users: usersResult.count ?? 0,
-        properties: propertiesResult.count ?? 0,
-        reservations: reservationsResult.count ?? 0,
-        openTickets: ticketsResult.count ?? 0,
-      };
+      if (error) throw error;
+      return count ?? 0;
     },
   });
 
@@ -42,11 +35,11 @@ const PlatformDashboard = () => {
     
     switch (key) {
       case 'organizations':
-        return { value: stats.organizations, label: 'Active organizations', trend: 'up' as const };
+        return { value: stats.activeOrganizations, label: 'Active organizations', trend: 'up' as const };
       case 'users':
-        return { value: stats.users, label: 'Total users', trend: 'up' as const };
+        return { value: stats.totalUsers, label: 'Total users', trend: 'up' as const };
       case 'support':
-        return { value: stats.openTickets, label: 'Open tickets', trend: stats.openTickets > 5 ? 'up' as const : 'neutral' as const };
+        return { value: openTickets, label: 'Open tickets', trend: openTickets > 5 ? 'up' as const : 'neutral' as const };
       default:
         return undefined;
     }
@@ -57,10 +50,10 @@ const PlatformDashboard = () => {
   const nonStarredItems = platformNavItems.filter(item => !isStarred(item.key));
 
   const statCards = [
-    { label: 'Organizations', value: stats?.organizations ?? 0, icon: Building2, color: 'text-blue-500' },
-    { label: 'Users', value: stats?.users ?? 0, icon: Users, color: 'text-emerald-500' },
-    { label: 'Properties', value: stats?.properties ?? 0, icon: Home, color: 'text-violet-500' },
-    { label: 'Reservations', value: stats?.reservations ?? 0, icon: CalendarCheck, color: 'text-amber-500' },
+    { label: 'Organizations', value: stats?.activeOrganizations ?? 0, icon: Building2, color: 'text-blue-500' },
+    { label: 'Users', value: stats?.totalUsers ?? 0, icon: Users, color: 'text-emerald-500' },
+    { label: 'Properties', value: stats?.totalProperties ?? 0, icon: Home, color: 'text-violet-500' },
+    { label: 'Reservations', value: stats?.totalReservations ?? 0, icon: CalendarCheck, color: 'text-amber-500' },
   ];
 
   return (
