@@ -38,6 +38,7 @@ const fallbackPlans = [
     ],
     cta: 'Start Free Trial',
     popular: false,
+    isContactOnly: false,
   },
   {
     name: 'Professional',
@@ -54,9 +55,9 @@ const fallbackPlans = [
       'Team member access',
       'Advanced analytics',
     ],
-    cta: 'Contact Us',
+    cta: 'Start Free Trial',
     popular: true,
-    isContactOnly: true,
+    isContactOnly: false,
   },
   {
     name: 'Portfolio',
@@ -74,9 +75,9 @@ const fallbackPlans = [
       'Dedicated account manager',
       'Custom integrations',
     ],
-    cta: 'Contact Us',
+    cta: 'Start Free Trial',
     popular: false,
-    isContactOnly: true,
+    isContactOnly: false,
   },
 ];
 
@@ -106,8 +107,8 @@ export const PlanSelectionStep: React.FC<PlanSelectionStepProps> = ({
   // Transform database templates to display format
   const plans = templates?.length ? templates.map((template) => {
     const isProfessional = template.slug === 'professional' || template.name.toLowerCase() === 'professional';
-    const isPortfolio = template.slug === 'portfolio' || template.name.toLowerCase() === 'portfolio';
-    const isContactOnly = isProfessional || isPortfolio;
+    const supportsSelfServeSignup = Boolean(template.stripe_price_id || template.stripe_annual_price_id);
+    const isContactOnly = !supportsSelfServeSignup;
     
     // Filter out "Unlimited properties" from Professional features
     let features = template.features && template.features.length > 0 
