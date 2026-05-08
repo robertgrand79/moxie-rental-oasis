@@ -116,7 +116,7 @@ const PlatformSignup: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const planSlug = selectedTemplate.slug === 'single_property' ? 'single_property' : 'multi_property';
+      const templateType = selectedTemplate.max_properties === 1 ? 'single_property' : 'multi_property';
 
       const { error } = await signUp(
         data.signupData.email,
@@ -124,9 +124,11 @@ const PlatformSignup: React.FC = () => {
         data.signupData.fullName,
         data.signupData.phone || undefined,
         {
-          pending_plan_slug: planSlug,
+          pending_plan_slug: selectedTemplate.slug,
           pending_plan_name: selectedTemplate.name,
+          pending_plan_type: templateType,
           pending_pricing_tier_id: selectedTemplate.id,
+          pending_billing_interval: isYearlyBilling ? 'annual' : 'monthly',
         }
       );
 
