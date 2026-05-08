@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Property } from '@/types/property';
 import { Key, Trash2, Plus, Calendar, User } from 'lucide-react';
@@ -26,11 +25,20 @@ interface AccessCode {
   ends_at: string;
   is_active: boolean;
   usage_count: number;
+  reservation_id?: string | null;
   property_reservations?: {
     guest_name: string;
     check_in_date: string;
     check_out_date: string;
   };
+}
+
+interface Reservation {
+  id: string;
+  guest_name: string;
+  check_in_date: string;
+  check_out_date: string;
+  booking_status: string;
 }
 
 interface AccessCodeManagerProps {
@@ -40,7 +48,7 @@ interface AccessCodeManagerProps {
 
 export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps) => {
   const [accessCodes, setAccessCodes] = useState<AccessCode[]>([]);
-  const [reservations, setReservations] = useState<any[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string>('');
   const [selectedReservation, setSelectedReservation] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -54,10 +62,14 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
     try {
       setLoading(true);
       
-      // Load access codes
-      await loadAccessCodes();
+      const currentAccessCodes = await loadAccessCodes();
+      const reservationIdsWithActiveCodes = new Set(
+        currentAccessCodes
+          .map((code) => code.reservation_id)
+          .filter((reservationId): reservationId is string => Boolean(reservationId))
+      );
       
-      // Load upcoming reservations without access codes
+      // Load upcoming reservations without active access codes
       const { data: reservationData, error: reservationError } = await supabase
         .from('property_reservations')
         .select(`
@@ -74,8 +86,9 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
 
       if (reservationError) throw reservationError;
 
-      // Set available reservations (all confirmed reservations for now)
-      const availableReservations = reservationData || [];
+      const availableReservations = (reservationData || []).filter(
+        (reservation) => !reservationIdsWithActiveCodes.has(reservation.id)
+      ) as Reservation[];
 
       setReservations(availableReservations);
 
@@ -91,9 +104,12 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
     }
   };
 
-  const loadAccessCodes = async () => {
+  const loadAccessCodes = async (): Promise<AccessCode[]> => {
     const deviceIds = devices.map(d => d.id);
-    if (deviceIds.length === 0) return;
+    if (deviceIds.length === 0) {
+      setAccessCodes([]);
+      return [];
+    }
 
     const { data, error } = await supabase
       .from('seam_access_codes')
@@ -106,7 +122,10 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    setAccessCodes(data || []);
+
+    const accessCodeRows = (data || []) as AccessCode[];
+    setAccessCodes(accessCodeRows);
+    return accessCodeRows;
   };
 
   const handleCreateAccessCode = async () => {
@@ -122,7 +141,7 @@ export const AccessCodeManager = ({ property, devices }: AccessCodeManagerProps)
     try {
       setCreating(true);
 
-      const { data, error } = await supabase.functions.invoke('seam-access-codes', {
+      const { error } = await supabase.functions.invoke('seam-access-codes', {
         body: {
           action: 'create',
           deviceId: selectedDevice,
