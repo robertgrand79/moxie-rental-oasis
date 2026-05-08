@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const DEFAULT_NEXT_PATH = '/create-organization';
+
 const AuthConfirm: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -14,7 +16,7 @@ const AuthConfirm: React.FC = () => {
     const verifyEmail = async () => {
       const tokenHash = searchParams.get('token_hash');
       const type = searchParams.get('type') as 'signup' | 'recovery' | 'invite' | 'email' | 'magiclink';
-      const next = searchParams.get('next') || '/signup';
+      const next = searchParams.get('next') || DEFAULT_NEXT_PATH;
 
       if (!tokenHash || !type) {
         setStatus('error');
@@ -23,7 +25,6 @@ const AuthConfirm: React.FC = () => {
       }
 
       try {
-        // Step 1: Verify the email token
         const { data, error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: type,
@@ -36,7 +37,6 @@ const AuthConfirm: React.FC = () => {
           return;
         }
 
-        // Step 2: Ensure session is established
         if (data?.session?.access_token && data?.session?.refresh_token) {
           const { error: setSessionError } = await supabase.auth.setSession({
             access_token: data.session.access_token,
@@ -48,12 +48,9 @@ const AuthConfirm: React.FC = () => {
           }
         }
 
-        // Step 3: Success - redirect to org creation page
-        // Plan info is stored in user_metadata, no localStorage needed
         setStatus('success');
 
         setTimeout(() => {
-          // Use hard navigation to ensure auth context initializes cleanly
           window.location.href = next;
         }, 1500);
 
@@ -95,14 +92,14 @@ const AuthConfirm: React.FC = () => {
               <h1 className="text-2xl font-bold text-foreground mb-2">Verification Failed</h1>
               <p className="text-muted-foreground mb-6">{errorMessage}</p>
               <div className="space-y-3">
-                <Button 
-                  onClick={() => navigate('/get-started')} 
+                <Button
+                  onClick={() => navigate('/signup')}
                   className="w-full"
                 >
                   Try signing up again
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => navigate('/auth')}
                   className="w-full"
                 >
