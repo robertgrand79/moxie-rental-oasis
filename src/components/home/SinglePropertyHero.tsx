@@ -2,6 +2,7 @@ import React from 'react';
 import { Property } from '@/types/property';
 import { Bed, Bath, Users, MapPin } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import OptimizedImage from '@/components/ui/optimized-image';
 
 interface SinglePropertyHeroProps {
   property: Property;
@@ -11,15 +12,20 @@ interface SinglePropertyHeroProps {
 const SinglePropertyHero: React.FC<SinglePropertyHeroProps> = ({ property, coverImage }) => {
   return (
     <section className="relative w-full">
-      <AspectRatio ratio={16/7} className="w-full">
-        <img
+      <AspectRatio ratio={16 / 7} className="w-full">
+        <OptimizedImage
           src={coverImage}
           alt={property.title}
-          className="object-cover w-full h-full"
+          className="w-full h-full object-cover"
+          fallbackIcon={false}
+          priority
+          sizes="100vw"
+          width={1600}
+          height={700}
         />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        
+
         {/* Content overlay */}
         <div className="absolute inset-0 flex flex-col justify-end items-center p-6 md:p-12 lg:p-16">
           <div className="max-w-4xl text-center">
@@ -32,12 +38,12 @@ const SinglePropertyHero: React.FC<SinglePropertyHeroProps> = ({ property, cover
                 </span>
               </div>
             )}
-            
+
             {/* Title */}
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               {property.title}
             </h1>
-            
+
             {/* Quick stats */}
             <div className="flex flex-wrap justify-center gap-4 md:gap-8">
               <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
