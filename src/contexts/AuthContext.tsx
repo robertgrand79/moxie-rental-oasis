@@ -5,6 +5,7 @@ import { useDatabase } from '@/hooks/useDatabase';
 import { toast } from '@/hooks/use-toast';
 import { trackFailedLogin, clearFailedLoginTracking } from '@/utils/securityNotifications';
 import { debug } from '@/utils/debug';
+import { getAuthRedirectOrigin } from '@/utils/authRedirects';
 import {
   AuthResult,
   LockoutCheckResult,
@@ -236,7 +237,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await databaseStatus.checkConnection();
       }
 
-      const redirectUrl = `${window.location.origin}${SIGNUP_CONFIRM_PATH}`;
+      const redirectUrl = `${getAuthRedirectOrigin()}${SIGNUP_CONFIRM_PATH}`;
 
       const { data, error } = await supabase.auth.signUp({
         email,
