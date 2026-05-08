@@ -32,9 +32,10 @@ async function provisionSeamAccessCodeForReservation(
 
   const { data: smartLock } = await supabaseClient
     .from('seam_devices')
-    .select('id, device_name')
+    .select('id, device_name, is_primary_lock')
     .eq('property_id', propertyId)
     .eq('device_type', 'smart_lock')
+    .order('is_primary_lock', { ascending: false })
     .order('device_name', { ascending: true })
     .limit(1)
     .maybeSingle();
@@ -78,6 +79,7 @@ async function provisionSeamAccessCodeForReservation(
     reservationId,
     propertyId,
     deviceId: smartLock.id,
+    isPrimaryLock: smartLock.is_primary_lock ?? false,
   });
 }
 
@@ -98,7 +100,6 @@ serve(async (req) => {
     const { sessionId, reservationId } = await req.json();
     logStep("Request data received", { sessionId, reservationId });
 
-    // Fetch reservation to get property_id
     const { data: reservation, error: reservationError } = await supabaseClient
       .from("property_reservations")
       .select("property_id")
@@ -112,10 +113,8 @@ serve(async (req) => {
 
     logStep("Reservation found", { propertyId: reservation.property_id });
 
-    // Get property-specific Stripe key using secure function
     let stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    
-    // First try property-specific credentials from secure table
+
     const { data: propertyCredentials } = await supabaseClient
       .rpc('get_property_stripe_credentials', { p_property_id: reservation.property_id });
 
@@ -123,7 +122,6 @@ serve(async (req) => {
       stripeKey = propertyCredentials[0].stripe_secret_key;
       logStep("Using property-specific Stripe key");
     } else {
-      // Fallback to organization-level Stripe key
       const { data: property } = await supabaseClient
         .from("properties")
         .select("organization_id")
@@ -136,7 +134,7 @@ serve(async (req) => {
           .select("stripe_secret_key")
           .eq("id", property.organization_id)
           .single();
-        
+
         if (org?.stripe_secret_key) {
           stripeKey = org.stripe_secret_key;
           logStep("Using organization-level Stripe key");
@@ -149,12 +147,11 @@ serve(async (req) => {
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    
-    // Retrieve the checkout session
+
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    logStep("Checkout session retrieved", { 
+    logStep("Checkout session retrieved", {
       paymentStatus: session.payment_status,
-      status: session.status
+      status: session.status,
     });
 
     let paymentStatus = "pending";
@@ -168,13 +165,12 @@ serve(async (req) => {
       bookingStatus = "cancelled";
     }
 
-    // Update reservation
     const { error: updateError } = await supabaseClient
       .from("property_reservations")
-      .update({ 
+      .update({
         payment_status: paymentStatus,
         booking_status: bookingStatus,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq("id", reservationId);
 
@@ -185,10 +181,8 @@ serve(async (req) => {
 
     logStep("Reservation updated", { paymentStatus, bookingStatus });
 
-    // If booking confirmed, create availability block (backup for webhook)
     if (bookingStatus === "confirmed") {
       try {
-        // Fetch full reservation details
         const { data: reservationFull } = await supabaseClient
           .from("property_reservations")
           .select("check_in_date, check_out_date, guest_name")
@@ -196,7 +190,6 @@ serve(async (req) => {
           .single();
 
         if (reservationFull) {
-          // Check if block already exists (webhook may have created it)
           const { data: existingBlock } = await supabaseClient
             .from("availability_blocks")
             .select("id")
@@ -214,7 +207,7 @@ serve(async (req) => {
                 source_platform: 'direct',
                 external_booking_id: reservationId,
                 notes: `Direct Booking - ${reservationFull.guest_name}`,
-                sync_status: 'synced'
+                sync_status: 'synced',
               });
 
             if (blockError) {
@@ -247,10 +240,9 @@ serve(async (req) => {
         logStep("Warning: Error provisioning Seam access code", { error: String(seamError) });
       }
 
-      // Schedule confirmation email
       try {
         logStep("Scheduling confirmation messages for reservation", { reservationId });
-        
+
         const scheduleResponse = await fetch(
           `${Deno.env.get("SUPABASE_URL")}/functions/v1/schedule-reservation-messages`,
           {
@@ -271,7 +263,6 @@ serve(async (req) => {
           logStep("Messages scheduled successfully", scheduleResult);
         }
 
-        // Also trigger immediate processing of scheduled messages
         const processResponse = await fetch(
           `${Deno.env.get("SUPABASE_URL")}/functions/v1/process-scheduled-messages`,
           {
@@ -293,10 +284,10 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ 
-      paymentStatus, 
+    return new Response(JSON.stringify({
+      paymentStatus,
       bookingStatus,
-      sessionStatus: session.status 
+      sessionStatus: session.status,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
