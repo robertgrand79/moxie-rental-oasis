@@ -6,12 +6,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useIsMobile } from '@/hooks/use-mobile';
 import NotificationPanel from './NotificationPanel';
 
 const NotificationBell: React.FC = () => {
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
   const {
     notifications,
     unreadCount,
@@ -21,46 +28,67 @@ const NotificationBell: React.FC = () => {
     archiveNotification,
   } = useNotifications();
 
+  const triggerButton = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="relative h-9 w-9"
+      aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+    >
+      <Bell className="h-5 w-5" />
+      {unreadCount > 0 && (
+        <span
+          className={cn(
+            'absolute -top-0.5 -right-0.5 flex items-center justify-center',
+            'min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground',
+            'text-[10px] font-medium px-1'
+          )}
+        >
+          {unreadCount > 99 ? '99+' : unreadCount}
+        </span>
+      )}
+    </Button>
+  );
+
+  const panel = (
+    <NotificationPanel
+      notifications={notifications}
+      isLoading={isLoading}
+      unreadCount={unreadCount}
+      onMarkAsRead={markAsRead}
+      onMarkAllAsRead={markAllAsRead}
+      onArchive={archiveNotification}
+      onClose={() => setOpen(false)}
+    />
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          {triggerButton}
+        </SheetTrigger>
+        <SheetContent side="right" className="w-[min(24rem,100vw)] p-0 sm:max-w-sm">
+          {panel}
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-9 w-9"
-          aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span
-              className={cn(
-                'absolute -top-0.5 -right-0.5 flex items-center justify-center',
-                'min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground',
-                'text-[10px] font-medium px-1'
-              )}
-            >
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
-        </Button>
+        {triggerButton}
       </PopoverTrigger>
       <PopoverContent
         align="end"
         side="bottom"
         sideOffset={8}
+        alignOffset={-8}
         collisionPadding={16}
-        sticky="partial"
-        className="p-0 shadow-lg bg-popover overflow-hidden z-50 w-[min(24rem,calc(100vw-2rem))]"
+        className="p-0 shadow-lg bg-popover overflow-hidden z-50 w-[min(22rem,calc(100vw-3rem))]"
       >
-        <NotificationPanel
-          notifications={notifications}
-          isLoading={isLoading}
-          unreadCount={unreadCount}
-          onMarkAsRead={markAsRead}
-          onMarkAllAsRead={markAllAsRead}
-          onArchive={archiveNotification}
-          onClose={() => setOpen(false)}
-        />
+        {panel}
       </PopoverContent>
     </Popover>
   );
