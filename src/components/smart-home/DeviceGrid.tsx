@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Lock, Unlock, Thermometer, Wifi, WifiOff, Battery, AlertCircle } from 'lucide-react';
+import { Lock, Unlock, Thermometer, Wifi, WifiOff, Battery, AlertCircle, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -19,6 +19,7 @@ interface Device {
   battery_status: string | null;
   current_state: any;
   last_seen_at: string | null;
+  is_primary_lock?: boolean;
 }
 
 interface DeviceGridProps {
@@ -34,30 +35,28 @@ export const DeviceGrid = ({ devices, onDeviceUpdate, detailed = false }: Device
     try {
       setControllingDevice(device.id);
 
-      const { data, error } = await supabase.functions.invoke('seam-device-control', {
+      const { error } = await supabase.functions.invoke('seam-device-control', {
         body: {
           deviceId: device.id,
           action,
-          parameters
-        }
+          parameters,
+        },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Success",
+        title: 'Success',
         description: `Successfully ${action.replace('_', ' ')} ${device.device_name}`,
       });
 
-      // Refresh device data
       onDeviceUpdate();
-
     } catch (error) {
       console.error('Error controlling device:', error);
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to ${action.replace('_', ' ')} device`,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setControllingDevice(null);
@@ -67,9 +66,11 @@ export const DeviceGrid = ({ devices, onDeviceUpdate, detailed = false }: Device
   const getDeviceIcon = (device: Device) => {
     switch (device.device_type) {
       case 'smart_lock':
-        return device.current_state?.locked ? 
-          <Lock className="h-5 w-5 text-red-500" /> : 
-          <Unlock className="h-5 w-5 text-green-500" />;
+        return device.current_state?.locked ? (
+          <Lock className="h-5 w-5 text-red-500" />
+        ) : (
+          <Unlock className="h-5 w-5 text-green-500" />
+        );
       case 'thermostat':
         return <Thermometer className="h-5 w-5 text-blue-500" />;
       default:
@@ -77,9 +78,9 @@ export const DeviceGrid = ({ devices, onDeviceUpdate, detailed = false }: Device
     }
   };
 
-  const getBatteryIcon = (level: number | null, status: string | null) => {
+  const getBatteryIcon = (level: number | null) => {
     if (!level) return null;
-    
+
     const color = level < 20 ? 'text-red-500' : level < 50 ? 'text-yellow-500' : 'text-green-500';
     return <Battery className={`h-4 w-4 ${color}`} />;
   };
@@ -93,7 +94,7 @@ export const DeviceGrid = ({ devices, onDeviceUpdate, detailed = false }: Device
         <div className="flex gap-2">
           <Button
             size="sm"
-            variant={isLocked ? "destructive" : "default"}
+            variant={isLocked ? 'destructive' : 'default'}
             onClick={() => handleDeviceControl(device, isLocked ? 'unlock' : 'lock')}
             disabled={isControlling || !device.is_online}
           >
@@ -131,11 +132,7 @@ export const DeviceGrid = ({ devices, onDeviceUpdate, detailed = false }: Device
   const renderDeviceState = (device: Device) => {
     if (device.device_type === 'smart_lock') {
       const isLocked = device.current_state?.locked;
-      return (
-        <Badge variant={isLocked ? "destructive" : "default"}>
-          {isLocked ? 'Locked' : 'Unlocked'}
-        </Badge>
-      );
+      return <Badge variant={isLocked ? 'destructive' : 'default'}>{isLocked ? 'Locked' : 'Unlocked'}</Badge>;
     }
 
     if (device.device_type === 'thermostat') {
@@ -160,9 +157,7 @@ export const DeviceGrid = ({ devices, onDeviceUpdate, detailed = false }: Device
         <p className="text-muted-foreground mb-4">
           Connect your August smart locks and Honeywell thermostats to get started.
         </p>
-        <Button variant="outline">
-          Sync Devices from Seam
-        </Button>
+        <Button variant="outline">Sync Devices from Seam</Button>
       </div>
     );
   }
@@ -172,11 +167,19 @@ export const DeviceGrid = ({ devices, onDeviceUpdate, detailed = false }: Device
       {devices.map((device) => (
         <Card key={device.id} className={`${!device.is_online ? 'opacity-60' : ''}`}>
           <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2">
                 {getDeviceIcon(device)}
                 <div>
-                  <CardTitle className="text-base">{device.device_name}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base">{device.device_name}</CardTitle>
+                    {device.device_type === 'smart_lock' && device.is_primary_lock && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Star className="h-3 w-3" />
+                        Primary Lock
+                      </Badge>
+                    )}
+                  </div>
                   <CardDescription className="flex items-center gap-2">
                     <span className="capitalize">{device.device_brand}</span>
                     {device.location && (
@@ -188,25 +191,24 @@ export const DeviceGrid = ({ devices, onDeviceUpdate, detailed = false }: Device
                   </CardDescription>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-1">
-                {device.is_online ? 
-                  <Wifi className="h-4 w-4 text-green-500" /> : 
+                {device.is_online ? (
+                  <Wifi className="h-4 w-4 text-green-500" />
+                ) : (
                   <WifiOff className="h-4 w-4 text-red-500" />
-                }
-                {device.battery_level && getBatteryIcon(device.battery_level, device.battery_status)}
+                )}
+                {device.battery_level && getBatteryIcon(device.battery_level)}
               </div>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {/* Device Status */}
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Status:</span>
               {renderDeviceState(device)}
             </div>
 
-            {/* Battery Level */}
             {device.battery_level && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Battery:</span>
@@ -214,22 +216,14 @@ export const DeviceGrid = ({ devices, onDeviceUpdate, detailed = false }: Device
               </div>
             )}
 
-            {/* Last Seen */}
             {device.last_seen_at && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Last Seen:</span>
-                <span className="text-sm">
-                  {format(new Date(device.last_seen_at), 'MMM d, h:mm a')}
-                </span>
+                <span className="text-sm">{format(new Date(device.last_seen_at), 'MMM d, h:mm a')}</span>
               </div>
             )}
 
-            {/* Device Controls */}
-            {device.is_online && (
-              <div className="pt-2 border-t">
-                {renderDeviceControls(device)}
-              </div>
-            )}
+            {device.is_online && <div className="pt-2 border-t">{renderDeviceControls(device)}</div>}
 
             {!device.is_online && (
               <div className="pt-2 border-t">
@@ -239,14 +233,11 @@ export const DeviceGrid = ({ devices, onDeviceUpdate, detailed = false }: Device
               </div>
             )}
 
-            {/* Detailed Info for detailed view */}
             {detailed && (
               <div className="pt-2 border-t space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Device ID:</span>
-                  <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                    {device.seam_device_id.slice(-8)}
-                  </code>
+                  <code className="text-xs bg-muted px-1 py-0.5 rounded">{device.seam_device_id.slice(-8)}</code>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Type:</span>
