@@ -24,7 +24,6 @@ serve(async (req) => {
       throw new Error('Workspace ID is required');
     }
 
-    let seamApiKey: string | null = null;
     let effectiveOrgId = organizationId;
 
     if (propertyId && !organizationId) {
@@ -36,28 +35,23 @@ serve(async (req) => {
       effectiveOrgId = property?.organization_id;
     }
 
-    if (effectiveOrgId) {
-      const { data: org } = await supabase
-        .from('organizations')
-        .select('seam_api_key')
-        .eq('id', effectiveOrgId)
-        .single();
-      seamApiKey = org?.seam_api_key;
-      if (seamApiKey) {
-        console.log('Using organization-level SEAM API key');
-      }
+    if (!effectiveOrgId) {
+      throw new Error('Organization is required for Seam sync');
     }
 
-    if (!seamApiKey) {
-      seamApiKey = Deno.env.get('SEAM_API_KEY');
-      if (seamApiKey) {
-        console.log('Using global SEAM API key');
-      }
-    }
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('seam_api_key')
+      .eq('id', effectiveOrgId)
+      .single();
+
+    const seamApiKey = org?.seam_api_key;
 
     if (!seamApiKey) {
-      throw new Error('SEAM_API_KEY not configured for this organization');
+      throw new Error('This organization must connect its own Seam API key before syncing devices.');
     }
+
+    console.log('Using organization-owned SEAM API key');
 
     const seamResponse = await fetch(`https://connect.getseam.com/devices/list`, {
       method: 'POST',
