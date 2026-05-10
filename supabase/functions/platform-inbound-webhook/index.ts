@@ -45,6 +45,44 @@ function parseSenderInfo(from: string): { email: string; name: string | null } {
   return { name: null, email: from.trim() };
 }
 
+function normalizeEmailAddress(email: string | null | undefined): string {
+  return String(email || "").trim().toLowerCase();
+}
+
+function isAutomatedInboundEmail(
+  senderEmail: string,
+  headers: Record<string, string> = {},
+  subject: string | null | undefined,
+): boolean {
+  const normalizedSender = normalizeEmailAddress(senderEmail);
+  const normalizedHeaders = Object.fromEntries(
+    Object.entries(headers).map(([key, value]) => [key.toLowerCase(), String(value || "")]),
+  );
+
+  const autoSubmitted = normalizedHeaders["auto-submitted"]?.toLowerCase() || "";
+  const precedence = normalizedHeaders["precedence"]?.toLowerCase() || "";
+  const xAutoResponseSuppress = normalizedHeaders["x-auto-response-suppress"]?.toLowerCase() || "";
+  const content = `${normalizedSender} ${(subject || "").toLowerCase()}`;
+
+  return (
+    normalizedSender.endsWith("@resend.dev") ||
+    normalizedSender.includes("mailer-daemon") ||
+    normalizedSender.includes("postmaster@") ||
+    normalizedSender.includes("no-reply@") ||
+    normalizedSender.includes("noreply@") ||
+    autoSubmitted.includes("auto-generated") ||
+    autoSubmitted.includes("auto-replied") ||
+    precedence === "bulk" ||
+    precedence === "junk" ||
+    precedence === "list" ||
+    xAutoResponseSuppress.length > 0 ||
+    content.includes("delivery status notification") ||
+    content.includes("undeliver") ||
+    content.includes("mail delivery subsystem") ||
+    content.includes("out of office")
+  );
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -91,18 +129,50 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Find matching platform email address
-    const recipientEmail = emailData.to[0]?.toLowerCase();
-    const { data: emailAddress, error: addressError } = await supabase
+    const recipientEmails = (emailData.to || [])
+      .map((email) => normalizeEmailAddress(email))
+      .filter(Boolean);
+
+    if (recipientEmails.length === 0) {
+      console.log("Skipping inbound email with no recipients");
+      return new Response(
+        JSON.stringify({ message: "Ignored: no recipient email address found" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Find all active configured platform email addresses and match against any recipient
+    const { data: activeAddresses, error: addressError } = await supabase
       .from("platform_email_addresses")
       .select("*")
-      .eq("is_active", true)
-      .ilike("email_address", recipientEmail)
-      .single();
+      .eq("is_active", true);
 
-    if (addressError || !emailAddress) {
-      console.log("No matching platform email address found for:", recipientEmail);
-      // Still store the email for visibility, just without address link
+    if (addressError) {
+      throw addressError;
+    }
+
+    const emailAddress = (activeAddresses || []).find((address) =>
+      recipientEmails.includes(normalizeEmailAddress(address.email_address))
+    );
+
+    if (!emailAddress) {
+      console.log("Ignoring inbound email for inactive/unconfigured recipient(s):", recipientEmails);
+      return new Response(
+        JSON.stringify({ message: "Ignored: recipient is not an active configured platform inbox address" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (isAutomatedInboundEmail(senderInfo.email, emailData.headers || {}, emailData.subject)) {
+      console.log("Ignoring automated/system inbound email:", {
+        from: senderInfo.email,
+        to: recipientEmails,
+        subject: emailData.subject,
+      });
+      return new Response(
+        JSON.stringify({ message: "Ignored: automated or system-generated sender" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Try to find existing thread based on subject
