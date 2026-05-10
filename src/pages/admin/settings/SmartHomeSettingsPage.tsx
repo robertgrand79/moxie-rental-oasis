@@ -48,6 +48,7 @@ interface SeamWorkspace {
 interface PropertySmartHomeCardProps {
   property: Property;
   workspace: SeamWorkspace | null;
+  organizationHasSeamKey: boolean;
   onWorkspaceCreated: () => void;
   onWorkspaceDisconnected: () => void;
   onSyncDevices: () => void;
@@ -55,14 +56,15 @@ interface PropertySmartHomeCardProps {
   deviceCount: number;
 }
 
-const PropertySmartHomeCard = ({ 
-  property, 
-  workspace, 
-  onWorkspaceCreated, 
+const PropertySmartHomeCard = ({
+  property,
+  workspace,
+  organizationHasSeamKey,
+  onWorkspaceCreated,
   onWorkspaceDisconnected,
   onSyncDevices,
   syncing,
-  deviceCount
+  deviceCount,
 }: PropertySmartHomeCardProps) => {
   const navigate = useNavigate();
   const [workspaceId, setWorkspaceId] = useState('');
@@ -71,6 +73,11 @@ const PropertySmartHomeCard = ({
   const [disconnecting, setDisconnecting] = useState(false);
 
   const handleConnect = async () => {
+    if (!organizationHasSeamKey) {
+      toast.error('Save this organization’s Seam API key before connecting a workspace.');
+      return;
+    }
+
     if (!workspaceId || !workspaceName) {
       toast.error('Please fill in all required fields');
       return;
@@ -87,7 +94,7 @@ const PropertySmartHomeCard = ({
           workspace_name: workspaceName.trim(),
           api_key_configured: true,
           is_active: true,
-          sync_status: 'pending'
+          sync_status: 'pending',
         });
 
       if (error) {
@@ -149,9 +156,18 @@ const PropertySmartHomeCard = ({
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Connect this property's smart devices (August locks, Honeywell thermostats) via Seam workspace.
+          Connect this property to the customer’s own Seam workspace for smart locks and thermostats.
         </AlertDescription>
       </Alert>
+
+      {!organizationHasSeamKey && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Save this organization’s Seam API key first. Stay Moxie no longer falls back to a platform-owned Seam key.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {workspace ? (
         <div className="space-y-4">
@@ -186,7 +202,7 @@ const PropertySmartHomeCard = ({
           <div className="flex gap-2 pt-2">
             <Button
               onClick={onSyncDevices}
-              disabled={syncing}
+              disabled={syncing || !organizationHasSeamKey}
               variant="outline"
               size="sm"
             >
@@ -232,9 +248,10 @@ const PropertySmartHomeCard = ({
                 onChange={(e) => setWorkspaceId(e.target.value)}
                 placeholder="e.g., ws_abc123..."
                 className="font-mono text-sm"
+                disabled={!organizationHasSeamKey}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Find this in your Seam dashboard under Workspace Settings
+                Find this in the customer’s Seam dashboard under Workspace Settings
               </p>
             </div>
             <div>
@@ -244,6 +261,7 @@ const PropertySmartHomeCard = ({
                 value={workspaceName}
                 onChange={(e) => setWorkspaceName(e.target.value)}
                 placeholder="e.g., Property Name - Smart Devices"
+                disabled={!organizationHasSeamKey}
               />
               <p className="text-xs text-muted-foreground mt-1">
                 A friendly name to identify this workspace
@@ -253,7 +271,7 @@ const PropertySmartHomeCard = ({
 
           <Button
             onClick={handleConnect}
-            disabled={connecting || !workspaceId || !workspaceName}
+            disabled={connecting || !workspaceId || !workspaceName || !organizationHasSeamKey}
             size="sm"
           >
             {connecting ? (
@@ -278,7 +296,7 @@ const SmartHomeSettingsPage = () => {
   const { organization, isOrgAdmin, refetch } = useCurrentOrganization();
   const { setApiKey, loading: apiKeyLoading } = useSecureApiKeys();
   const { properties } = usePropertyFetch();
-  
+
   const [formData, setFormData] = useState({
     seam_api_key: '',
     seam_webhook_secret: '',
@@ -311,9 +329,8 @@ const SmartHomeSettingsPage = () => {
   const loadWorkspacesAndDevices = async () => {
     try {
       setLoadingWorkspaces(true);
-      const propertyIds = properties.map(p => p.id);
+      const propertyIds = properties.map((p) => p.id);
 
-      // Load workspaces
       const { data: workspacesData, error: workspacesError } = await supabase
         .from('seam_workspaces')
         .select('*')
@@ -323,7 +340,6 @@ const SmartHomeSettingsPage = () => {
       if (workspacesError) throw workspacesError;
       setWorkspaces(workspacesData || []);
 
-      // Load device counts
       const { data: devicesData, error: devicesError } = await supabase
         .from('seam_devices')
         .select('property_id')
@@ -332,7 +348,7 @@ const SmartHomeSettingsPage = () => {
       if (devicesError) throw devicesError;
 
       const counts: Record<string, number> = {};
-      (devicesData || []).forEach(device => {
+      (devicesData || []).forEach((device) => {
         counts[device.property_id] = (counts[device.property_id] || 0) + 1;
       });
       setDeviceCounts(counts);
@@ -348,13 +364,13 @@ const SmartHomeSettingsPage = () => {
     if (!organization) return;
 
     let success = true;
-    
+
     if (formData.seam_api_key) {
-      success = await setApiKey(organization.id, 'seam_api_key', formData.seam_api_key) && success;
+      success = (await setApiKey(organization.id, 'seam_api_key', formData.seam_api_key)) && success;
     }
-    
+
     if (success) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         seam_api_key: '',
         seam_webhook_secret: '',
@@ -366,12 +382,13 @@ const SmartHomeSettingsPage = () => {
   const handleSyncDevices = async (propertyId: string, workspaceId: string) => {
     try {
       setSyncingProperty(propertyId);
-      
+
       const { data, error } = await supabase.functions.invoke('seam-sync', {
         body: {
           workspaceId: workspaceId,
-          propertyId: propertyId
-        }
+          propertyId: propertyId,
+          organizationId: organization?.id,
+        },
       });
 
       if (error) throw error;
@@ -394,7 +411,7 @@ const SmartHomeSettingsPage = () => {
   };
 
   const getWorkspaceForProperty = (propertyId: string) => {
-    return workspaces.find(w => w.property_id === propertyId) || null;
+    return workspaces.find((w) => w.property_id === propertyId) || null;
   };
 
   if (!organization) {
@@ -415,28 +432,34 @@ const SmartHomeSettingsPage = () => {
           </span>
         </div>
 
-        {/* Organization SEAM Settings */}
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Stay Moxie uses each organization’s own Seam account. Customers should create and pay for Seam directly, then paste their API key and workspace IDs here.
+          </AlertDescription>
+        </Alert>
+
         <Card>
           <CardHeader>
-            <CardTitle>Organization SEAM Settings</CardTitle>
+            <CardTitle>Organization Seam Account</CardTitle>
             <CardDescription>
-              Default SEAM API key used for all properties. Individual properties use workspaces connected to this key.
+              Save this organization’s own Seam API key. Property workspaces will sync devices through that customer-owned Seam account.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="seam_api_key">SEAM API Key</Label>
+                <Label htmlFor="seam_api_key">Seam API Key</Label>
                 <Input
                   id="seam_api_key"
                   type="password"
-                  placeholder={configuredKeys.seam_api_key ? '••••••••••••••••' : 'Enter your SEAM API key'}
+                  placeholder={configuredKeys.seam_api_key ? '••••••••••••••••' : 'Enter this organization’s Seam API key'}
                   value={formData.seam_api_key}
                   onChange={(e) => setFormData({ ...formData, seam_api_key: e.target.value })}
                   disabled={!isOrgAdmin() || apiKeyLoading}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Found in your Seam dashboard under API Keys
+                  Found in the customer’s Seam dashboard under API Keys
                 </p>
                 <div className="mt-1">
                   <ConfigStatus configured={configuredKeys.seam_api_key} />
@@ -444,17 +467,17 @@ const SmartHomeSettingsPage = () => {
               </div>
 
               <div>
-                <Label htmlFor="seam_webhook_secret">SEAM Webhook Secret</Label>
+                <Label htmlFor="seam_webhook_secret">Seam Webhook Secret</Label>
                 <Input
                   id="seam_webhook_secret"
                   type="password"
-                  placeholder="Enter your SEAM webhook secret"
+                  placeholder="Enter the customer’s Seam webhook secret"
                   value={formData.seam_webhook_secret}
                   onChange={(e) => setFormData({ ...formData, seam_webhook_secret: e.target.value })}
                   disabled={!isOrgAdmin() || apiKeyLoading}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Used to verify webhook events from Seam
+                  Used to verify webhook events from the customer’s Seam account
                 </p>
               </div>
 
@@ -474,7 +497,6 @@ const SmartHomeSettingsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Property Smart Home Configurations */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -482,7 +504,7 @@ const SmartHomeSettingsPage = () => {
               Property Smart Home Configurations
             </CardTitle>
             <CardDescription>
-              Configure SEAM workspaces for each property to manage smart locks and thermostats
+              Configure customer-owned Seam workspaces for each property to manage smart locks and thermostats
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -500,15 +522,15 @@ const SmartHomeSettingsPage = () => {
                 {properties.map((property) => {
                   const workspace = getWorkspaceForProperty(property.id);
                   const hasWorkspace = !!workspace;
-                  
+
                   return (
                     <AccordionItem key={property.id} value={property.id}>
                       <AccordionTrigger className="hover:no-underline">
                         <div className="flex items-center gap-3 w-full pr-4">
                           <Home className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">{property.title}</span>
-                          <Badge 
-                            variant={hasWorkspace ? "default" : "secondary"}
+                          <Badge
+                            variant={hasWorkspace ? 'default' : 'secondary'}
                             className="ml-auto"
                           >
                             {hasWorkspace ? (
@@ -529,6 +551,7 @@ const SmartHomeSettingsPage = () => {
                         <PropertySmartHomeCard
                           property={property}
                           workspace={workspace}
+                          organizationHasSeamKey={configuredKeys.seam_api_key}
                           onWorkspaceCreated={loadWorkspacesAndDevices}
                           onWorkspaceDisconnected={loadWorkspacesAndDevices}
                           onSyncDevices={() => workspace && handleSyncDevices(property.id, workspace.workspace_id)}
@@ -544,12 +567,11 @@ const SmartHomeSettingsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Webhook Configuration */}
         <Card>
           <CardHeader>
             <CardTitle>Webhook Configuration</CardTitle>
             <CardDescription>
-              Configure webhooks in your Seam dashboard to receive device events
+              Configure webhooks in the customer’s Seam dashboard to receive device events
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -570,7 +592,7 @@ const SmartHomeSettingsPage = () => {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Add this URL as a webhook endpoint in your Seam dashboard
+                Add this URL as a webhook endpoint in the customer’s Seam dashboard
               </p>
             </div>
 
@@ -590,16 +612,16 @@ const SmartHomeSettingsPage = () => {
               <div className="flex items-start gap-2">
                 <ExternalLink className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <div className="text-sm">
-                  <a 
-                    href="https://docs.seam.co/latest/core-concepts/webhooks" 
-                    target="_blank" 
+                  <a
+                    href="https://docs.seam.co/latest/core-concepts/webhooks"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline font-medium"
                   >
                     View Seam Webhook Documentation
                   </a>
                   <p className="text-muted-foreground mt-1">
-                    Learn how to configure webhooks in your Seam dashboard
+                    Learn how to configure webhooks in the customer’s Seam dashboard
                   </p>
                 </div>
               </div>
