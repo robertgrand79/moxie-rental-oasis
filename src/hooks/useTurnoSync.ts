@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export interface SyncStatus {
   isLoading: boolean;
@@ -24,14 +25,24 @@ export const useTurnoSync = () => {
     pendingSync: 0
   });
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
+
+  const requireOrganizationId = () => {
+    if (!organization?.id) {
+      throw new Error('Organization context not loaded. Please refresh and try again.');
+    }
+
+    return organization.id;
+  };
 
   // Sync specific work order status to Turno
   const syncWorkOrderToTurno = async (workOrderId: string): Promise<SyncResult> => {
     try {
       setSyncStatus(prev => ({ ...prev, isLoading: true }));
+      const organizationId = requireOrganizationId();
 
       const { data, error } = await supabase.functions.invoke('turno-sync', {
-        body: { action: 'sync-status', workOrderId }
+        body: { action: 'sync-status', workOrderId, organizationId }
       });
 
       if (error) throw error;
@@ -60,9 +71,10 @@ export const useTurnoSync = () => {
   const syncProblemsFromTurno = async (createWorkOrders = false): Promise<SyncResult> => {
     try {
       setSyncStatus(prev => ({ ...prev, isLoading: true }));
+      const organizationId = requireOrganizationId();
 
       const { data, error } = await supabase.functions.invoke('turno-sync', {
-        body: { action: 'sync-problems', createWorkOrders }
+        body: { action: 'sync-problems', createWorkOrders, organizationId }
       });
 
       if (error) throw error;
@@ -103,9 +115,10 @@ export const useTurnoSync = () => {
   const importProblemsAsWorkOrders = async (): Promise<SyncResult> => {
     try {
       setSyncStatus(prev => ({ ...prev, isLoading: true }));
+      const organizationId = requireOrganizationId();
 
       const { data, error } = await supabase.functions.invoke('turno-sync', {
-        body: { action: 'import-problems' }
+        body: { action: 'import-problems', organizationId }
       });
 
       if (error) throw error;
@@ -141,9 +154,10 @@ export const useTurnoSync = () => {
   const performFullSync = async (): Promise<SyncResult> => {
     try {
       setSyncStatus(prev => ({ ...prev, isLoading: true }));
+      const organizationId = requireOrganizationId();
 
       const { data, error } = await supabase.functions.invoke('turno-sync', {
-        body: { action: 'sync-full' }
+        body: { action: 'sync-full', organizationId }
       });
 
       if (error) throw error;

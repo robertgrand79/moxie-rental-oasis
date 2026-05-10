@@ -3,23 +3,31 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, TestTube } from "lucide-react";
+import { useCurrentOrganization } from "@/contexts/OrganizationContext";
 
 export const TurnoPropertyTestButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { organization } = useCurrentOrganization();
 
   const testTurnoConnection = async () => {
     try {
       setIsLoading(true);
+
+      if (!organization?.id) {
+        throw new Error('Organization context not loaded. Please refresh and try again.');
+      }
       
-      const { data, error } = await supabase.functions.invoke('turno-sync-test');
+      const { data, error } = await supabase.functions.invoke('turno-sync-test', {
+        body: { organizationId: organization.id }
+      });
       
       if (error) throw error;
       
       if (data.success) {
         toast({
           title: "Turno API Test Successful",
-          description: `Found ${data.stats?.totalProperties || 0} properties and ${data.stats?.totalProblems || 0} problems`,
+          description: "This organization's Turno credentials are working.",
         });
       } else {
         throw new Error(data.error || 'Unknown error');
@@ -39,8 +47,14 @@ export const TurnoPropertyTestButton = () => {
   const fetchProperties = async () => {
     try {
       setIsLoading(true);
+
+      if (!organization?.id) {
+        throw new Error('Organization context not loaded. Please refresh and try again.');
+      }
       
-      const { data, error } = await supabase.functions.invoke('turno-sync-properties');
+      const { data, error } = await supabase.functions.invoke('turno-sync-properties', {
+        body: { organizationId: organization.id }
+      });
       
       if (error) throw error;
       
@@ -65,7 +79,7 @@ export const TurnoPropertyTestButton = () => {
   };
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       <Button
         onClick={testTurnoConnection}
         disabled={isLoading}
@@ -77,7 +91,7 @@ export const TurnoPropertyTestButton = () => {
         ) : (
           <TestTube className="h-4 w-4" />
         )}
-        Test API Connection
+        Test Org Turno Connection
       </Button>
       
       <Button
@@ -91,7 +105,7 @@ export const TurnoPropertyTestButton = () => {
         ) : (
           <TestTube className="h-4 w-4" />
         )}
-        Fetch Properties
+        Fetch Org Properties
       </Button>
     </div>
   );

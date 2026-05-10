@@ -1,10 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTurnoSync } from '@/hooks/useTurnoSync';
-import { RefreshCw, RotateCw, ArrowLeftRight, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { RefreshCw, RotateCw, ArrowLeftRight, AlertTriangle, CheckCircle, Clock, Shield } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { TurnoPropertyTestButton } from './TurnoPropertyTestButton';
 import { TurnoSyncHistory } from './TurnoSyncHistory';
@@ -60,6 +60,13 @@ const TurnoProblemsSync = ({ onSyncComplete }: TurnoProblemsSync) => {
 
   return (
     <div className="space-y-6">
+      <Alert>
+        <Shield className="h-4 w-4" />
+        <AlertDescription>
+          Turno sync now uses this organization&apos;s own Turno account only. Make sure the customer&apos;s Turno token and
+          secret are saved in Settings → Services before testing or syncing.
+        </AlertDescription>
+      </Alert>
       <Card>
         <CardHeader>
         <CardTitle className="flex items-center gap-2">

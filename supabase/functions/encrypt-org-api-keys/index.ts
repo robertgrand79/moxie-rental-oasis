@@ -16,7 +16,9 @@ const API_KEY_COLUMNS = [
   'pricelabs_api_key',
   'openphone_api_key',
   'resend_api_key',
-  'turno_api_key',
+  'turno_api_token',
+  'turno_api_secret',
+  'turno_partner_id',
   'openweather_api_key',
   'mapbox_api_key',
 ];
