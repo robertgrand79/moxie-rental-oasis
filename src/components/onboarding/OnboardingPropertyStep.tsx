@@ -52,6 +52,8 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
   const [savingSeam, setSavingSeam] = useState(false);
   const [syncingSeam, setSyncingSeam] = useState(false);
 
+  const hasExistingSeamKey = Boolean((organization as any)?.seam_api_key);
+
   useEffect(() => {
     const existingProperty = properties[0];
 
@@ -138,7 +140,7 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
 
       toast({
         title: 'Property added!',
-        description: 'Now connect Seam so guest codes and device automation can work automatically.',
+        description: 'Now connect your own Seam account so guest codes and device automation can work automatically.',
       });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -181,6 +183,15 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
 
   const handleSaveSeamAndContinue = async () => {
     if (!organization || !createdPropertyId) return;
+
+    if (!hasExistingSeamKey && !seamApiKey.trim()) {
+      toast({
+        title: 'Seam API key required',
+        description: 'Add this organization’s own Seam API key before connecting a workspace.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     if (!workspace && (!workspaceId.trim() || !workspaceName.trim())) {
       toast({
@@ -253,7 +264,7 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
         <Alert>
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            Connect Seam now so Stay Moxie can create guest access codes automatically and sync your smart locks and thermostats.
+            Connect your own Seam account now so Stay Moxie can create guest access codes automatically and sync your smart locks and thermostats.
           </AlertDescription>
         </Alert>
 
@@ -268,7 +279,7 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Finish smart-home setup for this property now, or skip and return later from Settings or the property editor.
+            Finish smart-home setup for this property with your organization’s Seam API key and workspace, or skip and return later from Settings or the property editor.
           </p>
         </div>
 
@@ -286,12 +297,12 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
                   <Input
                     id="seam_api_key"
                     type="password"
-                    placeholder="Enter your Seam API key"
+                    placeholder={hasExistingSeamKey ? 'Organization Seam API key already saved' : 'Enter your Seam API key'}
                     value={seamApiKey}
                     onChange={(e) => setSeamApiKeyInput(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    This is optional here if you already saved it in Smart Home settings. If not, enter it now so device sync can work immediately.
+                    This should come from the customer’s own Seam account. If you already saved it in Smart Home settings, you can leave this blank here.
                   </p>
                 </div>
 
@@ -380,7 +391,7 @@ const OnboardingPropertyStep = ({ onComplete, isCompleting }: Props) => {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        Add your first property. Right after this, you can connect Seam for guest codes and smart-home automation without leaving onboarding.
+        Add your first property. Right after this, you can connect the customer’s own Seam account for guest codes and smart-home automation without leaving onboarding.
       </p>
 
       <div className="space-y-2">
