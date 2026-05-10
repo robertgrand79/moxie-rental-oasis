@@ -12,24 +12,22 @@ const corsHeaders = {
 const fetchTurnoProperties = async (token: string, secret: string, partnerId?: string) => {
   try {
     console.log('🏠 Fetching properties from Turno API...');
-    
-    // Try Bearer token authentication first
+
     let headers: Record<string, string> = {
       'Authorization': `Bearer ${secret}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
-    
+
     if (partnerId) {
       headers['TBNB-Partner-ID'] = partnerId;
     }
-    
+
     let response = await fetch('https://api.turnoverbnb.com/v2/properties', {
       method: 'GET',
       headers,
     });
 
-    // If Bearer fails, try Basic Auth
     if (!response.ok && response.status === 401) {
       console.log('🔄 Bearer failed for properties, trying Basic Auth...');
       const authString = btoa(`${token}:${secret}`);
@@ -38,11 +36,11 @@ const fetchTurnoProperties = async (token: string, secret: string, partnerId?: s
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       };
-      
+
       if (partnerId) {
         headers['TBNB-Partner-ID'] = partnerId;
       }
-      
+
       response = await fetch('https://api.turnoverbnb.com/v2/properties', {
         method: 'GET',
         headers,
@@ -57,13 +55,13 @@ const fetchTurnoProperties = async (token: string, secret: string, partnerId?: s
 
     const responseText = await response.text();
     console.log('📄 Raw Properties API response:', responseText.substring(0, 200) + '...');
-    
+
     if (!responseText.trim()) {
       console.log('⚠️ Empty response from Turno Properties API');
       return {
         success: true,
         data: { data: [] },
-        message: 'No properties found (empty response)'
+        message: 'No properties found (empty response)',
       };
     }
 
@@ -77,22 +75,21 @@ const fetchTurnoProperties = async (token: string, secret: string, partnerId?: s
     }
 
     console.log(`✅ Found ${propertiesData.data?.items?.length || propertiesData.data?.length || 0} properties in Turno`);
-    
+
     return {
       success: true,
       data: propertiesData,
-      message: `Successfully fetched ${propertiesData.data?.items?.length || propertiesData.data?.length || 0} properties`
+      message: `Successfully fetched ${propertiesData.data?.items?.length || propertiesData.data?.length || 0} properties`,
     };
   } catch (error) {
     console.error('❌ Error fetching Turno properties:', error);
     return {
       success: false,
-      error: `Failed to fetch properties: ${error.message}`
+      error: `Failed to fetch properties: ${error.message}`,
     };
   }
 };
 
-// Helper to decrypt a value if it's encrypted
 async function decryptIfNeeded(value: string | null): Promise<string | null> {
   if (!value) return null;
   if (isEncrypted(value)) {
@@ -103,13 +100,12 @@ async function decryptIfNeeded(value: string | null): Promise<string | null> {
 
 const handler = async (req: Request): Promise<Response> => {
   console.log('🚀 Turno Properties function called:', req.method, req.url);
-  
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Parse request body for organization ID
     let organizationId: string | null = null;
     try {
       const body = await req.json();
@@ -129,7 +125,6 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Fetch organization's Turno credentials from database
     const { data: org, error: orgError } = await supabaseClient
       .from('organizations')
       .select('turno_api_token, turno_api_secret, turno_partner_id')
@@ -141,51 +136,42 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Failed to fetch organization settings');
     }
 
-    // Decrypt organization-level credentials if they exist
-    const orgApiToken = await decryptIfNeeded(org?.turno_api_token);
-    const orgApiSecret = await decryptIfNeeded(org?.turno_api_secret);
-    const orgPartnerId = await decryptIfNeeded(org?.turno_partner_id);
-
-    // Use organization-level credentials, fall back to global env vars
-    const turnoApiToken = orgApiToken || Deno.env.get('TURNO_API_TOKEN');
-    const turnoApiSecret = orgApiSecret || Deno.env.get('TURNO_API_SECRET');
-    const turnoPartnerId = orgPartnerId || Deno.env.get('TURNO_PARTNER_ID');
+    const turnoApiToken = await decryptIfNeeded(org?.turno_api_token);
+    const turnoApiSecret = await decryptIfNeeded(org?.turno_api_secret);
+    const turnoPartnerId = await decryptIfNeeded(org?.turno_partner_id);
 
     if (!turnoApiToken || !turnoApiSecret) {
-      throw new Error('Turno API credentials not configured for this organization');
+      throw new Error('This organization must connect its own Turno API token and secret before syncing properties.');
     }
 
-    console.log('🔧 Using Turno credentials:', orgApiToken ? 'organization-level (encrypted)' : 'global fallback');
+    console.log('🔧 Using organization-owned Turno credentials');
 
-    // Fetch properties from Turno
-    const propertiesResult = await fetchTurnoProperties(turnoApiToken, turnoApiSecret, turnoPartnerId);
-    
+    const propertiesResult = await fetchTurnoProperties(turnoApiToken, turnoApiSecret, turnoPartnerId || undefined);
+
     if (!propertiesResult.success) {
       throw new Error(propertiesResult.error);
     }
 
-    // Cache properties in database - handle both data.items and data.data structures
-    const properties = Array.isArray(propertiesResult.data?.data?.items) 
-      ? propertiesResult.data.data.items 
-      : Array.isArray(propertiesResult.data?.data) 
-        ? propertiesResult.data.data 
+    const properties = Array.isArray(propertiesResult.data?.data?.items)
+      ? propertiesResult.data.data.items
+      : Array.isArray(propertiesResult.data?.data)
+        ? propertiesResult.data.data
         : [];
-    
+
     console.log(`📊 Caching ${properties.length} properties to database for org ${organizationId}...`);
-    
+
     for (const property of properties) {
       try {
-        // Use upsert with composite key (turno_property_id + organization_id)
         const { error: upsertError } = await supabaseClient
           .from('turno_property_mapping')
           .upsert({
             turno_property_id: property.id,
             property_name: property.name || property.alias || property.title || `Property ${property.id}`,
             organization_id: organizationId,
-            is_active: false // Will be activated when user maps to internal property
+            is_active: false,
           }, {
             onConflict: 'turno_property_id,organization_id',
-            ignoreDuplicates: false
+            ignoreDuplicates: false,
           });
 
         if (upsertError) {
@@ -200,25 +186,24 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({
       success: true,
-      properties: properties,
+      properties,
       cached: properties.length,
-      organizationId: organizationId,
-      message: `Successfully fetched and cached ${properties.length} properties`
+      organizationId,
+      message: `Successfully fetched and cached ${properties.length} properties`,
     }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
-
   } catch (error: any) {
     console.error('❌ Properties sync error:', error);
-    
-    return new Response(JSON.stringify({ 
-      success: false, 
+
+    return new Response(JSON.stringify({
+      success: false,
       error: error.message,
-      message: 'Failed to sync Turno properties'
+      message: 'Failed to sync Turno properties',
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
   }
 };
