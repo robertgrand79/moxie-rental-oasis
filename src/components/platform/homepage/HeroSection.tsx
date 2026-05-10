@@ -14,6 +14,9 @@ const contentPillars: { name: string; icon: LucideIcon }[] = [
 const HeroSection: React.FC = () => {
   const { isPlatformSite } = usePlatform();
   const basePath = isPlatformSite ? '' : '/platform';
+  const isVercelPreview =
+    typeof window !== 'undefined' &&
+    window.location.hostname.includes('vercel.app');
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 pt-20 pb-32">
@@ -26,11 +29,21 @@ const HeroSection: React.FC = () => {
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600/20 rounded-full border border-blue-500/30 mb-8">
-            <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-            <span className="text-sm text-blue-300 font-medium">
-              The local market platform for vacation rentals
-            </span>
+          <div className="flex flex-col items-center gap-3 mb-8">
+            {isVercelPreview && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-400/15 rounded-full border border-amber-300/40">
+                <span className="w-2 h-2 bg-amber-300 rounded-full animate-pulse" />
+                <span className="text-sm text-amber-100 font-medium">
+                  Preview Deployment Test
+                </span>
+              </div>
+            )}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600/20 rounded-full border border-blue-500/30">
+              <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+              <span className="text-sm text-blue-300 font-medium">
+                The local market platform for vacation rentals
+              </span>
+            </div>
           </div>
 
           {/* Headline */}
