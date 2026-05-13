@@ -114,11 +114,24 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Subject and content cannot be empty");
     }
 
+    console.log("🔑 Fetching user's organization...");
+    const { data: userProfile, error: profileOrgError } = await supabaseAdmin
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profileOrgError || !userProfile?.organization_id) {
+      console.error("❌ Could not determine user's organization:", profileOrgError);
+      throw new Error("Could not determine your organization. Please ensure you are associated with an organization.");
+    }
+
     console.log("📬 Getting active subscribers...");
-    // Get active subscribers using admin client
+    // Get active subscribers for this organization using admin client
     const { data: subscribers, error: subscribersError } = await supabaseAdmin
       .from("newsletter_subscribers")
       .select("email, name")
+      .eq("organization_id", userProfile.organization_id)
       .eq("is_active", true);
 
     if (subscribersError) {
@@ -450,19 +463,8 @@ const handler = async (req: Request): Promise<Response> => {
     `;
     };
 
-    // Get user's organization to fetch their Resend API key
+    // Fetch organization's Resend API key
     console.log("🔑 Fetching organization Resend API key...");
-    const { data: userProfile, error: profileOrgError } = await supabaseAdmin
-      .from("profiles")
-      .select("organization_id")
-      .eq("id", user.id)
-      .single();
-
-    if (profileOrgError || !userProfile?.organization_id) {
-      console.error("❌ Could not determine user's organization:", profileOrgError);
-      throw new Error("Could not determine your organization. Please ensure you are associated with an organization.");
-    }
-
     const { data: orgData, error: orgError } = await supabaseAdmin
       .from("organizations")
       .select("resend_api_key")
