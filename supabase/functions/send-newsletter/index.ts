@@ -252,6 +252,10 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`- Reply-to: ${replyTo}`);
     console.log(`- Contact: ${contactEmail} | ${phone}`);
 
+    if (!fromEmail) {
+      throw new Error("emailFromAddress is not configured for this organization. Set it in Settings > Communications before sending.");
+    }
+
     // Save campaign record first to get campaign ID
     console.log("💾 Saving campaign record...");
     const campaignSubject = isTestSend ? `[TEST] ${subject}` : subject;
@@ -546,8 +550,11 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       if (response.error) {
-        console.error(`❌ Failed to send email to ${subscriber.email}:`, response.error.message);
-        throw new Error(`Resend API error for ${subscriber.email}: ${response.error.message}`);
+        const detail = typeof response.error === 'string'
+          ? response.error
+          : (response.error.message || JSON.stringify(response.error));
+        console.error(`❌ Resend rejected ${subscriber.email}:`, detail);
+        throw new Error(`Resend: ${detail}`);
       }
 
       console.log(`✅ Email sent to ${subscriber.email} (${index + 1}/${subscribers.length})`);
