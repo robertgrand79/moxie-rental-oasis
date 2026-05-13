@@ -64,11 +64,12 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const lastFetchedUserIdRef = useRef<string | null>(null);
   const hasInitializedRef = useRef(false);
   
-  // Check if we're on a neutral domain (Lovable, localhost)
+  // Check if we're on a neutral domain (Vercel/Lovable previews, localhost)
   const isNeutralDomain = useCallback(() => {
     const hostname = window.location.hostname;
-    return hostname.includes('lovable.app') || 
-           hostname.includes('localhost') || 
+    return hostname.includes('lovable.app') ||
+           hostname.includes('vercel.app') ||
+           hostname.includes('localhost') ||
            hostname.includes('127.0.0.1');
   }, []);
 
@@ -132,9 +133,10 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         domainOrgSlug = hostname.replace(`.${PLATFORM_DOMAIN}`, '');
         debug.org('Detected subdomain org slug:', domainOrgSlug);
       } 
-      // Check for custom domain (not staymoxie.com, not localhost, not lovable)
-      else if (!hostname.includes('lovable.app') && 
-               !hostname.includes('localhost') && 
+      // Check for custom domain (not staymoxie.com, not localhost, not a Vercel/Lovable preview)
+      else if (!hostname.includes('lovable.app') &&
+               !hostname.includes('vercel.app') &&
+               !hostname.includes('localhost') &&
                !hostname.includes('127.0.0.1') &&
                hostname !== PLATFORM_DOMAIN) {
         domainCustomDomain = hostname;
@@ -235,7 +237,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Auto-enter platform mode for platform admins on:
       // 1. admin.staymoxie.com (dedicated platform admin domain)
-      // 2. Neutral domains (localhost, lovable.app) with no org context
+      // 2. Neutral domains (localhost, vercel.app/lovable.app previews) with no org context
       if (isPlatAdmin && (isPlatformAdminDomain || (isNeutralDomain() && !organization))) {
         debug.org('Platform admin on platform/neutral domain - entering platform mode');
         setIsPlatformMode(true);

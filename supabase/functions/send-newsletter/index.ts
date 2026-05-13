@@ -605,7 +605,11 @@ const handler = async (req: Request): Promise<Response> => {
       
       if (openPhoneApiKey) {
         // Build the web view URL
-        const baseUrl = Deno.env.get("SITE_URL") || "https://stay-moxie.lovable.app";
+        const baseUrl = Deno.env.get("SITE_URL");
+        if (!baseUrl) {
+          console.error("❌ SITE_URL is not configured — cannot build SMS newsletter links");
+          throw new Error("SITE_URL secret is not configured");
+        }
         const webViewUrl = `${baseUrl}/newsletter/${savedCampaignId}`;
         const orgName = orgSmsData?.name || siteName;
         

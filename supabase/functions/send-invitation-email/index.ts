@@ -81,13 +81,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     const inviterName = inviterProfile?.full_name || 'Admin';
 
-    // Create invitation URL using organization's custom domain or fallback
+    // Create invitation URL using organization's custom domain or fall back to APP_BASE_URL
     let baseUrl: string;
     if (org?.custom_domain) {
       baseUrl = `https://${org.custom_domain}`;
     } else {
-      // Fallback to APP_BASE_URL or construct from Lovable app URL
-      baseUrl = Deno.env.get('APP_BASE_URL') || 'https://moxie-system-99.lovable.app';
+      const appBaseUrl = Deno.env.get('APP_BASE_URL');
+      if (!appBaseUrl) {
+        console.error('❌ APP_BASE_URL is not configured and organization has no custom_domain — cannot build invitation link');
+        throw new Error('APP_BASE_URL secret is not configured');
+      }
+      baseUrl = appBaseUrl;
     }
     
     const invitationUrl = `${baseUrl}/auth?invitation=${invitationToken}`;
