@@ -47,6 +47,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isSendingFullTest, setIsSendingFullTest] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [showTestEmail, setShowTestEmail] = useState(false);
   const [content, setContent] = useState(newsletter?.content || '');
@@ -325,6 +326,62 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     }
   };
 
+  const handleSendFullPipelineTest = async () => {
+    if (!testEmail || !testEmail.includes('@')) {
+      showToast({
+        title: "Invalid Email",
+        description: "Enter a valid email address to receive the test.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!form.watch('subject') || !content) {
+      showToast({
+        title: "Missing Content",
+        description: "Please provide both a subject and content before sending a test.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingFullTest(true);
+
+    try {
+      const { data: result, error } = await supabase.functions.invoke('send-newsletter', {
+        body: {
+          subject: form.watch('subject'),
+          content,
+          coverImageUrl,
+          linkedContent: selectedContent,
+          campaignId: isEdit ? newsletter.id : undefined,
+          sendSMS: false,
+          testRecipientEmails: [testEmail],
+        }
+      });
+
+      if (error) throw error;
+
+      if (result?.success) {
+        showToast({
+          title: "Full-Pipeline Test Sent 🧪",
+          description: `Test sent to ${testEmail}. Subscribers were NOT emailed. Campaign saved as "[TEST] ${form.watch('subject')}".`,
+        });
+      } else {
+        throw new Error(result?.error || "Failed to send full-pipeline test");
+      }
+    } catch (error: any) {
+      console.error('Error sending full-pipeline test:', error);
+      showToast({
+        title: "Test Send Failed",
+        description: error.message || "Failed to send full-pipeline test.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingFullTest(false);
+    }
+  };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] p-0 flex flex-col">
@@ -459,13 +516,34 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
 
               {/* Test Email Section */}
               {isFormValid && (
-                <TestEmailPanel
-                  testEmail={testEmail}
-                  setTestEmail={setTestEmail}
-                  onSendTest={handleSendTestEmail}
-                  isSending={isSendingTest}
-                  disabled={isLoading || isSaving}
-                />
+                <>
+                  <TestEmailPanel
+                    testEmail={testEmail}
+                    setTestEmail={setTestEmail}
+                    onSendTest={handleSendTestEmail}
+                    isSending={isSendingTest}
+                    disabled={isLoading || isSaving || isSendingFullTest}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleSendFullPipelineTest}
+                    disabled={!testEmail || isLoading || isSaving || isSendingTest || isSendingFullTest}
+                    className="w-full"
+                  >
+                    {isSendingFullTest ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Running full-pipeline test...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Full-Pipeline Test (only to {testEmail || 'your test email'})
+                      </>
+                    )}
+                  </Button>
+                </>
               )}
 
               <div className="flex gap-3 pt-4">

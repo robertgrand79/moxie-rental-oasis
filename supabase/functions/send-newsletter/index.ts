@@ -15,6 +15,7 @@ interface NewsletterRequest {
   linkedContent?: any;
   campaignId?: string;
   sendSMS?: boolean;
+  testRecipientEmails?: string[];
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -94,7 +95,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Invalid JSON in request body");
     }
 
-    const { subject, content, coverImageUrl, linkedContent, campaignId, sendSMS }: NewsletterRequest = requestBody;
+    const { subject, content, coverImageUrl, linkedContent, campaignId, sendSMS, testRecipientEmails }: NewsletterRequest = requestBody;
+    const isTestSend = Array.isArray(testRecipientEmails) && testRecipientEmails.length > 0;
 
     console.log("📊 Newsletter data validation:");
     console.log("- Subject:", subject ? `"${subject}" (${subject.length} chars)` : "MISSING");
@@ -103,6 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("- Linked Content:", linkedContent ? JSON.stringify(linkedContent) : "None");
     console.log("- Campaign ID:", campaignId || "None");
     console.log("- Send SMS:", sendSMS ? "Yes" : "No");
+    console.log("- Test send:", isTestSend ? `Yes (${testRecipientEmails!.length} recipients)` : "No");
 
     if (!subject || !content) {
       console.error("❌ Missing required fields - Subject:", !!subject, "Content:", !!content);
@@ -126,36 +129,48 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Could not determine your organization. Please ensure you are associated with an organization.");
     }
 
-    console.log("📬 Getting active subscribers...");
-    // Get active subscribers for this organization using admin client
-    const { data: subscribers, error: subscribersError } = await supabaseAdmin
-      .from("newsletter_subscribers")
-      .select("email, name")
-      .eq("organization_id", userProfile.organization_id)
-      .eq("is_active", true);
+    let subscribers: { email: string; name: string | null }[];
 
-    if (subscribersError) {
-      console.error("❌ Error fetching subscribers:", subscribersError);
-      throw subscribersError;
+    if (isTestSend) {
+      const invalid = testRecipientEmails!.filter(e => typeof e !== "string" || !e.includes("@"));
+      if (invalid.length > 0) {
+        throw new Error(`Invalid test recipient email(s): ${invalid.join(", ")}`);
+      }
+      subscribers = testRecipientEmails!.map(email => ({ email, name: null }));
+      console.log(`🧪 Test send: bypassing subscriber lookup, using ${subscribers.length} test recipient(s)`);
+    } else {
+      console.log("📬 Getting active subscribers...");
+      const { data: dbSubscribers, error: subscribersError } = await supabaseAdmin
+        .from("newsletter_subscribers")
+        .select("email, name")
+        .eq("organization_id", userProfile.organization_id)
+        .eq("is_active", true);
+
+      if (subscribersError) {
+        console.error("❌ Error fetching subscribers:", subscribersError);
+        throw subscribersError;
+      }
+
+      if (!dbSubscribers || dbSubscribers.length === 0) {
+        console.log("⚠️  No active subscribers found");
+        return new Response(
+          JSON.stringify({ error: "No active subscribers found", success: false }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      subscribers = dbSubscribers;
+      console.log(`📬 Found ${subscribers.length} active subscribers`);
     }
 
-    if (!subscribers || subscribers.length === 0) {
-      console.log("⚠️  No active subscribers found");
-      return new Response(
-        JSON.stringify({ error: "No active subscribers found", success: false }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
-    console.log(`📬 Found ${subscribers.length} active subscribers`);
-
-    // Fetch all email, contact, and newsletter settings from site_settings
+    // Fetch all email, contact, and newsletter settings from site_settings for this organization
     console.log("⚙️ Fetching site settings...");
     const { data: siteSettings, error: settingsError } = await supabaseAdmin
       .from("site_settings")
       .select("key, value")
+      .eq("organization_id", userProfile.organization_id)
       .in("key", [
-        "emailFromAddress", "emailFromName", "emailReplyTo", 
+        "emailFromAddress", "emailFromName", "emailReplyTo",
         "siteName", "contactEmail", "phone", "address", "socialMedia",
         "newsletter_header_config", "newsletter_footer_config"
       ]);
@@ -237,12 +252,17 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`- Reply-to: ${replyTo}`);
     console.log(`- Contact: ${contactEmail} | ${phone}`);
 
+    if (!fromEmail) {
+      throw new Error("emailFromAddress is not configured for this organization. Set it in Settings > Communications before sending.");
+    }
+
     // Save campaign record first to get campaign ID
     console.log("💾 Saving campaign record...");
+    const campaignSubject = isTestSend ? `[TEST] ${subject}` : subject;
     const { data: campaign, error: campaignError } = await supabaseAdmin
       .from("newsletter_campaigns")
       .insert({
-        subject,
+        subject: campaignSubject,
         content,
         cover_image_url: coverImageUrl,
         linked_content: linkedContent,
@@ -530,8 +550,11 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       if (response.error) {
-        console.error(`❌ Failed to send email to ${subscriber.email}:`, response.error.message);
-        throw new Error(`Resend API error for ${subscriber.email}: ${response.error.message}`);
+        const detail = typeof response.error === 'string'
+          ? response.error
+          : (response.error.message || JSON.stringify(response.error));
+        console.error(`❌ Resend rejected ${subscriber.email}:`, detail);
+        throw new Error(`Resend: ${detail}`);
       }
 
       console.log(`✅ Email sent to ${subscriber.email} (${index + 1}/${subscribers.length})`);
@@ -554,7 +577,7 @@ const handler = async (req: Request): Promise<Response> => {
   let smsSentCount = 0;
   let smsFailedCount = 0;
   
-  if (sendSMS) {
+  if (sendSMS && !isTestSend) {
     console.log("📱 Starting SMS notifications...");
     
     // Get SMS subscribers for this organization
@@ -644,11 +667,14 @@ const handler = async (req: Request): Promise<Response> => {
   return new Response(
     JSON.stringify({
       success: true,
-      message: `Newsletter sent successfully to ${successfulSends} subscribers`,
+      message: isTestSend
+        ? `Test newsletter sent successfully to ${successfulSends} test recipient(s)`
+        : `Newsletter sent successfully to ${successfulSends} subscribers`,
       campaignId: savedCampaignId,
       recipientCount: successfulSends,
       smsSentCount,
       smsFailedCount,
+      isTestSend,
       stats: {
         total: subscribers.length,
         successful: successfulSends,
