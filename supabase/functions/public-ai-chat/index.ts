@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Anthropic from "npm:@anthropic-ai/sdk@^0.40.1";
+import { CLAUDE_SONNET, getAnthropicClient, extractText } from "../_shared/anthropicClient.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -97,73 +99,61 @@ const PERSONALITY_PROMPTS: Record<string, string> = {
 };
 
 // Tool definitions for the AI
-const tools = [
+const tools: Anthropic.Tool[] = [
   {
-    type: "function",
-    function: {
-      name: "check_availability",
-      description: "Check if a property is available for specific dates.",
-      parameters: {
-        type: "object",
-        properties: {
-          propertyTitle: { type: "string", description: "The name/title of the property" },
-          checkInDate: { type: "string", description: "Check-in date in YYYY-MM-DD format" },
-          checkOutDate: { type: "string", description: "Check-out date in YYYY-MM-DD format" }
-        },
-        required: ["checkInDate", "checkOutDate"]
-      }
-    }
+    name: "check_availability",
+    description: "Check if a property is available for specific dates.",
+    input_schema: {
+      type: "object",
+      properties: {
+        propertyTitle: { type: "string", description: "The name/title of the property" },
+        checkInDate: { type: "string", description: "Check-in date in YYYY-MM-DD format" },
+        checkOutDate: { type: "string", description: "Check-out date in YYYY-MM-DD format" },
+      },
+      required: ["checkInDate", "checkOutDate"],
+    },
   },
   {
-    type: "function",
-    function: {
-      name: "get_pricing_breakdown",
-      description: "Get detailed pricing breakdown for a stay.",
-      parameters: {
-        type: "object",
-        properties: {
-          propertyTitle: { type: "string", description: "The name/title of the property" },
-          checkInDate: { type: "string", description: "Check-in date in YYYY-MM-DD format" },
-          checkOutDate: { type: "string", description: "Check-out date in YYYY-MM-DD format" }
-        },
-        required: ["checkInDate", "checkOutDate"]
-      }
-    }
+    name: "get_pricing_breakdown",
+    description: "Get detailed pricing breakdown for a stay.",
+    input_schema: {
+      type: "object",
+      properties: {
+        propertyTitle: { type: "string", description: "The name/title of the property" },
+        checkInDate: { type: "string", description: "Check-in date in YYYY-MM-DD format" },
+        checkOutDate: { type: "string", description: "Check-out date in YYYY-MM-DD format" },
+      },
+      required: ["checkInDate", "checkOutDate"],
+    },
   },
   {
-    type: "function",
-    function: {
-      name: "get_booking_link",
-      description: "Generate a direct booking link with pre-filled dates.",
-      parameters: {
-        type: "object",
-        properties: {
-          propertyTitle: { type: "string", description: "The name/title of the property" },
-          checkInDate: { type: "string", description: "Check-in date in YYYY-MM-DD format" },
-          checkOutDate: { type: "string", description: "Check-out date in YYYY-MM-DD format" }
-        },
-        required: ["propertyTitle", "checkInDate", "checkOutDate"]
-      }
-    }
+    name: "get_booking_link",
+    description: "Generate a direct booking link with pre-filled dates.",
+    input_schema: {
+      type: "object",
+      properties: {
+        propertyTitle: { type: "string", description: "The name/title of the property" },
+        checkInDate: { type: "string", description: "Check-in date in YYYY-MM-DD format" },
+        checkOutDate: { type: "string", description: "Check-out date in YYYY-MM-DD format" },
+      },
+      required: ["propertyTitle", "checkInDate", "checkOutDate"],
+    },
   },
   {
-    type: "function",
-    function: {
-      name: "escalate_to_host",
-      description: "Escalate a question to the host when you cannot answer it. CRITICAL: Before calling this tool, you MUST first ask the guest for their full name, email address, and phone number. Do NOT call this tool until you have collected ALL THREE pieces of contact information. Only proceed with escalation after the guest has provided their name, email, and phone.",
-      parameters: {
-        type: "object",
-        properties: {
-          reason: { type: "string", description: "Brief explanation of why this needs host attention" },
-          guestQuestion: { type: "string", description: "The guest's original question" },
-          guestName: { type: "string", description: "The guest's full name (REQUIRED - must ask before escalating)" },
-          guestEmail: { type: "string", description: "The guest's email address (REQUIRED - must ask before escalating)" },
-          guestPhone: { type: "string", description: "The guest's phone number for SMS follow-up (REQUIRED - must ask before escalating)" }
-        },
-        required: ["reason", "guestQuestion", "guestName", "guestEmail", "guestPhone"]
-      }
-    }
-  }
+    name: "escalate_to_host",
+    description: "Escalate a question to the host when you cannot answer it. Before calling this tool, ask the guest for their full name, email address, and phone number. Do not call this tool until you have collected all three pieces of contact information.",
+    input_schema: {
+      type: "object",
+      properties: {
+        reason: { type: "string", description: "Brief explanation of why this needs host attention" },
+        guestQuestion: { type: "string", description: "The guest's original question" },
+        guestName: { type: "string", description: "The guest's full name (required — must ask before escalating)" },
+        guestEmail: { type: "string", description: "The guest's email address (required — must ask before escalating)" },
+        guestPhone: { type: "string", description: "The guest's phone number for SMS follow-up (required — must ask before escalating)" },
+      },
+      required: ["reason", "guestQuestion", "guestName", "guestEmail", "guestPhone"],
+    },
+  },
 ];
 
 function findPropertyByTitle(properties: PropertyContext[], searchTitle?: string): PropertyContext | null {
@@ -297,24 +287,25 @@ async function createEscalation(
 async function processToolCalls(
   supabase: ReturnType<typeof createClient>,
   properties: PropertyContext[],
-  toolCalls: any[],
+  toolUses: Anthropic.ToolUseBlock[],
   siteUrl?: string,
   organizationId?: string,
   sessionId?: string,
   conversationHistory?: Message[]
-): Promise<{ results: string; hasEscalation: boolean }> {
-  const results: string[] = [];
+): Promise<{ perTool: { tool_use_id: string; content: string }[]; combined: string; hasEscalation: boolean }> {
+  const perTool: { tool_use_id: string; content: string }[] = [];
   let hasEscalation = false;
 
-  for (const toolCall of toolCalls) {
-    const { name, arguments: argsStr } = toolCall.function;
-    const args = JSON.parse(argsStr);
+  for (const toolUse of toolUses) {
+    const name = toolUse.name;
+    const args = (toolUse.input ?? {}) as Record<string, any>;
+    const toolResults: string[] = [];
 
     switch (name) {
       case 'check_availability': {
         const availResults = await checkAvailability(supabase, properties, args.propertyTitle, args.checkInDate, args.checkOutDate);
         for (const r of availResults) {
-          results.push(r.isAvailable 
+          toolResults.push(r.isAvailable
             ? `✅ **${r.propertyTitle}** is AVAILABLE from ${args.checkInDate} to ${args.checkOutDate}.`
             : `❌ **${r.propertyTitle}** is NOT available for those dates.`);
         }
@@ -328,17 +319,17 @@ async function processToolCalls(
           if (p.cleaningFee > 0) breakdown += `\n• **Cleaning fee**: $${p.cleaningFee.toFixed(2)}`;
           if (p.serviceFee > 0) breakdown += `\n• **Service fee**: $${p.serviceFee.toFixed(2)}`;
           breakdown += `\n\n**Total: $${p.total.toFixed(2)}**\n\n[Book Now](${p.bookingUrl})`;
-          results.push(breakdown);
+          toolResults.push(breakdown);
         }
         break;
       }
       case 'get_booking_link': {
         const property = findPropertyByTitle(properties, args.propertyTitle);
         if (property) {
-      const url = `${siteUrl || ''}/properties/${property.id}?checkin=${args.checkInDate}&checkout=${args.checkOutDate}`;
-      results.push(`Here's your booking link for **${property.title}**:\n\n[Click here to book](${url})`);
+          const url = `${siteUrl || ''}/properties/${property.id}?checkin=${args.checkInDate}&checkout=${args.checkOutDate}`;
+          toolResults.push(`Here's your booking link for **${property.title}**:\n\n[Click here to book](${url})`);
         } else {
-          results.push(`Could not find property "${args.propertyTitle}".`);
+          toolResults.push(`Could not find property "${args.propertyTitle}".`);
         }
         break;
       }
@@ -358,18 +349,22 @@ async function processToolCalls(
           if (escalationResult === "ESCALATION_CREATED") {
             hasEscalation = true;
             const contactMethod = args.guestEmail ? `at ${args.guestEmail}` : (args.guestPhone ? `via SMS` : '');
-            results.push(`I've forwarded your question to a Moxie Team Member. They'll review it and get back to you ${contactMethod ? contactMethod + ' ' : ''}as soon as possible. In the meantime, is there anything else I can help you with?`);
+            toolResults.push(`I've forwarded your question to a Moxie Team Member. They'll review it and get back to you ${contactMethod ? contactMethod + ' ' : ''}as soon as possible. In the meantime, is there anything else I can help you with?`);
           } else {
-            results.push(escalationResult);
+            toolResults.push(escalationResult);
           }
         } else {
-          results.push("I've noted your question and will have someone follow up with you.");
+          toolResults.push("I've noted your question and will have someone follow up with you.");
         }
         break;
       }
     }
+
+    perTool.push({ tool_use_id: toolUse.id, content: toolResults.join('\n\n') });
   }
-  return { results: results.join('\n\n---\n\n'), hasEscalation };
+
+  const combined = perTool.map(t => t.content).join('\n\n---\n\n');
+  return { perTool, combined, hasEscalation };
 }
 
 async function aggregatePropertyContext(
@@ -775,9 +770,8 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "AI service not configured" }), 
+    if (!Deno.env.get("ANTHROPIC_API_KEY")) {
+      return new Response(JSON.stringify({ error: "AI service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -858,80 +852,103 @@ serve(async (req) => {
 
     console.log('System prompt length:', systemPrompt.length);
 
-    const messages = [
-      { role: "system", content: `${systemPrompt}\n\nToday is ${currentDate}.` },
-      ...conversationHistory.map((msg: Message) => ({ role: msg.role, content: msg.content })),
-      { role: "user", content: message }
+    const fullSystem = `${systemPrompt}\n\nToday is ${currentDate}.`;
+
+    const claudeMessages: Anthropic.MessageParam[] = [
+      ...conversationHistory.map((msg: Message) => ({
+        role: msg.role === 'assistant' ? 'assistant' as const : 'user' as const,
+        content: msg.content,
+      })),
+      { role: 'user', content: message },
     ];
 
-    // Separate escalation tool from property-specific tools
-    const escalationTool = tools.find(t => t.function.name === 'escalate_to_host');
-    const propertyTools = tools.filter(t => t.function.name !== 'escalate_to_host');
-    
-    // Always include escalation tool, property tools only when properties exist
-    const availableTools = propertyContext.length > 0 
-      ? tools 
-      : (escalationTool ? [escalationTool] : []);
+    // Always include escalation tool; property-specific tools only when properties exist
+    const availableTools = propertyContext.length > 0
+      ? tools
+      : tools.filter(t => t.name === 'escalate_to_host');
 
-    console.log('Available tools:', availableTools.map(t => t.function.name));
+    console.log('Available tools:', availableTools.map(t => t.name));
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages,
+    const anthropic = getAnthropicClient();
+
+    let firstResponse: Anthropic.Message;
+    try {
+      firstResponse = await anthropic.messages.create({
+        model: CLAUDE_SONNET,
+        max_tokens: 4096,
+        system: [
+          { type: 'text', text: fullSystem, cache_control: { type: 'ephemeral' } },
+        ],
         tools: availableTools.length > 0 ? availableTools : undefined,
-        tool_choice: availableTools.length > 0 ? "auto" : undefined,
-      }),
-    });
-
-    if (!response.ok) {
-      const status = response.status;
-      if (status === 429) return new Response(JSON.stringify({ error: "Too many requests. Please try again." }), 
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (status === 402) return new Response(JSON.stringify({ error: "AI service temporarily unavailable." }), 
-        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      return new Response(JSON.stringify({ error: "Failed to get AI response" }), 
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        thinking: { type: 'adaptive' },
+        messages: claudeMessages,
+      });
+    } catch (error) {
+      if (error instanceof Anthropic.RateLimitError) {
+        return new Response(JSON.stringify({ error: "Too many requests. Please try again." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (error instanceof Anthropic.APIError) {
+        console.error('Anthropic API error:', error.status, error.message);
+        return new Response(JSON.stringify({ error: "Failed to get AI response" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      throw error;
     }
 
-    const data = await response.json();
-    const assistantMessage = data.choices?.[0]?.message;
+    const toolUseBlocks = firstResponse.content.filter(
+      (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use'
+    );
+
     let aiResponse: string;
     let toolCallsUsed: any[] | undefined;
 
-    if (assistantMessage?.tool_calls?.length > 0 && supabase) {
-      toolCallsUsed = assistantMessage.tool_calls;
-      const { results: toolResults, hasEscalation } = await processToolCalls(
-        supabase, 
-        propertyContext, 
-        assistantMessage.tool_calls, 
+    if (toolUseBlocks.length > 0 && supabase) {
+      toolCallsUsed = toolUseBlocks.map(t => ({ name: t.name, input: t.input, id: t.id }));
+      const { perTool, combined, hasEscalation } = await processToolCalls(
+        supabase,
+        propertyContext,
+        toolUseBlocks,
         siteUrl,
         organizationId,
         sessionId,
         conversationHistory
       );
-      
-      // If this was an escalation, use the escalation message directly
-      if (hasEscalation) {
-        aiResponse = toolResults;
-      } else {
-        const followUpResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [...messages, assistantMessage, { role: "tool", tool_call_id: assistantMessage.tool_calls[0].id, content: toolResults }],
-          }),
-        });
 
-        aiResponse = followUpResponse.ok 
-          ? (await followUpResponse.json()).choices?.[0]?.message?.content || toolResults
-          : toolResults;
+      if (hasEscalation) {
+        aiResponse = combined;
+      } else {
+        try {
+          const followUp = await anthropic.messages.create({
+            model: CLAUDE_SONNET,
+            max_tokens: 4096,
+            system: [
+              { type: 'text', text: fullSystem, cache_control: { type: 'ephemeral' } },
+            ],
+            tools: availableTools,
+            thinking: { type: 'adaptive' },
+            messages: [
+              ...claudeMessages,
+              { role: 'assistant', content: firstResponse.content },
+              {
+                role: 'user',
+                content: perTool.map(t => ({
+                  type: 'tool_result' as const,
+                  tool_use_id: t.tool_use_id,
+                  content: t.content,
+                })),
+              },
+            ],
+          });
+          const followUpText = extractText(followUp);
+          aiResponse = followUpText || combined;
+        } catch (error) {
+          console.error('Follow-up Anthropic call failed; falling back to raw tool output:', error);
+          aiResponse = combined;
+        }
       }
     } else {
-      aiResponse = assistantMessage?.content || "I'm sorry, I couldn't generate a response.";
+      aiResponse = extractText(firstResponse) || "I'm sorry, I couldn't generate a response.";
     }
 
     // Log conversation
