@@ -163,13 +163,14 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`📬 Found ${subscribers.length} active subscribers`);
     }
 
-    // Fetch all email, contact, and newsletter settings from site_settings
+    // Fetch all email, contact, and newsletter settings from site_settings for this organization
     console.log("⚙️ Fetching site settings...");
     const { data: siteSettings, error: settingsError } = await supabaseAdmin
       .from("site_settings")
       .select("key, value")
+      .eq("organization_id", userProfile.organization_id)
       .in("key", [
-        "emailFromAddress", "emailFromName", "emailReplyTo", 
+        "emailFromAddress", "emailFromName", "emailReplyTo",
         "siteName", "contactEmail", "phone", "address", "socialMedia",
         "newsletter_header_config", "newsletter_footer_config"
       ]);
