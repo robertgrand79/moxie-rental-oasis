@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Anthropic from "npm:@anthropic-ai/sdk@^0.40.1";
 import { CLAUDE_SONNET, getAnthropicClient, extractText } from "../_shared/anthropicClient.ts";
+import { checkAiRateLimit, rateLimitResponse } from "../_shared/aiRateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -766,13 +767,19 @@ serve(async (req) => {
     const { message, conversationHistory = [], organizationId, sessionId, language } = await req.json();
 
     if (!message) {
-      return new Response(JSON.stringify({ error: "Message is required" }), 
+      return new Response(JSON.stringify({ error: "Message is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (!Deno.env.get("ANTHROPIC_API_KEY")) {
       return new Response(JSON.stringify({ error: "AI service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Per-org rate limit gate (public guest chat is the highest-abuse surface)
+    const rateLimit = await checkAiRateLimit(organizationId, "public_guest_chat");
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, corsHeaders);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");

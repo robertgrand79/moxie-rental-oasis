@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Anthropic from "npm:@anthropic-ai/sdk@^0.40.1";
 import { CLAUDE_HAIKU, getAnthropicClient, extractText } from "../_shared/anthropicClient.ts";
+import { checkAiRateLimit, rateLimitResponse } from "../_shared/aiRateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,6 +38,11 @@ serve(async (req) => {
         JSON.stringify({ error: "Organization ID is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    const rateLimit = await checkAiRateLimit(organizationId, "admin_content_gen");
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, corsHeaders);
     }
 
     if (!Deno.env.get("ANTHROPIC_API_KEY")) {
