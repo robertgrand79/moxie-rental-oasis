@@ -880,7 +880,6 @@ serve(async (req) => {
           { type: 'text', text: fullSystem, cache_control: { type: 'ephemeral' } },
         ],
         tools: availableTools.length > 0 ? availableTools : undefined,
-        thinking: { type: 'adaptive' },
         messages: claudeMessages,
       });
     } catch (error) {
@@ -890,8 +889,9 @@ serve(async (req) => {
       }
       if (error instanceof Anthropic.APIError) {
         console.error('Anthropic API error:', error.status, error.message);
-        return new Response(JSON.stringify({ error: "Failed to get AI response" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({
+          error: `AI request failed (${error.status}): ${error.message}`,
+        }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       throw error;
     }
@@ -926,7 +926,6 @@ serve(async (req) => {
               { type: 'text', text: fullSystem, cache_control: { type: 'ephemeral' } },
             ],
             tools: availableTools,
-            thinking: { type: 'adaptive' },
             messages: [
               ...claudeMessages,
               { role: 'assistant', content: firstResponse.content },

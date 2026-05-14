@@ -130,7 +130,7 @@ The colors should work for a professional vacation rental website.`,
       }
       if (error instanceof Anthropic.APIError) {
         console.error("Anthropic API error:", error.status, error.message);
-        throw new Error(`AI service error: ${error.status}`);
+        throw new Error(`AI service error (${error.status}): ${error.message}`);
       }
       throw error;
     }
