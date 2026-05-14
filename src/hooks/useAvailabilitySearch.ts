@@ -12,32 +12,20 @@ interface PropertiesAvailabilityResult {
   unavailablePropertyIds: string[];
 }
 
+type BlockedRange = { property_id: string; blocked_start: string; blocked_end: string };
+
 export const useAvailabilitySearch = (params: AvailabilityParams, enabled: boolean = true) => {
-  type Block = { start_date: string; end_date: string; source_platform?: string };
-  return useQuery<{ isAvailable: boolean; conflicts: Block[]}>({
+  return useQuery<{ isAvailable: boolean; conflicts: BlockedRange[] }>({
     queryKey: ['property-availability', params.propertyId, params.checkInDate, params.checkOutDate],
-    queryFn: async (): Promise<{ isAvailable: boolean; conflicts: Block[] }> => {
-      const { data, error } = await (supabase as any)
-        .from('availability_blocks')
-        .select('start_date, end_date, source_platform')
-        .eq('property_id', params.propertyId)
-        .eq('block_type', 'booked');
-
-      if (error) throw error;
-
-      const checkIn = new Date(params.checkInDate);
-      const checkOut = new Date(params.checkOutDate);
-
-      const conflicts: Block[] = (data || []).filter((block: Block) => {
-        const blockStart = new Date(block.start_date);
-        const blockEnd = new Date(block.end_date);
-        return (
-          (blockStart >= checkIn && blockStart < checkOut) ||
-          (blockEnd > checkIn && blockEnd <= checkOut) ||
-          (blockStart <= checkIn && blockEnd >= checkOut)
-        );
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_blocked_dates', {
+        p_property_ids: [params.propertyId],
+        p_start_date: params.checkInDate,
+        p_end_date: params.checkOutDate,
       });
 
+      if (error) throw error;
+      const conflicts = (data ?? []) as BlockedRange[];
       return { isAvailable: conflicts.length === 0, conflicts };
     },
     enabled: enabled && !!params.propertyId && !!params.checkInDate && !!params.checkOutDate,
@@ -48,40 +36,30 @@ export const useAvailabilitySearch = (params: AvailabilityParams, enabled: boole
 export const usePropertiesAvailability = (checkInDate: string, checkOutDate: string, enabled = true) => {
   return useQuery<PropertiesAvailabilityResult>({
     queryKey: ['properties-availability', checkInDate, checkOutDate],
-    queryFn: async (): Promise<PropertiesAvailabilityResult> => {
+    queryFn: async () => {
       const propertiesResponse = await (supabase as any)
         .from('properties')
         .select('id, title');
 
       if (propertiesResponse.error) throw propertiesResponse.error;
-
-      const blocksResponse = await (supabase as any)
-        .from('availability_blocks')
-        .select('property_id, start_date, end_date')
-        .eq('block_type', 'booked');
-
-      if (blocksResponse.error) throw blocksResponse.error;
-
       const properties = (propertiesResponse.data || []) as Array<{ id: string; title: string }>;
-      const blocks = (blocksResponse.data || []) as Array<{ property_id: string; start_date: string; end_date: string }>;
 
-      const checkIn = new Date(checkInDate);
-      const checkOut = new Date(checkOutDate);
+      if (properties.length === 0) {
+        return { availableProperties: [], unavailablePropertyIds: [] };
+      }
 
-      const unavailableIds = new Set<string>();
-      
-      blocks.forEach(block => {
-        const blockStart = new Date(block.start_date);
-        const blockEnd = new Date(block.end_date);
-        if (
-          (blockStart >= checkIn && blockStart < checkOut) ||
-          (blockEnd > checkIn && blockEnd <= checkOut) ||
-          (blockStart <= checkIn && blockEnd >= checkOut)
-        ) {
-          unavailableIds.add(block.property_id);
-        }
+      const { data: blockedData, error: blockedError } = await (supabase as any).rpc('get_blocked_dates', {
+        p_property_ids: properties.map(p => p.id),
+        p_start_date: checkInDate,
+        p_end_date: checkOutDate,
       });
-      
+
+      if (blockedError) throw blockedError;
+
+      const unavailableIds = new Set<string>(
+        ((blockedData ?? []) as BlockedRange[]).map(b => b.property_id)
+      );
+
       return {
         availableProperties: properties.filter(p => !unavailableIds.has(p.id)),
         unavailablePropertyIds: Array.from(unavailableIds),
