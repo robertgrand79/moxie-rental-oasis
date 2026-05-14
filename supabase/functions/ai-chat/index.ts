@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Anthropic from "npm:@anthropic-ai/sdk@^0.40.1";
 import { CLAUDE_HAIKU, getAnthropicClient, extractText } from "../_shared/anthropicClient.ts";
+import { checkAiRateLimit, organizationIdFromAuth, rateLimitResponse } from "../_shared/aiRateLimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,9 +19,17 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversationHistory = [] } = await req.json();
+    const { message, conversationHistory = [], organizationId: bodyOrgId } = await req.json();
 
     console.log('Received chat request:', { message, historyLength: conversationHistory.length });
+
+    // Prefer JWT-derived org (can't be spoofed). Fall back to body for callers
+    // without a user session (e.g., TV interface paired by device, not user).
+    const orgId = (await organizationIdFromAuth(req)) ?? bodyOrgId ?? null;
+    const rateLimit = await checkAiRateLimit(orgId, "admin_assistant");
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, corsHeaders);
+    }
 
     const systemPrompt = `You are a helpful AI assistant for Moxie Travel, a vacation rental company in Eugene, Oregon. You help visitors with:
 
