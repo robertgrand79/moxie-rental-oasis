@@ -597,7 +597,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Get organization's OpenPhone API key
       const { data: orgSmsData } = await supabaseAdmin
         .from("organizations")
-        .select("openphone_api_key, openphone_phone_number, name")
+        .select("openphone_api_key, openphone_phone_number, name, slug, custom_domain")
         .eq("id", userProfile.organization_id)
         .single();
 
@@ -605,10 +605,20 @@ const handler = async (req: Request): Promise<Response> => {
       
       if (openPhoneApiKey) {
         // Build the web view URL
-        const baseUrl = Deno.env.get("SITE_URL");
-        if (!baseUrl) {
-          console.error("❌ SITE_URL is not configured — cannot build SMS newsletter links");
-          throw new Error("SITE_URL secret is not configured");
+        // Pick the most specific host for the web-view link, same order as invitation emails:
+        //   1. org.custom_domain  2. {slug}.staymoxie.com  3. SITE_URL secret
+        let baseUrl: string;
+        if (orgSmsData?.custom_domain) {
+          baseUrl = `https://${orgSmsData.custom_domain}`;
+        } else if (orgSmsData?.slug) {
+          baseUrl = `https://${orgSmsData.slug}.staymoxie.com`;
+        } else {
+          const siteUrl = Deno.env.get("SITE_URL");
+          if (!siteUrl) {
+            console.error("❌ SITE_URL is not configured and org has no slug/custom_domain — cannot build SMS newsletter links");
+            throw new Error("SITE_URL secret is not configured");
+          }
+          baseUrl = siteUrl;
         }
         const webViewUrl = `${baseUrl}/newsletter/${savedCampaignId}`;
         const orgName = orgSmsData?.name || siteName;
