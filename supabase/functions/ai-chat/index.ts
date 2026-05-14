@@ -1,12 +1,16 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+import Anthropic from "npm:@anthropic-ai/sdk@^0.40.1";
+import { CLAUDE_HAIKU, getAnthropicClient, extractText } from "../_shared/anthropicClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -34,50 +38,44 @@ Key information about Moxie Travel:
 
 Be friendly, helpful, and professional. If you don't know specific details about availability or pricing, direct users to contact Moxie Travel directly for the most current information.`;
 
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...conversationHistory,
-      { role: 'user', content: message }
+    const messages: Anthropic.MessageParam[] = [
+      ...conversationHistory.map((m: ChatMessage) => ({
+        role: m.role === 'assistant' ? 'assistant' as const : 'user' as const,
+        content: m.content,
+      })),
+      { role: 'user', content: message },
     ];
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: messages,
+    const anthropic = getAnthropicClient();
+
+    let response: Anthropic.Message;
+    try {
+      response = await anthropic.messages.create({
+        model: CLAUDE_HAIKU,
         max_tokens: 500,
-      }),
-    });
-
-    if (response.status === 429) {
-      console.error('Rate limit exceeded');
-      return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
-        status: 429,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        system: systemPrompt,
+        messages,
       });
+    } catch (error) {
+      if (error instanceof Anthropic.RateLimitError) {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (error instanceof Anthropic.APIError) {
+        console.error('Anthropic API error:', error.status, error.message);
+        return new Response(JSON.stringify({
+          error: `AI request failed (${error.status}): ${error.message}`,
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      throw error;
     }
 
-    if (response.status === 402) {
-      console.error('Payment required - AI credits exhausted');
-      return new Response(JSON.stringify({ error: 'AI credits exhausted. Please contact support.' }), {
-        status: 402,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
-
+    const aiResponse = extractText(response);
     console.log('AI response generated successfully');
 
     return new Response(JSON.stringify({ response: aiResponse }), {
@@ -85,7 +83,9 @@ Be friendly, helpful, and professional. If you don't know specific details about
     });
   } catch (error) {
     console.error('Error in ai-chat function:', error);
-    return new Response(JSON.stringify({ error: 'Failed to process chat request' }), {
+    return new Response(JSON.stringify({
+      error: error instanceof Error ? error.message : 'Failed to process chat request',
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

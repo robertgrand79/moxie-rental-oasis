@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { createAdminNotification, NOTIFICATION_TYPES, NOTIFICATION_CATEGORIES } from '../_shared/notifications.ts';
+import Anthropic from "npm:@anthropic-ai/sdk@^0.40.1";
+import { CLAUDE_HAIKU, getAnthropicClient, extractText } from "../_shared/anthropicClient.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -327,37 +329,19 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Detect language of incoming message using AI
     let detectedLanguage: string | null = null;
-    if (messageBody && messageBody.length > 10) {
+    if (messageBody && messageBody.length > 10 && Deno.env.get("ANTHROPIC_API_KEY")) {
       try {
-        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        if (LOVABLE_API_KEY) {
-          const langResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
-              messages: [
-                { 
-                  role: "system", 
-                  content: 'Detect the language of this text. Return ONLY the ISO 639-1 two-letter code (e.g., "en", "es", "fr", "de", "zh", "ja"). Nothing else.' 
-                },
-                { role: "user", content: messageBody }
-              ],
-              max_tokens: 10,
-            }),
-          });
-
-          if (langResponse.ok) {
-            const langData = await langResponse.json();
-            const langCode = langData.choices?.[0]?.message?.content?.trim().toLowerCase();
-            if (langCode && langCode.length === 2) {
-              detectedLanguage = langCode;
-              console.log("[QUO Webhook] Detected language:", detectedLanguage);
-            }
-          }
+        const anthropic = getAnthropicClient();
+        const langResponse = await anthropic.messages.create({
+          model: CLAUDE_HAIKU,
+          max_tokens: 10,
+          system: 'Detect the language of this text. Return ONLY the ISO 639-1 two-letter code (e.g., "en", "es", "fr", "de", "zh", "ja"). Nothing else.',
+          messages: [{ role: "user", content: messageBody }],
+        });
+        const langCode = extractText(langResponse).trim().toLowerCase();
+        if (langCode && langCode.length === 2) {
+          detectedLanguage = langCode;
+          console.log("[QUO Webhook] Detected language:", detectedLanguage);
         }
       } catch (langError) {
         console.error("[QUO Webhook] Language detection error:", langError);
