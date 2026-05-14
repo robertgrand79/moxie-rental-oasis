@@ -79,7 +79,7 @@ const QuickPromptsTab = () => {
       });
 
       if (error) throw error;
-      setResponse(data.aiResponse || 'Sorry, I could not generate a response.');
+      setResponse(data.response || 'Sorry, I could not generate a response.');
     } catch (error: any) {
       console.error('Prompt error:', error);
       toast({
