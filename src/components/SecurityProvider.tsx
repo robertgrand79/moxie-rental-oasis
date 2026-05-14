@@ -10,6 +10,7 @@ const isPreviewEnvironment = (): boolean => {
   const hostname = window.location.hostname;
   return (
     hostname.includes('lovable.app') ||
+    hostname.includes('vercel.app') ||
     hostname.includes('localhost') ||
     hostname.includes('127.0.0.1') ||
     !import.meta.env.PROD

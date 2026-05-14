@@ -103,9 +103,10 @@ export const useTenantDetection = (): TenantDetectionResult => {
       }
     }
     
-    // Check if it's a custom domain (not staymoxie.com, not Lovable, not localhost)
-    if (!hostname.includes('lovable.app') && 
-        !hostname.includes('localhost') && 
+    // Check if it's a custom domain (not staymoxie.com, not a Vercel/Lovable preview, not localhost)
+    if (!hostname.includes('lovable.app') &&
+        !hostname.includes('vercel.app') &&
+        !hostname.includes('localhost') &&
         !hostname.includes('127.0.0.1') &&
         hostname !== PLATFORM_DOMAIN &&
         hostname !== `www.${PLATFORM_DOMAIN}`) {

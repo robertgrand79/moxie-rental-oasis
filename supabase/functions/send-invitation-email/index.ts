@@ -81,13 +81,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     const inviterName = inviterProfile?.full_name || 'Admin';
 
-    // Create invitation URL using organization's custom domain or fallback
+    // Build the invitation URL using the most specific host available:
+    //   1. org.custom_domain  (org has set up its own domain)
+    //   2. {org.slug}.staymoxie.com  (org is on the platform subdomain — the default)
+    //   3. APP_BASE_URL  (platform-level invite with no org context)
     let baseUrl: string;
     if (org?.custom_domain) {
       baseUrl = `https://${org.custom_domain}`;
+    } else if (org?.slug) {
+      baseUrl = `https://${org.slug}.staymoxie.com`;
     } else {
-      // Fallback to APP_BASE_URL or construct from Lovable app URL
-      baseUrl = Deno.env.get('APP_BASE_URL') || 'https://moxie-system-99.lovable.app';
+      const appBaseUrl = Deno.env.get('APP_BASE_URL');
+      if (!appBaseUrl) {
+        console.error('❌ APP_BASE_URL is not configured and the org has no slug/custom_domain — cannot build invitation link');
+        throw new Error('APP_BASE_URL secret is not configured');
+      }
+      baseUrl = appBaseUrl;
     }
     
     const invitationUrl = `${baseUrl}/auth?invitation=${invitationToken}`;
