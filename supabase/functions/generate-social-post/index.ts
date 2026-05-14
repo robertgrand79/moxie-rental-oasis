@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Anthropic from "npm:@anthropic-ai/sdk@^0.40.1";
+import { CLAUDE_HAIKU, getAnthropicClient, extractText } from "../_shared/anthropicClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -131,9 +133,7 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
+    if (!Deno.env.get('ANTHROPIC_API_KEY')) {
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -172,48 +172,33 @@ Generate ONLY the post content, ready to copy and paste. No explanations or alte
 
     console.log('Generating social post for:', { contentType, platform });
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-      }),
-    });
-
-    if (response.status === 429) {
-      console.error('Rate limit exceeded');
-      return new Response(
-        JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const anthropic = getAnthropicClient();
+    let response: Anthropic.Message;
+    try {
+      response = await anthropic.messages.create({
+        model: CLAUDE_HAIKU,
+        max_tokens: 2000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      });
+    } catch (error) {
+      if (error instanceof Anthropic.RateLimitError) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (error instanceof Anthropic.APIError) {
+        console.error('Anthropic API error:', error.status, error.message);
+        return new Response(
+          JSON.stringify({ error: `AI request failed (${error.status}): ${error.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      throw error;
     }
 
-    if (response.status === 402) {
-      console.error('Payment required - AI credits exhausted');
-      return new Response(
-        JSON.stringify({ error: 'AI credits exhausted. Please contact support.' }),
-        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate content' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const data = await response.json();
-    const generatedPost = data.choices?.[0]?.message?.content || '';
+    const generatedPost = extractText(response);
 
     console.log('Successfully generated social post');
 

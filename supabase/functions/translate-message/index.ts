@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import Anthropic from "npm:@anthropic-ai/sdk@^0.40.1";
+import { CLAUDE_HAIKU, getAnthropicClient, extractText } from "../_shared/anthropicClient.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -56,8 +58,7 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
+    if (!Deno.env.get("ANTHROPIC_API_KEY")) {
       return new Response(
         JSON.stringify({ error: "AI service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -110,44 +111,33 @@ Return ONLY a JSON object with this exact format:
 
     console.log(`${detectOnly ? 'Detecting language' : `Translating to ${targetLanguage}`}...`);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
+    const anthropic = getAnthropicClient();
+    let response: Anthropic.Message;
+    try {
+      response = await anthropic.messages.create({
+        model: CLAUDE_HAIKU,
         max_tokens: 2000,
-      }),
-    });
-
-    if (response.status === 429) {
-      return new Response(
-        JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+      });
+    } catch (error) {
+      if (error instanceof Anthropic.RateLimitError) {
+        return new Response(
+          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (error instanceof Anthropic.APIError) {
+        console.error("Anthropic API error:", error.status, error.message);
+        return new Response(
+          JSON.stringify({ error: `AI request failed (${error.status}): ${error.message}` }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      throw error;
     }
 
-    if (response.status === 402) {
-      return new Response(
-        JSON.stringify({ error: "AI credits exhausted." }),
-        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI Gateway error:", response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
+    const content = extractText(response);
 
     // Parse JSON from response
     let result: any;
