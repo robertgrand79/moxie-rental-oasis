@@ -33,8 +33,8 @@ const SubdomainSetupHelper: React.FC<SubdomainSetupHelperProps> = ({
     toast.success('Subdomain copied to clipboard');
   };
 
-  const handleOpenLovableDomains = () => {
-    window.open(PLATFORM_CONFIG.LOVABLE_DOMAINS_URL, '_blank');
+  const handleOpenVercelDomains = () => {
+    window.open(PLATFORM_CONFIG.VERCEL_DOMAINS_URL, '_blank');
   };
 
   // If using custom domain, show simplified status
@@ -56,7 +56,7 @@ const SubdomainSetupHelper: React.FC<SubdomainSetupHelperProps> = ({
             {isSubdomainActive ? (
               <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50 dark:bg-green-950/30">
                 <CheckCircle2 className="h-3 w-3 mr-1" />
-                Lovable Registered
+                Subdomain Active
               </Badge>
             ) : (
               <Tooltip>
@@ -68,8 +68,8 @@ const SubdomainSetupHelper: React.FC<SubdomainSetupHelperProps> = ({
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs">
                   <p className="text-sm">
-                    Subdomain must be registered in Lovable project settings. 
-                    DNS is configured via wildcard, but Lovable requires explicit registration.
+                    Subdomain must be added in Vercel project settings.
+                    DNS is configured via wildcard, but Vercel requires explicit registration per subdomain.
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -79,7 +79,7 @@ const SubdomainSetupHelper: React.FC<SubdomainSetupHelperProps> = ({
             <Copy className="h-3.5 w-3.5" />
           </Button>
           {!isSubdomainActive && (
-            <Button variant="ghost" size="sm" onClick={handleOpenLovableDomains} className="h-7 px-2">
+            <Button variant="ghost" size="sm" onClick={handleOpenVercelDomains} className="h-7 px-2">
               <ExternalLink className="h-3.5 w-3.5" />
             </Button>
           )}
@@ -122,11 +122,11 @@ const SubdomainSetupHelper: React.FC<SubdomainSetupHelperProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" onClick={handleOpenLovableDomains}>
+              <Button variant="outline" size="sm" onClick={handleOpenVercelDomains}>
                 <ExternalLink className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Open Lovable Domains</TooltipContent>
+            <TooltipContent>Open Vercel Domains</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
@@ -134,11 +134,11 @@ const SubdomainSetupHelper: React.FC<SubdomainSetupHelperProps> = ({
       {!isSubdomainActive && (
         <div className="text-xs text-muted-foreground space-y-1">
           <p className="font-medium text-amber-600 dark:text-amber-400">
-            ⚠️ Subdomain requires Lovable registration
+            ⚠️ Subdomain requires Vercel registration
           </p>
           <ol className="list-decimal list-inside space-y-0.5 text-muted-foreground">
             <li>Copy the subdomain above</li>
-            <li>Click the link icon to open Lovable Domains</li>
+            <li>Click the link icon to open Vercel Domains</li>
             <li>Add the subdomain and wait for verification</li>
           </ol>
         </div>
