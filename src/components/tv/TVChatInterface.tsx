@@ -96,7 +96,7 @@ const TVChatInterface: React.FC<TVChatInterfaceProps> = ({ propertyId, organizat
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data?.reply || "I'm sorry, I couldn't process that request."
+        content: data?.response || "I'm sorry, I couldn't process that request."
       };
 
       setMessages(prev => [...prev, assistantMessage]);
