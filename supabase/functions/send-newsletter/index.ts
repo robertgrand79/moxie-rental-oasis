@@ -117,6 +117,26 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Subject and content cannot be empty");
     }
 
+    // Reject inline-base64 images and oversize content. A pasted/dropped screenshot
+    // shows up as `data:image/...;base64,...` inline in the HTML; multiplying that
+    // body across N subscribers blows past Resend's payload limit and exhausts
+    // the edge runtime's memory, so every send fails silently — exactly the case
+    // we hit on the May 2026 newsletter (2.6MB body, 0/194 delivered).
+    if (/data:image\/[a-z0-9+]+;base64/i.test(content)) {
+      throw new Error(
+        "Newsletter content contains an inline base64-encoded image. Email providers reject these. " +
+        "Upload the image (Insert image URL in the editor toolbar, or use the cover-image picker) and " +
+        "reference it by URL instead."
+      );
+    }
+    const CONTENT_BYTE_LIMIT = 500_000;
+    if (content.length > CONTENT_BYTE_LIMIT) {
+      throw new Error(
+        `Newsletter content is ${(content.length / 1024).toFixed(0)} KB, which exceeds the ${CONTENT_BYTE_LIMIT / 1000} KB cap. ` +
+        "Trim the body or move large images to hosted URLs."
+      );
+    }
+
     console.log("🔑 Fetching user's organization...");
     const { data: userProfile, error: profileOrgError } = await supabaseAdmin
       .from("profiles")
@@ -678,17 +698,38 @@ const handler = async (req: Request): Promise<Response> => {
     })
     .eq("id", savedCampaignId);
 
+  // If literally no emails went out, surface that as a failure to the UI.
+  // Previously success was hard-coded true, so the "🎉 Sent" toast fired even
+  // when 0/N succeeded — which is exactly how the May 2026 newsletter looked
+  // sent but never reached Resend.
+  const everyoneFailed = subscribers.length > 0 && successfulSends === 0;
+  // Try to surface a sample error from a fulfilled-but-failed promise so the
+  // user sees the actual Resend rejection reason in the toast.
+  let firstError: string | undefined;
+  if (everyoneFailed) {
+    for (const r of results) {
+      if (r.status === 'fulfilled' && !r.value.success && r.value.error) {
+        firstError = r.value.error;
+        break;
+      }
+    }
+  }
+
   return new Response(
     JSON.stringify({
-      success: true,
+      success: !everyoneFailed,
+      error: everyoneFailed
+        ? `Newsletter failed to send: 0 of ${subscribers.length} recipients delivered.${firstError ? ` First error: ${firstError}` : ''}`
+        : undefined,
       message: isTestSend
-        ? `Test newsletter sent successfully to ${successfulSends} test recipient(s)`
-        : `Newsletter sent successfully to ${successfulSends} subscribers`,
+        ? `Test newsletter sent to ${successfulSends} of ${subscribers.length} test recipient(s)`
+        : `Newsletter sent to ${successfulSends} of ${subscribers.length} subscribers`,
       campaignId: savedCampaignId,
       recipientCount: successfulSends,
       smsSentCount,
       smsFailedCount,
       isTestSend,
+      firstError,
       stats: {
         total: subscribers.length,
         successful: successfulSends,
@@ -698,7 +739,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }),
     {
-      status: 200,
+      status: everyoneFailed ? 502 : 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     }
   );
