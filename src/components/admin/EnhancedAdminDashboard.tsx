@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { useSimplifiedAnalytics } from '@/hooks/useSimplifiedAnalytics';
+import AdminAiUsageCard from './dashboard/AdminAiUsageCard';
 import AdminContentStatsGrid from './dashboard/AdminContentStatsGrid';
 import AdminRecentActivity from './dashboard/AdminRecentActivity';
 import DashboardSummaryBar from './dashboard/DashboardSummaryBar';
@@ -49,6 +50,9 @@ const EnhancedAdminDashboard = () => {
           <AdminContentStatsGrid stats={stats} />
         </div>
       )}
+
+      {/* AI Usage */}
+      <AdminAiUsageCard />
 
       {/* Recent Activity */}
       {stats && (
