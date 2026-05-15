@@ -86,8 +86,12 @@ jobs:
             [ -z "$fn" ] && continue
             echo "::group::Deploy $fn"
             if ! supabase functions deploy "$fn" --project-ref "$SUPABASE_PROJECT_REF"; then
-              echo "::error::Failed to deploy $fn"
-              FAILED+=("$fn")
+              echo "::warning::First attempt to deploy $fn failed — retrying once after 5s"
+              sleep 5
+              if ! supabase functions deploy "$fn" --project-ref "$SUPABASE_PROJECT_REF"; then
+                echo "::error::Failed to deploy $fn (after retry)"
+                FAILED+=("$fn")
+              fi
             fi
             echo "::endgroup::"
           done
