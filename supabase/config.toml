@@ -14,6 +14,17 @@ additional_redirect_urls = []
 jwt_expiry = 3600
 enable_signup = true
 
+# Require Cloudflare Turnstile on auth.signUp / auth.signInWithPassword.
+# The frontend (Auth.tsx + AccountDetailsStep.tsx) already renders the widget and
+# passes captchaToken; this block makes the Supabase backend reject any signup
+# attempt that arrives without a valid token. Mirror the same settings in the
+# Supabase dashboard (Authentication → CAPTCHA Protection) for the remote project
+# and set SUPABASE_AUTH_CAPTCHA_SECRET to the Turnstile secret key.
+[auth.captcha]
+enabled = true
+provider = "turnstile"
+secret = "env(SUPABASE_AUTH_CAPTCHA_SECRET)"
+
 [db]
 port = 54322
 shadow_port = 54320

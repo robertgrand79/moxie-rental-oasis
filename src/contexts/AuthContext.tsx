@@ -24,7 +24,7 @@ interface AuthContextType {
   roleLoading: boolean;
   userRole: string | null;
   isAdmin: boolean;
-  signUp: (email: string, password: string, fullName: string, phone?: string, extraMetadata?: Record<string, unknown>) => Promise<AuthResult>;
+  signUp: (email: string, password: string, fullName: string, phone?: string, extraMetadata?: Record<string, unknown>, captchaToken?: string) => Promise<AuthResult>;
   signIn: (email: string, password: string) => Promise<AuthResult>;
   signOut: () => Promise<AuthResult>;
   resetPassword: (email: string) => Promise<AuthResult>;
@@ -228,7 +228,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string, extraMetadata?: Record<string, unknown>) => {
+  const signUp = async (email: string, password: string, fullName: string, phone?: string, extraMetadata?: Record<string, unknown>, captchaToken?: string) => {
     debug.auth('Attempting sign up for:', email);
 
     try {
@@ -244,6 +244,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
         options: {
           emailRedirectTo: redirectUrl,
+          captchaToken,
           data: {
             full_name: fullName,
             phone: phone || null,

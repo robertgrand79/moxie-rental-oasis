@@ -5,13 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  ArrowLeft, 
-  ArrowRight, 
-  CheckCircle2, 
-  Loader2, 
+import TurnstileWidget from '@/components/security/TurnstileWidget';
+import { toast } from '@/hooks/use-toast';
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Loader2,
   Pencil
 } from 'lucide-react';
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
 // Interface matching site_templates table
 export interface SiteTemplate {
@@ -38,7 +42,7 @@ interface SignupData {
 interface AccountDetailsStepProps {
   selectedTemplate: SiteTemplate;
   onBack: () => void;
-  onSubmit: (data: { signupData: SignupData }) => void;
+  onSubmit: (data: { signupData: SignupData; captchaToken: string | null }) => void;
   isLoading: boolean;
 }
 
@@ -54,16 +58,25 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({
   isLoading,
 }) => {
   // Personal info only - org details collected post-verification
-  const [signupData, setSignupData] = useState<SignupData>({ 
-    email: '', 
-    password: '', 
-    fullName: '', 
-    phone: '' 
+  const [signupData, setSignupData] = useState<SignupData>({
+    email: '',
+    password: '',
+    fullName: '',
+    phone: ''
   });
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ signupData });
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      toast({
+        title: 'Verification required',
+        description: 'Please complete the human verification challenge before creating an account.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    onSubmit({ signupData, captchaToken });
   };
 
   return (
@@ -163,12 +176,24 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({
           </div>
         </div>
 
+        {TURNSTILE_SITE_KEY && (
+          <div className="flex justify-center pt-2">
+            <TurnstileWidget
+              siteKey={TURNSTILE_SITE_KEY}
+              onVerify={setCaptchaToken}
+              onExpire={() => setCaptchaToken(null)}
+              onError={() => setCaptchaToken(null)}
+              theme="auto"
+            />
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="flex flex-col gap-3 pt-2">
-          <Button 
-            type="submit" 
-            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white h-12 text-base" 
-            disabled={isLoading}
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white h-12 text-base"
+            disabled={isLoading || (Boolean(TURNSTILE_SITE_KEY) && !captchaToken)}
           >
             {isLoading ? (
               <>

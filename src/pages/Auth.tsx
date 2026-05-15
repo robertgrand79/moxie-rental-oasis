@@ -20,12 +20,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { AlertTriangle, RefreshCw, Loader2, Mail } from 'lucide-react';
 import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator';
+import TurnstileWidget from '@/components/security/TurnstileWidget';
 import { signupSchema, loginSchema, calculatePasswordStrength } from '@/utils/passwordValidation';
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '', phone: '' });
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
@@ -147,10 +151,26 @@ const Auth = () => {
       return;
     }
 
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      toast({
+        title: 'Verification required',
+        description: 'Please complete the human verification challenge before creating an account.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const { error } = await signUp(signupData.email, signupData.password, signupData.fullName, signupData.phone || undefined);
+      const { error } = await signUp(
+        signupData.email,
+        signupData.password,
+        signupData.fullName,
+        signupData.phone || undefined,
+        undefined,
+        captchaToken ?? undefined,
+      );
       
       if (error) {
         let errorMessage = error.message;
@@ -403,10 +423,25 @@ const Auth = () => {
                       For SMS notifications
                     </p>
                   </div>
+                  {TURNSTILE_SITE_KEY && (
+                    <div className="flex justify-center">
+                      <TurnstileWidget
+                        siteKey={TURNSTILE_SITE_KEY}
+                        onVerify={setCaptchaToken}
+                        onExpire={() => setCaptchaToken(null)}
+                        onError={() => setCaptchaToken(null)}
+                        theme="auto"
+                      />
+                    </div>
+                  )}
                   <Button
-                    type="submit" 
-                    className="w-full h-11" 
-                    disabled={isLoading || (!databaseStatus.isConnected && !databaseStatus.isChecking)}
+                    type="submit"
+                    className="w-full h-11"
+                    disabled={
+                      isLoading ||
+                      (!databaseStatus.isConnected && !databaseStatus.isChecking) ||
+                      (Boolean(TURNSTILE_SITE_KEY) && !captchaToken)
+                    }
                   >
                     {isLoading ? (
                       <>

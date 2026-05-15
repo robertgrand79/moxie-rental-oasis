@@ -113,6 +113,7 @@ const PlatformSignup: React.FC = () => {
 
   const handleSignup = async (data: {
     signupData: { email: string; password: string; fullName: string; phone: string };
+    captchaToken: string | null;
   }) => {
     if (!selectedTemplate) return;
 
@@ -141,7 +142,8 @@ const PlatformSignup: React.FC = () => {
           pending_plan_type: templateType,
           pending_pricing_tier_id: selectedTemplate.id,
           pending_billing_interval: isYearlyBilling ? 'annual' : 'monthly',
-        }
+        },
+        data.captchaToken ?? undefined,
       );
 
       if (error) {
