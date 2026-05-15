@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import { debug } from '@/utils/debug';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
@@ -67,6 +69,56 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
   className = ""
 }) => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const { toast } = useToast();
+  // Ref so handlePaste/handleDrop closures (built during useEditor init, before
+  // `editor` is assigned) can reach the live editor instance after upload finishes.
+  const editorRef = useRef<Editor | null>(null);
+
+  // Upload an in-memory image File to the same bucket the cover-image picker uses,
+  // returning a public URL. Used by paste/drop interception to keep newsletter
+  // bodies free of giant inline base64 data URLs (which Resend rejects).
+  const uploadInlineImage = async (file: File): Promise<string | null> => {
+    if (!file.type.startsWith('image/')) return null;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Image too large',
+        description: 'Inline images must be under 5 MB. Resize and try again.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+    const ext = (file.name.split('.').pop() || file.type.split('/')[1] || 'png').toLowerCase();
+    const fileName = `newsletter-inline-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from('hero-images')
+      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+    if (error) {
+      toast({
+        title: 'Image upload failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return null;
+    }
+    const { data: { publicUrl } } = supabase.storage.from('hero-images').getPublicUrl(data.path);
+    return publicUrl;
+  };
+
+  const insertUploadedImage = (url: string) => {
+    editorRef.current?.chain().focus().setImage({ src: url }).run();
+  };
+
+  const handleImageFiles = (files: File[]) => {
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) return false;
+    toast({
+      title: imageFiles.length === 1 ? 'Uploading image...' : `Uploading ${imageFiles.length} images...`,
+    });
+    void Promise.all(imageFiles.map(uploadInlineImage)).then(urls => {
+      urls.filter((u): u is string => !!u).forEach(insertUploadedImage);
+    });
+    return true;
+  };
 
   const editor = useEditor({
     extensions: [
@@ -119,8 +171,45 @@ const TipTapNewsletterEditor: React.FC<TipTapNewsletterEditorProps> = ({
       attributes: {
         class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[300px] p-4',
       },
+      handlePaste: (_view, event) => {
+        const files = Array.from(event.clipboardData?.files ?? []);
+        if (files.length > 0 && handleImageFiles(files)) {
+          event.preventDefault();
+          return true;
+        }
+        return false;
+      },
+      handleDrop: (_view, event, _slice, moved) => {
+        if (moved) return false;
+        const dt = (event as DragEvent).dataTransfer;
+        const files = Array.from(dt?.files ?? []);
+        if (files.length > 0 && handleImageFiles(files)) {
+          event.preventDefault();
+          return true;
+        }
+        return false;
+      },
+      // Belt-and-suspenders: if HTML carrying inline base64 images still slips
+      // through (e.g. paste from a doc that smuggles the image as a data URL
+      // instead of as a File), strip those <img> tags so the body never ends
+      // up oversize. We toast so the user knows to drag the original image in.
+      transformPastedHTML: (html) => {
+        if (/<img[^>]+src=["']data:image[^"']+["']/i.test(html)) {
+          toast({
+            title: 'Inline image removed from paste',
+            description: 'Drag-and-drop the original image instead — pasted base64 images break email delivery.',
+            variant: 'destructive',
+          });
+          return html.replace(/<img[^>]+src=["']data:image[^"']+["'][^>]*>/gi, '');
+        }
+        return html;
+      },
     },
   });
+
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor]);
 
   if (!editor) {
     return null;
