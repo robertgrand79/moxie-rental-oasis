@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Eye, Edit, Trash2, MoreVertical, Copy, Users, Calendar, Files } from 'lucide-react';
+import { Mail, Eye, Edit, Trash2, MoreVertical, Copy, Users, Calendar, Files, X, RotateCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +28,7 @@ import NewsletterPreviewModal from './NewsletterPreviewModal';
 import NewsletterDeleteModal from './NewsletterDeleteModal';
 import { NewsletterCampaign, NewsletterListViewProps } from './types';
 
-const NewslettersListView = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateNew, onView, deleting, duplicating }: NewsletterListViewProps) => {
+const NewslettersListView = ({ newsletters, onEdit, onDelete, onDuplicate, onCancelSchedule, onRetry, onCreateNew, onView, deleting, duplicating }: NewsletterListViewProps) => {
   const [previewNewsletter, setPreviewNewsletter] = useState<NewsletterCampaign | null>(null);
   const [deleteNewsletter, setDeleteNewsletter] = useState<NewsletterCampaign | null>(null);
 
@@ -60,8 +60,17 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onDuplicate, onCre
     });
   };
 
-  const getStatusColor = (isSent: boolean) => {
-    return isSent ? 'bg-green-500' : 'bg-yellow-500';
+  const getStatus = (n: NewsletterCampaign): 'sent' | 'scheduled' | 'failed' | 'draft' => {
+    if (n.sent_at) return 'sent';
+    if (n.scheduled_at && new Date(n.scheduled_at).getTime() > Date.now()) return 'scheduled';
+    if (n.send_failure_reason && !n.scheduled_at) return 'failed';
+    return 'draft';
+  };
+  const getStatusColor = (status: 'sent' | 'scheduled' | 'failed' | 'draft') => {
+    if (status === 'sent') return 'bg-green-500';
+    if (status === 'scheduled') return 'bg-blue-500';
+    if (status === 'failed') return 'bg-red-500';
+    return 'bg-yellow-500';
   };
 
   if (newsletters.length === 0) {
@@ -97,13 +106,16 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onDuplicate, onCre
           </TableHeader>
           <TableBody>
             {newsletters.map((newsletter) => {
-              const isSent = !!newsletter.sent_at;
-              
+              const status = getStatus(newsletter);
+              const isSent = status === 'sent';
+              const isScheduled = status === 'scheduled';
+              const isFailed = status === 'failed';
+
               return (
                 <TableRow key={newsletter.id}>
                   {/* Status Indicator */}
                   <TableCell className="w-2 p-0">
-                    <div className={`w-1 h-full min-h-[60px] ${getStatusColor(isSent)}`} />
+                    <div className={`w-1 h-full min-h-[60px] ${getStatusColor(status)}`} />
                   </TableCell>
                   
                   {/* Cover Image */}
@@ -133,12 +145,22 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onDuplicate, onCre
                   
                   {/* Status Badge */}
                   <TableCell>
-                    <Badge 
-                      variant={isSent ? "default" : "secondary"}
-                      className={isSent ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"}
+                    <Badge
+                      variant="default"
+                      className={
+                        isSent ? "bg-green-100 text-green-800 hover:bg-green-100"
+                        : isScheduled ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                        : isFailed ? "bg-red-100 text-red-800 hover:bg-red-100"
+                        : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                      }
                     >
-                      {isSent ? "Sent" : "Draft"}
+                      {isSent ? "Sent" : isScheduled ? "Scheduled" : isFailed ? "Failed" : "Draft"}
                     </Badge>
+                    {isFailed && newsletter.send_failure_reason && (
+                      <p className="text-xs text-red-700 mt-1 max-w-[260px] truncate" title={newsletter.send_failure_reason}>
+                        {newsletter.send_failure_reason}
+                      </p>
+                    )}
                   </TableCell>
                   
                   {/* Recipients */}
@@ -198,7 +220,7 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onDuplicate, onCre
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-popover">
+                        <DropdownMenuContent align="end" className="w-52 bg-popover">
                           <DropdownMenuItem onSelect={() => handleView(newsletter)}>
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
@@ -207,6 +229,18 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onDuplicate, onCre
                             <DropdownMenuItem onSelect={() => onEdit(newsletter)}>
                               <Edit className="h-4 w-4 mr-2" />
                               Edit
+                            </DropdownMenuItem>
+                          )}
+                          {isScheduled && onCancelSchedule && (
+                            <DropdownMenuItem onSelect={() => onCancelSchedule(newsletter)}>
+                              <X className="h-4 w-4 mr-2" />
+                              Cancel Schedule
+                            </DropdownMenuItem>
+                          )}
+                          {isFailed && onRetry && (
+                            <DropdownMenuItem onSelect={() => onRetry(newsletter)}>
+                              <RotateCw className="h-4 w-4 mr-2" />
+                              Retry Send
                             </DropdownMenuItem>
                           )}
                           {onDuplicate && (

@@ -13,6 +13,9 @@ export interface NewsletterCampaign {
   updated_at: string;
   open_rate?: number | null;
   click_rate?: number | null;
+  send_attempts?: number | null;
+  last_attempt_at?: string | null;
+  send_failure_reason?: string | null;
 }
 
 // Props interfaces for newsletter components
@@ -21,6 +24,8 @@ export interface NewsletterGridProps {
   onEdit: (newsletter: NewsletterCampaign) => void;
   onDelete: (id: string) => void;
   onDuplicate?: (newsletter: NewsletterCampaign) => void;
+  onCancelSchedule?: (newsletter: NewsletterCampaign) => void;
+  onRetry?: (newsletter: NewsletterCampaign) => void;
   onCreateNew: () => void;
   onView?: (newsletter: NewsletterCampaign) => void;
   deleting: string | null;

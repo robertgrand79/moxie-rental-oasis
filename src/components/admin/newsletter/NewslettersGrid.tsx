@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Eye, Edit, Trash2, Users, Calendar, Send, MoreVertical, Copy, Files } from 'lucide-react';
+import { Mail, Eye, Edit, Trash2, Users, Calendar, Send, MoreVertical, Copy, Files, X, RotateCw, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ import NewsletterPreviewModal from './NewsletterPreviewModal';
 import NewsletterDeleteModal from './NewsletterDeleteModal';
 import { NewsletterCampaign, NewsletterGridProps } from './types';
 
-const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateNew, onView, deleting, duplicating }: NewsletterGridProps) => {
+const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCancelSchedule, onRetry, onCreateNew, onView, deleting, duplicating }: NewsletterGridProps) => {
   const [previewNewsletter, setPreviewNewsletter] = useState<NewsletterCampaign | null>(null);
   const [deleteNewsletter, setDeleteNewsletter] = useState<NewsletterCampaign | null>(null);
 
@@ -60,18 +60,21 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateN
       : textContent;
   };
 
-  // Three status colors: sent (green), scheduled (blue), draft (yellow).
-  // Scheduled rows are conceptually drafts with a future scheduled_at — we
-  // distinguish them visually so admins can tell at a glance whether a row
-  // is "in flight" vs. genuinely abandoned in draft state.
-  const getStatusColor = (status: 'sent' | 'scheduled' | 'draft') => {
+  // Four status colors: sent (green), scheduled (blue), failed (red), draft (yellow).
+  // A campaign with send_failure_reason set and no scheduled_at means the cron
+  // worker tried MAX_ATTEMPTS times and gave up — we surface that as a Failed
+  // terminal state with a Retry action, rather than leaving it indefinitely
+  // listed as "Draft" with mysterious failure context buried in the DB.
+  const getStatusColor = (status: 'sent' | 'scheduled' | 'failed' | 'draft') => {
     if (status === 'sent') return 'bg-green-500';
     if (status === 'scheduled') return 'bg-blue-500';
+    if (status === 'failed') return 'bg-red-500';
     return 'bg-yellow-500';
   };
-  const getStatus = (n: NewsletterCampaign): 'sent' | 'scheduled' | 'draft' => {
+  const getStatus = (n: NewsletterCampaign): 'sent' | 'scheduled' | 'failed' | 'draft' => {
     if (n.sent_at) return 'sent';
     if (n.scheduled_at && new Date(n.scheduled_at).getTime() > Date.now()) return 'scheduled';
+    if (n.send_failure_reason && !n.scheduled_at) return 'failed';
     return 'draft';
   };
 
@@ -98,11 +101,14 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateN
           const status = getStatus(newsletter);
           const isSent = status === 'sent';
           const isScheduled = status === 'scheduled';
-          const statusLabel = isSent ? 'Sent' : isScheduled ? 'Scheduled' : 'Draft';
+          const isFailed = status === 'failed';
+          const statusLabel = isSent ? 'Sent' : isScheduled ? 'Scheduled' : isFailed ? 'Failed' : 'Draft';
           const statusBadgeClass = isSent
             ? 'bg-green-100 text-green-800 hover:bg-green-100'
             : isScheduled
             ? 'bg-blue-100 text-blue-800 hover:bg-blue-100'
+            : isFailed
+            ? 'bg-red-100 text-red-800 hover:bg-red-100'
             : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100';
 
           return (
@@ -157,6 +163,13 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateN
                 <CardDescription className="line-clamp-2 mb-3">
                   {truncateContent(newsletter.content)}
                 </CardDescription>
+
+                {isFailed && newsletter.send_failure_reason && (
+                  <div className="flex items-start gap-1.5 text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1.5 mb-3">
+                    <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                    <span className="line-clamp-2">{newsletter.send_failure_reason}</span>
+                  </div>
+                )}
 
                 {/* Meta Info */}
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -217,7 +230,7 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateN
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 bg-popover">
+                    <DropdownMenuContent align="end" className="w-52 bg-popover">
                       <DropdownMenuItem onSelect={() => handleView(newsletter)}>
                         <Eye className="h-4 w-4 mr-2" />
                         View Details
@@ -226,6 +239,18 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateN
                         <DropdownMenuItem onSelect={() => onEdit(newsletter)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
+                        </DropdownMenuItem>
+                      )}
+                      {isScheduled && onCancelSchedule && (
+                        <DropdownMenuItem onSelect={() => onCancelSchedule(newsletter)}>
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel Schedule
+                        </DropdownMenuItem>
+                      )}
+                      {isFailed && onRetry && (
+                        <DropdownMenuItem onSelect={() => onRetry(newsletter)}>
+                          <RotateCw className="h-4 w-4 mr-2" />
+                          Retry Send
                         </DropdownMenuItem>
                       )}
                       {onDuplicate && (

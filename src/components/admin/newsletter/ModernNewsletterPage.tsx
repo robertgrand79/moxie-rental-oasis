@@ -10,7 +10,8 @@ import {
   Users, 
   Search,
   TrendingUp,
-  Settings
+  Settings,
+  ShieldOff
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ import NewsletterSubscribersDrawer from './dialogs/NewsletterSubscribersDrawer';
 import NewsletterAnalyticsDrawer from './dialogs/NewsletterAnalyticsDrawer';
 import NewsletterSettingsDrawer from './dialogs/NewsletterSettingsDrawer';
 import NewsletterEditorDrawer from './dialogs/NewsletterEditorDrawer';
+import NewsletterSuppressionDrawer from './dialogs/NewsletterSuppressionDrawer';
 import { useNewsletterCampaigns } from '@/hooks/useNewsletterCampaigns';
 import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 import { NewsletterCampaign } from './types';
@@ -47,9 +49,10 @@ const ModernNewsletterPage = () => {
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [suppressionOpen, setSuppressionOpen] = useState(false);
   const [editingNewsletter, setEditingNewsletter] = useState<NewsletterCampaign | null>(null);
 
-  const { campaigns, loading, deleting, duplicating, deleteCampaign, duplicateCampaign, refetch } = useNewsletterCampaigns();
+  const { campaigns, loading, deleting, duplicating, deleteCampaign, duplicateCampaign, cancelSchedule, retrySchedule, refetch } = useNewsletterCampaigns();
   const { subscriberCount } = useNewsletterStats();
 
   // Listen for reset event
@@ -127,6 +130,16 @@ const ModernNewsletterPage = () => {
     }
   }, [duplicateCampaign]);
 
+  const handleCancelSchedule = useCallback((newsletter: NewsletterCampaign) => {
+    if (confirm(`Cancel scheduled send for "${newsletter.subject}"? The campaign will be saved as a draft.`)) {
+      void cancelSchedule(newsletter.id);
+    }
+  }, [cancelSchedule]);
+
+  const handleRetry = useCallback((newsletter: NewsletterCampaign) => {
+    void retrySchedule(newsletter.id);
+  }, [retrySchedule]);
+
   return (
     <div className="space-y-6">
       {/* Modern Header */}
@@ -191,8 +204,23 @@ const ModernNewsletterPage = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setSuppressionOpen(true)}
+                  >
+                    <ShieldOff className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Suppressions</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
                     size="icon"
                     onClick={() => setSettingsOpen(true)}
                   >
@@ -277,6 +305,8 @@ const ModernNewsletterPage = () => {
           onEdit={handleEdit}
           onDelete={deleteCampaign}
           onDuplicate={handleDuplicate}
+          onCancelSchedule={handleCancelSchedule}
+          onRetry={handleRetry}
           onCreateNew={handleCreateNew}
           deleting={deleting}
           duplicating={duplicating}
@@ -287,6 +317,8 @@ const ModernNewsletterPage = () => {
           onEdit={handleEdit}
           onDelete={deleteCampaign}
           onDuplicate={handleDuplicate}
+          onCancelSchedule={handleCancelSchedule}
+          onRetry={handleRetry}
           onCreateNew={handleCreateNew}
           deleting={deleting}
           duplicating={duplicating}
@@ -306,11 +338,15 @@ const ModernNewsletterPage = () => {
         open={settingsOpen} 
         onOpenChange={setSettingsOpen} 
       />
-      <NewsletterEditorDrawer 
-        open={editorOpen} 
+      <NewsletterEditorDrawer
+        open={editorOpen}
         onOpenChange={setEditorOpen}
         newsletter={editingNewsletter}
         onClose={handleEditorClose}
+      />
+      <NewsletterSuppressionDrawer
+        open={suppressionOpen}
+        onOpenChange={setSuppressionOpen}
       />
     </div>
   );
