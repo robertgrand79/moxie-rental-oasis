@@ -170,6 +170,61 @@ export const useNewsletterCampaigns = () => {
     }
   };
 
+  // Demote a scheduled (or terminally-failed) campaign back to a plain draft.
+  // Clears scheduled_at, resets the retry counter, and clears the failure
+  // reason so the cron worker won't pick it up. The campaign content itself
+  // is untouched, so admins can edit and re-send/re-schedule from there.
+  const cancelSchedule = async (campaignId: string) => {
+    if (!organization?.id) return false;
+    const { error } = await supabase
+      .from('newsletter_campaigns')
+      .update({
+        scheduled_at: null,
+        send_attempts: 0,
+        send_failure_reason: null,
+        last_attempt_at: null,
+      } as any)
+      .eq('id', campaignId)
+      .eq('organization_id', organization.id);
+    if (error) {
+      toast({ title: 'Cancel failed', description: error.message, variant: 'destructive' });
+      return false;
+    }
+    setCampaigns(prev => prev.map(c =>
+      c.id === campaignId
+        ? ({ ...c, scheduled_at: null, send_attempts: 0, send_failure_reason: null } as any)
+        : c
+    ));
+    toast({ title: 'Schedule cancelled', description: 'Campaign moved back to Draft.' });
+    return true;
+  };
+
+  // Retry a campaign that hit the max-attempts ceiling. Resets attempts and
+  // re-arms scheduled_at to "now" so the next cron tick picks it up.
+  const retrySchedule = async (campaignId: string) => {
+    if (!organization?.id) return false;
+    const { error } = await supabase
+      .from('newsletter_campaigns')
+      .update({
+        scheduled_at: new Date().toISOString(),
+        send_attempts: 0,
+        send_failure_reason: null,
+      } as any)
+      .eq('id', campaignId)
+      .eq('organization_id', organization.id);
+    if (error) {
+      toast({ title: 'Retry failed', description: error.message, variant: 'destructive' });
+      return false;
+    }
+    setCampaigns(prev => prev.map(c =>
+      c.id === campaignId
+        ? ({ ...c, scheduled_at: new Date().toISOString(), send_attempts: 0, send_failure_reason: null } as any)
+        : c
+    ));
+    toast({ title: 'Retry queued', description: 'Will dispatch within 5 minutes.' });
+    return true;
+  };
+
   useEffect(() => {
     fetchCampaigns();
   }, [organization?.id]);
@@ -185,5 +240,7 @@ export const useNewsletterCampaigns = () => {
     deleteCampaign,
     editCampaign,
     duplicateCampaign,
+    cancelSchedule,
+    retrySchedule,
   };
 };

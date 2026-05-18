@@ -37,13 +37,15 @@ const handler = async (req: Request): Promise<Response> => {
     // Pull every campaign whose scheduled_at has passed and hasn't been sent
     // yet. The (scheduled_at IS NOT NULL AND sent_at IS NULL) predicate is
     // indexed via idx_newsletter_campaigns_due so this stays cheap.
+    const MAX_ATTEMPTS = 5;
     const nowIso = new Date().toISOString();
     const { data: due, error } = await supabase
       .from("newsletter_campaigns")
-      .select("id, organization_id, subject, content, cover_image_url, linked_content, scheduled_at")
+      .select("id, organization_id, subject, content, cover_image_url, linked_content, scheduled_at, send_attempts")
       .is("sent_at", null)
       .not("scheduled_at", "is", null)
       .lte("scheduled_at", nowIso)
+      .lt("send_attempts", MAX_ATTEMPTS)
       .order("scheduled_at", { ascending: true })
       .limit(50);
 
@@ -68,6 +70,9 @@ const handler = async (req: Request): Promise<Response> => {
     const results: Array<{ id: string; status: "sent" | "failed"; detail?: string }> = [];
 
     for (const campaign of due) {
+      const attempt = (campaign.send_attempts ?? 0) + 1;
+      const isFinalAttempt = attempt >= MAX_ATTEMPTS;
+
       try {
         const response = await fetch(`${supabaseUrl}/functions/v1/send-newsletter`, {
           method: "POST",
@@ -86,18 +91,55 @@ const handler = async (req: Request): Promise<Response> => {
           }),
         });
         const payload = await response.json().catch(() => ({}));
+
         if (!response.ok) {
-          console.error(`❌ Campaign ${campaign.id} failed (${response.status}):`, payload);
-          results.push({ id: campaign.id, status: "failed", detail: payload?.error || `HTTP ${response.status}` });
-          // Don't clear scheduled_at on failure — let the next cron tick retry
-          // if the failure was transient. Persistent failures will keep retrying
-          // and eventually need admin intervention; for now that's fine.
+          const failureReason = payload?.error || `HTTP ${response.status}`;
+          console.error(`❌ Campaign ${campaign.id} attempt ${attempt}/${MAX_ATTEMPTS} failed:`, failureReason);
+
+          // Stamp the attempt counter so the WHERE clause stops returning this
+          // row once we hit MAX_ATTEMPTS. On the final attempt also clear
+          // scheduled_at so the campaign moves out of the Scheduled state and
+          // into a "Failed" terminal state (sent_at NULL, scheduled_at NULL,
+          // send_failure_reason set, send_attempts=MAX). The UI surfaces that
+          // as a red badge with a Retry action.
+          await supabase
+            .from("newsletter_campaigns")
+            .update({
+              send_attempts: attempt,
+              last_attempt_at: new Date().toISOString(),
+              send_failure_reason: failureReason,
+              ...(isFinalAttempt ? { scheduled_at: null } : {}),
+            })
+            .eq("id", campaign.id);
+
+          results.push({ id: campaign.id, status: "failed", detail: failureReason });
           continue;
         }
+
+        // send-newsletter clears scheduled_at + sets sent_at internally on
+        // success, so we only need to record the attempt count for the audit log.
+        await supabase
+          .from("newsletter_campaigns")
+          .update({
+            send_attempts: attempt,
+            last_attempt_at: new Date().toISOString(),
+            send_failure_reason: null,
+          })
+          .eq("id", campaign.id);
+
         console.log(`✅ Campaign ${campaign.id} dispatched: ${payload?.message ?? 'ok'}`);
         results.push({ id: campaign.id, status: "sent" });
       } catch (err: any) {
-        console.error(`❌ Exception dispatching campaign ${campaign.id}:`, err);
+        console.error(`❌ Exception dispatching campaign ${campaign.id} (attempt ${attempt}/${MAX_ATTEMPTS}):`, err);
+        await supabase
+          .from("newsletter_campaigns")
+          .update({
+            send_attempts: attempt,
+            last_attempt_at: new Date().toISOString(),
+            send_failure_reason: err.message,
+            ...(isFinalAttempt ? { scheduled_at: null } : {}),
+          })
+          .eq("id", campaign.id);
         results.push({ id: campaign.id, status: "failed", detail: err.message });
       }
     }
