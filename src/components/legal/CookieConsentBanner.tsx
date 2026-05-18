@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Cookie, Settings, X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Dialog,
   DialogContent,
@@ -50,16 +51,29 @@ const CookieConsentBanner: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [preferences, setPreferences] = useState<CookiePreferences>(defaultPreferences);
+  const { user } = useAuth();
+  const { pathname } = useLocation();
+
+  // Skip the banner for admins operating inside their own dashboard. They're
+  // tool-operators, not third-party visitors — GDPR's consent-for-tracking
+  // model doesn't fit, and the banner covers ~15% of the viewport on the
+  // admin screens where it's least useful. This is scoped tightly: only
+  // authenticated users on /admin/* paths. Anonymous visitors and the public
+  // marketing site still see the banner.
+  const isAdminContext = !!user && pathname.startsWith('/admin');
 
   useEffect(() => {
-    // Check if consent has been given
+    if (isAdminContext) {
+      setIsVisible(false);
+      return;
+    }
     const hasConsent = localStorage.getItem(COOKIE_CONSENT_KEY);
     if (!hasConsent) {
       // Small delay to prevent flash on page load
       const timer = setTimeout(() => setIsVisible(true), 1000);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isAdminContext]);
 
   const saveConsent = (prefs: CookiePreferences) => {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
