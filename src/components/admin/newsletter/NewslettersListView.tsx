@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Eye, Edit, Trash2, MoreVertical, Copy, Users, Calendar } from 'lucide-react';
+import { Mail, Eye, Edit, Trash2, MoreVertical, Copy, Users, Calendar, Files } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +28,7 @@ import NewsletterPreviewModal from './NewsletterPreviewModal';
 import NewsletterDeleteModal from './NewsletterDeleteModal';
 import { NewsletterCampaign, NewsletterListViewProps } from './types';
 
-const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, onView, deleting }: NewsletterListViewProps) => {
+const NewslettersListView = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateNew, onView, deleting, duplicating }: NewsletterListViewProps) => {
   const [previewNewsletter, setPreviewNewsletter] = useState<NewsletterCampaign | null>(null);
   const [deleteNewsletter, setDeleteNewsletter] = useState<NewsletterCampaign | null>(null);
 
@@ -209,8 +209,17 @@ const NewslettersListView = ({ newsletters, onEdit, onDelete, onCreateNew, onVie
                               Edit
                             </DropdownMenuItem>
                           )}
+                          {onDuplicate && (
+                            <DropdownMenuItem
+                              onSelect={() => onDuplicate(newsletter)}
+                              disabled={duplicating === newsletter.id}
+                            >
+                              <Files className="h-4 w-4 mr-2" />
+                              Duplicate
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onSelect={() => handleDeleteClick(newsletter)}
                             className="text-destructive focus:text-destructive"
                             disabled={deleting === newsletter.id}

@@ -10,6 +10,7 @@ export const useNewsletterCampaigns = () => {
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
   const { toast } = useToast();
   const { organization } = useCurrentOrganization();
 
@@ -117,6 +118,58 @@ export const useNewsletterCampaigns = () => {
     }
   };
 
+  // Clone an existing campaign as a fresh draft so users can reuse a past
+  // newsletter as a template without recreating it from scratch. We copy the
+  // creative payload (subject, content, cover image, linked content) and
+  // explicitly drop all send-state fields (sent_at, recipient_count, sent_count,
+  // failed_count, completed_at, open/click metrics) so the new row starts in
+  // the Draft state machine.
+  const duplicateCampaign = async (campaignId: string): Promise<NewsletterCampaign | null> => {
+    if (!organization?.id) return null;
+
+    try {
+      setDuplicating(campaignId);
+
+      const source = campaigns.find(c => c.id === campaignId);
+      if (!source) throw new Error('Campaign not found');
+
+      const { data: inserted, error } = await supabase
+        .from('newsletter_campaigns')
+        .insert({
+          subject: `Copy of ${source.subject}`,
+          content: source.content,
+          cover_image_url: source.cover_image_url ?? null,
+          organization_id: organization.id,
+          recipient_count: 0,
+          sent_at: null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCampaigns(prev => [inserted as NewsletterCampaign, ...prev]);
+
+      toast({
+        title: 'Campaign Duplicated',
+        description: `Created "${inserted.subject}" as a new draft.`,
+      });
+
+      return inserted as NewsletterCampaign;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to duplicate the newsletter campaign.';
+      console.error('Error duplicating newsletter campaign:', err);
+      toast({
+        title: 'Duplicate Failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setDuplicating(null);
+    }
+  };
+
   useEffect(() => {
     fetchCampaigns();
   }, [organization?.id]);
@@ -127,8 +180,10 @@ export const useNewsletterCampaigns = () => {
     error,
     deleting,
     editing,
+    duplicating,
     refetch: fetchCampaigns,
     deleteCampaign,
     editCampaign,
+    duplicateCampaign,
   };
 };

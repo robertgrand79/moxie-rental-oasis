@@ -49,7 +49,7 @@ const ModernNewsletterPage = () => {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingNewsletter, setEditingNewsletter] = useState<NewsletterCampaign | null>(null);
 
-  const { campaigns, loading, deleting, deleteCampaign, refetch } = useNewsletterCampaigns();
+  const { campaigns, loading, deleting, duplicating, deleteCampaign, duplicateCampaign, refetch } = useNewsletterCampaigns();
   const { subscriberCount } = useNewsletterStats();
 
   // Listen for reset event
@@ -115,6 +115,17 @@ const ModernNewsletterPage = () => {
     setEditorOpen(false);
     refetch(); // Refresh the list after editing
   }, [refetch]);
+
+  // Clone a campaign as a fresh draft, then open it in the editor so the user
+  // can tweak before sending. Falling through to silent failure is fine — the
+  // hook already toasts on error.
+  const handleDuplicate = useCallback(async (newsletter: NewsletterCampaign) => {
+    const draft = await duplicateCampaign(newsletter.id);
+    if (draft) {
+      setEditingNewsletter(draft);
+      setEditorOpen(true);
+    }
+  }, [duplicateCampaign]);
 
   return (
     <div className="space-y-6">
@@ -265,16 +276,20 @@ const ModernNewsletterPage = () => {
           newsletters={filteredNewsletters}
           onEdit={handleEdit}
           onDelete={deleteCampaign}
+          onDuplicate={handleDuplicate}
           onCreateNew={handleCreateNew}
           deleting={deleting}
+          duplicating={duplicating}
         />
       ) : (
         <NewslettersListView
           newsletters={filteredNewsletters}
           onEdit={handleEdit}
           onDelete={deleteCampaign}
+          onDuplicate={handleDuplicate}
           onCreateNew={handleCreateNew}
           deleting={deleting}
+          duplicating={duplicating}
         />
       )}
 
