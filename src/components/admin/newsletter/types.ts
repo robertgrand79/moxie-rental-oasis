@@ -6,6 +6,7 @@ export interface NewsletterCampaign {
   content: string;
   cover_image_url?: string;
   sent_at: string | null;
+  scheduled_at?: string | null;
   recipient_count: number;
   blog_post_id: string | null;
   created_at: string;

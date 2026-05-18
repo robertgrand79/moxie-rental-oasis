@@ -94,6 +94,9 @@ verify_jwt = false
 [functions.resend-webhook]
 verify_jwt = false
 
+[functions.process-scheduled-newsletters]
+verify_jwt = false
+
 [functions.platform-subscription-checkout]
 verify_jwt = false
 

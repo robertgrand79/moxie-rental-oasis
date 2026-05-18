@@ -60,8 +60,19 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateN
       : textContent;
   };
 
-  const getStatusColor = (isSent: boolean) => {
-    return isSent ? 'bg-green-500' : 'bg-yellow-500';
+  // Three status colors: sent (green), scheduled (blue), draft (yellow).
+  // Scheduled rows are conceptually drafts with a future scheduled_at — we
+  // distinguish them visually so admins can tell at a glance whether a row
+  // is "in flight" vs. genuinely abandoned in draft state.
+  const getStatusColor = (status: 'sent' | 'scheduled' | 'draft') => {
+    if (status === 'sent') return 'bg-green-500';
+    if (status === 'scheduled') return 'bg-blue-500';
+    return 'bg-yellow-500';
+  };
+  const getStatus = (n: NewsletterCampaign): 'sent' | 'scheduled' | 'draft' => {
+    if (n.sent_at) return 'sent';
+    if (n.scheduled_at && new Date(n.scheduled_at).getTime() > Date.now()) return 'scheduled';
+    return 'draft';
   };
 
   if (newsletters.length === 0) {
@@ -84,23 +95,33 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateN
     <TooltipProvider>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {newsletters.map((newsletter) => {
-          const isSent = !!newsletter.sent_at;
-          
+          const status = getStatus(newsletter);
+          const isSent = status === 'sent';
+          const isScheduled = status === 'scheduled';
+          const statusLabel = isSent ? 'Sent' : isScheduled ? 'Scheduled' : 'Draft';
+          const statusBadgeClass = isSent
+            ? 'bg-green-100 text-green-800 hover:bg-green-100'
+            : isScheduled
+            ? 'bg-blue-100 text-blue-800 hover:bg-blue-100'
+            : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100';
+
           return (
             <Card key={newsletter.id} className="hover:shadow-md transition-shadow overflow-hidden flex flex-col">
               {/* Status Stripe */}
-              <div className={`h-1 ${getStatusColor(isSent)}`} />
-              
+              <div className={`h-1 ${getStatusColor(status)}`} />
+
               {/* Header with Badges */}
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge 
-                      variant={isSent ? "default" : "secondary"}
-                      className={isSent ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"}
-                    >
-                      {isSent ? "Sent" : "Draft"}
+                    <Badge variant="default" className={statusBadgeClass}>
+                      {statusLabel}
                     </Badge>
+                    {isScheduled && newsletter.scheduled_at && (
+                      <Badge variant="outline" className="text-xs">
+                        {new Date(newsletter.scheduled_at).toLocaleString()}
+                      </Badge>
+                    )}
                     {newsletter.open_rate !== null && newsletter.open_rate !== undefined && (
                       <Badge variant="outline" className="text-xs">
                         {/* Clamp to [0, 100] defensively — historical rows can still hold pre-fix values like 300. */}

@@ -47,53 +47,65 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("No authorization header");
     }
 
-    console.log("🔐 Authenticating user...");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
+    // Internal-call mode: the process-scheduled-newsletters cron worker invokes
+    // this function with the service-role key + body.internalCall=true. There's
+    // no user context (the original admin who scheduled the send may not even
+    // be logged in), so we skip user/admin checks and use the orgId passed in
+    // the body. Verified by comparing the bearer to SUPABASE_SERVICE_ROLE_KEY
+    // — anything less would let any caller bypass admin auth.
+    const bearer = authHeader.replace("Bearer ", "").trim();
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    let isInternalCall = false;
+    let user: { id: string; email?: string } | null = null;
 
-    if (authError || !user) {
-      console.error("❌ Authentication failed:", authError);
-      throw new Error("Unauthorized");
-    }
-
-    console.log("✅ User authenticated:", user.email);
-
-    // Check if user is admin using the admin client to avoid RLS issues
-    console.log("🔍 Checking admin permissions...");
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError) {
-      console.error("❌ Error fetching user profile:", profileError);
-      throw new Error("Failed to verify admin permissions");
-    }
-
-    if (profile?.role !== "admin") {
-      console.error("❌ User is not admin. Role:", profile?.role);
-      throw new Error("Admin access required");
-    }
-
-    console.log("✅ Admin access confirmed");
-
-    // Parse request body with better error handling
+    // Parse body up front so we can read the internalCall flag.
     let requestBody;
     try {
       const bodyText = await req.text();
-      console.log("📝 Raw request body:", bodyText);
-      
+      console.log("📝 Raw request body:", bodyText?.slice(0, 500));
       if (!bodyText || bodyText.trim() === '') {
         throw new Error("Empty request body received");
       }
-      
       requestBody = JSON.parse(bodyText);
-      console.log("📋 Parsed request body:", requestBody);
     } catch (parseError) {
       console.error("❌ Failed to parse request body:", parseError);
       throw new Error("Invalid JSON in request body");
+    }
+
+    if (requestBody.internalCall === true && bearer === serviceRoleKey && serviceRoleKey) {
+      if (!requestBody.organizationId) {
+        throw new Error("Internal call missing organizationId");
+      }
+      isInternalCall = true;
+      console.log("🛠 Internal service-role call accepted (cron worker)");
+    } else {
+      console.log("🔐 Authenticating user...");
+      const { data: { user: authUser }, error: authError } = await supabaseClient.auth.getUser(bearer);
+      if (authError || !authUser) {
+        console.error("❌ Authentication failed:", authError);
+        throw new Error("Unauthorized");
+      }
+      user = authUser;
+      console.log("✅ User authenticated:", user.email);
+
+      console.log("🔍 Checking admin permissions...");
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) {
+        console.error("❌ Error fetching user profile:", profileError);
+        throw new Error("Failed to verify admin permissions");
+      }
+
+      if (profile?.role !== "admin") {
+        console.error("❌ User is not admin. Role:", profile?.role);
+        throw new Error("Admin access required");
+      }
+
+      console.log("✅ Admin access confirmed");
     }
 
     const { subject, content, coverImageUrl, linkedContent, campaignId, sendSMS, testRecipientEmails }: NewsletterRequest = requestBody;
@@ -138,17 +150,27 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log("🔑 Fetching user's organization...");
-    const { data: userProfile, error: profileOrgError } = await supabaseAdmin
-      .from("profiles")
-      .select("organization_id")
-      .eq("id", user.id)
-      .single();
+    // Resolve org context. For internal calls, body.organizationId is the source
+    // of truth (the cron worker passes the campaign's stored org_id). For admin
+    // calls, look up the logged-in user's org.
+    let effectiveOrgId: string;
+    if (isInternalCall) {
+      effectiveOrgId = requestBody.organizationId;
+    } else {
+      console.log("🔑 Fetching user's organization...");
+      const { data: userProfile, error: profileOrgError } = await supabaseAdmin
+        .from("profiles")
+        .select("organization_id")
+        .eq("id", user!.id)
+        .single();
 
-    if (profileOrgError || !userProfile?.organization_id) {
-      console.error("❌ Could not determine user's organization:", profileOrgError);
-      throw new Error("Could not determine your organization. Please ensure you are associated with an organization.");
+      if (profileOrgError || !userProfile?.organization_id) {
+        console.error("❌ Could not determine user's organization:", profileOrgError);
+        throw new Error("Could not determine your organization. Please ensure you are associated with an organization.");
+      }
+      effectiveOrgId = userProfile.organization_id;
     }
+    const userProfile = { organization_id: effectiveOrgId };
 
     let subscribers: { email: string; name: string | null }[];
 
@@ -307,22 +329,51 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("emailFromAddress is not configured for this organization. Set it in Settings > Communications before sending.");
     }
 
-    // Save campaign record first to get campaign ID
+    // Save campaign record. If campaignId is provided (scheduled-send path or
+    // draft-promote path), UPDATE the existing row in place so we don't end up
+    // with a duplicate campaign + its scheduled_at sibling both in the DB.
+    // Otherwise INSERT a new row as before.
     console.log("💾 Saving campaign record...");
     const campaignSubject = isTestSend ? `[TEST] ${subject}` : subject;
-    const { data: campaign, error: campaignError } = await supabaseAdmin
-      .from("newsletter_campaigns")
-      .insert({
-        subject: campaignSubject,
-        content,
-        cover_image_url: coverImageUrl,
-        linked_content: linkedContent,
-        sent_at: new Date().toISOString(),
-        recipient_count: subscribers.length,
-        organization_id: userProfile.organization_id,
-      })
-      .select()
-      .single();
+    let campaign: any;
+    let campaignError: any;
+    if (campaignId) {
+      const updateResult = await supabaseAdmin
+        .from("newsletter_campaigns")
+        .update({
+          subject: campaignSubject,
+          content,
+          cover_image_url: coverImageUrl,
+          linked_content: linkedContent,
+          sent_at: new Date().toISOString(),
+          recipient_count: subscribers.length,
+          // Clear scheduled_at on send so the cron doesn't re-fire if the row
+          // somehow gets picked up again before its sent_at write commits.
+          scheduled_at: null,
+        })
+        .eq("id", campaignId)
+        .eq("organization_id", effectiveOrgId)
+        .select()
+        .single();
+      campaign = updateResult.data;
+      campaignError = updateResult.error;
+    } else {
+      const insertResult = await supabaseAdmin
+        .from("newsletter_campaigns")
+        .insert({
+          subject: campaignSubject,
+          content,
+          cover_image_url: coverImageUrl,
+          linked_content: linkedContent,
+          sent_at: new Date().toISOString(),
+          recipient_count: subscribers.length,
+          organization_id: effectiveOrgId,
+        })
+        .select()
+        .single();
+      campaign = insertResult.data;
+      campaignError = insertResult.error;
+    }
 
     if (campaignError) {
       console.error("❌ Failed to save campaign:", campaignError);
