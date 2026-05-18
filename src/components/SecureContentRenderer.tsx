@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { sanitizeHtml } from '@/utils/security';
+import { sanitizeHtml, sanitizeNewsletterHtml } from '@/utils/security';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SecureContentRendererProps {
@@ -8,23 +8,31 @@ interface SecureContentRendererProps {
   className?: string;
   allowedTags?: string[];
   maxLength?: number;
+  // Use the newsletter-friendly allow-list (tables, divs, inline styles, hr,
+  // span). Required for previewing TipTap newsletter output — the default
+  // strict allow-list strips the layout elements and produces an empty render.
+  richContent?: boolean;
 }
 
-const SecureContentRenderer: React.FC<SecureContentRendererProps> = ({ 
-  content, 
+const SecureContentRenderer: React.FC<SecureContentRendererProps> = ({
+  content,
   className = '',
-  maxLength = 10000
+  maxLength = 10000,
+  richContent = false,
 }) => {
   const { user } = useAuth();
 
-  // Validate content length
-  if (content.length > maxLength) {
+  // Validate content length. Newsletters can legitimately be large, so give them
+  // 50× headroom; everything else stays at the original 10k guard.
+  const effectiveMax = richContent ? maxLength * 50 : maxLength;
+  if (content.length > effectiveMax) {
     console.warn('Content exceeds maximum length, truncating...');
-    content = content.substring(0, maxLength) + '...';
+    content = content.substring(0, effectiveMax) + '...';
   }
 
-  // Sanitize the content with user context for logging
-  const sanitizedContent = sanitizeHtml(content, user?.id);
+  const sanitizedContent = richContent
+    ? sanitizeNewsletterHtml(content, user?.id)
+    : sanitizeHtml(content, user?.id);
 
   return (
     <div 

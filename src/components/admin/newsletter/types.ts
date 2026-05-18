@@ -19,9 +19,11 @@ export interface NewsletterGridProps {
   newsletters: NewsletterCampaign[];
   onEdit: (newsletter: NewsletterCampaign) => void;
   onDelete: (id: string) => void;
+  onDuplicate?: (newsletter: NewsletterCampaign) => void;
   onCreateNew: () => void;
   onView?: (newsletter: NewsletterCampaign) => void;
   deleting: string | null;
+  duplicating?: string | null;
 }
 
 export interface NewsletterListViewProps extends NewsletterGridProps {}

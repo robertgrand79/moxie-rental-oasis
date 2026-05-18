@@ -30,6 +30,52 @@ export const sanitizeHtml = (html: string, userId?: string): string => {
   });
 };
 
+// Newsletter HTML is richer than blog/description copy — it relies on tables,
+// dividers, spacer divs, colored spans, and inline style attributes for layout
+// the way every transactional-email template does. The default sanitizeHtml
+// allow-list strips all of those, which is why the preview modal renders as a
+// blank rectangle. This variant keeps the editor's output intact while still
+// blocking script/iframe/event-handler XSS vectors. DOMPurify neutralizes
+// dangerous CSS values (javascript:, expression(), behaviour:) on its own when
+// `style` is in ALLOWED_ATTR, so we don't need a custom CSS parser.
+export const sanitizeNewsletterHtml = (html: string, userId?: string): string => {
+  const dangerousPatterns = [/<script/i, /javascript:/i, /on\w+\s*=/i, /<iframe/i, /<object/i, /<embed/i, /eval\(/i, /expression\(/i];
+  if (dangerousPatterns.some(p => p.test(html))) {
+    logXSSAttempt(html, userId);
+  }
+
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'hr', 'div', 'span', 'figure', 'figcaption',
+      'strong', 'em', 'u', 's', 'sub', 'sup', 'code', 'pre',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li',
+      'a', 'img',
+      'blockquote',
+      'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th', 'caption', 'colgroup', 'col',
+    ],
+    ALLOWED_ATTR: [
+      'href', 'src', 'alt', 'class', 'target', 'rel', 'title',
+      'style', 'width', 'height',
+      'align', 'valign', 'bgcolor',
+      'colspan', 'rowspan', 'cellpadding', 'cellspacing', 'border',
+    ],
+    ALLOW_DATA_ATTR: false,
+    FORBID_TAGS: ['script', 'object', 'embed', 'iframe', 'form', 'input', 'meta', 'link', 'base'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur', 'onsubmit'],
+    ADD_ATTR: ['target'],
+    // Allow inline base64 image URIs in <img src> for preview rendering. Historical
+    // newsletters (created before the send-newsletter v450 guard + the editor
+    // auto-upload hardening) can contain `data:image/jpeg;base64,...` blobs that
+    // DOMPurify would otherwise strip — making the preview modal render empty.
+    // Explicitly restricted to png/jpeg/gif/webp; data:image/svg+xml is blocked
+    // because SVG data URLs can embed <script>. Other data: schemes (text/html,
+    // application/*) are also blocked. http(s)/mailto/tel/#anchor/relative URLs
+    // are preserved from DOMPurify's default safe set.
+    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:|sms:|cid:|#|\/|data:image\/(?:png|jpe?g|gif|webp);base64,)/i,
+  });
+};
+
 // URL Validation
 export const isValidUrl = (url: string): boolean => {
   try {

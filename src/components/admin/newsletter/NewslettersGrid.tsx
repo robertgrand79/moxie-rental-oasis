@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Eye, Edit, Trash2, Users, Calendar, Send, MoreVertical, Copy } from 'lucide-react';
+import { Mail, Eye, Edit, Trash2, Users, Calendar, Send, MoreVertical, Copy, Files } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ import NewsletterPreviewModal from './NewsletterPreviewModal';
 import NewsletterDeleteModal from './NewsletterDeleteModal';
 import { NewsletterCampaign, NewsletterGridProps } from './types';
 
-const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, onView, deleting }: NewsletterGridProps) => {
+const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateNew, onView, deleting, duplicating }: NewsletterGridProps) => {
   const [previewNewsletter, setPreviewNewsletter] = useState<NewsletterCampaign | null>(null);
   const [deleteNewsletter, setDeleteNewsletter] = useState<NewsletterCampaign | null>(null);
 
@@ -103,7 +103,8 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, onView, d
                     </Badge>
                     {newsletter.open_rate !== null && newsletter.open_rate !== undefined && (
                       <Badge variant="outline" className="text-xs">
-                        {newsletter.open_rate.toFixed(1)}% opens
+                        {/* Clamp to [0, 100] defensively — historical rows can still hold pre-fix values like 300. */}
+                        {Math.max(0, Math.min(100, newsletter.open_rate)).toFixed(1)}% opens
                       </Badge>
                     )}
                   </div>
@@ -206,8 +207,17 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onCreateNew, onView, d
                           Edit
                         </DropdownMenuItem>
                       )}
+                      {onDuplicate && (
+                        <DropdownMenuItem
+                          onSelect={() => onDuplicate(newsletter)}
+                          disabled={duplicating === newsletter.id}
+                        >
+                          <Files className="h-4 w-4 mr-2" />
+                          Duplicate
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onSelect={() => handleDeleteClick(newsletter)}
                         className="text-destructive focus:text-destructive"
                         disabled={deleting === newsletter.id}
