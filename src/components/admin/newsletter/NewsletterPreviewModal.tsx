@@ -58,9 +58,10 @@ const NewsletterPreviewModal = ({ campaign, open, onClose }: NewsletterPreviewMo
           <div className="border rounded-lg p-6 bg-white">
             <h4 className="font-medium mb-4 text-gray-700">Newsletter Content:</h4>
             <div className="prose prose-sm max-w-none">
-              <SecureContentRenderer 
+              <SecureContentRenderer
                 content={campaign.content}
                 className="newsletter-preview-content"
+                richContent
               />
             </div>
           </div>
