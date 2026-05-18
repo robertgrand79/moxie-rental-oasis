@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Users, Mail } from 'lucide-react';
+import { Calendar, Users, Mail, AlertTriangle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -8,11 +8,20 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import SecureContentRenderer from '@/components/SecureContentRenderer';
 import { NewsletterCampaign, NewsletterPreviewModalProps } from './types';
 
 const NewsletterPreviewModal = ({ campaign, open, onClose }: NewsletterPreviewModalProps) => {
   if (!campaign) return null;
+
+  // Flag newsletters whose body smuggles inline base64 images. Those are the
+  // shape of the May 2026 silent-send failure — Resend rejects oversize bodies
+  // and the send-newsletter v450 guard now blocks them up front. Surface this
+  // in preview so the admin understands why the email won't actually send and
+  // can duplicate-and-fix instead of guessing.
+  const hasInlineImage = /data:image\/[a-z0-9+]+;base64/i.test(campaign.content || '');
+  const contentSizeKB = Math.round((campaign.content?.length || 0) / 1024);
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -53,6 +62,20 @@ const NewsletterPreviewModal = ({ campaign, open, onClose }: NewsletterPreviewMo
               </div>
             </div>
           </div>
+
+          {hasInlineImage && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>This newsletter contains an inline base64 image ({contentSizeKB} KB body)</AlertTitle>
+              <AlertDescription>
+                Email providers reject bodies this large, so a new send of this exact content
+                will fail. To fix: Duplicate this campaign, delete the inline image in the
+                editor, and re-insert it via the toolbar's image-URL picker (which uploads to
+                hosted storage). The preview below shows the image inline only because we
+                allow base64 in preview rendering specifically.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* Newsletter Content */}
           <div className="border rounded-lg p-6 bg-white">

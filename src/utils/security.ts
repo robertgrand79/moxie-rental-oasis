@@ -64,6 +64,15 @@ export const sanitizeNewsletterHtml = (html: string, userId?: string): string =>
     FORBID_TAGS: ['script', 'object', 'embed', 'iframe', 'form', 'input', 'meta', 'link', 'base'],
     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur', 'onsubmit'],
     ADD_ATTR: ['target'],
+    // Allow inline base64 image URIs in <img src> for preview rendering. Historical
+    // newsletters (created before the send-newsletter v450 guard + the editor
+    // auto-upload hardening) can contain `data:image/jpeg;base64,...` blobs that
+    // DOMPurify would otherwise strip — making the preview modal render empty.
+    // Explicitly restricted to png/jpeg/gif/webp; data:image/svg+xml is blocked
+    // because SVG data URLs can embed <script>. Other data: schemes (text/html,
+    // application/*) are also blocked. http(s)/mailto/tel/#anchor/relative URLs
+    // are preserved from DOMPurify's default safe set.
+    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:|sms:|cid:|#|\/|data:image\/(?:png|jpe?g|gif|webp);base64,)/i,
   });
 };
 
