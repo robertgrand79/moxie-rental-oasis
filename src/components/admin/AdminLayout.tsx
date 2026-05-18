@@ -46,8 +46,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     const hostname = window.location.hostname;
     const orgCustomDomain = organization.custom_domain;
     const orgSubdomain = `${organization.slug}.staymoxie.com`;
-    const isNeutralDomain = hostname.includes('lovable.app') ||
-                            hostname.includes('vercel.app') ||
+    const isNeutralDomain = hostname.includes('vercel.app') ||
                             hostname.includes('localhost') ||
                             hostname.includes('127.0.0.1');
     

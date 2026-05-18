@@ -64,11 +64,14 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const lastFetchedUserIdRef = useRef<string | null>(null);
   const hasInitializedRef = useRef(false);
   
-  // Check if we're on a neutral domain (Vercel/Lovable previews, localhost)
+  // Neutral domains: Vercel previews and local dev. These are where the app
+  // runs without a tenant subdomain, so org selection falls back to the
+  // logged-in user's primary org. (Lovable previews used to be in this list
+  // before the migration off Lovable — removed once the project moved to
+  // Vercel for both previews and prod.)
   const isNeutralDomain = useCallback(() => {
     const hostname = window.location.hostname;
-    return hostname.includes('lovable.app') ||
-           hostname.includes('vercel.app') ||
+    return hostname.includes('vercel.app') ||
            hostname.includes('localhost') ||
            hostname.includes('127.0.0.1');
   }, []);
@@ -133,9 +136,8 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         domainOrgSlug = hostname.replace(`.${PLATFORM_DOMAIN}`, '');
         debug.org('Detected subdomain org slug:', domainOrgSlug);
       } 
-      // Check for custom domain (not staymoxie.com, not localhost, not a Vercel/Lovable preview)
-      else if (!hostname.includes('lovable.app') &&
-               !hostname.includes('vercel.app') &&
+      // Check for custom domain (not staymoxie.com, not localhost, not a Vercel preview)
+      else if (!hostname.includes('vercel.app') &&
                !hostname.includes('localhost') &&
                !hostname.includes('127.0.0.1') &&
                hostname !== PLATFORM_DOMAIN) {
@@ -237,7 +239,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Auto-enter platform mode for platform admins on:
       // 1. admin.staymoxie.com (dedicated platform admin domain)
-      // 2. Neutral domains (localhost, vercel.app/lovable.app previews) with no org context
+      // 2. Neutral domains (localhost, vercel.app previews) with no org context
       if (isPlatAdmin && (isPlatformAdminDomain || (isNeutralDomain() && !organization))) {
         debug.org('Platform admin on platform/neutral domain - entering platform mode');
         setIsPlatformMode(true);

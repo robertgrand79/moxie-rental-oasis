@@ -11,7 +11,8 @@ import {
   Search,
   TrendingUp,
   Settings,
-  ShieldOff
+  ShieldOff,
+  ListChecks
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ import NewsletterAnalyticsDrawer from './dialogs/NewsletterAnalyticsDrawer';
 import NewsletterSettingsDrawer from './dialogs/NewsletterSettingsDrawer';
 import NewsletterEditorDrawer from './dialogs/NewsletterEditorDrawer';
 import NewsletterSuppressionDrawer from './dialogs/NewsletterSuppressionDrawer';
+import NewsletterListsDrawer from './dialogs/NewsletterListsDrawer';
 import { useNewsletterCampaigns } from '@/hooks/useNewsletterCampaigns';
 import { useNewsletterStats } from '@/hooks/useNewsletterStats';
 import { NewsletterCampaign } from './types';
@@ -50,6 +52,7 @@ const ModernNewsletterPage = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [suppressionOpen, setSuppressionOpen] = useState(false);
+  const [listsOpen, setListsOpen] = useState(false);
   const [editingNewsletter, setEditingNewsletter] = useState<NewsletterCampaign | null>(null);
 
   const { campaigns, loading, deleting, duplicating, deleteCampaign, duplicateCampaign, cancelSchedule, retrySchedule, refetch } = useNewsletterCampaigns();
@@ -207,6 +210,21 @@ const ModernNewsletterPage = () => {
                   <Button
                     variant="outline"
                     size="icon"
+                    onClick={() => setListsOpen(true)}
+                  >
+                    <ListChecks className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Lists</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
                     onClick={() => setSuppressionOpen(true)}
                   >
                     <ShieldOff className="h-4 w-4" />
@@ -347,6 +365,10 @@ const ModernNewsletterPage = () => {
       <NewsletterSuppressionDrawer
         open={suppressionOpen}
         onOpenChange={setSuppressionOpen}
+      />
+      <NewsletterListsDrawer
+        open={listsOpen}
+        onOpenChange={setListsOpen}
       />
     </div>
   );

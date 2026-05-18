@@ -20,6 +20,9 @@ import { TemplatePickerDialog } from './TemplatePickerDialog';
 import { SaveAsTemplateDialog } from './SaveAsTemplateDialog';
 import { ScheduleSendDialog } from './ScheduleSendDialog';
 import type { NewsletterTemplate } from '@/hooks/useNewsletterTemplates';
+import { useNewsletterLists } from '@/hooks/useNewsletterLists';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Users as UsersIcon, TestTube2 } from 'lucide-react';
 import { BlogPost } from '@/types/blogPost';
 import { LocalEvent } from '@/hooks/useLocalEvents';
 import { Place } from '@/hooks/usePlaces';
@@ -40,6 +43,7 @@ interface Newsletter {
   footer_config?: FooterConfig;
   created_at: string;
   updated_at: string;
+  target_list_id?: string | null;
 }
 
 interface NewsletterFormProps {
@@ -63,6 +67,10 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   const [showSaveAsTemplate, setShowSaveAsTemplate] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
+  // Audience selector: 'all' targets every active subscriber (existing default).
+  // A list id targets that list's members instead, via the listId body param
+  // on send-newsletter. Test sends ignore this and use testRecipientEmails.
+  const [audienceListId, setAudienceListId] = useState<'all' | string>(newsletter?.target_list_id ?? 'all');
 
   const { organization } = useCurrentOrganization();
   
@@ -79,6 +87,10 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   });
   const { toast: showToast } = useToast();
   const { subscriberCount, smsSubscriberCount, refetch: refetchSubscriberCount } = useNewsletterStats();
+  const { lists: availableLists } = useNewsletterLists();
+  const selectedList = audienceListId === 'all' ? null : availableLists.find(l => l.id === audienceListId);
+  const audienceCount = selectedList ? (selectedList.member_count ?? 0) : (subscriberCount ?? 0);
+  const audienceLabel = selectedList ? `"${selectedList.name}" (${audienceCount} member${audienceCount === 1 ? '' : 's'})` : `all ${audienceCount} active subscriber${audienceCount === 1 ? '' : 's'}`;
   const { settings: globalSettings } = useGlobalNewsletterSettings();
   
   const form = useForm<NewsletterFormData>({
@@ -145,12 +157,13 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     console.log('🔄 Starting save draft process...');
 
     try {
-      const newsletterData = {
+      const newsletterData: any = {
         subject: data.subject,
         content: content,
         cover_image_url: coverImageUrl || null,
         linked_content: JSON.parse(JSON.stringify(selectedContent)),
         recipient_count: 0,
+        target_list_id: audienceListId === 'all' ? null : audienceListId,
       };
 
       if (isEdit) {
@@ -210,6 +223,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
           coverImageUrl: coverImageUrl,
           linkedContent: selectedContent,
           campaignId: isEdit ? newsletter.id : undefined,
+          listId: audienceListId === 'all' ? undefined : audienceListId,
           sendSMS: sendSMS,
         }
       });
@@ -256,7 +270,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     }
     setIsScheduling(true);
     try {
-      const payload = {
+      const payload: any = {
         subject: form.watch('subject')!,
         content,
         cover_image_url: coverImageUrl || null,
@@ -264,6 +278,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
         recipient_count: 0,
         scheduled_at: scheduledAt.toISOString(),
         organization_id: organization.id,
+        target_list_id: audienceListId === 'all' ? null : audienceListId,
       };
       if (isEdit && newsletter?.id) {
         const { error } = await supabase.from('newsletter_campaigns').update(payload).eq('id', newsletter.id);
@@ -528,6 +543,40 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                   content={content}
                   onContentChange={setContent}
                 />
+              </div>
+
+              {/* Audience picker */}
+              <div className="space-y-2">
+                <FormLabel className="flex items-center gap-2">
+                  <UsersIcon className="h-4 w-4" />
+                  Audience
+                </FormLabel>
+                <Select value={audienceListId} onValueChange={setAudienceListId} disabled={isLoading || isSaving}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      All active subscribers ({subscriberCount ?? 0})
+                    </SelectItem>
+                    {availableLists.length > 0 && (
+                      <>
+                        {availableLists.map(l => (
+                          <SelectItem key={l.id} value={l.id}>
+                            <span className="flex items-center gap-2">
+                              {l.is_test && <TestTube2 className="h-3 w-3 text-blue-600" />}
+                              {l.name} ({l.member_count ?? 0})
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Lists let you target a subset of recipients — useful for testing a small group
+                  before broadcasting. Create or edit lists from the Lists button in the toolbar.
+                </p>
               </div>
 
               {/* SMS Option */}
