@@ -17,6 +17,10 @@ interface NewsletterRequest {
   campaignId?: string;
   sendSMS?: boolean;
   testRecipientEmails?: string[];
+  // If provided, target the members of this newsletter_lists row instead of
+  // all active subscribers. Bypassed when testRecipientEmails is set (test
+  // sends override the list selection).
+  listId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -108,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("✅ Admin access confirmed");
     }
 
-    const { subject, content, coverImageUrl, linkedContent, campaignId, sendSMS, testRecipientEmails }: NewsletterRequest = requestBody;
+    const { subject, content, coverImageUrl, linkedContent, campaignId, sendSMS, testRecipientEmails, listId }: NewsletterRequest = requestBody;
     const isTestSend = Array.isArray(testRecipientEmails) && testRecipientEmails.length > 0;
 
     console.log("📊 Newsletter data validation:");
@@ -181,6 +185,29 @@ const handler = async (req: Request): Promise<Response> => {
       }
       subscribers = testRecipientEmails!.map(email => ({ email, name: null }));
       console.log(`🧪 Test send: bypassing subscriber lookup, using ${subscribers.length} test recipient(s)`);
+    } else if (listId) {
+      // Targeted send: pull list members instead of all active subscribers.
+      // Members can be subscribers OR ad-hoc test addresses — we treat them
+      // identically from this point onward (suppression filter, send loop, etc).
+      console.log(`📋 Targeted send to list ${listId}`);
+      const { data: members, error: membersError } = await supabaseAdmin
+        .from("newsletter_list_members")
+        .select("email, name")
+        .eq("list_id", listId)
+        .eq("organization_id", userProfile.organization_id);
+
+      if (membersError) {
+        console.error("❌ Error fetching list members:", membersError);
+        throw membersError;
+      }
+      if (!members || members.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "List has no members", success: false }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+      subscribers = members.map(m => ({ email: m.email, name: m.name }));
+      console.log(`📋 Found ${subscribers.length} list member(s)`);
     } else {
       console.log("📬 Getting active subscribers...");
       const { data: dbSubscribers, error: subscribersError } = await supabaseAdmin

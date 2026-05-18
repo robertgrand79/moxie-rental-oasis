@@ -41,7 +41,7 @@ const handler = async (req: Request): Promise<Response> => {
     const nowIso = new Date().toISOString();
     const { data: due, error } = await supabase
       .from("newsletter_campaigns")
-      .select("id, organization_id, subject, content, cover_image_url, linked_content, scheduled_at, send_attempts")
+      .select("id, organization_id, subject, content, cover_image_url, linked_content, scheduled_at, send_attempts, target_list_id")
       .is("sent_at", null)
       .not("scheduled_at", "is", null)
       .lte("scheduled_at", nowIso)
@@ -88,6 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
             content: campaign.content,
             coverImageUrl: campaign.cover_image_url,
             linkedContent: campaign.linked_content,
+            listId: campaign.target_list_id ?? undefined,
           }),
         });
         const payload = await response.json().catch(() => ({}));
