@@ -103,7 +103,8 @@ const NewslettersGrid = ({ newsletters, onEdit, onDelete, onDuplicate, onCreateN
                     </Badge>
                     {newsletter.open_rate !== null && newsletter.open_rate !== undefined && (
                       <Badge variant="outline" className="text-xs">
-                        {newsletter.open_rate.toFixed(1)}% opens
+                        {/* Clamp to [0, 100] defensively — historical rows can still hold pre-fix values like 300. */}
+                        {Math.max(0, Math.min(100, newsletter.open_rate)).toFixed(1)}% opens
                       </Badge>
                     )}
                   </div>

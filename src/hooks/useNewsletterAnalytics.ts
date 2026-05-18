@@ -75,26 +75,34 @@ export const useNewsletterAnalytics = () => {
 
       if (activityError) throw activityError;
 
-      // Calculate aggregate statistics
+      // Aggregate stats. Previously this averaged stored open_rate / click_rate
+      // percentages across campaigns — which broke spectacularly when a single
+      // campaign's stored rate exceeded 100 (e.g. test sends to one recipient
+      // that opened on multiple devices showed "300% opens"). The fix has two
+      // parts: compute the aggregate from total_opens/total_clicks against
+      // total recipients (a true weighted rate), and clamp any per-campaign or
+      // aggregate rate to [0, 100] as a defence against stale rows still
+      // carrying bad data from before track-newsletter-open was fixed.
+      const clampRate = (n: number | null | undefined) =>
+        Math.max(0, Math.min(100, Number(n) || 0));
+
       const totalCampaigns = campaigns?.length || 0;
       const totalSent = campaigns?.reduce((sum, c) => sum + (c.recipient_count || 0), 0) || 0;
-      const avgOpenRate = campaigns?.length > 0 
-        ? campaigns.reduce((sum, c) => sum + (c.open_rate || 0), 0) / campaigns.length 
-        : 0;
-      const avgClickRate = campaigns?.length > 0 
-        ? campaigns.reduce((sum, c) => sum + (c.click_rate || 0), 0) / campaigns.length 
-        : 0;
+      const totalOpens = campaigns?.reduce((sum, c) => sum + (c.total_opens || 0), 0) || 0;
+      const totalClicks = campaigns?.reduce((sum, c) => sum + (c.total_clicks || 0), 0) || 0;
+      const avgOpenRate = totalSent > 0 ? clampRate((totalOpens / totalSent) * 100) : 0;
+      const avgClickRate = totalSent > 0 ? clampRate((totalClicks / totalSent) * 100) : 0;
 
-      // Get top performers
       const topPerformers = campaigns
-        ?.filter(c => c.open_rate > 0)
-        .sort((a, b) => (b.open_rate || 0) - (a.open_rate || 0))
+        ?.map(c => ({ ...c, open_rate: clampRate(c.open_rate), click_rate: clampRate(c.click_rate) }))
+        .filter(c => c.open_rate > 0)
+        .sort((a, b) => b.open_rate - a.open_rate)
         .slice(0, 5)
         .map(c => ({
           id: c.id,
           subject: c.subject,
-          open_rate: c.open_rate || 0,
-          click_rate: c.click_rate || 0,
+          open_rate: c.open_rate,
+          click_rate: c.click_rate,
         })) || [];
 
       setAnalyticsData({
