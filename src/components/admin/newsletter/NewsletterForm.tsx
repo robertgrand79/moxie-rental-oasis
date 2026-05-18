@@ -10,12 +10,16 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Send, Save, Loader2, Plus, Mail, MessageSquare } from 'lucide-react';
+import { Send, Save, Loader2, Plus, Mail, MessageSquare, Clock, FileText, BookmarkPlus } from 'lucide-react';
 import NewsletterEditorTabs from './NewsletterEditorTabs';
 import ContentPicker, { SelectedContent } from './ContentPicker';
 import { generateContentTemplate } from './ContentTemplateGenerator';
 import ImageUpload from './ImageUpload';
 import TestEmailPanel from './TestEmailPanel';
+import { TemplatePickerDialog } from './TemplatePickerDialog';
+import { SaveAsTemplateDialog } from './SaveAsTemplateDialog';
+import { ScheduleSendDialog } from './ScheduleSendDialog';
+import type { NewsletterTemplate } from '@/hooks/useNewsletterTemplates';
 import { BlogPost } from '@/types/blogPost';
 import { LocalEvent } from '@/hooks/useLocalEvents';
 import { Place } from '@/hooks/usePlaces';
@@ -55,7 +59,11 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
   const [coverImageUrl, setCoverImageUrl] = useState(newsletter?.cover_image_url || '');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [sendSMS, setSendSMS] = useState(false);
-  
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [showSaveAsTemplate, setShowSaveAsTemplate] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
+
   const { organization } = useCurrentOrganization();
   
   const [selectedContent, setSelectedContent] = useState<SelectedContent>(() => {
@@ -235,6 +243,54 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     }
   };
 
+  // Schedule a future send. We persist the campaign as a row whose state is
+  // (sent_at = null, scheduled_at = future). The process-scheduled-newsletters
+  // cron worker scans for these every 5 minutes and dispatches them through
+  // send-newsletter exactly as a manual send would (same suppression filter,
+  // same headers, same plain-text body).
+  const handleSchedule = async (scheduledAt: Date) => {
+    if (!isFormValid) return;
+    if (!organization?.id) {
+      showToast({ title: 'No organization', description: 'Cannot schedule without org context.', variant: 'destructive' });
+      return;
+    }
+    setIsScheduling(true);
+    try {
+      const payload = {
+        subject: form.watch('subject')!,
+        content,
+        cover_image_url: coverImageUrl || null,
+        linked_content: JSON.parse(JSON.stringify(selectedContent)),
+        recipient_count: 0,
+        scheduled_at: scheduledAt.toISOString(),
+        organization_id: organization.id,
+      };
+      if (isEdit && newsletter?.id) {
+        const { error } = await supabase.from('newsletter_campaigns').update(payload).eq('id', newsletter.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('newsletter_campaigns').insert(payload);
+        if (error) throw error;
+      }
+      showToast({
+        title: 'Newsletter Scheduled',
+        description: `Will send at ${scheduledAt.toLocaleString()}. Cancel by deleting or editing the campaign.`,
+      });
+      onClose();
+    } catch (error: any) {
+      showToast({ title: 'Schedule Failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
+  const handlePickTemplate = (template: NewsletterTemplate) => {
+    form.setValue('subject', template.subject);
+    setContent(template.content);
+    if (template.cover_image_url) setCoverImageUrl(template.cover_image_url);
+    showToast({ title: 'Template applied', description: `Loaded "${template.name}". Edit freely — the template is untouched.` });
+  };
+
   const handleContentImport = (contentType: 'blog_posts' | 'events' | 'places', items: (BlogPost | LocalEvent | Place)[]) => {
     console.log('🔄 handleContentImport called with:', { contentType, itemCount: items.length, items });
     
@@ -386,9 +442,17 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] p-0 flex flex-col">
         <DialogHeader className="p-6 pb-4 border-b border-border flex-shrink-0">
+          <div className="flex items-center justify-between gap-3">
             <DialogTitle className="text-xl">
               {isEdit ? 'Edit Newsletter' : 'Create Newsletter'}
             </DialogTitle>
+            {!isEdit && (
+              <Button variant="outline" size="sm" onClick={() => setShowTemplatePicker(true)}>
+                <FileText className="h-4 w-4 mr-2" />
+                Use Template
+              </Button>
+            )}
+          </div>
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-6">
@@ -546,18 +610,20 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                 </>
               )}
 
-              <div className="flex gap-3 pt-4">
-                
+              <div className="flex flex-wrap gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSaveAsTemplate(true)}
+                  disabled={!isFormValid || isLoading || isSaving}
+                >
+                  <BookmarkPlus className="h-4 w-4 mr-2" />
+                  Save as Template
+                </Button>
+
                 <Button
                   variant="outline"
                   onClick={(e) => {
                     e.preventDefault();
-                    console.log('🔄 Save Draft button clicked');
-                    console.log('🔄 isFormValid:', isFormValid);
-                    console.log('🔄 isSaving:', isSaving);
-                    console.log('🔄 isLoading:', isLoading);
-                    console.log('🔄 currentSubject:', form.watch('subject'));
-                    console.log('🔄 content:', content);
                     form.handleSubmit(onSaveDraft)();
                   }}
                   disabled={!isFormValid || isSaving || isLoading}
@@ -575,8 +641,27 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                     </>
                   )}
                 </Button>
-                
-                <Button 
+
+                <Button
+                  variant="outline"
+                  onClick={() => setShowScheduleDialog(true)}
+                  disabled={!canSend || isLoading || isSaving || isScheduling}
+                  className="flex-1"
+                >
+                  {isScheduling ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Scheduling...
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="h-4 w-4 mr-2" />
+                      Schedule
+                    </>
+                  )}
+                </Button>
+
+                <Button
                   onClick={form.handleSubmit(onSendNewsletter)}
                   disabled={!canSend || isLoading || isSaving}
                   className="flex-1"
@@ -589,7 +674,7 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                   ) : (
                     <>
                       <Send className="h-4 w-4 mr-2" />
-                      Send Newsletter
+                      Send Now
                     </>
                   )}
                 </Button>
@@ -598,6 +683,26 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
             </div>
           </Form>
         </div>
+
+        <TemplatePickerDialog
+          open={showTemplatePicker}
+          onClose={() => setShowTemplatePicker(false)}
+          onPick={handlePickTemplate}
+        />
+        <SaveAsTemplateDialog
+          open={showSaveAsTemplate}
+          onClose={() => setShowSaveAsTemplate(false)}
+          defaultName={form.watch('subject') || ''}
+          subject={form.watch('subject') || ''}
+          content={content}
+          coverImageUrl={coverImageUrl || null}
+        />
+        <ScheduleSendDialog
+          open={showScheduleDialog}
+          onClose={() => setShowScheduleDialog(false)}
+          onSchedule={handleSchedule}
+          recipientCount={subscriberCount ?? 0}
+        />
       </DialogContent>
     </Dialog>
   );
