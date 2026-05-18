@@ -7,57 +7,95 @@ const corsHeaders = {
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Accept both GET (link in email body, returns HTML confirmation page) and
+  // POST (RFC 8058 one-click unsubscribe triggered by Gmail/Outlook's native
+  // "Unsubscribe" button via the List-Unsubscribe-Post header — returns 200
+  // with no body, no HTML). Reject anything else.
+  const isOneClickPost = req.method === "POST";
+  if (req.method !== "GET" && !isOneClickPost) {
+    return new Response("Method not allowed", { status: 405, headers: corsHeaders });
   }
 
   try {
     const url = new URL(req.url);
     const email = url.searchParams.get("email");
-    const token = url.searchParams.get("token");
     const orgId = url.searchParams.get("org");
 
     if (!email) {
+      if (isOneClickPost) {
+        return new Response("Missing email", { status: 400, headers: corsHeaders });
+      }
       return new Response(
         generateHtmlPage("Error", "Email address is required.", false),
         { headers: { ...corsHeaders, "Content-Type": "text/html" }, status: 400 }
       );
     }
 
-    // Initialize Supabase client
+    const normalizedEmail = email.toLowerCase();
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Find and update the subscriber
     let query = supabase
       .from("newsletter_subscribers")
-      .update({ 
-        is_subscribed: false, 
+      .update({
+        is_subscribed: false,
         email_opt_in: false,
-        updated_at: new Date().toISOString() 
+        updated_at: new Date().toISOString(),
       })
-      .eq("email", email.toLowerCase());
-    
-    // If organization ID is provided, scope to that org
-    if (orgId) {
-      query = query.eq("organization_id", orgId);
-    }
+      .eq("email", normalizedEmail);
+    if (orgId) query = query.eq("organization_id", orgId);
 
-    const { error, count } = await query;
+    const { error } = await query;
 
     if (error) {
       console.error("Error unsubscribing:", error);
+      if (isOneClickPost) {
+        return new Response("Failed", { status: 500, headers: corsHeaders });
+      }
       return new Response(
         generateHtmlPage("Error", "Failed to process unsubscribe request. Please try again.", false),
         { headers: { ...corsHeaders, "Content-Type": "text/html" }, status: 500 }
       );
     }
 
+    // Mirror the unsubscribe into newsletter_suppression so the send pipeline
+    // will skip this address even if it's later re-added to subscribers. We
+    // need an org_id for the table; if the URL didn't carry one, look it up
+    // from the subscriber row (which still exists, just deactivated).
+    let suppressionOrgId = orgId;
+    if (!suppressionOrgId) {
+      const { data: sub } = await supabase
+        .from("newsletter_subscribers")
+        .select("organization_id")
+        .eq("email", normalizedEmail)
+        .limit(1)
+        .maybeSingle();
+      suppressionOrgId = sub?.organization_id;
+    }
+    if (suppressionOrgId) {
+      await supabase
+        .from("newsletter_suppression")
+        .upsert({
+          organization_id: suppressionOrgId,
+          email: normalizedEmail,
+          reason: "unsubscribed",
+          metadata: { source: isOneClickPost ? "list_unsubscribe_post" : "email_link" },
+        }, { onConflict: "organization_id,email" });
+    }
+
+    if (isOneClickPost) {
+      // RFC 8058: respond with 200 and any body Gmail/Outlook can quietly drop.
+      return new Response("", { status: 200, headers: corsHeaders });
+    }
+
     return new Response(
       generateHtmlPage(
-        "Unsubscribed Successfully", 
+        "Unsubscribed Successfully",
         "You have been successfully unsubscribed from our newsletter. You will no longer receive emails from us.",
         true
       ),

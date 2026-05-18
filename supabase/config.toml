@@ -91,6 +91,9 @@ verify_jwt = false
 [functions.resend-inbound-webhook]
 verify_jwt = false
 
+[functions.resend-webhook]
+verify_jwt = false
+
 [functions.platform-subscription-checkout]
 verify_jwt = false
 

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
 import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
+import { htmlToText } from "../_shared/htmlToText.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -181,6 +182,36 @@ const handler = async (req: Request): Promise<Response> => {
 
       subscribers = dbSubscribers;
       console.log(`📬 Found ${subscribers.length} active subscribers`);
+    }
+
+    // Filter out emails on the suppression list (hard bounces, complaints, prior
+    // unsubscribes — populated by the resend-webhook function). Sending to these
+    // addresses damages sender reputation: hard bounces signal a bad list, and
+    // complaint-after-resubscribe spikes are how mail providers detect spam.
+    // Skipped for test sends because admins explicitly need test delivery even
+    // if their own address ended up on the list during prior testing.
+    let suppressedCount = 0;
+    if (!isTestSend) {
+      const { data: suppressionRows } = await supabaseAdmin
+        .from("newsletter_suppression")
+        .select("email")
+        .eq("organization_id", userProfile.organization_id);
+      const suppressed = new Set((suppressionRows ?? []).map(r => r.email.toLowerCase()));
+      const before = subscribers.length;
+      subscribers = subscribers.filter(s => !suppressed.has(s.email.toLowerCase()));
+      suppressedCount = before - subscribers.length;
+      if (suppressedCount > 0) {
+        console.log(`🚫 Filtered ${suppressedCount} suppressed recipient(s) from send list`);
+      }
+      if (subscribers.length === 0) {
+        return new Response(
+          JSON.stringify({
+            error: `All ${before} subscriber(s) were on the suppression list. Nothing sent.`,
+            success: false,
+          }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
     }
 
     // Fetch all email, contact, and newsletter settings from site_settings for this organization
@@ -543,12 +574,17 @@ const handler = async (req: Request): Promise<Response> => {
     const emailPromises = subscribers.map(async (subscriber, index) => {
       try {
         console.log(`📧 Sending email ${index + 1}/${subscribers.length} to ${subscriber.email}`);
-        
+
         const personalizedHtml = await createEmailTemplate(savedCampaignId, subscriber.email);
-      const finalHtml = personalizedHtml.replace(
-        "{{unsubscribe_url}}",
-        `${Deno.env.get("SUPABASE_URL")}/functions/v1/unsubscribe-newsletter?email=${encodeURIComponent(subscriber.email)}`
-      );
+      // Per-recipient unsubscribe URL, scoped to the org so the unsubscribe
+      // function knows which row to update + which suppression row to upsert.
+      const unsubscribeUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/unsubscribe-newsletter?email=${encodeURIComponent(subscriber.email)}&org=${userProfile.organization_id}`;
+      const finalHtml = personalizedHtml.replace("{{unsubscribe_url}}", unsubscribeUrl);
+
+      // Plain-text alternative body. Required for Gmail's "clipped message"
+      // expander to render anything readable, and improves spam-filter scoring
+      // (every reputable transactional sender includes one).
+      const textBody = htmlToText(finalHtml);
 
       // Record sent event
       await supabaseAdmin.from("newsletter_analytics").insert({
@@ -566,7 +602,22 @@ const handler = async (req: Request): Promise<Response> => {
         to: [subscriber.email],
         subject: subject,
         html: finalHtml,
+        text: textBody,
         reply_to: replyTo,
+        // RFC 8058 one-click unsubscribe. Gmail (>=2024) and Yahoo flag senders
+        // without these headers as spam once volume exceeds 5k/day, and even
+        // below that threshold including them visibly improves inbox placement.
+        // The Post variant tells mail clients they can POST without confirmation.
+        headers: {
+          "List-Unsubscribe": `<${unsubscribeUrl}>, <mailto:unsubscribe@${(fromEmail.split('@')[1] || '').toLowerCase()}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+        // Tag every outbound so the resend-webhook function can route delivery
+        // events back to the right org + campaign without needing a lookup.
+        tags: [
+          { name: "organization_id", value: userProfile.organization_id },
+          { name: "campaign_id", value: savedCampaignId },
+        ],
       });
 
       if (response.error) {
@@ -723,9 +774,10 @@ const handler = async (req: Request): Promise<Response> => {
         : undefined,
       message: isTestSend
         ? `Test newsletter sent to ${successfulSends} of ${subscribers.length} test recipient(s)`
-        : `Newsletter sent to ${successfulSends} of ${subscribers.length} subscribers`,
+        : `Newsletter sent to ${successfulSends} of ${subscribers.length} subscribers${suppressedCount > 0 ? ` (${suppressedCount} suppressed)` : ''}`,
       campaignId: savedCampaignId,
       recipientCount: successfulSends,
+      suppressedCount,
       smsSentCount,
       smsFailedCount,
       isTestSend,
@@ -734,6 +786,7 @@ const handler = async (req: Request): Promise<Response> => {
         total: subscribers.length,
         successful: successfulSends,
         failed: failedSends,
+        suppressed: suppressedCount,
         smsSent: smsSentCount,
         smsFailed: smsFailedCount
       }
