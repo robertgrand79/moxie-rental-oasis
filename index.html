@@ -23,8 +23,14 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#3B82F6">
     
-    <!-- Favicon - will be overridden by tenant settings -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <!-- Default favicon (StayMoxie blue). Tenants with a custom favicon
+         override this via useTenantMetaTags once their settings load.
+         Previously /favicon.ico was a leftover Lovable heart, which flashed
+         briefly on every cold load (and stuck around once browsers cached it).
+         The .ico file now contains the same SVG content so legacy /favicon.ico
+         probes get the right brand. -->
+    <link rel="icon" type="image/svg+xml" href="/moxie-favicon.svg">
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico">
 
     <!-- Open Graph Tags -->
     <meta property="og:type" content="website" />
