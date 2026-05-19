@@ -116,13 +116,25 @@ export const useAutoCompleteOnboarding = (organizationId: string | null) => {
     const checks: StepCompletionCheck[] = [
       {
         stepName: 'branding',
-        // Branding is complete if site name or logo exists
-        isDataPresent: !!(settingsMap.siteName || settingsMap.siteLogo),
+        // Accept legacy snake_case keys so tenants whose data predates the
+        // key-consolidation migration don't get bumped back into the wizard.
+        isDataPresent: !!(
+          settingsMap.siteName ||
+          settingsMap.site_name ||
+          settingsMap.siteLogo ||
+          settingsMap.logoUrl ||
+          settingsMap.logo_url
+        ),
       },
       {
         stepName: 'contact',
-        // Contact is complete if contact email or phone exists
-        isDataPresent: !!(settingsMap.contactEmail || settingsMap.contactPhone),
+        isDataPresent: !!(
+          settingsMap.contactEmail ||
+          settingsMap.contact_email ||
+          settingsMap.phone ||
+          settingsMap.contact_phone ||
+          settingsMap.contactPhone
+        ),
       },
       {
         stepName: 'property',
