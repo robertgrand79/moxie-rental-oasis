@@ -647,80 +647,117 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const resend = new Resend(resendApiKey);
-    console.log("🚀 Sending emails via Resend...");
+    console.log("🚀 Sending emails via Resend (batch mode)...");
 
-    const emailPromises = subscribers.map(async (subscriber, index) => {
-      try {
-        console.log(`📧 Sending email ${index + 1}/${subscribers.length} to ${subscriber.email}`);
-
-        const personalizedHtml = await createEmailTemplate(savedCampaignId, subscriber.email);
+    // Build per-recipient payloads up front. createEmailTemplate runs a regex
+    // over the body to inject click-tracking redirects + writes a row to
+    // newsletter_click_tracking per link per recipient, so it has real I/O —
+    // we run it once per subscriber but the actual Resend send is batched below.
+    const fromHostname = (fromEmail.split('@')[1] || '').toLowerCase();
+    const payloads = await Promise.all(subscribers.map(async (subscriber) => {
+      const personalizedHtml = await createEmailTemplate(savedCampaignId, subscriber.email);
       // Per-recipient unsubscribe URL, scoped to the org so the unsubscribe
       // function knows which row to update + which suppression row to upsert.
       const unsubscribeUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/unsubscribe-newsletter?email=${encodeURIComponent(subscriber.email)}&org=${userProfile.organization_id}`;
       const finalHtml = personalizedHtml.replace("{{unsubscribe_url}}", unsubscribeUrl);
-
       // Plain-text alternative body. Required for Gmail's "clipped message"
-      // expander to render anything readable, and improves spam-filter scoring
-      // (every reputable transactional sender includes one).
+      // expander to render anything readable, and improves spam-filter scoring.
       const textBody = htmlToText(finalHtml);
-
-      // Record sent event
-      await supabaseAdmin.from("newsletter_analytics").insert({
-        campaign_id: savedCampaignId,
-        subscriber_email: subscriber.email,
-        event_type: "sent",
-        event_data: {
-          timestamp: new Date().toISOString(),
-          subject: subject
-        }
-      });
-
-      const response = await resend.emails.send({
-        from: `${fromName} <${fromEmail}>`,
-        to: [subscriber.email],
-        subject: subject,
-        html: finalHtml,
-        text: textBody,
-        reply_to: replyTo,
-        // RFC 8058 one-click unsubscribe. Gmail (>=2024) and Yahoo flag senders
-        // without these headers as spam once volume exceeds 5k/day, and even
-        // below that threshold including them visibly improves inbox placement.
-        // The Post variant tells mail clients they can POST without confirmation.
-        headers: {
-          "List-Unsubscribe": `<${unsubscribeUrl}>, <mailto:unsubscribe@${(fromEmail.split('@')[1] || '').toLowerCase()}>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      return {
+        email: subscriber.email,
+        payload: {
+          from: `${fromName} <${fromEmail}>`,
+          to: [subscriber.email],
+          subject,
+          html: finalHtml,
+          text: textBody,
+          reply_to: replyTo,
+          // RFC 8058 one-click unsubscribe. Gmail (>=2024) and Yahoo flag senders
+          // without these headers as spam once volume exceeds 5k/day, and even
+          // below that threshold including them visibly improves inbox placement.
+          headers: {
+            "List-Unsubscribe": `<${unsubscribeUrl}>, <mailto:unsubscribe@${fromHostname}>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
+          // Tag every outbound so the resend-webhook function can route delivery
+          // events back to the right org + campaign without needing a lookup.
+          tags: [
+            { name: "organization_id", value: userProfile.organization_id },
+            { name: "campaign_id", value: savedCampaignId },
+          ],
         },
-        // Tag every outbound so the resend-webhook function can route delivery
-        // events back to the right org + campaign without needing a lookup.
-        tags: [
-          { name: "organization_id", value: userProfile.organization_id },
-          { name: "campaign_id", value: savedCampaignId },
-        ],
-      });
+      };
+    }));
 
-      if (response.error) {
-        const detail = typeof response.error === 'string'
-          ? response.error
-          : (response.error.message || JSON.stringify(response.error));
-        console.error(`❌ Resend rejected ${subscriber.email}:`, detail);
-        throw new Error(`Resend: ${detail}`);
+    // Bulk-insert one "sent" analytics row per attempted recipient. Resend
+    // webhook events ("delivered", "bounced", "complained") accumulate against
+    // these rows downstream. Previously we inserted one row per subscriber
+    // inside the send loop, adding N sequential DB writes on top of the send.
+    {
+      const sentEvents = payloads.map(p => ({
+        campaign_id: savedCampaignId,
+        subscriber_email: p.email,
+        event_type: "sent",
+        event_data: { timestamp: new Date().toISOString(), subject },
+      }));
+      const { error: analyticsError } = await supabaseAdmin
+        .from("newsletter_analytics")
+        .insert(sentEvents);
+      if (analyticsError) {
+        console.warn("⚠️ Failed to write sent analytics (continuing anyway):", analyticsError);
       }
-
-      console.log(`✅ Email sent to ${subscriber.email} (${index + 1}/${subscribers.length})`);
-      return { email: subscriber.email, success: true };
-    } catch (error) {
-      console.error(`❌ Failed to send email to ${subscriber.email}:`, error);
-      return { email: subscriber.email, success: false, error: error.message };
     }
-  });
 
-  console.log("⏳ Waiting for all emails to be sent...");
-  const results = await Promise.allSettled(emailPromises);
-  
-  const successfulSends = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
-  const failedSends = results.length - successfulSends;
+    // Resend's batch endpoint accepts up to 100 emails per call and counts as
+    // ONE request toward the per-second rate limit. The previous loop fired
+    // N independent resend.emails.send() calls via Promise.allSettled, which
+    // blew through Resend's 2 req/s free-tier limit and silently dropped ~99%
+    // of the May 2026 newsletter (194 attempted, ~5 delivered). A 600ms pause
+    // between batches stays under the limit even at the free tier.
+    const BATCH_SIZE = 100;
+    const INTER_BATCH_PAUSE_MS = 600;
+    type SendResult = { email: string; success: boolean; error?: string; resendId?: string };
+    const results: SendResult[] = [];
 
-  console.log(`✅ Newsletter sending complete: ${successfulSends} successful, ${failedSends} failed`);
+    for (let offset = 0; offset < payloads.length; offset += BATCH_SIZE) {
+      if (offset > 0) {
+        await new Promise(r => setTimeout(r, INTER_BATCH_PAUSE_MS));
+      }
+      const slice = payloads.slice(offset, offset + BATCH_SIZE);
+      const batchNum = Math.floor(offset / BATCH_SIZE) + 1;
+      const totalBatches = Math.ceil(payloads.length / BATCH_SIZE);
+      console.log(`📦 Sending batch ${batchNum}/${totalBatches} (${slice.length} emails)...`);
+      try {
+        const response = await resend.batch.send(slice.map(s => s.payload));
+        if (response.error) {
+          const detail = typeof response.error === 'string'
+            ? response.error
+            : (response.error.message || JSON.stringify(response.error));
+          console.error(`❌ Batch ${batchNum} rejected:`, detail);
+          for (const s of slice) results.push({ email: s.email, success: false, error: detail });
+        } else {
+          // Resend returns one {id} entry per input, in order. A missing id
+          // means a per-email failure (e.g. malformed address). Batch mode
+          // doesn't surface the per-email reason, so we mark those generically.
+          const ids: Array<{ id?: string } | undefined> = response.data?.data ?? [];
+          slice.forEach((s, idx) => {
+            const entry = ids[idx];
+            if (entry?.id) {
+              results.push({ email: s.email, success: true, resendId: entry.id });
+            } else {
+              results.push({ email: s.email, success: false, error: "Resend returned no id for this address" });
+            }
+          });
+        }
+      } catch (error: any) {
+        console.error(`❌ Batch ${batchNum} threw:`, error);
+        for (const s of slice) results.push({ email: s.email, success: false, error: error?.message ?? String(error) });
+      }
+    }
+
+    const successfulSends = results.filter(r => r.success).length;
+    const failedSends = results.length - successfulSends;
+    console.log(`✅ Newsletter sending complete: ${successfulSends} successful, ${failedSends} failed`);
 
   // Handle SMS sending if requested
   let smsSentCount = 0;
@@ -817,28 +854,31 @@ const handler = async (req: Request): Promise<Response> => {
     }
   }
 
-  // Update campaign with final statistics
-  await supabaseAdmin
+  // Replace the optimistic recipient_count we wrote before the loop with the
+  // count Resend actually accepted. Without this, "Sent to 194" shows up in
+  // the UI even when only ~5 made it through (the bug that hid the May 2026
+  // newsletter rate-limit failure for hours).
+  const { error: campaignStatsError } = await supabaseAdmin
     .from("newsletter_campaigns")
-    .update({
-      sent_count: successfulSends,
-      failed_count: failedSends,
-      completed_at: new Date().toISOString()
-    })
+    .update({ recipient_count: successfulSends })
     .eq("id", savedCampaignId);
+  if (campaignStatsError) {
+    console.warn("⚠️ Failed to update campaign recipient_count:", campaignStatsError);
+  }
 
   // If literally no emails went out, surface that as a failure to the UI.
   // Previously success was hard-coded true, so the "🎉 Sent" toast fired even
   // when 0/N succeeded — which is exactly how the May 2026 newsletter looked
   // sent but never reached Resend.
   const everyoneFailed = subscribers.length > 0 && successfulSends === 0;
-  // Try to surface a sample error from a fulfilled-but-failed promise so the
-  // user sees the actual Resend rejection reason in the toast.
+  // Surface the first per-recipient error so the toast shows the actual
+  // Resend rejection reason (rate-limit body, invalid-from, etc.) rather
+  // than a generic "something went wrong".
   let firstError: string | undefined;
   if (everyoneFailed) {
     for (const r of results) {
-      if (r.status === 'fulfilled' && !r.value.success && r.value.error) {
-        firstError = r.value.error;
+      if (!r.success && r.error) {
+        firstError = r.error;
         break;
       }
     }
