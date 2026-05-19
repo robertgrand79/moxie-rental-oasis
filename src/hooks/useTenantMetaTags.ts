@@ -22,7 +22,10 @@ interface TenantMetaSettings {
 const DEFAULT_SETTINGS: TenantMetaSettings = {
   siteTitle: 'Vacation Rentals',
   siteName: 'Vacation Rentals',
-  favicon: '/favicon.ico',
+  // Use the StayMoxie SVG, not /favicon.ico — that file used to be a Lovable
+  // heart left over from the starter template, and any tenant without a custom
+  // favicon would inherit it.
+  favicon: '/moxie-favicon.svg',
   metaDescription: 'Discover vacation rentals.',
   ogTitle: 'Vacation Rentals',
   ogDescription: 'Discover vacation rentals.',
