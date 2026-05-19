@@ -11,6 +11,11 @@ export type { BlogPost } from '@/types/blogPost';
 interface UseBlogPostsOptions {
   publishedOnly?: boolean;
   organizationId?: string;
+  // When true, skip the `content` and `metadata` columns in the SELECT. Use
+  // for pickers, list views, and anywhere the full post body isn't rendered —
+  // posts with inline base64 images can be 20MB each, so a full SELECT pulls
+  // tens of megabytes for a dropdown that only needs titles and thumbnails.
+  lightweight?: boolean;
 }
 
 const MAX_RETRIES = 2; // Reduced from 3 to prevent spam
@@ -29,6 +34,7 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
   const publishedOnly = options.publishedOnly ?? !user;
   // Use provided organizationId or fall back to context
   const organizationId = options.organizationId || organization?.id;
+  const lightweight = options.lightweight ?? false;
 
   const fetchBlogPosts = useCallback(async (attempt = 0) => {
     console.log(`🔄 useBlogPosts - fetching with publishedOnly: ${publishedOnly}, orgId: ${organizationId}, attempt: ${attempt + 1}`);
@@ -51,7 +57,7 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), NETWORK_TIMEOUT);
       
-      const posts = await blogPostService.fetchBlogPosts(publishedOnly, organizationId);
+      const posts = await blogPostService.fetchBlogPosts(publishedOnly, organizationId, { lightweight });
       
       clearTimeout(timeoutId);
       console.log('📊 useBlogPosts - received posts:', posts.length);
@@ -97,7 +103,7 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
         setLoading(false);
       }
     }
-  }, [publishedOnly, organizationId]);
+  }, [publishedOnly, organizationId, lightweight]);
 
   const addBlogPost = async (postData: Omit<BlogPost, 'id' | 'created_at' | 'updated_at' | 'created_by'>): Promise<BlogPost | null> => {
     if (!user) {

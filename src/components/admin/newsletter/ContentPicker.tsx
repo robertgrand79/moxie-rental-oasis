@@ -29,7 +29,10 @@ const ContentPicker = ({ selectedContent, onContentChange, onImportContent }: Co
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('blog_posts');
   
-  const { blogPosts, loading: blogLoading } = useBlogPosts();
+  // lightweight: drop `content` + `metadata` from the SELECT. The picker only
+  // shows title/excerpt/image; pulling the full body for every post added 80+ MB
+  // to the request on orgs whose posts contain inline base64 images.
+  const { blogPosts, loading: blogLoading } = useBlogPosts({ lightweight: true });
   const { events, isLoading: eventsLoading } = useLocalEvents();
   const { places, isLoading: placesLoading } = usePlaces();
 

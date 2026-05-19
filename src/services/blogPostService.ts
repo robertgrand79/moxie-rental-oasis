@@ -53,9 +53,24 @@ const metadataToJson = (metadata: BlogPostMetadata | undefined): Json => {
   return (metadata ?? {}) as unknown as Json;
 };
 
+// Columns required to render a blog post in a list/picker UI (title, slug,
+// image thumbnail, excerpt, category badge). Excludes `content` and `metadata`,
+// which together account for nearly all of a post's row size — newsletter and
+// blog bodies frequently contain inline base64 images, so `content` regularly
+// exceeds 1-20 MB per row. Fetching `select *` for a picker hits 89 MB+ on the
+// Moxie org's 27 posts.
+const LIGHTWEIGHT_COLUMNS = (
+  'id, organization_id, title, slug, excerpt, image_url, category, content_type, ' +
+  'status, is_active, is_featured, display_order, tags, published_at, created_at, updated_at'
+);
+
 export const blogPostService = {
-  async fetchBlogPosts(publishedOnly: boolean = false, organizationId?: string): Promise<BlogPost[]> {
-    debug.blog('Fetching blog posts, publishedOnly:', publishedOnly, 'orgId:', organizationId);
+  async fetchBlogPosts(
+    publishedOnly: boolean = false,
+    organizationId?: string,
+    options: { lightweight?: boolean } = {},
+  ): Promise<BlogPost[]> {
+    debug.blog('Fetching blog posts, publishedOnly:', publishedOnly, 'orgId:', organizationId, 'lightweight:', !!options.lightweight);
     
     // Check network connectivity first
     if (!navigator.onLine) {
@@ -66,7 +81,7 @@ export const blogPostService = {
     try {
       let query = supabase
         .from('blog_posts')
-        .select('*')
+        .select(options.lightweight ? LIGHTWEIGHT_COLUMNS : '*')
         .order('created_at', { ascending: false });
 
       // Filter by organization if provided
@@ -87,13 +102,17 @@ export const blogPostService = {
       }
 
       debug.blog('Fetched blog posts:', data?.length || 0, 'posts');
-      
-      // Cast and transform the data with proper type safety
-      return (data || []).map(post => ({
+
+      // Cast and transform the data with proper type safety. For lightweight
+      // queries, `content` and `metadata` are absent from the row; we fill
+      // them with empty defaults so callers don't have to thread `Partial<>`
+      // through their components. Pickers don't read either field.
+      return (data || []).map((post: any) => ({
         ...post,
+        content: post.content ?? '',
+        metadata: safeMetadataCast(post.metadata),
         status: post.status as 'published' | 'draft',
         content_type: (post.content_type as ContentType) || 'article',
-        metadata: safeMetadataCast(post.metadata),
         display_order: post.display_order || 0,
         is_featured: post.is_featured || false,
         is_active: post.is_active !== false,

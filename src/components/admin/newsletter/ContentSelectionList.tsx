@@ -141,6 +141,8 @@ const ContentSelectionList = ({
                 <img
                   src={getItemImage(item)}
                   alt={getItemTitle(item)}
+                  loading="lazy"
+                  decoding="async"
                   className="w-16 h-16 object-cover rounded-md flex-shrink-0"
                 />
               )}
