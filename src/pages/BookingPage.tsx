@@ -24,8 +24,8 @@ const BookingPage = () => {
   const { data: bookingSettings } = usePropertyBookingSettings(propertyId);
   const cancellationPolicy = getCancellationPolicyDetails(bookingSettings?.cancellationPolicy || 'flexible');
 
-  const contactPhone = settings?.contactPhone || '';
-  const contactEmail = settings?.contactEmail || '';
+  const contactPhone = settings?.phone || settings?.contactPhone || settings?.contact_phone || '';
+  const contactEmail = settings?.contactEmail || settings?.contact_email || '';
 
   if (loading) {
     return <LoadingState variant="page" message="Loading property details..." />;
