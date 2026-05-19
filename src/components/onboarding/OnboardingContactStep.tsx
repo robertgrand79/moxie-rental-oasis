@@ -34,8 +34,8 @@ const OnboardingContactStep = ({ onComplete, isCompleting }: Props) => {
       const userId = (await supabase.auth.getUser()).data.user?.id;
       
       const settings = [
-        { key: 'contact_email', value: email },
-        { key: 'contact_phone', value: phone },
+        { key: 'contactEmail', value: email },
+        { key: 'phone', value: phone },
         { key: 'address', value: address },
       ].filter(s => s.value);
 

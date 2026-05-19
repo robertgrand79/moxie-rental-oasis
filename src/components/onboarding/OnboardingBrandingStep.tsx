@@ -38,15 +38,15 @@ const OnboardingBrandingStep = ({ onComplete, isCompleting }: Props) => {
           .from('site_settings')
           .select('key, value')
           .eq('organization_id', organization.id)
-          .in('key', ['site_name', 'logo_url']);
+          .in('key', ['siteName', 'siteLogo']);
 
         const settingsMap = settings?.reduce((acc, s) => {
           acc[s.key] = s.value;
           return acc;
         }, {} as Record<string, unknown>) || {};
 
-        setSiteName(String(settingsMap.site_name || '') || organization.name || '');
-        setLogoUrl(String(settingsMap.logo_url || '') || organization.logo_url || '');
+        setSiteName(String(settingsMap.siteName || '') || organization.name || '');
+        setLogoUrl(String(settingsMap.siteLogo || '') || organization.logo_url || '');
       } catch (error) {
         console.error('Error loading settings:', error);
         // Fallback to organization data
@@ -110,12 +110,11 @@ const OnboardingBrandingStep = ({ onComplete, isCompleting }: Props) => {
     try {
       const user = (await supabase.auth.getUser()).data.user;
       
-      // Save site_name setting
       const { error: siteNameError } = await supabase
         .from('site_settings')
         .upsert({
           organization_id: organization.id,
-          key: 'site_name',
+          key: 'siteName',
           value: siteName,
           created_by: user?.id,
         }, {
@@ -124,13 +123,12 @@ const OnboardingBrandingStep = ({ onComplete, isCompleting }: Props) => {
 
       if (siteNameError) throw siteNameError;
 
-      // Save logo_url if provided
       if (logoUrl) {
         const { error: logoError } = await supabase
           .from('site_settings')
           .upsert({
             organization_id: organization.id,
-            key: 'logo_url',
+            key: 'siteLogo',
             value: logoUrl,
             created_by: user?.id,
           }, {
