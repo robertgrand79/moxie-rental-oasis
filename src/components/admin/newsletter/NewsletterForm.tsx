@@ -478,9 +478,8 @@ const NewsletterForm = ({ newsletter, onClose }: NewsletterFormProps) => {
                 name="subject"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Subject Line</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         placeholder="Enter your newsletter subject..." 
                         value={field.value}
                         onChange={field.onChange}
