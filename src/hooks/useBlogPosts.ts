@@ -16,6 +16,9 @@ interface UseBlogPostsOptions {
   // posts with inline base64 images can be 20MB each, so a full SELECT pulls
   // tens of megabytes for a dropdown that only needs titles and thumbnails.
   lightweight?: boolean;
+  // Server-side row cap. Use for "top N + show more" UX. Bump this number to
+  // trigger a re-fetch with a larger window; pass undefined for no cap.
+  limit?: number;
 }
 
 const MAX_RETRIES = 2; // Reduced from 3 to prevent spam
@@ -35,6 +38,7 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
   // Use provided organizationId or fall back to context
   const organizationId = options.organizationId || organization?.id;
   const lightweight = options.lightweight ?? false;
+  const limit = options.limit;
 
   const fetchBlogPosts = useCallback(async (attempt = 0) => {
     console.log(`🔄 useBlogPosts - fetching with publishedOnly: ${publishedOnly}, orgId: ${organizationId}, attempt: ${attempt + 1}`);
@@ -57,7 +61,7 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), NETWORK_TIMEOUT);
       
-      const posts = await blogPostService.fetchBlogPosts(publishedOnly, organizationId, { lightweight });
+      const posts = await blogPostService.fetchBlogPosts(publishedOnly, organizationId, { lightweight, limit });
       
       clearTimeout(timeoutId);
       console.log('📊 useBlogPosts - received posts:', posts.length);
@@ -103,7 +107,7 @@ export const useBlogPosts = (options: UseBlogPostsOptions = {}) => {
         setLoading(false);
       }
     }
-  }, [publishedOnly, organizationId, lightweight]);
+  }, [publishedOnly, organizationId, lightweight, limit]);
 
   const addBlogPost = async (postData: Omit<BlogPost, 'id' | 'created_at' | 'updated_at' | 'created_by'>): Promise<BlogPost | null> => {
     if (!user) {
