@@ -68,16 +68,21 @@ export const blogPostService = {
   async fetchBlogPosts(
     publishedOnly: boolean = false,
     organizationId?: string,
-    options: { lightweight?: boolean } = {},
+    options: { lightweight?: boolean; limit?: number } = {},
   ): Promise<BlogPost[]> {
-    debug.blog('Fetching blog posts, publishedOnly:', publishedOnly, 'orgId:', organizationId, 'lightweight:', !!options.lightweight);
-    
+    debug.blog(
+      'Fetching blog posts, publishedOnly:', publishedOnly,
+      'orgId:', organizationId,
+      'lightweight:', !!options.lightweight,
+      'limit:', options.limit ?? 'none',
+    );
+
     // Check network connectivity first
     if (!navigator.onLine) {
       debug.warn('No network connection detected');
       return [];
     }
-    
+
     try {
       let query = supabase
         .from('blog_posts')
@@ -94,6 +99,12 @@ export const blogPostService = {
         query = query.eq('status', 'published');
       }
 
+      // Server-side page cap. Pickers ask for the top N; "Show more" widens
+      // the limit and re-fetches.
+      if (typeof options.limit === 'number' && options.limit > 0) {
+        query = query.limit(options.limit);
+      }
+
       const { data, error } = await query;
 
       if (error) {
@@ -107,10 +118,22 @@ export const blogPostService = {
       // queries, `content` and `metadata` are absent from the row; we fill
       // them with empty defaults so callers don't have to thread `Partial<>`
       // through their components. Pickers don't read either field.
+      //
+      // Also: a handful of legacy posts have inline-base64 image data stuffed
+      // in `image_url` (multi-MB strings, not URLs). They predate the upload
+      // pipeline and are a known data-quality issue. In lightweight mode we
+      // strip them so a single bad row can't drag the picker back to multi-
+      // second loads; the full blog detail page still gets the raw value
+      // through the default (non-lightweight) code path and renders it as
+      // an inline image like before. Cleaning these up at rest is a separate
+      // task — see followup in the PR description.
       return (data || []).map((post: any) => ({
         ...post,
         content: post.content ?? '',
         metadata: safeMetadataCast(post.metadata),
+        image_url: options.lightweight && typeof post.image_url === 'string' && post.image_url.startsWith('data:')
+          ? ''
+          : post.image_url,
         status: post.status as 'published' | 'draft',
         content_type: (post.content_type as ContentType) || 'article',
         display_order: post.display_order || 0,

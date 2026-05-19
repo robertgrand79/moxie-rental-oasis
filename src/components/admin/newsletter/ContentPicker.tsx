@@ -25,14 +25,30 @@ interface ContentPickerProps {
   onImportContent: (contentType: 'blog_posts' | 'events' | 'places', items: (BlogPost | LocalEvent | Place)[]) => void;
 }
 
+// Initial page size for the blog tab. Picked at 3 because (a) the user asked
+// for "top 3 then show more" and (b) it keeps the initial fetch ~free even
+// when the latest posts have legacy inline-base64 image_url values.
+const BLOG_INITIAL_LIMIT = 3;
+
 const ContentPicker = ({ selectedContent, onContentChange, onImportContent }: ContentPickerProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('blog_posts');
-  
-  // lightweight: drop `content` + `metadata` from the SELECT. The picker only
-  // shows title/excerpt/image; pulling the full body for every post added 80+ MB
-  // to the request on orgs whose posts contain inline base64 images.
-  const { blogPosts, loading: blogLoading } = useBlogPosts({ lightweight: true });
+
+  // Server-side pagination: start with the latest 3 posts and re-fetch the
+  // full set when the user clicks "Show more". Searching also triggers the
+  // full fetch — the user expects search to cover every post, not just the
+  // 3 already loaded.
+  const [showAllBlogs, setShowAllBlogs] = useState(false);
+  const blogFetchAll = showAllBlogs || searchTerm.length > 0;
+
+  // lightweight: drop `content` + `metadata` from the SELECT, and strip any
+  // legacy base64 image_url values. The picker only shows title/excerpt/image;
+  // pulling the full body for every post added 80+ MB to the request on orgs
+  // whose posts contain inline base64 images.
+  const { blogPosts, loading: blogLoading } = useBlogPosts({
+    lightweight: true,
+    limit: blogFetchAll ? undefined : BLOG_INITIAL_LIMIT,
+  });
   const { events, isLoading: eventsLoading } = useLocalEvents();
   const { places, isLoading: placesLoading } = usePlaces();
 
@@ -133,7 +149,7 @@ const ContentPicker = ({ selectedContent, onContentChange, onImportContent }: Co
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="blog_posts" className="mt-4">
+        <TabsContent value="blog_posts" className="mt-4 space-y-3">
           <ContentSelectionList
             items={filterContent(publishedBlogPosts, searchTerm)}
             selectedIds={selectedContent.blog_posts}
@@ -142,6 +158,17 @@ const ContentPicker = ({ selectedContent, onContentChange, onImportContent }: Co
             type="blog_posts"
             emptyMessage="No published blog posts found"
           />
+          {!blogFetchAll && !blogLoading && publishedBlogPosts.length >= BLOG_INITIAL_LIMIT && (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAllBlogs(true)}
+              >
+                Show more posts
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="events" className="mt-4">
