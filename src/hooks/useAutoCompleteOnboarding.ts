@@ -116,11 +116,13 @@ export const useAutoCompleteOnboarding = (organizationId: string | null) => {
     const checks: StepCompletionCheck[] = [
       {
         stepName: 'branding',
-        // Accept legacy snake_case keys so tenants whose data predates the
-        // key-consolidation migration don't get bumped back into the wizard.
+        // The site name is auto-seeded from the org name when the org is
+        // created (create_organization_with_owner), so it is always
+        // present and is NOT evidence the user did the branding step --
+        // including it here auto-completed branding for every org. Only
+        // an uploaded logo counts. Legacy snake_case logo keys are kept
+        // so pre-consolidation tenants who uploaded a logo still match.
         isDataPresent: !!(
-          settingsMap.siteName ||
-          settingsMap.site_name ||
           settingsMap.siteLogo ||
           settingsMap.logoUrl ||
           settingsMap.logo_url
