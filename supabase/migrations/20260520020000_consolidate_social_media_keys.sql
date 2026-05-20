@@ -21,14 +21,19 @@ DECLARE
   fb text;
   ig text;
   tw text;
+  cb uuid;
   built jsonb;
 BEGIN
   FOR rec IN
-    SELECT organization_id, MAX(created_by) AS created_by
+    SELECT DISTINCT organization_id
     FROM public.site_settings
     WHERE key IN ('social_facebook', 'social_instagram', 'social_twitter')
-    GROUP BY organization_id
   LOOP
+    SELECT created_by INTO cb FROM public.site_settings
+      WHERE organization_id = rec.organization_id
+        AND key IN ('social_facebook', 'social_instagram', 'social_twitter')
+      LIMIT 1;
+
     SELECT value #>> '{}' INTO fb FROM public.site_settings
       WHERE organization_id = rec.organization_id AND key = 'social_facebook';
     SELECT value #>> '{}' INTO ig FROM public.site_settings
@@ -46,7 +51,7 @@ BEGIN
 
     IF built <> '{}'::jsonb THEN
       INSERT INTO public.site_settings (organization_id, key, value, created_by)
-      VALUES (rec.organization_id, 'socialMedia', built, rec.created_by)
+      VALUES (rec.organization_id, 'socialMedia', built, cb)
       ON CONFLICT (organization_id, key) DO UPDATE
         SET value = built, updated_at = now()
         WHERE public.site_settings.value = '{}'::jsonb;
