@@ -79,7 +79,6 @@ const normalizeProperty = (raw: Record<string, unknown>): Property => ({
   latitude: normalizeNumber(raw.latitude),
   longitude: normalizeNumber(raw.longitude),
   organization_id: typeof raw.organization_id === 'string' ? raw.organization_id : undefined,
-  calendar_export_token: typeof raw.calendar_export_token === 'string' ? raw.calendar_export_token : undefined,
   created_at: typeof raw.created_at === 'string' ? raw.created_at : undefined,
   updated_at: typeof raw.updated_at === 'string' ? raw.updated_at : undefined,
   created_by: typeof raw.created_by === 'string' ? raw.created_by : undefined,
@@ -89,17 +88,14 @@ const normalizeProperty = (raw: Record<string, unknown>): Property => ({
  * Hook to fetch properties for the current tenant.
  */
 export const useTenantProperties = () => {
-  const { tenantId, tenant, loading: tenantLoading } = useTenant();
+  const { tenantId, loading: tenantLoading } = useTenant();
 
   const query = useQuery({
     queryKey: ['tenant-properties', tenantId],
     queryFn: async (): Promise<Property[]> => {
       if (!tenantId) {
-        console.log('🏠 [TenantProperties] No tenantId, returning empty array');
         return [];
       }
-
-      console.log('🏠 [TenantProperties] Fetching properties for org:', tenantId, tenant?.name);
 
       const { data, error } = await supabase
         .from('properties')
@@ -112,12 +108,9 @@ export const useTenantProperties = () => {
         throw error;
       }
 
-      const normalizedProperties = (data ?? []).map((property) =>
+      return (data ?? []).map((property) =>
         normalizeProperty(property as Record<string, unknown>)
       );
-
-      console.log('🏠 [TenantProperties] Loaded', normalizedProperties.length, 'properties');
-      return normalizedProperties;
     },
     enabled: !!tenantId && !tenantLoading,
     staleTime: 2 * 60 * 1000,
