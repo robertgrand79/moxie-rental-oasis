@@ -352,14 +352,31 @@ const PublicChatWidget = () => {
     } catch (error: unknown) {
       console.error('Chat error:', error);
       let errorContent = 'Sorry, I encountered an error. Please try again later.';
-      
-      const errMsg = error instanceof Error ? error.message : '';
-      if (errMsg.includes('429')) {
-        errorContent = 'I\'m receiving too many requests. Please wait a moment and try again.';
-      } else if (errMsg.includes('402')) {
-        errorContent = 'The chat service is temporarily unavailable. Please try again later or contact us directly.';
+
+      // supabase-js wraps a non-2xx response in a FunctionsHttpError whose
+      // `context` is the raw Response. Read it to surface the real reason
+      // (rate limit, verification failure, etc.) instead of a generic error.
+      const ctx = (error as { context?: Response })?.context;
+      let status = 0;
+      let serverMessage = '';
+      if (ctx && typeof ctx.status === 'number') {
+        status = ctx.status;
+        try {
+          const body = await ctx.clone().json();
+          if (body && typeof body.error === 'string') serverMessage = body.error;
+        } catch {
+          // response body was not JSON — ignore
+        }
       }
-      
+
+      if (status === 429) {
+        errorContent = 'I\'m receiving too many requests. Please wait a moment and try again.';
+      } else if (status === 402) {
+        errorContent = 'The chat service is temporarily unavailable. Please try again later or contact us directly.';
+      } else if (serverMessage) {
+        errorContent = serverMessage;
+      }
+
       const errResponse: Message = {
         role: 'assistant',
         content: errorContent
