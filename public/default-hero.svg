@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Stylized mountain landscape">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E8D5B7"/>
+      <stop offset="1" stop-color="#A78F6F"/>
+    </linearGradient>
+    <linearGradient id="far" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8B7B6A"/>
+      <stop offset="1" stop-color="#5C5142"/>
+    </linearGradient>
+    <linearGradient id="mid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6B5644"/>
+      <stop offset="1" stop-color="#3D2F23"/>
+    </linearGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3E3024"/>
+      <stop offset="1" stop-color="#1F1812"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F4D294" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#F4D294" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <circle cx="1400" cy="380" r="240" fill="url(#sun)"/>
+  <polygon points="0,660 200,520 380,580 580,440 780,520 960,460 1180,540 1360,480 1560,540 1760,500 1920,560 1920,720 0,720" fill="url(#far)" opacity="0.7"/>
+  <polygon points="0,790 180,660 360,720 540,620 720,700 900,640 1080,720 1260,660 1440,740 1620,680 1800,740 1920,700 1920,870 0,870" fill="url(#mid)" opacity="0.85"/>
+  <polygon points="0,890 200,820 400,860 600,810 800,850 1000,820 1200,860 1400,830 1600,860 1800,830 1920,860 1920,1080 0,1080" fill="url(#near)"/>
+</svg>
