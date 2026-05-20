@@ -424,6 +424,11 @@ const PublicChatWidget = () => {
 
   const styles = getStyleClasses();
 
+  // Property detail pages render a fixed MobileBookingBar at the bottom on
+  // mobile. Lift the chat bubble above it there so it doesn't cover the
+  // Book button.
+  const onPropertyPage = location.pathname.startsWith('/property/');
+
   // Render markdown-style links
   const renderContent = (content: string) => {
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
@@ -465,7 +470,8 @@ const PublicChatWidget = () => {
           className={cn(
             "fixed z-50 flex items-center justify-center text-white",
             "hover:scale-105 active:scale-95 transition-all duration-300",
-            "bottom-4 right-4 sm:bottom-6 sm:right-6",
+            "right-4 sm:bottom-6 sm:right-6",
+            onPropertyPage ? "bottom-24" : "bottom-4",
             styles.bubble,
             chatStyle === 'playful' ? 'h-16 w-16 sm:h-18 sm:w-18' : 'h-14 w-14 sm:h-16 sm:w-16'
           )}
