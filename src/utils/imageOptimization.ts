@@ -109,14 +109,12 @@ export const supportsWebP = (): Promise<boolean> => {
   });
 };
 
-// Get optimized image URL with Supabase transformations
+// Get optimized image URL with Supabase transformations.
 //
-// NOTE: Supabase Image Transformation (/render/image/ endpoint) requires the
-// Pro plan add-on. Until that is enabled, this function returns the original
-// /object/public/ URL unchanged — images load correctly without transformation.
-// To enable: Supabase dashboard → Storage → Image Transformations → Enable,
-// then flip SUPABASE_IMAGE_TRANSFORM_ENABLED to true below.
-const SUPABASE_IMAGE_TRANSFORM_ENABLED = false;
+// Uses the Supabase Image Transformation (/render/image/) endpoint, available
+// on the project's Pro plan, to serve resized and re-encoded images. When
+// disabled, the original /object/public/ URL is returned unchanged.
+const SUPABASE_IMAGE_TRANSFORM_ENABLED = true;
 
 export const getOptimizedImageUrl = (
   baseUrl: string,
