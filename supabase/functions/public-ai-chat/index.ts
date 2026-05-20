@@ -92,6 +92,40 @@ interface SiteSettings {
   address?: string;
 }
 
+// Structured cards returned to the chat widget for rich rendering. The widget
+// builds booking links from propertyId/location, so no URLs are sent here.
+type ChatCard =
+  | {
+      type: 'availability';
+      propertyId: string;
+      propertyTitle: string;
+      location: string;
+      available: boolean;
+      checkInDate: string;
+      checkOutDate: string;
+    }
+  | {
+      type: 'pricing';
+      propertyId: string;
+      propertyTitle: string;
+      location: string;
+      checkInDate: string;
+      checkOutDate: string;
+      nights: number;
+      subtotal: number;
+      cleaningFee: number;
+      serviceFee: number;
+      total: number;
+    }
+  | {
+      type: 'booking_link';
+      propertyId: string;
+      propertyTitle: string;
+      location: string;
+      checkInDate?: string;
+      checkOutDate?: string;
+    };
+
 const PERSONALITY_PROMPTS: Record<string, string> = {
   friendly: "Be warm, conversational, and approachable. Use a friendly tone with occasional light humor. Make guests feel welcome and comfortable asking questions.",
   professional: "Maintain a polished, professional tone. Be courteous and efficient. Focus on providing accurate, detailed information while remaining helpful.",
@@ -190,7 +224,7 @@ async function checkAvailability(
       .gte('end_date', checkInDate);
 
     const conflicts = (blocks || []).filter(b => b.block_type === 'booked' || b.block_type === 'blocked');
-    results.push({ propertyId: property.id, propertyTitle: property.title, isAvailable: conflicts.length === 0, conflicts });
+    results.push({ propertyId: property.id, propertyTitle: property.title, location: property.location, isAvailable: conflicts.length === 0, conflicts });
   }
   return results;
 }
@@ -234,17 +268,17 @@ async function getPricingBreakdown(
 
   const cleaningFee = property.cleaningFee || 0;
   const serviceFee = Math.round(subtotal * (property.serviceFeePercentage || 0) / 100);
-  const bookingUrl = `${siteUrl || ''}/properties/${property.id}?checkin=${checkInDate}&checkout=${checkOutDate}`;
 
   return [{
+    propertyId: property.id,
     propertyTitle: property.title,
+    location: property.location,
     nights,
     dailyPrices,
     subtotal,
     cleaningFee,
     serviceFee,
     total: subtotal + cleaningFee + serviceFee,
-    bookingUrl
   }];
 }
 
@@ -293,8 +327,9 @@ async function processToolCalls(
   organizationId?: string,
   sessionId?: string,
   conversationHistory?: Message[]
-): Promise<{ perTool: { tool_use_id: string; content: string }[]; combined: string; hasEscalation: boolean }> {
+): Promise<{ perTool: { tool_use_id: string; content: string }[]; combined: string; hasEscalation: boolean; cards: ChatCard[] }> {
   const perTool: { tool_use_id: string; content: string }[] = [];
+  const cards: ChatCard[] = [];
   let hasEscalation = false;
 
   for (const toolUse of toolUses) {
@@ -309,26 +344,57 @@ async function processToolCalls(
           toolResults.push(r.isAvailable
             ? `✅ **${r.propertyTitle}** is AVAILABLE from ${args.checkInDate} to ${args.checkOutDate}.`
             : `❌ **${r.propertyTitle}** is NOT available for those dates.`);
+          if (r.propertyId && r.location) {
+            cards.push({
+              type: 'availability',
+              propertyId: r.propertyId,
+              propertyTitle: r.propertyTitle,
+              location: r.location,
+              available: r.isAvailable,
+              checkInDate: args.checkInDate,
+              checkOutDate: args.checkOutDate,
+            });
+          }
         }
         break;
       }
       case 'get_pricing_breakdown': {
         const pricingResults = await getPricingBreakdown(supabase, properties, args.propertyTitle, args.checkInDate, args.checkOutDate, siteUrl);
         for (const p of pricingResults) {
-          let breakdown = `**Pricing for ${p.propertyTitle}** (${args.checkInDate} to ${args.checkOutDate}):\n\n`;
-          breakdown += `• **${p.nights} nights**: $${p.subtotal.toFixed(2)}`;
-          if (p.cleaningFee > 0) breakdown += `\n• **Cleaning fee**: $${p.cleaningFee.toFixed(2)}`;
-          if (p.serviceFee > 0) breakdown += `\n• **Service fee**: $${p.serviceFee.toFixed(2)}`;
-          breakdown += `\n\n**Total: $${p.total.toFixed(2)}**\n\n[Book Now](${p.bookingUrl})`;
+          let breakdown = `Pricing for ${p.propertyTitle} (${args.checkInDate} to ${args.checkOutDate}): `;
+          breakdown += `${p.nights} nights $${p.subtotal.toFixed(2)}`;
+          if (p.cleaningFee > 0) breakdown += `, cleaning fee $${p.cleaningFee.toFixed(2)}`;
+          if (p.serviceFee > 0) breakdown += `, service fee $${p.serviceFee.toFixed(2)}`;
+          breakdown += `, total $${p.total.toFixed(2)}. (A pricing card with a Book button is shown to the guest.)`;
           toolResults.push(breakdown);
+          cards.push({
+            type: 'pricing',
+            propertyId: p.propertyId,
+            propertyTitle: p.propertyTitle,
+            location: p.location,
+            checkInDate: args.checkInDate,
+            checkOutDate: args.checkOutDate,
+            nights: p.nights,
+            subtotal: p.subtotal,
+            cleaningFee: p.cleaningFee,
+            serviceFee: p.serviceFee,
+            total: p.total,
+          });
         }
         break;
       }
       case 'get_booking_link': {
         const property = findPropertyByTitle(properties, args.propertyTitle);
         if (property) {
-          const url = `${siteUrl || ''}/properties/${property.id}?checkin=${args.checkInDate}&checkout=${args.checkOutDate}`;
-          toolResults.push(`Here's your booking link for **${property.title}**:\n\n[Click here to book](${url})`);
+          toolResults.push(`A booking card with a Book button for ${property.title} is shown to the guest.`);
+          cards.push({
+            type: 'booking_link',
+            propertyId: property.id,
+            propertyTitle: property.title,
+            location: property.location,
+            checkInDate: typeof args.checkInDate === 'string' ? args.checkInDate : undefined,
+            checkOutDate: typeof args.checkOutDate === 'string' ? args.checkOutDate : undefined,
+          });
         } else {
           toolResults.push(`Could not find property "${args.propertyTitle}".`);
         }
@@ -365,7 +431,7 @@ async function processToolCalls(
   }
 
   const combined = perTool.map(t => t.content).join('\n\n---\n\n');
-  return { perTool, combined, hasEscalation };
+  return { perTool, combined, hasEscalation, cards };
 }
 
 async function aggregatePropertyContext(
@@ -716,6 +782,7 @@ function buildSystemPrompt(
 - You have comprehensive knowledge about all properties, the local area, events, and recommendations
 - When asked about a specific property, provide detailed information from above
 - Use your tools to check real-time availability and pricing when guests ask about dates
+- When you use the availability, pricing, or booking-link tools, the guest is shown the result as a visual card with a Book button. Keep your accompanying text to a brief one-line intro — do not repeat the full breakdown or put booking links in your text.
 - Recommend local restaurants, activities, and events based on the POI and events data
 - Keep responses helpful, informative, and ${config.personality}
 - Never make up information that isn't provided above
@@ -987,10 +1054,11 @@ serve(async (req) => {
 
     let aiResponse: string;
     let toolCallsUsed: any[] | undefined;
+    let responseCards: ChatCard[] = [];
 
     if (toolUseBlocks.length > 0 && supabase) {
       toolCallsUsed = toolUseBlocks.map(t => ({ name: t.name, input: t.input, id: t.id }));
-      const { perTool, combined, hasEscalation } = await processToolCalls(
+      const { perTool, combined, hasEscalation, cards } = await processToolCalls(
         supabase,
         propertyContext,
         toolUseBlocks,
@@ -999,6 +1067,7 @@ serve(async (req) => {
         safeSessionId,
         safeHistory
       );
+      responseCards = cards;
 
       if (hasEscalation) {
         aiResponse = combined;
@@ -1040,7 +1109,7 @@ serve(async (req) => {
       logConversation(supabase, organizationId, safeSessionId, safeMessage, aiResponse, toolCallsUsed);
     }
 
-    return new Response(JSON.stringify({ aiResponse }), 
+    return new Response(JSON.stringify({ aiResponse, cards: responseCards }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error) {
     console.error("Public AI chat error:", error);
