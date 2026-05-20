@@ -756,6 +756,31 @@ When to escalate:
   return prompt;
 }
 
+// Cloudflare Turnstile bot protection. Optional — when TURNSTILE_SECRET_KEY
+// is not set, verification is skipped entirely and the chat behaves as before.
+const TURNSTILE_SECRET = Deno.env.get("TURNSTILE_SECRET_KEY") ?? "";
+
+async function verifyTurnstile(token: string): Promise<boolean> {
+  try {
+    const form = new URLSearchParams();
+    form.append("secret", TURNSTILE_SECRET);
+    form.append("response", token);
+    const resp = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: form.toString(),
+      },
+    );
+    const result = await resp.json();
+    return result?.success === true;
+  } catch (err) {
+    console.error("Turnstile verification error:", err);
+    return false;
+  }
+}
+
 // Derive a stable, non-PII per-client key (hashed IP) for rate limiting.
 async function clientKeyFromRequest(req: Request): Promise<string | null> {
   const ip = req.headers.get("cf-connecting-ip")
@@ -777,7 +802,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => null);
-    const { message, conversationHistory, organizationId, sessionId } = body ?? {};
+    const { message, conversationHistory, organizationId, sessionId, turnstileToken } = body ?? {};
 
     const jsonError = (msg: string, status: number) =>
       new Response(JSON.stringify({ error: msg }),
@@ -823,6 +848,15 @@ serve(async (req) => {
     const rateLimit = await checkAiRateLimit(organizationId, "public_guest_chat", clientKey);
     if (!rateLimit.allowed) {
       return rateLimitResponse(rateLimit, corsHeaders);
+    }
+
+    // Bot protection — verify Turnstile at the start of a conversation.
+    // No-op until TURNSTILE_SECRET_KEY is configured.
+    if (TURNSTILE_SECRET && safeHistory.length === 0) {
+      const token = typeof turnstileToken === "string" ? turnstileToken : "";
+      if (!token || !(await verifyTurnstile(token))) {
+        return jsonError("Human verification required", 403);
+      }
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");

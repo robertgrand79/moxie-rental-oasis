@@ -9,6 +9,12 @@ import { cn } from '@/lib/utils';
 import { useLocation } from 'react-router-dom';
 import ChatAvatar from '@/components/chat/ChatAvatar';
 import { AvatarType, avatarInfo } from '@/components/chat/avatars';
+import TurnstileWidget from '@/components/security/TurnstileWidget';
+import { useTurnstile } from '@/hooks/useTurnstile';
+
+// Cloudflare Turnstile is optional — when no site key is configured the chat
+// behaves exactly as before, with no human-verification gate.
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '';
 
 // Fun, personality-driven welcome messages for each avatar
 const getPersonalizedWelcome = (avatarType: AvatarType, customWelcome?: string): string => {
@@ -141,12 +147,7 @@ const clearConversation = (tenantId: string) => {
 const PublicChatWidget = () => {
   const location = useLocation();
   const { tenant } = useTenant();
-  
-  // Don't render on admin routes or platform marketing pages
-  if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/platform')) {
-    return null;
-  }
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -158,6 +159,21 @@ const PublicChatWidget = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const escalationChannelRef = useRef<RealtimeChannel | null>(null);
+
+  // Cloudflare Turnstile (optional). hasPassedTurnstile latches true so a brief
+  // token expiry can't re-lock the input mid-conversation.
+  const {
+    token: turnstileToken,
+    isVerified: turnstileVerified,
+    handleVerify,
+    handleError: handleTurnstileError,
+    handleExpire,
+  } = useTurnstile();
+  const [hasPassedTurnstile, setHasPassedTurnstile] = useState(false);
+
+  useEffect(() => {
+    if (turnstileVerified) setHasPassedTurnstile(true);
+  }, [turnstileVerified]);
 
   // Load conversation from localStorage on mount
   useEffect(() => {
@@ -277,6 +293,7 @@ const PublicChatWidget = () => {
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
+    if (TURNSTILE_SITE_KEY && !hasPassedTurnstile) return;
 
     // Rate limiting - prevent rapid-fire messages
     const now = Date.now();
@@ -307,7 +324,8 @@ const PublicChatWidget = () => {
           message: userMessage.content,
           conversationHistory: messages,
           organizationId: tenant?.id,
-          sessionId
+          sessionId,
+          turnstileToken: turnstileToken || undefined,
         }
       });
 
@@ -362,7 +380,14 @@ const PublicChatWidget = () => {
     e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
   };
 
+  // Not rendered on admin or platform marketing routes.
+  if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/platform')) {
+    return null;
+  }
+
   if (!settings?.is_enabled) return null;
+
+  const turnstileRequired = !!TURNSTILE_SITE_KEY;
 
   const avatarType: AvatarType = (settings.avatar_type as AvatarType) || 'captain-moxie';
   const chatStyle = settings.chat_style || 'modern';
@@ -691,6 +716,22 @@ const PublicChatWidget = () => {
 
               {/* Input */}
               <div className={cn("p-3 flex-shrink-0", styles.inputArea, "safe-area-bottom")}>
+                {/* Turnstile human-verification gate (only when configured) */}
+                {turnstileRequired && !hasPassedTurnstile && (
+                  <div className="mb-3">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Quick verification before we chat:
+                    </p>
+                    <TurnstileWidget
+                      siteKey={TURNSTILE_SITE_KEY}
+                      onVerify={handleVerify}
+                      onError={handleTurnstileError}
+                      onExpire={handleExpire}
+                      theme="auto"
+                      size="compact"
+                    />
+                  </div>
+                )}
                 {/* Character counter when approaching limit */}
                 {input.length > MAX_MESSAGE_LENGTH * 0.8 && (
                   <div className={cn(
@@ -706,8 +747,9 @@ const PublicChatWidget = () => {
                     value={input}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type a message..."
+                    placeholder={turnstileRequired && !hasPassedTurnstile ? "Complete verification to chat..." : "Type a message..."}
                     rows={1}
+                    disabled={turnstileRequired && !hasPassedTurnstile}
                     className={cn(
                       "flex-1 min-h-[44px] max-h-[100px] resize-none border border-input",
                       "bg-background px-4 py-2.5 text-sm ring-offset-background",
@@ -719,7 +761,7 @@ const PublicChatWidget = () => {
                   />
                   <Button
                     onClick={sendMessage}
-                    disabled={!input.trim() || isLoading || input.length > MAX_MESSAGE_LENGTH}
+                    disabled={!input.trim() || isLoading || input.length > MAX_MESSAGE_LENGTH || (turnstileRequired && !hasPassedTurnstile)}
                     size="icon"
                     className={cn(
                       "h-11 w-11 flex-shrink-0 transition-transform hover:scale-105",
