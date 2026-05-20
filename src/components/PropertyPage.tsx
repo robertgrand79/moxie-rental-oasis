@@ -14,7 +14,6 @@ import PropertyReviewsSection from '@/components/property/PropertyReviewsSection
 import PropertyLocationMap from '@/components/property/PropertyLocationMap';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import { useIsMobile } from '@/hooks/use-mobile';
-import DomainSEO from '@/components/seo/DomainSEO';
 import type { Property } from '@/types/property';
 
 type PropertyPageErrorBoundaryState = {
@@ -128,10 +127,6 @@ const PropertyPageContent = () => {
     safeProperty.images?.[0] ||
     safeProperty.featured_photos?.[0] ||
     safeProperty.image_url;
-  const metaDescription = (safeProperty.description || '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 200);
 
   const handleBackClick = () => {
     if (typeof window !== 'undefined') {
@@ -176,11 +171,6 @@ const PropertyPageContent = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <DomainSEO
-        title={safeProperty.title}
-        description={metaDescription}
-        ogImage={coverImage || undefined}
-      />
       {coverImage && (
         <>
           {isMobile ? (
