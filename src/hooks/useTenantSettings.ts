@@ -131,14 +131,27 @@ export const useTenantSettings = () => {
   }, [tenantId, queryClient]);
 
 
-  // Merge tenant info with settings - look for both camelCase and snake_case keys
-  // siteLogo is the key used by LogoUploader, so check it first
+  // Merge tenant info with settings.
+  //
+  // Legacy snake_case aliases: tier 2 consolidation (PRs #26-28) moved
+  // all writes to canonical camelCase keys. These aliases let older
+  // consumers (DynamicFAQ, Auth, blog, about pages, etc.) keep reading
+  // snake_case names while we migrate them off. The merge is the single
+  // place where the mapping lives.
+  const data = query.data;
   const mergedSettings: TenantSettings = {
-    ...query.data,
-    // Use tenant logo if no site-specific logo (check siteLogo first as that's what LogoUploader saves)
-    logo_url: query.data?.siteLogo || query.data?.logo_url || query.data?.logoUrl || tenant?.logo_url || undefined,
-    // Use site name from settings or tenant name (check both key formats)
-    site_name: query.data?.site_name || query.data?.siteName || tenant?.name || undefined,
+    ...data,
+    site_name: data?.siteName || data?.site_name || tenant?.name || undefined,
+    site_description: data?.description || data?.site_description || undefined,
+    logo_url: data?.siteLogo || data?.logo_url || data?.logoUrl || tenant?.logo_url || undefined,
+    favicon_url: data?.favicon || data?.favicon_url || undefined,
+    primary_color: data?.colorPrimary || data?.primary_color || undefined,
+    secondary_color: data?.colorSecondary || data?.secondary_color || undefined,
+    contact_email: data?.contactEmail || data?.contact_email || undefined,
+    contact_phone: data?.phone || data?.contactPhone || data?.contact_phone || undefined,
+    hero_title: data?.heroTitle || data?.hero_title || undefined,
+    hero_subtitle: data?.heroSubtitle || data?.hero_subtitle || undefined,
+    hero_image_url: data?.heroBackgroundImage || data?.hero_image_url || undefined,
   };
   
   debug.settings('Logo resolved:', mergedSettings.logo_url ? 'Found' : 'Not configured');
