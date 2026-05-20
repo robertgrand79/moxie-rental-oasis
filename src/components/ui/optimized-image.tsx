@@ -77,8 +77,11 @@ const OptimizedImage = ({
 
   const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
-    // If optimized URL fails, try original URL as fallback
+    // If the optimized URL fails, fall back to the original. srcSet must be
+    // cleared too, otherwise the browser keeps re-selecting the failing
+    // optimized variants instead of the original src.
     if (img.src !== src && src) {
+      img.srcset = '';
       img.src = src;
       return;
     }

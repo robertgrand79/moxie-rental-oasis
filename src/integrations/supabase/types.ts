@@ -7005,7 +7005,6 @@ export type Database = {
           amenities: string | null
           bathrooms: number
           bedrooms: number
-          calendar_export_token: string | null
           city: string | null
           cleaning_fee: number | null
           cover_image_url: string | null
@@ -7037,7 +7036,6 @@ export type Database = {
           amenities?: string | null
           bathrooms: number
           bedrooms: number
-          calendar_export_token?: string | null
           city?: string | null
           cleaning_fee?: number | null
           cover_image_url?: string | null
@@ -7069,7 +7067,6 @@ export type Database = {
           amenities?: string | null
           bathrooms?: number
           bedrooms?: number
-          calendar_export_token?: string | null
           city?: string | null
           cleaning_fee?: number | null
           cover_image_url?: string | null
@@ -7117,6 +7114,35 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "platform_tenant_health"
             referencedColumns: ["organization_id"]
+          },
+        ]
+      }
+      property_calendar_tokens: {
+        Row: {
+          calendar_export_token: string
+          created_at: string
+          property_id: string
+          updated_at: string
+        }
+        Insert: {
+          calendar_export_token?: string
+          created_at?: string
+          property_id: string
+          updated_at?: string
+        }
+        Update: {
+          calendar_export_token?: string
+          created_at?: string
+          property_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_calendar_tokens_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
           },
         ]
       }

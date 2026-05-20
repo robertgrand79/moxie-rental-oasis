@@ -30,10 +30,10 @@ Deno.serve(async (req) => {
 
     console.log(`Generating iCal export for property ${propertyId}`)
 
-    // Get property details including the export token
+    // Get property details
     const { data: property, error: propertyError } = await supabase
       .from('properties')
-      .select('id, title, location, calendar_export_token')
+      .select('id, title, location')
       .eq('id', propertyId)
       .single()
 
@@ -45,8 +45,17 @@ Deno.serve(async (req) => {
       )
     }
 
+    // Export token lives in a separate, RLS-protected table
+    const { data: tokenRow } = await supabase
+      .from('property_calendar_tokens')
+      .select('calendar_export_token')
+      .eq('property_id', propertyId)
+      .maybeSingle()
+
+    const exportToken = tokenRow?.calendar_export_token
+
     // Validate token if property has one set
-    if (property.calendar_export_token && token !== property.calendar_export_token) {
+    if (exportToken && token !== exportToken) {
       console.warn(`Invalid or missing token for property ${propertyId}`)
       return new Response(
         'Unauthorized - invalid or missing token',

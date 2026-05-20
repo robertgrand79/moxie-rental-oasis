@@ -14,18 +14,15 @@ export const usePropertyFetch = () => {
   const fetchProperties = useCallback(async () => {
     // Wait for organization to be available
     if (!organization?.id) {
-      console.log('🔄 usePropertyFetch - Waiting for organization...');
       setProperties([]);
       setLoading(false);
       return;
     }
 
-    console.log('🔄 usePropertyFetch - Starting to fetch properties for org:', organization.id);
     setLoading(true);
     setError(null);
-    
+
     try {
-      console.log('🔄 usePropertyFetch - Calling Supabase...');
       const { data, error } = await supabase
         .from('properties')
         .select('*')
@@ -49,8 +46,6 @@ export const usePropertyFetch = () => {
         });
         setProperties([]);
       } else {
-        console.log('✅ usePropertyFetch - Success! Fetched properties:', data?.length || 0, 'items');
-        console.log('✅ usePropertyFetch - First property sample:', data?.[0]);
         const safeProperties = Array.isArray(data) ? data : [];
         setProperties(safeProperties);
       }
@@ -65,7 +60,6 @@ export const usePropertyFetch = () => {
       });
       setProperties([]);
     } finally {
-      console.log('🏁 usePropertyFetch - Finished (loading set to false)');
       setLoading(false);
     }
   }, [organization?.id]);

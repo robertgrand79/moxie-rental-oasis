@@ -59,7 +59,7 @@ const PropertyShowcase = () => {
                 <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="aspect-video relative">
                     <ThumbnailImage
-                      src={property.image_url || ''}
+                      src={property.cover_image_url || property.image_url || property.images?.[0] || ''}
                       alt={property.title}
                       className="w-full h-full"
                     />

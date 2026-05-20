@@ -25,7 +25,6 @@ export interface Property {
   latitude?: number;
   longitude?: number;
   organization_id?: string;
-  calendar_export_token?: string;
   city?: string;
   state?: string;
   country?: string;
