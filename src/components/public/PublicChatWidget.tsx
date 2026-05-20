@@ -17,6 +17,15 @@ import ChatCards, { type ChatCard } from '@/components/public/ChatCards';
 // behaves exactly as before, with no human-verification gate.
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '';
 
+// Quick-action chips shown in the empty state — one tap sends a steering
+// prompt that guides the guest into a booking-oriented flow.
+const QUICK_ACTIONS: { label: string; prompt: string }[] = [
+  { label: 'Check availability', prompt: "I'd like to check availability for some dates." },
+  { label: 'See pricing', prompt: 'Can you give me a price quote for a stay?' },
+  { label: 'Browse properties', prompt: 'What properties do you have available?' },
+  { label: 'Things to do nearby', prompt: 'What are some good things to do in the area?' },
+];
+
 // Fun, personality-driven welcome messages for each avatar
 const getPersonalizedWelcome = (avatarType: AvatarType, customWelcome?: string): string => {
   if (customWelcome && customWelcome.trim()) return customWelcome;
@@ -293,8 +302,9 @@ const PublicChatWidget = () => {
     }
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (overrideText?: string) => {
+    const rawText = typeof overrideText === 'string' ? overrideText : input;
+    if (!rawText.trim() || isLoading) return;
     if (TURNSTILE_SITE_KEY && !hasPassedTurnstile) return;
 
     // Rate limiting - prevent rapid-fire messages
@@ -305,7 +315,7 @@ const PublicChatWidget = () => {
     setLastMessageTime(now);
 
     // Message length validation
-    const trimmedMessage = input.trim();
+    const trimmedMessage = rawText.trim();
     if (trimmedMessage.length > MAX_MESSAGE_LENGTH) {
       const errorMessage: Message = {
         role: 'assistant',
@@ -615,23 +625,22 @@ const PublicChatWidget = () => {
                     <h3 className="font-semibold text-lg mb-2">{settings.display_name || avatarInfo[avatarType]?.name || 'Assistant'}</h3>
                     <p className="text-sm text-muted-foreground">{getPersonalizedWelcome(avatarType, settings.welcome_message)}</p>
                     
-                    {/* Quick action suggestions */}
+                    {/* Quick action chips — one tap sends a steering prompt */}
                     <div className="mt-6 flex flex-wrap gap-2 justify-center">
-                      {['Check-in info', 'Amenities', 'Location'].map((suggestion) => (
+                      {QUICK_ACTIONS.map((action) => (
                         <button
-                          key={suggestion}
-                          onClick={() => {
-                            setInput(suggestion);
-                            inputRef.current?.focus();
-                          }}
+                          key={action.label}
+                          onClick={() => sendMessage(action.prompt)}
+                          disabled={isLoading || (turnstileRequired && !hasPassedTurnstile)}
                           className={cn(
                             "text-xs px-3 py-1.5 rounded-full border transition-colors",
                             "hover:bg-muted hover:border-primary/50",
+                            "disabled:opacity-50 disabled:pointer-events-none",
                             chatStyle === 'playful' && "rounded-full",
                             chatStyle === 'elegant' && "border-muted-foreground/30"
                           )}
                         >
-                          {suggestion}
+                          {action.label}
                         </button>
                       ))}
                     </div>
@@ -769,7 +778,7 @@ const PublicChatWidget = () => {
                     )}
                   />
                   <Button
-                    onClick={sendMessage}
+                    onClick={() => sendMessage()}
                     disabled={!input.trim() || isLoading || input.length > MAX_MESSAGE_LENGTH || (turnstileRequired && !hasPassedTurnstile)}
                     size="icon"
                     className={cn(
