@@ -33,10 +33,14 @@ function getServiceClient(): SupabaseClient {
  *
  * If organizationId is null/missing, this is treated as a hard block — we
  * never want to bill an unknown tenant or let unscoped requests through.
+ *
+ * When clientKey is supplied (e.g. a hashed IP), a per-client cap is enforced
+ * before the per-org cap so one abusive client cannot exhaust the org quota.
  */
 export async function checkAiRateLimit(
   organizationId: string | null | undefined,
   surface: AiSurface,
+  clientKey?: string | null,
 ): Promise<RateLimitResult> {
   if (!organizationId) {
     return { allowed: false, retryAfterSeconds: 0, reason: "missing_organization_id" };
@@ -46,6 +50,7 @@ export async function checkAiRateLimit(
   const { data, error } = await supabase.rpc("check_and_log_ai_request", {
     p_organization_id: organizationId,
     p_surface: surface,
+    p_client_key: clientKey ?? null,
   });
 
   if (error) {
@@ -117,8 +122,8 @@ export function rateLimitResponse(
     JSON.stringify({
       error: "rate_limited",
       message:
-        result.reason?.startsWith("day_limit")
-          ? "Daily AI usage limit reached for your organization. Try again tomorrow or contact support."
+        result.reason?.includes("day_limit")
+          ? "Daily AI usage limit reached. Please try again tomorrow or contact support."
           : "AI request limit reached. Please slow down and try again in a moment.",
       retry_after_seconds: retryAfter,
       reason: result.reason,
