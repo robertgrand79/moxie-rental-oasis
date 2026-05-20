@@ -7,17 +7,21 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Image, Trash2, Save, Loader2 } from 'lucide-react';
 import { useSimplifiedSiteSettings } from '@/hooks/useSimplifiedSiteSettings';
+import { useCurrentOrganization } from '@/contexts/OrganizationContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const LogoUploader = () => {
   const [logo, setLogo] = useState<string | null>(null);
   const [favicon, setFavicon] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { settings, saveSetting, loading } = useSimplifiedSiteSettings();
+  const { organization } = useCurrentOrganization();
 
-  // Load from database settings
   useEffect(() => {
     if (!loading && settings) {
       setLogo(settings.siteLogo || null);
@@ -25,28 +29,60 @@ const LogoUploader = () => {
     }
   }, [settings, loading]);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon') => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon') => {
     const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({
-          title: "File too large",
-          description: "Please select an image smaller than 5MB.",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        if (type === 'logo') {
-          setLogo(result);
-        } else {
-          setFavicon(result);
-        }
-      };
-      reader.readAsDataURL(file);
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!organization) {
+      toast({
+        title: "No organization",
+        description: "Cannot upload without an organization context.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const setUploading = type === 'logo' ? setUploadingLogo : setUploadingFavicon;
+    setUploading(true);
+
+    try {
+      const fileExt = file.name.split('.').pop() || 'png';
+      const fileName = `${type}-${organization.id}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('organization-logos')
+        .upload(fileName, file, { upsert: true, contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('organization-logos')
+        .getPublicUrl(fileName);
+
+      if (type === 'logo') {
+        setLogo(publicUrl);
+      } else {
+        setFavicon(publicUrl);
+      }
+    } catch (error) {
+      console.error(`Error uploading ${type}:`, error);
+      const message = error instanceof Error ? error.message : 'Upload failed';
+      toast({
+        title: "Upload failed",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -147,14 +183,20 @@ const LogoUploader = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingLogo}
                       >
-                        <Upload className="h-4 w-4 mr-1" />
+                        {uploadingLogo ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-1" />
+                        )}
                         Replace
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={removeLogo}
+                        disabled={uploadingLogo}
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
                         Remove
@@ -171,8 +213,16 @@ const LogoUploader = () => {
                       <Button
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingLogo}
                       >
-                        Choose File
+                        {uploadingLogo ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          'Choose File'
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -203,14 +253,20 @@ const LogoUploader = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => faviconInputRef.current?.click()}
+                        disabled={uploadingFavicon}
                       >
-                        <Upload className="h-4 w-4 mr-1" />
+                        {uploadingFavicon ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-1" />
+                        )}
                         Replace
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={removeFavicon}
+                        disabled={uploadingFavicon}
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
                         Remove
@@ -229,8 +285,16 @@ const LogoUploader = () => {
                       <Button
                         variant="outline"
                         onClick={() => faviconInputRef.current?.click()}
+                        disabled={uploadingFavicon}
                       >
-                        Choose File
+                        {uploadingFavicon ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          'Choose File'
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -246,7 +310,7 @@ const LogoUploader = () => {
             </div>
           </div>
 
-          <Button onClick={saveBranding} className="w-full" disabled={isSaving}>
+          <Button onClick={saveBranding} className="w-full" disabled={isSaving || uploadingLogo || uploadingFavicon}>
             {isSaving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
