@@ -10,10 +10,13 @@ export const normalizeSettingsKeys = (settingsMap: Record<string, any>) => ({
   address: settingsMap.address || '',
   heroLocationText: settingsMap.heroLocationText || settingsMap.hero_location_text || '',
   logoUrl: settingsMap.logoUrl || settingsMap.logo_url || '',
+  // Social links are consolidated into the canonical socialMedia JSONB
+  // object (migration 20260520020000). The legacy social_* keys no
+  // longer exist.
   socialMedia: settingsMap.socialMedia || {
-    facebook: settingsMap.social_facebook || '',
-    instagram: settingsMap.social_instagram || '',
-    twitter: settingsMap.social_twitter || '',
+    facebook: '',
+    instagram: '',
+    twitter: '',
   },
 });
 
@@ -28,6 +31,5 @@ export const ALL_SETTING_KEYS = [
   'address',
   'heroLocationText', 'hero_location_text',
   'logoUrl', 'logo_url',
-  'socialMedia',
-  'social_facebook', 'social_instagram', 'social_twitter'
+  'socialMedia'
 ];
