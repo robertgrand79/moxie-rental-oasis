@@ -11,6 +11,7 @@ import ChatAvatar from '@/components/chat/ChatAvatar';
 import { AvatarType, avatarInfo } from '@/components/chat/avatars';
 import TurnstileWidget from '@/components/security/TurnstileWidget';
 import { useTurnstile } from '@/hooks/useTurnstile';
+import ChatCards, { type ChatCard } from '@/components/public/ChatCards';
 
 // Cloudflare Turnstile is optional — when no site key is configured the chat
 // behaves exactly as before, with no human-verification gate.
@@ -71,6 +72,7 @@ const getPersonalizedWelcome = (avatarType: AvatarType, customWelcome?: string):
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  cards?: ChatCard[];
 }
 
 type ChatStyle = 'modern' | 'minimal' | 'playful' | 'elegant';
@@ -333,7 +335,8 @@ const PublicChatWidget = () => {
 
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.aiResponse || 'Sorry, I could not generate a response.'
+        content: data.aiResponse || 'Sorry, I could not generate a response.',
+        cards: Array.isArray(data.cards) && data.cards.length > 0 ? data.cards : undefined,
       };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error: unknown) {
@@ -636,8 +639,8 @@ const PublicChatWidget = () => {
                 ) : (
                   <div className="space-y-4">
                     {messages.map((msg, idx) => (
+                      <React.Fragment key={idx}>
                       <div
-                        key={idx}
                         className={cn(
                           "flex gap-2",
                           msg.role === 'user' ? 'justify-end' : 'justify-start',
@@ -678,6 +681,12 @@ const PublicChatWidget = () => {
                           </div>
                         )}
                       </div>
+                      {msg.role === 'assistant' && msg.cards && msg.cards.length > 0 && (
+                        <div className="pl-10 pr-2">
+                          <ChatCards cards={msg.cards} accentColor={bubbleColor} />
+                        </div>
+                      )}
+                      </React.Fragment>
                     ))}
                     {isLoading && (
                       <div className="flex gap-2 animate-fade-in">
