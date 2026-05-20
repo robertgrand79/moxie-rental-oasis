@@ -756,6 +756,20 @@ When to escalate:
   return prompt;
 }
 
+// Derive a stable, non-PII per-client key (hashed IP) for rate limiting.
+async function clientKeyFromRequest(req: Request): Promise<string | null> {
+  const ip = req.headers.get("cf-connecting-ip")
+    || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || req.headers.get("x-real-ip")
+    || "";
+  if (!ip) return null;
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`pubchat:${ip}`));
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 40);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -803,8 +817,10 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Per-org rate limit gate (public guest chat is the highest-abuse surface)
-    const rateLimit = await checkAiRateLimit(organizationId, "public_guest_chat");
+    // Rate-limit gate — per-IP first, then per-org. Public guest chat is the
+    // highest-abuse surface, so a single client must not exhaust the org quota.
+    const clientKey = await clientKeyFromRequest(req);
+    const rateLimit = await checkAiRateLimit(organizationId, "public_guest_chat", clientKey);
     if (!rateLimit.allowed) {
       return rateLimitResponse(rateLimit, corsHeaders);
     }
