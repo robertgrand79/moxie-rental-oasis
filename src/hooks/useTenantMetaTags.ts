@@ -116,13 +116,18 @@ export const useTenantMetaTags = () => {
   });
 
   const isHomePage = location.pathname === '/';
+  // Property detail pages set their own per-property title/description/image,
+  // so this hook only manages site-wide tags there to avoid overwriting them.
+  const ownsPageMeta = location.pathname.startsWith('/property/');
 
   useEffect(() => {
     if (!settings) return;
 
     try {
-      // Update document title
-      document.title = settings.siteTitle;
+      // Update document title (property pages set their own)
+      if (!ownsPageMeta) {
+        document.title = settings.siteTitle;
+      }
 
       // Helper to update or create meta tags
       const updateMetaTag = (selector: string, attribute: string, content: string) => {
@@ -156,9 +161,6 @@ export const useTenantMetaTags = () => {
         }
       };
 
-      // Update meta description
-      updateMetaTag('meta[name="description"]', 'content', settings.metaDescription);
-
       // Update keywords
       if (settings.keywords) {
         updateMetaTag('meta[name="keywords"]', 'content', settings.keywords);
@@ -169,30 +171,32 @@ export const useTenantMetaTags = () => {
 
       // Build canonical URL
       const currentUrl = window.location.href;
-      const canonicalUrl = settings.canonicalBase 
+      const canonicalUrl = settings.canonicalBase
         ? `${settings.canonicalBase.replace(/\/$/, '')}${location.pathname}`
         : currentUrl;
       updateLinkTag('link[rel="canonical"]', canonicalUrl);
 
-      // Update Open Graph tags
-      updateMetaTag('meta[property="og:title"]', 'content', settings.ogTitle);
-      updateMetaTag('meta[property="og:description"]', 'content', settings.ogDescription);
+      // Site-wide Open Graph / Twitter tags
       updateMetaTag('meta[property="og:site_name"]', 'content', settings.siteName);
       updateMetaTag('meta[property="og:url"]', 'content', canonicalUrl);
       updateMetaTag('meta[property="og:type"]', 'content', 'website');
-      if (settings.ogImage) {
-        updateMetaTag('meta[property="og:image"]', 'content', settings.ogImage);
-      }
-
-      // Update Twitter Card tags
       updateMetaTag('meta[name="twitter:card"]', 'content', settings.twitterCardType);
-      updateMetaTag('meta[name="twitter:title"]', 'content', settings.ogTitle);
-      updateMetaTag('meta[name="twitter:description"]', 'content', settings.ogDescription);
       if (settings.twitterSite) {
         updateMetaTag('meta[name="twitter:site"]', 'content', settings.twitterSite);
       }
-      if (settings.ogImage) {
-        updateMetaTag('meta[name="twitter:image"]', 'content', settings.ogImage);
+
+      // Page-specific tags — skipped on routes that set their own per-item
+      // meta (property detail pages), so the two don't overwrite each other.
+      if (!ownsPageMeta) {
+        updateMetaTag('meta[name="description"]', 'content', settings.metaDescription);
+        updateMetaTag('meta[property="og:title"]', 'content', settings.ogTitle);
+        updateMetaTag('meta[property="og:description"]', 'content', settings.ogDescription);
+        updateMetaTag('meta[name="twitter:title"]', 'content', settings.ogTitle);
+        updateMetaTag('meta[name="twitter:description"]', 'content', settings.ogDescription);
+        if (settings.ogImage) {
+          updateMetaTag('meta[property="og:image"]', 'content', settings.ogImage);
+          updateMetaTag('meta[name="twitter:image"]', 'content', settings.ogImage);
+        }
       }
 
     } catch (error) {

@@ -14,6 +14,7 @@ import PropertyReviewsSection from '@/components/property/PropertyReviewsSection
 import PropertyLocationMap from '@/components/property/PropertyLocationMap';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import { useIsMobile } from '@/hooks/use-mobile';
+import DomainSEO from '@/components/seo/DomainSEO';
 import type { Property } from '@/types/property';
 
 type PropertyPageErrorBoundaryState = {
@@ -92,9 +93,6 @@ const PropertyPageContent = () => {
   const checkoutParam = searchParams.get('checkout');
   const [activeTab, setActiveTab] = useState(tabParam === 'booking' ? 'booking' : 'about');
 
-  console.log('PropertyPage - Current addressSlug from URL:', addressSlug);
-  console.log('PropertyPage - Available properties:', properties.length);
-
   if (loading) {
     return (
       <BackgroundWrapper>
@@ -107,14 +105,8 @@ const PropertyPageContent = () => {
 
   const property = properties.find((candidate) => {
     if (!candidate.location) return false;
-
-    const propertySlug = generateAddressSlug(candidate.location);
-    console.log(`Comparing: "${addressSlug}" with "${propertySlug}" for property: ${candidate.location}`);
-
-    return addressSlug === propertySlug;
+    return addressSlug === generateAddressSlug(candidate.location);
   });
-
-  console.log('PropertyPage - Found property:', property ? property.title : 'Not found');
 
   if (!property) {
     return (
@@ -136,6 +128,10 @@ const PropertyPageContent = () => {
     safeProperty.images?.[0] ||
     safeProperty.featured_photos?.[0] ||
     safeProperty.image_url;
+  const metaDescription = (safeProperty.description || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 200);
 
   const handleBackClick = () => {
     if (typeof window !== 'undefined') {
@@ -180,6 +176,11 @@ const PropertyPageContent = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <DomainSEO
+        title={safeProperty.title}
+        description={metaDescription}
+        ogImage={coverImage || undefined}
+      />
       {coverImage && (
         <>
           {isMobile ? (
