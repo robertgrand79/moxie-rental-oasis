@@ -827,7 +827,7 @@ When to escalate:
 // is not set, verification is skipped entirely and the chat behaves as before.
 const TURNSTILE_SECRET = Deno.env.get("TURNSTILE_SECRET_KEY") ?? "";
 
-async function verifyTurnstile(token: string): Promise<boolean> {
+async function verifyTurnstile(token: string): Promise<{ ok: boolean; codes: string[] }> {
   try {
     const form = new URLSearchParams();
     form.append("secret", TURNSTILE_SECRET);
@@ -841,10 +841,13 @@ async function verifyTurnstile(token: string): Promise<boolean> {
       },
     );
     const result = await resp.json();
-    return result?.success === true;
+    const codes: string[] = Array.isArray(result?.["error-codes"])
+      ? result["error-codes"]
+      : [];
+    return { ok: result?.success === true, codes };
   } catch (err) {
     console.error("Turnstile verification error:", err);
-    return false;
+    return { ok: false, codes: ["request-failed"] };
   }
 }
 
@@ -921,8 +924,17 @@ serve(async (req) => {
     // No-op until TURNSTILE_SECRET_KEY is configured.
     if (TURNSTILE_SECRET && safeHistory.length === 0) {
       const token = typeof turnstileToken === "string" ? turnstileToken : "";
-      if (!token || !(await verifyTurnstile(token))) {
-        return jsonError("Human verification required", 403);
+      if (!token) {
+        return jsonError("Verification required — please complete the check and try again.", 403);
+      }
+      const verdict = await verifyTurnstile(token);
+      if (!verdict.ok) {
+        console.error("Turnstile rejected:", verdict.codes);
+        const detail = verdict.codes.length ? ` (${verdict.codes.join(", ")})` : "";
+        return jsonError(
+          `Verification failed${detail} — please refresh the page and try again.`,
+          403,
+        );
       }
     }
 
