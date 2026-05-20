@@ -67,9 +67,15 @@ jobs:
               echo "_shared changed — deploying all functions"
               FUNCTIONS=$(find supabase/functions -mindepth 1 -maxdepth 1 -type d -not -name '_shared' -printf '%f\n' | sort -u | paste -sd, -)
             else
+              # Only deploy functions whose directory still exists. A deleted
+              # function shows up in the diff but has nothing left to deploy,
+              # and `supabase functions deploy` on it would fail the job.
               FUNCTIONS=$(echo "$CHANGED" \
                 | awk -F/ '/^supabase\/functions\// && $3 != "" && $3 != "_shared" {print $3}' \
                 | sort -u \
+                | while read -r fn; do
+                    [ -d "supabase/functions/$fn" ] && echo "$fn"
+                  done \
                 | paste -sd, -)
             fi
           fi
