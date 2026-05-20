@@ -14,9 +14,6 @@ interface TenantSettings {
   contact_email?: string;
   contact_phone?: string;
   address?: string;
-  social_facebook?: string;
-  social_instagram?: string;
-  social_twitter?: string;
   hero_title?: string;
   hero_subtitle?: string;
   hero_image_url?: string;
