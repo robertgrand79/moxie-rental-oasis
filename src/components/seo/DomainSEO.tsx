@@ -28,28 +28,28 @@ const DomainSEO: React.FC<DomainSEOProps> = ({
   const { settings, loading } = useTenantSettings();
   const { tenant } = useTenantDetection();
   
-  if (loading || !tenant) return null;
-  
-  // Determine the canonical domain
-  const canonicalDomain = tenant.custom_domain 
+  // Determine the canonical domain safely before early return
+  const canonicalDomain = tenant?.custom_domain 
     ? `https://${tenant.custom_domain}`
-    : `https://${tenant.slug}.staymoxie.com`;
+    : tenant?.slug 
+      ? `https://${tenant.slug}.staymoxie.com`
+      : '';
   
   const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-  const canonicalUrl = `${canonicalDomain}${currentPath}`;
+  const canonicalUrl = canonicalDomain ? `${canonicalDomain}${currentPath}` : '';
   
   // Build page title
-  const siteTitle = settings?.siteName || tenant.name || 'StayMoxie';
+  const siteTitle = settings?.siteName || tenant?.name || 'StayMoxie';
   const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
   
   // Build description
   const metaDescription = description || settings?.metaDescription || settings?.tagline || '';
   
   // Build OG image URL
-  const ogImageUrl = ogImage || settings?.ogImage || tenant.logo_url || '';
+  const ogImageUrl = ogImage || settings?.ogImage || tenant?.logo_url || '';
   const fullOgImage = ogImageUrl?.startsWith('http') 
     ? ogImageUrl 
-    : ogImageUrl 
+    : ogImageUrl && canonicalDomain
       ? `${canonicalDomain}${ogImageUrl}` 
       : '';
   
@@ -58,6 +58,8 @@ const DomainSEO: React.FC<DomainSEOProps> = ({
   const ogDescription = settings?.ogDescription || metaDescription;
   
   React.useEffect(() => {
+    if (loading || !tenant) return;
+    
     // Update document title
     document.title = pageTitle;
     
@@ -135,6 +137,8 @@ const DomainSEO: React.FC<DomainSEOProps> = ({
     
   }, [pageTitle, metaDescription, canonicalUrl, ogTitle, ogDescription, fullOgImage, noindex, type, publishedTime, modifiedTime, siteTitle]);
   
+  if (loading || !tenant) return null;
+
   // Return structured data as JSON-LD
   const structuredData = {
     '@context': 'https://schema.org',
