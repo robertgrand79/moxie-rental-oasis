@@ -3,6 +3,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getSystemPrompt } from './systemPrompts.ts';
 import { enhanceParagraphStructure } from './contentProcessing.ts';
 import { generateContentWithAI, getMaxTokensForCategory } from './aiConfig.ts';
+import { checkAiRateLimit, organizationIdFromAuth, rateLimitResponse } from "../_shared/aiRateLimit.ts";
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,7 +17,14 @@ serve(async (req) => {
   }
 
   try {
+    const orgId = await organizationIdFromAuth(req);
+    const rateLimit = await checkAiRateLimit(orgId, "admin_content_gen");
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, corsHeaders);
+    }
+
     const { prompt, context } = await req.json();
+
 
     const systemPrompt = getSystemPrompt(context.category || 'content', context);
     const maxTokens = getMaxTokensForCategory(context.category);

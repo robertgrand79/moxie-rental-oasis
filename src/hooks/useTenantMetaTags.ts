@@ -17,14 +17,12 @@ interface TenantMetaSettings {
   canonicalBase: string;
   twitterCardType: string;
   twitterSite: string;
+  heroBackgroundImage: string;
 }
 
 const DEFAULT_SETTINGS: TenantMetaSettings = {
   siteTitle: 'Vacation Rentals',
   siteName: 'Vacation Rentals',
-  // Use the StayMoxie SVG, not /favicon.ico — that file used to be a Lovable
-  // heart left over from the starter template, and any tenant without a custom
-  // favicon would inherit it.
   favicon: '/moxie-favicon.svg',
   metaDescription: 'Discover vacation rentals.',
   ogTitle: 'Vacation Rentals',
@@ -34,6 +32,7 @@ const DEFAULT_SETTINGS: TenantMetaSettings = {
   canonicalBase: '',
   twitterCardType: 'summary_large_image',
   twitterSite: '',
+  heroBackgroundImage: '',
 };
 
 // Hard-coded platform settings for staymoxie.com
@@ -49,6 +48,7 @@ const PLATFORM_SETTINGS: TenantMetaSettings = {
   canonicalBase: 'https://staymoxie.com',
   twitterCardType: 'summary_large_image',
   twitterSite: '@staymoxie',
+  heroBackgroundImage: '',
 };
 
 /**
@@ -79,7 +79,7 @@ export const useTenantMetaTags = () => {
         .in('key', [
           'siteTitle', 'siteName', 'favicon', 'metaDescription', 
           'ogTitle', 'ogDescription', 'ogImage', 'keywords',
-          'canonicalBase', 'twitterCardType', 'twitterSite'
+          'canonicalBase', 'twitterCardType', 'twitterSite', 'heroBackgroundImage'
         ]);
 
       if (error) {
@@ -109,6 +109,7 @@ export const useTenantMetaTags = () => {
         canonicalBase: settingsMap.canonicalBase || '',
         twitterCardType: settingsMap.twitterCardType || DEFAULT_SETTINGS.twitterCardType,
         twitterSite: settingsMap.twitterSite || '',
+        heroBackgroundImage: settingsMap.heroBackgroundImage || '',
       };
     },
     enabled: !tenantLoading,
@@ -193,6 +194,24 @@ export const useTenantMetaTags = () => {
       }
       if (settings.ogImage) {
         updateMetaTag('meta[name="twitter:image"]', 'content', settings.ogImage);
+      }
+
+      // Preload LCP Hero background image or OG image if available
+      const heroUrl = settings.heroBackgroundImage || settings.ogImage;
+      if (heroUrl) {
+        try {
+          const existingPreloads = document.querySelectorAll('link[rel="preload"][as="image"]');
+          existingPreloads.forEach(el => el.remove());
+
+          const preloadLink = document.createElement('link');
+          preloadLink.setAttribute('rel', 'preload');
+          preloadLink.setAttribute('as', 'image');
+          preloadLink.setAttribute('href', heroUrl);
+          preloadLink.setAttribute('fetchpriority', 'high');
+          document.head.appendChild(preloadLink);
+        } catch (e) {
+          console.error('[TenantMetaTags] Failed to inject LCP preload:', e);
+        }
       }
 
     } catch (error) {

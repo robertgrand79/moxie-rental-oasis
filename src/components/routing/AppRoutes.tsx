@@ -2,19 +2,20 @@ import React, { lazy } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { usePlatform } from '@/contexts/PlatformContext';
 
-// Platform pages (loaded eagerly - smaller)
-import PlatformLayout from '@/components/layouts/PlatformLayout';
-import PlatformHome from '@/pages/platform/PlatformHome';
-import Features from '@/pages/platform/Features';
-import Pricing from '@/pages/platform/Pricing';
-import PlatformAbout from '@/pages/platform/PlatformAbout';
-import PlatformBlog from '@/pages/platform/PlatformBlog';
-import PlatformContact from '@/pages/platform/PlatformContact';
-import PlatformAuth from '@/pages/platform/PlatformAuth';
-import PlatformSignup from '@/pages/platform/PlatformSignup';
-import PlatformGetStarted from '@/pages/platform/PlatformGetStarted';
-import PlatformPrivacy from '@/pages/platform/PlatformPrivacy';
-import PlatformTerms from '@/pages/platform/PlatformTerms';
+// Platform pages (loaded lazily to optimize bundle size)
+const PlatformLayout = lazy(() => import('@/components/layouts/PlatformLayout'));
+const PlatformHome = lazy(() => import('@/pages/platform/PlatformHome'));
+const Features = lazy(() => import('@/pages/platform/Features'));
+const Pricing = lazy(() => import('@/pages/platform/Pricing'));
+const PlatformAbout = lazy(() => import('@/pages/platform/PlatformAbout'));
+const PlatformBlog = lazy(() => import('@/pages/platform/PlatformBlog'));
+const PlatformContact = lazy(() => import('@/pages/platform/PlatformContact'));
+const PlatformAuth = lazy(() => import('@/pages/platform/PlatformAuth'));
+const PlatformSignup = lazy(() => import('@/pages/platform/PlatformSignup'));
+const PlatformGetStarted = lazy(() => import('@/pages/platform/PlatformGetStarted'));
+const PlatformPrivacy = lazy(() => import('@/pages/platform/PlatformPrivacy'));
+const PlatformTerms = lazy(() => import('@/pages/platform/PlatformTerms'));
+
 
 // Core public pages (loaded eagerly - critical path)
 import PublicLayout from '@/components/layouts/PublicLayout';
@@ -92,8 +93,8 @@ const OrganizationSignup = lazy(() => import('@/pages/onboarding/OrganizationSig
 const OnboardingWizard = lazy(() => import('@/pages/onboarding/OnboardingWizard'));
 
 // Platform Admin pages (new command center)
-import PlatformAdminLayout from '@/components/admin/platform/PlatformAdminLayout';
-import PlatformDashboard from '@/components/admin/platform/PlatformDashboard';
+const PlatformAdminLayout = lazy(() => import('@/components/admin/platform/PlatformAdminLayout'));
+const PlatformDashboard = lazy(() => import('@/components/admin/platform/PlatformDashboard'));
 const PlatformOrganizationsPage = lazy(() => import('@/pages/admin/platform/PlatformOrganizationsPage'));
 const PlatformUsersPage = lazy(() => import('@/pages/admin/platform/PlatformUsersPage'));
 const PlatformTemplatesPage = lazy(() => import('@/pages/admin/platform/PlatformTemplatesPage'));

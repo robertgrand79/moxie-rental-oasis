@@ -13,10 +13,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { 
   measurePerformance, 
   preloadCriticalResources, 
-  applyAccessibilitySettings,
-  ensureTouchTargets
+  applyAccessibilitySettings
 } from './utils/performance';
 import { debug } from './utils/debug';
+import { errorTracker } from '@/services/monitoring/errorTracker';
+
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -32,6 +33,9 @@ const queryClient = new QueryClient({
 if (!isRedirecting) {
   // Initialize performance monitoring
   measurePerformance();
+
+  // Initialize error tracking
+  errorTracker.init();
 
   // Preload critical resources
   preloadCriticalResources();
@@ -58,10 +62,6 @@ if (!isRedirecting) {
     }
   }
 
-  // Ensure touch targets are properly sized after DOM load
-  window.addEventListener('load', () => {
-    ensureTouchTargets();
-  });
 
   createRoot(document.getElementById("root")!).render(
     <HelmetProvider>

@@ -259,7 +259,7 @@ serve(async (req) => {
           if (effectivePropertyId) {
             const { error: blockError } = await supabaseClient
               .from("availability_blocks")
-              .insert({
+              .upsert({
                 property_id: effectivePropertyId,
                 start_date: reservation.check_in_date,
                 end_date: reservation.check_out_date,
@@ -268,6 +268,8 @@ serve(async (req) => {
                 external_booking_id: reservationId,
                 notes: `Direct Booking - ${reservation.guest_name}`,
                 sync_status: 'synced',
+              }, {
+                onConflict: 'external_booking_id'
               });
 
             if (blockError) {

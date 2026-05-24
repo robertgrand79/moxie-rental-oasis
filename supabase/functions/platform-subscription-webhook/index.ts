@@ -45,20 +45,24 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    let event: Stripe.Event;
+    if (!webhookSecret) {
+      logStep("Platform Stripe webhook secret not configured");
+      throw new Error("Platform Stripe webhook secret not configured");
+    }
+    if (!signature) {
+      logStep("Missing stripe-signature header");
+      throw new Error("Missing stripe-signature header");
+    }
 
-    if (webhookSecret && signature) {
-      try {
-        event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
-      } catch (err) {
-        logStep("Webhook signature verification failed", { error: err.message });
-        return new Response(JSON.stringify({ error: "Webhook signature verification failed" }), {
-          status: 400,
-        });
-      }
-    } else {
-      event = JSON.parse(body);
-      logStep("WARNING: No webhook secret configured, skipping signature verification");
+    let event: Stripe.Event;
+    try {
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
+    } catch (err) {
+      logStep("Webhook signature verification failed", { error: err.message });
+      return new Response(JSON.stringify({ error: `Webhook signature verification failed: ${err.message}` }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     logStep("Processing event", { type: event.type, id: event.id });

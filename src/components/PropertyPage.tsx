@@ -15,6 +15,7 @@ import PropertyLocationMap from '@/components/property/PropertyLocationMap';
 import { generateAddressSlug } from '@/utils/addressSlug';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { Property } from '@/types/property';
+import DomainSEO from '@/components/seo/DomainSEO';
 
 type PropertyPageErrorBoundaryState = {
   hasError: boolean;
@@ -171,7 +172,13 @@ const PropertyPageContent = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <DomainSEO
+        title={safeProperty.title}
+        description={safeProperty.description}
+        ogImage={coverImage}
+      />
       {coverImage && (
+
         <>
           {isMobile ? (
             <MobilePropertyHero

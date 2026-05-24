@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Anthropic from "npm:@anthropic-ai/sdk@^0.40.1";
 import { CLAUDE_HAIKU, getAnthropicClient } from "../_shared/anthropicClient.ts";
+import { checkAiRateLimit, organizationIdFromAuth, rateLimitResponse } from "../_shared/aiRateLimit.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,9 +49,16 @@ serve(async (req) => {
   }
 
   try {
+    const orgId = await organizationIdFromAuth(req);
+    const rateLimit = await checkAiRateLimit(orgId, "admin_content_gen");
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, corsHeaders);
+    }
+
     if (!Deno.env.get("ANTHROPIC_API_KEY")) {
       throw new Error("ANTHROPIC_API_KEY is not configured");
     }
+
 
     const { type, vibe, imageBase64 } = await req.json();
     console.log("Generating palette for type:", type, "vibe:", vibe);

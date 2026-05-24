@@ -1,80 +1,56 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Property } from '@/types/property';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentOrganization } from '@/contexts/OrganizationContext';
 
 export const usePropertyFetch = () => {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const { organization, loading: orgLoading } = useCurrentOrganization();
+  const queryKey = ['admin-properties', organization?.id];
 
-  const fetchProperties = useCallback(async () => {
-    // Wait for organization to be available
-    if (!organization?.id) {
-      setProperties([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
+  const query = useQuery({
+    queryKey,
+    queryFn: async (): Promise<Property[]> => {
       const { data, error } = await supabase
         .from('properties')
         .select('*')
-        .eq('organization_id', organization.id)
+        .eq('organization_id', organization!.id)
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('❌ usePropertyFetch - Supabase error:', error);
-        console.error('❌ usePropertyFetch - Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        setError(error.message);
         toast({
           title: 'Error',
           description: `Failed to fetch properties: ${error.message}`,
           variant: 'destructive'
         });
-        setProperties([]);
-      } else {
-        const safeProperties = Array.isArray(data) ? data : [];
-        setProperties(safeProperties);
+        throw error;
       }
-    } catch (error) {
-      console.error('❌ usePropertyFetch - Catch block error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      setError(errorMessage);
-      toast({
-        title: 'Error',
-        description: `Failed to fetch properties: ${errorMessage}`,
-        variant: 'destructive'
-      });
-      setProperties([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [organization?.id]);
 
-  useEffect(() => {
-    if (!orgLoading) {
-      fetchProperties();
-    }
-  }, [orgLoading, fetchProperties]);
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!organization?.id && !orgLoading,
+    staleTime: 2 * 60 * 1000, // 2 minutes cache validity
+  });
+
+  const setProperties = (updater: Property[] | ((prev: Property[]) => Property[])) => {
+    queryClient.setQueryData(queryKey, (prev: Property[] | undefined) => {
+      const safePrev = prev || [];
+      if (typeof updater === 'function') {
+        return updater(safePrev);
+      }
+      return updater;
+    });
+  };
 
   return {
-    properties,
+    properties: query.data ?? [],
     setProperties,
-    loading: loading || orgLoading,
-    error,
-    refetch: fetchProperties
+    loading: query.isLoading || orgLoading,
+    error: query.error instanceof Error ? query.error.message : null,
+    refetch: query.refetch
   };
 };

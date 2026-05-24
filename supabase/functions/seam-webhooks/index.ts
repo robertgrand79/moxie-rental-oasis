@@ -70,8 +70,8 @@ async function verifyWebhookSignature(
   }
 
   if (!secret) {
-    console.warn('Missing SEAM_WEBHOOK_SECRET - skipping verification in development');
-    return true; // Allow in development without secret
+    console.error('Missing SEAM_WEBHOOK_SECRET - failing verification');
+    return false;
   }
 
   try {

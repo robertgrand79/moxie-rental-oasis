@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import SimpleOptimizedImage from '@/components/ui/simple-optimized-image';
 import BlogPostFooter from '@/components/blog/BlogPostFooter';
 import SecureContentRenderer from '@/components/SecureContentRenderer';
+import DomainSEO from '@/components/seo/DomainSEO';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -92,7 +93,16 @@ const BlogPost = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to py-16">
+    <>
+      <DomainSEO
+        title={post.title}
+        description={post.excerpt || undefined}
+        ogImage={post.image_url || undefined}
+        type="article"
+        publishedTime={post.published_at || post.created_at}
+        modifiedTime={post.updated_at || undefined}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-gradient-from to-gradient-to py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <Link to="/blog">
@@ -177,6 +187,7 @@ const BlogPost = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

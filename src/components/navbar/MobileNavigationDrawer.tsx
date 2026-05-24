@@ -151,6 +151,7 @@ const MobileNavigationDrawer = ({
                       : 'text-foreground hover:text-foreground hover:bg-accent border border-transparent'
                   }`}
                   onClick={handleLinkClick}
+                  aria-current={isActive ? 'page' : undefined}
                 >
                   <Icon className="h-5 w-5 mr-3" />
                   <span className="text-base">{item.title}</span>

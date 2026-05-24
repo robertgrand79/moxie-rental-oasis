@@ -190,33 +190,25 @@ serve(async (req) => {
           .single();
 
         if (reservationFull) {
-          const { data: existingBlock } = await supabaseClient
+          const { error: blockError } = await supabaseClient
             .from("availability_blocks")
-            .select("id")
-            .eq("external_booking_id", reservationId)
-            .maybeSingle();
+            .upsert({
+              property_id: reservation.property_id,
+              start_date: reservationFull.check_in_date,
+              end_date: reservationFull.check_out_date,
+              block_type: 'booked',
+              source_platform: 'direct',
+              external_booking_id: reservationId,
+              notes: `Direct Booking - ${reservationFull.guest_name}`,
+              sync_status: 'synced',
+            }, {
+              onConflict: 'external_booking_id'
+            });
 
-          if (!existingBlock) {
-            const { error: blockError } = await supabaseClient
-              .from("availability_blocks")
-              .insert({
-                property_id: reservation.property_id,
-                start_date: reservationFull.check_in_date,
-                end_date: reservationFull.check_out_date,
-                block_type: 'booked',
-                source_platform: 'direct',
-                external_booking_id: reservationId,
-                notes: `Direct Booking - ${reservationFull.guest_name}`,
-                sync_status: 'synced',
-              });
-
-            if (blockError) {
-              logStep("Warning: Failed to create availability block", blockError);
-            } else {
-              logStep("Availability block created", { reservationId });
-            }
+          if (blockError) {
+            logStep("Warning: Failed to upsert availability block", blockError);
           } else {
-            logStep("Availability block already exists", { reservationId });
+            logStep("Availability block upserted", { reservationId });
           }
         }
       } catch (blockErr) {

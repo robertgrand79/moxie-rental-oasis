@@ -24,9 +24,26 @@ serve(async (req) => {
     console.log(`Received webhook from ${platform}:`, event_type);
 
     switch (platform) {
-      case 'vrbo':
+      case 'vrbo': {
+        const vrboSecret = Deno.env.get("VRBO_WEBHOOK_SECRET");
+        if (!vrboSecret) {
+          console.error("VRBO_WEBHOOK_SECRET is not configured");
+          return new Response(JSON.stringify({ error: "Webhook not configured" }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        const authHeader = req.headers.get("authorization");
+        if (!authHeader || authHeader !== `Bearer ${vrboSecret}`) {
+          console.error("Unauthorized VRBO webhook request");
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
         await handleVrboWebhook(event_type, data);
         break;
+      }
       default:
         console.log(`Unknown platform: ${platform}`);
     }
@@ -145,7 +162,7 @@ async function syncReservation(data: any, platform: string) {
         guest_count: reservationData.guest_count,
         sync_status: 'synced'
       }, {
-        onConflict: 'property_id,start_date,end_date,block_type'
+        onConflict: 'external_booking_id'
       });
 
     if (blockError) {

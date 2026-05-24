@@ -31,44 +31,47 @@ Deno.serve(async (req) => {
 
     const results = [];
 
-    // Sync organizations with their own API keys
-    for (const org of organizations || []) {
-      console.log(`Syncing organization: ${org.name}`);
-      
-      try {
-        // Call the main sync function for this org
-        const syncResponse = await fetch(`${supabaseUrl}/functions/v1/sync-pricelabs-pricing`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseServiceKey}`,
-          },
-          body: JSON.stringify({
-            organization_id: org.id,
-            sync_type: 'scheduled'
-          })
-        });
+    // Sync organizations with their own API keys in parallel
+    if (organizations && organizations.length > 0) {
+      console.log(`Syncing ${organizations.length} organizations in parallel...`);
+      const orgPromises = organizations.map(async (org) => {
+        try {
+          const syncResponse = await fetch(`${supabaseUrl}/functions/v1/sync-pricelabs-pricing`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+            },
+            body: JSON.stringify({
+              organization_id: org.id,
+              sync_type: 'scheduled'
+            })
+          });
 
-        const syncResult = await syncResponse.json();
-        results.push({
-          organization_id: org.id,
-          organization_name: org.name,
-          ...syncResult
-        });
-      } catch (orgSyncError) {
-        console.error(`Error syncing org ${org.name}:`, orgSyncError);
-        results.push({
-          organization_id: org.id,
-          organization_name: org.name,
-          success: false,
-          error: orgSyncError.message
-        });
-      }
+          const syncResult = await syncResponse.json();
+          return {
+            organization_id: org.id,
+            organization_name: org.name,
+            ...syncResult
+          };
+        } catch (orgSyncError) {
+          console.error(`Error syncing org ${org.name}:`, orgSyncError);
+          return {
+            organization_id: org.id,
+            organization_name: org.name,
+            success: false,
+            error: orgSyncError.message
+          };
+        }
+      });
+
+      const orgResults = await Promise.all(orgPromises);
+      results.push(...orgResults);
     }
 
-    // Also sync properties that use the global API key (no org or org without key)
+    // Also sync properties that use the global API key (no org or org without key) in parallel
     if (globalPriceLabsKey) {
-      console.log('Syncing properties using global API key...');
+      console.log('Fetching properties using global API key...');
       
       // Get properties without org-level API key
       const { data: propertiesWithoutOrgKey } = await supabase
@@ -87,10 +90,9 @@ Deno.serve(async (req) => {
       );
 
       if (propsNeedingGlobalKey.length > 0) {
-        console.log(`Found ${propsNeedingGlobalKey.length} properties using global key`);
+        console.log(`Found ${propsNeedingGlobalKey.length} properties using global key. Syncing in parallel...`);
         
-        // Sync each property individually with global key
-        for (const prop of propsNeedingGlobalKey) {
+        const propPromises = propsNeedingGlobalKey.map(async (prop) => {
           try {
             const syncResponse = await fetch(`${supabaseUrl}/functions/v1/sync-pricelabs-pricing`, {
               method: 'POST',
@@ -105,21 +107,24 @@ Deno.serve(async (req) => {
             });
 
             const syncResult = await syncResponse.json();
-            results.push({
+            return {
               property_id: prop.id,
               property_title: prop.title,
               ...syncResult
-            });
+            };
           } catch (propSyncError) {
             console.error(`Error syncing property ${prop.title}:`, propSyncError);
-            results.push({
+            return {
               property_id: prop.id,
               property_title: prop.title,
               success: false,
               error: propSyncError.message
-            });
+            };
           }
-        }
+        });
+
+        const propResults = await Promise.all(propPromises);
+        results.push(...propResults);
       }
     }
 
