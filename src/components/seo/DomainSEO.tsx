@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTenantSettings } from '@/hooks/useTenantSettings';
-import { useTenantDetection } from '@/hooks/useTenantDetection';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface DomainSEOProps {
   title?: string;
@@ -26,7 +26,7 @@ const DomainSEO: React.FC<DomainSEOProps> = ({
   modifiedTime,
 }) => {
   const { settings, loading } = useTenantSettings();
-  const { tenant } = useTenantDetection();
+  const { tenant } = useTenant();
   
   // Determine the canonical domain safely before early return
   const canonicalDomain = tenant?.custom_domain 
