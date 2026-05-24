@@ -13,20 +13,34 @@ const PropertyDescription = ({ description, isMobile }: PropertyDescriptionProps
   
   // Smart content parsing - split by common patterns
   const parseDescription = (text: string) => {
-    // Look for natural section breaks (periods followed by capital letters, or common section starters)
-    const sections = text.split(/(?<=\.)\s*(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*[:\.])|(?<=\.)\s*(?=Located|Featuring|The|This|Our|With|Each|Perfect)/);
+    if (!text) return [];
+    
+    // First try to split by paragraph breaks (double newlines) which is very standard
+    const paragraphs = text.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
+    if (paragraphs.length > 1) {
+      return paragraphs;
+    }
+    
+    // Fallback: split by sentence or section starter markers without using lookbehinds
+    // This is 100% compatible with older Safari/WebKit versions that don't support lookbehinds.
+    const delimited = text.replace(
+      /([.!?])\s*(?=[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*[:\.])|([.!?])\s*(?=(?:Located|Featuring|The|This|Our|With|Each|Perfect))/g,
+      (match, g1, g2) => `${g1 || g2 || match}|`
+    );
+    const sections = delimited.split('|').map(s => s.trim()).filter(Boolean);
     
     if (sections.length <= 1) {
       // If no natural sections found, create chunks by sentence count
-      const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+      const sentences = text.split(/[.!?]+/).map(s => s.trim()).filter(Boolean);
       const chunks = [];
       for (let i = 0; i < sentences.length; i += 2) {
-        chunks.push(sentences.slice(i, i + 2).join('. ') + '.');
+        const chunk = sentences.slice(i, i + 2).join('. ');
+        if (chunk) chunks.push(chunk + '.');
       }
       return chunks;
     }
     
-    return sections.filter(s => s.trim().length > 0);
+    return sections;
   };
 
   const sections = parseDescription(description);
@@ -113,7 +127,7 @@ const PropertyDescription = ({ description, isMobile }: PropertyDescriptionProps
         {/* Main Description */}
         <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100">
           <div className="prose prose-sm max-w-none">
-            <p className="text-gray-700 leading-relaxed mb-0">
+            <p className="text-gray-700 leading-relaxed mb-0 whitespace-pre-line">
               {firstSection}
             </p>
             
@@ -121,7 +135,7 @@ const PropertyDescription = ({ description, isMobile }: PropertyDescriptionProps
               <div className="mt-4 space-y-3">
                 {remainingSections.map((section, index) => (
                   <div key={index} className="pl-4 border-l-2 border-primary/20">
-                    <p className="text-gray-600 leading-relaxed mb-0 text-sm">
+                    <p className="text-gray-600 leading-relaxed mb-0 text-sm whitespace-pre-line">
                       {section.trim()}
                     </p>
                   </div>
@@ -174,7 +188,7 @@ const PropertyDescription = ({ description, isMobile }: PropertyDescriptionProps
         {/* Primary Section */}
         <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 border border-gray-100 shadow-sm">
           <div className="prose prose-lg max-w-none">
-            <p className="text-gray-700 leading-relaxed text-lg font-medium mb-0">
+            <p className="text-gray-700 leading-relaxed text-lg font-medium mb-0 whitespace-pre-line">
               {firstSection}
             </p>
           </div>
@@ -188,7 +202,7 @@ const PropertyDescription = ({ description, isMobile }: PropertyDescriptionProps
                 <div className="flex items-start space-x-4">
                   <div className="w-3 h-3 bg-primary rounded-full mt-2 flex-shrink-0"></div>
                   <div className="prose max-w-none">
-                    <p className="text-gray-600 leading-relaxed mb-0 text-base">
+                    <p className="text-gray-600 leading-relaxed mb-0 text-base whitespace-pre-line">
                       {section.trim()}
                     </p>
                   </div>

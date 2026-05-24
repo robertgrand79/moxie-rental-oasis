@@ -263,6 +263,19 @@ export const useTenantDetection = (): TenantDetectionResult => {
         }
 
         // Strategy 3: Fallback to primary template organization for preview/development
+        // Skip fallback if we are on the main platform domain (staymoxie.com)
+        const hostname = window.location.hostname;
+        const PLATFORM_DOMAIN = 'staymoxie.com';
+        if (hostname === PLATFORM_DOMAIN || hostname === `www.${PLATFORM_DOMAIN}`) {
+          logTenant('On platform domain - skipping template fallback');
+          if (isMounted) {
+            setTenant(null);
+            setIsDefaultTenant(false);
+            setLoading(false);
+          }
+          return;
+        }
+
         // This ensures the public site works on Lovable preview without requiring login
         logTenant('Trying fallback to primary template organization...');
         

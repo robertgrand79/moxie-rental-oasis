@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { useTenant } from '@/contexts/TenantContext';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { cn } from '@/lib/utils';
 import { useLocation } from 'react-router-dom';
 import ChatAvatar from '@/components/chat/ChatAvatar';
@@ -158,6 +159,7 @@ const clearConversation = (tenantId: string) => {
 const PublicChatWidget = () => {
   const location = useLocation();
   const { tenant } = useTenant();
+  const { isPlatformSite } = usePlatform();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -410,8 +412,8 @@ const PublicChatWidget = () => {
     e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
   };
 
-  // Not rendered on admin or platform marketing routes.
-  if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/platform')) {
+  // Not rendered on admin, platform marketing routes, or the main platform site.
+  if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/platform') || isPlatformSite) {
     return null;
   }
 
