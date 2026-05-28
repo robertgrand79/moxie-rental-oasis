@@ -48,23 +48,23 @@ BEGIN
     RAISE EXCEPTION 'Invalid guest count';
   END IF;
   
-  -- Rate limiting: max 5 reservations per email per hour
+  -- Rate limiting: max 15 reservations per email per hour
   SELECT COUNT(*) INTO recent_count
   FROM public.property_reservations
   WHERE guest_email = NEW.guest_email
     AND created_at > NOW() - INTERVAL '1 hour';
     
-  IF recent_count >= 5 THEN
+  IF recent_count >= 15 THEN
     RAISE EXCEPTION 'Too many reservation attempts. Please try again later.';
   END IF;
   
-  -- Rate limiting: max 10 reservations per property per hour (anti-scraping)
+  -- Rate limiting: max 30 reservations per property per hour (anti-scraping)
   SELECT COUNT(*) INTO recent_count
   FROM public.property_reservations
   WHERE property_id = NEW.property_id
     AND created_at > NOW() - INTERVAL '1 hour';
     
-  IF recent_count >= 10 THEN
+  IF recent_count >= 30 THEN
     RAISE EXCEPTION 'This property has too many pending reservations. Please try again later.';
   END IF;
   
