@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -146,6 +147,10 @@ serve(async (req) => {
       throw new Error("No Stripe key configured for this property");
     }
 
+    if (stripeKey && isEncrypted(stripeKey)) {
+      stripeKey = await decryptApiKey(stripeKey);
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
     const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -165,13 +170,19 @@ serve(async (req) => {
       bookingStatus = "cancelled";
     }
 
+    const updateData: any = {
+      payment_status: paymentStatus,
+      booking_status: bookingStatus,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (session.payment_intent) {
+      updateData.stripe_payment_intent_id = session.payment_intent as string;
+    }
+
     const { error: updateError } = await supabaseClient
       .from("property_reservations")
-      .update({
-        payment_status: paymentStatus,
-        booking_status: bookingStatus,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", reservationId);
 
     if (updateError) {

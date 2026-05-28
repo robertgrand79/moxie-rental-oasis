@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -77,6 +78,10 @@ serve(async (req) => {
 
     if (!activeStripeKey) {
       throw new Error("Stripe not configured for this property or organization");
+    }
+
+    if (activeStripeKey && isEncrypted(activeStripeKey)) {
+      activeStripeKey = await decryptApiKey(activeStripeKey);
     }
 
     const stripe = new Stripe(activeStripeKey, { apiVersion: "2023-10-16" });

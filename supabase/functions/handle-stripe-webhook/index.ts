@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { decryptApiKey, isEncrypted } from "../_shared/encryption.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -202,6 +203,14 @@ serve(async (req) => {
       throw new Error("No Stripe key configured");
     }
 
+    if (stripeKey && isEncrypted(stripeKey)) {
+      stripeKey = await decryptApiKey(stripeKey);
+    }
+
+    if (webhookSecret && isEncrypted(webhookSecret)) {
+      webhookSecret = await decryptApiKey(webhookSecret);
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
     try {
@@ -235,6 +244,7 @@ serve(async (req) => {
           .update({
             payment_status: "paid",
             booking_status: "confirmed",
+            stripe_payment_intent_id: session.payment_intent as string,
           })
           .eq("id", reservationId);
 
@@ -403,6 +413,7 @@ serve(async (req) => {
             .update({
               payment_status: "failed",
               payment_notes: paymentIntent.last_payment_error?.message || 'Payment failed',
+              stripe_payment_intent_id: paymentIntent.id,
             })
             .eq("id", reservationId);
 
