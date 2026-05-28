@@ -259,10 +259,13 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     
     // Safety timeout to prevent infinite loading
     const timeout = setTimeout(() => {
-      if (loading) {
-        debug.warn('Organization context loading timeout - forcing completion');
-        setLoading(false);
-      }
+      setLoading((currentLoading) => {
+        if (currentLoading) {
+          debug.warn('Organization context loading timeout - forcing completion');
+          return false;
+        }
+        return currentLoading;
+      });
     }, 8000);
     
     return () => clearTimeout(timeout);

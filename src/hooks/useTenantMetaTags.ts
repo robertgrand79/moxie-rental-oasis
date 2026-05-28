@@ -198,26 +198,33 @@ export const useTenantMetaTags = () => {
 
       // Preload LCP Hero background image or OG image if available
       const heroUrl = settings.heroBackgroundImage || settings.ogImage;
-      if (heroUrl) {
+      if (heroUrl && isHomePage) {
         try {
-          const existingPreloads = document.querySelectorAll('link[rel="preload"][as="image"]');
-          existingPreloads.forEach(el => el.remove());
+          const existingPreload = document.querySelector(`link[rel="preload"][as="image"][href="${heroUrl}"]`);
+          if (!existingPreload) {
+            const existingPreloads = document.querySelectorAll('link[rel="preload"][as="image"]');
+            existingPreloads.forEach(el => el.remove());
 
-          const preloadLink = document.createElement('link');
-          preloadLink.setAttribute('rel', 'preload');
-          preloadLink.setAttribute('as', 'image');
-          preloadLink.setAttribute('href', heroUrl);
-          preloadLink.setAttribute('fetchpriority', 'high');
-          document.head.appendChild(preloadLink);
+            const preloadLink = document.createElement('link');
+            preloadLink.setAttribute('rel', 'preload');
+            preloadLink.setAttribute('as', 'image');
+            preloadLink.setAttribute('href', heroUrl);
+            preloadLink.setAttribute('fetchpriority', 'high');
+            document.head.appendChild(preloadLink);
+          }
         } catch (e) {
           console.error('[TenantMetaTags] Failed to inject LCP preload:', e);
         }
+      } else {
+        // Clean up preloads on subpages to avoid browser warnings
+        const existingPreloads = document.querySelectorAll('link[rel="preload"][as="image"]');
+        existingPreloads.forEach(el => el.remove());
       }
 
     } catch (error) {
       console.error('[TenantMetaTags] Error updating meta tags:', error);
     }
-  }, [settings, location.pathname]);
+  }, [settings, location.pathname, isHomePage]);
 
   return { isHomePage, settings };
 };

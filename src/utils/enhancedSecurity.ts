@@ -37,7 +37,9 @@ export const addSecurityHeaders = (): void => {
     script-src 'self' 'unsafe-inline' 'unsafe-eval' 
       https://*.googletagmanager.com 
       https://*.google-analytics.com 
-      https://*.stripe.com;
+      https://*.stripe.com
+      https://vercel.live
+      https://*.vercel.live;
     connect-src 'self' 
       https://*.supabase.co 
       wss://*.supabase.co
@@ -46,18 +48,32 @@ export const addSecurityHeaders = (): void => {
       https://api.mapbox.com
       https://*.mapbox.com
       https://*.tiles.mapbox.com
-      https://events.mapbox.com;
+      https://events.mapbox.com
+      https://vercel.live
+      https://*.vercel.live
+      wss://*.vercel.live
+      https://vercel.com;
     frame-src 'self' 
-      https://*.stripe.com;
+      https://*.stripe.com
+      https://vercel.live
+      https://*.vercel.live
+      https://vercel.com;
     img-src 'self' data: blob: https:
       https://*.supabase.co
       https://*.googletagmanager.com 
       https://*.google-analytics.com
-      https://*.mapbox.com;
+      https://*.mapbox.com
+      https://vercel.live
+      https://*.vercel.live
+      https://vercel.com;
     style-src 'self' 'unsafe-inline' 
-      https://fonts.googleapis.com;
+      https://fonts.googleapis.com
+      https://vercel.live
+      https://*.vercel.live;
     font-src 'self' 
-      https://fonts.gstatic.com;
+      https://fonts.gstatic.com
+      https://vercel.live
+      https://*.vercel.live;
     worker-src 'self' blob:;
     child-src 'self' blob:;
   `.replace(/\s+/g, ' ').trim();

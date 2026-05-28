@@ -317,9 +317,14 @@ export const useTenantDetection = (): TenantDetectionResult => {
 
     // Safety timeout
     const safetyTimeout = setTimeout(() => {
-      if (isMounted && loading) {
-        logTenant('⚠️ Safety timeout reached (8s), forcing load complete');
-        setLoading(false);
+      if (isMounted) {
+        setLoading((currentLoading) => {
+          if (currentLoading) {
+            logTenant('⚠️ Safety timeout reached (8s), forcing load complete');
+            return false;
+          }
+          return currentLoading;
+        });
       }
     }, 8000);
 

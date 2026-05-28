@@ -90,8 +90,31 @@ const PropertyStripeCard = ({ property }: { property: Property }) => {
   };
 
   const handleSave = async () => {
-    if (!formData.stripeSecretKey && !formData.stripePublishableKey) {
-      toast.error('Please enter at least a Secret Key and Publishable Key');
+    const updateObj: any = {
+      property_id: property.id,
+      updated_at: new Date().toISOString(),
+    };
+    
+    let hasChanges = false;
+    if (formData.stripeSecretKey.trim()) {
+      updateObj.stripe_secret_key = formData.stripeSecretKey.trim();
+      hasChanges = true;
+    }
+    if (formData.stripePublishableKey.trim()) {
+      updateObj.stripe_publishable_key = formData.stripePublishableKey.trim();
+      hasChanges = true;
+    }
+    if (formData.stripeWebhookSecret.trim()) {
+      updateObj.stripe_webhook_secret = formData.stripeWebhookSecret.trim();
+      hasChanges = true;
+    }
+    if (formData.stripeAccountId.trim()) {
+      updateObj.stripe_account_id = formData.stripeAccountId.trim();
+      hasChanges = true;
+    }
+
+    if (!hasChanges) {
+      toast.error('Please enter at least one field to save');
       return;
     }
 
@@ -99,14 +122,7 @@ const PropertyStripeCard = ({ property }: { property: Property }) => {
     try {
       const { error } = await supabase
         .from('property_stripe_credentials')
-        .upsert({
-          property_id: property.id,
-          stripe_secret_key: formData.stripeSecretKey || null,
-          stripe_publishable_key: formData.stripePublishableKey || null,
-          stripe_webhook_secret: formData.stripeWebhookSecret || null,
-          stripe_account_id: formData.stripeAccountId || null,
-          updated_at: new Date().toISOString(),
-        }, {
+        .upsert(updateObj, {
           onConflict: 'property_id'
         });
 
@@ -300,11 +316,14 @@ const PropertyStripeCard = ({ property }: { property: Property }) => {
       </div>
 
       <div className="flex gap-2 pt-2">
-        {!hasStripeConfigured && (
-          <Button type="button" onClick={handleSave} disabled={isAnySaving} size="sm">
-            {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</> : 'Save Settings'}
-          </Button>
-        )}
+        <Button 
+          type="button" 
+          onClick={handleSave} 
+          disabled={isAnySaving || (!formData.stripeSecretKey.trim() && !formData.stripePublishableKey.trim() && !formData.stripeWebhookSecret.trim() && !formData.stripeAccountId.trim())} 
+          size="sm"
+        >
+          {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</> : 'Save Settings'}
+        </Button>
         {hasStripeConfigured && (
           <Button type="button" variant="outline" onClick={handleClear} disabled={isAnySaving} size="sm">
             {clearing ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Clearing...</> : <><Trash2 className="h-4 w-4 mr-2" />Clear Settings</>}
